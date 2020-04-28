@@ -12,10 +12,8 @@ object EstimationHandler extends App {
 
   val main: ZIO[Console with CohortTable with Zuora, Failure, Unit] =
     for {
-      cohortItems <- CohortTable
-        .fetch(ReadyForEstimation, batchSize)
-        .tap(items => console.putStrLn(items.toString))
-      results <- ZIO.foreach(cohortItems)(estimation).tap(rs => console.putStrLn(rs.toString))
+      cohortItems <- CohortTable.fetch(ReadyForEstimation, batchSize)
+      results <- ZIO.foreach(cohortItems)(estimation)
       _ <- ZIO.foreach(results)(CohortTable.update)
     } yield ()
 
