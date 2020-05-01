@@ -21,3 +21,4 @@ lazy val dynamoDb = (project in file("dynamoDb"))
     riffRaffManifestProjectName := "MemSub::Subscriptions::DynamoDb::PriceMigrationEngine"
   )
 
+
