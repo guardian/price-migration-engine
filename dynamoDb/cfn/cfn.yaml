@@ -21,55 +21,15 @@ Resources:
       AttributeDefinitions:
         - AttributeName: "subscription-number"
           AttributeType: "S"
-        - AttributeName: "is-sf-showing-estimate"
-          AttributeType: "N"
-        - AttributeName: "is-braze-warned"
-          AttributeType: "N"
-        - AttributeName: "is-amended"
-          AttributeType: "N"
-        - AttributeName: "is-sf-showing-amendment"
-          AttributeType: "N"
-        - AttributeName: "is-braze-confirmed"
-          AttributeType: "N"
-        - AttributeName: "is-cancelled"
-          AttributeType: "N"
+        - AttributeName: "processing-stage"
+          AttributeType: "S"
       KeySchema:
         - AttributeName: "subscription-number"
           KeyType: "HASH"
       GlobalSecondaryIndexes:
-        - IndexName: "is-sf-showing-estimate-index"
+        - IndexName: "processing-stage-index"
           KeySchema:
-            - AttributeName: "is-sf-showing-estimate"
-              KeyType: "HASH"
-          Projection:
-            ProjectionType: "KEYS_ONLY"
-        - IndexName: "is-braze-warned-index"
-          KeySchema:
-            - AttributeName: "is-braze-warned"
-              KeyType: "HASH"
-          Projection:
-            ProjectionType: "KEYS_ONLY"
-        - IndexName: "is-amended-index"
-          KeySchema:
-            - AttributeName: "is-amended"
-              KeyType: "HASH"
-          Projection:
-            ProjectionType: "KEYS_ONLY"
-        - IndexName: "is-sf-showing-amendment-index"
-          KeySchema:
-            - AttributeName: "is-sf-showing-amendment"
-              KeyType: "HASH"
-          Projection:
-            ProjectionType: "KEYS_ONLY"
-        - IndexName: "is-braze-confirmed-index"
-          KeySchema:
-            - AttributeName: "is-braze-confirmed"
-              KeyType: "HASH"
-          Projection:
-            ProjectionType: "KEYS_ONLY"
-        - IndexName: "is-cancelled-index"
-          KeySchema:
-            - AttributeName: "is-cancelled"
+            - AttributeName: "processing-stage"
               KeyType: "HASH"
           Projection:
             ProjectionType: "KEYS_ONLY"
