@@ -13,7 +13,7 @@ Parameters:
     Default: CODE
 
 Resources:
-  AtomWorkshopPreviewDynamoTable:
+  PriceMigrationEngineDynamoTable:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: !Sub price-migration-engine-${Stage}
