@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{ZuoraAccount, ZuoraFetchFailure, ZuoraSubscription}
+import pricemigrationengine.model._
 import zio.{ZIO, ZLayer}
 
 object ZuoraTest {
@@ -8,11 +8,10 @@ object ZuoraTest {
     new Zuora.Service {
 
       def fetchSubscription(name: String): ZIO[Any, ZuoraFetchFailure, ZuoraSubscription] =
-        ZIO.succeed(ZuoraSubscription("A-S123"))
-//      def fetchSubscription(name: String): ZIO[Any, ZuoraFetchFailure, ZuoraSubscription] =
-//        ZIO.fail(ZuoraFetchFailure("failure!"))
+        ZIO.fail(ZuoraFetchFailure("failure!"))
 
-      def fetchAccount(id: String): ZIO[Any, ZuoraFetchFailure, ZuoraAccount] = ZIO.succeed(ZuoraAccount("A1"))
+      def fetchAccount(id: String): ZIO[Any, ZuoraFetchFailure, ZuoraAccount] =
+        ZIO.succeed(ZuoraAccount(ZuoraAccountBillingAndPayment(0)))
     }
   )
 }

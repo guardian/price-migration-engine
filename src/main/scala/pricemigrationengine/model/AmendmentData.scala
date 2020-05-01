@@ -8,16 +8,19 @@ object AmendmentData {
 
   def apply(
       subscription: ZuoraSubscription,
-      earliestStartDate: LocalDate
+      account: ZuoraAccount,
+      earliestStartDate: LocalDate,
+      currentDate: LocalDate
   ): Either[AmendmentDataFailure, AmendmentData] =
     for {
-      startDate <- nextBillingDate(subscription, earliestStartDate.minusDays(1))
+      startDate <- BillingDate.nextBillingDate(
+        subscription,
+        account,
+        after = earliestStartDate.minusDays(1),
+        currentDate
+      )
       price <- newPrice(subscription)
     } yield AmendmentData(startDate, price)
-
-  // TODO
-  def nextBillingDate(subscription: ZuoraSubscription, after: LocalDate): Either[AmendmentDataFailure, LocalDate] =
-    Left(AmendmentDataFailure("nextBillingDate not implemented!"))
 
   // TODO
   def newPrice(subscription: ZuoraSubscription): Either[AmendmentDataFailure, Double] =
