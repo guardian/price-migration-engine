@@ -1,0 +1,1 @@
+addSbtPlugin("com.gu" % "sbt-riffraff-artifact" % "1.0.0")
