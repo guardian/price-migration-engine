@@ -67,3 +67,9 @@ Resources:
               KeyType: "HASH"
           Projection:
             ProjectionType: "KEYS_ONLY"
+        - IndexName: "is-cancelled-index"
+          KeySchema:
+            - AttributeName: "is-cancelled"
+              KeyType: "HASH"
+          Projection:
+            ProjectionType: "KEYS_ONLY"
