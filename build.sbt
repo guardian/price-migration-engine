@@ -16,10 +16,10 @@ lazy val dynamoDb = (project in file("dynamoDb"))
     name := "price-migration-engine",
     name := "price-migration-engine-dynamo-db",
     description:= "Cloudformation for price-migration-engine-dynamo-db",
+    riffRaffPackageType := (baseDirectory.value / "cloudformation"),
     riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
     riffRaffUploadManifestBucket := Option("riffraff-builds"),
-    riffRaffManifestProjectName := "MemSub::Subscriptions::DynamoDb::PriceMigrationEngine",
-    riffRaffArtifactResources += ((baseDirectory.value / "cloudformation" / "cfn.yaml"), "cfn/cfn.yaml")
+    riffRaffManifestProjectName := "MemSub::Subscriptions::DynamoDb::PriceMigrationEngine"
   )
 
 
