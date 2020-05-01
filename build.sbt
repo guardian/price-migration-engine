@@ -11,6 +11,7 @@ lazy val root = (project in file("."))
   .aggregate(dynamoDb)
 
 lazy val dynamoDb = (project in file("dynamoDb"))
+  .enablePlugins(RiffRaffArtifact)
   .settings(
     name := "price-migration-engine",
     name := "price-migration-engine-dynamo-db",
