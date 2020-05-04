@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Generate the DynamoDB tables for the price-migration-engine
+
+Parameters:
+  Stage:
+    Description: Stage name
+    Type: String
+    AllowedValues:
+      - DEV
+      - CODE
+      - PROD
+    Default: CODE
+
+Resources:
+  PriceMigrationEngineDynamoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub price-migration-engine-${Stage}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: "subscription-number"
+          AttributeType: "S"
+        - AttributeName: "processing-stage"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "subscription-number"
+          KeyType: "HASH"
+      GlobalSecondaryIndexes:
+        - IndexName: "processing-stage-index"
+          KeySchema:
+            - AttributeName: "processing-stage"
+              KeyType: "HASH"
+          Projection:
+            ProjectionType: "KEYS_ONLY"
