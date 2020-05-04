@@ -16,20 +16,20 @@ Resources:
   PriceMigrationEngineDynamoTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub price-migration-engine-${Stage}
+      TableName: !Sub PriceMigrationEngine${Stage}
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
-        - AttributeName: "subscription-number"
+        - AttributeName: "SubscriptionNumber"
           AttributeType: "S"
-        - AttributeName: "processing-stage"
+        - AttributeName: "ProcessingStage"
           AttributeType: "S"
       KeySchema:
-        - AttributeName: "subscription-number"
+        - AttributeName: "SubscriptionNumber"
           KeyType: "HASH"
       GlobalSecondaryIndexes:
-        - IndexName: "processing-stage-index"
+        - IndexName: "ProcessingStageIndex"
           KeySchema:
-            - AttributeName: "processing-stage"
+            - AttributeName: "ProcessingStage"
               KeyType: "HASH"
           Projection:
             ProjectionType: "KEYS_ONLY"
