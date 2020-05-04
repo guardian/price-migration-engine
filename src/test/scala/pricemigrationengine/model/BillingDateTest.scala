@@ -16,6 +16,13 @@ class BillingDateTest extends munit.FunSuite {
     read[ZuoraSubscription](subscriptionRaw)
   }
 
+  test("billing date is correct for a monthly sub") {
+    val sub = subscriptionFromJson("Monthly.json")
+    val account = ZuoraAccount(ZuoraAccountBillingAndPayment(1))
+    val startDate = BillingDate.nextBillingDate(sub, account, after = migrationStartDate, currentDate)
+    assertEquals(startDate, Right(LocalDate.of(2021, 1, 6)))
+  }
+
   test("billing date is correct for a monthly discounted sub") {
     val sub = subscriptionFromJson("MonthlyDiscounted.json")
     val account = ZuoraAccount(ZuoraAccountBillingAndPayment(1))
