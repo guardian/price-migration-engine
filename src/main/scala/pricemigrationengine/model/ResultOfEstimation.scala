@@ -8,11 +8,16 @@ sealed trait ResultOfEstimation {
 
 object ResultOfEstimation {
 
-  def fromSubscription(subscription: ZuoraSubscription): ResultOfEstimation =
-    AmendmentData(subscription, LocalDate.now) match {
-      case Left(failure) => EstimationFailed(subscription.name, failure)
+  def apply(
+      subscription: ZuoraSubscription,
+      account: ZuoraAccount,
+      earliestStartDate: LocalDate,
+      currentDate: LocalDate
+  ): ResultOfEstimation =
+    AmendmentData(subscription, account, earliestStartDate, currentDate) match {
+      case Left(failure) => EstimationFailed(subscription.subscriptionNumber, failure)
       case Right(amendmentData) =>
-        EstimationSucceeded(subscription.name, amendmentData.startDate, amendmentData.newPrice)
+        EstimationSucceeded(subscription.subscriptionNumber, amendmentData.startDate, amendmentData.newPrice)
     }
 }
 
