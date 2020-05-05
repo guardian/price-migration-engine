@@ -1,5 +1,7 @@
 package pricemigrationengine.services
 
+import java.time.LocalDate
+
 import pricemigrationengine.model._
 import zio.{ZIO, ZLayer}
 
@@ -10,8 +12,8 @@ object ZuoraTest {
       def fetchSubscription(name: String): ZIO[Any, ZuoraFetchFailure, ZuoraSubscription] =
         ZIO.fail(ZuoraFetchFailure("failure!"))
 
-      def fetchAccount(id: String): ZIO[Any, ZuoraFetchFailure, ZuoraAccount] =
-        ZIO.succeed(ZuoraAccount(ZuoraAccountBillingAndPayment(0)))
+      def fetchInvoicePreview(accountId: String): ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList] =
+        ZIO.succeed(ZuoraInvoiceList(Seq(ZuoraInvoiceItem(LocalDate.now))))
     }
   )
 }

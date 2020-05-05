@@ -8,11 +8,10 @@ object EstimationResult {
 
   def apply(
       subscription: ZuoraSubscription,
-      account: ZuoraAccount,
-      earliestStartDate: LocalDate,
-      currentDate: LocalDate
+      invoiceList: ZuoraInvoiceList,
+      earliestStartDate: LocalDate
   ): Either[AmendmentDataFailure, EstimationResult] =
-    AmendmentData(subscription, account, earliestStartDate, currentDate) map { amendmentData =>
+    AmendmentData(subscription, invoiceList, earliestStartDate) map { amendmentData =>
       EstimationResult(subscription.subscriptionNumber, amendmentData.startDate, amendmentData.newPrice)
     }
 }

@@ -1,3 +1,0 @@
-package pricemigrationengine.model
-
-case class ZuoraAccount(billingAndPayment: ZuoraAccountBillingAndPayment)
