@@ -16,7 +16,7 @@ object CohortTableTest {
           } yield items
         }
 
-        def update(result: ResultOfEstimation): ZIO[Any, CohortUpdateFailure, Unit] =
+        def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] =
           for {
             _ <- console.putStrLn(s"Updating cohort table with result: $result")
           } yield ()

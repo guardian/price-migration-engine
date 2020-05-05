@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import java.time.LocalDate
 
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
-import pricemigrationengine.model.{CohortItem, EstimationFailed, Failure, ResultOfEstimation}
+import pricemigrationengine.model._
 import pricemigrationengine.services.{CohortTable, CohortTableTest, Zuora, ZuoraTest}
 import zio.console.Console
 import zio.{App, ZEnv, ZIO, console}
@@ -21,12 +21,12 @@ object EstimationHandler extends App {
       _ <- ZIO.foreach(results)(CohortTable.update)
     } yield ()
 
-  def estimation(item: CohortItem, earliestStartDate: LocalDate): ZIO[Zuora, Nothing, ResultOfEstimation] = {
+  def estimation(item: CohortItem, earliestStartDate: LocalDate): ZIO[Zuora, Failure, EstimationResult] = {
     val result = for {
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
-      invoices <- Zuora.fetchInvoicePreview(subscription.accountId)
-    } yield ResultOfEstimation(subscription, invoices, earliestStartDate)
-    result.catchAll(e => ZIO.succeed(EstimationFailed(item.subscriptionName, e)))
+      invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId)
+    } yield EstimationResult(subscription, invoicePreview, earliestStartDate)
+    result.absolve
   }
 
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
