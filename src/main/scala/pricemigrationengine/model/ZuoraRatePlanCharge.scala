@@ -2,6 +2,8 @@ package pricemigrationengine.model
 
 import java.time.LocalDate
 
+import upickle.default.{ReadWriter, macroRW}
+
 case class ZuoraRatePlanCharge(
     name: String,
     price: Double,
@@ -18,3 +20,7 @@ case class ZuoraRatePlanCharge(
     triggerDate: Option[LocalDate] = None,
     discountPercentage: Option[Double] = None
 )
+
+object ZuoraRatePlanCharge {
+  implicit val rw: ReadWriter[ZuoraRatePlanCharge] = macroRW
+}

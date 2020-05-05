@@ -10,11 +10,10 @@ object ResultOfEstimation {
 
   def apply(
       subscription: ZuoraSubscription,
-      account: ZuoraAccount,
-      earliestStartDate: LocalDate,
-      currentDate: LocalDate
+      invoiceList: ZuoraInvoiceList,
+      earliestStartDate: LocalDate
   ): ResultOfEstimation =
-    AmendmentData(subscription, account, earliestStartDate, currentDate) match {
+    AmendmentData(subscription, invoiceList, earliestStartDate) match {
       case Left(failure) => EstimationFailed(subscription.subscriptionNumber, failure)
       case Right(amendmentData) =>
         EstimationSucceeded(subscription.subscriptionNumber, amendmentData.startDate, amendmentData.newPrice)
