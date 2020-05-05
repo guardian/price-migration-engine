@@ -2,6 +2,7 @@ package pricemigrationengine.handlers
 
 import java.time.LocalDate
 
+import pricemigrationengine.dynamodb.{DynamoDBClient, DynamoDbSerializer}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model.{AmendmentDataFailure, CohortItem, EstimationFailed, Failure, ResultOfEstimation}
 import pricemigrationengine.services.{CohortTable, CohortTableTest, Zuora, ZuoraTest}
@@ -34,7 +35,9 @@ object EstimationHandler extends App {
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
     main
       .provideCustomLayer(
-        CohortTableTest.impl ++ ZuoraTest.impl
+        DynamoDBClient.dynamoDB >>>
+        DynamoDbSerializer.impl >>>
+        (CohortTable.impl ++ ZuoraTest.impl)
       )
       .foldM(
         e => console.putStrLn(s"Failed: $e") *> ZIO.succeed(1),

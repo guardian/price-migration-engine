@@ -1,7 +1,9 @@
 package pricemigrationengine.services
 
+import pricemigrationengine.dynamodb.DynamoDbSerializer
 import pricemigrationengine.model._
-import zio.ZIO
+import zio.{ZIO, ZLayer}
+
 
 object CohortTable {
 
@@ -16,4 +18,6 @@ object CohortTable {
 
   def update(result: ResultOfEstimation): ZIO[CohortTable, CohortUpdateFailure, Unit] =
     ZIO.accessM(_.get.update(result))
+
+  val impl: ZLayer[DynamoDbSerializer, String, UserRepo] = ???
 }
