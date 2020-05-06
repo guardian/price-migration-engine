@@ -2,6 +2,7 @@ package pricemigrationengine.services
 
 import pricemigrationengine.model._
 import zio.console.Console
+import zio.stream.ZStream
 import zio.{ZIO, ZLayer}
 
 object CohortTableTest {
@@ -9,11 +10,13 @@ object CohortTableTest {
     console =>
       new CohortTable.Service {
 
-        def fetch(filter: CohortTableFilter, batchSize: Int): ZIO[Any, CohortFetchFailure, Set[CohortItem]] = {
-          val items = Set(CohortItem("A-S123"), CohortItem("A-S234"), CohortItem("A-S345"))
-          for {
-            _ <- console.putStrLn(s"Fetched from cohort table: $items")
-          } yield items
+        def fetch(filter: CohortTableFilter, batchSize: Int): ZStream[Any, CohortFetchFailure, CohortItem] = {
+//          val items: ZStream[Any, CohortFetchFailure, CohortItem] =
+          ZStream(CohortItem("A-S123"), CohortItem("A-S234"), CohortItem("A-S345"))
+            .mapM(item => ZIO.effect(item).mapError(_ => CohortFetchFailure("")))
+//          for {
+//            _ <- console.putStrLn(s"Fetched from cohort table: $items")
+//          } yield items
         }
 
         def update(result: ResultOfEstimation): ZIO[Any, CohortUpdateFailure, Unit] =

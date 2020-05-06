@@ -2,13 +2,12 @@ package pricemigrationengine.handlers
 
 import java.time.LocalDate
 
-import pricemigrationengine.dynamodb.{DynamoDBClient, DynamoDbSerializer}
+import pricemigrationengine.dynamodb.{DynamoDBClient, DynamoDBZIO}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
-import pricemigrationengine.model.{AmendmentDataFailure, CohortItem, EstimationFailed, Failure, ResultOfEstimation}
-import pricemigrationengine.services.{CohortTable, CohortTableTest, Zuora, ZuoraTest}
+import pricemigrationengine.model._
+import pricemigrationengine.services.{CohortTable, Zuora, ZuoraTest}
 import zio.clock.Clock
-import zio.console.Console
-import zio.{App, ZEnv, ZIO, clock, console}
+import zio._
 
 object EstimationHandler extends App {
 
@@ -16,12 +15,12 @@ object EstimationHandler extends App {
   val batchSize = 100
   val earliestStartDate = LocalDate.now
 
-  val main: ZIO[Console with Clock with CohortTable with Zuora, Failure, Unit] =
+  val main: ZIO[CohortTable with Clock with Zuora, Failure, Unit] =
     for {
       cohortItems <- CohortTable.fetch(ReadyForEstimation, batchSize)
-      results <- ZIO.foreach(cohortItems)(item => estimation(item, earliestStartDate))
-      _ <- ZIO.foreach(results)(CohortTable.update)
-    } yield ()
+      results = cohortItems.mapM(item => estimation(item, earliestStartDate))
+      updateResult <- results.foreach(result => CohortTable.update(result))
+    } yield updateResult
 
   def estimation(item: CohortItem, earliestStartDate: LocalDate): ZIO[Clock with Zuora, Nothing, ResultOfEstimation] = {
     val result = for {
@@ -36,7 +35,7 @@ object EstimationHandler extends App {
     main
       .provideCustomLayer(
         DynamoDBClient.dynamoDB >>>
-        DynamoDbSerializer.impl >>>
+        DynamoDBZIO.impl >>>
         (CohortTable.impl ++ ZuoraTest.impl)
       )
       .foldM(

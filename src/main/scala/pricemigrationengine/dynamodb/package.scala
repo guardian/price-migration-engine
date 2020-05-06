@@ -5,5 +5,5 @@ import zio.Has
 
 package object dynamodb {
   type DynamoDBClient = Has[AmazonDynamoDBAsync]
-  type DynamoDbSerializer = Has[DynamoDbSerializer.Service]
+  type DynamoDBZIO = Has[DynamoDBZIO.Service]
 }
