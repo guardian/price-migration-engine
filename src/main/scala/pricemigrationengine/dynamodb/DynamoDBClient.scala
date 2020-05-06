@@ -21,12 +21,9 @@ object DynamoDBClient {
             )
             .mapError(ex => s"Failed to create the dynamoDb client: $ex")
         ) { dynamoDB: AmazonDynamoDB =>
-          ZIO.effectTotal(
-            Try(dynamoDB.shutdown)
-              .recover {
-                case ex => console.get.putStrLn(s"Failed to close dynamo db connection: $ex")
-              }
-          )
+          ZIO
+            .effect(dynamoDB.shutdown)
+            .catchAll(ex => console.get.putStrLn(s"Failed to close dynamo db connection: $ex"))
         }
       }
     )
