@@ -30,27 +30,36 @@ object CohortTable {
     ZIO.accessM(_.get.update(result))
 
   val impl: ZLayer[DynamoDBZIO with Console, Nothing, UserRepo] =
-    ZLayer.fromFunction { deps: Console with DynamoDBZIO  =>
+    ZLayer.fromFunction { deps: Console with DynamoDBZIO =>
+      val dynamoDBZIO = deps.get[DynamoDBZIO.Service]
+      val console: Console.Service = deps.get[Console.Service]
+
       new Service {
+
         override def fetch(filter: CohortTableFilter, batchSize: Int): ZIO[Any, Nothing, ZStream[Any, CohortFetchFailure, CohortItem]] = {
           for {
-            _ <- deps.get[Console.Service].putStrLn(s"Getting values from CohortTable for filter $filter")
-          } yield deps.get[DynamoDBZIO.Service].query(
+            _ <- console.putStrLn(s"Getting values from CohortTable for filter $filter")
+            stream <- dynamoDBZIO.query(
               new QueryRequest()
-                .withTableName("PriceMigrationEngineDEV")
-                .withKeyConditionExpression("ProcessingStageIndex = :processingStage")
+                .withTableName("PriceMigrationEngineDev")
+                .withIndexName("ProcessingStageIndex")
+                .withKeyConditionExpression("processingStage = :processingStage")
                 .withExpressionAttributeValues(
-                  Map("processingStage" -> new AttributeValue(filter.value)).asJava
-                ),
+                  Map(":processingStage" -> new AttributeValue(filter.value)).asJava
+                )
+                .withLimit(batchSize),
               { result =>
-                val fieldName = "subscriptionName"
-                getStringFromResults(result, fieldName).map(CohortItem.apply)
+                getStringFromResults(result, "subscriptionNumber").map(CohortItem.apply)
               }
             )
-            .mapError(CohortFetchFailure.apply)
+          } yield stream.mapError(CohortFetchFailure.apply)
         }
 
-        override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
+        override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] =
+          for {
+            fakeResult <- ZIO.effect(()).mapError(_ => CohortUpdateFailure(""))
+            _ <- console.putStrLn(s"Saving ${result}")
+          } yield fakeResult
       }
     }
 

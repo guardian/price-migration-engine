@@ -34,7 +34,7 @@ object EstimationHandler extends App {
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] = {
     main
       .provideCustomLayer(
-        DynamoDBClient.dynamoDB >>>
+        DynamoDBClient.dynamoDB ++ Console.live >>>
         DynamoDBZIO.impl ++ Console.live >>>
         CohortTable.impl ++ ZuoraTest.impl
       )
