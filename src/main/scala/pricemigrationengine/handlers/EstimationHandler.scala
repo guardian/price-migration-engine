@@ -7,7 +7,7 @@ import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services.{CohortTable, Zuora, ZuoraTest}
 import zio.clock.Clock
-import zio._
+import zio.{App, ZEnv, ZIO, console}
 
 object EstimationHandler extends App {
 
@@ -22,13 +22,12 @@ object EstimationHandler extends App {
       updateResult <- results.foreach(result => CohortTable.update(result))
     } yield updateResult
 
-  def estimation(item: CohortItem, earliestStartDate: LocalDate): ZIO[Clock with Zuora, Nothing, ResultOfEstimation] = {
+  def estimation(item: CohortItem, earliestStartDate: LocalDate): ZIO[Zuora, Failure, EstimationResult] = {
     val result = for {
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
-      account <- Zuora.fetchAccount(subscription.accountNumber)
-      currentDate <- clock.currentDateTime.bimap(e => AmendmentDataFailure(e.getMessage), _.toLocalDate)
-    } yield ResultOfEstimation(subscription, account, earliestStartDate, currentDate)
-    result.catchAll(e => ZIO.succeed(EstimationFailed(item.subscriptionName, e)))
+      invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId)
+    } yield EstimationResult(subscription, invoicePreview, earliestStartDate)
+    result.absolve
   }
 
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =

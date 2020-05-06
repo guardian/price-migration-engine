@@ -16,13 +16,13 @@ object CohortTable {
   trait Service {
     def fetch(filter: CohortTableFilter, batchSize: Int): ZStream[Any, CohortFetchFailure, CohortItem]
 
-    def update(result: ResultOfEstimation): ZIO[Any, CohortUpdateFailure, Unit]
+    def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit]
   }
 
   def fetch(filter: CohortTableFilter, batchSize: Int): ZIO[CohortTable, CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] =
     ZIO.access(_.get.fetch(filter, batchSize))
 
-  def update(result: ResultOfEstimation): ZIO[CohortTable, CohortUpdateFailure, Unit] =
+  def update(result: EstimationResult): ZIO[CohortTable, CohortUpdateFailure, Unit] =
     ZIO.accessM(_.get.update(result))
 
   val impl: ZLayer[DynamoDBZIO, Nothing, UserRepo] =
@@ -46,7 +46,7 @@ object CohortTable {
           .mapError(CohortFetchFailure.apply)
         }
 
-        override def update(result: ResultOfEstimation): ZIO[Any, CohortUpdateFailure, Unit] = ???
+        override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
       }
     }
 

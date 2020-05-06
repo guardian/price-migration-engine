@@ -8,19 +8,22 @@ object AmendmentData {
 
   def apply(
       subscription: ZuoraSubscription,
-      account: ZuoraAccount,
-      earliestStartDate: LocalDate,
-      currentDate: LocalDate
+      invoiceList: ZuoraInvoiceList,
+      earliestStartDate: LocalDate
   ): Either[AmendmentDataFailure, AmendmentData] =
     for {
-      startDate <- BillingDate.nextBillingDate(
-        subscription,
-        account,
-        after = earliestStartDate.minusDays(1),
-        currentDate
-      )
+      startDate <- nextBillingDate(invoiceList, after = earliestStartDate.minusDays(1))
       price <- newPrice(subscription)
-    } yield AmendmentData(startDate, price)
+    } yield AmendmentData(startDate, newPrice = price)
+
+  def nextBillingDate(invoiceList: ZuoraInvoiceList, after: LocalDate): Either[AmendmentDataFailure, LocalDate] = {
+    invoiceList.invoiceItems
+      .map(_.serviceStartDate)
+      .sortBy(_.toEpochDay)
+      .dropWhile(date => !date.isAfter(after))
+      .headOption
+      .toRight(AmendmentDataFailure(s"Cannot determine next billing date after $after from $invoiceList"))
+  }
 
   // TODO
   def newPrice(subscription: ZuoraSubscription): Either[AmendmentDataFailure, Double] =
