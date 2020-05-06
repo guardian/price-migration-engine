@@ -5,6 +5,7 @@ import java.util
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, QueryRequest}
 import pricemigrationengine.dynamodb.DynamoDBZIO
 import pricemigrationengine.model._
+import zio.console.Console
 import zio.stream.ZStream
 import zio.{ZIO, ZLayer}
 
@@ -14,36 +15,39 @@ import scala.jdk.CollectionConverters._
 object CohortTable {
 
   trait Service {
-    def fetch(filter: CohortTableFilter, batchSize: Int): ZStream[Any, CohortFetchFailure, CohortItem]
+    def fetch(
+      filter: CohortTableFilter,
+      batchSize: Int
+    ): ZIO[Any, CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]]
 
     def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit]
   }
 
   def fetch(filter: CohortTableFilter, batchSize: Int): ZIO[CohortTable, CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] =
-    ZIO.access(_.get.fetch(filter, batchSize))
+    ZIO.accessM(_.get.fetch(filter, batchSize))
 
   def update(result: EstimationResult): ZIO[CohortTable, CohortUpdateFailure, Unit] =
     ZIO.accessM(_.get.update(result))
 
-  val impl: ZLayer[DynamoDBZIO, Nothing, UserRepo] =
-    ZLayer.fromFunction { dynamoDB: DynamoDBZIO =>
+  val impl: ZLayer[DynamoDBZIO with Console, Nothing, UserRepo] =
+    ZLayer.fromFunction { deps: Console with DynamoDBZIO  =>
       new Service {
-        override def fetch(filter: CohortTableFilter, batchSize: Int): ZStream[Any, CohortFetchFailure, CohortItem] = {
-          val queryRequest = new QueryRequest()
-            .withTableName("PriceMigrationEngineDEV")
-            .withKeyConditionExpression("ProcessingStageIndex = :processingStage")
-            .withExpressionAttributeValues(
-              Map("processingStage" -> new AttributeValue(filter.value)).asJava
+        override def fetch(filter: CohortTableFilter, batchSize: Int): ZIO[Any, Nothing, ZStream[Any, CohortFetchFailure, CohortItem]] = {
+          for {
+            _ <- deps.get[Console.Service].putStrLn(s"Getting values from CohortTable for filter $filter")
+          } yield deps.get[DynamoDBZIO.Service].query(
+              new QueryRequest()
+                .withTableName("PriceMigrationEngineDEV")
+                .withKeyConditionExpression("ProcessingStageIndex = :processingStage")
+                .withExpressionAttributeValues(
+                  Map("processingStage" -> new AttributeValue(filter.value)).asJava
+                ),
+              { result =>
+                val fieldName = "subscriptionName"
+                getStringFromResults(result, fieldName).map(CohortItem.apply)
+              }
             )
-
-          dynamoDB.get.query(
-            queryRequest,
-            { result =>
-              val fieldName = "subscriptionName"
-              getStringFromResults(result, fieldName).map(CohortItem.apply)
-            }
-          )
-          .mapError(CohortFetchFailure.apply)
+            .mapError(CohortFetchFailure.apply)
         }
 
         override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???

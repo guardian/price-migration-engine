@@ -5,9 +5,10 @@ import java.time.LocalDate
 import pricemigrationengine.dynamodb.{DynamoDBClient, DynamoDBZIO}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
-import pricemigrationengine.services.{CohortTable, Zuora, ZuoraTest}
+import pricemigrationengine.services.{CohortTable, UserRepo, Zuora, ZuoraTest}
 import zio.clock.Clock
-import zio.{App, ZEnv, ZIO, console}
+import zio.console.Console
+import zio.{App, ZEnv, ZIO, ZLayer, console}
 
 object EstimationHandler extends App {
 
@@ -30,15 +31,16 @@ object EstimationHandler extends App {
     result.absolve
   }
 
-  def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
+  def run(args: List[String]): ZIO[ZEnv, Nothing, Int] = {
     main
       .provideCustomLayer(
         DynamoDBClient.dynamoDB >>>
-        DynamoDBZIO.impl >>>
-        (CohortTable.impl ++ ZuoraTest.impl)
+        DynamoDBZIO.impl ++ Console.live >>>
+        CohortTable.impl ++ ZuoraTest.impl
       )
       .foldM(
         e => console.putStrLn(s"Failed: $e") *> ZIO.succeed(1),
         _ => ZIO.succeed(0)
       )
+  }
 }

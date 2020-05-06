@@ -9,14 +9,16 @@ object CohortTableTest {
   val impl: ZLayer[Console, Throwable, CohortTable] = ZLayer.fromService(
     console =>
       new CohortTable.Service {
-
-        def fetch(filter: CohortTableFilter, batchSize: Int): ZStream[Any, CohortFetchFailure, CohortItem] = {
-//          val items: ZStream[Any, CohortFetchFailure, CohortItem] =
+        def fetch(
+          filter: CohortTableFilter,
+          batchSize: Int
+        ): ZIO[Any, CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
+          val items: ZStream[Any, CohortFetchFailure, CohortItem] =
           ZStream(CohortItem("A-S123"), CohortItem("A-S234"), CohortItem("A-S345"))
             .mapM(item => ZIO.effect(item).mapError(_ => CohortFetchFailure("")))
-//          for {
-//            _ <- console.putStrLn(s"Fetched from cohort table: $items")
-//          } yield items
+          for {
+            _ <- console.putStrLn(s"Fetched from cohort table: $items")
+          } yield items
         }
 
         def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] =
