@@ -6,4 +6,5 @@ package object services {
   type CohortTable = Has[CohortTable.Service]
   type Zuora = Has[Zuora.Service]
   type UserRepo = Has[CohortTable.Service]
+  type Logging = Has[Logging.Service]
 }

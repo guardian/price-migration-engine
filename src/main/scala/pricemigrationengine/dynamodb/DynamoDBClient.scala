@@ -5,8 +5,6 @@ import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClient}
 import zio.console.Console
 import zio.{ZIO, ZLayer, ZManaged}
 
-import scala.util.Try
-
 object DynamoDBClient {
   val dynamoDB: ZLayer[Console, String, DynamoDBClient] =
     ZLayer.fromManaged(
