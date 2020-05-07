@@ -14,7 +14,7 @@ object DynamoDBClient {
             .effect(
               AmazonDynamoDBClient
                 .builder()
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "us-east-1"))
+//                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "us-east-1"))
                 .build()
             )
             .mapError(ex => s"Failed to create the dynamoDb client: $ex")
