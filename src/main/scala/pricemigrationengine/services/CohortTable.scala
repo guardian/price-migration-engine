@@ -3,11 +3,11 @@ package pricemigrationengine.services
 import java.util
 
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, QueryRequest}
-import pricemigrationengine.dynamodb.DynamoDBZIO
+import pricemigrationengine.dynamodb.{DynamoDBZIO, DynamoDBZIOError}
 import pricemigrationengine.model._
 import zio.console.Console
 import zio.stream.ZStream
-import zio.{ZIO, ZLayer}
+import zio.{IO, ZIO, ZLayer}
 
 import scala.jdk.CollectionConverters._
 
@@ -18,7 +18,7 @@ object CohortTable {
     def fetch(
       filter: CohortTableFilter,
       batchSize: Int
-    ): ZIO[Any, CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]]
+    ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]]
 
     def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit]
   }
@@ -52,7 +52,7 @@ object CohortTable {
                 getStringFromResults(result, "subscriptionNumber").map(CohortItem.apply)
               }
             )
-          } yield stream.mapError(CohortFetchFailure.apply)
+          } yield stream.mapError(error => CohortFetchFailure(error.toString))
         }
 
         override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] =
@@ -66,11 +66,11 @@ object CohortTable {
   private def getStringFromResults(result: util.Map[String, AttributeValue], fieldName: String) = {
     ZIO
       .fromOption(result.asScala.get(fieldName))
-      .mapError(_ => s"The '$fieldName' field did not exist in the record $result")
+      .mapError(_ => DynamoDBZIOError(s"The '$fieldName' field did not exist in the record $result"))
       .flatMap { attributeValue =>
         ZIO
           .fromOption(Option(attributeValue.getS))
-          .mapError(_ => s"The '$fieldName' field was not a string in the record $result")
+          .mapError(_ => DynamoDBZIOError(s"The '$fieldName' field was not a string in the record $result"))
       }
   }
 }
