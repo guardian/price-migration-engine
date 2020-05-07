@@ -9,6 +9,7 @@ lazy val root = (project in file("."))
     libraryDependencies ++= Seq(
       zio,
       upickle,
+      lambda,
       munit % Test
     ),
     testFrameworks += new TestFramework("munit.Framework")
@@ -20,11 +21,9 @@ lazy val dynamoDb = (project in file("dynamoDb"))
   .settings(
     name := "price-migration-engine",
     name := "price-migration-engine-dynamo-db",
-    description:= "Cloudformation for price-migration-engine-dynamo-db",
+    description := "Cloudformation for price-migration-engine-dynamo-db",
     riffRaffPackageType := (baseDirectory.value / "cfn"),
     riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
     riffRaffUploadManifestBucket := Option("riffraff-builds"),
     riffRaffManifestProjectName := "MemSub::Subscriptions::DynamoDb::PriceMigrationEngine"
   )
-
-
