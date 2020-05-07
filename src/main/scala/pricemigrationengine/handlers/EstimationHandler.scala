@@ -7,9 +7,8 @@ import pricemigrationengine.dynamodb.{DynamoDBClient, DynamoDBZIO}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services.{CohortTable, Zuora, ZuoraTest, _}
-import zio.clock.Clock
 import zio.console.Console
-import zio.{App, Runtime, ZEnv, ZIO}
+import zio.{App, Runtime, ZEnv, ZIO, ZLayer}
 
 object EstimationHandler extends App with RequestHandler[Unit, Unit] {
 
@@ -50,24 +49,25 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
       )
     } yield ()
 
-  private val env =
-    DynamoDBClient.dynamoDB ++ Console.live >>>
-    DynamoDBZIO.impl ++ Console.live >>>
-    CohortTable.impl ++ ZuoraTest.impl
+  private def env(logging: ZLayer[Any, Nothing, Logging] ): ZLayer[Any, Any, Logging with CohortTable with Zuora] =
+    logging >>>
+    DynamoDBClient.dynamoDB ++ logging >>>
+    DynamoDBZIO.impl ++ logging >>>
+    logging ++ CohortTable.impl ++ ZuoraTest.impl
 
   private val runtime = Runtime.default
 
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
     main
-      .provideCustomLayer(
-        env ++ ConsoleLogging.impl
+      .provideSomeLayer(
+        env(Console.live >>> ConsoleLogging.impl)
       )
       .fold(_ => 1, _ => 0)
 
   def handleRequest(unused: Unit, context: Context): Unit =
     runtime.unsafeRun(
-      main.provideCustomLayer(
-        env ++ LambdaLogging.impl(context)
+      main.provideSomeLayer(
+        env(LambdaLogging.impl(context))
       )
     )
 }

@@ -4,6 +4,7 @@ import java.util
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, QueryRequest, QueryResult}
+import pricemigrationengine.services.Logging
 import zio.console.Console
 import zio.stream.ZStream
 import zio.{IO, UIO, ZIO, ZLayer}
@@ -17,22 +18,20 @@ object DynamoDBZIO {
     def query[A](
       query: QueryRequest,
       deserializer: java.util.Map[String, AttributeValue] => IO[DynamoDBZIOError, A]
-    ): UIO[ZStream[Any, DynamoDBZIOError, A]]
+    ): ZStream[Any, DynamoDBZIOError, A]
   }
 
-  val impl:  ZLayer[DynamoDBClient with Console, Nothing, DynamoDBZIO] =
-    ZLayer.fromFunction { dependencies: DynamoDBClient with Console =>
+  val impl:  ZLayer[DynamoDBClient with Logging, Nothing, DynamoDBZIO] =
+    ZLayer.fromFunction { dependencies: DynamoDBClient with Logging =>
       new Service {
-        private val console: Console.Service = dependencies.get[Console.Service]
+        private val logging = dependencies.get[Logging.Service]
         private val amazonDynamoDB = dependencies.get[AmazonDynamoDB]
 
         override def query[A](
           query: QueryRequest,
           deserializer: java.util.Map[String, AttributeValue] => IO[DynamoDBZIOError, A]
-        ): UIO[ZStream[Any, DynamoDBZIOError, A]] =
-          for {
-            _ <- console.putStrLn(s"Starting query: $query")
-          } yield recursivelyExecuteQueryUntilAllResultsAreStreamed(query).mapM(deserializer)
+        ): ZStream[Any, DynamoDBZIOError, A] =
+          recursivelyExecuteQueryUntilAllResultsAreStreamed(query).mapM(deserializer)
 
         private def recursivelyExecuteQueryUntilAllResultsAreStreamed[A](
           query: QueryRequest
@@ -41,7 +40,7 @@ object DynamoDBZIO {
               case Some(queryRequest) =>
                 for {
                   queryResult <- sendQueryRequest(queryRequest)
-                  _ <- console.putStrLn(s"Received query results: ${queryResult.getItems}")
+                  _ <- logging.info(s"Received query results for batch with ${queryResult.getCount} items")
                   queryForNextBatch = Option(queryResult.getLastEvaluatedKey)
                     .map(lastEvaluatedKey => queryRequest.withExclusiveStartKey(lastEvaluatedKey))
                 } yield Some((queryResult.getItems().asScala, queryForNextBatch))
@@ -53,7 +52,7 @@ object DynamoDBZIO {
 
         private def sendQueryRequest[A](queryRequest: QueryRequest): ZIO[Any, DynamoDBZIOError, QueryResult] = {
           ZIO.effect {
-              console.putStrLn(s"Starting query: $queryRequest")
+              logging.info(s"Starting query: $queryRequest")
               amazonDynamoDB.query(queryRequest)
             }
             .mapError(ex => DynamoDBZIOError(s"Failed to execute query $queryRequest : $ex"))

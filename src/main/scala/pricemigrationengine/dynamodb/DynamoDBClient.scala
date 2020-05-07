@@ -2,13 +2,13 @@ package pricemigrationengine.dynamodb
 
 import com.amazonaws.client.builder.AwsClientBuilder
 import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClient}
-import zio.console.Console
+import pricemigrationengine.services.Logging
 import zio.{ZIO, ZLayer, ZManaged}
 
 object DynamoDBClient {
-  val dynamoDB: ZLayer[Console, String, DynamoDBClient] =
+  val dynamoDB: ZLayer[Logging, String, DynamoDBClient] =
     ZLayer.fromManaged(
-      ZManaged.fromFunctionM { console: Console =>
+      ZManaged.fromFunctionM { logging: Logging =>
         ZManaged.make(
           ZIO
             .effect(
@@ -21,7 +21,7 @@ object DynamoDBClient {
         ) { dynamoDB: AmazonDynamoDB =>
           ZIO
             .effect(dynamoDB.shutdown)
-            .catchAll(ex => console.get.putStrLn(s"Failed to close dynamo db connection: $ex"))
+            .catchAll(ex => logging.get.error(s"Failed to close dynamo db connection: $ex"))
         }
       }
     )
