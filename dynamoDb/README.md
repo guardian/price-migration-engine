@@ -8,7 +8,7 @@ Install and run dynamoDB on you local machine using the following instructions:
 Create the CohortTable using the following aws cli command:
 ```$bash
 aws dynamodb create-table \
-    --region us-east-1 \
+    --region eu-west-1 \
     --endpoint-url http://localhost:8000 \
     --table-name PriceMigrationEngineDev \
     --attribute-definitions AttributeName=subscriptionNumber,AttributeType=S AttributeName=processingStage,AttributeType=S \
@@ -23,7 +23,7 @@ for i in {1..200}
 do 
 echo "Inserting sub-$i"
 aws dynamodb put-item \
-    --region us-east-1 \
+    --region eu-west-1 \
     --endpoint-url http://localhost:8000 \
     --table-name PriceMigrationEngineDev \
     --item "{\"subscriptionNumber\":{\"S\":\"sub-$i\"},\"processingStage\":{\"S\":\"ReadyForEstimation\"}}"
@@ -33,7 +33,7 @@ done || exit 1
 Get the contents of the cohort table:
 ```$bash
 aws dynamodb query \
-    --region us-east-1 \
+    --region eu-west-1 \
     --endpoint-url http://localhost:8000 \
     --table-name PriceMigrationEngineDev \
     --index-name ProcessingStageIndex \
@@ -44,7 +44,7 @@ aws dynamodb query \
 Delete the cohort table:
 ```$bash
 aws dynamodb delete-table \
-    --region us-east-1 \
+    --region eu-west-1 \
     --endpoint-url http://localhost:8000 \
     --table-name PriceMigrationEngineDev \
 ```

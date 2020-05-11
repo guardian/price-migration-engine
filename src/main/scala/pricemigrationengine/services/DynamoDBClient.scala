@@ -1,8 +1,7 @@
-package pricemigrationengine.dynamodb
+package pricemigrationengine.services
 
-import com.amazonaws.client.builder.AwsClientBuilder
+import com.amazonaws.services.dynamodbv2.model.{QueryRequest, QueryResult}
 import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClient}
-import pricemigrationengine.services.Logging
 import zio.{ZIO, ZLayer, ZManaged}
 
 object DynamoDBClient {
@@ -25,4 +24,8 @@ object DynamoDBClient {
         }
       }
     )
+
+  def query( queryRequest: QueryRequest): ZIO[DynamoDBClient, Throwable, QueryResult] = {
+    ZIO.access(_.get.query(queryRequest))
+  }
 }

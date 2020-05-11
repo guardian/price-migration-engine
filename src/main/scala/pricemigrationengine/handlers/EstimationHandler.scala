@@ -3,10 +3,9 @@ package pricemigrationengine.handlers
 import java.time.LocalDate
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import pricemigrationengine.dynamodb.{DynamoDBClient, DynamoDBZIO}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
-import pricemigrationengine.services.{CohortTable, Zuora, ZuoraTest, _}
+import pricemigrationengine.services._
 import zio.console.Console
 import zio.{App, Runtime, ZEnv, ZIO, ZLayer}
 
@@ -28,9 +27,6 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
     for {
       cohortItems <- CohortTable
         .fetch(ReadyForEstimation, batchSize)
-        .tapError(
-          e => Logging.error(s"Failed to fetch from Cohort table: $e")
-        )
       results = cohortItems.mapM(
         item =>
           estimation(item, earliestStartDate).tapBoth(
@@ -52,8 +48,8 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
   private def env(logging: ZLayer[Any, Nothing, Logging] ): ZLayer[Any, Any, Logging with CohortTable with Zuora] =
     logging >>>
     DynamoDBClient.dynamoDB ++ logging >>>
-    DynamoDBZIO.impl ++ logging >>>
-    logging ++ CohortTable.impl ++ ZuoraTest.impl
+    DynamoDBZIOLive.impl ++ logging >>>
+    logging ++ CohortTableLive.impl ++ ZuoraTest.impl
 
   private val runtime = Runtime.default
 
