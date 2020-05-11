@@ -57,23 +57,23 @@ object AmendmentData {
      * and just returns the failing results if there are any,
      * otherwise returns all the successful results.
      */
-    def eitherFailingOrPassingResults[K, V](m: Map[K, Option[V]]): Either[Seq[K], Seq[V]] = {
-      def pairToEither(pair: (K, Option[V])): Either[K, V] =
-        pair match {
-          case (k, None)    => Left(k)
-          case (_, Some(v)) => Right(v)
-        }
-      m.partitionMap(pairToEither) match {
-        case (Nil, values) => Right(values.toSeq)
-        case (keys, _)     => Left(keys.toSeq)
+    def eitherFailingOrPassingResults[K, V](ks: Seq[K], f: K => Option[V]): Either[Seq[K], Seq[V]] = {
+      val (fails, successes) = ks.foldLeft((Seq.empty[K], Seq.empty[V])) {
+        case ((accK, accV), k) =>
+          f(k) match {
+            case None    => (accK :+ k, accV)
+            case Some(v) => (accK, accV :+ v)
+          }
       }
+      Either.cond(fails.isEmpty, successes, fails)
     }
 
     val invoiceItems = invoiceList.invoiceItems.filter(_.serviceStartDate == startDate)
 
     for {
       productRatePlanChargeIds <- eitherFailingOrPassingResults(
-        invoiceItems.map(item => item -> matchingProductRatePlanChargeId(item)).toMap
+        invoiceItems,
+        matchingProductRatePlanChargeId
       ).left.map(
         invoiceItems =>
           AmendmentDataFailure(
@@ -81,7 +81,8 @@ object AmendmentData {
         )
       )
       pricings <- eitherFailingOrPassingResults(
-        productRatePlanChargeIds.map(id => id -> matchingPricing(id)).toMap
+        productRatePlanChargeIds,
+        matchingPricing
       ).left.map(
         ids => AmendmentDataFailure(s"Failed to find matching pricing for rate plan charges: ${ids.mkString}")
       )
