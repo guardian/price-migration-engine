@@ -8,7 +8,9 @@ lazy val root = (project in file("."))
     name := "price-migration-engine",
     libraryDependencies ++= Seq(
       zio,
+      zioStreams,
       upickle,
+      awsDynamoDb,
       lambda,
       munit % Test
     ),

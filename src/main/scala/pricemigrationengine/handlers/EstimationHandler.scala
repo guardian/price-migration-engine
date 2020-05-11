@@ -6,7 +6,8 @@ import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.{App, Runtime, ZEnv, ZIO}
+import zio.{App, Runtime, ZEnv, ZIO, ZLayer}
+import zio.console.Console
 
 object EstimationHandler extends App with RequestHandler[Unit, Unit] {
 
@@ -31,18 +32,14 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
       cohortItems <- CohortTable
         .fetch(ReadyForEstimation, batchSize)
-        .tapBoth(
-          e => Logging.error(s"Failed to fetch from Cohort table: $e"),
-          items => Logging.info(s"Fetched ${items.size} subs from Cohort table: $items")
-        )
-      results <- ZIO.foreach(cohortItems)(
+      results = cohortItems.mapM(
         item =>
           estimation(newProductPricing, earliestStartDate, item).tapBoth(
             e => Logging.error(s"Failed to estimate amendment data: $e"),
             result => Logging.info(s"Estimated result: $result")
         )
       )
-      _ <- ZIO.foreach(results)(
+      _ <- results.foreach(
         result =>
           CohortTable
             .update(result)
@@ -53,20 +50,25 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
       )
     } yield ()
 
-  private val env = CohortTableTest.impl ++ ZuoraTest.impl
+  private def env(logging: ZLayer[Any, Nothing, Logging] ): ZLayer[Any, Any, Logging with CohortTable with Zuora] =
+    logging >>>
+    DynamoDBClient.dynamoDB ++ logging >>>
+    DynamoDBZIOLive.impl ++ logging >>>
+    logging ++ CohortTableLive.impl ++ ZuoraTest.impl
+
   private val runtime = Runtime.default
 
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
     main
-      .provideCustomLayer(
-        env ++ ConsoleLogging.impl
+      .provideSomeLayer(
+        env(Console.live >>> ConsoleLogging.impl)
       )
       .fold(_ => 1, _ => 0)
 
   def handleRequest(unused: Unit, context: Context): Unit =
     runtime.unsafeRun(
-      main.provideCustomLayer(
-        env ++ LambdaLogging.impl(context)
+      main.provideSomeLayer(
+        env(LambdaLogging.impl(context))
       )
     )
 }

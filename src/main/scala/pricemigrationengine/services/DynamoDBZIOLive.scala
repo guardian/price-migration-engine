@@ -1,0 +1,50 @@
+package pricemigrationengine.services
+
+import java.util
+
+import com.amazonaws.services.dynamodbv2.model.{AttributeValue, QueryRequest, QueryResult}
+import pricemigrationengine.services.DynamoDBZIO.Service
+import zio.stream.ZStream
+import zio.{IO, ZIO, ZLayer}
+
+import scala.jdk.CollectionConverters._
+
+case class DynamoDBZIOError(message: String)
+
+object DynamoDBZIOLive {
+  val impl:  ZLayer[DynamoDBClient with Logging, Nothing, DynamoDBZIO] =
+    ZLayer.fromFunction { dependencies: DynamoDBClient with Logging =>
+      new Service {
+        override def query[A](
+          query: QueryRequest,
+          deserializer: java.util.Map[String, AttributeValue] => IO[DynamoDBZIOError, A]
+        ): ZStream[Any, DynamoDBZIOError, A] =
+          recursivelyExecuteQueryUntilAllResultsAreStreamed(query).mapM(deserializer)
+
+        private def recursivelyExecuteQueryUntilAllResultsAreStreamed[A](
+          query: QueryRequest
+        ): ZStream[Any, DynamoDBZIOError, util.Map[String, AttributeValue]] = {
+          ZStream.unfoldM(Some(query).asInstanceOf[Option[QueryRequest]]) {
+            case Some(queryRequest) =>
+              for {
+                queryResult <- sendQueryRequest(queryRequest)
+                _ <- Logging.info(s"Received query results for batch with ${queryResult.getCount} items")
+                queryForNextBatch = Option(queryResult.getLastEvaluatedKey)
+                  .map(lastEvaluatedKey => queryRequest.withExclusiveStartKey(lastEvaluatedKey))
+              } yield Some((queryResult.getItems().asScala, queryForNextBatch))
+            case None =>
+              ZIO.succeed(None)
+          }
+            .flatMap(resultList => ZStream.fromIterable(resultList))
+        }.provide(dependencies)
+
+        private def sendQueryRequest[A](queryRequest: QueryRequest): ZIO[Any, DynamoDBZIOError, QueryResult] = {
+          for {
+            _ <- Logging.info(s"Starting query: $queryRequest")
+            results <- DynamoDBClient.query(queryRequest)
+              .mapError(ex => DynamoDBZIOError(s"Failed to execute query $queryRequest : $ex"))
+          } yield results
+        }.provide(dependencies)
+      }
+    }
+}
