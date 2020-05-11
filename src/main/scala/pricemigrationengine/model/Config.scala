@@ -1,5 +1,10 @@
 package pricemigrationengine.model
 
-case class Config(zuora: ZuoraConfig)
+import java.time.LocalDate
 
-case class ZuoraConfig(baseUrl: String, clientId: String, clientSecret: String)
+case class Config(
+    zuora: ZuoraConfig,
+    yearInFuture: LocalDate = LocalDate.now.plusYears(1)
+)
+
+case class ZuoraConfig(apiHost: String, clientId: String, clientSecret: String)

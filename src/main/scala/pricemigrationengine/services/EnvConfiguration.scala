@@ -15,13 +15,13 @@ object EnvConfiguration {
 
     new Configuration.Service {
       val config: IO[ConfigurationFailure, Config] = for {
-        baseUrl <- env("zuora.baseUrl")
+        apiHost <- env("zuora.apiHost")
         clientId <- env("zuora.clientId")
         clientSecret <- env("zuora.clientSecret")
       } yield
         Config(
           ZuoraConfig(
-            baseUrl,
+            apiHost,
             clientId,
             clientSecret
           )
