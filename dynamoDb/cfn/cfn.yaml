@@ -19,17 +19,17 @@ Resources:
       TableName: !Sub PriceMigrationEngine${Stage}
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
-        - AttributeName: "SubscriptionNumber"
+        - AttributeName: "subscriptionNumber"
           AttributeType: "S"
-        - AttributeName: "ProcessingStage"
+        - AttributeName: "processingStage"
           AttributeType: "S"
       KeySchema:
-        - AttributeName: "SubscriptionNumber"
+        - AttributeName: "subscriptionNumber"
           KeyType: "HASH"
       GlobalSecondaryIndexes:
         - IndexName: "ProcessingStageIndex"
           KeySchema:
-            - AttributeName: "ProcessingStage"
+            - AttributeName: "processingStage"
               KeyType: "HASH"
           Projection:
             ProjectionType: "KEYS_ONLY"
