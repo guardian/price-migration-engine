@@ -2,17 +2,52 @@ package pricemigrationengine.model
 
 import java.time.LocalDate
 
+import pricemigrationengine.model.OptionReader // not sure why this import is needed as should be visible implicitly
 import upickle.default._
 
 case class ZuoraSubscription(
     subscriptionNumber: String,
     customerAcceptanceDate: LocalDate,
     contractEffectiveDate: LocalDate,
-    ratePlans: List[ZuoraRatePlan] = Nil,
+    ratePlans: List[ZuoraRatePlan],
     accountNumber: String,
     accountId: String
 )
 
 object ZuoraSubscription {
   implicit val rwSubscription: ReadWriter[ZuoraSubscription] = macroRW
+}
+
+case class ZuoraRatePlan(
+    productName: String,
+    ratePlanName: String,
+    ratePlanCharges: List[ZuoraRatePlanCharge],
+    lastChangeType: Option[String] = None
+)
+
+object ZuoraRatePlan {
+  implicit val rw: ReadWriter[ZuoraRatePlan] = macroRW
+}
+
+case class ZuoraRatePlanCharge(
+    productRatePlanChargeId: ZuoraProductRatePlanChargeId,
+    number: String,
+    name: String,
+    price: Double,
+    billingPeriod: Option[String] = None,
+    effectiveStartDate: LocalDate,
+    chargedThroughDate: Option[LocalDate] = None,
+    processedThroughDate: Option[LocalDate] = None,
+    specificBillingPeriod: Option[Int] = None,
+    endDateCondition: Option[String] = None,
+    upToPeriodsType: Option[String] = None,
+    upToPeriods: Option[Int] = None,
+    billingDay: Option[String] = None,
+    triggerEvent: Option[String] = None,
+    triggerDate: Option[LocalDate] = None,
+    discountPercentage: Option[Double] = None
+)
+
+object ZuoraRatePlanCharge {
+  implicit val rw: ReadWriter[ZuoraRatePlanCharge] = macroRW
 }

@@ -13,7 +13,10 @@ object ZuoraTest {
         ZIO.fail(ZuoraFetchFailure("failure!"))
 
       def fetchInvoicePreview(accountId: String): ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList] =
-        ZIO.succeed(ZuoraInvoiceList(Seq(ZuoraInvoiceItem(LocalDate.now))))
+        ZIO.succeed(ZuoraInvoiceList(Seq(ZuoraInvoiceItem(LocalDate.now, 12.34, "C-1234"))))
+
+      val fetchProductCatalogue: ZIO[Any, ZuoraFetchFailure, ZuoraProductCatalogue] =
+        ZIO.succeed(ZuoraProductCatalogue(Set.empty[ZuoraProduct]))
     }
   )
 }
