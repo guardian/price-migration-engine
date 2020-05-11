@@ -20,8 +20,8 @@ object DynamoDBClient {
         ) { dynamoDB: AmazonDynamoDB =>
           ZIO
             .effect(dynamoDB.shutdown)
-            .catchAll(ex => logging.get.error(s"Failed to close dynamo db connection: $ex"))
-        }
+            .catchAll(ex => Logging.error(s"Failed to close dynamo db connection: $ex"))
+        }.provide(logging)
       }
     )
 
