@@ -12,7 +12,8 @@ trait DynamoDBDeserialiser[A] { def deserialise(value: java.util.Map[String, Att
 
 object DynamoDBZIO {
   trait Service {
-    def query[A](query: QueryRequest)(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A]
+    def query[A](query: QueryRequest)
+                (implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A]
     def update[A, B](table: String, key: A, value: B)
                     (implicit keySerializer: DynamoDBSerialiser[A],
                      valueSerializer: DynamoDBUpdateSerialiser[B]): IO[DynamoDBZIOError, Unit]

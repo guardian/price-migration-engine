@@ -25,6 +25,8 @@ object CohortTableLive {
       Map(
         stringFieldUpdate("processingStage", EstimationComplete.value),
         dateFieldUpdate("expectedStartDate", estimationResult.expectedStartDate),
+        stringFieldUpdate("currency", estimationResult.currency),
+        bigDecimalFieldUpdate("oldPrice", estimationResult.oldPrice),
         bigDecimalFieldUpdate("estimatedNewPrice", estimationResult.estimatedNewPrice)
       ).asJava
 
