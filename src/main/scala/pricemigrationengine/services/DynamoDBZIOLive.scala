@@ -2,24 +2,22 @@ package pricemigrationengine.services
 
 import java.util
 
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, QueryRequest, QueryResult}
+import com.amazonaws.services.dynamodbv2.model.{AttributeValue, QueryRequest, QueryResult, UpdateItemRequest}
 import pricemigrationengine.services.DynamoDBZIO.Service
 import zio.stream.ZStream
 import zio.{IO, ZIO, ZLayer}
 
 import scala.jdk.CollectionConverters._
 
-case class DynamoDBZIOError(message: String)
-
 object DynamoDBZIOLive {
   val impl:  ZLayer[DynamoDBClient with Logging, Nothing, DynamoDBZIO] =
     ZLayer.fromFunction { dependencies: DynamoDBClient with Logging =>
       new Service {
         override def query[A](
-          query: QueryRequest,
-          deserializer: java.util.Map[String, AttributeValue] => IO[DynamoDBZIOError, A]
-        ): ZStream[Any, DynamoDBZIOError, A] =
-          recursivelyExecuteQueryUntilAllResultsAreStreamed(query).mapM(deserializer)
+          query: QueryRequest
+        )(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] =
+          recursivelyExecuteQueryUntilAllResultsAreStreamed(query)
+            .mapM(deserializer.deserialise)
 
         private def recursivelyExecuteQueryUntilAllResultsAreStreamed[A](
           query: QueryRequest
@@ -45,6 +43,23 @@ object DynamoDBZIOLive {
               .mapError(ex => DynamoDBZIOError(s"Failed to execute query $queryRequest : $ex"))
           } yield results
         }.provide(dependencies)
+
+      def update[A, B](table: String, key: A, value: B)
+                      (implicit keySerializer: DynamoDBSerialiser[A],
+                       valueSerializer: DynamoDBUpdateSerialiser[B]): IO[DynamoDBZIOError, Unit] = {
+        ZIO
+          .effect {
+            dependencies.get.updateItem(
+              new UpdateItemRequest(
+                table,
+                keySerializer.serialise(key),
+                valueSerializer.serialise(value)
+              )
+            )
+            ()
+          }
+          .mapError(ex => DynamoDBZIOError(s"Failed to write value '$value' to '$table': $ex"))
+        }
       }
     }
 }
