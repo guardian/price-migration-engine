@@ -2,7 +2,9 @@ package pricemigrationengine.services
 
 import pricemigrationengine.model._
 import zio.stream.ZStream
-import zio.{IO, UIO, URIO, ZIO}
+import zio.{UIO, URIO, ZIO}
+
+case class CohortTableKey(subscriptionNumber: String)
 
 object CohortTable {
   trait Service {
