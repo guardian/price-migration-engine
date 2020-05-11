@@ -3,7 +3,7 @@ package pricemigrationengine.services
 import pricemigrationengine.model._
 import zio.console.Console
 import zio.stream.ZStream
-import zio.{ZIO, ZLayer}
+import zio.{UIO, ZIO, ZLayer}
 
 object CohortTableTest {
   val impl: ZLayer[Console, Throwable, CohortTable] = ZLayer.fromService(
@@ -12,7 +12,7 @@ object CohortTableTest {
         def fetch(
           filter: CohortTableFilter,
           batchSize: Int
-        ): ZIO[Any, CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
+        ): UIO[ZStream[Any, CohortFetchFailure, CohortItem]] = {
           val items: ZStream[Any, CohortFetchFailure, CohortItem] =
           ZStream(CohortItem("A-S123"), CohortItem("A-S234"), CohortItem("A-S345"))
             .mapM(item => ZIO.effect(item).mapError(_ => CohortFetchFailure("")))

@@ -1,8 +1,7 @@
-package pricemigrationengine.dynamodb
+package pricemigrationengine.services
 
-import com.amazonaws.client.builder.AwsClientBuilder
+import com.amazonaws.services.dynamodbv2.model.{QueryRequest, QueryResult}
 import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClient}
-import pricemigrationengine.services.Logging
 import zio.{ZIO, ZLayer, ZManaged}
 
 object DynamoDBClient {
@@ -21,8 +20,12 @@ object DynamoDBClient {
         ) { dynamoDB: AmazonDynamoDB =>
           ZIO
             .effect(dynamoDB.shutdown)
-            .catchAll(ex => logging.get.error(s"Failed to close dynamo db connection: $ex"))
-        }
+            .catchAll(ex => Logging.error(s"Failed to close dynamo db connection: $ex"))
+        }.provide(logging)
       }
     )
+
+  def query( queryRequest: QueryRequest): ZIO[DynamoDBClient, Throwable, QueryResult] = {
+    ZIO.access(_.get.query(queryRequest))
+  }
 }

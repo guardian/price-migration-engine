@@ -7,9 +7,17 @@ import upickle.default._
 
 package object model {
 
+  type ZuoraProductRatePlanChargeId = String
+  type ZuoraPricingData = Map[ZuoraProductRatePlanChargeId, ZuoraPricing]
+
   implicit val rwLocalDate: ReadWriter[LocalDate] = readwriter[String].bimap[LocalDate](
     date => s"${date.toString}",
     str => LocalDate.parse(str)
+  )
+
+  implicit val rwBigDecimal: ReadWriter[BigDecimal] = readwriter[Double].bimap[BigDecimal](
+    decimal => decimal.toDouble,
+    double => BigDecimal(double)
   )
 
   implicit def OptionReader[T: Reader]: Reader[Option[T]] = reader[Value].map[Option[T]] {

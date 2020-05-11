@@ -3,12 +3,11 @@ package pricemigrationengine.handlers
 import java.time.LocalDate
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import pricemigrationengine.dynamodb.{DynamoDBClient, DynamoDBZIO}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
-import pricemigrationengine.services.{CohortTable, Zuora, ZuoraTest, _}
-import zio.console.Console
+import pricemigrationengine.services._
 import zio.{App, Runtime, ZEnv, ZIO, ZLayer}
+import zio.console.Console
 
 object EstimationHandler extends App with RequestHandler[Unit, Unit] {
 
@@ -16,24 +15,26 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
   val batchSize = 100
   val earliestStartDate = LocalDate.now
 
-  def estimation(item: CohortItem, earliestStartDate: LocalDate): ZIO[Zuora, Failure, EstimationResult] = {
+  def estimation(
+      newProductPricing: ZuoraPricingData,
+      earliestStartDate: LocalDate,
+      item: CohortItem
+  ): ZIO[Zuora, Failure, EstimationResult] = {
     val result = for {
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId)
-    } yield EstimationResult(subscription, invoicePreview, earliestStartDate)
+    } yield EstimationResult(newProductPricing, subscription, invoicePreview, earliestStartDate)
     result.absolve
   }
 
   val main: ZIO[Logging with CohortTable with Zuora, Failure, Unit] =
     for {
+      newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
       cohortItems <- CohortTable
         .fetch(ReadyForEstimation, batchSize)
-        .tapError(
-          e => Logging.error(s"Failed to fetch from Cohort table: $e")
-        )
       results = cohortItems.mapM(
         item =>
-          estimation(item, earliestStartDate).tapBoth(
+          estimation(newProductPricing, earliestStartDate, item).tapBoth(
             e => Logging.error(s"Failed to estimate amendment data: $e"),
             result => Logging.info(s"Estimated result: $result")
         )
@@ -52,8 +53,8 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
   private def env(logging: ZLayer[Any, Nothing, Logging] ): ZLayer[Any, Any, Logging with CohortTable with Zuora] =
     logging >>>
     DynamoDBClient.dynamoDB ++ logging >>>
-    DynamoDBZIO.impl ++ logging >>>
-    logging ++ CohortTable.impl ++ ZuoraTest.impl
+    DynamoDBZIOLive.impl ++ logging >>>
+    logging ++ CohortTableLive.impl ++ ZuoraTest.impl
 
   private val runtime = Runtime.default
 
