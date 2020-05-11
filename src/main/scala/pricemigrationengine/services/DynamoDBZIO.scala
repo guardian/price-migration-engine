@@ -27,7 +27,7 @@ object DynamoDBZIO {
 
   def update[A, B](table: String, key: A, value: B)
                   (implicit keySerializer: DynamoDBSerialiser[A],
-                   valueSerializer: DynamoDBUpdateSerialiser[B]): URIO[DynamoDBZIO, Unit] = {
-    ZIO.access(_.get.update(table, key, value))
+                   valueSerializer: DynamoDBUpdateSerialiser[B]): ZIO[DynamoDBZIO, DynamoDBZIOError, Unit] = {
+    ZIO.accessM(_.get.update(table, key, value))
   }
 }
