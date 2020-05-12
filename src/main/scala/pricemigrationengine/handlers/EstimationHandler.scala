@@ -53,7 +53,7 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
   private def env(logging: ZLayer[Any, Nothing, Logging] ): ZLayer[Any, Any, Logging with CohortTable with Zuora] =
     logging ++ EnvConfiguration.impl >>>
     DynamoDBClient.dynamoDB ++ logging ++ EnvConfiguration.impl >>>
-    DynamoDBZIOLive.impl ++ logging >>>
+    DynamoDBZIOLive.impl ++ logging ++ EnvConfiguration.impl >>>
     logging ++ CohortTableLive.impl ++ ZuoraTest.impl
 
   private val runtime = Runtime.default
