@@ -6,7 +6,7 @@ import pricemigrationengine.model._
 import zio.{ZIO, ZLayer}
 
 object ZuoraTest {
-  val impl: ZLayer[Any, Throwable, Zuora] = ZLayer.succeed(
+  val impl: ZLayer[Any, Nothing, Zuora] = ZLayer.succeed(
     new Zuora.Service {
 
       def fetchSubscription(name: String): ZIO[Any, ZuoraFetchFailure, ZuoraSubscription] =

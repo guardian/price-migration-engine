@@ -6,7 +6,7 @@ import zio.stream.ZStream
 import zio.{UIO, ZIO, ZLayer}
 
 object CohortTableTest {
-  val impl: ZLayer[Console, Throwable, CohortTable] = ZLayer.fromService(
+  val impl: ZLayer[Console, Nothing, CohortTable] = ZLayer.fromService(
     console =>
       new CohortTable.Service {
         def fetch(
