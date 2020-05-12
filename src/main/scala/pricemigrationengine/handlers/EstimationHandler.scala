@@ -6,8 +6,8 @@ import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.{App, Runtime, ZEnv, ZIO, ZLayer}
 import zio.console.Console
+import zio.{App, Runtime, ZEnv, ZIO, ZLayer}
 
 object EstimationHandler extends App with RequestHandler[Unit, Unit] {
 
@@ -51,9 +51,9 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
     } yield ()
 
   private def env(logging: ZLayer[Any, Nothing, Logging] ): ZLayer[Any, Any, Logging with CohortTable with Zuora] =
-    logging >>>
-    DynamoDBClient.dynamoDB ++ logging >>>
-    DynamoDBZIOLive.impl ++ logging >>>
+    logging ++ EnvConfiguration.impl >>>
+    DynamoDBClient.dynamoDB ++ logging ++ EnvConfiguration.impl >>>
+    DynamoDBZIOLive.impl ++ logging ++ EnvConfiguration.impl >>>
     logging ++ CohortTableLive.impl ++ ZuoraTest.impl
 
   private val runtime = Runtime.default
