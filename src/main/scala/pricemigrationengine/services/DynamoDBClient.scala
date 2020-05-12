@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import com.amazonaws.services.dynamodbv2.model.{QueryRequest, QueryResult}
+import com.amazonaws.services.dynamodbv2.model.{QueryRequest, QueryResult, UpdateItemRequest, UpdateItemResult}
 import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClient}
 import zio.{ZIO, ZLayer, ZManaged}
 
@@ -27,5 +27,9 @@ object DynamoDBClient {
 
   def query( queryRequest: QueryRequest): ZIO[DynamoDBClient, Throwable, QueryResult] = {
     ZIO.access(_.get.query(queryRequest))
+  }
+
+  def updateItem( updateRequest: UpdateItemRequest): ZIO[DynamoDBClient, Throwable, UpdateItemResult] = {
+    ZIO.access(_.get.updateItem(updateRequest))
   }
 }

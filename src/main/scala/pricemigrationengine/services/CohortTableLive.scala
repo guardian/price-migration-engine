@@ -74,9 +74,10 @@ object CohortTableLive {
         }.provide(dynamoDBZStream)
 
         override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] =
-          for {
-            fakeResult <- ZIO.effect(()).mapError(_ => CohortUpdateFailure(""))
-          } yield fakeResult
+          DynamoDBZIO
+            .update("PriceMigrationEngineDev", CohortTableKey(result.subscriptionName), result)
+            .mapError(error => CohortUpdateFailure(error.toString))
+            .provide(dynamoDBZStream)
       }
     }
 }
