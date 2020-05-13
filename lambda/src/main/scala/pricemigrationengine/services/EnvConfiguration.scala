@@ -20,7 +20,7 @@ object EnvConfiguration {
 
     new Configuration.Service {
       val config: IO[ConfigurationFailure, Config] = for {
-        stage <- env("stage")
+        stage <- env("Stage")
         apiHost <- env("zuora.apiHost")
         clientId <- env("zuora.clientId")
         clientSecret <- env("zuora.clientSecret")

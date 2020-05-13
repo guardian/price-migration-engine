@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Lambda used to implement the various task need in the process of increasing the price of subscriptions
+
+Parameters:
+    Stage:
+        Description: Stage name
+        Type: String
+        AllowedValues:
+            - PROD
+            - CODE
+            - DEV
+        Default: CODE
+
+Resources:
+    PriceMigrationEngineRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service:
+                             - lambda.amazonaws.com
+                      Action:
+                          - sts:AssumeRole
+            Path: /
+            Policies:
+                - PolicyName: LambdaPolicy
+                  PolicyDocument:
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                            - logs:CreateLogGroup
+                            - logs:CreateLogStream
+                            - logs:PutLogEvents
+                            - lambda:InvokeFunction
+                            Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-${Stage}:log-stream:*"
+                - PolicyName: DynamoDBAccessPolicy
+                  PolicyDocument:
+                    Statement:
+                      - Effect: Allow
+                        Action:
+                          - dynamodb:Query
+                          - dynamodb:UpdateItem
+                        Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}
+
+    PriceMigrationEngineLambda:
+        Type: AWS::Lambda::Function
+        Properties:
+            Description: Lambda used to implement the various task need in the process of increasing the price of subscriptions
+            FunctionName:
+                !Sub price-migration-engine-${Stage}
+            Code:
+                S3Bucket: membership-dist
+                S3Key: !Sub membership/${Stage}/price-migration-engine/price-migration-engine.jar
+            Handler: pricemigrationengine.handlers.EstimationHandler::handleRequest
+            Environment:
+                Variables:
+                  Stage: !Ref Stage
+                  zuora.apiHost: !Sub '{{resolve:ssm:/${Stage}/membership/price-migration-engine/zuora.apiHost:1}}'
+                  zuora.clientId: !Sub '{{resolve:ssm-secure:/${Stage}/membership/price-migration-engine/zuora.clientId:1}}'
+                  zuora.clientSecret: !Sub '{{resolve:ssm-secure:/${Stage}/membership/price-migration-engine/zuora.clientSecret:1}}'
+            Role:
+                Fn::GetAtt:
+                - PriceMigrationEngineRole
+                - Arn
+            MemorySize: 1536
+            Runtime: java8
+            Timeout: 300
+        DependsOn:
+        - PriceMigrationEngineRole
