@@ -15,7 +15,7 @@ class CohortTableLiveTest extends munit.FunSuite {
   val stubConfiguration = ZLayer.succeed(
     new Configuration.Service {
       override val config: IO[ConfigurationFailure, Config] =
-        IO.succeed(Config("DEV", ZuoraConfig("", "", ""), DynamoDBConfig(None)))
+        IO.succeed(Config(ZuoraConfig("", "", ""), DynamoDBConfig(None), "DEV"))
     }
   )
 
