@@ -21,11 +21,11 @@ object EnvConfiguration {
     new Configuration.Service {
       val config: IO[ConfigurationFailure, Config] = for {
         stage <- env("Stage")
-        apiHost <- env("zuora.apiHost")
-        clientId <- env("zuora.clientId")
-        clientSecret <- env("zuora.clientSecret")
-        dynamoDBServiceEndpointOption <- optionalEnv("dynamodb.serviceEndpoint")
-        dynamoDBSigningRegionOption <- optionalEnv("dynamodb.signingRegion")
+        apiHost <- env("zuoraApiHost")
+        clientId <- env("zuoraClientId")
+        clientSecret <- env("zuoraClientSecret")
+        dynamoDBServiceEndpointOption <- optionalEnv("dynamodbServiceEndpoint")
+        dynamoDBSigningRegionOption <- optionalEnv("dynamodbSigningRegion")
         dynamoDBEndpoint = dynamoDBServiceEndpointOption
           .flatMap(endpoint => dynamoDBSigningRegionOption.map(region => DynamoDBEndpointConfig(endpoint, region)))
       } yield
