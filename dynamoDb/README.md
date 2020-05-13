@@ -10,7 +10,7 @@ Create the CohortTable using the following aws cli command:
 aws dynamodb create-table \
     --region eu-west-1 \
     --endpoint-url http://localhost:8000 \
-    --table-name PriceMigrationEngineDev \
+    --table-name PriceMigrationEngineDEV \
     --attribute-definitions AttributeName=subscriptionNumber,AttributeType=S AttributeName=processingStage,AttributeType=S \
     --key-schema AttributeName=subscriptionNumber,KeyType=HASH \
     --global-secondary-indexes IndexName=ProcessingStageIndex,KeySchema=["{AttributeName=processingStage,KeyType=HASH}"],Projection="{ProjectionType=KEYS_ONLY}",ProvisionedThroughput="{ReadCapacityUnits=10,WriteCapacityUnits=10}" \
@@ -25,7 +25,7 @@ echo "Inserting sub-$i"
 aws dynamodb put-item \
     --region eu-west-1 \
     --endpoint-url http://localhost:8000 \
-    --table-name PriceMigrationEngineDev \
+    --table-name PriceMigrationEngineDEV \
     --item "{\"subscriptionNumber\":{\"S\":\"sub-$i\"},\"processingStage\":{\"S\":\"ReadyForEstimation\"}}"
 done || exit 1
 ```
@@ -35,7 +35,7 @@ Get the contents of the cohort table:
 aws dynamodb query \
     --region eu-west-1 \
     --endpoint-url http://localhost:8000 \
-    --table-name PriceMigrationEngineDev \
+    --table-name PriceMigrationEngineDEV \
     --index-name ProcessingStageIndex \
     --key-condition-expression "processingStage = :stage" \
     --expression-attribute-values '{":stage":{"S":"ReadyForEstimation"}}'
@@ -46,6 +46,6 @@ Delete the cohort table:
 aws dynamodb delete-table \
     --region eu-west-1 \
     --endpoint-url http://localhost:8000 \
-    --table-name PriceMigrationEngineDev \
+    --table-name PriceMigrationEngineDEV \
 ```
 

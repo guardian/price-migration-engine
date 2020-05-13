@@ -10,8 +10,8 @@ import zio.{IO, ZIO, ZLayer}
 import scala.jdk.CollectionConverters._
 
 object DynamoDBZIOLive {
-  val impl:  ZLayer[DynamoDBClient with Logging, Nothing, DynamoDBZIO] =
-    ZLayer.fromFunction { dependencies: DynamoDBClient with Logging =>
+  val impl: ZLayer[DynamoDBClient with Logging with Configuration, Nothing, DynamoDBZIO] =
+    ZLayer.fromFunction { dependencies: DynamoDBClient with Logging with Configuration =>
       new Service {
         override def query[A](
           query: QueryRequest
@@ -44,22 +44,19 @@ object DynamoDBZIOLive {
           } yield results
         }.provide(dependencies)
 
-      def update[A, B](table: String, key: A, value: B)
-                      (implicit keySerializer: DynamoDBSerialiser[A],
-                       valueSerializer: DynamoDBUpdateSerialiser[B]): IO[DynamoDBZIOError, Unit] = {
-        ZIO
-          .effect {
-            dependencies.get.updateItem(
-              new UpdateItemRequest(
-                table,
-                keySerializer.serialise(key),
-                valueSerializer.serialise(value)
-              )
+        def update[A, B](table: String, key: A, value: B)
+                        (implicit keySerializer: DynamoDBSerialiser[A],
+                         valueSerializer: DynamoDBUpdateSerialiser[B]): IO[DynamoDBZIOError, Unit] =
+          DynamoDBClient.updateItem(
+            new UpdateItemRequest(
+              table,
+              keySerializer.serialise(key),
+              valueSerializer.serialise(value)
             )
-            ()
-          }
-          .mapError(ex => DynamoDBZIOError(s"Failed to write value '$value' to '$table': $ex"))
-        }
+          ).bimap(
+            ex => DynamoDBZIOError(s"Failed to write value '$value' to '$table': $ex"),
+            _ => ()
+          ).provide(dependencies)
       }
     }
 }

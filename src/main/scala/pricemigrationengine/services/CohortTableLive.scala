@@ -7,9 +7,9 @@ import java.util
 import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
 import pricemigrationengine.model.CohortTableFilter.EstimationComplete
 import pricemigrationengine.model._
-import pricemigrationengine.services.CohortTable.{Service}
+import pricemigrationengine.services.CohortTable.Service
 import zio.stream.ZStream
-import zio.{UIO, ZIO, ZLayer}
+import zio.{IO, ZIO, ZLayer}
 
 import scala.jdk.CollectionConverters._
 
@@ -57,13 +57,20 @@ object CohortTableLive {
       }
   }
 
-  val impl: ZLayer[DynamoDBZIO, Nothing, CohortTable] =
-    ZLayer.fromFunction { dynamoDBZStream: DynamoDBZIO =>
+  val impl: ZLayer[DynamoDBZIO with Configuration, Nothing, CohortTable] =
+    ZLayer.fromFunction { dependencies: DynamoDBZIO with Configuration=>
       new Service {
-        override def fetch(filter: CohortTableFilter, batchSize: Int): UIO[ZStream[Any, CohortFetchFailure, CohortItem]] = {
-            DynamoDBZIO.query(
+        override def fetch(
+          filter: CohortTableFilter,
+          batchSize: Int
+        ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
+          for {
+            config <- Configuration
+                .config
+                .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
+            queryResults <- DynamoDBZIO.query(
               new QueryRequest()
-                .withTableName("PriceMigrationEngineDev")
+                .withTableName(s"PriceMigrationEngine${config.stage}")
                 .withIndexName("ProcessingStageIndex")
                 .withKeyConditionExpression("processingStage = :processingStage")
                 .withExpressionAttributeValues(
@@ -71,12 +78,19 @@ object CohortTableLive {
                 )
                 .withLimit(batchSize)
             ).map(_.mapError(error => CohortFetchFailure(error.toString)))
-        }.provide(dynamoDBZStream)
+          } yield queryResults
+        }.provide(dependencies)
 
-        override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] =
+        override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = {
           for {
-            fakeResult <- ZIO.effect(()).mapError(_ => CohortUpdateFailure(""))
-          } yield fakeResult
+            config <- Configuration
+              .config
+              .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
+            result <- DynamoDBZIO
+              .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(result.subscriptionName), result)
+              .mapError(error => CohortUpdateFailure(error.toString))
+          } yield result
+        }.provide(dependencies)
       }
     }
 }

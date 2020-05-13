@@ -2,29 +2,43 @@ package pricemigrationengine.services
 
 import java.lang.System.getenv
 
-import pricemigrationengine.model.{Config, ConfigurationFailure, ZuoraConfig}
+import pricemigrationengine.model.{Config, ConfigurationFailure, DynamoDBConfig, DynamoDBEndpointConfig, ZuoraConfig}
 import zio.{IO, ZIO, ZLayer}
 
 object EnvConfiguration {
   val impl: ZLayer[Any, Nothing, Configuration] = ZLayer.succeed {
     def env(name: String): IO[ConfigurationFailure, String] =
+      optionalEnv(name)
+        .collect(ConfigurationFailure(s"No value for '$name' in environment")) {
+          case Some(value) => value
+        }
+
+    def optionalEnv(name: String): IO[ConfigurationFailure, Option[String]] =
       ZIO
-        .effect(getenv(name))
+        .effect(Option(getenv(name)))
         .mapError(e => ConfigurationFailure(e.getMessage))
-        .filterOrFail(Option(_).nonEmpty)(ConfigurationFailure(s"No value for '$name' in environment"))
 
     new Configuration.Service {
       val config: IO[ConfigurationFailure, Config] = for {
+        stage <- env("stage")
         apiHost <- env("zuora.apiHost")
         clientId <- env("zuora.clientId")
         clientSecret <- env("zuora.clientSecret")
+        dynamoDBServiceEndpointOption <- optionalEnv("dynamodb.serviceEndpoint")
+        dynamoDBSigningRegionOption <- optionalEnv("dynamodb.signingRegion")
+        dynamoDBEndpoint = dynamoDBServiceEndpointOption
+          .flatMap(endpoint => dynamoDBSigningRegionOption.map(region => DynamoDBEndpointConfig(endpoint, region)))
       } yield
         Config(
           ZuoraConfig(
             apiHost,
             clientId,
             clientSecret
-          )
+          ),
+          DynamoDBConfig(
+            dynamoDBEndpoint
+          ),
+          stage
         )
     }
   }
