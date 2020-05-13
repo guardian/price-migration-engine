@@ -51,7 +51,7 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
     } yield ()
 
   private def env(logging: ZLayer[Any, Nothing, Logging]): ZLayer[Any, Any, Logging with CohortTable with Zuora] = {
-    val zuoraLayer = EnvConfiguration.impl >>> ZuoraLive.impl
+    val zuoraLayer = (EnvConfiguration.impl ++ logging) >>> ZuoraLive.impl
     logging >>>
       DynamoDBClient.dynamoDB ++ logging >>>
       DynamoDBZIOLive.impl ++ logging >>>
