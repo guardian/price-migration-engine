@@ -12,6 +12,7 @@ lazy val root = (project in file("."))
       upickle,
       awsDynamoDb,
       lambda,
+      http,
       munit % Test
     ),
     testFrameworks += new TestFramework("munit.Framework")

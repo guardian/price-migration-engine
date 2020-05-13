@@ -8,10 +8,10 @@ import zio.{IO, ZIO, ZLayer}
 object EnvConfiguration {
   val impl: ZLayer[Any, Nothing, Configuration] = ZLayer.succeed {
     def env(name: String): IO[ConfigurationFailure, String] =
-     optionalEnv(name)
-       .collect(ConfigurationFailure(s"No value for '$name' in environment")) {
-         case Some(value) => value
-       }
+      optionalEnv(name)
+        .collect(ConfigurationFailure(s"No value for '$name' in environment")) {
+          case Some(value) => value
+        }
 
     def optionalEnv(name: String): IO[ConfigurationFailure, Option[String]] =
       ZIO
@@ -21,7 +21,7 @@ object EnvConfiguration {
     new Configuration.Service {
       val config: IO[ConfigurationFailure, Config] = for {
         stage <- env("stage")
-        baseUrl <- env("zuora.baseUrl")
+        apiHost <- env("zuora.apiHost")
         clientId <- env("zuora.clientId")
         clientSecret <- env("zuora.clientSecret")
         dynamoDBServiceEndpointOption <- optionalEnv("dynamodb.serviceEndpoint")
@@ -30,15 +30,15 @@ object EnvConfiguration {
           .flatMap(endpoint => dynamoDBSigningRegionOption.map(region => DynamoDBEndpointConfig(endpoint, region)))
       } yield
         Config(
-          stage,
           ZuoraConfig(
-            baseUrl,
+            apiHost,
             clientId,
             clientSecret
           ),
-          DynamoDBConfig (
+          DynamoDBConfig(
             dynamoDBEndpoint
-          )
+          ),
+          stage
         )
     }
   }

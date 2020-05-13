@@ -10,12 +10,12 @@ object CohortTableTest {
     console =>
       new CohortTable.Service {
         def fetch(
-          filter: CohortTableFilter,
-          batchSize: Int
+            filter: CohortTableFilter,
+            batchSize: Int
         ): UIO[ZStream[Any, CohortFetchFailure, CohortItem]] = {
           val items: ZStream[Any, CohortFetchFailure, CohortItem] =
-          ZStream(CohortItem("A-S123"), CohortItem("A-S234"), CohortItem("A-S345"))
-            .mapM(item => ZIO.effect(item).mapError(_ => CohortFetchFailure("")))
+            ZStream(CohortItem("A-S123"), CohortItem("A-S234"), CohortItem("A-S345"))
+              .mapM(item => ZIO.effect(item).mapError(_ => CohortFetchFailure("")))
           for {
             _ <- console.putStrLn(s"Fetched from cohort table: $items")
           } yield items

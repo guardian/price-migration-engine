@@ -1,8 +1,15 @@
 package pricemigrationengine.model
 
-case class Config(stage: String, zuora: ZuoraConfig, dynamoDBConfig: DynamoDBConfig)
+import java.time.LocalDate
 
-case class ZuoraConfig(baseUrl: String, clientId: String, clientSecret: String)
+case class Config(
+    zuora: ZuoraConfig,
+    dynamoDBConfig: DynamoDBConfig,
+    stage: String,
+    yearInFuture: LocalDate = LocalDate.now.plusYears(1)
+)
+
+case class ZuoraConfig(apiHost: String, clientId: String, clientSecret: String)
 
 case class DynamoDBConfig(endpoint: Option[DynamoDBEndpointConfig])
 
