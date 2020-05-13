@@ -28,7 +28,7 @@ object DynamoDBZIOLive {
                 queryResult <- sendQueryRequest(queryRequest)
                 _ <- Logging.info(s"Received query results for batch with ${queryResult.getCount} items")
                 queryForNextBatch = Option(queryResult.getLastEvaluatedKey)
-                  .map(lastEvaluatedKey => queryRequest.withExclusiveStartKey(lastEvaluatedKey))
+                  .map(lastEvaluatedKey => queryRequest.clone().withExclusiveStartKey(lastEvaluatedKey))
               } yield Some((queryResult.getItems().asScala, queryForNextBatch))
             case None =>
               ZIO.succeed(None)
