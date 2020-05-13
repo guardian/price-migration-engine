@@ -7,7 +7,7 @@ import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
-import zio.{App, Runtime, ZEnv, ZIO, ZLayer}
+import zio.{App, Runtime, ZEnv, ZIO, ZLayer, console}
 
 object EstimationHandler extends App with RequestHandler[Unit, Unit] {
 
@@ -50,11 +50,13 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
       )
     } yield ()
 
-  private def env(logging: ZLayer[Any, Nothing, Logging] ): ZLayer[Any, Any, Logging with CohortTable with Zuora] =
+  private def env(logging: ZLayer[Any, Nothing, Logging]): ZLayer[Any, Any, Logging with CohortTable with Zuora] = {
+    val zuoraLayer = (EnvConfiguration.impl ++ logging) >>> ZuoraLive.impl
     logging ++ EnvConfiguration.impl >>>
-    DynamoDBClient.dynamoDB ++ logging ++ EnvConfiguration.impl >>>
-    DynamoDBZIOLive.impl ++ logging ++ EnvConfiguration.impl >>>
-    logging ++ CohortTableLive.impl ++ ZuoraTest.impl
+      DynamoDBClient.dynamoDB ++ logging ++ EnvConfiguration.impl >>>
+      DynamoDBZIOLive.impl ++ logging ++ EnvConfiguration.impl >>>
+      logging ++ CohortTableLive.impl ++ zuoraLayer
+  }
 
   private val runtime = Runtime.default
 
@@ -63,7 +65,11 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
       .provideSomeLayer(
         env(Console.live >>> ConsoleLogging.impl)
       )
-      .fold(_ => 1, _ => 0)
+      // output any failures in service construction - there's probably a better way to do this
+      .foldM(
+        e => console.putStrLn(s"Failed: $e") *> ZIO.succeed(1),
+        _ => console.putStrLn("Succeeded!") *> ZIO.succeed(0)
+      )
 
   def handleRequest(unused: Unit, context: Context): Unit =
     runtime.unsafeRun(
