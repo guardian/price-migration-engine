@@ -57,9 +57,9 @@ Resources:
             Environment:
                 Variables:
                   Stage: !Ref Stage
-                  zuora.apiHost: !Sub '{{resolve:ssm:/${Stage}/membership/price-migration-engine/zuora.apiHost:1}}'
-                  zuora.clientId: !Sub '{{resolve:ssm-secure:/${Stage}/membership/price-migration-engine/zuora.clientId:1}}'
-                  zuora.clientSecret: !Sub '{{resolve:ssm-secure:/${Stage}/membership/price-migration-engine/zuora.clientSecret:1}}'
+                  zuora.apiHost: !Sub '{{resolve:secretsmanager:price-migration-engine-${Stage}:SecretString:zuora.apiHost}}'
+                  zuora.clientId: !Sub '{{resolve:secretsmanager:price-migration-engine-${Stage}:SecretString:zuora.clientId}}'
+                  zuora.clientSecret: !Sub '{{resolve:secretsmanager:price-migration-engine-${Stage}:SecretString:zuora.clientSecret}}'
             Role:
                 Fn::GetAtt:
                 - PriceMigrationEngineRole
