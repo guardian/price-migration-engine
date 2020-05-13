@@ -13,7 +13,7 @@ deployments:
   price-migration-engine:
     type: aws-lambda
     parameters:
-      fileName: price-migration-engine.jar
+      fileName: price-migration-engine-lambda.jar
       bucket: membership-dist
       prefixStack: false
       functionNames:
