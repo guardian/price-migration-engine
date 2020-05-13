@@ -71,7 +71,6 @@ class CohortTableLiveTest extends munit.FunSuite {
       ),
       Success(CohortItem("subscription-number"))
     )
-
   }
 
   test("Update the PriceMigrationEngine table and serialise the update correctly") {
