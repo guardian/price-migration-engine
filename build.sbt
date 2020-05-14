@@ -32,7 +32,7 @@ lazy val lambda = (project in file("lambda"))
     ),
     testFrameworks += new TestFramework("munit.Framework"),
     description := "Lambda jar for the Price Migration Engine",
-    assemblyJarName := s"${name}-lambda.jar",
+    assemblyJarName := s"price-migration-engine-lambda.jar",
     riffRaffPackageType := assembly.value,
     riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
     riffRaffUploadManifestBucket := Option("riffraff-builds"),
