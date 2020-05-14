@@ -41,7 +41,7 @@ object CohortTableLive {
     fieldName -> new AttributeValueUpdate(new AttributeValue().withS(dateValue.format(DateTimeFormatter.ISO_LOCAL_DATE)), AttributeAction.PUT)
 
   private def bigDecimalFieldUpdate(fieldName: String, value: BigDecimal) =
-    fieldName -> new AttributeValueUpdate(new AttributeValue().withS(value.toString), AttributeAction.PUT)
+    fieldName -> new AttributeValueUpdate(new AttributeValue().withN(value.toString), AttributeAction.PUT)
 
   private def stringUpdate(fieldName: String, stringValue: String) =
     fieldName -> new AttributeValue().withS(stringValue)
