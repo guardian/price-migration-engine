@@ -3,7 +3,7 @@ package pricemigrationengine.services
 import java.time.LocalDate
 
 import pricemigrationengine.model._
-import scalaj.http.{Http, HttpOptions, HttpRequest}
+import scalaj.http.{Http, HttpOptions, HttpRequest, HttpResponse}
 import upickle.default._
 import zio.{ZIO, ZLayer}
 
@@ -81,9 +81,13 @@ object ZuoraLive {
             if (response.code == 200)
               ZIO
                 .effect(read[A](body))
-                .orElse(ZIO.fail(ZuoraFetchFailure(body)))
+                .orElse(ZIO.fail(ZuoraFetchFailure(failureMessage(request, response))))
             else
-              ZIO.fail(ZuoraFetchFailure(body))
+              ZIO.fail(ZuoraFetchFailure(failureMessage(request, response)))
+          }
+
+          private def failureMessage(request: HttpRequest, response: HttpResponse[String]) = {
+            s"Request for ${request.method} ${request.url} returned status ${response.code} with body:${response.body}"
           }
 
           def fetchSubscription(subscriptionNumber: String): ZIO[Any, ZuoraFetchFailure, ZuoraSubscription] =
@@ -105,4 +109,5 @@ object ZuoraLive {
         }
       }
     }
+
 }
