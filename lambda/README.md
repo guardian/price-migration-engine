@@ -17,3 +17,13 @@ The configuration can be updated using the aws console as follows:
 - Click 'Edit' 
 - Add/Edit the key value pairs
 - Click 'Save'
+
+Cloudformation seems reluctant to reapply the updated configuration to the lambda environment variables. This 
+can be done by deleting the lambda stack and redeploying it with riffraff.
+
+You can delete the stack as follows:
+- Log into the aws console using the 'membership' profile via [janus](https://janus.gutools.co.uk/)
+- Navigate to Services > Management & Governance > Cloudformation
+- Search for membership-<STAGE>-price-migration-engine-lambda and click on the result
+- Click the 'delete' button
+- Click the 'delete stack' button 
