@@ -37,7 +37,7 @@ object ZuoraProductRatePlanCharge {
   implicit val rw: ReadWriter[ZuoraProductRatePlanCharge] = macroRW
 }
 
-case class ZuoraPricing(currency: String, price: BigDecimal)
+case class ZuoraPricing(currency: String, price: Option[BigDecimal], discountPercentage: Double)
 
 object ZuoraPricing {
   implicit val rw: ReadWriter[ZuoraPricing] = macroRW

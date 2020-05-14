@@ -2,6 +2,8 @@ package pricemigrationengine.model
 
 import java.time.LocalDate
 
+import scala.math.BigDecimal.RoundingMode
+
 case class AmendmentData(startDate: LocalDate, priceData: PriceData)
 
 case class PriceData(currency: String, oldPrice: BigDecimal, newPrice: BigDecimal)
@@ -33,12 +35,12 @@ object AmendmentData {
     * <ol>
     * <li>For a given date, gather chargeNumber and chargeAmount fields from invoice preview.</li>
     * <li>For each chargeNumber, match it with ratePlanCharge number on sub and get corresponding productRatePlanChargeId.</li>
-    * <li>For each productRatePlanChargeId, match it with id in catalogue and get pricing currency and price.</li>
+    * <li>For each productRatePlanChargeId, match it with id in catalogue and get pricing currency, price and discount percentage.</li>
     * <li>Get combined chargeAmount field for old price, and combined pricing price for new price, and currency.</li>
     * </ol>
     */
   def priceData(
-      pricing: ZuoraPricingData,
+      pricingData: ZuoraPricingData,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       startDate: LocalDate
@@ -50,7 +52,7 @@ object AmendmentData {
     }
 
     def matchingPricing(productRatePlanChargeId: ZuoraProductRatePlanChargeId): Option[ZuoraPricing] =
-      pricing.get(productRatePlanChargeId)
+      pricingData.get(productRatePlanChargeId)
 
     /*
      * Our matching operations can fail so this gathers up the results
@@ -68,6 +70,12 @@ object AmendmentData {
       Either.cond(fails.isEmpty, successes, fails)
     }
 
+    def hasNoMoreThanOneDiscount(pricings: Seq[ZuoraPricing]) =
+      pricings.count(_.discountPercentage > 0) <= 1
+
+    def hasNotPriceAndDiscount(pricings: Seq[ZuoraPricing]) =
+      pricings.forall(pricing => pricing.price.isDefined ^ pricing.discountPercentage > 0)
+
     val invoiceItems = invoiceList.invoiceItems.filter(_.serviceStartDate == startDate)
 
     for {
@@ -81,20 +89,42 @@ object AmendmentData {
         )
       )
       pricings <- eitherFailingOrPassingResults(
-        productRatePlanChargeIds,
+        /*
+         * distinct because where a sub has a discount rate plan,
+         * the same discount will appear against each product rate plan charge in the invoice preview.
+         */
+        productRatePlanChargeIds.distinct,
         matchingPricing
-      ).left.map(
-        ids => AmendmentDataFailure(s"Failed to find matching pricing for rate plan charges: ${ids.mkString}")
-      )
-      pricing <- pricings.headOption
+      ).left
+        .map(
+          ids => AmendmentDataFailure(s"Failed to find matching pricing for rate plan charges: ${ids.mkString}")
+        )
+        .filterOrElse(
+          hasNoMoreThanOneDiscount,
+          AmendmentDataFailure("Has multiple discount rate plan charges")
+        )
+        .filterOrElse(
+          hasNotPriceAndDiscount,
+          AmendmentDataFailure("Some rate plan charges have both a price and a discount")
+        )
+      firstPricing <- pricings.headOption
         .map(p => Right(p))
         .getOrElse(Left(AmendmentDataFailure(s"No invoice items for date: $startDate")))
     } yield {
       PriceData(
-        currency = pricing.currency,
+        currency = firstPricing.currency,
+        // invoice items include discount rate plan charges so summing them should give correct amount even when discounted
         oldPrice = invoiceItems.map(_.chargeAmount).sum,
-        newPrice = pricings.map(_.price).sum
+        newPrice = combinePrices(pricings)
       )
     }
   }
+
+  def combinePrices(pricings: Seq[ZuoraPricing]): BigDecimal = {
+    val discountPercentage = pricings.map(_.discountPercentage).find(_ > 0)
+    val beforeDiscount = pricings.flatMap(_.price).sum
+    roundDown(discountPercentage.fold(beforeDiscount)(_ / 100 * beforeDiscount))
+  }
+
+  def roundDown(d: BigDecimal): BigDecimal = d.setScale(2, RoundingMode.DOWN)
 }
