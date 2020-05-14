@@ -3,7 +3,7 @@ package pricemigrationengine.services
 import java.time.LocalDate
 
 import pricemigrationengine.model._
-import scalaj.http.{Http, HttpOptions, HttpRequest}
+import scalaj.http.{Http, HttpOptions, HttpRequest, HttpResponse}
 import upickle.default._
 import zio.{ZIO, ZLayer}
 
@@ -36,7 +36,7 @@ object ZuoraLive {
            * Will return to it.
            */
           private lazy val fetchedAccessToken: Either[ZuoraFetchFailure, String] = {
-            val response = Http(s"${config.zuora.apiHost}/oauth/token")
+            val request = Http(s"${config.zuora.apiHost}/oauth/token")
               .postForm(
                 Seq(
                   "grant_type" -> "client_credentials",
@@ -44,13 +44,14 @@ object ZuoraLive {
                   "client_secret" -> config.zuora.clientSecret
                 )
               )
+            val response = request
               .asString
             val body = response.body
             if (response.code == 200)
               Right(read[AccessToken](body).access_token)
-                .orElse(Left(ZuoraFetchFailure(body)))
+                .orElse(Left(ZuoraFetchFailure(failureMessage(request, response))))
             else
-              Left(ZuoraFetchFailure(body))
+              Left(ZuoraFetchFailure(failureMessage(request, response)))
           }
 
           private def get[A: Reader](path: String): ZIO[Any, ZuoraFetchFailure, A] =
@@ -81,9 +82,13 @@ object ZuoraLive {
             if (response.code == 200)
               ZIO
                 .effect(read[A](body))
-                .orElse(ZIO.fail(ZuoraFetchFailure(body)))
+                .orElse(ZIO.fail(ZuoraFetchFailure(failureMessage(request, response))))
             else
-              ZIO.fail(ZuoraFetchFailure(body))
+              ZIO.fail(ZuoraFetchFailure(failureMessage(request, response)))
+          }
+
+          private def failureMessage(request: HttpRequest, response: HttpResponse[String]) = {
+            s"Request for ${request.method} ${request.url} returned status ${response.code} with body:${response.body}"
           }
 
           def fetchSubscription(subscriptionNumber: String): ZIO[Any, ZuoraFetchFailure, ZuoraSubscription] =
@@ -105,4 +110,5 @@ object ZuoraLive {
         }
       }
     }
+
 }

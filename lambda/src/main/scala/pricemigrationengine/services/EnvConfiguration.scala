@@ -24,9 +24,9 @@ object EnvConfiguration {
         stage <- env("stage")
         earliestStartDate <- env("earliestStartDate").map(LocalDate.parse)
         batchSize <- env("batchSize").map(_.toInt)
-        zuoraApiHost <- env("zuora.apiHost")
-        zuoraClientId <- env("zuora.clientId")
-        zuoraClientSecret <- env("zuora.clientSecret")
+        zuoraApiHost <- env("zuoraApiHost")
+        zuoraClientId <- env("zuoraClientId")
+        zuoraClientSecret <- env("zuoraClientSecret")
         dynamoDBServiceEndpointOption <- optionalEnv("dynamodb.serviceEndpoint")
         dynamoDBSigningRegionOption <- optionalEnv("dynamodb.signingRegion")
         dynamoDBEndpoint = dynamoDBServiceEndpointOption
