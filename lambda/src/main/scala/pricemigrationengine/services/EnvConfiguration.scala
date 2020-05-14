@@ -1,6 +1,7 @@
 package pricemigrationengine.services
 
 import java.lang.System.getenv
+import java.time.LocalDate
 
 import pricemigrationengine.model.{Config, ConfigurationFailure, DynamoDBConfig, DynamoDBEndpointConfig, ZuoraConfig}
 import zio.{IO, ZIO, ZLayer}
@@ -20,25 +21,29 @@ object EnvConfiguration {
 
     new Configuration.Service {
       val config: IO[ConfigurationFailure, Config] = for {
-        stage <- env("Stage")
-        apiHost <- env("zuoraApiHost")
-        clientId <- env("zuoraClientId")
-        clientSecret <- env("zuoraClientSecret")
-        dynamoDBServiceEndpointOption <- optionalEnv("dynamodbServiceEndpoint")
-        dynamoDBSigningRegionOption <- optionalEnv("dynamodbSigningRegion")
+        stage <- env("stage")
+        earliestStartDate <- env("earliestStartDate").map(LocalDate.parse)
+        batchSize <- env("batchSize").map(_.toInt)
+        zuoraApiHost <- env("zuoraApiHost")
+        zuoraClientId <- env("zuoraClientId")
+        zuoraClientSecret <- env("zuoraClientSecret")
+        dynamoDBServiceEndpointOption <- optionalEnv("dynamodb.serviceEndpoint")
+        dynamoDBSigningRegionOption <- optionalEnv("dynamodb.signingRegion")
         dynamoDBEndpoint = dynamoDBServiceEndpointOption
           .flatMap(endpoint => dynamoDBSigningRegionOption.map(region => DynamoDBEndpointConfig(endpoint, region)))
       } yield
         Config(
           ZuoraConfig(
-            apiHost,
-            clientId,
-            clientSecret
+            zuoraApiHost,
+            zuoraClientId,
+            zuoraClientSecret
           ),
           DynamoDBConfig(
             dynamoDBEndpoint
           ),
-          stage
+          stage,
+          earliestStartDate,
+          batchSize
         )
     }
   }

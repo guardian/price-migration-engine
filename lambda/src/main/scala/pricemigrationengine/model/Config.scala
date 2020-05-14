@@ -6,6 +6,10 @@ case class Config(
     zuora: ZuoraConfig,
     dynamoDBConfig: DynamoDBConfig,
     stage: String,
+    // earliest date that price migration can take place
+    earliestStartDate: LocalDate,
+    // max number of subscriptions to process in one go
+    batchSize: Int = 100,
     yearInFuture: LocalDate = LocalDate.now.plusYears(1)
 )
 

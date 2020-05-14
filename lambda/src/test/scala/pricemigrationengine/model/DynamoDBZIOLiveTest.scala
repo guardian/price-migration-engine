@@ -1,14 +1,15 @@
 package pricemigrationengine.model
 
+import java.time.LocalDate
 import java.util
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
-import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest, QueryResult, UpdateItemRequest, UpdateItemResult}
-import pricemigrationengine.services.{CohortTable, CohortTableLive, Configuration, ConsoleLogging, DynamoDBDeserialiser, DynamoDBSerialiser, DynamoDBUpdateSerialiser, DynamoDBZIO, DynamoDBZIOError, DynamoDBZIOLive}
+import com.amazonaws.services.dynamodbv2.model._
+import pricemigrationengine.services._
 import zio.Exit.Success
 import zio.Runtime.default
 import zio.stream.Sink
-import zio.{IO, Runtime, ZIO, ZLayer, console}
+import zio.{IO, ZIO, ZLayer, console}
 
 import scala.jdk.CollectionConverters._
 
@@ -16,7 +17,7 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
   val stubConfiguration = ZLayer.succeed(
     new Configuration.Service {
       override val config: IO[ConfigurationFailure, Config] =
-        IO.succeed(Config(ZuoraConfig("", "", ""), DynamoDBConfig(None), "DEV"))
+        IO.succeed(Config(ZuoraConfig("", "", ""), DynamoDBConfig(None), "DEV", LocalDate.now))
     }
   )
 
@@ -27,8 +28,7 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
 
     implicit val itemDeserialiser = new DynamoDBDeserialiser[String] {
       def deserialise(value: java.util.Map[String, AttributeValue]) =
-        ZIO.fromOption(value.asScala.get("id").map(_.getS))
-          .mapError(_ => DynamoDBZIOError(""))
+        ZIO.fromOption(value.asScala.get("id").map(_.getS)).orElseFail(DynamoDBZIOError(""))
     }
 
     val queryRequest = new QueryRequest()
