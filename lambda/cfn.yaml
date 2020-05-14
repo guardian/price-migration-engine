@@ -12,7 +12,7 @@ Parameters:
         Default: CODE
 
 Resources:
-    PriceMigrationEngineRole:
+    PriceMigrationEngineLambdaRole:
         Type: AWS::IAM::Role
         Properties:
             AssumeRolePolicyDocument:
@@ -49,23 +49,23 @@ Resources:
         Properties:
             Description: Lambda used to implement the various task need in the process of increasing the price of subscriptions
             FunctionName:
-                !Sub price-migration-engine-${Stage}
+                !Sub price-migration-engine-lambda-${Stage}
             Code:
                 S3Bucket: membership-dist
-                S3Key: !Sub membership/${Stage}/price-migration-engine/price-migration-engine-lambda.jar
+                S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
             Handler: pricemigrationengine.handlers.EstimationHandler::handleRequest
             Environment:
                 Variables:
                   Stage: !Ref Stage
-                  zuoraApiHost: !Sub '{{resolve:secretsmanager:price-migration-engine-${Stage}:SecretString:zuoraApiHost}}'
-                  zuoraClientId: !Sub '{{resolve:secretsmanager:price-migration-engine-${Stage}:SecretString:zuoraClientId}}'
-                  zuoraClientSecret: !Sub '{{resolve:secretsmanager:price-migration-engine-${Stage}:SecretString:zuoraClientSecret}}'
+                  zuoraApiHost: !Sub '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraApiHost}}'
+                  zuoraClientId: !Sub '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientId}}'
+                  zuoraClientSecret: !Sub '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret}}'
             Role:
                 Fn::GetAtt:
-                - PriceMigrationEngineRole
+                - PriceMigrationEngineLambdaRole
                 - Arn
             MemorySize: 1536
             Runtime: java8
             Timeout: 300
         DependsOn:
-        - PriceMigrationEngineRole
+        - PriceMigrationEngineLambdaRole
