@@ -11,10 +11,6 @@ import zio.{App, Runtime, ZEnv, ZIO, ZLayer, console}
 
 object EstimationHandler extends App with RequestHandler[Unit, Unit] {
 
-  // TODO: configuration
-  val batchSize = 100
-  val earliestStartDate = LocalDate.now
-
   def estimation(
       newProductPricing: ZuoraPricingData,
       earliestStartDate: LocalDate,
@@ -27,14 +23,14 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
     result.absolve
   }
 
-  val main: ZIO[Logging with CohortTable with Zuora, Failure, Unit] =
+  val main: ZIO[Logging with Configuration with CohortTable with Zuora, Failure, Unit] =
     for {
+      config <- Configuration.config
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
-      cohortItems <- CohortTable
-        .fetch(ReadyForEstimation, batchSize)
+      cohortItems <- CohortTable.fetch(ReadyForEstimation, config.batchSize)
       results = cohortItems.mapM(
         item =>
-          estimation(newProductPricing, earliestStartDate, item).tapBoth(
+          estimation(newProductPricing, config.earliestStartDate, item).tapBoth(
             e => Logging.error(s"Failed to estimate amendment data: $e"),
             result => Logging.info(s"Estimated result: $result")
         )
@@ -50,12 +46,19 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
       )
     } yield ()
 
-  private def env(logging: ZLayer[Any, Nothing, Logging]): ZLayer[Any, Any, Logging with CohortTable with Zuora] = {
-    val zuoraLayer = (EnvConfiguration.impl ++ logging) >>> ZuoraLive.impl
-    logging ++ EnvConfiguration.impl >>>
-      DynamoDBClient.dynamoDB ++ logging ++ EnvConfiguration.impl >>>
-      DynamoDBZIOLive.impl ++ logging ++ EnvConfiguration.impl >>>
-      logging ++ CohortTableLive.impl ++ zuoraLayer
+  private def env(
+      loggingLayer: ZLayer[Any, Nothing, Logging]
+  ): ZLayer[Any, Any, Logging with Configuration with CohortTable with Zuora] = {
+    val configLayer = EnvConfiguration.impl
+    val cohortTableLayer =
+      loggingLayer ++ configLayer >>>
+        DynamoDBClient.dynamoDB ++ loggingLayer ++ configLayer >>>
+        DynamoDBZIOLive.impl ++ loggingLayer ++ configLayer >>>
+        CohortTableLive.impl
+    val zuoraLayer =
+      configLayer ++ loggingLayer >>>
+        ZuoraLive.impl
+    loggingLayer ++ configLayer ++ cohortTableLayer ++ zuoraLayer
   }
 
   private val runtime = Runtime.default
