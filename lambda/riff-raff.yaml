@@ -6,11 +6,11 @@ deployments:
 
   cfn:
     type: cloud-formation
-    app: price-migration-engine
+    app: price-migration-engine-lambda
     parameters:
       templatePath: cfn.yaml
 
-  price-migration-engine:
+  price-migration-engine-lambda:
     type: aws-lambda
     parameters:
       fileName: price-migration-engine-lambda.jar
