@@ -17,5 +17,5 @@ deployments:
       bucket: membership-dist
       prefixStack: false
       functionNames:
-      - price-migration-engine-
+      - price-migration-engine-lambda-
     dependencies: [cfn]
