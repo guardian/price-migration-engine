@@ -3,7 +3,7 @@ package pricemigrationengine.model
 import java.time.LocalDate
 
 import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
-import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, ReadyForEstimation}
+import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.services._
 import zio.Exit.Success
 import zio.stream.{Sink, ZStream}
@@ -15,7 +15,7 @@ class CohortTableLiveTest extends munit.FunSuite {
   val stubConfiguration = ZLayer.succeed(
     new Configuration.Service {
       override val config: IO[ConfigurationFailure, Config] =
-        IO.succeed(Config(ZuoraConfig("", "", ""), DynamoDBConfig(None), "DEV"))
+        IO.succeed(Config(ZuoraConfig("", "", ""), DynamoDBConfig(None), "DEV", LocalDate.now))
     }
   )
 
@@ -28,16 +28,18 @@ class CohortTableLiveTest extends munit.FunSuite {
 
     val stubDynamoDBZIO = ZLayer.succeed(
       new DynamoDBZIO.Service {
-        override def query[A](query: QueryRequest)
-                             (implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] = {
+        override def query[A](
+            query: QueryRequest
+        )(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] = {
           receivedDeserialiser = Some(deserializer.asInstanceOf[DynamoDBDeserialiser[CohortItem]])
           receivedRequest = Some(query)
-          ZStream(item1, item2).mapM(item => IO.effect(item.asInstanceOf[A]).mapError(_ => DynamoDBZIOError("")))
+          ZStream(item1, item2).mapM(item => IO.effect(item.asInstanceOf[A]).orElseFail(DynamoDBZIOError("")))
         }
 
-        override def update[A, B](table: String, key: A, value: B)
-                                 (implicit keySerializer: DynamoDBSerialiser[A],
-                                  valueSerializer: DynamoDBUpdateSerialiser[B]): IO[DynamoDBZIOError, Unit] = ???
+        override def update[A, B](table: String, key: A, value: B)(
+            implicit keySerializer: DynamoDBSerialiser[A],
+            valueSerializer: DynamoDBUpdateSerialiser[B]
+        ): IO[DynamoDBZIOError, Unit] = ???
       }
     )
 
@@ -51,7 +53,7 @@ class CohortTableLiveTest extends munit.FunSuite {
             resultList <- result.run(Sink.collectAll[CohortItem])
             _ = assertEquals(resultList, List(item1, item2))
           } yield ()
-          )
+        )
       ),
       Success(())
     )
@@ -82,12 +84,14 @@ class CohortTableLiveTest extends munit.FunSuite {
 
     val stubDynamoDBZIO = ZLayer.succeed(
       new DynamoDBZIO.Service {
-        override def query[A](query: QueryRequest)
-                             (implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] = ???
+        override def query[A](query: QueryRequest)(
+            implicit deserializer: DynamoDBDeserialiser[A]
+        ): ZStream[Any, DynamoDBZIOError, A] = ???
 
-        override def update[A, B](table: String, key: A, value: B)
-                                 (implicit keySerializer: DynamoDBSerialiser[A],
-                                  valueSerializer: DynamoDBUpdateSerialiser[B]): IO[DynamoDBZIOError, Unit] = {
+        override def update[A, B](table: String, key: A, value: B)(
+            implicit keySerializer: DynamoDBSerialiser[A],
+            valueSerializer: DynamoDBUpdateSerialiser[B]
+        ): IO[DynamoDBZIOError, Unit] = {
           tableUpdated = Some(table)
           receivedKey = Some(key.asInstanceOf[CohortTableKey])
           receivedUpdate = Some(value.asInstanceOf[EstimationResult])
@@ -126,7 +130,10 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       receivedValueSerialiser.get.serialise(receivedUpdate.get),
       Map(
-        "processingStage" -> new AttributeValueUpdate(new AttributeValue().withS("EstimationComplete"), AttributeAction.PUT),
+        "processingStage" -> new AttributeValueUpdate(
+          new AttributeValue().withS("EstimationComplete"),
+          AttributeAction.PUT
+        ),
         "expectedStartDate" -> new AttributeValueUpdate(new AttributeValue().withS("2020-01-01"), AttributeAction.PUT),
         "currency" -> new AttributeValueUpdate(new AttributeValue().withS("GBP"), AttributeAction.PUT),
         "oldPrice" -> new AttributeValueUpdate(new AttributeValue().withN("1.0"), AttributeAction.PUT),
