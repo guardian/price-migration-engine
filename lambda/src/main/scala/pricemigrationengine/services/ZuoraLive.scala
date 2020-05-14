@@ -36,7 +36,7 @@ object ZuoraLive {
            * Will return to it.
            */
           private lazy val fetchedAccessToken: Either[ZuoraFetchFailure, String] = {
-            val response = Http(s"${config.zuora.apiHost}/oauth/token")
+            val request = Http(s"${config.zuora.apiHost}/oauth/token")
               .postForm(
                 Seq(
                   "grant_type" -> "client_credentials",
@@ -44,13 +44,14 @@ object ZuoraLive {
                   "client_secret" -> config.zuora.clientSecret
                 )
               )
+            val response = request
               .asString
             val body = response.body
             if (response.code == 200)
               Right(read[AccessToken](body).access_token)
-                .orElse(Left(ZuoraFetchFailure(body)))
+                .orElse(Left(ZuoraFetchFailure(failureMessage(request, response))))
             else
-              Left(ZuoraFetchFailure(body))
+              Left(ZuoraFetchFailure(failureMessage(request, response)))
           }
 
           private def get[A: Reader](path: String): ZIO[Any, ZuoraFetchFailure, A] =
