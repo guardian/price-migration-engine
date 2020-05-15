@@ -1,7 +1,5 @@
 package pricemigrationengine.handlers
 
-import java.time.LocalDate
-
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
@@ -11,39 +9,33 @@ import zio.{App, Runtime, ZEnv, ZIO, ZLayer, console}
 
 object EstimationHandler extends App with RequestHandler[Unit, Unit] {
 
-  def estimation(
-      newProductPricing: ZuoraPricingData,
-      earliestStartDate: LocalDate,
-      item: CohortItem
-  ): ZIO[Zuora, Failure, EstimationResult] = {
-    val result = for {
-      subscription <- Zuora.fetchSubscription(item.subscriptionName)
-      invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId)
-    } yield EstimationResult(newProductPricing, subscription, invoicePreview, earliestStartDate)
-    result.absolve
-  }
-
   val main: ZIO[Logging with Configuration with CohortTable with Zuora, Failure, Unit] =
     for {
       config <- Configuration.config
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
       cohortItems <- CohortTable.fetch(ReadyForEstimation, config.batchSize)
-      results = cohortItems.mapM(
-        item =>
-          estimation(newProductPricing, config.earliestStartDate, item).tapBoth(
-            e => Logging.error(s"Failed to estimate amendment data: $e"),
-            result => Logging.info(s"Estimated result: $result")
+      _ <- cohortItems.foreach(writeEstimation(newProductPricing))
+    } yield ()
+
+  private def writeEstimation(
+      newProductPricing: ZuoraPricingData
+  )(item: CohortItem): ZIO[Logging with Configuration with CohortTable with Zuora, Failure, Unit] =
+    for {
+      config <- Configuration.config
+      subscription <- Zuora.fetchSubscription(item.subscriptionName)
+      invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId)
+      result <- ZIO
+        .fromEither(EstimationResult(newProductPricing, subscription, invoicePreview, config.earliestStartDate))
+        .tapBoth(
+          e => Logging.error(s"Failed to estimate amendment data: $e"),
+          result => Logging.info(s"Estimated result: $result")
         )
-      )
-      _ <- results.foreach(
-        result =>
-          CohortTable
-            .update(result)
-            .tapBoth(
-              e => Logging.error(s"Failed to update Cohort table: $e"),
-              _ => Logging.info(s"Wrote $result to Cohort table")
-          )
-      )
+      _ <- CohortTable
+        .update(result)
+        .tapBoth(
+          e => Logging.error(s"Failed to update Cohort table: $e"),
+          _ => Logging.info(s"Wrote $result to Cohort table")
+        )
     } yield ()
 
   private def env(
