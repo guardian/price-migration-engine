@@ -26,7 +26,7 @@ The configuration can be updated using the aws console as follows:
     aws --region eu-west-1 --profile membership secretsmanager get-secret-value --version-stage AWSCURRENT --secret-id price-migration-engine-lambda-<STAGE>
     ```
   - The existing string is returned in the "SecretString" element of the json response, you will need to json string unescape
-    this value, and then make the changes/addtions to the result
+    this value, and then make the changes/additions to the result
   - Create a new version of the secrets with the new secret string:
     ```$bash
     aws --region eu-west-1 --profile membership secretsmanager update-secret --secret-id price-migration-engine-lambda-<STAGE> --secret-string  '{"zuoraApiHost":"http://rest.apisandbox.zuora.com","zuoraClientId":"xxx","zuoraClientSecret":"xxx"}'
