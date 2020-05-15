@@ -31,7 +31,7 @@ The configuration can be updated using the aws console as follows:
     ```$bash
     aws --region eu-west-1 --profile membership secretsmanager update-secret --secret-id price-migration-engine-lambda-<STAGE> --secret-string  '{"zuoraApiHost":"http://rest.apisandbox.zuora.com","zuoraClientId":"xxx","zuoraClientSecret":"xxx"}'
     ```      
-- Update the secrect version in the cloudformation templates. The cloudformation templates contains mappings for the
+- Update the secret version in the cloudformation templates. The cloudformation templates contains mappings for the
   version of the secrets in each environment. The new version of the configuration will not be used until those mappings
   are updated. You can do that as follows:
   - Get the latest secret values using the aws cli:
