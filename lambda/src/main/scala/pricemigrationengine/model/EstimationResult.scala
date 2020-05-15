@@ -7,7 +7,8 @@ case class EstimationResult(
     expectedStartDate: LocalDate,
     currency: String,
     oldPrice: BigDecimal,
-    estimatedNewPrice: BigDecimal
+    estimatedNewPrice: BigDecimal,
+    billingPeriod: String
 )
 
 object EstimationResult {
@@ -24,7 +25,8 @@ object EstimationResult {
         amendmentData.startDate,
         amendmentData.priceData.currency,
         amendmentData.priceData.oldPrice,
-        amendmentData.priceData.newPrice
+        amendmentData.priceData.newPrice,
+        amendmentData.priceData.billingPeriod
       )
     }
 }

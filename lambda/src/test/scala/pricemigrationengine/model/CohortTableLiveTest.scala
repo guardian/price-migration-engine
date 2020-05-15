@@ -45,15 +45,13 @@ class CohortTableLiveTest extends munit.FunSuite {
 
     assertEquals(
       Runtime.default.unsafeRunSync(
-        (
-          for {
-            result <- CohortTable
-              .fetch(ReadyForEstimation, 10)
-              .provideLayer(stubConfiguration ++ stubDynamoDBZIO >>> CohortTableLive.impl)
-            resultList <- result.run(Sink.collectAll[CohortItem])
-            _ = assertEquals(resultList, List(item1, item2))
-          } yield ()
-        )
+        for {
+          result <- CohortTable
+            .fetch(ReadyForEstimation, 10)
+            .provideLayer(stubConfiguration ++ stubDynamoDBZIO >>> CohortTableLive.impl)
+          resultList <- result.run(Sink.collectAll[CohortItem])
+          _ = assertEquals(resultList, List(item1, item2))
+        } yield ()
       ),
       Success(())
     )
@@ -97,7 +95,7 @@ class CohortTableLiveTest extends munit.FunSuite {
           receivedUpdate = Some(value.asInstanceOf[EstimationResult])
           receivedKeySerialiser = Some(keySerializer.asInstanceOf[DynamoDBSerialiser[CohortTableKey]])
           receivedValueSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBUpdateSerialiser[EstimationResult]])
-          ZIO.effect(()).mapError(_ => DynamoDBZIOError(""))
+          ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
         }
       }
     )
@@ -107,7 +105,8 @@ class CohortTableLiveTest extends munit.FunSuite {
       expectedStartDate = LocalDate.of(2020, 1, 1),
       currency = "GBP",
       oldPrice = 1.0,
-      estimatedNewPrice = 2.0
+      estimatedNewPrice = 2.0,
+      billingPeriod = "Quarter"
     )
 
     assertEquals(
@@ -137,7 +136,8 @@ class CohortTableLiveTest extends munit.FunSuite {
         "expectedStartDate" -> new AttributeValueUpdate(new AttributeValue().withS("2020-01-01"), AttributeAction.PUT),
         "currency" -> new AttributeValueUpdate(new AttributeValue().withS("GBP"), AttributeAction.PUT),
         "oldPrice" -> new AttributeValueUpdate(new AttributeValue().withN("1.0"), AttributeAction.PUT),
-        "estimatedNewPrice" -> new AttributeValueUpdate(new AttributeValue().withN("2.0"), AttributeAction.PUT)
+        "estimatedNewPrice" -> new AttributeValueUpdate(new AttributeValue().withN("2.0"), AttributeAction.PUT),
+        "billingPeriod" -> new AttributeValueUpdate(new AttributeValue().withS("Quarter"), AttributeAction.PUT)
       ).asJava
     )
   }

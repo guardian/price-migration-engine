@@ -13,7 +13,6 @@ import zio.{IO, ZIO, ZLayer}
 
 import scala.jdk.CollectionConverters._
 
-
 object CohortTableLive {
   private implicit val cohortItemDeserialiser: DynamoDBDeserialiser[CohortItem] =
     cohortItem =>
@@ -27,18 +26,21 @@ object CohortTableLive {
         dateFieldUpdate("expectedStartDate", estimationResult.expectedStartDate),
         stringFieldUpdate("currency", estimationResult.currency),
         bigDecimalFieldUpdate("oldPrice", estimationResult.oldPrice),
-        bigDecimalFieldUpdate("estimatedNewPrice", estimationResult.estimatedNewPrice)
+        bigDecimalFieldUpdate("estimatedNewPrice", estimationResult.estimatedNewPrice),
+        stringFieldUpdate("billingPeriod", estimationResult.billingPeriod)
       ).asJava
 
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =
-    estimationResult =>
-      Map(stringUpdate("subscriptionNumber", estimationResult.subscriptionNumber)).asJava
+    estimationResult => Map(stringUpdate("subscriptionNumber", estimationResult.subscriptionNumber)).asJava
 
   private def stringFieldUpdate(fieldName: String, stringValue: String) =
     fieldName -> new AttributeValueUpdate(new AttributeValue().withS(stringValue), AttributeAction.PUT)
 
   private def dateFieldUpdate(fieldName: String, dateValue: LocalDate) =
-    fieldName -> new AttributeValueUpdate(new AttributeValue().withS(dateValue.format(DateTimeFormatter.ISO_LOCAL_DATE)), AttributeAction.PUT)
+    fieldName -> new AttributeValueUpdate(
+      new AttributeValue().withS(dateValue.format(DateTimeFormatter.ISO_LOCAL_DATE)),
+      AttributeAction.PUT
+    )
 
   private def bigDecimalFieldUpdate(fieldName: String, value: BigDecimal) =
     fieldName -> new AttributeValueUpdate(new AttributeValue().withN(value.toString), AttributeAction.PUT)
@@ -49,42 +51,42 @@ object CohortTableLive {
   private def getStringFromResults(result: util.Map[String, AttributeValue], fieldName: String) = {
     ZIO
       .fromOption(result.asScala.get(fieldName))
-      .mapError(_ => DynamoDBZIOError(s"The '$fieldName' field did not exist in the record $result"))
+      .orElseFail(DynamoDBZIOError(s"The '$fieldName' field did not exist in the record $result"))
       .flatMap { attributeValue =>
         ZIO
           .fromOption(Option(attributeValue.getS))
-          .mapError(_ => DynamoDBZIOError(s"The '$fieldName' field was not a string in the record $result"))
+          .orElseFail(DynamoDBZIOError(s"The '$fieldName' field was not a string in the record $result"))
       }
   }
 
   val impl: ZLayer[DynamoDBZIO with Configuration, Nothing, CohortTable] =
-    ZLayer.fromFunction { dependencies: DynamoDBZIO with Configuration=>
+    ZLayer.fromFunction { dependencies: DynamoDBZIO with Configuration =>
       new Service {
         override def fetch(
-          filter: CohortTableFilter,
-          batchSize: Int
+            filter: CohortTableFilter,
+            batchSize: Int
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
           for {
-            config <- Configuration
-                .config
-                .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
-            queryResults <- DynamoDBZIO.query(
-              new QueryRequest()
-                .withTableName(s"PriceMigrationEngine${config.stage}")
-                .withIndexName("ProcessingStageIndex")
-                .withKeyConditionExpression("processingStage = :processingStage")
-                .withExpressionAttributeValues(
-                  Map(":processingStage" -> new AttributeValue(filter.value)).asJava
-                )
-                .withLimit(batchSize)
-            ).map(_.mapError(error => CohortFetchFailure(error.toString)))
+            config <- Configuration.config
+              .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
+            queryResults <- DynamoDBZIO
+              .query(
+                new QueryRequest()
+                  .withTableName(s"PriceMigrationEngine${config.stage}")
+                  .withIndexName("ProcessingStageIndex")
+                  .withKeyConditionExpression("processingStage = :processingStage")
+                  .withExpressionAttributeValues(
+                    Map(":processingStage" -> new AttributeValue(filter.value)).asJava
+                  )
+                  .withLimit(batchSize)
+              )
+              .map(_.mapError(error => CohortFetchFailure(error.toString)))
           } yield queryResults
         }.provide(dependencies)
 
         override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = {
           for {
-            config <- Configuration
-              .config
+            config <- Configuration.config
               .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
             result <- DynamoDBZIO
               .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(result.subscriptionName), result)
