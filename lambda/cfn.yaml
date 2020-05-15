@@ -11,6 +11,16 @@ Parameters:
       - DEV
     Default: CODE
 
+Mappings:
+  StageMap:
+    DEV:
+      SecretsVersion: "78e58134-92b1-40d5-ab3f-958c0942be65"
+    CODE:
+      SecretsVersion: "3137cb2d-629e-48d2-aefa-b966301f7667"
+    PROD:
+      SecretsVersion: "4351dd97-033d-464e-bea6-f9112c5a2a23"
+
+
 Resources:
   PriceMigrationEngineLambdaRole:
     Type: AWS::IAM::Role
@@ -58,10 +68,19 @@ Resources:
       Handler: pricemigrationengine.handlers.EstimationHandler::handleRequest
       Environment:
         Variables:
-          stage: !Ref Stage
-          zuoraApiHost: !Sub '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraApiHost}}'
-          zuoraClientId: !Sub '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientId}}'
-          zuoraClientSecret: !Sub '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret}}'
+          Stage: !Ref Stage
+          zuoraApiHost:
+            - !Sub
+              - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraApiHost:${SecretsVersion}}}'
+              - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          zuoraClientId:
+            - !Sub
+              - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientId:${SecretsVersion}}}'
+              - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          zuoraClientSecret:
+            - !Sub
+              - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret:${SecretsVersion}}}'
+              - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
           earliestStartDate: 2020-05-15
           batchSize: 100
       Role:
