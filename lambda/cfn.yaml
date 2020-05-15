@@ -68,7 +68,7 @@ Resources:
       Handler: pricemigrationengine.handlers.EstimationHandler::handleRequest
       Environment:
         Variables:
-          Stage: !Ref Stage
+          stage: !Ref Stage
           zuoraApiHost:
             !Sub
               - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraApiHost::${SecretsVersion}}}'
