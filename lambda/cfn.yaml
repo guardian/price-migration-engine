@@ -56,12 +56,48 @@ Resources:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}"
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}/*"
 
-  PriceMigrationEngineLambda:
+  PriceMigrationEngineEstimationLambda:
     Type: AWS::Lambda::Function
     Properties:
-      Description: Lambda used to implement the various task need in the process of increasing the price of subscriptions
+      Description: Lambda used to create estimated price, start date and other details of a price rise
       FunctionName:
-        !Sub price-migration-engine-lambda-${Stage}
+        !Sub price-migration-engine-estimation-lambda-${Stage}
+      Code:
+        S3Bucket: membership-dist
+        S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
+      Handler: pricemigrationengine.handlers.EstimationHandler::handleRequest
+      Environment:
+        Variables:
+          stage: !Ref Stage
+          zuoraApiHost:
+            !Sub
+              - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraApiHost::${SecretsVersion}}}'
+              - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          zuoraClientId:
+            !Sub
+              - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientId::${SecretsVersion}}}'
+              - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          zuoraClientSecret:
+            !Sub
+              - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret::${SecretsVersion}}}'
+              - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          earliestStartDate: 2020-05-15
+          batchSize: 100
+      Role:
+        Fn::GetAtt:
+          - PriceMigrationEngineLambdaRole
+          - Arn
+      MemorySize: 1536
+      Runtime: java8
+      Timeout: 300
+    DependsOn:
+      - PriceMigrationEngineLambdaRole
+  PriceMigrationEngineSalesforcePriceCreateLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Lambda used to create Price_Rise__c objects in salesforce realting to the price rise.
+      FunctionName:
+        !Sub price-migration-engine-salesforce-price-rise-lambda-${Stage}
       Code:
         S3Bucket: membership-dist
         S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
