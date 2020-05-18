@@ -9,29 +9,33 @@ object DynamoDBClient {
   val dynamoDB: ZLayer[Logging with Configuration, String, DynamoDBClient] =
     ZLayer.fromManaged(
       ZManaged.fromFunctionM { dependencies: Logging with Configuration =>
-        ZManaged.make(
-          for {
-            config <- Configuration.config.mapError(_.toString)
-            client <- ZIO.effect(
-              config.dynamoDBConfig.endpoint
-                .foldLeft(AmazonDynamoDBClient.builder()) { (builder, endpoint) =>
-                  builder.withEndpointConfiguration(
-                    new AwsClientBuilder.EndpointConfiguration(endpoint.serviceEndpoint, endpoint.signingRegion)
-                  )
-                }.build()
-            )
-              .mapError(ex => s"Failed to create the dynamoDb client: $ex")
-          } yield client
-        ) { dynamoDB: AmazonDynamoDB =>
-          ZIO
-            .effect(dynamoDB.shutdown)
-            .catchAll(ex => Logging.error(s"Failed to close dynamo db connection: $ex"))
-        }.provide(dependencies)
+        ZManaged
+          .make(
+            for {
+              config <- Configuration.config.mapError(_.toString)
+              client <- ZIO
+                .effect(
+                  config.dynamoDBConfig.endpoint
+                    .foldLeft(AmazonDynamoDBClient.builder()) { (builder, endpoint) =>
+                      builder.withEndpointConfiguration(
+                        new AwsClientBuilder.EndpointConfiguration(endpoint.serviceEndpoint, endpoint.signingRegion)
+                      )
+                    }
+                    .build()
+                )
+                .mapError(ex => s"Failed to create the dynamoDb client: $ex")
+            } yield client
+          ) { dynamoDB: AmazonDynamoDB =>
+            ZIO
+              .effect(dynamoDB.shutdown)
+              .catchAll(ex => Logging.error(s"Failed to close dynamo db connection: $ex"))
+          }
+          .provide(dependencies)
       }
     )
 
   def query(queryRequest: QueryRequest): ZIO[DynamoDBClient, Throwable, QueryResult] = {
-    ZIO.access(_.get.query(queryRequest))
+    ZIO.accessM(client => ZIO.effect(client.get.query(queryRequest)))
   }
 
   def updateItem(updateRequest: UpdateItemRequest): ZIO[DynamoDBClient, Throwable, UpdateItemResult] = {

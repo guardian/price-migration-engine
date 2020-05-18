@@ -85,7 +85,7 @@ object AmendmentData {
       ).left.map(
         invoiceItems =>
           AmendmentDataFailure(
-            s"Failed to find matching rate plan charge for invoice items: ${invoiceItems.map(_.chargeNumber).mkString}"
+            s"Failed to find matching rate plan charge for invoice items: ${invoiceItems.map(_.chargeNumber).mkString(", ")}"
         )
       )
       pricings <- eitherFailingOrPassingResults(

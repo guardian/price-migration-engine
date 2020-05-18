@@ -1,6 +1,6 @@
 package pricemigrationengine.model
 
-import java.time.LocalDate
+import java.time.{Instant, LocalDate}
 
 import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
@@ -126,19 +126,42 @@ class CohortTableLiveTest extends munit.FunSuite {
         "subscriptionNumber" -> new AttributeValue().withS("subscription-name")
       ).asJava
     )
+    val update = receivedValueSerialiser.get.serialise(receivedUpdate.get)
     assertEquals(
-      receivedValueSerialiser.get.serialise(receivedUpdate.get),
-      Map(
-        "processingStage" -> new AttributeValueUpdate(
-          new AttributeValue().withS("EstimationComplete"),
-          AttributeAction.PUT
-        ),
-        "expectedStartDate" -> new AttributeValueUpdate(new AttributeValue().withS("2020-01-01"), AttributeAction.PUT),
-        "currency" -> new AttributeValueUpdate(new AttributeValue().withS("GBP"), AttributeAction.PUT),
-        "oldPrice" -> new AttributeValueUpdate(new AttributeValue().withN("1.0"), AttributeAction.PUT),
-        "estimatedNewPrice" -> new AttributeValueUpdate(new AttributeValue().withN("2.0"), AttributeAction.PUT),
-        "billingPeriod" -> new AttributeValueUpdate(new AttributeValue().withS("Quarter"), AttributeAction.PUT)
-      ).asJava
+      update.get("processingStage"),
+      new AttributeValueUpdate(new AttributeValue().withS("EstimationComplete"), AttributeAction.PUT),
+      "processingStage"
+    )
+    assertEquals(
+      update.get("expectedStartDate"),
+      new AttributeValueUpdate(new AttributeValue().withS("2020-01-01"), AttributeAction.PUT),
+      "expectedStartDate"
+    )
+    assertEquals(
+      update.get("currency"),
+      new AttributeValueUpdate(new AttributeValue().withS("GBP"), AttributeAction.PUT),
+      "currency"
+    )
+    assertEquals(
+      update.get("oldPrice"),
+      new AttributeValueUpdate(new AttributeValue().withN("1.0"), AttributeAction.PUT),
+      "oldPrice"
+    )
+    assertEquals(
+      update.get("estimatedNewPrice"),
+      new AttributeValueUpdate(new AttributeValue().withN("2.0"), AttributeAction.PUT),
+      "estimatedNewPrice"
+    )
+    assertEquals(
+      update.get("billingPeriod"),
+      new AttributeValueUpdate(new AttributeValue().withS("Quarter"), AttributeAction.PUT),
+      "billingPeriod"
+    )
+    val now = Instant.now
+    val whenEstimationDone = Instant.parse(update.get("whenEstimationDone").getValue.getS)
+    assert(
+      whenEstimationDone.isAfter(now.minusSeconds(100)) && whenEstimationDone.isBefore(now),
+      "whenEstimationDone"
     )
   }
 }
