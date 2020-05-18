@@ -6,7 +6,7 @@ import scala.math.BigDecimal.RoundingMode
 
 case class AmendmentData(startDate: LocalDate, priceData: PriceData)
 
-case class PriceData(currency: String, oldPrice: BigDecimal, newPrice: BigDecimal)
+case class PriceData(currency: String, oldPrice: BigDecimal, newPrice: BigDecimal, billingPeriod: String)
 
 object AmendmentData {
 
@@ -46,9 +46,9 @@ object AmendmentData {
       startDate: LocalDate
   ): Either[AmendmentDataFailure, PriceData] = {
 
-    def matchingProductRatePlanChargeId(invoiceItem: ZuoraInvoiceItem): Option[ZuoraProductRatePlanChargeId] = {
+    def matchingRatePlanCharge(invoiceItem: ZuoraInvoiceItem): Option[ZuoraRatePlanCharge] = {
       val ratePlanCharges = subscription.ratePlans.flatMap(_.ratePlanCharges)
-      ratePlanCharges.find(_.number == invoiceItem.chargeNumber).map(_.productRatePlanChargeId)
+      ratePlanCharges.find(_.number == invoiceItem.chargeNumber)
     }
 
     def matchingPricing(productRatePlanChargeId: ZuoraProductRatePlanChargeId): Option[ZuoraPricing] =
@@ -79,9 +79,9 @@ object AmendmentData {
     val invoiceItems = invoiceList.invoiceItems.filter(_.serviceStartDate == startDate)
 
     for {
-      productRatePlanChargeIds <- eitherFailingOrPassingResults(
+      ratePlanCharges <- eitherFailingOrPassingResults(
         invoiceItems,
-        matchingProductRatePlanChargeId
+        matchingRatePlanCharge
       ).left.map(
         invoiceItems =>
           AmendmentDataFailure(
@@ -93,7 +93,7 @@ object AmendmentData {
          * distinct because where a sub has a discount rate plan,
          * the same discount will appear against each product rate plan charge in the invoice preview.
          */
-        productRatePlanChargeIds.distinct,
+        ratePlanCharges.map(_.productRatePlanChargeId).distinct,
         matchingPricing
       ).left
         .map(
@@ -115,7 +115,9 @@ object AmendmentData {
         currency = firstPricing.currency,
         // invoice items include discount rate plan charges so summing them should give correct amount even when discounted
         oldPrice = invoiceItems.map(_.chargeAmount).sum,
-        newPrice = combinePrices(pricings)
+        newPrice = combinePrices(pricings),
+        // head is safe here because if there were no rate plan charges, would already have shortcircuited
+        billingPeriod = ratePlanCharges.head.billingPeriod.getOrElse("Unknown")
       )
     }
   }

@@ -47,7 +47,10 @@ class AmendmentDataTest extends munit.FunSuite {
       invoiceList = invoiceListFromJson("InvoicePreview2.json"),
       startDate = LocalDate.of(2020, 5, 28)
     )
-    assertEquals(priceData, Right(PriceData(currency = "GBP", oldPrice = 47.62, newPrice = 52.99)))
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 47.62, newPrice = 52.99, billingPeriod = "Month"))
+    )
   }
 
   test("priceData: calculation is correct for a monthly discounted voucher subscription") {
@@ -57,7 +60,10 @@ class AmendmentDataTest extends munit.FunSuite {
       invoiceList = invoiceListFromJson("InvoicePreview3.json"),
       startDate = LocalDate.of(2020, 6, 15)
     )
-    assertEquals(priceData, Right(PriceData(currency = "GBP", oldPrice = 10.38, newPrice = 10.99)))
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 10.38, newPrice = 10.99, billingPeriod = "Month"))
+    )
   }
 
   test("combinePrices: combines prices correctly") {
