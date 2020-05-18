@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter
 import java.util
 
 import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
+import pricemigrationengine.handlers.CreateSalesforcePriceRiseResult
 import pricemigrationengine.model.CohortTableFilter.EstimationComplete
 import pricemigrationengine.model._
 import pricemigrationengine.services.CohortTable.Service
@@ -94,6 +95,8 @@ object CohortTableLive {
               .mapError(error => CohortUpdateFailure(error.toString))
           } yield result
         }.provide(dependencies)
+
+        override def update(result: CreateSalesforcePriceRiseResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
       }
     }
 }
