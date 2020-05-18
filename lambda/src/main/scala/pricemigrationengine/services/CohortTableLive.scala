@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import java.time.LocalDate
+import java.time.{Instant, LocalDate}
 import java.time.format.DateTimeFormatter
 import java.util
 
@@ -27,7 +27,8 @@ object CohortTableLive {
         stringFieldUpdate("currency", estimationResult.currency),
         bigDecimalFieldUpdate("oldPrice", estimationResult.oldPrice),
         bigDecimalFieldUpdate("estimatedNewPrice", estimationResult.estimatedNewPrice),
-        stringFieldUpdate("billingPeriod", estimationResult.billingPeriod)
+        stringFieldUpdate("billingPeriod", estimationResult.billingPeriod),
+        stringFieldUpdate("whenEstimationDone", Instant.now.toString)
       ).asJava
 
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =
