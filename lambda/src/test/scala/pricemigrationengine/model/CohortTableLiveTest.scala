@@ -15,7 +15,7 @@ class CohortTableLiveTest extends munit.FunSuite {
   val stubConfiguration = ZLayer.succeed(
     new Configuration.Service {
       override val config: IO[ConfigurationFailure, Config] =
-        IO.succeed(Config(ZuoraConfig("", "", ""), DynamoDBConfig(None), "DEV", LocalDate.now))
+        IO.succeed(Config(DynamoDBConfig(None), "DEV", LocalDate.now))
     }
   )
 
@@ -160,7 +160,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     val now = Instant.now
     val whenEstimationDone = Instant.parse(update.get("whenEstimationDone").getValue.getS)
     assert(
-      whenEstimationDone.isAfter(now.minusSeconds(100)) && whenEstimationDone.isBefore(now),
+      whenEstimationDone.isAfter(now.minusSeconds(100)) && (!whenEstimationDone.isAfter(now)),
       "whenEstimationDone"
     )
   }

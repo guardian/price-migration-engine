@@ -48,7 +48,7 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
         DynamoDBZIOLive.impl ++ loggingLayer ++ configLayer >>>
         CohortTableLive.impl
     val zuoraLayer =
-      configLayer ++ loggingLayer >>>
+      EnvConfiguration.zuoraImpl ++ loggingLayer >>>
         ZuoraLive.impl
     loggingLayer ++ configLayer ++ cohortTableLayer ++ zuoraLayer
   }
