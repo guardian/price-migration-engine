@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{CohortTableConfig, EstimationHandlerConfig, ConfigurationFailure, DynamoDBConfig, ZuoraConfig}
+import pricemigrationengine.model.{CohortTableConfig, ConfigurationFailure, DynamoDBConfig, EstimationHandlerConfig, ZuoraConfig}
 import zio.{IO, ZIO}
 
 object EstimationHandlerConfiguration {

@@ -3,7 +3,7 @@ package pricemigrationengine.services
 import java.lang.System.getenv
 import java.time.LocalDate
 
-import pricemigrationengine.model.{CohortTableConfig, EstimationHandlerConfig, ConfigurationFailure, DynamoDBConfig, DynamoDBEndpointConfig, ZuoraConfig}
+import pricemigrationengine.model.{CohortTableConfig, ConfigurationFailure, DynamoDBConfig, DynamoDBEndpointConfig, EstimationHandlerConfig, ZuoraConfig}
 import zio.{IO, ZIO, ZLayer}
 
 object EnvConfiguration {
