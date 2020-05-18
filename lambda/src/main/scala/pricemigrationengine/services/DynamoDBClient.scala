@@ -6,16 +6,16 @@ import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClient}
 import zio.{ZIO, ZLayer, ZManaged}
 
 object DynamoDBClient {
-  val dynamoDB: ZLayer[Logging with Configuration, String, DynamoDBClient] =
+  val dynamoDB: ZLayer[Logging with DynamoDBConfiguration, String, DynamoDBClient] =
     ZLayer.fromManaged(
-      ZManaged.fromFunctionM { dependencies: Logging with Configuration =>
+      ZManaged.fromFunctionM { dependencies: Logging with DynamoDBConfiguration =>
         ZManaged
           .make(
             for {
-              config <- Configuration.config.mapError(_.toString)
+              config <- DynamoDBConfiguration.dynamoDBConfig.mapError(_.toString)
               client <- ZIO
                 .effect(
-                  config.dynamoDBConfig.endpoint
+                  config.endpoint
                     .foldLeft(AmazonDynamoDBClient.builder()) { (builder, endpoint) =>
                       builder.withEndpointConfiguration(
                         new AwsClientBuilder.EndpointConfiguration(endpoint.serviceEndpoint, endpoint.signingRegion)

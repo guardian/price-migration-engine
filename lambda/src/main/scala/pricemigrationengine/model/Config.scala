@@ -3,7 +3,6 @@ package pricemigrationengine.model
 import java.time.LocalDate
 
 case class Config(
-    dynamoDBConfig: DynamoDBConfig,
     stage: String,
     // earliest date that price migration can take place
     earliestStartDate: LocalDate,

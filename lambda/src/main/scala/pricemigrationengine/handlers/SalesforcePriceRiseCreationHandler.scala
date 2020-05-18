@@ -47,7 +47,7 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
   ): ZLayer[Any, Any, Logging with Configuration with CohortTable with Zuora] = {
     val configLayer = EnvConfiguration.impl
     val cohortTableLayer =
-      loggingLayer ++ configLayer >>>
+      loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
         DynamoDBClient.dynamoDB ++ loggingLayer ++ configLayer >>>
         DynamoDBZIOLive.impl ++ loggingLayer ++ configLayer >>>
         CohortTableLive.impl

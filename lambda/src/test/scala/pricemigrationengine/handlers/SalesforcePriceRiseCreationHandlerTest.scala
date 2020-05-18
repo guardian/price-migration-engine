@@ -16,7 +16,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     val stubConfiguration = ZLayer.succeed(
       new Configuration.Service {
         override val config: IO[ConfigurationFailure, Config] =
-          IO.succeed(Config(DynamoDBConfig(None), "DEV", LocalDate.now, batchSize = expectedBatchSize))
+          IO.succeed(Config("DEV", LocalDate.now, batchSize = expectedBatchSize))
       }
     )
 

@@ -1,10 +1,9 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{Config, ConfigurationFailure, ZuoraConfig}
+import pricemigrationengine.model.{Config, ConfigurationFailure, DynamoDBConfig, ZuoraConfig}
 import zio.{IO, ZIO}
 
 object Configuration {
-
   trait Service {
     val config: IO[ConfigurationFailure, Config]
   }
@@ -14,11 +13,19 @@ object Configuration {
 }
 
 object ZuoraConfiguration {
-
   trait Service {
     val config: IO[ConfigurationFailure, ZuoraConfig]
   }
 
   val zuoraConfig: ZIO[ZuoraConfiguration, ConfigurationFailure, ZuoraConfig] =
+    ZIO.accessM(_.get.config)
+}
+
+object DynamoDBConfiguration {
+  trait Service {
+    val config: IO[ConfigurationFailure, DynamoDBConfig]
+  }
+
+  val dynamoDBConfig: ZIO[DynamoDBConfiguration, ConfigurationFailure, DynamoDBConfig] =
     ZIO.accessM(_.get.config)
 }

@@ -30,9 +30,6 @@ object EnvConfiguration {
           .flatMap(endpoint => dynamoDBSigningRegionOption.map(region => DynamoDBEndpointConfig(endpoint, region)))
       } yield
         Config(
-          DynamoDBConfig(
-            dynamoDBEndpoint
-          ),
           stage,
           earliestStartDate,
           batchSize
@@ -52,6 +49,20 @@ object EnvConfiguration {
             zuoraClientId,
             zuoraClientSecret
           )
+    }
+  }
+
+  val dynamoDbImpl: ZLayer[Any, Nothing, DynamoDBConfiguration] = ZLayer.succeed {
+    new DynamoDBConfiguration.Service {
+      val config: IO[ConfigurationFailure, DynamoDBConfig] = for {
+        dynamoDBServiceEndpointOption <- optionalEnv("dynamodb.serviceEndpoint")
+        dynamoDBSigningRegionOption <- optionalEnv("dynamodb.signingRegion")
+        dynamoDBEndpoint = dynamoDBServiceEndpointOption
+          .flatMap(endpoint => dynamoDBSigningRegionOption.map(region => DynamoDBEndpointConfig(endpoint, region)))
+      } yield
+        DynamoDBConfig(
+          dynamoDBEndpoint
+        )
     }
   }
 
