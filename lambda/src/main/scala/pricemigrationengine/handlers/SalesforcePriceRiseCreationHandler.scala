@@ -1,7 +1,7 @@
 package pricemigrationengine.handlers
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import pricemigrationengine.model.CohortTableFilter.{EstimationComplete}
+import pricemigrationengine.model.CohortTableFilter.EstimationComplete
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
@@ -64,7 +64,6 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
       .provideSomeLayer(
         env(Console.live >>> ConsoleLogging.impl)
       )
-      // output any failures in service construction - there's probably a better way to do this
       .foldM(
         e => console.putStrLn(s"Failed: $e") *> ZIO.succeed(1),
         _ => console.putStrLn("Succeeded!") *> ZIO.succeed(0)
