@@ -3,7 +3,7 @@ package pricemigrationengine.services
 import java.lang.System.getenv
 import java.time.LocalDate
 
-import pricemigrationengine.model.{Config, ConfigurationFailure, DynamoDBConfig, DynamoDBEndpointConfig, ZuoraConfig}
+import pricemigrationengine.model.{Config, ConfigurationFailure, DynamoDBConfig, DynamoDBEndpointConfig, SalesforceConfig, ZuoraConfig}
 import zio.{IO, ZIO, ZLayer}
 
 object EnvConfiguration {
@@ -31,19 +31,31 @@ object EnvConfiguration {
         dynamoDBSigningRegionOption <- optionalEnv("dynamodb.signingRegion")
         dynamoDBEndpoint = dynamoDBServiceEndpointOption
           .flatMap(endpoint => dynamoDBSigningRegionOption.map(region => DynamoDBEndpointConfig(endpoint, region)))
+        salesforceClientId <- env("salesforceClientId")
+        salesforceClientSecret <- env("salesforceClientSecret")
+        salesforceUserName <- env("salesforceUserName")
+        salesforcePassword <- env("salesforcePassword")
+        salesforceToken <- env("salesforceToken")
       } yield
         Config(
-          ZuoraConfig(
+          zuora = ZuoraConfig(
             zuoraApiHost,
             zuoraClientId,
             zuoraClientSecret
           ),
-          DynamoDBConfig(
+          dynamoDBConfig = DynamoDBConfig(
             dynamoDBEndpoint
           ),
-          stage,
-          earliestStartDate,
-          batchSize
+          stage = stage,
+          earliestStartDate = earliestStartDate,
+          batchSize = batchSize,
+          salesforce = SalesforceConfig(
+            salesforceClientId,
+            salesforceClientSecret,
+            salesforceUserName,
+            salesforcePassword,
+            salesforceToken
+          )
         )
     }
   }

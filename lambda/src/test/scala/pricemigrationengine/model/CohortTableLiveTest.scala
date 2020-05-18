@@ -3,6 +3,7 @@ package pricemigrationengine.model
 import java.time.{Instant, LocalDate}
 
 import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
+import pricemigrationengine.ServiceStubs
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.services._
 import zio.Exit.Success
@@ -12,13 +13,6 @@ import zio.{IO, Runtime, ZIO, ZLayer}
 import scala.jdk.CollectionConverters._
 
 class CohortTableLiveTest extends munit.FunSuite {
-  val stubConfiguration = ZLayer.succeed(
-    new Configuration.Service {
-      override val config: IO[ConfigurationFailure, Config] =
-        IO.succeed(Config(ZuoraConfig("", "", ""), DynamoDBConfig(None), "DEV", LocalDate.now))
-    }
-  )
-
   test("Query the PriceMigrationEngine with the correct filter and parse the results") {
     val item1 = CohortItem("subscription-1")
     val item2 = CohortItem("subscription-2")
@@ -48,7 +42,7 @@ class CohortTableLiveTest extends munit.FunSuite {
         for {
           result <- CohortTable
             .fetch(ReadyForEstimation, 10)
-            .provideLayer(stubConfiguration ++ stubDynamoDBZIO >>> CohortTableLive.impl)
+            .provideLayer(ServiceStubs.stubConfigurationLayer ++ stubDynamoDBZIO >>> CohortTableLive.impl)
           resultList <- result.run(Sink.collectAll[CohortItem])
           _ = assertEquals(resultList, List(item1, item2))
         } yield ()
@@ -113,7 +107,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       Runtime.default.unsafeRunSync(
         CohortTable
           .update(estimationResult)
-          .provideLayer(stubConfiguration ++ stubDynamoDBZIO >>> CohortTableLive.impl)
+          .provideLayer(ServiceStubs.stubConfigurationLayer ++ stubDynamoDBZIO >>> CohortTableLive.impl)
       ),
       Success(())
     )
