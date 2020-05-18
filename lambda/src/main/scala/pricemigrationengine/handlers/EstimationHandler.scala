@@ -13,7 +13,7 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
     for {
       config <- Configuration.config
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
-      cohortItems <- CohortTable.fetch(ReadyForEstimation, config.batchSize)
+      cohortItems <- CohortTable.fetch(ReadyForEstimation)
       _ <- cohortItems.foreach(writeEstimation(newProductPricing))
     } yield ()
 
@@ -41,16 +41,15 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
   private def env(
       loggingLayer: ZLayer[Any, Nothing, Logging]
   ): ZLayer[Any, Any, Logging with Configuration with CohortTable with Zuora] = {
-    val configLayer = EnvConfiguration.impl
     val cohortTableLayer =
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
-        DynamoDBClient.dynamoDB ++ loggingLayer ++ configLayer >>>
-        DynamoDBZIOLive.impl ++ loggingLayer ++ configLayer >>>
+        DynamoDBClient.dynamoDB ++ loggingLayer ++ EnvConfiguration.impl >>>
+        DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp >>>
         CohortTableLive.impl
     val zuoraLayer =
       EnvConfiguration.zuoraImpl ++ loggingLayer >>>
         ZuoraLive.impl
-    loggingLayer ++ configLayer ++ cohortTableLayer ++ zuoraLayer
+    loggingLayer ++ EnvConfiguration.impl ++ cohortTableLayer ++ zuoraLayer
   }
 
   private val runtime = Runtime.default

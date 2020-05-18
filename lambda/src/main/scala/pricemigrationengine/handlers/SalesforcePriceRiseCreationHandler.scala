@@ -11,18 +11,16 @@ case class SalesforcePriceRiseCreationResult()
 
 object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, Unit] {
 
-  val main: ZIO[Logging with Configuration with CohortTable, Failure, Unit] =
+  val main: ZIO[Logging with CohortTable, Failure, Unit] =
     for {
-      config <- Configuration.config
-      cohortItems <- CohortTable.fetch(EstimationComplete, config.batchSize)
+      cohortItems <- CohortTable.fetch(EstimationComplete)
       _ <- cohortItems.foreach(createSalesforcePriceRise)
     } yield ()
 
   private def createSalesforcePriceRise(
     item: CohortItem
-  ): ZIO[Logging with Configuration with CohortTable, Failure, Unit] =
+  ): ZIO[Logging with CohortTable, Failure, Unit] =
     for {
-      config <- Configuration.config
       result <- updateSalesforce(item)
         .tapBoth(
           e => Logging.error(s"Failed to write create Price_Rise in salesforce: $e"),
@@ -44,17 +42,11 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
 
   private def env(
       loggingLayer: ZLayer[Any, Nothing, Logging]
-  ): ZLayer[Any, Any, Logging with Configuration with CohortTable with Zuora] = {
-    val configLayer = EnvConfiguration.impl
-    val cohortTableLayer =
-      loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
-        DynamoDBClient.dynamoDB ++ loggingLayer ++ configLayer >>>
-        DynamoDBZIOLive.impl ++ loggingLayer ++ configLayer >>>
-        CohortTableLive.impl
-    val zuoraLayer =
-      EnvConfiguration.zuoraImpl ++ loggingLayer >>>
-        ZuoraLive.impl
-    loggingLayer ++ configLayer ++ cohortTableLayer ++ zuoraLayer
+  ): ZLayer[Any, Any, Logging with CohortTable] = {
+    loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
+      DynamoDBClient.dynamoDB ++ loggingLayer >>>
+      DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp >>>
+      loggingLayer ++ CohortTableLive.impl
   }
 
   private val runtime = Runtime.default

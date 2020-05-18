@@ -17,7 +17,7 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
   val stubConfiguration = ZLayer.succeed(
     new Configuration.Service {
       override val config: IO[ConfigurationFailure, Config] =
-        IO.succeed(Config("DEV", LocalDate.now))
+        IO.succeed(Config(LocalDate.now))
     }
   )
 

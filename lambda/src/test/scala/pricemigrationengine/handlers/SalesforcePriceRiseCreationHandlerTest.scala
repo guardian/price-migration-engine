@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import java.time.LocalDate
 
 import pricemigrationengine.model.CohortTableFilter.EstimationComplete
-import pricemigrationengine.model.{CohortFetchFailure, CohortItem, CohortTableFilter, CohortUpdateFailure, Config, ConfigurationFailure, DynamoDBConfig, EstimationResult, ZuoraConfig}
+import pricemigrationengine.model.{CohortFetchFailure, CohortItem, CohortTableFilter, CohortUpdateFailure, Config, ConfigurationFailure, EstimationResult}
 import pricemigrationengine.services.{CohortTable, Configuration, ConsoleLogging}
 import zio.Exit.Success
 import zio.Runtime.default
@@ -16,7 +16,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     val stubConfiguration = ZLayer.succeed(
       new Configuration.Service {
         override val config: IO[ConfigurationFailure, Config] =
-          IO.succeed(Config("DEV", LocalDate.now, batchSize = expectedBatchSize))
+          IO.succeed(Config(LocalDate.now))
       }
     )
 
@@ -25,10 +25,8 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     val stubCohortTable = ZLayer.succeed(
       new CohortTable.Service {
         override def fetch(
-          filter: CohortTableFilter,
-          batchSize: Int
+          filter: CohortTableFilter
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
-          assertEquals(batchSize, expectedBatchSize)
           assertEquals(filter, EstimationComplete)
           IO.succeed(ZStream.empty)
         }

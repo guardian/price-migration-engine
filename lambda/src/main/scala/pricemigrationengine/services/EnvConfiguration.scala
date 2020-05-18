@@ -3,7 +3,7 @@ package pricemigrationengine.services
 import java.lang.System.getenv
 import java.time.LocalDate
 
-import pricemigrationengine.model.{Config, ConfigurationFailure, DynamoDBConfig, DynamoDBEndpointConfig, ZuoraConfig}
+import pricemigrationengine.model.{CohortTableConfig, Config, ConfigurationFailure, DynamoDBConfig, DynamoDBEndpointConfig, ZuoraConfig}
 import zio.{IO, ZIO, ZLayer}
 
 object EnvConfiguration {
@@ -24,15 +24,9 @@ object EnvConfiguration {
         stage <- env("stage")
         earliestStartDate <- env("earliestStartDate").map(LocalDate.parse)
         batchSize <- env("batchSize").map(_.toInt)
-        dynamoDBServiceEndpointOption <- optionalEnv("dynamodb.serviceEndpoint")
-        dynamoDBSigningRegionOption <- optionalEnv("dynamodb.signingRegion")
-        dynamoDBEndpoint = dynamoDBServiceEndpointOption
-          .flatMap(endpoint => dynamoDBSigningRegionOption.map(region => DynamoDBEndpointConfig(endpoint, region)))
       } yield
         Config(
-          stage,
           earliestStartDate,
-          batchSize
         )
     }
   }
@@ -62,6 +56,19 @@ object EnvConfiguration {
       } yield
         DynamoDBConfig(
           dynamoDBEndpoint
+        )
+    }
+  }
+
+  val cohortTableImp: ZLayer[Any, Nothing, CohortTableConfiguration] = ZLayer.succeed {
+    new CohortTableConfiguration.Service {
+      val config: IO[ConfigurationFailure, CohortTableConfig] = for {
+        stage <- env("stage")
+        batchSize <- env("batchSize").map(_.toInt)
+      } yield
+        CohortTableConfig(
+          stage,
+          batchSize
         )
     }
   }
