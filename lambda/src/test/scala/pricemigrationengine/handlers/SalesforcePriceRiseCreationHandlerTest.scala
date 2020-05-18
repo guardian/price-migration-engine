@@ -3,8 +3,8 @@ package pricemigrationengine.handlers
 import java.time.LocalDate
 
 import pricemigrationengine.model.CohortTableFilter.EstimationComplete
-import pricemigrationengine.model.{CohortFetchFailure, CohortItem, CohortTableFilter, CohortUpdateFailure, Config, ConfigurationFailure, EstimationResult}
-import pricemigrationengine.services.{CohortTable, Configuration, ConsoleLogging}
+import pricemigrationengine.model.{CohortFetchFailure, CohortItem, CohortTableFilter, CohortUpdateFailure, EstimationHandlerConfig, ConfigurationFailure, EstimationResult}
+import pricemigrationengine.services.{CohortTable, EstimationHandlerConfiguration, ConsoleLogging}
 import zio.Exit.Success
 import zio.Runtime.default
 import zio.stream.ZStream
@@ -14,9 +14,9 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
   test("SalesforcePriceRiseCreateHandler should get estimated prices from ") {
     val expectedBatchSize = 101
     val stubConfiguration = ZLayer.succeed(
-      new Configuration.Service {
-        override val config: IO[ConfigurationFailure, Config] =
-          IO.succeed(Config(LocalDate.now))
+      new EstimationHandlerConfiguration.Service {
+        override val config: IO[ConfigurationFailure, EstimationHandlerConfig] =
+          IO.succeed(EstimationHandlerConfig(LocalDate.now))
       }
     )
 

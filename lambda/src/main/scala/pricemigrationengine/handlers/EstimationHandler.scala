@@ -9,9 +9,8 @@ import zio.{App, Runtime, ZEnv, ZIO, ZLayer, console}
 
 object EstimationHandler extends App with RequestHandler[Unit, Unit] {
 
-  val main: ZIO[Logging with Configuration with CohortTable with Zuora, Failure, Unit] =
+  val main: ZIO[Logging with EstimationHandlerConfiguration with CohortTable with Zuora, Failure, Unit] =
     for {
-      config <- Configuration.config
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
       cohortItems <- CohortTable.fetch(ReadyForEstimation)
       _ <- cohortItems.foreach(writeEstimation(newProductPricing))
@@ -19,9 +18,9 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
 
   private def writeEstimation(
       newProductPricing: ZuoraPricingData
-  )(item: CohortItem): ZIO[Logging with Configuration with CohortTable with Zuora, Failure, Unit] =
+  )(item: CohortItem): ZIO[Logging with EstimationHandlerConfiguration with CohortTable with Zuora, Failure, Unit] =
     for {
-      config <- Configuration.config
+      config <- EstimationHandlerConfiguration.estimationHandlerConfig
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId)
       result <- ZIO
@@ -40,16 +39,16 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
 
   private def env(
       loggingLayer: ZLayer[Any, Nothing, Logging]
-  ): ZLayer[Any, Any, Logging with Configuration with CohortTable with Zuora] = {
+  ): ZLayer[Any, Any, Logging with EstimationHandlerConfiguration with CohortTable with Zuora] = {
     val cohortTableLayer =
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
-        DynamoDBClient.dynamoDB ++ loggingLayer ++ EnvConfiguration.impl >>>
+        DynamoDBClient.dynamoDB ++ loggingLayer ++ EnvConfiguration.estimationImpl >>>
         DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp >>>
         CohortTableLive.impl
     val zuoraLayer =
       EnvConfiguration.zuoraImpl ++ loggingLayer >>>
         ZuoraLive.impl
-    loggingLayer ++ EnvConfiguration.impl ++ cohortTableLayer ++ zuoraLayer
+    loggingLayer ++ EnvConfiguration.estimationImpl ++ cohortTableLayer ++ zuoraLayer
   }
 
   private val runtime = Runtime.default

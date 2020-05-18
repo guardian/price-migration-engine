@@ -3,7 +3,7 @@ package pricemigrationengine.services
 import java.lang.System.getenv
 import java.time.LocalDate
 
-import pricemigrationengine.model.{CohortTableConfig, Config, ConfigurationFailure, DynamoDBConfig, DynamoDBEndpointConfig, ZuoraConfig}
+import pricemigrationengine.model.{CohortTableConfig, EstimationHandlerConfig, ConfigurationFailure, DynamoDBConfig, DynamoDBEndpointConfig, ZuoraConfig}
 import zio.{IO, ZIO, ZLayer}
 
 object EnvConfiguration {
@@ -18,14 +18,14 @@ object EnvConfiguration {
       .effect(Option(getenv(name)))
       .mapError(e => ConfigurationFailure(e.getMessage))
 
-  val impl: ZLayer[Any, Nothing, Configuration] = ZLayer.succeed {
-    new Configuration.Service {
-      val config: IO[ConfigurationFailure, Config] = for {
+  val estimationImpl: ZLayer[Any, Nothing, EstimationHandlerConfiguration] = ZLayer.succeed {
+    new EstimationHandlerConfiguration.Service {
+      val config: IO[ConfigurationFailure, EstimationHandlerConfig] = for {
         stage <- env("stage")
         earliestStartDate <- env("earliestStartDate").map(LocalDate.parse)
         batchSize <- env("batchSize").map(_.toInt)
       } yield
-        Config(
+        EstimationHandlerConfig(
           earliestStartDate,
         )
     }

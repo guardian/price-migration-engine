@@ -1,14 +1,14 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{CohortTableConfig, Config, ConfigurationFailure, DynamoDBConfig, ZuoraConfig}
+import pricemigrationengine.model.{CohortTableConfig, EstimationHandlerConfig, ConfigurationFailure, DynamoDBConfig, ZuoraConfig}
 import zio.{IO, ZIO}
 
-object Configuration {
+object EstimationHandlerConfiguration {
   trait Service {
-    val config: IO[ConfigurationFailure, Config]
+    val config: IO[ConfigurationFailure, EstimationHandlerConfig]
   }
 
-  val config: ZIO[Configuration, ConfigurationFailure, Config] =
+  val estimationHandlerConfig: ZIO[EstimationHandlerConfiguration, ConfigurationFailure, EstimationHandlerConfig] =
     ZIO.accessM(_.get.config)
 }
 

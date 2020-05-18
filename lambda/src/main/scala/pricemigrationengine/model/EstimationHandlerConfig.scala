@@ -2,7 +2,7 @@ package pricemigrationengine.model
 
 import java.time.LocalDate
 
-case class Config(
+case class EstimationHandlerConfig(
     // earliest date that price migration can take place
     earliestStartDate: LocalDate,
 )
