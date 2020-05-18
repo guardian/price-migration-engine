@@ -101,7 +101,7 @@ Resources:
       Code:
         S3Bucket: membership-dist
         S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
-      Handler: pricemigrationengine.handlers.EstimationHandler::handleRequest
+      Handler: pricemigrationengine.handlers.SalesforcePriceRiseCreationHandler::handleRequest
       Environment:
         Variables:
           stage: !Ref Stage
