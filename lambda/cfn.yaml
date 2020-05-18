@@ -92,7 +92,7 @@ Resources:
       Timeout: 300
     DependsOn:
       - PriceMigrationEngineLambdaRole
-  PriceMigrationEngineSalesforcePriceCreateLambda:
+  PriceMigrationEngineSalesforcePriceCreationLambda:
     Type: AWS::Lambda::Function
     Properties:
       Description: Lambda used to create Price_Rise__c objects in salesforce realting to the price rise.

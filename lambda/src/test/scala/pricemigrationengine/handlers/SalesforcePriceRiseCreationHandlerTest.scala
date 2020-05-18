@@ -10,7 +10,7 @@ import zio.Runtime.default
 import zio.stream.ZStream
 import zio.{IO, ZIO, ZLayer, console}
 
-class SalesforcePriceRiseCreateHandlerTest extends munit.FunSuite {
+class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
   test("SalesforcePriceRiseCreateHandler should get estimated prices from ") {
     val expectedBatchSize = 101
     val stubConfiguration = ZLayer.succeed(
@@ -35,14 +35,14 @@ class SalesforcePriceRiseCreateHandlerTest extends munit.FunSuite {
 
         override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
 
-        override def update(result: CreateSalesforcePriceRiseResult): ZIO[Any, CohortUpdateFailure, Unit] =
+        override def update(result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit] =
           IO.succeed(())
       }
     )
 
     assertEquals(
       default.unsafeRunSync(
-        SalesforcePriceRiseCreateHandler
+        SalesforcePriceRiseCreationHandler
           .main
           .provideLayer(
             stubLogging ++ stubConfiguration ++ stubCohortTable

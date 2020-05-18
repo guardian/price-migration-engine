@@ -7,9 +7,9 @@ import pricemigrationengine.services._
 import zio.console.Console
 import zio.{App, Runtime, ZEnv, ZIO, ZLayer, console}
 
-case class CreateSalesforcePriceRiseResult()
+case class SalesforcePriceRiseCreationResult()
 
-object SalesforcePriceRiseCreateHandler extends App with RequestHandler[Unit, Unit] {
+object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, Unit] {
 
   val main: ZIO[Logging with Configuration with CohortTable, Failure, Unit] =
     for {
@@ -38,7 +38,7 @@ object SalesforcePriceRiseCreateHandler extends App with RequestHandler[Unit, Un
 
   private def updateSalesforce(cohortItem: CohortItem) = {
     ZIO
-      .effect(CreateSalesforcePriceRiseResult())
+      .effect(SalesforcePriceRiseCreationResult())
       .mapError(_ => SalesforceFailure(""))
   }
 
