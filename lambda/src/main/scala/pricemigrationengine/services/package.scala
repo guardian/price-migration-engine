@@ -8,6 +8,7 @@ package object services {
   type ZuoraConfiguration = Has[ZuoraConfiguration.Service]
   type DynamoDBConfiguration = Has[DynamoDBConfiguration.Service]
   type CohortTableConfiguration = Has[CohortTableConfiguration.Service]
+  type SalesforceConfiguration = Has[SalesforceConfiguration.Service]
   type CohortTable = Has[CohortTable.Service]
   type Zuora = Has[Zuora.Service]
   type Logging = Has[Logging.Service]

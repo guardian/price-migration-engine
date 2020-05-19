@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{CohortTableConfig, ConfigurationFailure, DynamoDBConfig, EstimationHandlerConfig, ZuoraConfig}
+import pricemigrationengine.model.{CohortTableConfig, ConfigurationFailure, DynamoDBConfig, EstimationHandlerConfig, SalesforceConfig, ZuoraConfig}
 import zio.{IO, ZIO}
 
 object EstimationHandlerConfiguration {
@@ -36,5 +36,14 @@ object CohortTableConfiguration {
   }
 
   val cohortTableConfig: ZIO[CohortTableConfiguration, ConfigurationFailure, CohortTableConfig] =
+    ZIO.accessM(_.get.config)
+}
+
+object SalesforceConfiguration {
+  trait Service {
+    val config: IO[ConfigurationFailure, SalesforceConfig]
+  }
+
+  val salesforceConfig: ZIO[SalesforceConfiguration, ConfigurationFailure, SalesforceConfig] =
     ZIO.accessM(_.get.config)
 }

@@ -44,7 +44,7 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
       loggingLayer: ZLayer[Any, Nothing, Logging]
   ): ZLayer[Any, Any, Logging with CohortTable] = {
     loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
-      DynamoDBClient.dynamoDB ++ loggingLayer >>>
+      DynamoDBClient.dynamoDB ++ loggingLayer ++ EnvConfiguration.salesforceImp >>>
       DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp >>>
       loggingLayer ++ CohortTableLive.impl
   }

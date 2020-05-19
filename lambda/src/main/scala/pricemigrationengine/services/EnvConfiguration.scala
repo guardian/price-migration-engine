@@ -3,7 +3,7 @@ package pricemigrationengine.services
 import java.lang.System.getenv
 import java.time.LocalDate
 
-import pricemigrationengine.model.{CohortTableConfig, ConfigurationFailure, DynamoDBConfig, DynamoDBEndpointConfig, EstimationHandlerConfig, ZuoraConfig}
+import pricemigrationengine.model.{CohortTableConfig, ConfigurationFailure, DynamoDBConfig, DynamoDBEndpointConfig, EstimationHandlerConfig, SalesforceConfig, ZuoraConfig}
 import zio.{IO, ZIO, ZLayer}
 
 object EnvConfiguration {
@@ -69,6 +69,25 @@ object EnvConfiguration {
         CohortTableConfig(
           stage,
           batchSize
+        )
+    }
+  }
+
+  val salesforceImp: ZLayer[Any, Nothing, SalesforceConfiguration] = ZLayer.succeed {
+    new SalesforceConfiguration.Service {
+      val config: IO[ConfigurationFailure, SalesforceConfig] = for {
+        salesforceClientId <- env("salesforceClientId")
+        salesforceClientSecret <- env("salesforceClientSecret")
+        salesforceUserName <- env("salesforceUserName")
+        salesforcePassword <- env("salesforcePassword")
+        salesforceToken <- env("salesforceToken")
+      } yield
+        SalesforceConfig(
+          salesforceClientId,
+          salesforceClientSecret,
+          salesforceUserName,
+          salesforcePassword,
+          salesforceToken
         )
     }
   }
