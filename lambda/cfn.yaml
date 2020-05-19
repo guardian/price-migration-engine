@@ -105,19 +105,6 @@ Resources:
       Environment:
         Variables:
           stage: !Ref Stage
-          zuoraApiHost:
-            !Sub
-              - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraApiHost::${SecretsVersion}}}'
-              - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          zuoraClientId:
-            !Sub
-              - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientId::${SecretsVersion}}}'
-              - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          zuoraClientSecret:
-            !Sub
-              - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret::${SecretsVersion}}}'
-              - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          earliestStartDate: 2020-05-15
           batchSize: 100
       Role:
         Fn::GetAtt:

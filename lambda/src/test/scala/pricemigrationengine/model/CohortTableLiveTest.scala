@@ -3,7 +3,6 @@ package pricemigrationengine.model
 import java.time.{Instant, LocalDate}
 
 import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
-import pricemigrationengine.ServiceStubs
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.services._
 import zio.Exit.Success
@@ -13,6 +12,13 @@ import zio.{IO, Runtime, ZIO, ZLayer}
 import scala.jdk.CollectionConverters._
 
 class CohortTableLiveTest extends munit.FunSuite {
+  val stubConfiguration = ZLayer.succeed(
+    new CohortTableConfiguration.Service {
+      override val config: IO[ConfigurationFailure, CohortTableConfig] =
+        IO.succeed(CohortTableConfig("DEV", 10))
+    }
+  )
+
   test("Query the PriceMigrationEngine with the correct filter and parse the results") {
     val item1 = CohortItem("subscription-1")
     val item2 = CohortItem("subscription-2")
@@ -41,8 +47,8 @@ class CohortTableLiveTest extends munit.FunSuite {
       Runtime.default.unsafeRunSync(
         for {
           result <- CohortTable
-            .fetch(ReadyForEstimation, 10)
-            .provideLayer(ServiceStubs.stubConfigurationLayer ++ stubDynamoDBZIO >>> CohortTableLive.impl)
+            .fetch(ReadyForEstimation)
+            .provideLayer(stubConfiguration ++ stubDynamoDBZIO >>> CohortTableLive.impl)
           resultList <- result.run(Sink.collectAll[CohortItem])
           _ = assertEquals(resultList, List(item1, item2))
         } yield ()
@@ -107,7 +113,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       Runtime.default.unsafeRunSync(
         CohortTable
           .update(estimationResult)
-          .provideLayer(ServiceStubs.stubConfigurationLayer ++ stubDynamoDBZIO >>> CohortTableLive.impl)
+          .provideLayer(stubConfiguration ++ stubDynamoDBZIO >>> CohortTableLive.impl)
       ),
       Success(())
     )
@@ -154,7 +160,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     val now = Instant.now
     val whenEstimationDone = Instant.parse(update.get("whenEstimationDone").getValue.getS)
     assert(
-      whenEstimationDone.isAfter(now.minusSeconds(100)) && whenEstimationDone.isBefore(now),
+      whenEstimationDone.isAfter(now.minusSeconds(100)) && (!whenEstimationDone.isAfter(now)),
       "whenEstimationDone"
     )
   }

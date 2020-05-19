@@ -10,11 +10,11 @@ import zio.{ZIO, ZLayer}
 import scala.concurrent.duration._
 
 object ZuoraLive {
-  val impl: ZLayer[Configuration with Logging, ConfigurationFailure, Zuora] = ZLayer
+  val impl: ZLayer[ZuoraConfiguration with Logging, ConfigurationFailure, Zuora] = ZLayer
     .fromServicesM[
-      Configuration.Service,
+      ZuoraConfiguration.Service,
       Logging.Service,
-      Configuration with Logging,
+      ZuoraConfiguration with Logging,
       ConfigurationFailure,
       Zuora.Service
     ] { (configuration, logging) =>
@@ -36,12 +36,12 @@ object ZuoraLive {
            * Will return to it.
            */
           private lazy val fetchedAccessToken: Either[ZuoraFetchFailure, String] = {
-            val request = Http(s"${config.zuora.apiHost}/oauth/token")
+            val request = Http(s"${config.apiHost}/oauth/token")
               .postForm(
                 Seq(
                   "grant_type" -> "client_credentials",
-                  "client_id" -> config.zuora.clientId,
-                  "client_secret" -> config.zuora.clientSecret
+                  "client_id" -> config.clientId,
+                  "client_secret" -> config.clientSecret
                 )
               )
             val response = request
@@ -58,7 +58,7 @@ object ZuoraLive {
             for {
               accessToken <- ZIO.fromEither(fetchedAccessToken)
               a <- handleRequest[A](
-                Http(s"${config.zuora.apiHost}/v1/$path")
+                Http(s"${config.apiHost}/v1/$path")
                   .header("Authorization", s"Bearer $accessToken")
               )
             } yield a
@@ -67,7 +67,7 @@ object ZuoraLive {
             for {
               accessToken <- ZIO.fromEither(fetchedAccessToken)
               a <- handleRequest[A](
-                Http(s"${config.zuora.apiHost}/v1/$path")
+                Http(s"${config.apiHost}/v1/$path")
                   .header("Authorization", s"Bearer $accessToken")
                   .header("Content-Type", "application/json")
                   .postData(body)

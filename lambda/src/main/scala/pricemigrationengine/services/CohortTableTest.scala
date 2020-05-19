@@ -11,8 +11,7 @@ object CohortTableTest {
     console =>
       new CohortTable.Service {
         def fetch(
-            filter: CohortTableFilter,
-            batchSize: Int
+            filter: CohortTableFilter
         ): UIO[ZStream[Any, CohortFetchFailure, CohortItem]] = {
           val items: ZStream[Any, CohortFetchFailure, CohortItem] =
             ZStream(CohortItem("A-S123"), CohortItem("A-S234"), CohortItem("A-S345"))

@@ -1,7 +1,7 @@
 package pricemigrationengine.services
 
-import java.time.{Instant, LocalDate}
 import java.time.format.DateTimeFormatter
+import java.time.{Instant, LocalDate}
 import java.util
 
 import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
@@ -61,15 +61,14 @@ object CohortTableLive {
       }
   }
 
-  val impl: ZLayer[DynamoDBZIO with Configuration, Nothing, CohortTable] =
-    ZLayer.fromFunction { dependencies: DynamoDBZIO with Configuration =>
+  val impl: ZLayer[DynamoDBZIO with CohortTableConfiguration, Nothing, CohortTable] =
+    ZLayer.fromFunction { dependencies: DynamoDBZIO with CohortTableConfiguration =>
       new Service {
         override def fetch(
-            filter: CohortTableFilter,
-            batchSize: Int
+            filter: CohortTableFilter
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
           for {
-            config <- Configuration.config
+            config <- CohortTableConfiguration.cohortTableConfig
               .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
             queryResults <- DynamoDBZIO
               .query(
@@ -80,7 +79,7 @@ object CohortTableLive {
                   .withExpressionAttributeValues(
                     Map(":processingStage" -> new AttributeValue(filter.value)).asJava
                   )
-                  .withLimit(batchSize)
+                  .withLimit(config.batchSize)
               )
               .map(_.mapError(error => CohortFetchFailure(error.toString)))
           } yield queryResults
@@ -88,7 +87,7 @@ object CohortTableLive {
 
         override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = {
           for {
-            config <- Configuration.config
+            config <- CohortTableConfiguration.cohortTableConfig
               .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
             result <- DynamoDBZIO
               .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(result.subscriptionName), result)

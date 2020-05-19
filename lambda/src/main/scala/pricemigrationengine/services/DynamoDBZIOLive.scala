@@ -10,8 +10,8 @@ import zio.{IO, ZIO, ZLayer}
 import scala.jdk.CollectionConverters._
 
 object DynamoDBZIOLive {
-  val impl: ZLayer[DynamoDBClient with Logging with Configuration, Nothing, DynamoDBZIO] =
-    ZLayer.fromFunction { dependencies: DynamoDBClient with Logging with Configuration =>
+  val impl: ZLayer[DynamoDBClient with Logging , Nothing, DynamoDBZIO] =
+    ZLayer.fromFunction { dependencies: DynamoDBClient with Logging =>
       new Service {
         override def query[A](
           query: QueryRequest
