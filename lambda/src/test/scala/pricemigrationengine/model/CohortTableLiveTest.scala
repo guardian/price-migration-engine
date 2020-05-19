@@ -13,9 +13,9 @@ import scala.jdk.CollectionConverters._
 
 class CohortTableLiveTest extends munit.FunSuite {
   val stubConfiguration = ZLayer.succeed(
-    new Configuration.Service {
-      override val config: IO[ConfigurationFailure, Config] =
-        IO.succeed(Config(ZuoraConfig("", "", ""), DynamoDBConfig(None), "DEV", LocalDate.now))
+    new CohortTableConfiguration.Service {
+      override val config: IO[ConfigurationFailure, CohortTableConfig] =
+        IO.succeed(CohortTableConfig("DEV", 10))
     }
   )
 
@@ -47,7 +47,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       Runtime.default.unsafeRunSync(
         for {
           result <- CohortTable
-            .fetch(ReadyForEstimation, 10)
+            .fetch(ReadyForEstimation)
             .provideLayer(stubConfiguration ++ stubDynamoDBZIO >>> CohortTableLive.impl)
           resultList <- result.run(Sink.collectAll[CohortItem])
           _ = assertEquals(resultList, List(item1, item2))
@@ -160,7 +160,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     val now = Instant.now
     val whenEstimationDone = Instant.parse(update.get("whenEstimationDone").getValue.getS)
     assert(
-      whenEstimationDone.isAfter(now.minusSeconds(100)) && whenEstimationDone.isBefore(now),
+      whenEstimationDone.isAfter(now.minusSeconds(100)) && (!whenEstimationDone.isAfter(now)),
       "whenEstimationDone"
     )
   }

@@ -1,5 +1,6 @@
 package pricemigrationengine.services
 
+import pricemigrationengine.handlers.SalesforcePriceRiseCreationResult
 import pricemigrationengine.model._
 import zio.console.Console
 import zio.stream.ZStream
@@ -10,8 +11,7 @@ object CohortTableTest {
     console =>
       new CohortTable.Service {
         def fetch(
-            filter: CohortTableFilter,
-            batchSize: Int
+            filter: CohortTableFilter
         ): UIO[ZStream[Any, CohortFetchFailure, CohortItem]] = {
           val items: ZStream[Any, CohortFetchFailure, CohortItem] =
             ZStream(CohortItem("A-S123"), CohortItem("A-S234"), CohortItem("A-S345"))
@@ -25,6 +25,8 @@ object CohortTableTest {
           for {
             _ <- console.putStrLn(s"Updating cohort table with result: $result")
           } yield ()
-    }
+
+        def update(result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
+      }
   )
 }
