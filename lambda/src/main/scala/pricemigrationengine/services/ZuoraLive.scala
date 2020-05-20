@@ -21,6 +21,8 @@ object ZuoraLive {
       configuration.config map { config =>
         new Zuora.Service {
 
+          private val apiVersion = "v1"
+
           private val readTimeout = HttpOptions.readTimeout(Duration(30, SECONDS).toMillis.toInt)
 
           private case class AccessToken(access_token: String)
@@ -44,8 +46,7 @@ object ZuoraLive {
                   "client_secret" -> config.clientSecret
                 )
               )
-            val response = request
-              .asString
+            val response = request.asString
             val body = response.body
             if (response.code == 200)
               Right(read[AccessToken](body).access_token)
@@ -54,11 +55,15 @@ object ZuoraLive {
               Left(ZuoraFetchFailure(failureMessage(request, response)))
           }
 
-          private def get[A: Reader](path: String): ZIO[Any, ZuoraFetchFailure, A] =
+          private def get[A: Reader](
+              path: String,
+              params: Map[String, String] = Map.empty
+          ): ZIO[Any, ZuoraFetchFailure, A] =
             for {
               accessToken <- ZIO.fromEither(fetchedAccessToken)
               a <- handleRequest[A](
-                Http(s"${config.apiHost}/v1/$path")
+                Http(s"${config.apiHost}/$apiVersion/$path")
+                  .params(params)
                   .header("Authorization", s"Bearer $accessToken")
               )
             } yield a
@@ -67,7 +72,7 @@ object ZuoraLive {
             for {
               accessToken <- ZIO.fromEither(fetchedAccessToken)
               a <- handleRequest[A](
-                Http(s"${config.apiHost}/v1/$path")
+                Http(s"${config.apiHost}/$apiVersion/$path")
                   .header("Authorization", s"Bearer $accessToken")
                   .header("Content-Type", "application/json")
                   .postData(body)
@@ -103,12 +108,33 @@ object ZuoraLive {
             ).mapError(e => ZuoraFetchFailure(s"Invoice preview for account $accountId: ${e.reason}"))
               .tap(_ => logging.info(s"Fetched invoice preview for account $accountId"))
 
-          val fetchProductCatalogue: ZIO[Any, ZuoraFetchFailure, ZuoraProductCatalogue] =
-            get[ZuoraProductCatalogue]("catalog/products")
-              .mapError(e => ZuoraFetchFailure(s"Product catalogue: ${e.reason}"))
-              .tap(_ => logging.info(s"Fetched product catalogue"))
+          val fetchProductCatalogue: ZIO[Any, ZuoraFetchFailure, ZuoraProductCatalogue] = {
+
+            def fetchPage(idx: Int): ZIO[Any, ZuoraFetchFailure, ZuoraProductCatalogue] =
+              get[ZuoraProductCatalogue](path = "catalog/products", params = Map("page" -> idx.toString))
+                .mapError(e => ZuoraFetchFailure(s"Product catalogue: ${e.reason}"))
+                .tap(_ => logging.info(s"Fetched product catalogue page $idx"))
+
+            def hasNextPage(catalogue: ZuoraProductCatalogue) = catalogue.nextPage.isDefined
+
+            def combine(c1: ZuoraProductCatalogue, c2: ZuoraProductCatalogue) =
+              ZuoraProductCatalogue(products = c1.products ++ c2.products)
+
+            def fetchCatalogue(
+                acc: ZuoraProductCatalogue,
+                pageIdx: Int
+            ): ZIO[Any, ZuoraFetchFailure, ZuoraProductCatalogue] =
+              for {
+                curr <- fetchPage(pageIdx)
+                soFar = combine(acc, curr)
+                catalogue <- if (hasNextPage(curr)) {
+                  fetchCatalogue(soFar, pageIdx + 1)
+                } else ZIO.succeed(soFar)
+              } yield catalogue
+
+            fetchCatalogue(ZuoraProductCatalogue.empty, pageIdx = 1)
+          }
         }
       }
     }
-
 }

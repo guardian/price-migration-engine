@@ -1,17 +1,24 @@
 package pricemigrationengine.model
 
+import java.time.LocalDate
+
+import pricemigrationengine.model.Dates.isDateRangeCurrent
 import upickle.default.{ReadWriter, macroRW}
 
-case class ZuoraProductCatalogue(products: Set[ZuoraProduct])
+case class ZuoraProductCatalogue(products: Set[ZuoraProduct], nextPage: Option[String] = None)
 
 object ZuoraProductCatalogue {
 
   implicit val rw: ReadWriter[ZuoraProductCatalogue] = macroRW
 
+  def empty: ZuoraProductCatalogue = ZuoraProductCatalogue(products = Set.empty)
+
   def productPricingMap(catalogue: ZuoraProductCatalogue): ZuoraPricingData = {
+    def isActiveProduct(p: ZuoraProduct) = isDateRangeCurrent(p.effectiveStartDate, p.effectiveEndDate)
+    def isActiveProductRatePlan(p: ZuoraProductRatePlan) = isDateRangeCurrent(p.effectiveStartDate, p.effectiveEndDate)
     val prices = for {
-      product <- catalogue.products
-      ratePlan <- product.productRatePlans
+      product <- catalogue.products.filter(isActiveProduct)
+      ratePlan <- product.productRatePlans.filter(isActiveProductRatePlan)
       ratePlanCharge <- ratePlan.productRatePlanCharges
       pricing <- ratePlanCharge.pricing
     } yield ratePlanCharge.id -> pricing
@@ -19,13 +26,21 @@ object ZuoraProductCatalogue {
   }
 }
 
-case class ZuoraProduct(productRatePlans: Set[ZuoraProductRatePlan])
+case class ZuoraProduct(
+    productRatePlans: Set[ZuoraProductRatePlan],
+    effectiveStartDate: LocalDate,
+    effectiveEndDate: LocalDate
+)
 
 object ZuoraProduct {
   implicit val rw: ReadWriter[ZuoraProduct] = macroRW
 }
 
-case class ZuoraProductRatePlan(productRatePlanCharges: Set[ZuoraProductRatePlanCharge])
+case class ZuoraProductRatePlan(
+    productRatePlanCharges: Set[ZuoraProductRatePlanCharge],
+    effectiveStartDate: LocalDate,
+    effectiveEndDate: LocalDate
+)
 
 object ZuoraProductRatePlan {
   implicit val rw: ReadWriter[ZuoraProductRatePlan] = macroRW
