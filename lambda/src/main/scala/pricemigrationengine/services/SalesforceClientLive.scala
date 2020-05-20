@@ -66,11 +66,8 @@ object SalesforceClientLive {
       ): IO[SalesforceClientFailure, SalesforceSubscription] =
         sendRequest[SalesforceSubscription](
           Http(s"${auth.instance_url}/services/data/v43.0/sobjects/SF_Subscription__c/Name/${subscriptionName}")
-            .postForm(
-              Seq(
-                "Authorization" -> s"Bearer ${auth.access_token}"
-              )
-            )
+            .header("Authorization", s"Bearer ${auth.access_token}")
+            .method("GET")
         ).tap( subscription =>
           logging.info(s"Successfully loaded: ${subscription}")
         )
