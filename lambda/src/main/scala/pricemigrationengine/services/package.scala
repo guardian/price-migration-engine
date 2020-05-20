@@ -14,4 +14,5 @@ package object services {
   type Logging = Has[Logging.Service]
   type DynamoDBClient = Has[AmazonDynamoDB]
   type DynamoDBZIO = Has[DynamoDBZIO.Service]
+  type SalesforceClient = Has[SalesforceClient.Service]
 }

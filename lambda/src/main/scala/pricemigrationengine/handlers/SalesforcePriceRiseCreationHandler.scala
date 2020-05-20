@@ -42,11 +42,11 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
 
   private def env(
       loggingLayer: ZLayer[Any, Nothing, Logging]
-  ): ZLayer[Any, Any, Logging with CohortTable] = {
+  ): ZLayer[Any, Any, Logging with CohortTable with SalesforceClient] = {
     loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
-      DynamoDBClient.dynamoDB ++ loggingLayer ++ EnvConfiguration.salesforceImp >>>
-      DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp >>>
-      loggingLayer ++ CohortTableLive.impl
+      DynamoDBClient.dynamoDB ++ loggingLayer >>>
+      DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++ EnvConfiguration.salesforceImp >>>
+      loggingLayer ++ CohortTableLive.impl ++ SalesforceClientLive.impl
   }
 
   private val runtime = Runtime.default
