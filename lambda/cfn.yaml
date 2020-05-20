@@ -44,7 +44,9 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                   - lambda:InvokeFunction
-                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-lambda-${Stage}:log-stream:*"
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-estimation-lambda-${Stage}:log-stream:*"
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-salesforce-price-rise-lambda-${Stage}:log-stream:*"
         - PolicyName: DynamoDBAccessPolicy
           PolicyDocument:
             Statement:
