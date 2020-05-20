@@ -31,6 +31,9 @@ object ZuoraLive {
           private case class InvoicePreviewRequest(accountId: String, targetDate: LocalDate)
           private implicit val rwInvoicePreviewRequest: ReadWriter[InvoicePreviewRequest] = macroRW
 
+          private case class SubscriptionUpdateResponse(subscriptionId: ZuoraSubscriptionId)
+          private implicit val rwSubscriptionUpdateResponse: ReadWriter[SubscriptionUpdateResponse] = macroRW
+
           /*
            * The access token is generated outside the ZIO framework so that it's only fetched once.
            * There has to be a better way to do this, but don't know what it is at the moment.
@@ -146,13 +149,16 @@ object ZuoraLive {
           def updateSubscription(
               subscription: ZuoraSubscription,
               update: ZuoraSubscriptionUpdate
-          ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscription] =
-            put[ZuoraSubscription](
+          ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId] =
+            put[SubscriptionUpdateResponse](
               path = s"subscriptions/${subscription.subscriptionNumber}",
               body = write(update)
-            ).mapError(
+            ).bimap(
                 e =>
-                  ZuoraUpdateFailure(s"Subscription ${subscription.subscriptionNumber} and update $update: ${e.reason}")
+                  ZuoraUpdateFailure(
+                    s"Subscription ${subscription.subscriptionNumber} and update $update: ${e.reason}"
+                ),
+                response => response.subscriptionId
               )
               .tap(_ => logging.info(s"Updated subscription ${subscription.subscriptionNumber} with: $update"))
         }

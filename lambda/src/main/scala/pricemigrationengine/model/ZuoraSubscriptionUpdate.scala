@@ -11,6 +11,34 @@ case class ZuoraSubscriptionUpdate(
 
 object ZuoraSubscriptionUpdate {
   implicit val rw: ReadWriter[ZuoraSubscriptionUpdate] = macroRW
+
+  /**
+    * Takes all non-discount rate plans participating in the invoice list on the given date,
+    * and replaces them with their current equivalent.
+    * This has the effect of updating their prices to the current ones in the product catalogue.
+    */
+  def updateOfRatePlansToCurrent(
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      date: LocalDate
+  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+
+    val ratePlans = (for {
+      invoiceItem <- ZuoraInvoiceItem.items(invoiceList, date)
+      if invoiceItem.chargeAmount > 0
+      ratePlan <- ZuoraRatePlan.ratePlan(subscription, invoiceItem.chargeNumber).toSeq
+    } yield ratePlan).distinct
+
+    if (ratePlans.isEmpty)
+      Left(AmendmentDataFailure("No rate plans to update"))
+    else
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = ratePlans.map(ratePlan => AddZuoraRatePlan(ratePlan.productRatePlanId, date)),
+          remove = ratePlans.map(ratePlan => RemoveZuoraRatePlan(ratePlan.id, date))
+        )
+      )
+  }
 }
 
 case class AddZuoraRatePlan(

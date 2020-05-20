@@ -164,4 +164,84 @@ class CohortTableLiveTest extends munit.FunSuite {
       "whenEstimationDone"
     )
   }
+
+  test("Update the cohort table with an amendment result") {
+    var tableUpdated: Option[String] = None
+    var receivedKey: Option[CohortTableKey] = None
+    var receivedUpdate: Option[AmendmentResult] = None
+    var receivedKeySerialiser: Option[DynamoDBSerialiser[CohortTableKey]] = None
+    var receivedValueSerialiser: Option[DynamoDBUpdateSerialiser[AmendmentResult]] = None
+
+    val stubDynamoDBZIO = ZLayer.succeed(
+      new DynamoDBZIO.Service {
+        override def query[A](query: QueryRequest)(
+            implicit deserializer: DynamoDBDeserialiser[A]
+        ): ZStream[Any, DynamoDBZIOError, A] = ???
+
+        override def update[A, B](table: String, key: A, value: B)(
+            implicit keySerializer: DynamoDBSerialiser[A],
+            valueSerializer: DynamoDBUpdateSerialiser[B]
+        ): IO[DynamoDBZIOError, Unit] = {
+          tableUpdated = Some(table)
+          receivedKey = Some(key.asInstanceOf[CohortTableKey])
+          receivedUpdate = Some(value.asInstanceOf[AmendmentResult])
+          receivedKeySerialiser = Some(keySerializer.asInstanceOf[DynamoDBSerialiser[CohortTableKey]])
+          receivedValueSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBUpdateSerialiser[AmendmentResult]])
+          ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
+        }
+      }
+    )
+
+    val amendmentResult = AmendmentResult(
+      subscriptionName = "subscription-name",
+      startDate = LocalDate.of(2020, 1, 1),
+      newPrice = 2.01,
+      newSubscriptionId = "id"
+    )
+
+    assertEquals(
+      Runtime.default.unsafeRunSync(
+        CohortTable
+          .update(amendmentResult)
+          .provideLayer(stubConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>> CohortTableLive.impl)
+      ),
+      Success(())
+    )
+
+    assertEquals(tableUpdated.get, "PriceMigrationEngineDEV")
+    assertEquals(receivedKey.get.subscriptionNumber, "subscription-name")
+    assertEquals(
+      receivedKeySerialiser.get.serialise(receivedKey.get),
+      Map(
+        "subscriptionNumber" -> new AttributeValue().withS("subscription-name")
+      ).asJava
+    )
+    val update = receivedValueSerialiser.get.serialise(receivedUpdate.get)
+    assertEquals(
+      update.get("processingStage"),
+      new AttributeValueUpdate(new AttributeValue().withS("AmendmentComplete"), AttributeAction.PUT),
+      "processingStage"
+    )
+    assertEquals(
+      update.get("startDate"),
+      new AttributeValueUpdate(new AttributeValue().withS("2020-01-01"), AttributeAction.PUT),
+      "expectedStartDate"
+    )
+    assertEquals(
+      update.get("newPrice"),
+      new AttributeValueUpdate(new AttributeValue().withN("2.01"), AttributeAction.PUT),
+      "newPrice"
+    )
+    assertEquals(
+      update.get("newSubscriptionId"),
+      new AttributeValueUpdate(new AttributeValue().withS("id"), AttributeAction.PUT),
+      "newPrice"
+    )
+    val now = Instant.now
+    val whenEstimationDone = Instant.parse(update.get("whenAmendmentDone").getValue.getS)
+    assert(
+      whenEstimationDone.isAfter(now.minusSeconds(100)) && (!whenEstimationDone.isAfter(now)),
+      "whenAmendmentDone"
+    )
+  }
 }

@@ -10,15 +10,16 @@ case class CohortTableKey(subscriptionNumber: String)
 object CohortTable {
   trait Service {
     def fetch(
-      filter: CohortTableFilter
+        filter: CohortTableFilter
     ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]]
 
     def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit]
     def update(result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit]
+    def update(result: AmendmentResult): ZIO[Any, CohortUpdateFailure, Unit]
   }
 
   def fetch(
-    filter: CohortTableFilter
+      filter: CohortTableFilter
   ): ZIO[CohortTable, CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] =
     ZIO.accessM(_.get.fetch(filter))
 
@@ -26,5 +27,8 @@ object CohortTable {
     ZIO.accessM(_.get.update(result))
 
   def update(result: SalesforcePriceRiseCreationResult): ZIO[CohortTable, CohortUpdateFailure, Unit] =
+    ZIO.accessM(_.get.update(result))
+
+  def update(result: AmendmentResult): ZIO[CohortTable, CohortUpdateFailure, Unit] =
     ZIO.accessM(_.get.update(result))
 }
