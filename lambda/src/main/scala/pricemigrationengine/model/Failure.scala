@@ -13,3 +13,5 @@ case class ZuoraFetchFailure(reason: String) extends Failure
 
 case class AmendmentDataFailure(reason: String) extends Failure
 case class SalesforceFailure(reason: String) extends Failure
+
+case class SalesforceClientError(reason: String)
