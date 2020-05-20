@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{ConfigurationFailure, SalesforceClientError, SalesforceConfig, ZuoraFetchFailure, ZuoraProductCatalogue}
+import pricemigrationengine.model.{ConfigurationFailure, SalesforceClientFailure, SalesforceConfig, ZuoraFetchFailure, ZuoraProductCatalogue}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 import upickle.default._
 import zio.{IO, ZLayer}
@@ -8,7 +8,7 @@ import zio.{IO, ZLayer}
 object SalesforceClientLive {
   private case class SalesforceAuthDetails(access_token: String, instance_url: String)
 
-  val impl: ZLayer[SalesforceConfiguration with Logging, SalesforceClientError, SalesforceClient] =
+  val impl: ZLayer[SalesforceConfiguration with Logging, SalesforceClientFailure, SalesforceClient] =
     ZLayer.fromFunctionM { dependencies: SalesforceConfiguration with Logging =>
     val logging  = dependencies.get[Logging.Service]
     val salesforceConfig  = dependencies.get[SalesforceConfiguration.Service]
@@ -23,7 +23,7 @@ object SalesforceClientLive {
       requestAsMessage(request) + " returned status ${response.code} with body:${response.body}"
     }
 
-    def auth(config: SalesforceConfig): IO[SalesforceClientError, SalesforceAuthDetails] = {
+    def auth(config: SalesforceConfig): IO[SalesforceClientFailure, SalesforceAuthDetails] = {
       val request = Http(s"${config.authUrl}/services/oauth2/token")
         .postForm(
           Seq(
@@ -36,16 +36,16 @@ object SalesforceClientLive {
         )
       for {
         response <- IO.effect(request.asString)
-            .mapError(ex => SalesforceClientError(s"${requestAsMessage(request)} failed: $ex"))
+            .mapError(ex => SalesforceClientFailure(s"${requestAsMessage(request)} failed: $ex"))
         valid200Response <- if(response.code == 200) {
           IO.succeed(response)
         } else {
-          IO.fail(SalesforceClientError(failureMessage(request, response)))
+          IO.fail(SalesforceClientFailure(failureMessage(request, response)))
         }
 
         parsedResponse <- IO
           .effect(read[SalesforceAuthDetails](valid200Response.body))
-          .mapError(ex => SalesforceClientError(s"Failed to deserialise salesforce auth response: $ex"))
+          .mapError(ex => SalesforceClientFailure(s"Failed to deserialise salesforce auth response: $ex"))
           .tap { _ =>
             logging.info(s"Authenticated with salesforce using user:${config.userName} and client: ${config.clientId}")
           }
@@ -56,7 +56,7 @@ object SalesforceClientLive {
       config <-
         salesforceConfig
           .config
-          .mapError { error => SalesforceClientError(s"Failed to load salesforce config: ${error.reason}") }
+          .mapError { error => SalesforceClientFailure(s"Failed to load salesforce config: ${error.reason}") }
       _ <- auth(config)
     } yield new SalesforceClient.Service {
 
