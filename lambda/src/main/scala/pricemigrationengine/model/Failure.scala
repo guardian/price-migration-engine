@@ -15,4 +15,4 @@ case class ZuoraUpdateFailure(reason: String) extends Failure
 case class AmendmentDataFailure(reason: String) extends Failure
 case class SalesforceFailure(reason: String) extends Failure
 
-case class SalesforceClientFailure(reason: String)
+case class SalesforceClientFailure(reason: String) extends Failure

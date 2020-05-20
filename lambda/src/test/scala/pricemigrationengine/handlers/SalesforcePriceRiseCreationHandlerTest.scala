@@ -3,8 +3,8 @@ package pricemigrationengine.handlers
 import java.time.LocalDate
 
 import pricemigrationengine.model.CohortTableFilter.EstimationComplete
-import pricemigrationengine.model.{CohortFetchFailure, CohortItem, CohortTableFilter, CohortUpdateFailure, EstimationHandlerConfig, ConfigurationFailure, EstimationResult}
-import pricemigrationengine.services.{CohortTable, EstimationHandlerConfiguration, ConsoleLogging}
+import pricemigrationengine.model.{CohortFetchFailure, CohortItem, CohortTableFilter, CohortUpdateFailure, ConfigurationFailure, EstimationHandlerConfig, EstimationResult, SalesforceClientFailure, SalesforceSubscription}
+import pricemigrationengine.services.{CohortTable, ConsoleLogging, EstimationHandlerConfiguration, SalesforceClient}
 import zio.Exit.Success
 import zio.Runtime.default
 import zio.stream.ZStream
@@ -38,12 +38,18 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
       }
     )
 
+    val stubSalesforceClient = ZLayer.succeed(
+      new SalesforceClient.Service {
+        override def getSubscriptionByName(subscrptionName: String): IO[SalesforceClientFailure, SalesforceSubscription] = ???
+      }
+    )
+
     assertEquals(
       default.unsafeRunSync(
         SalesforcePriceRiseCreationHandler
           .main
           .provideLayer(
-            stubLogging ++ stubConfiguration ++ stubCohortTable
+            stubLogging ++ stubConfiguration ++ stubCohortTable ++ stubSalesforceClient
           )
       ),
       Success(())

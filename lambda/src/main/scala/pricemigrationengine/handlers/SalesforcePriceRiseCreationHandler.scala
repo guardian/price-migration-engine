@@ -11,7 +11,7 @@ case class SalesforcePriceRiseCreationResult()
 
 object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, Unit] {
 
-  val main: ZIO[Logging with CohortTable, Failure, Unit] =
+  val main: ZIO[Logging with CohortTable with SalesforceClient, Failure, Unit] =
     for {
       cohortItems <- CohortTable.fetch(EstimationComplete)
       _ <- cohortItems.foreach(createSalesforcePriceRise)
@@ -19,7 +19,7 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
 
   private def createSalesforcePriceRise(
     item: CohortItem
-  ): ZIO[Logging with CohortTable, Failure, Unit] =
+  ): ZIO[Logging with CohortTable with SalesforceClient, Failure, Unit] =
     for {
       result <- updateSalesforce(item)
         .tapBoth(
@@ -34,10 +34,10 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
         )
     } yield ()
 
-  private def updateSalesforce(cohortItem: CohortItem) = {
-    ZIO
-      .effect(SalesforcePriceRiseCreationResult())
-      .mapError(_ => SalesforceFailure(""))
+  private def updateSalesforce(cohortItem: CohortItem): ZIO[SalesforceClient, Failure, SalesforcePriceRiseCreationResult] = {
+    for {
+      _ <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
+    } yield SalesforcePriceRiseCreationResult()
   }
 
   private def env(
