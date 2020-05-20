@@ -15,4 +15,4 @@ case class DynamoDBEndpointConfig(serviceEndpoint: String, signingRegion: String
 
 case class CohortTableConfig(stage: String, batchSize: Int = 100)
 
-case class SalesforceConfig(clientId: String, clientSecret: String, userName: String, password: String, token: String)
+case class SalesforceConfig(authUrl: String, clientId: String, clientSecret: String, userName: String, password: String, token: String)

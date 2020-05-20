@@ -76,6 +76,7 @@ object EnvConfiguration {
   val salesforceImp: ZLayer[Any, Nothing, SalesforceConfiguration] = ZLayer.succeed {
     new SalesforceConfiguration.Service {
       val config: IO[ConfigurationFailure, SalesforceConfig] = for {
+        salesforceAuthUrl <- env("salesforceAuthUrl")
         salesforceClientId <- env("salesforceClientId")
         salesforceClientSecret <- env("salesforceClientSecret")
         salesforceUserName <- env("salesforceUserName")
@@ -83,6 +84,7 @@ object EnvConfiguration {
         salesforceToken <- env("salesforceToken")
       } yield
         SalesforceConfig(
+          salesforceAuthUrl,
           salesforceClientId,
           salesforceClientSecret,
           salesforceUserName,
