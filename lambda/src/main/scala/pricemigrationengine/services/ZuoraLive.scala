@@ -55,10 +55,7 @@ object ZuoraLive {
               Left(ZuoraFetchFailure(failureMessage(request, response)))
           }
 
-          private def get[A: Reader](
-              path: String,
-              params: Map[String, String] = Map.empty
-          ): ZIO[Any, ZuoraFetchFailure, A] =
+          private def get[A: Reader](path: String, params: Map[String, String] = Map.empty): ZIO[Any, Failure, A] =
             for {
               accessToken <- ZIO.fromEither(fetchedAccessToken)
               a <- handleRequest[A](
@@ -68,7 +65,7 @@ object ZuoraLive {
               )
             } yield a
 
-          private def post[A: Reader](path: String, body: String): ZIO[Any, ZuoraFetchFailure, A] =
+          private def post[A: Reader](path: String, body: String): ZIO[Any, Failure, A] =
             for {
               accessToken <- ZIO.fromEither(fetchedAccessToken)
               a <- handleRequest[A](
@@ -79,7 +76,18 @@ object ZuoraLive {
               )
             } yield a
 
-          private def handleRequest[A: Reader](request: HttpRequest): ZIO[Any, ZuoraFetchFailure, A] = {
+          private def put[A: Reader](path: String, body: String): ZIO[Any, Failure, A] =
+            for {
+              accessToken <- ZIO.fromEither(fetchedAccessToken)
+              a <- handleRequest[A](
+                Http(s"${config.apiHost}/$apiVersion/$path")
+                  .header("Authorization", s"Bearer $accessToken")
+                  .header("Content-Type", "application/json")
+                  .put(body)
+              )
+            } yield a
+
+          private def handleRequest[A: Reader](request: HttpRequest): ZIO[Any, Failure, A] = {
             val response = request
               .option(readTimeout)
               .asString
@@ -134,6 +142,19 @@ object ZuoraLive {
 
             fetchCatalogue(ZuoraProductCatalogue.empty, pageIdx = 1)
           }
+
+          def updateSubscription(
+              subscription: ZuoraSubscription,
+              update: ZuoraSubscriptionUpdate
+          ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscription] =
+            put[ZuoraSubscription](
+              path = s"subscriptions/${subscription.subscriptionNumber}",
+              body = write(update)
+            ).mapError(
+                e =>
+                  ZuoraUpdateFailure(s"Subscription ${subscription.subscriptionNumber} and update $update: ${e.reason}")
+              )
+              .tap(_ => logging.info(s"Updated subscription ${subscription.subscriptionNumber} with: $update"))
         }
       }
     }

@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{ZuoraFetchFailure, ZuoraInvoiceList, ZuoraProductCatalogue, ZuoraSubscription}
+import pricemigrationengine.model._
 import zio.ZIO
 
 object Zuora {
@@ -12,6 +12,11 @@ object Zuora {
     def fetchInvoicePreview(accountId: String): ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList]
 
     val fetchProductCatalogue: ZIO[Any, ZuoraFetchFailure, ZuoraProductCatalogue]
+
+    def updateSubscription(
+        subscription: ZuoraSubscription,
+        update: ZuoraSubscriptionUpdate
+    ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscription]
   }
 
   def fetchSubscription(subscriptionNumber: String): ZIO[Zuora, ZuoraFetchFailure, ZuoraSubscription] =
@@ -22,4 +27,10 @@ object Zuora {
 
   val fetchProductCatalogue: ZIO[Zuora, ZuoraFetchFailure, ZuoraProductCatalogue] =
     ZIO.accessM(_.get.fetchProductCatalogue)
+
+  def updateSubscription(
+      subscription: ZuoraSubscription,
+      update: ZuoraSubscriptionUpdate
+  ): ZIO[Zuora, ZuoraUpdateFailure, ZuoraSubscription] =
+    ZIO.accessM(_.get.updateSubscription(subscription, update))
 }

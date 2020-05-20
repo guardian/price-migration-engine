@@ -1,10 +1,10 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{SalesforceClientError, SalesforceSubscription}
+import pricemigrationengine.model.{SalesforceClientFailure, SalesforceSubscription}
 import zio.IO
 
 object SalesforceClient {
   trait Service {
-    def getSubscriptionByName(subscrptionName: String): IO[SalesforceClientError, SalesforceSubscription]
+    def getSubscriptionByName(subscrptionName: String): IO[SalesforceClientFailure, SalesforceSubscription]
   }
 }
