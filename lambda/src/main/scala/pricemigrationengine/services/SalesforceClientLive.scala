@@ -5,8 +5,7 @@ import scalaj.http.{Http, HttpRequest, HttpResponse}
 import upickle.default._
 import zio.{IO, ZLayer}
 
-class SalesforceClientLive {
-
+object SalesforceClientLive {
   private case class SalesforceAuthDetails(access_token: String, instance_url: String)
 
   val impl: ZLayer[SalesforceConfiguration with Logging, SalesforceClientError, SalesforceClient] =
