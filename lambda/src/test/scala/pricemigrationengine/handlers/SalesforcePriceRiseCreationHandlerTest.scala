@@ -28,7 +28,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
           filter: CohortTableFilter
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
           assertEquals(filter, EstimationComplete)
-          IO.succeed(ZStream.empty)
+          IO.succeed(ZStream(CohortItem("Sub-0001"), CohortItem("Sub-0002")))
         }
 
         override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
@@ -40,7 +40,13 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
     val stubSalesforceClient = ZLayer.succeed(
       new SalesforceClient.Service {
-        override def getSubscriptionByName(subscrptionName: String): IO[SalesforceClientFailure, SalesforceSubscription] = ???
+        override def getSubscriptionByName(
+          subscrptionName: String
+        ): IO[SalesforceClientFailure, SalesforceSubscription] = {
+          IO.effect(
+            SalesforceSubscription(s"SubscritionId-$subscrptionName", subscrptionName, s"Buyer-$subscrptionName")
+          ).mapError(_ => SalesforceClientFailure(""))
+        }
       }
     )
 
