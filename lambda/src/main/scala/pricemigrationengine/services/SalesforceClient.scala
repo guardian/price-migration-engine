@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{CohortUpdateFailure, EstimationResult, SalesforceClientFailure, SalesforcePriceRise, SalesforcePriceRiseCreationResult, SalesforceSubscription}
+import pricemigrationengine.model.{SalesforceClientFailure, SalesforcePriceRise, SalesforcePriceRiseCreationResult, SalesforceSubscription}
 import zio.{IO, ZIO}
 
 object SalesforceClient {
