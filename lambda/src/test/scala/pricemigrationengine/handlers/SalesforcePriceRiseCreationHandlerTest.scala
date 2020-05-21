@@ -14,7 +14,6 @@ import scala.collection.mutable.ArrayBuffer
 
 class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
   test("SalesforcePriceRiseCreateHandler should get estimated prices from ") {
-    val expectedBatchSize = 101
     val stubConfiguration = ZLayer.succeed(
       new EstimationHandlerConfiguration.Service {
         override val config: IO[ConfigurationFailure, EstimationHandlerConfig] =
@@ -29,6 +28,8 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     val expectedCurrency = "GBP"
     val expectedOldPrice = BigDecimal(11.11)
     val expectedEstimatedNewPrice = BigDecimal(22.22)
+
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[SalesforcePriceRiseCreationResult]()
 
     val stubCohortTable = ZLayer.succeed(
       new CohortTable.Service {
@@ -49,8 +50,10 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
         override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
 
-        override def update(result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit] =
+        override def update(result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit] = {
+          updatedResultsWrittenToCohortTable.addOne(result)
           IO.succeed(())
+        }
       }
     )
 
@@ -90,5 +93,11 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     assertEquals(createdPriceRises(0).Current_Price_Today__c, expectedOldPrice)
     assertEquals(createdPriceRises(0).Guardian_Weekly_New_Price__c, expectedEstimatedNewPrice)
     assertEquals(createdPriceRises(0).Price_Rise_Date__c, expectedStartDate)
+
+    assertEquals(updatedResultsWrittenToCohortTable.size, 1)
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0).id,
+      s"SubscritionId-$expectedSubscriptionName-price-rise-id"
+    )
   }
 }
