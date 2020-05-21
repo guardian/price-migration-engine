@@ -4,14 +4,15 @@ import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import pricemigrationengine.model.CohortTableFilter.EstimationComplete
 import pricemigrationengine.model._
 import pricemigrationengine.services._
+import zio.clock.Clock
 import zio.console.Console
-import zio.{App, IO, Runtime, ZEnv, ZIO, ZLayer, console}
+import zio.{App, IO, Runtime, ZEnv, ZIO, ZLayer, clock, console}
 
 
 
 object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, Unit] {
 
-  val main: ZIO[Logging with CohortTable with SalesforceClient, Failure, Unit] =
+  val main: ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, Unit] =
     for {
       cohortItems <- CohortTable.fetch(EstimationComplete)
       _ <- cohortItems.foreach(createSalesforcePriceRise)
@@ -19,15 +20,19 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
 
   private def createSalesforcePriceRise(
     item: CohortItem
-  ): ZIO[Logging with CohortTable with SalesforceClient, Failure, Unit] =
+  ): ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, Unit] =
     for {
       updateResponse <- updateSalesforce(item)
         .tapBoth(
           e => Logging.error(s"Failed to write create Price_Rise in salesforce: $e"),
           result => Logging.info(s"Estimated result: $result")
         )
+      time <- clock.currentDateTime
+        .mapError { error =>
+          SalesforcePriceRiseCreationFailure(s"Failed to get currentTime: $error")
+        }
       _ <- CohortTable
-        .update(item.subscriptionName, SalesforcePriceRiseCreationDetails(updateResponse.id))
+        .update(item.subscriptionName, SalesforcePriceRiseCreationDetails(updateResponse.id, time.toInstant))
         .tapBoth(
           e => Logging.error(s"Failed to update Cohort table: $e"),
           _ => Logging.info(s"Wrote $updateResponse to Cohort table")
@@ -64,11 +69,11 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
 
   private def env(
       loggingLayer: ZLayer[Any, Nothing, Logging]
-  ): ZLayer[Any, Any, Logging with CohortTable with SalesforceClient] = {
+  ): ZLayer[Any, Any, Logging with CohortTable with SalesforceClient with Clock] = {
     loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
       DynamoDBClient.dynamoDB ++ loggingLayer >>>
       DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++ EnvConfiguration.salesforceImp >>>
-      loggingLayer ++ CohortTableLive.impl ++ SalesforceClientLive.impl
+      loggingLayer ++ CohortTableLive.impl ++ SalesforceClientLive.impl ++ Clock.live
   }
 
   private val runtime = Runtime.default

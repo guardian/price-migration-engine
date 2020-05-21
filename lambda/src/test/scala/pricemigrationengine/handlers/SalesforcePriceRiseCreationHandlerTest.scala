@@ -1,14 +1,17 @@
 package pricemigrationengine.handlers
 
-import java.time.LocalDate
+import java.time.{DateTimeException, Instant, LocalDate, OffsetDateTime, ZoneOffset}
+import java.util.concurrent.TimeUnit
 
 import pricemigrationengine.model.CohortTableFilter.EstimationComplete
 import pricemigrationengine.model.{CohortFetchFailure, CohortItem, CohortTableFilter, CohortUpdateFailure, ConfigurationFailure, EstimationHandlerConfig, EstimationResult, SalesforceClientFailure, SalesforcePriceRise, SalesforcePriceRiseCreationDetails, SalesforceSubscription}
 import pricemigrationengine.services.{CohortTable, ConsoleLogging, EstimationHandlerConfiguration, SalesforceClient, SalesforcePriceRiseCreationResponse}
 import zio.Exit.Success
 import zio.Runtime.default
+import zio.clock.Clock
+import zio.duration.Duration
 import zio.stream.ZStream
-import zio.{IO, ZIO, ZLayer, console}
+import zio.{IO, UIO, ZIO, ZLayer, console}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -21,6 +24,16 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
       }
     )
 
+    val expectedCurrentTime = Instant.parse("2020-05-21T15:16:37Z")
+    val stubClock = ZLayer.succeed(
+      new Clock.Service {
+        override def currentTime(unit: TimeUnit): UIO[Long] = ???
+        override def currentDateTime: IO[DateTimeException, OffsetDateTime] =
+          IO.succeed(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
+        override def nanoTime: UIO[Long] = ???
+        override def sleep(duration: Duration): UIO[Unit] = ???
+      }
+    )
     val stubLogging = console.Console.live >>> ConsoleLogging.impl
 
     val expectedSubscriptionName = "Sub-0001"
@@ -81,7 +94,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
         SalesforcePriceRiseCreationHandler
           .main
           .provideLayer(
-            stubLogging ++ stubConfiguration ++ stubCohortTable ++ stubSalesforceClient
+            stubLogging ++ stubConfiguration ++ stubCohortTable ++ stubSalesforceClient ++ stubClock
           )
       ),
       Success(())
@@ -98,6 +111,10 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     assertEquals(
       updatedResultsWrittenToCohortTable(0).id,
       s"SubscritionId-$expectedSubscriptionName-price-rise-id"
+    )
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0).whenSfShowEstimate,
+      expectedCurrentTime
     )
   }
 }

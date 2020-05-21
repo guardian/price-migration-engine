@@ -1,7 +1,7 @@
 package pricemigrationengine.services
 
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDate}
+import java.time.{Instant, LocalDate, ZoneOffset}
 import java.util
 
 import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
@@ -48,7 +48,8 @@ object CohortTableLive {
     estimationResult =>
       Map(
         stringFieldUpdate("processingStage", SalesforcePriceRiceCreationComplete.value),
-        stringFieldUpdate("salesforcePriceRiseId", estimationResult.id)
+        stringFieldUpdate("salesforcePriceRiseId", estimationResult.id),
+        instantFieldUpdate("whenSfShowEstimate", estimationResult.whenSfShowEstimate)
       ).asJava
 
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =
@@ -60,6 +61,12 @@ object CohortTableLive {
   private def dateFieldUpdate(fieldName: String, dateValue: LocalDate) =
     fieldName -> new AttributeValueUpdate(
       new AttributeValue().withS(dateValue.format(DateTimeFormatter.ISO_LOCAL_DATE)),
+      AttributeAction.PUT
+    )
+
+  private def instantFieldUpdate(fieldName: String, instant: Instant) =
+    fieldName -> new AttributeValueUpdate(
+      new AttributeValue().withS(DateTimeFormatter.ISO_DATE_TIME.format(instant.atZone(ZoneOffset.UTC))),
       AttributeAction.PUT
     )
 

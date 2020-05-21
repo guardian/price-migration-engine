@@ -1,3 +1,5 @@
 package pricemigrationengine.model
 
-case class SalesforcePriceRiseCreationDetails(id: String)
+import java.time.Instant
+
+case class SalesforcePriceRiseCreationDetails(id: String, whenSfShowEstimate: Instant)

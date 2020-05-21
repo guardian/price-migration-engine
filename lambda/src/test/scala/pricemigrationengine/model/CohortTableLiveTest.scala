@@ -192,8 +192,10 @@ class CohortTableLiveTest extends munit.FunSuite {
       }
     )
 
+    val expectedTimestamp = "2020-05-21T15:16:37Z"
     val salesforcePriceRiseCreationResult = SalesforcePriceRiseCreationDetails(
-      id = "price-rise-id"
+      id = "price-rise-id",
+      Instant.parse(expectedTimestamp)
     )
 
     assertEquals(
@@ -222,6 +224,11 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       update.get("salesforcePriceRiseId"),
       new AttributeValueUpdate(new AttributeValue().withS("price-rise-id"), AttributeAction.PUT),
+      "salesforcePriceRiseId"
+    )
+    assertEquals(
+      update.get("whenSfShowEstimate"),
+      new AttributeValueUpdate(new AttributeValue().withS(expectedTimestamp), AttributeAction.PUT),
       "salesforcePriceRiseId"
     )
   }
