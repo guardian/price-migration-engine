@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{SalesforcePriceRiseCreationResult, _}
+import pricemigrationengine.model.{SalesforcePriceRiseCreationDetails, _}
 import zio.stream.ZStream
 import zio.{IO, ZIO}
 
@@ -13,7 +13,7 @@ object CohortTable {
     ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]]
 
     def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit]
-    def update(subscriptionName: String, result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit]
+    def update(subscriptionName: String, result: SalesforcePriceRiseCreationDetails): ZIO[Any, CohortUpdateFailure, Unit]
   }
 
   def fetch(
@@ -26,7 +26,7 @@ object CohortTable {
 
   def update(
     subscriptionName: String,
-    result: SalesforcePriceRiseCreationResult
+    result: SalesforcePriceRiseCreationDetails
   ): ZIO[CohortTable, CohortUpdateFailure, Unit] =
     ZIO.accessM(_.get.update(subscriptionName, result))
 }

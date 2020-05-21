@@ -1,12 +1,14 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{SalesforceClientFailure, SalesforcePriceRise, SalesforcePriceRiseCreationResult, SalesforceSubscription}
+import pricemigrationengine.model.{SalesforceClientFailure, SalesforcePriceRise, SalesforcePriceRiseCreationDetails, SalesforceSubscription}
 import zio.{IO, ZIO}
+
+case class SalesforcePriceRiseCreationResponse(id: String)
 
 object SalesforceClient {
   trait Service {
     def getSubscriptionByName(subscrptionName: String): IO[SalesforceClientFailure, SalesforceSubscription]
-    def createPriceRise(priceRise: SalesforcePriceRise): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResult]
+    def createPriceRise(priceRise: SalesforcePriceRise): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse]
   }
 
   def getSubscriptionByName(
@@ -16,6 +18,6 @@ object SalesforceClient {
 
   def createPriceRise(
     priceRise: SalesforcePriceRise
-  ): ZIO[SalesforceClient, SalesforceClientFailure, SalesforcePriceRiseCreationResult] =
+  ): ZIO[SalesforceClient, SalesforceClientFailure, SalesforcePriceRiseCreationResponse] =
     ZIO.accessM(_.get.createPriceRise(priceRise))
 }

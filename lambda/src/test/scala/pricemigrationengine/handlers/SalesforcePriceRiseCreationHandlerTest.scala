@@ -3,8 +3,8 @@ package pricemigrationengine.handlers
 import java.time.LocalDate
 
 import pricemigrationengine.model.CohortTableFilter.EstimationComplete
-import pricemigrationengine.model.{CohortFetchFailure, CohortItem, CohortTableFilter, CohortUpdateFailure, ConfigurationFailure, EstimationHandlerConfig, EstimationResult, SalesforceClientFailure, SalesforcePriceRise, SalesforcePriceRiseCreationResult, SalesforceSubscription}
-import pricemigrationengine.services.{CohortTable, ConsoleLogging, EstimationHandlerConfiguration, SalesforceClient}
+import pricemigrationengine.model.{CohortFetchFailure, CohortItem, CohortTableFilter, CohortUpdateFailure, ConfigurationFailure, EstimationHandlerConfig, EstimationResult, SalesforceClientFailure, SalesforcePriceRise, SalesforcePriceRiseCreationDetails, SalesforceSubscription}
+import pricemigrationengine.services.{CohortTable, ConsoleLogging, EstimationHandlerConfiguration, SalesforceClient, SalesforcePriceRiseCreationResponse}
 import zio.Exit.Success
 import zio.Runtime.default
 import zio.stream.ZStream
@@ -29,7 +29,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     val expectedOldPrice = BigDecimal(11.11)
     val expectedEstimatedNewPrice = BigDecimal(22.22)
 
-    val updatedResultsWrittenToCohortTable = ArrayBuffer[SalesforcePriceRiseCreationResult]()
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[SalesforcePriceRiseCreationDetails]()
 
     val stubCohortTable = ZLayer.succeed(
       new CohortTable.Service {
@@ -50,7 +50,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
         override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
 
-        override def update(subscriptionName: String, result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit] = {
+        override def update(subscriptionName: String, result: SalesforcePriceRiseCreationDetails): ZIO[Any, CohortUpdateFailure, Unit] = {
           updatedResultsWrittenToCohortTable.addOne(result)
           IO.succeed(())
         }
@@ -69,9 +69,9 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
           ).mapError(_ => SalesforceClientFailure(""))
         }
 
-        override def createPriceRise(priceRise: SalesforcePriceRise): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResult] = {
+        override def createPriceRise(priceRise: SalesforcePriceRise): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] = {
           createdPriceRises.addOne(priceRise)
-          ZIO.succeed(SalesforcePriceRiseCreationResult(s"${priceRise.SF_Subscription__c}-price-rise-id"))
+          ZIO.succeed(SalesforcePriceRiseCreationResponse(s"${priceRise.SF_Subscription__c}-price-rise-id"))
         }
       }
     )

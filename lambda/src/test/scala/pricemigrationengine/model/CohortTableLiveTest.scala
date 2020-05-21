@@ -168,9 +168,9 @@ class CohortTableLiveTest extends munit.FunSuite {
   test("Update the PriceMigrationEngine table and serialise the price rise update correctly") {
     var tableUpdated: Option[String] = None
     var receivedKey: Option[CohortTableKey] = None
-    var receivedUpdate: Option[SalesforcePriceRiseCreationResult] = None
+    var receivedUpdate: Option[SalesforcePriceRiseCreationDetails] = None
     var receivedKeySerialiser: Option[DynamoDBSerialiser[CohortTableKey]] = None
-    var receivedValueSerialiser: Option[DynamoDBUpdateSerialiser[SalesforcePriceRiseCreationResult]] = None
+    var receivedValueSerialiser: Option[DynamoDBUpdateSerialiser[SalesforcePriceRiseCreationDetails]] = None
 
     val stubDynamoDBZIO = ZLayer.succeed(
       new DynamoDBZIO.Service {
@@ -184,15 +184,15 @@ class CohortTableLiveTest extends munit.FunSuite {
         ): IO[DynamoDBZIOError, Unit] = {
           tableUpdated = Some(table)
           receivedKey = Some(key.asInstanceOf[CohortTableKey])
-          receivedUpdate = Some(value.asInstanceOf[SalesforcePriceRiseCreationResult])
+          receivedUpdate = Some(value.asInstanceOf[SalesforcePriceRiseCreationDetails])
           receivedKeySerialiser = Some(keySerializer.asInstanceOf[DynamoDBSerialiser[CohortTableKey]])
-          receivedValueSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBUpdateSerialiser[SalesforcePriceRiseCreationResult]])
+          receivedValueSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBUpdateSerialiser[SalesforcePriceRiseCreationDetails]])
           ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
         }
       }
     )
 
-    val salesforcePriceRiseCreationResult = SalesforcePriceRiseCreationResult(
+    val salesforcePriceRiseCreationResult = SalesforcePriceRiseCreationDetails(
       id = "price-rise-id"
     )
 

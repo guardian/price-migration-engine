@@ -2,7 +2,7 @@ package pricemigrationengine.services
 
 import java.time.LocalDate
 
-import pricemigrationengine.model.{SalesforceClientFailure, SalesforceConfig, SalesforcePriceRise, SalesforcePriceRiseCreationResult, SalesforceSubscription}
+import pricemigrationengine.model.{SalesforceClientFailure, SalesforceConfig, SalesforcePriceRise, SalesforcePriceRiseCreationDetails, SalesforceSubscription}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 import upickle.default._
 import zio.{IO, ZIO, ZLayer}
@@ -19,7 +19,7 @@ object SalesforceClientLive {
     implicit val salesforceAuthDetailsRW: ReadWriter[SalesforceAuthDetails] = macroRW
     implicit val salesforceSubscriptionRW: ReadWriter[SalesforceSubscription] = macroRW
     implicit val salesforcePriceRiseRW: ReadWriter[SalesforcePriceRise] = macroRW
-    implicit val salesforcePriceIdRiseRW: ReadWriter[SalesforcePriceRiseCreationResult] = macroRW
+    implicit val salesforcePriceIdRiseRW: ReadWriter[SalesforcePriceRiseCreationResponse] = macroRW
 
     def requestAsMessage(request: HttpRequest) = {
       s"${request.method} ${request.url}"
@@ -77,8 +77,8 @@ object SalesforceClientLive {
           logging.info(s"Successfully loaded: ${subscription}")
         )
 
-      override def createPriceRise(priceRise: SalesforcePriceRise): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResult] =
-        sendRequest[SalesforcePriceRiseCreationResult](
+      override def createPriceRise(priceRise: SalesforcePriceRise): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] =
+        sendRequest[SalesforcePriceRiseCreationResponse](
           Http(s"${auth.instance_url}/services/data/v43.0/sobjects/Price_Rise__c/")
             .postData(write(priceRise))
             .header("Authorization", s"Bearer ${auth.access_token}")

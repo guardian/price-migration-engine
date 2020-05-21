@@ -6,7 +6,7 @@ import java.util
 
 import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
-import pricemigrationengine.model.{SalesforcePriceRiseCreationResult, _}
+import pricemigrationengine.model.{SalesforcePriceRiseCreationDetails, _}
 import pricemigrationengine.services.CohortTable.Service
 import zio.stream.ZStream
 import zio.{IO, ZIO, ZLayer}
@@ -44,7 +44,7 @@ object CohortTableLive {
         stringFieldUpdate("whenEstimationDone", Instant.now.toString)
       ).asJava
 
-  private implicit val salesforcePriceRiseCreationResultSerialiser: DynamoDBUpdateSerialiser[SalesforcePriceRiseCreationResult] =
+  private implicit val salesforcePriceRiseCreationResultSerialiser: DynamoDBUpdateSerialiser[SalesforcePriceRiseCreationDetails] =
     estimationResult =>
       Map(
         stringFieldUpdate("processingStage", SalesforcePriceRiceCreationComplete.value),
@@ -79,14 +79,15 @@ object CohortTableLive {
   }
 
   private def getOptionalStringFromResults(result: util.Map[String, AttributeValue], fieldName: String): IO[DynamoDBZIOError, Option[String]] = {
-    result.asScala.get(fieldName).fold[IO[DynamoDBZIOError, Option[String]]](
-      ZIO.succeed(None)
-    )( attributeValue =>
+    result
+      .asScala
+      .get(fieldName)
+      .fold[IO[DynamoDBZIOError, Option[String]]](ZIO.succeed(None)) { attributeValue =>
       ZIO
         .fromOption(Option(attributeValue.getS))
         .orElseFail(DynamoDBZIOError(s"The '$fieldName' field was not a string in the record $result"))
-      .map(Some.apply)
-    )
+        .map(Some.apply)
+    }
   }
   private def getOptionalDateFromResults(result: util.Map[String, AttributeValue], fieldName: String): IO[DynamoDBZIOError, Option[LocalDate]] =
     for {
@@ -144,7 +145,7 @@ object CohortTableLive {
           } yield result
         }.provide(dependencies)
 
-        override def update(subscriptionName: String, result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit] = {
+        override def update(subscriptionName: String, result: SalesforcePriceRiseCreationDetails): ZIO[Any, CohortUpdateFailure, Unit] = {
           for {
             config <- CohortTableConfiguration.cohortTableConfig
               .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))

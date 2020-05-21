@@ -21,20 +21,20 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
     item: CohortItem
   ): ZIO[Logging with CohortTable with SalesforceClient, Failure, Unit] =
     for {
-      result <- updateSalesforce(item)
+      updateResponse <- updateSalesforce(item)
         .tapBoth(
           e => Logging.error(s"Failed to write create Price_Rise in salesforce: $e"),
           result => Logging.info(s"Estimated result: $result")
         )
       _ <- CohortTable
-        .update(item.subscriptionName, result)
+        .update(item.subscriptionName, SalesforcePriceRiseCreationDetails(updateResponse.id))
         .tapBoth(
           e => Logging.error(s"Failed to update Cohort table: $e"),
-          _ => Logging.info(s"Wrote $result to Cohort table")
+          _ => Logging.info(s"Wrote $updateResponse to Cohort table")
         )
     } yield ()
 
-  private def updateSalesforce(cohortItem: CohortItem): ZIO[SalesforceClient, Failure, SalesforcePriceRiseCreationResult] = {
+  private def updateSalesforce(cohortItem: CohortItem): ZIO[SalesforceClient, Failure, SalesforcePriceRiseCreationResponse] = {
     for {
       subscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
       priceRise <- buildPriceRise(cohortItem, subscription)
