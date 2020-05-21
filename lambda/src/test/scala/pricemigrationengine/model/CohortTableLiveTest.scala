@@ -48,7 +48,7 @@ class CohortTableLiveTest extends munit.FunSuite {
         for {
           result <- CohortTable
             .fetch(ReadyForEstimation)
-            .provideLayer(stubConfiguration ++ stubDynamoDBZIO >>> CohortTableLive.impl)
+            .provideLayer(stubConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>> CohortTableLive.impl)
           resultList <- result.run(Sink.collectAll[CohortItem])
           _ = assertEquals(resultList, List(item1, item2))
         } yield ()
@@ -113,7 +113,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       Runtime.default.unsafeRunSync(
         CohortTable
           .update(estimationResult)
-          .provideLayer(stubConfiguration ++ stubDynamoDBZIO >>> CohortTableLive.impl)
+          .provideLayer(stubConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>> CohortTableLive.impl)
       ),
       Success(())
     )

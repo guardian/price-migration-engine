@@ -61,8 +61,8 @@ object CohortTableLive {
       }
   }
 
-  val impl: ZLayer[DynamoDBZIO with CohortTableConfiguration, Nothing, CohortTable] =
-    ZLayer.fromFunction { dependencies: DynamoDBZIO with CohortTableConfiguration =>
+  val impl: ZLayer[DynamoDBZIO with CohortTableConfiguration with Logging, Nothing, CohortTable] =
+    ZLayer.fromFunction { dependencies: DynamoDBZIO with CohortTableConfiguration with Logging =>
       new Service {
         override def fetch(
             filter: CohortTableFilter
@@ -95,7 +95,11 @@ object CohortTableLive {
           } yield result
         }.provide(dependencies)
 
-        override def update(result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
+        override def update(result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit] = {
+          Logging
+            .info(s"Update for $result not implemented")
+            .provide(dependencies)
+        }
       }
     }
 }

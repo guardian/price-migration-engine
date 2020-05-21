@@ -1,9 +1,9 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{ConfigurationFailure, SalesforceClientFailure, SalesforceConfig, ZuoraFetchFailure, ZuoraProductCatalogue}
+import pricemigrationengine.model.{SalesforceClientFailure, SalesforceConfig, SalesforceSubscription}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 import upickle.default._
-import zio.{IO, ZLayer}
+import zio.{IO, ZIO, ZLayer}
 
 object SalesforceClientLive {
   private case class SalesforceAuthDetails(access_token: String, instance_url: String)
@@ -13,53 +13,64 @@ object SalesforceClientLive {
     val logging  = dependencies.get[Logging.Service]
     val salesforceConfig  = dependencies.get[SalesforceConfiguration.Service]
 
-    implicit val rw: ReadWriter[SalesforceAuthDetails] = macroRW
+    implicit val salesforceAuthDetailsRW: ReadWriter[SalesforceAuthDetails] = macroRW
+    implicit val salesforceSubscriptionRW: ReadWriter[SalesforceSubscription] = macroRW
 
     def requestAsMessage(request: HttpRequest) = {
-      s"Request for ${request.method} ${request.url}"
+      s"${request.method} ${request.url}"
     }
 
     def failureMessage(request: HttpRequest, response: HttpResponse[String]) = {
-      requestAsMessage(request) + " returned status ${response.code} with body:${response.body}"
+      requestAsMessage(request) + s" returned status ${response.code} with body:${response.body}"
     }
 
-    def auth(config: SalesforceConfig): IO[SalesforceClientFailure, SalesforceAuthDetails] = {
-      val request = Http(s"${config.authUrl}/services/oauth2/token")
-        .postForm(
-          Seq(
-            "grant_type" -> "password",
-            "client_id" -> config.clientId,
-            "client_secret" -> config.clientSecret,
-            "username" -> config.userName,
-            "password" -> s"${config.password}${config.token}",
-          )
-        )
+    def sendRequest[A](request: HttpRequest)(implicit reader: Reader[A]): ZIO[Any, SalesforceClientFailure, A] =
       for {
         response <- IO.effect(request.asString)
-            .mapError(ex => SalesforceClientFailure(s"${requestAsMessage(request)} failed: $ex"))
-        valid200Response <- if(response.code == 200) {
+          .mapError(ex => SalesforceClientFailure(s"Request for ${requestAsMessage(request)} failed: $ex"))
+        valid200Response <- if (response.code == 200) {
           IO.succeed(response)
         } else {
           IO.fail(SalesforceClientFailure(failureMessage(request, response)))
         }
-
         parsedResponse <- IO
-          .effect(read[SalesforceAuthDetails](valid200Response.body))
-          .mapError(ex => SalesforceClientFailure(s"Failed to deserialise salesforce auth response: $ex"))
-          .tap { _ =>
-            logging.info(s"Authenticated with salesforce using user:${config.userName} and client: ${config.clientId}")
-          }
+          .effect(read[A](valid200Response.body))
+          .mapError(ex => SalesforceClientFailure(s"${requestAsMessage(request)} failed to deserialise: $ex"))
       } yield parsedResponse
+
+    def auth(config: SalesforceConfig): IO[SalesforceClientFailure, SalesforceAuthDetails] = {
+      sendRequest[SalesforceAuthDetails](
+        Http(s"${config.authUrl}/services/oauth2/token")
+          .postForm(
+            Seq(
+              "grant_type" -> "password",
+              "client_id" -> config.clientId,
+              "client_secret" -> config.clientSecret,
+              "username" -> config.userName,
+              "password" -> s"${config.password}${config.token}",
+            )
+          )
+      ).tap { _ =>
+        logging.info(s"Authenticated with salesforce using user:${config.userName} and client: ${config.clientId}")
+      }
     }
 
     for {
-      config <-
-        salesforceConfig
-          .config
-          .mapError { error => SalesforceClientFailure(s"Failed to load salesforce config: ${error.reason}") }
-      _ <- auth(config)
+      config <- salesforceConfig
+        .config
+        .mapError { error => SalesforceClientFailure(s"Failed to load salesforce config: ${error.reason}") }
+      auth <- auth(config)
     } yield new SalesforceClient.Service {
-
+      override def getSubscriptionByName(
+        subscriptionName: String
+      ): IO[SalesforceClientFailure, SalesforceSubscription] =
+        sendRequest[SalesforceSubscription](
+          Http(s"${auth.instance_url}/services/data/v43.0/sobjects/SF_Subscription__c/Name/${subscriptionName}")
+            .header("Authorization", s"Bearer ${auth.access_token}")
+            .method("GET")
+        ).tap( subscription =>
+          logging.info(s"Successfully loaded: ${subscription}")
+        )
     }
   }
 }
