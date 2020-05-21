@@ -81,7 +81,7 @@ object CohortTableLive {
       optionalString <- getOptionalStringFromResults(result, fieldName)
       string <- ZIO
         .fromOption(optionalString)
-        .orElseFail(DynamoDBZIOError(s"The '$fieldName' field did not exist in the record $result"))
+        .orElseFail(DynamoDBZIOError(s"The '$fieldName' field did not exist in the record '$result''"))
     } yield string
   }
 
@@ -92,10 +92,11 @@ object CohortTableLive {
       .fold[IO[DynamoDBZIOError, Option[String]]](ZIO.succeed(None)) { attributeValue =>
       ZIO
         .fromOption(Option(attributeValue.getS))
-        .orElseFail(DynamoDBZIOError(s"The '$fieldName' field was not a string in the record $result"))
+        .orElseFail(DynamoDBZIOError(s"The '$fieldName' field was not a string in the record '$result'"))
         .map(Some.apply)
     }
   }
+
   private def getOptionalDateFromResults(result: util.Map[String, AttributeValue], fieldName: String): IO[DynamoDBZIOError, Option[LocalDate]] =
     for {
       optionalString <- getOptionalStringFromResults(result, fieldName)
@@ -107,6 +108,7 @@ object CohortTableLive {
         }
 
     } yield optionalDate
+
   private def getOptionalBigDecimalFromResults(result: util.Map[String, AttributeValue], fieldName: String): IO[DynamoDBZIOError, Option[BigDecimal]] =
     for {
       optionalString <- getOptionalStringFromResults(result, fieldName)

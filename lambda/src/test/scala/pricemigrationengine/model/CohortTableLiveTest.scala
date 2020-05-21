@@ -193,6 +193,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     )
 
     val expectedTimestamp = "2020-05-21T15:16:37Z"
+
     val salesforcePriceRiseCreationResult = SalesforcePriceRiseCreationDetails(
       id = "price-rise-id",
       Instant.parse(expectedTimestamp)
