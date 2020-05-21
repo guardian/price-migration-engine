@@ -5,9 +5,9 @@ import pricemigrationengine.model.CohortTableFilter.EstimationComplete
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
-import zio.{App, Runtime, ZEnv, ZIO, ZLayer, console}
+import zio.{App, IO, Runtime, ZEnv, ZIO, ZLayer, console}
 
-case class SalesforcePriceRiseCreationResult()
+
 
 object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, Unit] {
 
@@ -36,8 +36,30 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
 
   private def updateSalesforce(cohortItem: CohortItem): ZIO[SalesforceClient, Failure, SalesforcePriceRiseCreationResult] = {
     for {
-      _ <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
-    } yield SalesforcePriceRiseCreationResult()
+      subscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
+      priceRise <- buildPriceRise(cohortItem, subscription)
+      result <- SalesforceClient.createPriceRise(priceRise)
+    } yield result
+  }
+
+  def buildPriceRise(
+    cohortItem: CohortItem,
+    subscription: SalesforceSubscription
+  ): IO[SalesforcePriceRiseCreationFailure, SalesforcePriceRise] = {
+    for {
+      currentPrice <-
+        ZIO.fromOption(cohortItem.oldPrice).mapError(_ => SalesforcePriceRiseCreationFailure(s"$cohortItem does not have an oldPrice"))
+      newPrice <-
+        ZIO.fromOption(cohortItem.estimatedNewPrice).mapError(_ => SalesforcePriceRiseCreationFailure(s"$cohortItem does not have an estimatedNewPrice"))
+      priceRiseDate <-
+        ZIO.fromOption(cohortItem.expectedStartDate).mapError(_ => SalesforcePriceRiseCreationFailure(s"$cohortItem does not have an expectedStartDate"))
+    } yield SalesforcePriceRise(
+      subscription.Buyer__c,
+      currentPrice,
+      newPrice,
+      priceRiseDate,
+      subscription.Id
+    )
   }
 
   private def env(
