@@ -5,10 +5,9 @@ import java.time.{Instant, LocalDate}
 import java.util
 
 import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
-import pricemigrationengine.model.CohortTableFilter.EstimationComplete
+import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model.{SalesforcePriceRiseCreationResult, _}
 import pricemigrationengine.services.CohortTable.Service
-import pricemigrationengine.services.CohortTableLive.getStringFromResults
 import zio.stream.ZStream
 import zio.{IO, ZIO, ZLayer}
 
@@ -43,6 +42,13 @@ object CohortTableLive {
         bigDecimalFieldUpdate("estimatedNewPrice", estimationResult.estimatedNewPrice),
         stringFieldUpdate("billingPeriod", estimationResult.billingPeriod),
         stringFieldUpdate("whenEstimationDone", Instant.now.toString)
+      ).asJava
+
+  private implicit val salesforcePriceRiseCreationResultSerialiser: DynamoDBUpdateSerialiser[SalesforcePriceRiseCreationResult] =
+    estimationResult =>
+      Map(
+        stringFieldUpdate("processingStage", SalesforcePriceRiceCreationComplete.value),
+        stringFieldUpdate("salesforcePriceRiseId", estimationResult.id)
       ).asJava
 
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =
@@ -138,11 +144,15 @@ object CohortTableLive {
           } yield result
         }.provide(dependencies)
 
-        override def update(result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit] = {
-          Logging
-            .info(s"Update for $result not implemented")
-            .provide(dependencies)
-        }
+        override def update(subscriptionName: String, result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit] = {
+          for {
+            config <- CohortTableConfiguration.cohortTableConfig
+              .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
+            result <- DynamoDBZIO
+              .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(subscriptionName), result)
+              .mapError(error => CohortUpdateFailure(error.toString))
+          } yield result
+        }.provide(dependencies)
       }
     }
 }

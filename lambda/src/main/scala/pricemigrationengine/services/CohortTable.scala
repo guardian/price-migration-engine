@@ -13,7 +13,7 @@ object CohortTable {
     ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]]
 
     def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit]
-    def update(result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit]
+    def update(subscriptionName: String, result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit]
   }
 
   def fetch(
@@ -24,6 +24,9 @@ object CohortTable {
   def update(result: EstimationResult): ZIO[CohortTable, CohortUpdateFailure, Unit] =
     ZIO.accessM(_.get.update(result))
 
-  def update(result: SalesforcePriceRiseCreationResult): ZIO[CohortTable, CohortUpdateFailure, Unit] =
-    ZIO.accessM(_.get.update(result))
+  def update(
+    subscriptionName: String,
+    result: SalesforcePriceRiseCreationResult
+  ): ZIO[CohortTable, CohortUpdateFailure, Unit] =
+    ZIO.accessM(_.get.update(subscriptionName, result))
 }

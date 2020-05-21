@@ -27,7 +27,7 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
           result => Logging.info(s"Estimated result: $result")
         )
       _ <- CohortTable
-        .update(result)
+        .update(item.subscriptionName, result)
         .tapBoth(
           e => Logging.error(s"Failed to update Cohort table: $e"),
           _ => Logging.info(s"Wrote $result to Cohort table")

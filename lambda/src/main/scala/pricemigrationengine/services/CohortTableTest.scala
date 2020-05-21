@@ -25,7 +25,7 @@ object CohortTableTest {
             _ <- console.putStrLn(s"Updating cohort table with result: $result")
           } yield ()
 
-        def update(result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
+        def update(subscriptionName: String, result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
       }
   )
 }

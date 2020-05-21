@@ -73,7 +73,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     )
   }
 
-  test("Update the PriceMigrationEngine table and serialise the update correctly") {
+  test("Update the PriceMigrationEngine table and serialise the estimation update correctly") {
     var tableUpdated: Option[String] = None
     var receivedKey: Option[CohortTableKey] = None
     var receivedUpdate: Option[EstimationResult] = None
@@ -162,6 +162,67 @@ class CohortTableLiveTest extends munit.FunSuite {
     assert(
       whenEstimationDone.isAfter(now.minusSeconds(100)) && (!whenEstimationDone.isAfter(now)),
       "whenEstimationDone"
+    )
+  }
+
+  test("Update the PriceMigrationEngine table and serialise the price rise update correctly") {
+    var tableUpdated: Option[String] = None
+    var receivedKey: Option[CohortTableKey] = None
+    var receivedUpdate: Option[SalesforcePriceRiseCreationResult] = None
+    var receivedKeySerialiser: Option[DynamoDBSerialiser[CohortTableKey]] = None
+    var receivedValueSerialiser: Option[DynamoDBUpdateSerialiser[SalesforcePriceRiseCreationResult]] = None
+
+    val stubDynamoDBZIO = ZLayer.succeed(
+      new DynamoDBZIO.Service {
+        override def query[A](query: QueryRequest)(
+          implicit deserializer: DynamoDBDeserialiser[A]
+        ): ZStream[Any, DynamoDBZIOError, A] = ???
+
+        override def update[A, B](table: String, key: A, value: B)(
+          implicit keySerializer: DynamoDBSerialiser[A],
+          valueSerializer: DynamoDBUpdateSerialiser[B]
+        ): IO[DynamoDBZIOError, Unit] = {
+          tableUpdated = Some(table)
+          receivedKey = Some(key.asInstanceOf[CohortTableKey])
+          receivedUpdate = Some(value.asInstanceOf[SalesforcePriceRiseCreationResult])
+          receivedKeySerialiser = Some(keySerializer.asInstanceOf[DynamoDBSerialiser[CohortTableKey]])
+          receivedValueSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBUpdateSerialiser[SalesforcePriceRiseCreationResult]])
+          ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
+        }
+      }
+    )
+
+    val salesforcePriceRiseCreationResult = SalesforcePriceRiseCreationResult(
+      id = "price-rise-id"
+    )
+
+    assertEquals(
+      Runtime.default.unsafeRunSync(
+        CohortTable
+          .update("subscription-name", salesforcePriceRiseCreationResult)
+          .provideLayer(stubConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>> CohortTableLive.impl)
+      ),
+      Success(())
+    )
+
+    assertEquals(tableUpdated.get, "PriceMigrationEngineDEV")
+    assertEquals(receivedKey.get.subscriptionNumber, "subscription-name")
+    assertEquals(
+      receivedKeySerialiser.get.serialise(receivedKey.get),
+      Map(
+        "subscriptionNumber" -> new AttributeValue().withS("subscription-name")
+      ).asJava
+    )
+    val update = receivedValueSerialiser.get.serialise(receivedUpdate.get)
+    assertEquals(
+      update.get("processingStage"),
+      new AttributeValueUpdate(new AttributeValue().withS("SalesforcePriceRiceCreationComplete"), AttributeAction.PUT),
+      "processingStage"
+    )
+    assertEquals(
+      update.get("salesforcePriceRiseId"),
+      new AttributeValueUpdate(new AttributeValue().withS("price-rise-id"), AttributeAction.PUT),
+      "salesforcePriceRiseId"
     )
   }
 }
