@@ -60,4 +60,21 @@ aws dynamodb update-item \
     --expression-attribute-values '{":stage":{"S":"EstimationComplete"}}'
 ```
 
+##Modifying Global Secondary Indexes
 
+Once created Global seconday indexes such as ProcessingStageIndexVxx cannot be modified. If you need to change the 
+configuration of an index you can create a new one and delete the existing one. 
+
+There is an additional limitation in that you can only do one Global Secondary Index addition or deletion 
+(on an existing table) per cloudformation 'session'
+
+To make a change to a Global Secondary Index follow the following procedure:
+- Make a copy of the existing index configuration in the cloudformation template, incrementing the version number
+in the name, and make the modifications to the configuration you require.
+- Update the code in lambdas so they reference the new index name
+- Once built, deploy the dynamodb configuration using riff-raff (MemSub::Subscriptions::DynamoDb::PriceMigrationEngine)
+- Deploy the lambdas using riff-raff (MemSub::Subscriptions::Lambda::PriceMigrationEngine)
+- Remove the old version of the index from the cloudformation template
+- Once built, deploy the dynamodb config using riff-raff
+
+    
