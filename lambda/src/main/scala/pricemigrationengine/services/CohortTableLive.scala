@@ -97,6 +97,18 @@ object CohortTableLive {
     }
   }
 
+  private def getOptionalNumberStringFromResults(result: util.Map[String, AttributeValue], fieldName: String): IO[DynamoDBZIOError, Option[String]] = {
+    result
+      .asScala
+      .get(fieldName)
+      .fold[IO[DynamoDBZIOError, Option[String]]](ZIO.succeed(None)) { attributeValue =>
+      ZIO
+        .fromOption(Option(attributeValue.getN))
+        .orElseFail(DynamoDBZIOError(s"The '$fieldName' field was not a number in the record '$result'"))
+        .map(Some.apply)
+    }
+  }
+
   private def getOptionalDateFromResults(result: util.Map[String, AttributeValue], fieldName: String): IO[DynamoDBZIOError, Option[LocalDate]] =
     for {
       optionalString <- getOptionalStringFromResults(result, fieldName)
@@ -111,7 +123,7 @@ object CohortTableLive {
 
   private def getOptionalBigDecimalFromResults(result: util.Map[String, AttributeValue], fieldName: String): IO[DynamoDBZIOError, Option[BigDecimal]] =
     for {
-      optionalString <- getOptionalStringFromResults(result, fieldName)
+      optionalString <- getOptionalNumberStringFromResults(result, fieldName)
       optionalDate <-
         optionalString.fold[IO[DynamoDBZIOError, Option[BigDecimal]]](ZIO.succeed(None)) { string =>
           ZIO
