@@ -25,17 +25,18 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
       updateResponse <- updateSalesforce(item)
         .tapBoth(
           e => Logging.error(s"Failed to write create Price_Rise in salesforce: $e"),
-          result => Logging.info(s"Estimated result: $result")
+          result => Logging.info(s"SalesforcePriceRise result: $result")
         )
       time <- clock.currentDateTime
         .mapError { error =>
           SalesforcePriceRiseCreationFailure(s"Failed to get currentTime: $error")
         }
+      salesforcePriceRiseCreationDetails = SalesforcePriceRiseCreationDetails(updateResponse.id, time.toInstant)
       _ <- CohortTable
-        .update(item.subscriptionName, SalesforcePriceRiseCreationDetails(updateResponse.id, time.toInstant))
+        .update(item.subscriptionName, salesforcePriceRiseCreationDetails)
         .tapBoth(
           e => Logging.error(s"Failed to update Cohort table: $e"),
-          _ => Logging.info(s"Wrote $updateResponse to Cohort table")
+          _ => Logging.info(s"Wrote $salesforcePriceRiseCreationDetails to Cohort table")
         )
     } yield ()
 
