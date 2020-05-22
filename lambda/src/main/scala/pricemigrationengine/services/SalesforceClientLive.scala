@@ -33,7 +33,7 @@ object SalesforceClientLive {
       for {
         response <- IO.effect(request.asString)
           .mapError(ex => SalesforceClientFailure(s"Request for ${requestAsMessage(request)} failed: $ex"))
-        valid200Response <- if (response.code == 200) {
+        valid200Response <- if ((response.code / 100) == 2) {
           IO.succeed(response)
         } else {
           IO.fail(SalesforceClientFailure(failureMessage(request, response)))
