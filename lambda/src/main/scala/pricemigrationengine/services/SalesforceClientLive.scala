@@ -1,6 +1,8 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{SalesforceClientFailure, SalesforceConfig, SalesforceSubscription}
+import java.time.LocalDate
+
+import pricemigrationengine.model.{SalesforceClientFailure, SalesforceConfig, SalesforcePriceRise, SalesforcePriceRiseCreationDetails, SalesforceSubscription}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 import upickle.default._
 import zio.{IO, ZIO, ZLayer}
@@ -13,8 +15,11 @@ object SalesforceClientLive {
     val logging  = dependencies.get[Logging.Service]
     val salesforceConfig  = dependencies.get[SalesforceConfiguration.Service]
 
+    implicit val localDateRW: ReadWriter[LocalDate] = readwriter[String].bimap[LocalDate](_.toString, LocalDate.parse)
     implicit val salesforceAuthDetailsRW: ReadWriter[SalesforceAuthDetails] = macroRW
     implicit val salesforceSubscriptionRW: ReadWriter[SalesforceSubscription] = macroRW
+    implicit val salesforcePriceRiseRW: ReadWriter[SalesforcePriceRise] = macroRW
+    implicit val salesforcePriceIdRiseRW: ReadWriter[SalesforcePriceRiseCreationResponse] = macroRW
 
     def requestAsMessage(request: HttpRequest) = {
       s"${request.method} ${request.url}"
@@ -28,7 +33,7 @@ object SalesforceClientLive {
       for {
         response <- IO.effect(request.asString)
           .mapError(ex => SalesforceClientFailure(s"Request for ${requestAsMessage(request)} failed: $ex"))
-        valid200Response <- if (response.code == 200) {
+        valid200Response <- if ((response.code / 100) == 2) {
           IO.succeed(response)
         } else {
           IO.fail(SalesforceClientFailure(failureMessage(request, response)))
@@ -70,6 +75,16 @@ object SalesforceClientLive {
             .method("GET")
         ).tap( subscription =>
           logging.info(s"Successfully loaded: ${subscription}")
+        )
+
+      override def createPriceRise(priceRise: SalesforcePriceRise): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] =
+        sendRequest[SalesforcePriceRiseCreationResponse](
+          Http(s"${auth.instance_url}/services/data/v43.0/sobjects/Price_Rise__c/")
+            .postData(write(priceRise))
+            .header("Authorization", s"Bearer ${auth.access_token}")
+            .header("Content-Type", "application/json")
+        ).tap( priceRiseId =>
+          logging.info(s"Successfully created Price_Rise__c object: ${priceRiseId.id}")
         )
     }
   }

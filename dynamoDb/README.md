@@ -13,7 +13,7 @@ aws dynamodb create-table \
     --table-name PriceMigrationEngineDEV \
     --attribute-definitions AttributeName=subscriptionNumber,AttributeType=S AttributeName=processingStage,AttributeType=S \
     --key-schema AttributeName=subscriptionNumber,KeyType=HASH \
-    --global-secondary-indexes IndexName=ProcessingStageIndex,KeySchema=["{AttributeName=processingStage,KeyType=HASH}"],Projection="{ProjectionType=KEYS_ONLY}",ProvisionedThroughput="{ReadCapacityUnits=10,WriteCapacityUnits=10}" \
+    --global-secondary-indexes IndexName=ProcessingStageIndexV2,KeySchema=["{AttributeName=processingStage,KeyType=HASH}"],Projection="{ProjectionType=KEYS_ONLY}",ProvisionedThroughput="{ReadCapacityUnits=10,WriteCapacityUnits=10}" \
     --provisioned-throughput ReadCapacityUnits=10,WriteCapacityUnits=10 
 ```
 
@@ -36,7 +36,7 @@ aws dynamodb query \
     --region eu-west-1 \
     --endpoint-url http://localhost:8000 \
     --table-name PriceMigrationEngineDEV \
-    --index-name ProcessingStageIndex \
+    --index-name ProcessingStageIndexV2 \
     --key-condition-expression "processingStage = :stage" \
     --expression-attribute-values '{":stage":{"S":"ReadyForEstimation"}}'
 ```
@@ -48,4 +48,16 @@ aws dynamodb delete-table \
     --endpoint-url http://localhost:8000 \
     --table-name PriceMigrationEngineDEV \
 ```
+
+Update and item in the cohort table:
+```$bash
+aws dynamodb update-item \
+    --region eu-west-1 \
+    --endpoint-url http://localhost:8000 \
+    --table-name PriceMigrationEngineDEV \
+    --key '{"subscriptionNumber":{"S":"A-S00063981"}}' \
+    --update-expression "SET stage = :stage" \
+    --expression-attribute-values '{":stage":{"S":"EstimationComplete"}}'
+```
+
 

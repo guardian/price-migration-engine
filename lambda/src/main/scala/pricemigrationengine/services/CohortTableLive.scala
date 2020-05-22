@@ -1,12 +1,11 @@
 package pricemigrationengine.services
 
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDate}
+import java.time.{Instant, LocalDate, ZoneOffset}
 import java.util
 
 import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
-import pricemigrationengine.handlers.SalesforcePriceRiseCreationResult
-import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EstimationComplete}
+import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services.CohortTable.Service
 import zio.stream.ZStream
@@ -17,8 +16,21 @@ import scala.jdk.CollectionConverters._
 object CohortTableLive {
   private implicit val cohortItemDeserialiser: DynamoDBDeserialiser[CohortItem] =
     cohortItem =>
-      getStringFromResults(cohortItem, "subscriptionNumber")
-        .map(CohortItem.apply)
+      for {
+        subscriptionNumber <- getStringFromResults(cohortItem, "subscriptionNumber")
+        expectedStartDate <- getOptionalDateFromResults(cohortItem, "expectedStartDate")
+        currency <- getOptionalStringFromResults(cohortItem, "currency")
+        oldPrice <-  getOptionalBigDecimalFromResults(cohortItem, "oldPrice")
+        estimatedNewPrice <- getOptionalBigDecimalFromResults(cohortItem, "estimatedNewPrice")
+        billingPeriod <- getOptionalStringFromResults(cohortItem, "currency")
+      } yield CohortItem(
+        subscriptionNumber,
+        expectedStartDate,
+        currency,
+        oldPrice,
+        estimatedNewPrice,
+        billingPeriod
+      )
 
   private implicit val estimationResultSerialiser: DynamoDBUpdateSerialiser[EstimationResult] =
     estimationResult =>
@@ -42,6 +54,14 @@ object CohortTableLive {
         stringFieldUpdate("whenAmendmentDone", Instant.now.toString)
       ).asJava
 
+  private implicit val salesforcePriceRiseCreationResultSerialiser: DynamoDBUpdateSerialiser[SalesforcePriceRiseCreationDetails] =
+    estimationResult =>
+      Map(
+        stringFieldUpdate("processingStage", SalesforcePriceRiceCreationComplete.value),
+        stringFieldUpdate("salesforcePriceRiseId", estimationResult.id),
+        instantFieldUpdate("whenSfShowEstimate", estimationResult.whenSfShowEstimate)
+      ).asJava
+
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =
     estimationResult => Map(stringUpdate("subscriptionNumber", estimationResult.subscriptionNumber)).asJava
 
@@ -54,6 +74,12 @@ object CohortTableLive {
       AttributeAction.PUT
     )
 
+  private def instantFieldUpdate(fieldName: String, instant: Instant) =
+    fieldName -> new AttributeValueUpdate(
+      new AttributeValue().withS(DateTimeFormatter.ISO_DATE_TIME.format(instant.atZone(ZoneOffset.UTC))),
+      AttributeAction.PUT
+    )
+
   private def bigDecimalFieldUpdate(fieldName: String, value: BigDecimal) =
     fieldName -> new AttributeValueUpdate(new AttributeValue().withN(value.toString), AttributeAction.PUT)
 
@@ -61,15 +87,59 @@ object CohortTableLive {
     fieldName -> new AttributeValue().withS(stringValue)
 
   private def getStringFromResults(result: util.Map[String, AttributeValue], fieldName: String) = {
-    ZIO
-      .fromOption(result.asScala.get(fieldName))
-      .orElseFail(DynamoDBZIOError(s"The '$fieldName' field did not exist in the record $result"))
-      .flatMap { attributeValue =>
+    for {
+      optionalString <- getOptionalStringFromResults(result, fieldName)
+      string <- ZIO
+        .fromOption(optionalString)
+        .orElseFail(DynamoDBZIOError(s"The '$fieldName' field did not exist in the record '$result''"))
+    } yield string
+  }
+
+  private def getOptionalStringFromResults(result: util.Map[String, AttributeValue], fieldName: String): IO[DynamoDBZIOError, Option[String]] = {
+    result
+      .asScala
+      .get(fieldName)
+      .fold[IO[DynamoDBZIOError, Option[String]]](ZIO.succeed(None)) { attributeValue =>
         ZIO
           .fromOption(Option(attributeValue.getS))
-          .orElseFail(DynamoDBZIOError(s"The '$fieldName' field was not a string in the record $result"))
+          .orElseFail(DynamoDBZIOError(s"The '$fieldName' field was not a string in the record '$result'"))
+          .map(Some.apply)
       }
   }
+
+  private def getOptionalNumberStringFromResults(result: util.Map[String, AttributeValue], fieldName: String): IO[DynamoDBZIOError, Option[String]] = {
+    result
+      .asScala
+      .get(fieldName)
+      .fold[IO[DynamoDBZIOError, Option[String]]](ZIO.succeed(None)) { attributeValue =>
+        ZIO
+          .fromOption(Option(attributeValue.getN))
+          .orElseFail(DynamoDBZIOError(s"The '$fieldName' field was not a number in the record '$result'"))
+          .map(Some.apply)
+      }
+  }
+
+  private def getOptionalDateFromResults(result: util.Map[String, AttributeValue], fieldName: String): IO[DynamoDBZIOError, Option[LocalDate]] =
+    for {
+      optionalString <- getOptionalStringFromResults(result, fieldName)
+      optionalDate <-
+        optionalString.fold[IO[DynamoDBZIOError, Option[LocalDate]]](ZIO.succeed(None)) { string =>
+          ZIO
+            .effect(Some(LocalDate.parse(string)))
+            .mapError(ex => DynamoDBZIOError(s"The '$fieldName' has value '$string' which is not a valid date yyyy-MM-dd"))
+        }
+    } yield optionalDate
+
+  private def getOptionalBigDecimalFromResults(result: util.Map[String, AttributeValue], fieldName: String): IO[DynamoDBZIOError, Option[BigDecimal]] =
+    for {
+      optionalNumberString <- getOptionalNumberStringFromResults(result, fieldName)
+      optionalDecimal <-
+        optionalNumberString.fold[IO[DynamoDBZIOError, Option[BigDecimal]]](ZIO.succeed(None)) { string =>
+          ZIO
+            .effect(Some(BigDecimal(string)))
+            .mapError(ex => DynamoDBZIOError(s"The '$fieldName' has value '$string' which is not a valid number"))
+        }
+    } yield optionalDecimal
 
   val impl: ZLayer[DynamoDBZIO with CohortTableConfiguration with Logging, Nothing, CohortTable] =
     ZLayer.fromFunction { dependencies: DynamoDBZIO with CohortTableConfiguration with Logging =>
@@ -84,7 +154,7 @@ object CohortTableLive {
               .query(
                 new QueryRequest()
                   .withTableName(s"PriceMigrationEngine${config.stage}")
-                  .withIndexName("ProcessingStageIndex")
+                  .withIndexName("ProcessingStageIndexV2")
                   .withKeyConditionExpression("processingStage = :processingStage")
                   .withExpressionAttributeValues(
                     Map(":processingStage" -> new AttributeValue(filter.value)).asJava
@@ -105,11 +175,15 @@ object CohortTableLive {
           } yield result
         }.provide(dependencies)
 
-        override def update(result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit] = {
-          Logging
-            .info(s"Update for $result not implemented")
-            .provide(dependencies)
-        }
+        override def update(subscriptionName: String, result: SalesforcePriceRiseCreationDetails): ZIO[Any, CohortUpdateFailure, Unit] = {
+          for {
+            config <- CohortTableConfiguration.cohortTableConfig
+              .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
+            result <- DynamoDBZIO
+              .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(subscriptionName), result)
+              .mapError(error => CohortUpdateFailure(error.toString))
+          } yield result
+        }.provide(dependencies)
 
         override def update(result: AmendmentResult): ZIO[Any, CohortUpdateFailure, Unit] = {
           (for {

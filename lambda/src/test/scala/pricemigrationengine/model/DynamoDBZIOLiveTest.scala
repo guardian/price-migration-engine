@@ -1,6 +1,5 @@
 package pricemigrationengine.model
 
-import java.time.LocalDate
 import java.util
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
@@ -9,7 +8,7 @@ import pricemigrationengine.services._
 import zio.Exit.Success
 import zio.Runtime.default
 import zio.stream.Sink
-import zio.{IO, ZIO, ZLayer, console}
+import zio.{ZIO, ZLayer, console}
 
 import scala.jdk.CollectionConverters._
 

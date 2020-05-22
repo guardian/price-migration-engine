@@ -1,6 +1,5 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.handlers.SalesforcePriceRiseCreationResult
 import pricemigrationengine.model._
 import zio.console.Console
 import zio.stream.ZStream
@@ -26,7 +25,7 @@ object CohortTableTest {
             _ <- console.putStrLn(s"Updating cohort table with result: $result")
           } yield ()
 
-        def update(result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
+        def update(subscriptionName: String, result: SalesforcePriceRiseCreationDetails): ZIO[Any, CohortUpdateFailure, Unit] = ???
 
         def update(result: AmendmentResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
     }
