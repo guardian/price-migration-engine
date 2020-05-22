@@ -28,11 +28,11 @@ Resources:
           KeyType: "HASH"
       GlobalSecondaryIndexes:
         - IndexName: "ProcessingStageIndex"
-              KeySchema:
-                - AttributeName: "processingStage"
-                  KeyType: "HASH"
-              Projection:
-                ProjectionType: "KEYS_ONLY"
+          KeySchema:
+            - AttributeName: "processingStage"
+              KeyType: "HASH"
+          Projection:
+            ProjectionType: "KEYS_ONLY"
         - IndexName: "ProcessingStageIndexV2"
           KeySchema:
             - AttributeName: "processingStage"
