@@ -57,7 +57,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     )
 
     assertEquals(receivedRequest.get.getTableName, "PriceMigrationEngineDEV")
-    assertEquals(receivedRequest.get.getIndexName, "ProcessingStageIndex")
+    assertEquals(receivedRequest.get.getIndexName, "ProcessingStageIndexV2")
     assertEquals(receivedRequest.get.getKeyConditionExpression, "processingStage = :processingStage")
     assertEquals(
       receivedRequest.get.getExpressionAttributeValues,

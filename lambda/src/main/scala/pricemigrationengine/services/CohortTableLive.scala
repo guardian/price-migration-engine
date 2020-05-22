@@ -133,7 +133,7 @@ object CohortTableLive {
               .query(
                 new QueryRequest()
                   .withTableName(s"PriceMigrationEngine${config.stage}")
-                  .withIndexName("ProcessingStageIndex")
+                  .withIndexName("ProcessingStageIndexV2")
                   .withKeyConditionExpression("processingStage = :processingStage")
                   .withExpressionAttributeValues(
                     Map(":processingStage" -> new AttributeValue(filter.value)).asJava
