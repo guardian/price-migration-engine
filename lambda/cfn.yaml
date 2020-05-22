@@ -25,7 +25,26 @@ Mappings:
 
 
 Resources:
-  PriceMigrationEngineLambdaRole:
+
+  CohortTableAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CohortTableAccessPolicy
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:Query
+              - dynamodb:UpdateItem
+            Resource:
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}/*"
+      Roles:
+        - Ref: PriceMigrationEngineEstimationLambdaRole
+        - Ref: PriceMigrationEngineSalesforcePriceCreationLambdaRole
+        - Ref: PriceMigrationEngineAmendmentLambdaRole
+
+  PriceMigrationEngineEstimationLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -49,18 +68,59 @@ Resources:
                   - lambda:InvokeFunction
                 Resource:
                   - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-estimation-lambda-${Stage}:log-stream:*"
-                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-salesforce-price-rise-lambda-${Stage}:log-stream:*"
-                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-amendment-lambda-${Stage}:log-stream:*"
-        - PolicyName: DynamoDBAccessPolicy
+    DependsOn: CohortTableAccessPolicy
+
+  PriceMigrationEngineSalesforcePriceCreationLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: LambdaPolicy
           PolicyDocument:
             Statement:
               - Effect: Allow
                 Action:
-                  - dynamodb:Query
-                  - dynamodb:UpdateItem
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - lambda:InvokeFunction
                 Resource:
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}/*"
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-salesforce-price-rise-lambda-${Stage}:log-stream:*"
+    DependsOn: CohortTableAccessPolicy
+
+  PriceMigrationEngineAmendmentLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - lambda:InvokeFunction
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-amendment-lambda-${Stage}:log-stream:*"
+    DependsOn: CohortTableAccessPolicy
 
   PriceMigrationEngineEstimationLambda:
     Type: AWS::Lambda::Function
@@ -91,13 +151,13 @@ Resources:
           batchSize: 100
       Role:
         Fn::GetAtt:
-          - PriceMigrationEngineLambdaRole
+          - PriceMigrationEngineEstimationLambdaRole
           - Arn
       MemorySize: 1536
       Runtime: java8
       Timeout: 300
     DependsOn:
-      - PriceMigrationEngineLambdaRole
+      - PriceMigrationEngineEstimationLambdaRole
 
   PriceMigrationEngineSalesforcePriceCreationLambda:
     Type: AWS::Lambda::Function
@@ -139,13 +199,13 @@ Resources:
             - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
       Role:
         Fn::GetAtt:
-          - PriceMigrationEngineLambdaRole
+          - PriceMigrationEngineSalesforcePriceCreationLambdaRole
           - Arn
       MemorySize: 1536
       Runtime: java8
       Timeout: 300
     DependsOn:
-      - PriceMigrationEngineLambdaRole
+      - PriceMigrationEngineSalesforcePriceCreationLambdaRole
 
   PriceMigrationEngineAmendmentLambda:
     Type: AWS::Lambda::Function
@@ -176,10 +236,10 @@ Resources:
           batchSize: 100
       Role:
         Fn::GetAtt:
-          - PriceMigrationEngineLambdaRole
+          - PriceMigrationEngineAmendmentLambdaRole
           - Arn
       MemorySize: 1536
       Runtime: java8
       Timeout: 300
     DependsOn:
-      - PriceMigrationEngineLambdaRole
+      - PriceMigrationEngineAmendmentLambdaRole
