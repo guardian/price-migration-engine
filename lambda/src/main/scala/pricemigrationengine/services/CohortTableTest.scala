@@ -27,6 +27,8 @@ object CohortTableTest {
           } yield ()
 
         def update(result: SalesforcePriceRiseCreationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
-      }
+
+        def update(result: AmendmentResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
+    }
   )
 }

@@ -14,4 +14,7 @@ case class ZuoraInvoiceItem(serviceStartDate: LocalDate, chargeAmount: BigDecima
 
 object ZuoraInvoiceItem {
   implicit val rw: ReadWriter[ZuoraInvoiceItem] = macroRW
+
+  def items(invoiceList: ZuoraInvoiceList, serviceStartDate: LocalDate): Seq[ZuoraInvoiceItem] =
+    invoiceList.invoiceItems.filter(_.serviceStartDate == serviceStartDate)
 }

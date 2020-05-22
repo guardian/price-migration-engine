@@ -3,7 +3,7 @@ package pricemigrationengine.services
 import java.lang.System.getenv
 import java.time.LocalDate
 
-import pricemigrationengine.model.{CohortTableConfig, ConfigurationFailure, DynamoDBConfig, DynamoDBEndpointConfig, EstimationHandlerConfig, SalesforceConfig, ZuoraConfig}
+import pricemigrationengine.model._
 import zio.{IO, ZIO, ZLayer}
 
 object EnvConfiguration {
@@ -18,16 +18,11 @@ object EnvConfiguration {
       .effect(Option(getenv(name)))
       .mapError(e => ConfigurationFailure(e.getMessage))
 
-  val estimationImpl: ZLayer[Any, Nothing, EstimationHandlerConfiguration] = ZLayer.succeed {
-    new EstimationHandlerConfiguration.Service {
-      val config: IO[ConfigurationFailure, EstimationHandlerConfig] = for {
-        stage <- env("stage")
+  val amendmentImpl: ZLayer[Any, Nothing, AmendmentConfiguration] = ZLayer.succeed {
+    new AmendmentConfiguration.Service {
+      val config: IO[ConfigurationFailure, AmendmentConfig] = for {
         earliestStartDate <- env("earliestStartDate").map(LocalDate.parse)
-        batchSize <- env("batchSize").map(_.toInt)
-      } yield
-        EstimationHandlerConfig(
-          earliestStartDate,
-        )
+      } yield AmendmentConfig(earliestStartDate)
     }
   }
 
@@ -38,11 +33,11 @@ object EnvConfiguration {
         zuoraClientId <- env("zuoraClientId")
         zuoraClientSecret <- env("zuoraClientSecret")
       } yield
-          ZuoraConfig(
-            zuoraApiHost,
-            zuoraClientId,
-            zuoraClientSecret
-          )
+        ZuoraConfig(
+          zuoraApiHost,
+          zuoraClientId,
+          zuoraClientSecret
+        )
     }
   }
 

@@ -16,7 +16,7 @@ object Zuora {
     def updateSubscription(
         subscription: ZuoraSubscription,
         update: ZuoraSubscriptionUpdate
-    ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscription]
+    ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId]
   }
 
   def fetchSubscription(subscriptionNumber: String): ZIO[Zuora, ZuoraFetchFailure, ZuoraSubscription] =
@@ -31,6 +31,6 @@ object Zuora {
   def updateSubscription(
       subscription: ZuoraSubscription,
       update: ZuoraSubscriptionUpdate
-  ): ZIO[Zuora, ZuoraUpdateFailure, ZuoraSubscription] =
+  ): ZIO[Zuora, ZuoraUpdateFailure, ZuoraSubscriptionId] =
     ZIO.accessM(_.get.updateSubscription(subscription, update))
 }

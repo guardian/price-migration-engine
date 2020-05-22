@@ -14,7 +14,15 @@ Set up a run configuration for the lambda, using the following environment varia
 and also the specific environment variables for the lambda you are running.
 
 ### Specific environment variables per lambda
+
 #### EstimationHandler
+* earliestStartDate=`earliestStartDate`
+* batchSize=`batchSize`
+* zuoraApiHost=`host`
+* zuoraClientId=`personal clientId`
+* zuoraClientSecret=`personal clientSecret`
+
+#### AmendmentHandler
 * earliestStartDate=`earliestStartDate`
 * batchSize=`batchSize`
 * zuoraApiHost=`host`

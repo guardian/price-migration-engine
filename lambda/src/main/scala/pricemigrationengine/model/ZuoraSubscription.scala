@@ -19,7 +19,9 @@ object ZuoraSubscription {
 }
 
 case class ZuoraRatePlan(
+    id: String,
     productName: String,
+    productRatePlanId: String,
     ratePlanName: String,
     ratePlanCharges: List[ZuoraRatePlanCharge],
     lastChangeType: Option[String] = None
@@ -27,6 +29,9 @@ case class ZuoraRatePlan(
 
 object ZuoraRatePlan {
   implicit val rw: ReadWriter[ZuoraRatePlan] = macroRW
+
+  def ratePlan(subscription: ZuoraSubscription, ratePlanChargeNumber: String): Option[ZuoraRatePlan] =
+    subscription.ratePlans.find(_.ratePlanCharges.exists(_.number == ratePlanChargeNumber))
 }
 
 case class ZuoraRatePlanCharge(

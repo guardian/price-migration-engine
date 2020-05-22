@@ -4,7 +4,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import zio.Has
 
 package object services {
-  type EstimationHandlerConfiguration = Has[EstimationHandlerConfiguration.Service]
+  type AmendmentConfiguration = Has[AmendmentConfiguration.Service]
   type ZuoraConfiguration = Has[ZuoraConfiguration.Service]
   type DynamoDBConfiguration = Has[DynamoDBConfiguration.Service]
   type CohortTableConfiguration = Has[CohortTableConfiguration.Service]

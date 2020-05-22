@@ -1,45 +1,50 @@
 package pricemigrationengine.handlers
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
+import pricemigrationengine.model.CohortTableFilter.SalesforcePriceRiceCreationComplete
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
 import zio.{App, Runtime, ZEnv, ZIO, ZLayer, console}
 
-object EstimationHandler extends App with RequestHandler[Unit, Unit] {
+/**
+  * Carries out price-rise amendments in Zuora.
+  */
+object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
 
   val main: ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora, Failure, Unit] =
     for {
-      newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
-      cohortItems <- CohortTable.fetch(ReadyForEstimation)
-      _ <- cohortItems.foreach(writeEstimation(newProductPricing))
+      cohortItems <- CohortTable.fetch(SalesforcePriceRiceCreationComplete)
+      _ <- cohortItems.foreach(amend)
     } yield ()
 
-  private def writeEstimation(
-      newProductPricing: ZuoraPricingData
-  )(item: CohortItem): ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora, Failure, Unit] =
+  private def amend(
+      item: CohortItem
+  ): ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora, Failure, Unit] =
     for {
       config <- AmendmentConfiguration.amendmentConfig
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
-      invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId)
-      result <- ZIO
-        .fromEither(EstimationResult(newProductPricing, subscription, invoicePreview, config.earliestStartDate))
-        .tapBoth(
-          e => Logging.error(s"Failed to estimate amendment data: $e"),
-          result => Logging.info(s"Estimated result: $result")
-        )
-      _ <- CohortTable
-        .update(result)
-        .tapBoth(
-          e => Logging.error(s"Failed to update Cohort table: $e"),
-          _ => Logging.info(s"Wrote $result to Cohort table")
-        )
+      invoicePreviewBeforeUpdate <- Zuora.fetchInvoicePreview(subscription.accountId)
+      startDate <- ZIO.fromEither(
+        AmendmentData.nextBillingDate(invoicePreviewBeforeUpdate, config.earliestStartDate)
+      )
+      update <- ZIO.fromEither(
+        ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(subscription, invoicePreviewBeforeUpdate, startDate)
+      )
+      newSubscriptionId <- Zuora.updateSubscription(subscription, update)
+      invoicePreviewAfterUpdate <- Zuora.fetchInvoicePreview(subscription.accountId)
+      result = AmendmentResult(
+        subscription.subscriptionNumber,
+        startDate,
+        AmendmentData.totalChargeAmount(invoicePreviewAfterUpdate, startDate),
+        newSubscriptionId
+      )
+      _ <- CohortTable.update(result)
     } yield ()
 
   private def env(
       loggingLayer: ZLayer[Any, Nothing, Logging]
-  ): ZLayer[Any, Any, Logging with AmendmentConfiguration with CohortTable with Zuora] = {
+  ) = {
     val cohortTableLayer =
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
         DynamoDBClient.dynamoDB ++ loggingLayer ++ EnvConfiguration.amendmentImpl >>>
