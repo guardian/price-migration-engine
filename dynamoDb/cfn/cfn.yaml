@@ -32,4 +32,4 @@ Resources:
             - AttributeName: "processingStage"
               KeyType: "HASH"
           Projection:
-            ProjectionType: "KEYS_ONLY"
+            ProjectionType: "ALL"

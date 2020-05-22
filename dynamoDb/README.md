@@ -49,3 +49,15 @@ aws dynamodb delete-table \
     --table-name PriceMigrationEngineDEV \
 ```
 
+Update and item in the cohort table:
+```$bash
+aws dynamodb update-item \
+    --region eu-west-1 \
+    --endpoint-url http://localhost:8000 \
+    --table-name PriceMigrationEngineDEV \
+    --key '{"subscriptionNumber":{"S":"A-S00063981"}}' \
+    --update-expression "SET stage = :stage" \
+    --expression-attribute-values '{":stage":{"S":"EstimationComplete"}}'
+```
+
+
