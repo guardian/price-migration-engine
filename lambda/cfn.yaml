@@ -15,14 +15,36 @@ Mappings:
   StageMap:
     DEV:
       SecretsVersion: "e159cf84-2ae6-4600-8444-d8c4c74531d5"
+      EarliestStartDate: 2020-05-15
     CODE:
       SecretsVersion: "a0df5201-f2d9-4699-a704-805e7c1df2ee"
+      EarliestStartDate: 2020-05-15
     PROD:
       SecretsVersion: "0ef81375-18ec-4a94-b4b9-eb4c399e3455"
+      EarliestStartDate: 2020-12-25
 
 
 Resources:
-  PriceMigrationEngineLambdaRole:
+
+  CohortTableAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CohortTableAccessPolicy
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:Query
+              - dynamodb:UpdateItem
+            Resource:
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}/*"
+      Roles:
+        - Ref: PriceMigrationEngineEstimationLambdaRole
+        - Ref: PriceMigrationEngineSalesforcePriceCreationLambdaRole
+        - Ref: PriceMigrationEngineAmendmentLambdaRole
+
+  PriceMigrationEngineEstimationLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -46,17 +68,56 @@ Resources:
                   - lambda:InvokeFunction
                 Resource:
                   - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-estimation-lambda-${Stage}:log-stream:*"
-                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-salesforce-price-rise-lambda-${Stage}:log-stream:*"
-        - PolicyName: DynamoDBAccessPolicy
+
+  PriceMigrationEngineSalesforcePriceCreationLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: LambdaPolicy
           PolicyDocument:
             Statement:
               - Effect: Allow
                 Action:
-                  - dynamodb:Query
-                  - dynamodb:UpdateItem
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - lambda:InvokeFunction
                 Resource:
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}/*"
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-salesforce-price-rise-lambda-${Stage}:log-stream:*"
+
+  PriceMigrationEngineAmendmentLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - lambda:InvokeFunction
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-amendment-lambda-${Stage}:log-stream:*"
 
   PriceMigrationEngineEstimationLambda:
     Type: AWS::Lambda::Function
@@ -83,17 +144,18 @@ Resources:
             !Sub
               - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret::${SecretsVersion}}}'
               - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          earliestStartDate: 2020-05-15
+          earliestStartDate: !FindInMap [StageMap, !Ref Stage, EarliestStartDate]
           batchSize: 100
       Role:
         Fn::GetAtt:
-          - PriceMigrationEngineLambdaRole
+          - PriceMigrationEngineEstimationLambdaRole
           - Arn
       MemorySize: 1536
       Runtime: java8
       Timeout: 300
     DependsOn:
-      - PriceMigrationEngineLambdaRole
+      - PriceMigrationEngineEstimationLambdaRole
+
   PriceMigrationEngineSalesforcePriceCreationLambda:
     Type: AWS::Lambda::Function
     Properties:
@@ -134,10 +196,47 @@ Resources:
             - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
       Role:
         Fn::GetAtt:
-          - PriceMigrationEngineLambdaRole
+          - PriceMigrationEngineSalesforcePriceCreationLambdaRole
           - Arn
       MemorySize: 1536
       Runtime: java8
       Timeout: 300
     DependsOn:
-      - PriceMigrationEngineLambdaRole
+      - PriceMigrationEngineSalesforcePriceCreationLambdaRole
+
+  PriceMigrationEngineAmendmentLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Adds price-rise amendments to subscriptions.
+      FunctionName:
+        !Sub price-migration-engine-amendment-lambda-${Stage}
+      Code:
+        S3Bucket: membership-dist
+        S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
+      Handler: pricemigrationengine.handlers.AmendmentHandler::handleRequest
+      Environment:
+        Variables:
+          stage: !Ref Stage
+          zuoraApiHost:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraApiHost::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          zuoraClientId:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientId::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          zuoraClientSecret:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          earliestStartDate: !FindInMap [StageMap, !Ref Stage, EarliestStartDate]
+          batchSize: 100
+      Role:
+        Fn::GetAtt:
+          - PriceMigrationEngineAmendmentLambdaRole
+          - Arn
+      MemorySize: 1536
+      Runtime: java8
+      Timeout: 300
+    DependsOn:
+      - PriceMigrationEngineAmendmentLambdaRole

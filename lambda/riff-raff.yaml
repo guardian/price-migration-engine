@@ -19,4 +19,5 @@ deployments:
       functionNames:
       - price-migration-engine-estimation-lambda-
       - price-migration-engine-salesforce-price-rise-lambda-
+      - price-migration-engine-amendment-lambda-
     dependencies: [cfn]
