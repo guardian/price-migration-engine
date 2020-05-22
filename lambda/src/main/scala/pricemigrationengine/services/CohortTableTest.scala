@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{SalesforcePriceRiseCreationDetails, _}
+import pricemigrationengine.model._
 import zio.console.Console
 import zio.stream.ZStream
 import zio.{UIO, ZIO, ZLayer}
