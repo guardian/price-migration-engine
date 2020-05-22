@@ -82,6 +82,7 @@ object SalesforceClientLive {
           Http(s"${auth.instance_url}/services/data/v43.0/sobjects/Price_Rise__c/")
             .postData(write(priceRise))
             .header("Authorization", s"Bearer ${auth.access_token}")
+            .header("Content-Type", "application/json")
         ).tap( priceRiseId =>
           logging.info(s"Successfully created Price_Rise__c object: ${priceRiseId.id}")
         )
