@@ -27,7 +27,7 @@ Resources:
         - AttributeName: "subscriptionNumber"
           KeyType: "HASH"
       GlobalSecondaryIndexes:
-        - IndexName: "ProcessingStageIndex"
+        - IndexName: "ProcessingStageIndexV2"
           KeySchema:
             - AttributeName: "processingStage"
               KeyType: "HASH"
