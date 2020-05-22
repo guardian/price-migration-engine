@@ -5,8 +5,8 @@ import java.time.{Instant, LocalDate, ZoneOffset}
 import java.util
 
 import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
-import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
-import pricemigrationengine.model.{SalesforcePriceRiseCreationDetails, _}
+import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EstimationComplete, SalesforcePriceRiceCreationComplete}
+import pricemigrationengine.model._
 import pricemigrationengine.services.CohortTable.Service
 import zio.stream.ZStream
 import zio.{IO, ZIO, ZLayer}
@@ -42,6 +42,16 @@ object CohortTableLive {
         bigDecimalFieldUpdate("estimatedNewPrice", estimationResult.estimatedNewPrice),
         stringFieldUpdate("billingPeriod", estimationResult.billingPeriod),
         stringFieldUpdate("whenEstimationDone", Instant.now.toString)
+      ).asJava
+
+  private implicit val amendmentResultSerialiser: DynamoDBUpdateSerialiser[AmendmentResult] =
+    amendmentResult =>
+      Map(
+        stringFieldUpdate("processingStage", AmendmentComplete.value),
+        dateFieldUpdate("startDate", amendmentResult.startDate),
+        bigDecimalFieldUpdate("newPrice", amendmentResult.newPrice),
+        stringFieldUpdate("newSubscriptionId", amendmentResult.newSubscriptionId),
+        stringFieldUpdate("whenAmendmentDone", Instant.now.toString)
       ).asJava
 
   private implicit val salesforcePriceRiseCreationResultSerialiser: DynamoDBUpdateSerialiser[SalesforcePriceRiseCreationDetails] =
@@ -173,6 +183,20 @@ object CohortTableLive {
               .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(subscriptionName), result)
               .mapError(error => CohortUpdateFailure(error.toString))
           } yield result
+        }.provide(dependencies)
+
+        override def update(result: AmendmentResult): ZIO[Any, CohortUpdateFailure, Unit] = {
+          (for {
+            config <- CohortTableConfiguration.cohortTableConfig
+              .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
+            result <- DynamoDBZIO
+              .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(result.subscriptionName), result)
+              .mapError(error => CohortUpdateFailure(error.toString))
+          } yield result)
+            .tapBoth(
+              e => Logging.error(s"Failed to update Cohort table: $e"),
+              _ => Logging.info(s"Wrote $result to Cohort table")
+            )
         }.provide(dependencies)
       }
     }

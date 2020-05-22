@@ -4,8 +4,8 @@ import java.time.{DateTimeException, Instant, LocalDate, OffsetDateTime, ZoneOff
 import java.util.concurrent.TimeUnit
 
 import pricemigrationengine.model.CohortTableFilter.EstimationComplete
-import pricemigrationengine.model.{CohortFetchFailure, CohortItem, CohortTableFilter, CohortUpdateFailure, ConfigurationFailure, EstimationHandlerConfig, EstimationResult, SalesforceClientFailure, SalesforcePriceRise, SalesforcePriceRiseCreationDetails, SalesforceSubscription}
-import pricemigrationengine.services.{CohortTable, ConsoleLogging, EstimationHandlerConfiguration, SalesforceClient, SalesforcePriceRiseCreationResponse}
+import pricemigrationengine.model._
+import pricemigrationengine.services._
 import zio.Exit.Success
 import zio.Runtime.default
 import zio.clock.Clock
@@ -18,9 +18,9 @@ import scala.collection.mutable.ArrayBuffer
 class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
   test("SalesforcePriceRiseCreateHandler should get estimated prices from ") {
     val stubConfiguration = ZLayer.succeed(
-      new EstimationHandlerConfiguration.Service {
-        override val config: IO[ConfigurationFailure, EstimationHandlerConfig] =
-          IO.succeed(EstimationHandlerConfig(LocalDate.now))
+      new AmendmentConfiguration.Service {
+        override val config: IO[ConfigurationFailure, AmendmentConfig] =
+          IO.succeed(AmendmentConfig(LocalDate.now))
       }
     )
 
@@ -47,7 +47,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     val stubCohortTable = ZLayer.succeed(
       new CohortTable.Service {
         override def fetch(
-          filter: CohortTableFilter
+            filter: CohortTableFilter
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
           assertEquals(filter, EstimationComplete)
           IO.succeed(ZStream(
@@ -62,6 +62,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
         }
 
         override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
+        override def update(result: AmendmentResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
 
         override def update(subscriptionName: String, result: SalesforcePriceRiseCreationDetails): ZIO[Any, CohortUpdateFailure, Unit] = {
           updatedResultsWrittenToCohortTable.addOne(result)
@@ -75,11 +76,12 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     val stubSalesforceClient = ZLayer.succeed(
       new SalesforceClient.Service {
         override def getSubscriptionByName(
-          subscriptionName: String
+            subscriptionName: String
         ): IO[SalesforceClientFailure, SalesforceSubscription] = {
           IO.effect(
-            SalesforceSubscription(s"SubscritionId-$subscriptionName", subscriptionName, s"Buyer-$subscriptionName")
-          ).mapError(_ => SalesforceClientFailure(""))
+              SalesforceSubscription(s"SubscritionId-$subscriptionName", subscriptionName, s"Buyer-$subscriptionName")
+            )
+            .mapError(_ => SalesforceClientFailure(""))
         }
 
         override def createPriceRise(priceRise: SalesforcePriceRise): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] = {
@@ -91,8 +93,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        SalesforcePriceRiseCreationHandler
-          .main
+        SalesforcePriceRiseCreationHandler.main
           .provideLayer(
             stubLogging ++ stubConfiguration ++ stubCohortTable ++ stubSalesforceClient ++ stubClock
           )

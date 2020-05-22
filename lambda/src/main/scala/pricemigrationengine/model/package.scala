@@ -7,6 +7,7 @@ import upickle.default._
 
 package object model {
 
+  type ZuoraSubscriptionId = String
   type ZuoraProductRatePlanChargeId = String
   type ZuoraPricingData = Map[ZuoraProductRatePlanChargeId, ZuoraPricing]
 

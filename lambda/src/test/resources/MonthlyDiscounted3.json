@@ -59,7 +59,7 @@
   "CancellationReason__c": null,
   "ratePlans": [
     {
-      "id": "id",
+      "id": "rp1",
       "lastChangeType": "Add",
       "productId": "2c92a0ff5345f9200153559c6d2a3385",
       "productName": "Discounts",
@@ -129,7 +129,7 @@
       "subscriptionProductFeatures": []
     },
     {
-      "id": "id",
+      "id": "rp2",
       "productId": "2c92a0fc55a0dc530155dfa5b8dd56c0",
       "productName": "Newspaper Voucher",
       "productSku": "ABC-00000014",

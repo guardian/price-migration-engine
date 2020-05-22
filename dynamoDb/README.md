@@ -24,9 +24,8 @@ do
 echo "Inserting sub-$i"
 aws dynamodb put-item \
     --region eu-west-1 \
-    --endpoint-url http://localhost:8000 \
     --table-name PriceMigrationEngineDEV \
-    --item "{\"subscriptionNumber\":{\"S\":\"sub-$i\"},\"processingStage\":{\"S\":\"ReadyForEstimation\"}}"
+    --item "{\"subscriptionNumber\":{\"S\":\"A-S00068733\"},\"processingStage\":{\"S\":\"ReadyForEstimation\"}}"
 done || exit 1
 ```
 

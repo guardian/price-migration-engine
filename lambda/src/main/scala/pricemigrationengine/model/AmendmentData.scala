@@ -17,18 +17,17 @@ object AmendmentData {
       earliestStartDate: LocalDate
   ): Either[AmendmentDataFailure, AmendmentData] =
     for {
-      startDate <- nextBillingDate(invoiceList, after = earliestStartDate.minusDays(1))
+      startDate <- nextBillingDate(invoiceList, onOrAfter = earliestStartDate)
       price <- priceData(pricing, subscription, invoiceList, startDate)
     } yield AmendmentData(startDate, priceData = price)
 
-  def nextBillingDate(invoiceList: ZuoraInvoiceList, after: LocalDate): Either[AmendmentDataFailure, LocalDate] = {
+  def nextBillingDate(invoiceList: ZuoraInvoiceList, onOrAfter: LocalDate): Either[AmendmentDataFailure, LocalDate] =
     invoiceList.invoiceItems
       .map(_.serviceStartDate)
       .sortBy(_.toEpochDay)
-      .dropWhile(date => !date.isAfter(after))
+      .dropWhile(_.isBefore(onOrAfter))
       .headOption
-      .toRight(AmendmentDataFailure(s"Cannot determine next billing date after $after from $invoiceList"))
-  }
+      .toRight(AmendmentDataFailure(s"Cannot determine next billing date on or after $onOrAfter from $invoiceList"))
 
   /**
     * General algorithm:
@@ -121,6 +120,9 @@ object AmendmentData {
       )
     }
   }
+
+  def totalChargeAmount(invoiceList: ZuoraInvoiceList, billingDate: LocalDate): BigDecimal =
+    ZuoraInvoiceItem.items(invoiceList, billingDate).map(_.chargeAmount).sum
 
   def combinePrices(pricings: Seq[ZuoraPricing]): BigDecimal = {
     val discountPercentage = pricings.map(_.discountPercentage).find(_ > 0)
