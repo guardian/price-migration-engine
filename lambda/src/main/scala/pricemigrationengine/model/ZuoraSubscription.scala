@@ -30,17 +30,15 @@ case class ZuoraRatePlan(
 object ZuoraRatePlan {
   implicit val rw: ReadWriter[ZuoraRatePlan] = macroRW
 
-  def ratePlan(subscription: ZuoraSubscription, ratePlanChargeNumber: String): Option[ZuoraRatePlan] =
-    subscription.ratePlans.find(_.ratePlanCharges.exists(_.number == ratePlanChargeNumber))
+  def ratePlan(subscription: ZuoraSubscription, ratePlanCharge: ZuoraRatePlanCharge): Option[ZuoraRatePlan] =
+    subscription.ratePlans.find(_.ratePlanCharges.exists(_.number == ratePlanCharge.number))
 }
 
 case class ZuoraRatePlanCharge(
     productRatePlanChargeId: ZuoraProductRatePlanChargeId,
     number: String,
-    name: String,
-    price: Double,
+    price: Option[BigDecimal] = None,
     billingPeriod: Option[String] = None,
-    effectiveStartDate: LocalDate,
     chargedThroughDate: Option[LocalDate] = None,
     processedThroughDate: Option[LocalDate] = None,
     specificBillingPeriod: Option[Int] = None,
@@ -55,4 +53,16 @@ case class ZuoraRatePlanCharge(
 
 object ZuoraRatePlanCharge {
   implicit val rw: ReadWriter[ZuoraRatePlanCharge] = macroRW
+
+  /**
+    * Rate plan charge that corresponds with the given invoice item.
+    */
+  def matchingRatePlanCharge(
+      subscription: ZuoraSubscription
+  )(invoiceItem: ZuoraInvoiceItem): Option[ZuoraRatePlanCharge] =
+    (for {
+      ratePlan <- subscription.ratePlans
+      ratePlanCharge <- ratePlan.ratePlanCharges
+      if ratePlanCharge.number == invoiceItem.chargeNumber
+    } yield ratePlanCharge).headOption
 }

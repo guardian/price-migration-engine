@@ -33,10 +33,18 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
       )
       newSubscriptionId <- Zuora.updateSubscription(subscription, update)
       invoicePreviewAfterUpdate <- Zuora.fetchInvoicePreview(subscription.accountId)
+      totalChargeAmount <- ZIO
+        .fromEither(AmendmentData.totalChargeAmount(subscription, invoicePreviewAfterUpdate, startDate))
+        .mapError(
+          e =>
+            AmendmentDataFailure(
+              s"Failed to calculate amendment of subscription ${subscription.subscriptionNumber}: $e"
+          )
+        )
       result = AmendmentResult(
         subscription.subscriptionNumber,
         startDate,
-        AmendmentData.totalChargeAmount(invoicePreviewAfterUpdate, startDate),
+        totalChargeAmount,
         newSubscriptionId
       )
       _ <- CohortTable.update(result)

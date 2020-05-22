@@ -25,8 +25,10 @@ object ZuoraSubscriptionUpdate {
 
     val ratePlans = (for {
       invoiceItem <- ZuoraInvoiceItem.items(invoiceList, date)
-      if invoiceItem.chargeAmount > 0
-      ratePlan <- ZuoraRatePlan.ratePlan(subscription, invoiceItem.chargeNumber).toSeq
+      ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription)(invoiceItem).toSeq
+      price <- ratePlanCharge.price.toSeq
+      if price > 0
+      ratePlan <- ZuoraRatePlan.ratePlan(subscription, ratePlanCharge).toSeq
     } yield ratePlan).distinct
 
     if (ratePlans.isEmpty)

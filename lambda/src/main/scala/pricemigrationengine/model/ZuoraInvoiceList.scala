@@ -10,7 +10,13 @@ object ZuoraInvoiceList {
   implicit val rw: ReadWriter[ZuoraInvoiceList] = macroRW
 }
 
-case class ZuoraInvoiceItem(serviceStartDate: LocalDate, chargeAmount: BigDecimal, chargeNumber: String)
+/*
+ * This is only useful for finding which rate plan charges apply on a given date.
+ *
+ * Don't use 'chargeAmount' field as it doesn't include tax.
+ * However the price field of the corresponding rate plan charge does include tax.
+ */
+case class ZuoraInvoiceItem(serviceStartDate: LocalDate, chargeNumber: String)
 
 object ZuoraInvoiceItem {
   implicit val rw: ReadWriter[ZuoraInvoiceItem] = macroRW
