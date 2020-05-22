@@ -68,7 +68,6 @@ Resources:
                   - lambda:InvokeFunction
                 Resource:
                   - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-estimation-lambda-${Stage}:log-stream:*"
-    DependsOn: CohortTableAccessPolicy
 
   PriceMigrationEngineSalesforcePriceCreationLambdaRole:
     Type: AWS::IAM::Role
@@ -94,7 +93,6 @@ Resources:
                   - lambda:InvokeFunction
                 Resource:
                   - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-salesforce-price-rise-lambda-${Stage}:log-stream:*"
-    DependsOn: CohortTableAccessPolicy
 
   PriceMigrationEngineAmendmentLambdaRole:
     Type: AWS::IAM::Role
@@ -120,7 +118,6 @@ Resources:
                   - lambda:InvokeFunction
                 Resource:
                   - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-amendment-lambda-${Stage}:log-stream:*"
-    DependsOn: CohortTableAccessPolicy
 
   PriceMigrationEngineEstimationLambda:
     Type: AWS::Lambda::Function
