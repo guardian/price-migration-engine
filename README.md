@@ -28,3 +28,7 @@ and also the specific environment variables for the lambda you are running.
 * zuoraApiHost=`host`
 * zuoraClientId=`personal clientId`
 * zuoraClientSecret=`personal clientSecret`
+
+## Importing subscription id for a price migration
+
+See [ImportSubscriptionId.MD](ImportSubscriptionId.MD)
