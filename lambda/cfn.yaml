@@ -151,6 +151,8 @@ Resources:
                   - s3:GetObject
                 Resource:
                   - !Sub "arn:aws:s3:::price-migration-engine-${Stage}"
+    DependsOn:
+      - S3Bucket
 
   S3Bucket:
     Type: AWS::S3::Bucket
