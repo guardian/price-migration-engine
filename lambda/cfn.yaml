@@ -16,13 +16,15 @@ Mappings:
     DEV:
       SecretsVersion: "e159cf84-2ae6-4600-8444-d8c4c74531d5"
       EarliestStartDate: 2020-05-15
+      BucketName: price-migration-engine-dev
     CODE:
       SecretsVersion: "a0df5201-f2d9-4699-a704-805e7c1df2ee"
       EarliestStartDate: 2020-05-15
+      BucketName: price-migration-engine-code
     PROD:
       SecretsVersion: "0ef81375-18ec-4a94-b4b9-eb4c399e3455"
       EarliestStartDate: 2020-12-25
-
+      BucketName: price-migration-engine-prod
 
 Resources:
 
@@ -150,14 +152,16 @@ Resources:
                 Action:
                   - s3:GetObject
                 Resource:
-                  - !Sub "arn:aws:s3:::price-migration-engine-${Stage}"
+                  - !Sub
+                    - "arn:aws:s3:::${BucketName}"
+                    - {BucketName: !FindInMap [StageMap, !Ref Stage, BucketName]}
     DependsOn:
       - S3Bucket
 
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "price-migration-engine-${Stage}"
+      BucketName: !FindInMap [StageMap, !Ref Stage, BucketName]
 
   PriceMigrationEngineEstimationLambda:
     Type: AWS::Lambda::Function
