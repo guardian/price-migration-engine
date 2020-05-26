@@ -143,6 +143,20 @@ Resources:
                   - lambda:InvokeFunction
                 Resource:
                   - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-subscription-id-upload-lambda-${Stage}:log-stream:*"
+        - PolicyName: S3BucketPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource:
+                  - !Sub "arn:aws:s3:::price-migration-engine-${Stage}"
+
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    DependsOn: BucketPermission
+    Properties:
+      BucketName: !Sub "price-migration-engine-${Stage}"
 
   PriceMigrationEngineEstimationLambda:
     Type: AWS::Lambda::Function
@@ -289,3 +303,4 @@ Resources:
       Timeout: 300
     DependsOn:
       - PriceMigrationEngineSubscriptionIdUploadLambdaRole
+      - S3Bucket
