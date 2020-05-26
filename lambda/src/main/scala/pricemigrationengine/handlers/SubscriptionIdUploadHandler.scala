@@ -1,7 +1,6 @@
 package pricemigrationengine.handlers
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import pricemigrationengine.model.CohortTableFilter.SalesforcePriceRiceCreationComplete
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
@@ -19,7 +18,7 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
       DynamoDBClient.dynamoDB ++ loggingLayer >>>
       DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp >>>
       CohortTableLive.impl
-    loggingLayer ++ EnvConfiguration.amendmentImpl ++ cohortTableLayer
+    loggingLayer ++ cohortTableLayer
   }
 
   private val runtime = Runtime.default
