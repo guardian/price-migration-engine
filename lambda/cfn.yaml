@@ -154,7 +154,6 @@ Resources:
 
   S3Bucket:
     Type: AWS::S3::Bucket
-    DependsOn: BucketPermission
     Properties:
       BucketName: !Sub "price-migration-engine-${Stage}"
 
