@@ -31,7 +31,7 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
           "excluded-subscrition-ids.csv"
         )
       )
-      _ <- subscriptionIdsManagedStream.use(writeSubscrptionIdsToCohortTable)
+      _ <- subscriptionIdsManagedStream.use(stream => writeSubscrptionIdsToCohortTable(stream, exclusions))
       _ <- Logging.info(s"Loaded excluded subscriptions: $exclusions")
     } yield ()
   }
@@ -47,7 +47,7 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
     }
   }
 
-  def writeSubscrptionIdsToCohortTable(inputStream: InputStream) = {
+  def writeSubscrptionIdsToCohortTable(inputStream: InputStream, exclusions: Set[String]): ZIO[CohortTable with Logging, Failure, Unit] = {
       ZStream.fromJavaIterator(
         new CSVParser(new InputStreamReader(inputStream, "UTF-8"), csvFormat).iterator()
       )
@@ -57,9 +57,19 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
       .map { csvRecord =>
         csvRecord.get(0)
       }
+      .filterNot(subscriptionId => exclusions.contains(subscriptionId))
       .foreach { subcriptionId =>
-        ZIO.unit
+        writeSubscriptionIdToCohortTable(subcriptionId)
       }
+  }
+
+  def writeSubscriptionIdToCohortTable(
+    subcriptionId: ZuoraSubscriptionId
+  ): ZIO[CohortTable with Logging, CohortUpdateFailure, Unit] = {
+    for {
+      _ <- Logging.info(s"Writing subscription $subcriptionId to ChortTable")
+      _ <- CohortTable.put(Subscription(subcriptionId))
+    } yield ()
   }
 
   private def env(loggingLayer: ZLayer[Any, Nothing, Logging]) = {
