@@ -38,6 +38,7 @@ Resources:
             Action:
               - dynamodb:Query
               - dynamodb:UpdateItem
+              - dynamodb:PutItem
             Resource:
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}/*"
@@ -45,6 +46,7 @@ Resources:
         - Ref: PriceMigrationEngineEstimationLambdaRole
         - Ref: PriceMigrationEngineSalesforcePriceCreationLambdaRole
         - Ref: PriceMigrationEngineAmendmentLambdaRole
+        - Ref: PriceMigrationEngineSubscriptionIdUploadLambdaRole
 
   PriceMigrationEngineEstimationLambdaRole:
     Type: AWS::IAM::Role
