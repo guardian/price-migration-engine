@@ -57,19 +57,18 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
       .map { csvRecord =>
         csvRecord.get(0)
       }
-      .filterNot(subscriptionId => exclusions.contains(subscriptionId))
-      .foreach { subcriptionId =>
-        writeSubscriptionIdToCohortTable(subcriptionId)
+      .filterM { subscriptionId =>
+        if(exclusions.contains(subscriptionId)) {
+          for {
+            _ <- Logging.info(s"Filtering subscription $subscriptionId as it is in the exclusion file")
+          } yield false
+        } else {
+          ZIO.succeed(true)
+        }
       }
-  }
-
-  def writeSubscriptionIdToCohortTable(
-    subcriptionId: ZuoraSubscriptionId
-  ): ZIO[CohortTable with Logging, CohortUpdateFailure, Unit] = {
-    for {
-      _ <- Logging.info(s"Writing subscription $subcriptionId to ChortTable")
-      _ <- CohortTable.put(Subscription(subcriptionId))
-    } yield ()
+      .foreach { subcriptionId =>
+        CohortTable.put(Subscription(subcriptionId))
+      }
   }
 
   private def env(loggingLayer: ZLayer[Any, Nothing, Logging]) = {
