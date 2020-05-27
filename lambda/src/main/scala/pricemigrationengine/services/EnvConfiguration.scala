@@ -58,11 +58,9 @@ object EnvConfiguration {
   val cohortTableImp: ZLayer[Any, Nothing, CohortTableConfiguration] = ZLayer.succeed {
     new CohortTableConfiguration.Service {
       val config: IO[ConfigurationFailure, CohortTableConfig] = for {
-        stage <- env("stage")
         batchSize <- env("batchSize").map(_.toInt)
       } yield
         CohortTableConfig(
-          stage,
           batchSize
         )
     }
@@ -89,4 +87,14 @@ object EnvConfiguration {
     }
   }
 
+  val stageImp: ZLayer[Any, Nothing, StageConfiguration] = ZLayer.succeed {
+    new StageConfiguration.Service {
+      val config: IO[ConfigurationFailure, StageConfig] = for {
+        stage <- env("stage")
+      } yield
+        StageConfig(
+          stage
+        )
+    }
+  }
 }

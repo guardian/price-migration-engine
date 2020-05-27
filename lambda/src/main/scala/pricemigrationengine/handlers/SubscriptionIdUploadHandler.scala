@@ -5,17 +5,16 @@ import java.io.{InputStream, InputStreamReader}
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import org.apache.commons.csv.{CSVFormat, CSVParser}
 import pricemigrationengine.model._
-import pricemigrationengine.services._
+import pricemigrationengine.services.{EnvConfiguration, _}
 import zio.console.Console
 import zio.{App, IO, Runtime, ZEnv, ZIO, ZLayer, console}
 
 import scala.jdk.CollectionConverters._
 
 object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
-
   val main = {
     for {
-      config <- CohortTableConfiguration.cohortTableConfig
+      config <- StageConfiguration.stageConfig
       exclusionsManaged <- S3ZIO.getObject(
         S3Location(
           s"price-migration-engine-${config.stage.toLowerCase}",
@@ -38,14 +37,12 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
     }
   }
 
-  private def env(
-                   loggingLayer: ZLayer[Any, Nothing, Logging]
-                 ) = {
+  private def env(loggingLayer: ZLayer[Any, Nothing, Logging]) = {
     val cohortTableLayer =
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
         DynamoDBClient.dynamoDB ++ loggingLayer >>>
-        DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp >>>
-        CohortTableLive.impl ++ S3ZIOLive.impl ++ EnvConfiguration.cohortTableImp
+        DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.stageImp ++ EnvConfiguration.cohortTableImp >>>
+        CohortTableLive.impl ++ S3ZIOLive.impl ++ EnvConfiguration.stageImp
     loggingLayer ++ cohortTableLayer
   }
 
@@ -53,10 +50,7 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
 
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
     main
-      .provideSomeLayer(
-        env(Console.live >>> ConsoleLogging.impl)
-      )
-      // output any failures in service construction - there's probably a better way to do this
+      .provideSomeLayer(env(Console.live >>> ConsoleLogging.impl))
       .foldM(
         e => console.putStrLn(s"Failed: $e") *> ZIO.succeed(1),
         _ => console.putStrLn("Succeeded!") *> ZIO.succeed(0)
