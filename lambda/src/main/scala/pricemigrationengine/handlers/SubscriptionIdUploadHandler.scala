@@ -5,7 +5,7 @@ import java.io.{InputStream, InputStreamReader}
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import org.apache.commons.csv.{CSVFormat, CSVParser}
 import pricemigrationengine.model._
-import pricemigrationengine.services.{EnvConfiguration, _}
+import pricemigrationengine.services._
 import zio.console.Console
 import zio.{App, IO, Runtime, ZEnv, ZIO, ZLayer, console}
 
