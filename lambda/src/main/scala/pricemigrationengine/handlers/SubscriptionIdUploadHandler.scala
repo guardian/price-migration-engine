@@ -15,7 +15,7 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
   val main = {
     for {
       config <- StageConfiguration.stageConfig
-      exclusionsManaged <- S3ZIO.getObject(
+      exclusionsManaged <- S3.getObject(
         S3Location(
           s"price-migration-engine-${config.stage.toLowerCase}",
           "excluded-subscrition-ids.csv"
@@ -42,7 +42,7 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
         DynamoDBClient.dynamoDB ++ loggingLayer >>>
         DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.stageImp ++ EnvConfiguration.cohortTableImp >>>
-        CohortTableLive.impl ++ S3ZIOLive.impl ++ EnvConfiguration.stageImp
+        CohortTableLive.impl ++ S3Live.impl ++ EnvConfiguration.stageImp
     loggingLayer ++ cohortTableLayer
   }
 

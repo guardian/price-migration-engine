@@ -19,5 +19,5 @@ case class SalesforcePriceRiseCreationFailure(reason: String) extends Failure
 
 case class SalesforceClientFailure(reason: String) extends Failure
 
-case class S3ZIOFailure(reason: String) extends Failure
+case class S3Failure(reason: String) extends Failure
 case class SubscriptionIdUploadFailure(reason: String) extends Failure
