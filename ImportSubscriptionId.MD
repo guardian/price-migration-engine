@@ -38,8 +38,8 @@ Subscription ids in this file will be excluded from the price migration process.
 - Get the 'membership' credentials from [Janus](https://janus.gutools.co.uk/) and add them to your local environment
 - Copy the report csv file from above to the price migration engine s3 bucket
   ```bash
-   aws --profile membership s3 cp ~/Downloads/<salesforce report file name>.csv s3://price-migration-engine-prod/salesforce-subscrition-id-report.csv
-   aws --profile membership s3 cp ~/Downloads/<exclusions file name>.csv s3://price-migration-engine-prod/excluded-subscrition-ids.csv
+   aws --profile membership s3 cp ~/Downloads/<salesforce report file name>.csv s3://price-migration-engine-prod/salesforce-subscription-id-report.csv
+   aws --profile membership s3 cp ~/Downloads/<exclusions file name>.csv s3://price-migration-engine-prod/excluded-subscription-ids.csv
   ``` 
 
   

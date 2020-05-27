@@ -21,14 +21,14 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
       exclusionsManagedStream <- S3ZIO.getObject(
         S3Location(
           s"price-migration-engine-${config.stage.toLowerCase}",
-          "excluded-subscrition-ids.csv"
+          "excluded-subscription-ids.csv"
         )
       )
       exclusions <- exclusionsManagedStream.use(parseExclusions)
       subscriptionIdsManagedStream <- S3ZIO.getObject(
         S3Location(
           s"price-migration-engine-${config.stage.toLowerCase}",
-          "excluded-subscrition-ids.csv"
+          "salesforce-subscription-id-report.csv"
         )
       )
       _ <- subscriptionIdsManagedStream.use(stream => writeSubscrptionIdsToCohortTable(stream, exclusions))
