@@ -25,14 +25,15 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
         )
       )
       exclusions <- exclusionsManagedStream.use(parseExclusions)
+      _ <- Logging.info(s"Loaded excluded subscriptions: $exclusions")
       subscriptionIdsManagedStream <- S3ZIO.getObject(
         S3Location(
           s"price-migration-engine-${config.stage.toLowerCase}",
           "salesforce-subscription-id-report.csv"
         )
       )
-      _ <- subscriptionIdsManagedStream.use(stream => writeSubscrptionIdsToCohortTable(stream, exclusions))
-      _ <- Logging.info(s"Loaded excluded subscriptions: $exclusions")
+      count <- subscriptionIdsManagedStream.use(stream => writeSubscriptionIdsToCohortTable(stream, exclusions))
+      _ <- Logging.info(s"Wrote $count subscription ids to the cohort table")
     } yield ()
   }
 
@@ -47,8 +48,9 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
     }
   }
 
-  def writeSubscrptionIdsToCohortTable(inputStream: InputStream, exclusions: Set[String]): ZIO[CohortTable with Logging, Failure, Unit] = {
-      ZStream.fromJavaIterator(
+  def writeSubscriptionIdsToCohortTable(inputStream: InputStream, exclusions: Set[String]): ZIO[CohortTable with Logging, Failure, Long] = {
+    ZStream
+      .fromJavaIterator(
         new CSVParser(new InputStreamReader(inputStream, "UTF-8"), csvFormat).iterator()
       )
       .mapError { ex =>
@@ -58,7 +60,7 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
         csvRecord.get(0)
       }
       .filterM { subscriptionId =>
-        if(exclusions.contains(subscriptionId)) {
+        if (exclusions.contains(subscriptionId)) {
           for {
             _ <- Logging.info(s"Filtering subscription $subscriptionId as it is in the exclusion file")
           } yield false
@@ -66,9 +68,10 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
           ZIO.succeed(true)
         }
       }
-      .foreach { subcriptionId =>
+      .tap { subcriptionId =>
         CohortTable.put(Subscription(subcriptionId))
       }
+      .runCount
   }
 
   private def env(loggingLayer: ZLayer[Any, Nothing, Logging]) = {
