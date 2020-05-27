@@ -16,5 +16,5 @@ package object services {
   type DynamoDBClient = Has[AmazonDynamoDB]
   type DynamoDBZIO = Has[DynamoDBZIO.Service]
   type SalesforceClient = Has[SalesforceClient.Service]
-  type S3ZIO = Has[S3ZIO.Service]
+  type S3 = Has[S3.Service]
 }

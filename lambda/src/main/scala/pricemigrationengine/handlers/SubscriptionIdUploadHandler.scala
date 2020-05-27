@@ -5,7 +5,7 @@ import java.io.{InputStream, InputStreamReader}
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import org.apache.commons.csv.{CSVFormat, CSVParser, CSVRecord}
 import pricemigrationengine.model._
-import pricemigrationengine.services.{EnvConfiguration, _}
+import pricemigrationengine.services._
 import zio.console.Console
 import zio.stream.ZStream
 import zio.{App, IO, Managed, Runtime, ZEnv, ZIO, ZLayer, ZManaged, console}
@@ -18,7 +18,7 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
   val main = {
     for {
       config <- StageConfiguration.stageConfig
-      exclusionsManagedStream <- S3ZIO.getObject(
+      exclusionsManagedStream <- S3.getObject(
         S3Location(
           s"price-migration-engine-${config.stage.toLowerCase}",
           "excluded-subscription-ids.csv"
@@ -79,7 +79,7 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
         DynamoDBClient.dynamoDB ++ loggingLayer >>>
         DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.stageImp ++ EnvConfiguration.cohortTableImp >>>
-        CohortTableLive.impl ++ S3ZIOLive.impl ++ EnvConfiguration.stageImp
+        CohortTableLive.impl ++ S3Live.impl ++ EnvConfiguration.stageImp
     loggingLayer ++ cohortTableLayer
   }
 
