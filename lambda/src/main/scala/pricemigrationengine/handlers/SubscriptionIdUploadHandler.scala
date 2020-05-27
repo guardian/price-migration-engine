@@ -26,7 +26,7 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
       )
       exclusions <- exclusionsManagedStream.use(parseExclusions)
       _ <- Logging.info(s"Loaded excluded subscriptions: $exclusions")
-      subscriptionIdsManagedStream <- S3ZIO.getObject(
+      subscriptionIdsManagedStream <- S3.getObject(
         S3Location(
           s"price-migration-engine-${config.stage.toLowerCase}",
           "salesforce-subscription-id-report.csv"
