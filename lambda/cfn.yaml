@@ -198,7 +198,7 @@ Resources:
           - Arn
       MemorySize: 1536
       Runtime: java8
-      Timeout: 300
+      Timeout: 900
     DependsOn:
       - PriceMigrationEngineEstimationLambdaRole
 
@@ -246,7 +246,7 @@ Resources:
           - Arn
       MemorySize: 1536
       Runtime: java8
-      Timeout: 300
+      Timeout: 900
     DependsOn:
       - PriceMigrationEngineSalesforcePriceCreationLambdaRole
 
@@ -283,7 +283,7 @@ Resources:
           - Arn
       MemorySize: 1536
       Runtime: java8
-      Timeout: 300
+      Timeout: 900
     DependsOn:
       - PriceMigrationEngineAmendmentLambdaRole
 
@@ -307,7 +307,7 @@ Resources:
           - Arn
       MemorySize: 1536
       Runtime: java8
-      Timeout: 300
+      Timeout: 900
     DependsOn:
       - PriceMigrationEngineSubscriptionIdUploadLambdaRole
       - S3Bucket
