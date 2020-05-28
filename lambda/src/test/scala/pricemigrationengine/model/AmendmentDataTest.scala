@@ -66,6 +66,20 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
+  test("priceData: ignores holiday-stop credits") {
+    val fixtureSet = "HolidayCredited"
+    val priceData = AmendmentData.priceData(
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      startDate = LocalDate.of(2020, 6, 4)
+    )
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 41.12, newPrice = 44.99, billingPeriod = "Month"))
+    )
+  }
+
   test("combinePrices: combines prices correctly") {
     val combinedPrice = AmendmentData.combinePrices(
       Seq(
@@ -128,21 +142,27 @@ class AmendmentDataTest extends munit.FunSuite {
 
   test("individualChargeAmount: is correct for a product invoice item") {
     val chargeAmount = AmendmentData.individualChargeAmount(
-      ZuoraRatePlanCharge(productRatePlanChargeId = "id", number = "C1", price = Some(4.34))
+      ZuoraRatePlanCharge(productRatePlanChargeId = "id", number = "C1", currency = "GBP", price = Some(4.34))
     )
     assertEquals(chargeAmount, Right(BigDecimal(4.34)))
   }
 
   test("individualChargeAmount: is correct for a percentage discount invoice item") {
     val chargeAmount = AmendmentData.individualChargeAmount(
-      ZuoraRatePlanCharge(productRatePlanChargeId = "id", number = "C1", price = None, discountPercentage = Some(50.0))
+      ZuoraRatePlanCharge(
+        productRatePlanChargeId = "id",
+        number = "C1",
+        currency = "GBP",
+        price = None,
+        discountPercentage = Some(50.0)
+      )
     )
     assertEquals(chargeAmount, Left(50.0))
   }
 
   test("individualChargeAmount: ignores absolute discount invoice items") {
     val chargeAmount = AmendmentData.individualChargeAmount(
-      ZuoraRatePlanCharge(productRatePlanChargeId = "id", number = "C1", price = Some(-3.42))
+      ZuoraRatePlanCharge(productRatePlanChargeId = "id", number = "C1", currency = "GBP", price = Some(-3.42))
     )
     assertEquals(chargeAmount, Right(BigDecimal(0)))
   }
