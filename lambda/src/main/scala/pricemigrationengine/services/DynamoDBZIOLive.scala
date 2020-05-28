@@ -2,7 +2,7 @@ package pricemigrationengine.services
 
 import java.util
 
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, QueryRequest, QueryResult, UpdateItemRequest}
+import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemRequest, QueryRequest, QueryResult, UpdateItemRequest}
 import pricemigrationengine.services.DynamoDBZIO.Service
 import zio.stream.ZStream
 import zio.{IO, ZIO, ZLayer}
@@ -51,6 +51,18 @@ object DynamoDBZIOLive {
             new UpdateItemRequest(
               table,
               keySerializer.serialise(key),
+              valueSerializer.serialise(value)
+            )
+          ).bimap(
+            ex => DynamoDBZIOError(s"Failed to write value '$value' to '$table': $ex"),
+            _ => ()
+          ).provide(dependencies)
+
+        def put[A](table: String, value: A)
+                  (implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] =
+          DynamoDBClient.putItem(
+            new PutItemRequest(
+              table,
               valueSerializer.serialise(value)
             )
           ).bimap(

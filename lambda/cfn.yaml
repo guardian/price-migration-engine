@@ -38,6 +38,7 @@ Resources:
             Action:
               - dynamodb:Query
               - dynamodb:UpdateItem
+              - dynamodb:PutItem
             Resource:
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}/*"
@@ -45,6 +46,7 @@ Resources:
         - Ref: PriceMigrationEngineEstimationLambdaRole
         - Ref: PriceMigrationEngineSalesforcePriceCreationLambdaRole
         - Ref: PriceMigrationEngineAmendmentLambdaRole
+        - Ref: PriceMigrationEngineSubscriptionIdUploadLambdaRole
 
   PriceMigrationEngineEstimationLambdaRole:
     Type: AWS::IAM::Role
@@ -196,7 +198,7 @@ Resources:
           - Arn
       MemorySize: 1536
       Runtime: java8
-      Timeout: 300
+      Timeout: 900
     DependsOn:
       - PriceMigrationEngineEstimationLambdaRole
 
@@ -244,7 +246,7 @@ Resources:
           - Arn
       MemorySize: 1536
       Runtime: java8
-      Timeout: 300
+      Timeout: 900
     DependsOn:
       - PriceMigrationEngineSalesforcePriceCreationLambdaRole
 
@@ -281,7 +283,7 @@ Resources:
           - Arn
       MemorySize: 1536
       Runtime: java8
-      Timeout: 300
+      Timeout: 900
     DependsOn:
       - PriceMigrationEngineAmendmentLambdaRole
 
@@ -305,7 +307,7 @@ Resources:
           - Arn
       MemorySize: 1536
       Runtime: java8
-      Timeout: 300
+      Timeout: 900
     DependsOn:
       - PriceMigrationEngineSubscriptionIdUploadLambdaRole
       - S3Bucket

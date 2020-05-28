@@ -41,6 +41,17 @@ aws dynamodb query \
     --expression-attribute-values '{":stage":{"S":"ReadyForEstimation"}}'
 ```
 
+Get an entry in the cohort table by subscription id:
+```$bash
+aws dynamodb query \
+    --region eu-west-1 \
+    --endpoint-url http://localhost:8000 \
+    --table-name PriceMigrationEngineDEV \
+    --key-condition-expression "subscriptionNumber = :id" \
+    --expression-attribute-values '{":id":{"S":"390493"}}'
+```
+
+
 Delete the cohort table:
 ```$bash
 aws dynamodb delete-table \
@@ -58,6 +69,23 @@ aws dynamodb update-item \
     --key '{"subscriptionNumber":{"S":"A-S00063981"}}' \
     --update-expression "SET stage = :stage" \
     --expression-attribute-values '{":stage":{"S":"EstimationComplete"}}'
+```
+
+Describe the cohort table:
+```
+aws dynamodb describe-table \
+    --region eu-west-1 \
+    --endpoint-url http://localhost:8000 \
+    --table-name PriceMigrationEngineDEV 
+```
+
+Get a count of items in the cohort table:
+```
+aws dynamodb scan \
+    --region eu-west-1 \
+    --endpoint-url http://localhost:8000 \
+    --table-name PriceMigrationEngineDEV \
+    --select "COUNT"
 ```
 
 ##Modifying Global Secondary Indexes

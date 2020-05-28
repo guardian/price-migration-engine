@@ -3,38 +3,75 @@ package pricemigrationengine.handlers
 import java.io.{InputStream, InputStreamReader}
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import org.apache.commons.csv.{CSVFormat, CSVParser}
+import org.apache.commons.csv.{CSVFormat, CSVParser, CSVRecord}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
-import zio.{App, IO, Runtime, ZEnv, ZIO, ZLayer, console}
+import zio.stream.ZStream
+import zio.{App, IO, Managed, Runtime, ZEnv, ZIO, ZLayer, ZManaged, console}
 
 import scala.jdk.CollectionConverters._
 
 object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
+  private val csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader()
+
   val main = {
     for {
       config <- StageConfiguration.stageConfig
-      exclusionsManaged <- S3.getObject(
+      exclusionsManagedStream <- S3.getObject(
         S3Location(
           s"price-migration-engine-${config.stage.toLowerCase}",
-          "excluded-subscrition-ids.csv"
+          "excluded-subscription-ids.csv"
         )
       )
-      exclusions <- exclusionsManaged.use(parseExclusions)
+      exclusions <- exclusionsManagedStream.use(parseExclusions)
       _ <- Logging.info(s"Loaded excluded subscriptions: $exclusions")
+      subscriptionIdsManagedStream <- S3.getObject(
+        S3Location(
+          s"price-migration-engine-${config.stage.toLowerCase}",
+          "salesforce-subscription-id-report.csv"
+        )
+      )
+      count <- subscriptionIdsManagedStream.use(stream => writeSubscriptionIdsToCohortTable(stream, exclusions))
+      _ <- Logging.info(s"Wrote $count subscription ids to the cohort table")
     } yield ()
   }
 
   def parseExclusions(inputStream: InputStream): IO[SubscriptionIdUploadFailure, Set[String]] = {
     ZIO.effect(
-      new CSVParser(new InputStreamReader(inputStream, "UTF-8"), CSVFormat.DEFAULT)
+      new CSVParser(new InputStreamReader(inputStream, "UTF-8"), csvFormat)
         .getRecords.asScala
         .map(_.get(0))
         .toSet
     ).mapError { ex =>
       SubscriptionIdUploadFailure(s"Failed to read and parse the exclusions file: $ex")
     }
+  }
+
+  def writeSubscriptionIdsToCohortTable(inputStream: InputStream, exclusions: Set[String]): ZIO[CohortTable with Logging, Failure, Long] = {
+    ZStream
+      .fromJavaIterator(
+        new CSVParser(new InputStreamReader(inputStream, "UTF-8"), csvFormat).iterator()
+      )
+      .mapError { ex =>
+        SubscriptionIdUploadFailure(s"Failed to read subscription csv stream: $ex")
+      }
+      .map { csvRecord =>
+        csvRecord.get(0)
+      }
+      .filterM { subscriptionId =>
+        if (exclusions.contains(subscriptionId)) {
+          for {
+            _ <- Logging.info(s"Filtering subscription $subscriptionId as it is in the exclusion file")
+          } yield false
+        } else {
+          ZIO.succeed(true)
+        }
+      }
+      .tap { subcriptionId =>
+        CohortTable.put(CohortItem(subcriptionId))
+      }
+      .runCount
   }
 
   private def env(loggingLayer: ZLayer[Any, Nothing, Logging]) = {

@@ -43,10 +43,12 @@ class CohortTableLiveTest extends munit.FunSuite {
           ZStream(item1, item2).mapM(item => IO.effect(item.asInstanceOf[A]).orElseFail(DynamoDBZIOError("")))
         }
 
-        override def update[A, B](table: String, key: A, value: B)(
-            implicit keySerializer: DynamoDBSerialiser[A],
-            valueSerializer: DynamoDBUpdateSerialiser[B]
-        ): IO[DynamoDBZIOError, Unit] = ???
+        override def update[A, B](table: String, key: A, value: B)
+                                 (implicit keySerializer: DynamoDBSerialiser[A],
+                                  valueSerializer: DynamoDBUpdateSerialiser[B]): IO[DynamoDBZIOError, Unit] = ???
+
+        override def put[A](table: String, value: A)
+                           (implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = ???
       }
     )
 
@@ -107,6 +109,9 @@ class CohortTableLiveTest extends munit.FunSuite {
           receivedValueSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBUpdateSerialiser[EstimationResult]])
           ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
         }
+
+        override def put[A](table: String, value: A)
+                           (implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = ???
       }
     )
 
@@ -202,6 +207,9 @@ class CohortTableLiveTest extends munit.FunSuite {
           receivedValueSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBUpdateSerialiser[AmendmentResult]])
           ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
         }
+
+        override def put[A](table: String, value: A)
+                           (implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = ???
       }
     )
 
@@ -285,6 +293,9 @@ class CohortTableLiveTest extends munit.FunSuite {
           receivedValueSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBUpdateSerialiser[SalesforcePriceRiseCreationDetails]])
           ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
         }
+
+        override def put[A](table: String, value: A)
+                           (implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = ???
       }
     )
 
@@ -331,5 +342,51 @@ class CohortTableLiveTest extends munit.FunSuite {
       new AttributeValueUpdate(new AttributeValue().withS(expectedTimestamp), AttributeAction.PUT),
       "salesforcePriceRiseId"
     )
+  }
+
+  test("Create the PriceMigrationEngine table and serialise the subscription correctly") {
+    var tableUpdated: Option[String] = None
+    var receivedInsert: Option[CohortItem] = None
+    var receivedSerialiser: Option[DynamoDBSerialiser[CohortItem]] = None
+
+    val stubDynamoDBZIO = ZLayer.succeed(
+      new DynamoDBZIO.Service {
+        override def query[A](query: QueryRequest)(
+          implicit deserializer: DynamoDBDeserialiser[A]
+        ): ZStream[Any, DynamoDBZIOError, A] = ???
+
+        override def update[A, B](table: String, key: A, value: B)(
+          implicit keySerializer: DynamoDBSerialiser[A],
+          valueSerializer: DynamoDBUpdateSerialiser[B]
+        ): IO[DynamoDBZIOError, Unit] = ???
+
+        override def put[A](table: String, value: A)
+                           (implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = {
+          tableUpdated = Some(table)
+          receivedInsert = Some(value.asInstanceOf[CohortItem])
+          receivedSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBSerialiser[CohortItem]])
+          ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
+        }
+      }
+    )
+
+    val cohortItem = CohortItem("Subscription-id")
+
+    assertEquals(
+      Runtime.default.unsafeRunSync(
+        CohortTable
+          .put(cohortItem)
+          .provideLayer(
+            stubStageConfiguration ++ stubCohortTableConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
+              CohortTableLive.impl
+          )
+      ),
+      Success(())
+    )
+
+    assertEquals(tableUpdated.get, "PriceMigrationEngineDEV")
+    val insert = receivedSerialiser.get.serialise(receivedInsert.get)
+    assertEquals(insert.get("subscriptionNumber"), new AttributeValue().withS("Subscription-id"))
+    assertEquals(insert.get("processingStage"), new AttributeValue().withS("ReadyForEstimation"))
   }
 }

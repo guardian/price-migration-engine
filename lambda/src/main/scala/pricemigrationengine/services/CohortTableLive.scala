@@ -5,7 +5,7 @@ import java.time.{Instant, LocalDate, ZoneOffset}
 import java.util
 
 import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
-import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EstimationComplete, SalesforcePriceRiceCreationComplete}
+import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EstimationComplete, ReadyForEstimation, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services.CohortTable.Service
 import zio.stream.ZStream
@@ -55,15 +55,21 @@ object CohortTableLive {
       ).asJava
 
   private implicit val salesforcePriceRiseCreationResultSerialiser: DynamoDBUpdateSerialiser[SalesforcePriceRiseCreationDetails] =
-    estimationResult =>
+    salesforcePriceRise =>
       Map(
         stringFieldUpdate("processingStage", SalesforcePriceRiceCreationComplete.value),
-        stringFieldUpdate("salesforcePriceRiseId", estimationResult.id),
-        instantFieldUpdate("whenSfShowEstimate", estimationResult.whenSfShowEstimate)
+        stringFieldUpdate("salesforcePriceRiseId", salesforcePriceRise.id),
+        instantFieldUpdate("whenSfShowEstimate", salesforcePriceRise.whenSfShowEstimate)
       ).asJava
 
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =
-    estimationResult => Map(stringUpdate("subscriptionNumber", estimationResult.subscriptionNumber)).asJava
+    key => Map(stringUpdate("subscriptionNumber", key.subscriptionNumber)).asJava
+
+  private implicit val subscriptionSerialiser: DynamoDBSerialiser[CohortItem] =
+    cohortItem => Map(
+      stringUpdate("subscriptionNumber", cohortItem.subscriptionName),
+      stringUpdate("processingStage", ReadyForEstimation.value)
+    ).asJava
 
   private def stringFieldUpdate(fieldName: String, stringValue: String) =
     fieldName -> new AttributeValueUpdate(new AttributeValue().withS(stringValue), AttributeAction.PUT)
@@ -165,6 +171,16 @@ object CohortTableLive {
               )
               .map(_.mapError(error => CohortFetchFailure(error.toString)))
           } yield queryResults
+        }.provide(dependencies)
+
+        override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
+          for {
+            config <- StageConfiguration.stageConfig
+              .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
+            result <- DynamoDBZIO
+              .put(s"PriceMigrationEngine${config.stage}", cohortItem)
+              .mapError(error => CohortUpdateFailure(error.toString))
+          } yield result
         }.provide(dependencies)
 
         override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = {
