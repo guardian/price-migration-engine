@@ -69,7 +69,7 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
         }
       }
       .tap { subcriptionId =>
-        CohortTable.put(Subscription(subcriptionId))
+        CohortTable.put(CohortItem(subcriptionId))
       }
       .runCount
   }

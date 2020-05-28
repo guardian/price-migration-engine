@@ -69,7 +69,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
           IO.succeed(())
         }
 
-        override def put(subscription: Subscription): ZIO[Any, CohortUpdateFailure, Unit] = ???
+        override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
       }
     )
 

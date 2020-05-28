@@ -20,7 +20,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
       }
     )
 
-    val subscriptionsWrittenToCohortTable = ArrayBuffer[Subscription]()
+    val subscriptionsWrittenToCohortTable = ArrayBuffer[CohortItem]()
 
     val stubCohortTable = ZLayer.succeed(
       new CohortTable.Service {
@@ -28,9 +28,9 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
         override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
         override def update(subscriptionName: String, result: SalesforcePriceRiseCreationDetails): ZIO[Any, CohortUpdateFailure, Unit] = ???
         override def update(result: AmendmentResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
-        override def put(subscription: Subscription): ZIO[Any, CohortUpdateFailure, Unit] =
+        override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] =
           IO.effect {
-            subscriptionsWrittenToCohortTable.addOne(subscription)
+            subscriptionsWrittenToCohortTable.addOne(cohortItem)
             ()
           }.mapError(_ => CohortUpdateFailure(""))
       }
@@ -65,7 +65,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
       Success(())
     )
     assertEquals(subscriptionsWrittenToCohortTable.size, 2)
-    assertEquals(subscriptionsWrittenToCohortTable(0).subscriptionNumber, "A-S123456")
-    assertEquals(subscriptionsWrittenToCohortTable(1).subscriptionNumber, "654321")
+    assertEquals(subscriptionsWrittenToCohortTable(0).subscriptionName, "A-S123456")
+    assertEquals(subscriptionsWrittenToCohortTable(1).subscriptionName, "654321")
   }
 }

@@ -346,8 +346,8 @@ class CohortTableLiveTest extends munit.FunSuite {
 
   test("Create the PriceMigrationEngine table and serialise the subscription correctly") {
     var tableUpdated: Option[String] = None
-    var receivedInsert: Option[Subscription] = None
-    var receivedSerialiser: Option[DynamoDBSerialiser[Subscription]] = None
+    var receivedInsert: Option[CohortItem] = None
+    var receivedSerialiser: Option[DynamoDBSerialiser[CohortItem]] = None
 
     val stubDynamoDBZIO = ZLayer.succeed(
       new DynamoDBZIO.Service {
@@ -363,19 +363,19 @@ class CohortTableLiveTest extends munit.FunSuite {
         override def put[A](table: String, value: A)
                            (implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = {
           tableUpdated = Some(table)
-          receivedInsert = Some(value.asInstanceOf[Subscription])
-          receivedSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBSerialiser[Subscription]])
+          receivedInsert = Some(value.asInstanceOf[CohortItem])
+          receivedSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBSerialiser[CohortItem]])
           ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
         }
       }
     )
 
-    val subscription = Subscription("Subscription-id")
+    val cohortItem = CohortItem("Subscription-id")
 
     assertEquals(
       Runtime.default.unsafeRunSync(
         CohortTable
-          .put(subscription)
+          .put(cohortItem)
           .provideLayer(
             stubStageConfiguration ++ stubCohortTableConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
               CohortTableLive.impl

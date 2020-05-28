@@ -12,7 +12,7 @@ object CohortTable {
         filter: CohortTableFilter
     ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]]
 
-    def put(subscription: Subscription): ZIO[Any, CohortUpdateFailure, Unit]
+    def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit]
     def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit]
     def update(subscriptionName: String, result: SalesforcePriceRiseCreationDetails): ZIO[Any, CohortUpdateFailure, Unit]
     def update(result: AmendmentResult): ZIO[Any, CohortUpdateFailure, Unit]
@@ -23,7 +23,7 @@ object CohortTable {
   ): ZIO[CohortTable, CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] =
     ZIO.accessM(_.get.fetch(filter))
 
-  def put(subscription: Subscription): ZIO[CohortTable, CohortUpdateFailure, Unit] =
+  def put(subscription: CohortItem): ZIO[CohortTable, CohortUpdateFailure, Unit] =
     ZIO.accessM(_.get.put(subscription))
 
   def update(result: EstimationResult): ZIO[CohortTable, CohortUpdateFailure, Unit] =
