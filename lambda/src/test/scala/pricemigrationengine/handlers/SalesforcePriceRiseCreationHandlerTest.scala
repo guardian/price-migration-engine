@@ -53,6 +53,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
           IO.succeed(ZStream(
             CohortItem(
               subscriptionName = expectedSubscriptionName,
+              processingStage = filter,
               expectedStartDate = Some(expectedStartDate),
               currency = Some(expectedCurrency),
               oldPrice = Some(expectedOldPrice),

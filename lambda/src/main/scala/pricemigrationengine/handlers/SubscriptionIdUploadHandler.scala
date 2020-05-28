@@ -4,6 +4,7 @@ import java.io.{InputStream, InputStreamReader}
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import org.apache.commons.csv.{CSVFormat, CSVParser, CSVRecord}
+import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
@@ -69,7 +70,7 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
         }
       }
       .tap { subcriptionId =>
-        CohortTable.put(CohortItem(subcriptionId))
+        CohortTable.put(CohortItem(subcriptionId, ReadyForEstimation))
       }
       .runCount
   }

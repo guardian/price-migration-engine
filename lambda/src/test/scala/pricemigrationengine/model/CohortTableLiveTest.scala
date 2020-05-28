@@ -27,8 +27,8 @@ class CohortTableLiveTest extends munit.FunSuite {
   )
 
   test("Query the PriceMigrationEngine with the correct filter and parse the results") {
-    val item1 = CohortItem("subscription-1")
-    val item2 = CohortItem("subscription-2")
+    val item1 = CohortItem("subscription-1", ReadyForEstimation)
+    val item2 = CohortItem("subscription-2", ReadyForEstimation)
 
     var receivedRequest: Option[QueryRequest] = None
     var receivedDeserialiser: Option[DynamoDBDeserialiser[CohortItem]] = None
@@ -78,10 +78,13 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       Runtime.default.unsafeRunSync(
         receivedDeserialiser.get.deserialise(
-          Map("subscriptionNumber" -> new AttributeValue().withS("subscription-number")).asJava
+          Map(
+            "subscriptionNumber" -> new AttributeValue().withS("subscription-number"),
+            "processingStage" -> new AttributeValue().withS("ReadyForEstimation")
+          ).asJava
         )
       ),
-      Success(CohortItem("subscription-number"))
+      Success(CohortItem("subscription-number", ReadyForEstimation))
     )
   }
 
@@ -370,7 +373,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       }
     )
 
-    val cohortItem = CohortItem("Subscription-id")
+    val cohortItem = CohortItem("Subscription-id", ReadyForEstimation)
 
     assertEquals(
       Runtime.default.unsafeRunSync(

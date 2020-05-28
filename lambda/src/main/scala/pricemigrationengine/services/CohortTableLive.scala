@@ -18,6 +18,7 @@ object CohortTableLive {
     cohortItem =>
       for {
         subscriptionNumber <- getStringFromResults(cohortItem, "subscriptionNumber")
+        processingStage <- getCohortTableFilter(cohortItem, "processingStage")
         expectedStartDate <- getOptionalDateFromResults(cohortItem, "expectedStartDate")
         currency <- getOptionalStringFromResults(cohortItem, "currency")
         oldPrice <-  getOptionalBigDecimalFromResults(cohortItem, "oldPrice")
@@ -25,6 +26,7 @@ object CohortTableLive {
         billingPeriod <- getOptionalStringFromResults(cohortItem, "currency")
       } yield CohortItem(
         subscriptionNumber,
+        processingStage,
         expectedStartDate,
         currency,
         oldPrice,
@@ -98,6 +100,15 @@ object CohortTableLive {
       string <- ZIO
         .fromOption(optionalString)
         .orElseFail(DynamoDBZIOError(s"The '$fieldName' field did not exist in the record '$result''"))
+    } yield string
+  }
+
+  private def getCohortTableFilter(result: util.Map[String, AttributeValue], fieldName: String) = {
+    for {
+      string <- getStringFromResults(result, fieldName)
+      string <- ZIO
+        .fromOption(CohortTableFilter.all.find(_.value == string))
+        .orElseFail(DynamoDBZIOError(s"The '$fieldName' contained an invalid CohortTableFilter '$string'"))
     } yield string
   }
 
