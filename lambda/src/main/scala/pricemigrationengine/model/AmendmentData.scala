@@ -17,11 +17,14 @@ object AmendmentData {
       earliestStartDate: LocalDate
   ): Either[AmendmentDataFailure, AmendmentData] =
     for {
-      startDate <- nextBillingDate(invoiceList, onOrAfter = earliestStartDate)
+      startDate <- nextServiceStartDate(invoiceList, onOrAfter = earliestStartDate)
       price <- priceData(pricing, subscription, invoiceList, startDate)
     } yield AmendmentData(startDate, priceData = price)
 
-  def nextBillingDate(invoiceList: ZuoraInvoiceList, onOrAfter: LocalDate): Either[AmendmentDataFailure, LocalDate] =
+  def nextServiceStartDate(
+      invoiceList: ZuoraInvoiceList,
+      onOrAfter: LocalDate
+  ): Either[AmendmentDataFailure, LocalDate] =
     invoiceList.invoiceItems
       .map(_.serviceStartDate)
       .sortBy(_.toEpochDay)
@@ -163,7 +166,7 @@ object AmendmentData {
   }
 
   private def applyDiscount(discountPercentage: Option[Double], beforeDiscount: BigDecimal) =
-    roundDown(discountPercentage.fold(beforeDiscount)(_ / 100 * beforeDiscount))
+    roundDown(discountPercentage.fold(beforeDiscount)(percentage => (100 - percentage) / 100 * beforeDiscount))
 
   def roundDown(d: BigDecimal): BigDecimal = d.setScale(2, RoundingMode.DOWN)
 }
