@@ -45,11 +45,6 @@ object AmendmentData {
       startDate: LocalDate
   ): Either[AmendmentDataFailure, PriceData] = {
 
-    def matchingRatePlanCharge(invoiceItem: ZuoraInvoiceItem): Option[ZuoraRatePlanCharge] = {
-      val ratePlanCharges = subscription.ratePlans.flatMap(_.ratePlanCharges)
-      ratePlanCharges.find(_.number == invoiceItem.chargeNumber)
-    }
-
     def matchingPricing(productRatePlanChargeId: ZuoraProductRatePlanChargeId): Option[ZuoraPricing] =
       pricingData.get(productRatePlanChargeId)
 
@@ -80,7 +75,7 @@ object AmendmentData {
     for {
       ratePlanCharges <- eitherFailingOrPassingResults(
         invoiceItems,
-        matchingRatePlanCharge
+        ZuoraRatePlanCharge.matchingRatePlanCharge(subscription)
       ).left.map(
         invoiceItems =>
           AmendmentDataFailure(
@@ -109,11 +104,11 @@ object AmendmentData {
       firstPricing <- pricings.headOption
         .map(p => Right(p))
         .getOrElse(Left(AmendmentDataFailure(s"No invoice items for date: $startDate")))
+      oldPrice <- totalChargeAmount(subscription, invoiceList, startDate)
     } yield {
       PriceData(
         currency = firstPricing.currency,
-        // invoice items include discount rate plan charges so summing them should give correct amount even when discounted
-        oldPrice = invoiceItems.map(_.chargeAmount).sum,
+        oldPrice,
         newPrice = combinePrices(pricings),
         // head is safe here because if there were no rate plan charges, would already have shortcircuited
         billingPeriod = ratePlanCharges.head.billingPeriod.getOrElse("Unknown")
@@ -121,14 +116,54 @@ object AmendmentData {
     }
   }
 
-  def totalChargeAmount(invoiceList: ZuoraInvoiceList, billingDate: LocalDate): BigDecimal =
-    ZuoraInvoiceItem.items(invoiceList, billingDate).map(_.chargeAmount).sum
+  /**
+    * Total charge amount, including taxes, for the service period starting on the given service start date.
+    */
+  def totalChargeAmount(
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      serviceStartDate: LocalDate
+  ): Either[AmendmentDataFailure, BigDecimal] = {
+    /*
+     * As charge amounts on Zuora invoice previews don't include tax,
+     * we have to find the price of the rate plan charges on the subscription
+     * that correspond with items in the invoice list.
+     */
+    val amounts = for {
+      invoiceItem <- ZuoraInvoiceItem.items(invoiceList, serviceStartDate).distinctBy(_.chargeNumber)
+      ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription)(invoiceItem).toSeq
+    } yield individualChargeAmount(ratePlanCharge)
+
+    val discounts = amounts.collect { case Left(percentageDiscount) => percentageDiscount }
+
+    if (discounts.length > 1) Left(AmendmentDataFailure(s"Multiple discounts applied: ${discounts.mkString(", ")}"))
+    else
+      Right {
+        applyDiscount(
+          discountPercentage = discounts.headOption,
+          beforeDiscount = amounts.collect { case Right(amount) => amount }.sum
+        )
+      }
+  }
+
+  /**
+    * Either a left discount percentage or a right absolute amount.
+    */
+  def individualChargeAmount(ratePlanCharge: ZuoraRatePlanCharge): Either[Double, BigDecimal] =
+    ratePlanCharge.price match {
+      case None             => ratePlanCharge.discountPercentage.toLeft(0)
+      case Some(p) if p > 0 => Right(p)
+      case Some(_)          => Right(0)
+    }
 
   def combinePrices(pricings: Seq[ZuoraPricing]): BigDecimal = {
     val discountPercentage = pricings.map(_.discountPercentage).find(_ > 0)
     val beforeDiscount = pricings.flatMap(_.price).sum
-    roundDown(discountPercentage.fold(beforeDiscount)(_ / 100 * beforeDiscount))
+    applyDiscount(discountPercentage, beforeDiscount)
   }
+
+  private def applyDiscount(discountPercentage: Option[Double], beforeDiscount: BigDecimal) =
+    roundDown(discountPercentage.fold(beforeDiscount)(_ / 100 * beforeDiscount))
 
   def roundDown(d: BigDecimal): BigDecimal = d.setScale(2, RoundingMode.DOWN)
 }

@@ -25,10 +25,11 @@ class AmendmentDataTest extends munit.FunSuite {
   }
 
   test("priceData: calculation is correct for a monthly voucher subscription") {
+    val fixtureSet = "Monthly"
     val priceData = AmendmentData.priceData(
-      pricingData = productPricingMap(productCatalogueFromJson("Catalogue2.json")),
-      subscription = subscriptionFromJson("Monthly2.json"),
-      invoiceList = invoiceListFromJson("InvoicePreview2.json"),
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2020, 5, 28)
     )
     assertEquals(
@@ -38,10 +39,11 @@ class AmendmentDataTest extends munit.FunSuite {
   }
 
   test("priceData: calculation is correct for a monthly discounted voucher subscription") {
+    val fixtureSet = "MonthlyDiscounted"
     val priceData = AmendmentData.priceData(
-      pricingData = productPricingMap(productCatalogueFromJson("Catalogue3.json")),
-      subscription = subscriptionFromJson("MonthlyDiscounted3.json"),
-      invoiceList = invoiceListFromJson("InvoicePreview3.json"),
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2020, 6, 15)
     )
     assertEquals(
@@ -81,5 +83,44 @@ class AmendmentDataTest extends munit.FunSuite {
 
   test("roundDown: rounds down if halfway between two values") {
     assertEquals(AmendmentData.roundDown(10.255).toDouble, 10.25)
+  }
+
+  test("totalChargeAmount: is correct for a taxable product") {
+    val fixtureSet = "Everyday+"
+    val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
+    val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
+    val billingDate = LocalDate.of(2020, 6, 4)
+    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, billingDate)
+    assertEquals(totalChargeAmount, Right(BigDecimal(54.99)))
+  }
+
+  test("totalChargeAmount: is correct for a discounted taxable product") {
+    val fixtureSet = "Everyday+Discounted"
+    val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
+    val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
+    val billingDate = LocalDate.of(2020, 6, 9)
+    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, billingDate)
+    assertEquals(totalChargeAmount, Right(BigDecimal(25.98)))
+  }
+
+  test("individualChargeAmount: is correct for a product invoice item") {
+    val chargeAmount = AmendmentData.individualChargeAmount(
+      ZuoraRatePlanCharge(productRatePlanChargeId = "id", number = "C1", price = Some(4.34))
+    )
+    assertEquals(chargeAmount, Right(BigDecimal(4.34)))
+  }
+
+  test("individualChargeAmount: is correct for a percentage discount invoice item") {
+    val chargeAmount = AmendmentData.individualChargeAmount(
+      ZuoraRatePlanCharge(productRatePlanChargeId = "id", number = "C1", price = None, discountPercentage = Some(50.0))
+    )
+    assertEquals(chargeAmount, Left(50.0))
+  }
+
+  test("individualChargeAmount: ignores absolute discount invoice items") {
+    val chargeAmount = AmendmentData.individualChargeAmount(
+      ZuoraRatePlanCharge(productRatePlanChargeId = "id", number = "C1", price = Some(-3.42))
+    )
+    assertEquals(chargeAmount, Right(BigDecimal(0)))
   }
 }

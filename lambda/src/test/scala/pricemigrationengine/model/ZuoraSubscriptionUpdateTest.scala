@@ -7,10 +7,11 @@ import pricemigrationengine.Fixtures
 class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
 
   test("updateOfRatePlansToCurrent: updates correct rate plans on a standard monthly voucher sub") {
+    val fixtureSet = "Monthly"
     val date = LocalDate.of(2020, 5, 28)
     val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
-      subscription = Fixtures.subscriptionFromJson("Monthly2.json"),
-      invoiceList = Fixtures.invoiceListFromJson("InvoicePreview2.json"),
+      subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date
     )
     assertEquals(
@@ -29,10 +30,11 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
   }
 
   test("updateOfRatePlansToCurrent: updates correct rate plans on a discounted monthly voucher sub") {
+    val fixtureSet = "MonthlyDiscounted"
     val date = LocalDate.of(2020, 6, 15)
     val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
-      subscription = Fixtures.subscriptionFromJson("MonthlyDiscounted3.json"),
-      invoiceList = Fixtures.invoiceListFromJson("InvoicePreview3.json"),
+      subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date
     )
     assertEquals(
