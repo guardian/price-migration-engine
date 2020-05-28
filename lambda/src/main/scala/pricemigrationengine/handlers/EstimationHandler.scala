@@ -26,7 +26,8 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
       result <- ZIO
         .fromEither(EstimationResult(newProductPricing, subscription, invoicePreview, config.earliestStartDate))
         .tapBoth(
-          e => Logging.error(s"Failed to estimate amendment data: $e"),
+          e =>
+            Logging.error(s"Failed to estimate amendment data for subscription ${subscription.subscriptionNumber}: $e"),
           result => Logging.info(s"Estimated result: $result")
         )
       _ <- CohortTable
