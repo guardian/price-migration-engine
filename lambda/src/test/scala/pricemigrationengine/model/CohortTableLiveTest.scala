@@ -12,10 +12,17 @@ import zio.{IO, Runtime, ZIO, ZLayer}
 import scala.jdk.CollectionConverters._
 
 class CohortTableLiveTest extends munit.FunSuite {
-  val stubConfiguration = ZLayer.succeed(
+  val stubCohortTableConfiguration = ZLayer.succeed(
     new CohortTableConfiguration.Service {
       override val config: IO[ConfigurationFailure, CohortTableConfig] =
-        IO.succeed(CohortTableConfig("DEV", 10))
+        IO.succeed(CohortTableConfig(10))
+    }
+  )
+
+  val stubStageConfiguration = ZLayer.succeed(
+    new StageConfiguration.Service {
+      override val config: IO[ConfigurationFailure, StageConfig] =
+        IO.succeed(StageConfig("DEV"))
     }
   )
 
@@ -48,7 +55,10 @@ class CohortTableLiveTest extends munit.FunSuite {
         for {
           result <- CohortTable
             .fetch(ReadyForEstimation)
-            .provideLayer(stubConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>> CohortTableLive.impl)
+            .provideLayer(
+              stubCohortTableConfiguration ++ stubStageConfiguration++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
+                CohortTableLive.impl
+            )
           resultList <- result.run(Sink.collectAll[CohortItem])
           _ = assertEquals(resultList, List(item1, item2))
         } yield ()
@@ -113,7 +123,10 @@ class CohortTableLiveTest extends munit.FunSuite {
       Runtime.default.unsafeRunSync(
         CohortTable
           .update(estimationResult)
-          .provideLayer(stubConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>> CohortTableLive.impl)
+          .provideLayer(
+            stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
+            CohortTableLive.impl
+          )
       ),
       Success(())
     )
@@ -203,7 +216,10 @@ class CohortTableLiveTest extends munit.FunSuite {
       Runtime.default.unsafeRunSync(
         CohortTable
           .update(amendmentResult)
-          .provideLayer(stubConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>> CohortTableLive.impl)
+          .provideLayer(
+            stubStageConfiguration ++ stubCohortTableConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl
+              >>> CohortTableLive.impl
+          )
       ),
       Success(())
     )
@@ -283,7 +299,10 @@ class CohortTableLiveTest extends munit.FunSuite {
       Runtime.default.unsafeRunSync(
         CohortTable
           .update("subscription-name", salesforcePriceRiseCreationResult)
-          .provideLayer(stubConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>> CohortTableLive.impl)
+          .provideLayer(
+            stubStageConfiguration ++ stubCohortTableConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
+            CohortTableLive.impl
+          )
       ),
       Success(())
     )

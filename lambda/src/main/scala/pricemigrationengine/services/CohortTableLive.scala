@@ -141,25 +141,27 @@ object CohortTableLive {
         }
     } yield optionalDecimal
 
-  val impl: ZLayer[DynamoDBZIO with CohortTableConfiguration with Logging, Nothing, CohortTable] =
-    ZLayer.fromFunction { dependencies: DynamoDBZIO with CohortTableConfiguration with Logging =>
+  val impl: ZLayer[DynamoDBZIO with StageConfiguration with CohortTableConfiguration with Logging, Nothing, CohortTable] =
+    ZLayer.fromFunction { dependencies: DynamoDBZIO with StageConfiguration with CohortTableConfiguration with Logging =>
       new Service {
         override def fetch(
             filter: CohortTableFilter
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
           for {
-            config <- CohortTableConfiguration.cohortTableConfig
+            cohortTableConfig <- CohortTableConfiguration.cohortTableConfig
+              .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
+            stageConfig <- StageConfiguration.stageConfig
               .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
             queryResults <- DynamoDBZIO
               .query(
                 new QueryRequest()
-                  .withTableName(s"PriceMigrationEngine${config.stage}")
+                  .withTableName(s"PriceMigrationEngine${stageConfig.stage}")
                   .withIndexName("ProcessingStageIndexV2")
                   .withKeyConditionExpression("processingStage = :processingStage")
                   .withExpressionAttributeValues(
                     Map(":processingStage" -> new AttributeValue(filter.value)).asJava
                   )
-                  .withLimit(config.batchSize)
+                  .withLimit(cohortTableConfig.batchSize)
               )
               .map(_.mapError(error => CohortFetchFailure(error.toString)))
           } yield queryResults
@@ -167,7 +169,7 @@ object CohortTableLive {
 
         override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = {
           for {
-            config <- CohortTableConfiguration.cohortTableConfig
+            config <- StageConfiguration.stageConfig
               .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
             result <- DynamoDBZIO
               .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(result.subscriptionName), result)
@@ -177,7 +179,7 @@ object CohortTableLive {
 
         override def update(subscriptionName: String, result: SalesforcePriceRiseCreationDetails): ZIO[Any, CohortUpdateFailure, Unit] = {
           for {
-            config <- CohortTableConfiguration.cohortTableConfig
+            config <- StageConfiguration.stageConfig
               .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
             result <- DynamoDBZIO
               .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(subscriptionName), result)
@@ -187,7 +189,7 @@ object CohortTableLive {
 
         override def update(result: AmendmentResult): ZIO[Any, CohortUpdateFailure, Unit] = {
           (for {
-            config <- CohortTableConfiguration.cohortTableConfig
+            config <- StageConfiguration.stageConfig
               .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
             result <- DynamoDBZIO
               .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(result.subscriptionName), result)

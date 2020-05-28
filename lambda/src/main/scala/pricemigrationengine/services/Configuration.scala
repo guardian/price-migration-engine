@@ -47,3 +47,12 @@ object SalesforceConfiguration {
   val salesforceConfig: ZIO[SalesforceConfiguration, ConfigurationFailure, SalesforceConfig] =
     ZIO.accessM(_.get.config)
 }
+
+object StageConfiguration {
+  trait Service {
+    val config: IO[ConfigurationFailure, StageConfig]
+  }
+
+  val stageConfig: ZIO[StageConfiguration, ConfigurationFailure, StageConfig] =
+    ZIO.accessM(_.get.config)
+}

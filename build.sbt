@@ -27,7 +27,9 @@ lazy val lambda = (project in file("lambda"))
       upickle,
       awsDynamoDb,
       awsLambda,
+      awsS3,
       http,
+      commonsCsv,
       munit % Test
     ),
     testFrameworks += new TestFramework("munit.Framework"),

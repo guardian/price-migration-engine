@@ -153,7 +153,7 @@ Resources:
                   - s3:GetObject
                 Resource:
                   - !Sub
-                    - "arn:aws:s3:::${BucketName}"
+                    - "arn:aws:s3:::${BucketName}/*"
                     - {BucketName: !FindInMap [StageMap, !Ref Stage, BucketName]}
     DependsOn:
       - S3Bucket

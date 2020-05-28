@@ -1,23 +1,48 @@
 package pricemigrationengine.handlers
 
+import java.io.{InputStream, InputStreamReader}
+
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
+import org.apache.commons.csv.{CSVFormat, CSVParser}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
-import zio.{App, Runtime, ZEnv, ZIO, ZLayer, console}
+import zio.{App, IO, Runtime, ZEnv, ZIO, ZLayer, console}
+
+import scala.jdk.CollectionConverters._
 
 object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
+  val main = {
+    for {
+      config <- StageConfiguration.stageConfig
+      exclusionsManaged <- S3.getObject(
+        S3Location(
+          s"price-migration-engine-${config.stage.toLowerCase}",
+          "excluded-subscrition-ids.csv"
+        )
+      )
+      exclusions <- exclusionsManaged.use(parseExclusions)
+      _ <- Logging.info(s"Loaded excluded subscriptions: $exclusions")
+    } yield ()
+  }
 
-  val main: ZIO[Logging with CohortTable, Failure, Unit] = ???
+  def parseExclusions(inputStream: InputStream): IO[SubscriptionIdUploadFailure, Set[String]] = {
+    ZIO.effect(
+      new CSVParser(new InputStreamReader(inputStream, "UTF-8"), CSVFormat.DEFAULT)
+        .getRecords.asScala
+        .map(_.get(0))
+        .toSet
+    ).mapError { ex =>
+      SubscriptionIdUploadFailure(s"Failed to read and parse the exclusions file: $ex")
+    }
+  }
 
-  private def env(
-      loggingLayer: ZLayer[Any, Nothing, Logging]
-  ) = {
+  private def env(loggingLayer: ZLayer[Any, Nothing, Logging]) = {
     val cohortTableLayer =
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
-      DynamoDBClient.dynamoDB ++ loggingLayer >>>
-      DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp >>>
-      CohortTableLive.impl
+        DynamoDBClient.dynamoDB ++ loggingLayer >>>
+        DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.stageImp ++ EnvConfiguration.cohortTableImp >>>
+        CohortTableLive.impl ++ S3Live.impl ++ EnvConfiguration.stageImp
     loggingLayer ++ cohortTableLayer
   }
 
@@ -25,10 +50,7 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
 
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
     main
-      .provideSomeLayer(
-        env(Console.live >>> ConsoleLogging.impl)
-      )
-      // output any failures in service construction - there's probably a better way to do this
+      .provideSomeLayer(env(Console.live >>> ConsoleLogging.impl))
       .foldM(
         e => console.putStrLn(s"Failed: $e") *> ZIO.succeed(1),
         _ => console.putStrLn("Succeeded!") *> ZIO.succeed(0)
