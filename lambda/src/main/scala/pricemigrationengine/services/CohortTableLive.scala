@@ -34,6 +34,36 @@ object CohortTableLive {
         billingPeriod
       )
 
+  private implicit val cohortItemUpdateSerialiser: DynamoDBUpdateSerialiser[CohortItem] =
+    estimationResult =>
+      List(
+        Option(stringFieldUpdate("processingStage", estimationResult.processingStage.value)),
+        estimationResult.expectedStartDate
+          .map(expectedStartDate => dateFieldUpdate("expectedStartDate", expectedStartDate)),
+        estimationResult.currency
+          .map(currency => stringFieldUpdate("currency", currency)),
+        estimationResult.oldPrice
+          .map(oldPrice => bigDecimalFieldUpdate("oldPrice", oldPrice)),
+        estimationResult.estimatedNewPrice
+          .map(estimatedNewPrice => bigDecimalFieldUpdate("estimatedNewPrice", estimatedNewPrice)),
+        estimationResult.billingPeriod.map(billingPeriod =>
+          stringFieldUpdate("billingPeriod", billingPeriod)),
+        estimationResult.whenEstimationDone
+          .map(whenEstimationDone => instantFieldUpdate("whenEstimationDone", whenEstimationDone)),
+        estimationResult.salesforcePriceRiseId
+        .map(salesforcePriceRiseId => stringFieldUpdate("salesforcePriceRiseId", salesforcePriceRiseId)),
+        estimationResult.whenSfShowEstimate
+          .map(whenSfShowEstimate => instantFieldUpdate("whenSfShowEstimate", whenSfShowEstimate)),
+        estimationResult.startDate
+          .map(startDate => dateFieldUpdate("startDate", startDate)),
+        estimationResult.newPrice
+          .map(newPrice => bigDecimalFieldUpdate("newPrice", newPrice)),
+        estimationResult.newSubscriptionId
+          .map(newSubscriptionId => stringFieldUpdate("newSubscriptionId", newSubscriptionId)),
+        estimationResult.whenAmendmentDone
+          .map(whenAmendmentDone => instantFieldUpdate("whenAmendmentDone", whenAmendmentDone)),
+      ).flatten.toMap.asJava
+
   private implicit val estimationResultSerialiser: DynamoDBUpdateSerialiser[EstimationResult] =
     estimationResult =>
       Map(
@@ -215,6 +245,20 @@ object CohortTableLive {
         }.provide(dependencies)
 
         override def update(result: AmendmentResult): ZIO[Any, CohortUpdateFailure, Unit] = {
+          (for {
+            config <- StageConfiguration.stageConfig
+              .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
+            result <- DynamoDBZIO
+              .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(result.subscriptionName), result)
+              .mapError(error => CohortUpdateFailure(error.toString))
+          } yield result)
+            .tapBoth(
+              e => Logging.error(s"Failed to update Cohort table: $e"),
+              _ => Logging.info(s"Wrote $result to Cohort table")
+            )
+        }.provide(dependencies)
+
+        override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
           (for {
             config <- StageConfiguration.stageConfig
               .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
