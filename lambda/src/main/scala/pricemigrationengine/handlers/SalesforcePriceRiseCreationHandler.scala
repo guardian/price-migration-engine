@@ -1,7 +1,7 @@
 package pricemigrationengine.handlers
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import pricemigrationengine.model.CohortTableFilter.EstimationComplete
+import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.clock.Clock
@@ -31,9 +31,13 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
         .mapError { error =>
           SalesforcePriceRiseCreationFailure(s"Failed to get currentTime: $error")
         }
-      salesforcePriceRiseCreationDetails = SalesforcePriceRiseCreationDetails(updateResponse.id, time.toInstant)
-      _ <- CohortTable
-        .update(item.subscriptionName, salesforcePriceRiseCreationDetails)
+      salesforcePriceRiseCreationDetails = CohortItem(
+        subscriptionName = item.subscriptionName,
+        processingStage = SalesforcePriceRiceCreationComplete,
+        salesforcePriceRiseId =  Some(updateResponse.id),
+        whenSfShowEstimate = Some(time.toInstant)
+      )
+      _ <- CohortTable.update(salesforcePriceRiseCreationDetails)
         .tapBoth(
           e => Logging.error(s"Failed to update Cohort table: $e"),
           _ => Logging.info(s"Wrote $salesforcePriceRiseCreationDetails to Cohort table")

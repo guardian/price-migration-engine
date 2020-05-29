@@ -482,7 +482,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     )
     assertEquals(
       update.get("whenAmendmentDone"),
-      new AttributeValueUpdate(new AttributeValue().withS(expectedWhenAmmendmentDone.toString), AttributeAction.PUT),
+      new AttributeValueUpdate(new AttributeValue().withS(DateTimeFormatter.ISO_DATE_TIME.format(expectedWhenAmmendmentDone.atZone(ZoneOffset.UTC))), AttributeAction.PUT),
       "whenAmendmentDone"
     )
   }
