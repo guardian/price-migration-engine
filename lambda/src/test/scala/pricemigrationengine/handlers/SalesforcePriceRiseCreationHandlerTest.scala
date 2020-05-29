@@ -50,26 +50,33 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
             filter: CohortTableFilter
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
           assertEquals(filter, EstimationComplete)
-          IO.succeed(ZStream(
-            CohortItem(
-              subscriptionName = expectedSubscriptionName,
-              expectedStartDate = Some(expectedStartDate),
-              currency = Some(expectedCurrency),
-              oldPrice = Some(expectedOldPrice),
-              estimatedNewPrice = Some(expectedEstimatedNewPrice)
-            ),
-          ))
+          IO.succeed(
+            ZStream(
+              CohortItem(
+                subscriptionName = expectedSubscriptionName,
+                expectedStartDate = Some(expectedStartDate),
+                currency = Some(expectedCurrency),
+                oldPrice = Some(expectedOldPrice),
+                estimatedNewPrice = Some(expectedEstimatedNewPrice)
+              )
+            )
+          )
         }
 
         override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
         override def update(result: AmendmentResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
 
-        override def update(subscriptionName: String, result: SalesforcePriceRiseCreationDetails): ZIO[Any, CohortUpdateFailure, Unit] = {
+        override def update(
+            subscriptionName: String,
+            result: SalesforcePriceRiseCreationDetails
+        ): ZIO[Any, CohortUpdateFailure, Unit] = {
           updatedResultsWrittenToCohortTable.addOne(result)
           IO.succeed(())
         }
 
         override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
+
+        override def updateToCancelled(item: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
       }
     )
 
@@ -83,10 +90,12 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
           IO.effect(
               SalesforceSubscription(s"SubscritionId-$subscriptionName", subscriptionName, s"Buyer-$subscriptionName")
             )
-            .mapError(_ => SalesforceClientFailure(""))
+            .orElseFail(SalesforceClientFailure(""))
         }
 
-        override def createPriceRise(priceRise: SalesforcePriceRise): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] = {
+        override def createPriceRise(
+            priceRise: SalesforcePriceRise
+        ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] = {
           createdPriceRises.addOne(priceRise)
           ZIO.succeed(SalesforcePriceRiseCreationResponse(s"${priceRise.SF_Subscription__c}-price-rise-id"))
         }

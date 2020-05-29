@@ -21,9 +21,20 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
   private def amend(
       item: CohortItem
   ): ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora, Failure, Unit] =
+    doAmendment(item).foldM(
+      failure = {
+        case _: CancelledSubscriptionFailure => CohortTable.updateToCancelled(item)
+        case e                               => ZIO.fail(e)
+      },
+      success = CohortTable.update
+    )
+
+  private def doAmendment(
+      item: CohortItem
+  ): ZIO[Logging with AmendmentConfiguration with Zuora, Failure, AmendmentResult] =
     for {
       config <- AmendmentConfiguration.amendmentConfig
-      subscription <- Zuora.fetchSubscription(item.subscriptionName)
+      subscription <- fetchSubscription(item)
       invoicePreviewBeforeUpdate <- Zuora.fetchInvoicePreview(subscription.accountId)
       startDate <- ZIO.fromEither(
         AmendmentData.nextServiceStartDate(invoicePreviewBeforeUpdate, config.earliestStartDate)
@@ -41,14 +52,18 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
               s"Failed to calculate amendment of subscription ${subscription.subscriptionNumber}: $e"
           )
         )
-      result = AmendmentResult(
+    } yield
+      AmendmentResult(
         subscription.subscriptionNumber,
         startDate,
         totalChargeAmount,
         newSubscriptionId
       )
-      _ <- CohortTable.update(result)
-    } yield ()
+
+  private def fetchSubscription(item: CohortItem): ZIO[Zuora, Failure, ZuoraSubscription] =
+    Zuora
+      .fetchSubscription(item.subscriptionName)
+      .filterOrFail(_.status == "Active")(CancelledSubscriptionFailure(item.subscriptionName))
 
   private def env(
       loggingLayer: ZLayer[Any, Nothing, Logging]
