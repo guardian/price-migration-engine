@@ -33,7 +33,7 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
 
   private def doAmendment(
       item: CohortItem
-  ): ZIO[Logging with AmendmentConfiguration with Zuora, Failure, AmendmentResult] =
+  ): ZIO[Logging with AmendmentConfiguration with Zuora, Failure, CohortItem] =
     for {
       config <- AmendmentConfiguration.amendmentConfig
       subscription <- fetchSubscription(item)

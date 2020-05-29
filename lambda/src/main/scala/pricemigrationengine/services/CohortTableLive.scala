@@ -5,13 +5,7 @@ import java.time.{Instant, LocalDate, ZoneOffset}
 import java.util
 
 import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
-import pricemigrationengine.model.CohortTableFilter.{
-  AmendmentComplete,
-  Cancelled,
-  EstimationComplete,
-  ReadyForEstimation,
-  SalesforcePriceRiceCreationComplete
-}
+import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services.CohortTable.Service
 import zio.stream.ZStream
@@ -212,19 +206,21 @@ object CohortTableLive {
             } yield result
           }.provide(dependencies)
 
-        override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
-          (for {
-            config <- StageConfiguration.stageConfig
-              .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
-            result <- DynamoDBZIO
-              .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(result.subscriptionName), result)
-              .mapError(error => CohortUpdateFailure(error.toString))
-          } yield result)
-            .tapBoth(
-              e => Logging.error(s"Failed to update Cohort table: $e"),
-              _ => Logging.info(s"Wrote $result to Cohort table")
-            )
-        }.provide(dependencies)
-      }
+          override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
+            (for {
+              config <- StageConfiguration.stageConfig
+                .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
+              result <- DynamoDBZIO
+                .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(result.subscriptionName), result)
+                .mapError(error => CohortUpdateFailure(error.toString))
+            } yield result)
+              .tapBoth(
+                e => Logging.error(s"Failed to update Cohort table: $e"),
+                _ => Logging.info(s"Wrote $result to Cohort table")
+              )
+          }.provide(dependencies)
+
+          override def updateToCancelled(item: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
+        }
     }
 }
