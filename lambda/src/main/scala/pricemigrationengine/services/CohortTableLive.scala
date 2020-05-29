@@ -219,8 +219,6 @@ object CohortTableLive {
                 _ => Logging.info(s"Wrote $result to Cohort table")
               )
           }.provide(dependencies)
-
-          override def updateToCancelled(item: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
         }
     }
 }

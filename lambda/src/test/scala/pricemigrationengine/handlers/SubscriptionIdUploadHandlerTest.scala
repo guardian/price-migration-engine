@@ -34,7 +34,6 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
               ()
             }
             .orElseFail(CohortUpdateFailure(""))
-        override def updateToCancelled(item: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
       }
     )
 

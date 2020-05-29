@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import java.time.Instant
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, SalesforcePriceRiceCreationComplete}
+import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, Cancelled, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
@@ -25,7 +25,7 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
   ): ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora, Failure, Unit] =
     doAmendment(item).foldM(
       failure = {
-        case _: CancelledSubscriptionFailure => CohortTable.updateToCancelled(item)
+        case _: CancelledSubscriptionFailure => CohortTable.update(CohortItem(item.subscriptionName, Cancelled))
         case e                               => ZIO.fail(e)
       },
       success = CohortTable.update
