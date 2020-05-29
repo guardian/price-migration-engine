@@ -70,7 +70,7 @@ object CohortTableLive {
   private implicit val cohortTableSerialiser: DynamoDBSerialiser[CohortItem] =
     cohortItem => Map(
       stringUpdate("subscriptionNumber", cohortItem.subscriptionName),
-      stringUpdate("processingStage", ReadyForEstimation.value)
+      stringUpdate("processingStage", cohortItem.processingStage.value)
     ).asJava
 
   private def stringFieldUpdate(fieldName: String, stringValue: String) =
