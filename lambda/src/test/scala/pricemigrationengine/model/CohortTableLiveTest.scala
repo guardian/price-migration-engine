@@ -45,12 +45,12 @@ class CohortTableLiveTest extends munit.FunSuite {
           ZStream(item1, item2).mapM(item => IO.effect(item.asInstanceOf[A]).orElseFail(DynamoDBZIOError("")))
         }
 
-        override def update[A, B](table: String, key: A, value: B)
-                                 (implicit keySerializer: DynamoDBSerialiser[A],
-                                  valueSerializer: DynamoDBUpdateSerialiser[B]): IO[DynamoDBZIOError, Unit] = ???
+        override def update[A, B](table: String, key: A, value: B)(
+            implicit keySerializer: DynamoDBSerialiser[A],
+            valueSerializer: DynamoDBUpdateSerialiser[B]): IO[DynamoDBZIOError, Unit] = ???
 
-        override def put[A](table: String, value: A)
-                           (implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = ???
+        override def put[A](table: String,
+                            value: A)(implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = ???
       }
     )
 
@@ -60,7 +60,7 @@ class CohortTableLiveTest extends munit.FunSuite {
           result <- CohortTable
             .fetch(ReadyForEstimation)
             .provideLayer(
-              stubCohortTableConfiguration ++ stubStageConfiguration++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
+              stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
                 CohortTableLive.impl
             )
           resultList <- result.run(Sink.collectAll[CohortItem])
@@ -115,8 +115,8 @@ class CohortTableLiveTest extends munit.FunSuite {
           ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
         }
 
-        override def put[A](table: String, value: A)
-                           (implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = ???
+        override def put[A](table: String,
+                            value: A)(implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = ???
       }
     )
 
@@ -155,8 +155,8 @@ class CohortTableLiveTest extends munit.FunSuite {
         CohortTable
           .update(cohortItem)
           .provideLayer(
-            stubStageConfiguration ++ stubCohortTableConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
-            CohortTableLive.impl
+            stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
+              CohortTableLive.impl
           )
       ),
       Success(())
@@ -235,20 +235,20 @@ class CohortTableLiveTest extends munit.FunSuite {
     val stubDynamoDBZIO = ZLayer.succeed(
       new DynamoDBZIO.Service {
         override def query[A](query: QueryRequest)(
-          implicit deserializer: DynamoDBDeserialiser[A]
+            implicit deserializer: DynamoDBDeserialiser[A]
         ): ZStream[Any, DynamoDBZIOError, A] = ???
 
         override def update[A, B](table: String, key: A, value: B)(
-          implicit keySerializer: DynamoDBSerialiser[A],
-          valueSerializer: DynamoDBUpdateSerialiser[B]
+            implicit keySerializer: DynamoDBSerialiser[A],
+            valueSerializer: DynamoDBUpdateSerialiser[B]
         ): IO[DynamoDBZIOError, Unit] = {
           receivedValueSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBUpdateSerialiser[CohortItem]])
           receivedUpdate = Some(value.asInstanceOf[CohortItem])
           ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
         }
 
-        override def put[A](table: String, value: A)
-                           (implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = ???
+        override def put[A](table: String,
+                            value: A)(implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = ???
       }
     )
 
@@ -266,7 +266,7 @@ class CohortTableLiveTest extends munit.FunSuite {
           .update(cohortItem)
           .provideLayer(
             stubStageConfiguration ++ stubCohortTableConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
-            CohortTableLive.impl
+              CohortTableLive.impl
           )
       ),
       Success(())
@@ -298,16 +298,16 @@ class CohortTableLiveTest extends munit.FunSuite {
     val stubDynamoDBZIO = ZLayer.succeed(
       new DynamoDBZIO.Service {
         override def query[A](query: QueryRequest)(
-          implicit deserializer: DynamoDBDeserialiser[A]
+            implicit deserializer: DynamoDBDeserialiser[A]
         ): ZStream[Any, DynamoDBZIOError, A] = ???
 
         override def update[A, B](table: String, key: A, value: B)(
-          implicit keySerializer: DynamoDBSerialiser[A],
-          valueSerializer: DynamoDBUpdateSerialiser[B]
+            implicit keySerializer: DynamoDBSerialiser[A],
+            valueSerializer: DynamoDBUpdateSerialiser[B]
         ): IO[DynamoDBZIOError, Unit] = ???
 
-        override def put[A](table: String, value: A)
-                           (implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = {
+        override def put[A](table: String,
+                            value: A)(implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = {
           tableUpdated = Some(table)
           receivedInsert = Some(value.asInstanceOf[CohortItem])
           receivedSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBSerialiser[CohortItem]])

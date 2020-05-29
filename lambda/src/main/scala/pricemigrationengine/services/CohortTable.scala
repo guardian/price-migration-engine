@@ -15,6 +15,8 @@ object CohortTable {
     def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit]
 
     def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit]
+
+    def updateToCancelled(item: CohortItem): ZIO[Any, CohortUpdateFailure, Unit]
   }
 
   def fetch(
@@ -27,4 +29,7 @@ object CohortTable {
 
   def update(result: CohortItem): ZIO[CohortTable, CohortUpdateFailure, Unit] =
     ZIO.accessM(_.get.update(result))
+
+  def updateToCancelled(item: CohortItem): ZIO[CohortTable, CohortUpdateFailure, Unit] =
+    ZIO.accessM(_.get.updateToCancelled(item))
 }

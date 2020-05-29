@@ -24,23 +24,28 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
 
     val stubCohortTable = ZLayer.succeed(
       new CohortTable.Service {
-        override def fetch(filter: CohortTableFilter): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
+        override def fetch(
+            filter: CohortTableFilter
+        ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
         override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] =
           IO.effect {
-            subscriptionsWrittenToCohortTable.addOne(cohortItem)
-            ()
-          }.mapError(_ => CohortUpdateFailure(""))
-
+              subscriptionsWrittenToCohortTable.addOne(cohortItem)
+              ()
+            }
+            .orElseFail(CohortUpdateFailure(""))
+        override def updateToCancelled(item: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
       }
     )
 
     val stubS3: Layer[Nothing, Has[S3.Service]] = ZLayer.succeed(
       new S3.Service {
         def loadTestResource(path: String) = {
-          ZManaged.makeEffect(getClass.getResourceAsStream(path)) { stream =>
-            stream.close()
-          }.mapError(ex => S3Failure(s"Failed to load test resource: $ex"))
+          ZManaged
+            .makeEffect(getClass.getResourceAsStream(path)) { stream =>
+              stream.close()
+            }
+            .mapError(ex => S3Failure(s"Failed to load test resource: $ex"))
         }
 
         override def getObject(s3Location: S3Location): ZManaged[Any, S3Failure, InputStream] = s3Location match {
