@@ -25,9 +25,6 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
     val stubCohortTable = ZLayer.succeed(
       new CohortTable.Service {
         override def fetch(filter: CohortTableFilter): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
-        override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
-        override def update(subscriptionName: String, result: SalesforcePriceRiseCreationDetails): ZIO[Any, CohortUpdateFailure, Unit] = ???
-        override def update(result: AmendmentResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
         override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] =
           IO.effect {

@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{SalesforceClientFailure, SalesforcePriceRise, SalesforcePriceRiseCreationDetails, SalesforceSubscription}
+import pricemigrationengine.model.{SalesforceClientFailure, SalesforcePriceRise, SalesforceSubscription}
 import zio.{IO, ZIO}
 
 case class SalesforcePriceRiseCreationResponse(id: String)

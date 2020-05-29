@@ -64,40 +64,10 @@ object CohortTableLive {
           .map(whenAmendmentDone => instantFieldUpdate("whenAmendmentDone", whenAmendmentDone)),
       ).flatten.toMap.asJava
 
-  private implicit val estimationResultSerialiser: DynamoDBUpdateSerialiser[EstimationResult] =
-    estimationResult =>
-      Map(
-        stringFieldUpdate("processingStage", EstimationComplete.value),
-        dateFieldUpdate("expectedStartDate", estimationResult.expectedStartDate),
-        stringFieldUpdate("currency", estimationResult.currency),
-        bigDecimalFieldUpdate("oldPrice", estimationResult.oldPrice),
-        bigDecimalFieldUpdate("estimatedNewPrice", estimationResult.estimatedNewPrice),
-        stringFieldUpdate("billingPeriod", estimationResult.billingPeriod),
-        stringFieldUpdate("whenEstimationDone", Instant.now.toString)
-      ).asJava
-
-  private implicit val amendmentResultSerialiser: DynamoDBUpdateSerialiser[AmendmentResult] =
-    amendmentResult =>
-      Map(
-        stringFieldUpdate("processingStage", AmendmentComplete.value),
-        dateFieldUpdate("startDate", amendmentResult.startDate),
-        bigDecimalFieldUpdate("newPrice", amendmentResult.newPrice),
-        stringFieldUpdate("newSubscriptionId", amendmentResult.newSubscriptionId),
-        stringFieldUpdate("whenAmendmentDone", Instant.now.toString)
-      ).asJava
-
-  private implicit val salesforcePriceRiseCreationResultSerialiser: DynamoDBUpdateSerialiser[SalesforcePriceRiseCreationDetails] =
-    salesforcePriceRise =>
-      Map(
-        stringFieldUpdate("processingStage", SalesforcePriceRiceCreationComplete.value),
-        stringFieldUpdate("salesforcePriceRiseId", salesforcePriceRise.id),
-        instantFieldUpdate("whenSfShowEstimate", salesforcePriceRise.whenSfShowEstimate)
-      ).asJava
-
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =
     key => Map(stringUpdate("subscriptionNumber", key.subscriptionNumber)).asJava
 
-  private implicit val subscriptionSerialiser: DynamoDBSerialiser[CohortItem] =
+  private implicit val cohortTableSerialiser: DynamoDBSerialiser[CohortItem] =
     cohortItem => Map(
       stringUpdate("subscriptionNumber", cohortItem.subscriptionName),
       stringUpdate("processingStage", ReadyForEstimation.value)
@@ -222,40 +192,6 @@ object CohortTableLive {
               .put(s"PriceMigrationEngine${config.stage}", cohortItem)
               .mapError(error => CohortUpdateFailure(error.toString))
           } yield result
-        }.provide(dependencies)
-
-        override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = {
-          for {
-            config <- StageConfiguration.stageConfig
-              .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
-            result <- DynamoDBZIO
-              .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(result.subscriptionName), result)
-              .mapError(error => CohortUpdateFailure(error.toString))
-          } yield result
-        }.provide(dependencies)
-
-        override def update(subscriptionName: String, result: SalesforcePriceRiseCreationDetails): ZIO[Any, CohortUpdateFailure, Unit] = {
-          for {
-            config <- StageConfiguration.stageConfig
-              .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
-            result <- DynamoDBZIO
-              .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(subscriptionName), result)
-              .mapError(error => CohortUpdateFailure(error.toString))
-          } yield result
-        }.provide(dependencies)
-
-        override def update(result: AmendmentResult): ZIO[Any, CohortUpdateFailure, Unit] = {
-          (for {
-            config <- StageConfiguration.stageConfig
-              .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
-            result <- DynamoDBZIO
-              .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(result.subscriptionName), result)
-              .mapError(error => CohortUpdateFailure(error.toString))
-          } yield result)
-            .tapBoth(
-              e => Logging.error(s"Failed to update Cohort table: $e"),
-              _ => Logging.info(s"Wrote $result to Cohort table")
-            )
         }.provide(dependencies)
 
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
