@@ -35,32 +35,32 @@ object CohortTableLive {
       )
 
   private implicit val cohortItemUpdateSerialiser: DynamoDBUpdateSerialiser[CohortItem] =
-    estimationResult =>
+    cohortItem =>
       List(
-        Option(stringFieldUpdate("processingStage", estimationResult.processingStage.value)),
-        estimationResult.expectedStartDate
+        Option(stringFieldUpdate("processingStage", cohortItem.processingStage.value)),
+        cohortItem.expectedStartDate
           .map(expectedStartDate => dateFieldUpdate("expectedStartDate", expectedStartDate)),
-        estimationResult.currency
+        cohortItem.currency
           .map(currency => stringFieldUpdate("currency", currency)),
-        estimationResult.oldPrice
+        cohortItem.oldPrice
           .map(oldPrice => bigDecimalFieldUpdate("oldPrice", oldPrice)),
-        estimationResult.estimatedNewPrice
+        cohortItem.estimatedNewPrice
           .map(estimatedNewPrice => bigDecimalFieldUpdate("estimatedNewPrice", estimatedNewPrice)),
-        estimationResult.billingPeriod.map(billingPeriod =>
+        cohortItem.billingPeriod.map(billingPeriod =>
           stringFieldUpdate("billingPeriod", billingPeriod)),
-        estimationResult.whenEstimationDone
+        cohortItem.whenEstimationDone
           .map(whenEstimationDone => instantFieldUpdate("whenEstimationDone", whenEstimationDone)),
-        estimationResult.salesforcePriceRiseId
+        cohortItem.salesforcePriceRiseId
         .map(salesforcePriceRiseId => stringFieldUpdate("salesforcePriceRiseId", salesforcePriceRiseId)),
-        estimationResult.whenSfShowEstimate
+        cohortItem.whenSfShowEstimate
           .map(whenSfShowEstimate => instantFieldUpdate("whenSfShowEstimate", whenSfShowEstimate)),
-        estimationResult.startDate
+        cohortItem.startDate
           .map(startDate => dateFieldUpdate("startDate", startDate)),
-        estimationResult.newPrice
+        cohortItem.newPrice
           .map(newPrice => bigDecimalFieldUpdate("newPrice", newPrice)),
-        estimationResult.newSubscriptionId
+        cohortItem.newSubscriptionId
           .map(newSubscriptionId => stringFieldUpdate("newSubscriptionId", newSubscriptionId)),
-        estimationResult.whenAmendmentDone
+        cohortItem.whenAmendmentDone
           .map(whenAmendmentDone => instantFieldUpdate("whenAmendmentDone", whenAmendmentDone)),
       ).flatten.toMap.asJava
 
