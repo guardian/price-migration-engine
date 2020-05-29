@@ -26,7 +26,7 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
       invoicePreviewBeforeUpdate <- Zuora.fetchInvoicePreview(subscription.accountId)
       startDate <- ZIO.fromEither(
-        AmendmentData.nextBillingDate(invoicePreviewBeforeUpdate, config.earliestStartDate)
+        AmendmentData.nextServiceStartDate(invoicePreviewBeforeUpdate, config.earliestStartDate)
       )
       update <- ZIO.fromEither(
         ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(subscription, invoicePreviewBeforeUpdate, startDate)

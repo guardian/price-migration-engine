@@ -21,7 +21,7 @@ object ZuoraProductCatalogue {
       ratePlan <- product.productRatePlans.filter(isActiveProductRatePlan)
       ratePlanCharge <- ratePlan.productRatePlanCharges
       pricing <- ratePlanCharge.pricing
-    } yield ratePlanCharge.id -> pricing
+    } yield (ratePlanCharge.id, pricing.currency) -> pricing
     prices.toMap
   }
 }
@@ -52,8 +52,11 @@ object ZuoraProductRatePlanCharge {
   implicit val rw: ReadWriter[ZuoraProductRatePlanCharge] = macroRW
 }
 
-case class ZuoraPricing(currency: String, price: Option[BigDecimal], discountPercentage: Double)
+case class ZuoraPricing(currency: Currency, price: Option[BigDecimal], discountPercentage: Double)
 
 object ZuoraPricing {
   implicit val rw: ReadWriter[ZuoraPricing] = macroRW
+
+  def matchingPricing(pricingData: ZuoraPricingData)(ratePlanCharge: ZuoraRatePlanCharge): Option[ZuoraPricing] =
+    pricingData.get(ratePlanCharge.productRatePlanChargeId, ratePlanCharge.currency)
 }

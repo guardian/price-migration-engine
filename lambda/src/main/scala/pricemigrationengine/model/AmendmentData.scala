@@ -6,7 +6,7 @@ import scala.math.BigDecimal.RoundingMode
 
 case class AmendmentData(startDate: LocalDate, priceData: PriceData)
 
-case class PriceData(currency: String, oldPrice: BigDecimal, newPrice: BigDecimal, billingPeriod: String)
+case class PriceData(currency: Currency, oldPrice: BigDecimal, newPrice: BigDecimal, billingPeriod: String)
 
 object AmendmentData {
 
@@ -17,11 +17,14 @@ object AmendmentData {
       earliestStartDate: LocalDate
   ): Either[AmendmentDataFailure, AmendmentData] =
     for {
-      startDate <- nextBillingDate(invoiceList, onOrAfter = earliestStartDate)
+      startDate <- nextServiceStartDate(invoiceList, onOrAfter = earliestStartDate)
       price <- priceData(pricing, subscription, invoiceList, startDate)
     } yield AmendmentData(startDate, priceData = price)
 
-  def nextBillingDate(invoiceList: ZuoraInvoiceList, onOrAfter: LocalDate): Either[AmendmentDataFailure, LocalDate] =
+  def nextServiceStartDate(
+      invoiceList: ZuoraInvoiceList,
+      onOrAfter: LocalDate
+  ): Either[AmendmentDataFailure, LocalDate] =
     invoiceList.invoiceItems
       .map(_.serviceStartDate)
       .sortBy(_.toEpochDay)
@@ -44,10 +47,6 @@ object AmendmentData {
       invoiceList: ZuoraInvoiceList,
       startDate: LocalDate
   ): Either[AmendmentDataFailure, PriceData] = {
-
-    def matchingPricing(productRatePlanChargeId: ZuoraProductRatePlanChargeId): Option[ZuoraPricing] =
-      pricingData.get(productRatePlanChargeId)
-
     /*
      * Our matching operations can fail so this gathers up the results
      * and just returns the failing results if there are any,
@@ -87,8 +86,8 @@ object AmendmentData {
          * distinct because where a sub has a discount rate plan,
          * the same discount will appear against each product rate plan charge in the invoice preview.
          */
-        ratePlanCharges.map(_.productRatePlanChargeId).distinct,
-        matchingPricing
+        ratePlanCharges.distinctBy(_.productRatePlanChargeId),
+        ZuoraPricing.matchingPricing(pricingData)
       ).left
         .map(
           ids => AmendmentDataFailure(s"Failed to find matching pricing for rate plan charges: ${ids.mkString}")
@@ -101,17 +100,20 @@ object AmendmentData {
           hasNotPriceAndDiscount,
           AmendmentDataFailure("Some rate plan charges have both a price and a discount")
         )
-      firstPricing <- pricings.headOption
-        .map(p => Right(p))
+      currency <- pricings.headOption
+        .map(p => Right(p.currency))
         .getOrElse(Left(AmendmentDataFailure(s"No invoice items for date: $startDate")))
       oldPrice <- totalChargeAmount(subscription, invoiceList, startDate)
+      billingPeriod <- ratePlanCharges
+        .flatMap(_.billingPeriod)
+        .headOption
+        .toRight(AmendmentDataFailure("Unknown billing period"))
     } yield {
       PriceData(
-        currency = firstPricing.currency,
+        currency,
         oldPrice,
         newPrice = combinePrices(pricings),
-        // head is safe here because if there were no rate plan charges, would already have shortcircuited
-        billingPeriod = ratePlanCharges.head.billingPeriod.getOrElse("Unknown")
+        billingPeriod
       )
     }
   }
@@ -163,7 +165,7 @@ object AmendmentData {
   }
 
   private def applyDiscount(discountPercentage: Option[Double], beforeDiscount: BigDecimal) =
-    roundDown(discountPercentage.fold(beforeDiscount)(_ / 100 * beforeDiscount))
+    roundDown(discountPercentage.fold(beforeDiscount)(percentage => (100 - percentage) / 100 * beforeDiscount))
 
   def roundDown(d: BigDecimal): BigDecimal = d.setScale(2, RoundingMode.DOWN)
 }

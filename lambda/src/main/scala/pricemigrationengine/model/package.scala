@@ -9,7 +9,8 @@ package object model {
 
   type ZuoraSubscriptionId = String
   type ZuoraProductRatePlanChargeId = String
-  type ZuoraPricingData = Map[ZuoraProductRatePlanChargeId, ZuoraPricing]
+  type Currency = String
+  type ZuoraPricingData = Map[(ZuoraProductRatePlanChargeId, Currency), ZuoraPricing]
 
   implicit val rwLocalDate: ReadWriter[LocalDate] = readwriter[String].bimap[LocalDate](
     date => s"${date.toString}",
