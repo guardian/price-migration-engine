@@ -19,7 +19,7 @@ object Zuora {
     ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId]
   }
 
-  def fetchSubscription(subscriptionNumber: String): ZIO[Zuora, ZuoraFetchFailure, ZuoraSubscription] =
+  def fetchSubscription(subscriptionNumber: String): ZIO[Zuora, Failure, ZuoraSubscription] =
     ZIO.accessM(_.get.fetchSubscription(subscriptionNumber))
 
   def fetchInvoicePreview(accountId: String): ZIO[Zuora, ZuoraFetchFailure, ZuoraInvoiceList] =

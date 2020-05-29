@@ -14,8 +14,13 @@ object CohortTable {
 
     def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit]
     def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit]
-    def update(subscriptionName: String, result: SalesforcePriceRiseCreationDetails): ZIO[Any, CohortUpdateFailure, Unit]
+    def update(
+        subscriptionName: String,
+        result: SalesforcePriceRiseCreationDetails
+    ): ZIO[Any, CohortUpdateFailure, Unit]
     def update(result: AmendmentResult): ZIO[Any, CohortUpdateFailure, Unit]
+
+    def updateToCancelled(item: CohortItem): ZIO[Any, CohortUpdateFailure, Unit]
   }
 
   def fetch(
@@ -30,11 +35,14 @@ object CohortTable {
     ZIO.accessM(_.get.update(result))
 
   def update(
-    subscriptionName: String,
-    result: SalesforcePriceRiseCreationDetails
+      subscriptionName: String,
+      result: SalesforcePriceRiseCreationDetails
   ): ZIO[CohortTable, CohortUpdateFailure, Unit] =
     ZIO.accessM(_.get.update(subscriptionName, result))
 
   def update(result: AmendmentResult): ZIO[CohortTable, CohortUpdateFailure, Unit] =
     ZIO.accessM(_.get.update(result))
+
+  def updateToCancelled(item: CohortItem): ZIO[CohortTable, CohortUpdateFailure, Unit] =
+    ZIO.accessM(_.get.updateToCancelled(item))
 }
