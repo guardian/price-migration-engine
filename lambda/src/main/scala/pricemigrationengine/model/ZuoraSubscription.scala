@@ -37,6 +37,7 @@ object ZuoraRatePlan {
 case class ZuoraRatePlanCharge(
     productRatePlanChargeId: ZuoraProductRatePlanChargeId,
     number: String,
+    currency: Currency,
     price: Option[BigDecimal] = None,
     billingPeriod: Option[String] = None,
     chargedThroughDate: Option[LocalDate] = None,

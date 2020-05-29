@@ -5,7 +5,7 @@ import java.time.LocalDate
 case class EstimationResult(
     subscriptionName: String,
     expectedStartDate: LocalDate,
-    currency: String,
+    currency: Currency,
     oldPrice: BigDecimal,
     estimatedNewPrice: BigDecimal,
     billingPeriod: String
