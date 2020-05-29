@@ -1,7 +1,9 @@
 package pricemigrationengine.handlers
 
+import java.time.Instant
+
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import pricemigrationengine.model.CohortTableFilter.SalesforcePriceRiceCreationComplete
+import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
@@ -41,11 +43,13 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
               s"Failed to calculate amendment of subscription ${subscription.subscriptionNumber}: $e"
           )
         )
-      result = AmendmentResult(
+      result = CohortItem(
         subscription.subscriptionNumber,
-        startDate,
-        totalChargeAmount,
-        newSubscriptionId
+        processingStage = AmendmentComplete,
+        startDate = Option(startDate),
+        newPrice = Some(totalChargeAmount),
+        newSubscriptionId = Some(newSubscriptionId),
+        whenAmendmentDone = Some(Instant.now())
       )
       _ <- CohortTable.update(result)
     } yield ()
