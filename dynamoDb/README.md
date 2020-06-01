@@ -67,7 +67,7 @@ aws dynamodb update-item \
     --endpoint-url http://localhost:8000 \
     --table-name PriceMigrationEngineDEV \
     --key '{"subscriptionNumber":{"S":"A-S00063981"}}' \
-    --update-expression "SET stage = :stage" \
+    --update-expression "SET processingStage = :stage" \
     --expression-attribute-values '{":stage":{"S":"EstimationComplete"}}'
 ```
 
