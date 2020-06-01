@@ -8,8 +8,6 @@ import zio.clock.Clock
 import zio.console.Console
 import zio.{App, IO, Runtime, ZEnv, ZIO, ZLayer, clock, console}
 
-
-
 object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, Unit] {
 
   val main: ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, Unit] =
@@ -19,7 +17,7 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
     } yield ()
 
   private def createSalesforcePriceRise(
-    item: CohortItem
+      item: CohortItem
   ): ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, Unit] =
     for {
       updateResponse <- updateSalesforce(item)
@@ -31,21 +29,23 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
         .mapError { error =>
           SalesforcePriceRiseCreationFailure(s"Failed to get currentTime: $error")
         }
-      salesforcePriceRiseCreationDetails =
-        CohortItem(
-          subscriptionName = item.subscriptionName,
-          processingStage = SalesforcePriceRiceCreationComplete,
-          salesforcePriceRiseId =  Some(updateResponse.id),
-          whenSfShowEstimate = Some(time.toInstant)
-        )
-      _ <- CohortTable.update(salesforcePriceRiseCreationDetails)
+      salesforcePriceRiseCreationDetails = CohortItem(
+        subscriptionName = item.subscriptionName,
+        processingStage = SalesforcePriceRiceCreationComplete,
+        salesforcePriceRiseId = Some(updateResponse.id),
+        whenSfShowEstimate = Some(time.toInstant)
+      )
+      _ <- CohortTable
+        .update(salesforcePriceRiseCreationDetails)
         .tapBoth(
           e => Logging.error(s"Failed to update Cohort table: $e"),
           _ => Logging.info(s"Wrote $salesforcePriceRiseCreationDetails to Cohort table")
         )
     } yield ()
 
-  private def updateSalesforce(cohortItem: CohortItem): ZIO[SalesforceClient, Failure, SalesforcePriceRiseCreationResponse] = {
+  private def updateSalesforce(
+      cohortItem: CohortItem
+  ): ZIO[SalesforceClient, Failure, SalesforcePriceRiseCreationResponse] = {
     for {
       subscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
       priceRise <- buildPriceRise(cohortItem, subscription)
@@ -54,23 +54,27 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
   }
 
   def buildPriceRise(
-    cohortItem: CohortItem,
-    subscription: SalesforceSubscription
+      cohortItem: CohortItem,
+      subscription: SalesforceSubscription
   ): IO[SalesforcePriceRiseCreationFailure, SalesforcePriceRise] = {
     for {
-      currentPrice <-
-        ZIO.fromOption(cohortItem.oldPrice).mapError(_ => SalesforcePriceRiseCreationFailure(s"$cohortItem does not have an oldPrice"))
-      newPrice <-
-        ZIO.fromOption(cohortItem.estimatedNewPrice).mapError(_ => SalesforcePriceRiseCreationFailure(s"$cohortItem does not have an estimatedNewPrice"))
-      priceRiseDate <-
-        ZIO.fromOption(cohortItem.expectedStartDate).mapError(_ => SalesforcePriceRiseCreationFailure(s"$cohortItem does not have an expectedStartDate"))
-    } yield SalesforcePriceRise(
-      subscription.Buyer__c,
-      currentPrice,
-      newPrice,
-      priceRiseDate,
-      subscription.Id
-    )
+      currentPrice <- ZIO
+        .fromOption(cohortItem.oldPrice)
+        .orElseFail(SalesforcePriceRiseCreationFailure(s"$cohortItem does not have an oldPrice"))
+      newPrice <- ZIO
+        .fromOption(cohortItem.estimatedNewPrice)
+        .orElseFail(SalesforcePriceRiseCreationFailure(s"$cohortItem does not have an estimatedNewPrice"))
+      priceRiseDate <- ZIO
+        .fromOption(cohortItem.startDate)
+        .orElseFail(SalesforcePriceRiseCreationFailure(s"$cohortItem does not have a startDate"))
+    } yield
+      SalesforcePriceRise(
+        subscription.Buyer__c,
+        currentPrice,
+        newPrice,
+        priceRiseDate,
+        subscription.Id
+      )
   }
 
   private def env(

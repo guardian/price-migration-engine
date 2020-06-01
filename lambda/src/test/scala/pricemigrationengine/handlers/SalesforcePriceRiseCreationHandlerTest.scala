@@ -37,7 +37,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     val stubLogging = console.Console.live >>> ConsoleLogging.impl
 
     val expectedSubscriptionName = "Sub-0001"
-    val expectedStartDate = LocalDate.of(2020, 1, 1)
+    val startDate = LocalDate.of(2020, 1, 1)
     val expectedCurrency = "GBP"
     val expectedOldPrice = BigDecimal(11.11)
     val expectedEstimatedNewPrice = BigDecimal(22.22)
@@ -55,11 +55,11 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
               CohortItem(
                 subscriptionName = expectedSubscriptionName,
                 processingStage = filter,
-                expectedStartDate = Some(expectedStartDate),
+                startDate = Some(startDate),
                 currency = Some(expectedCurrency),
                 oldPrice = Some(expectedOldPrice),
                 estimatedNewPrice = Some(expectedEstimatedNewPrice)
-              ),
+              )
             )
           )
         }
@@ -109,7 +109,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     assertEquals(createdPriceRises(0).Buyer__c, s"Buyer-$expectedSubscriptionName")
     assertEquals(createdPriceRises(0).Current_Price_Today__c, expectedOldPrice)
     assertEquals(createdPriceRises(0).Guardian_Weekly_New_Price__c, expectedEstimatedNewPrice)
-    assertEquals(createdPriceRises(0).Price_Rise_Date__c, expectedStartDate)
+    assertEquals(createdPriceRises(0).Price_Rise_Date__c, startDate)
 
     assertEquals(updatedResultsWrittenToCohortTable.size, 1)
     assertEquals(

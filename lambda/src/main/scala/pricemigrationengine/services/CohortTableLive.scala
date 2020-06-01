@@ -18,7 +18,7 @@ object CohortTableLive {
       for {
         subscriptionNumber <- getStringFromResults(cohortItem, "subscriptionNumber")
         processingStage <- getCohortTableFilter(cohortItem, "processingStage")
-        expectedStartDate <- getOptionalDateFromResults(cohortItem, "expectedStartDate")
+        startDate <- getOptionalDateFromResults(cohortItem, "startDate")
         currency <- getOptionalStringFromResults(cohortItem, "currency")
         oldPrice <- getOptionalBigDecimalFromResults(cohortItem, "oldPrice")
         estimatedNewPrice <- getOptionalBigDecimalFromResults(cohortItem, "estimatedNewPrice")
@@ -27,7 +27,7 @@ object CohortTableLive {
         CohortItem(
           subscriptionNumber,
           processingStage,
-          expectedStartDate,
+          startDate,
           currency,
           oldPrice,
           estimatedNewPrice,
@@ -38,20 +38,19 @@ object CohortTableLive {
     cohortItem =>
       List(
         Option(stringFieldUpdate("processingStage", cohortItem.processingStage.value)),
-        cohortItem.expectedStartDate
-          .map(expectedStartDate => dateFieldUpdate("expectedStartDate", expectedStartDate)),
+        cohortItem.startDate
+          .map(startDate => dateFieldUpdate("startDate", startDate)),
         cohortItem.currency
           .map(currency => stringFieldUpdate("currency", currency)),
         cohortItem.oldPrice
           .map(oldPrice => bigDecimalFieldUpdate("oldPrice", oldPrice)),
         cohortItem.estimatedNewPrice
           .map(estimatedNewPrice => bigDecimalFieldUpdate("estimatedNewPrice", estimatedNewPrice)),
-        cohortItem.billingPeriod.map(billingPeriod =>
-          stringFieldUpdate("billingPeriod", billingPeriod)),
+        cohortItem.billingPeriod.map(billingPeriod => stringFieldUpdate("billingPeriod", billingPeriod)),
         cohortItem.whenEstimationDone
           .map(whenEstimationDone => instantFieldUpdate("whenEstimationDone", whenEstimationDone)),
         cohortItem.salesforcePriceRiseId
-        .map(salesforcePriceRiseId => stringFieldUpdate("salesforcePriceRiseId", salesforcePriceRiseId)),
+          .map(salesforcePriceRiseId => stringFieldUpdate("salesforcePriceRiseId", salesforcePriceRiseId)),
         cohortItem.whenSfShowEstimate
           .map(whenSfShowEstimate => instantFieldUpdate("whenSfShowEstimate", whenSfShowEstimate)),
         cohortItem.startDate
@@ -61,7 +60,7 @@ object CohortTableLive {
         cohortItem.newSubscriptionId
           .map(newSubscriptionId => stringFieldUpdate("newSubscriptionId", newSubscriptionId)),
         cohortItem.whenAmendmentDone
-          .map(whenAmendmentDone => instantFieldUpdate("whenAmendmentDone", whenAmendmentDone)),
+          .map(whenAmendmentDone => instantFieldUpdate("whenAmendmentDone", whenAmendmentDone))
       ).flatten.toMap.asJava
 
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =
@@ -148,9 +147,7 @@ object CohortTableLive {
       optionalDate <- optionalString.fold[IO[DynamoDBZIOError, Option[LocalDate]]](ZIO.none) { string =>
         ZIO
           .effect(Some(LocalDate.parse(string)))
-          .mapError(
-            ex => DynamoDBZIOError(s"The '$fieldName' has value '$string' which is not a valid date yyyy-MM-dd")
-          )
+          .orElseFail(DynamoDBZIOError(s"The '$fieldName' has value '$string' which is not a valid date yyyy-MM-dd"))
       }
     } yield optionalDate
 
@@ -163,7 +160,7 @@ object CohortTableLive {
       optionalDecimal <- optionalNumberString.fold[IO[DynamoDBZIOError, Option[BigDecimal]]](ZIO.none) { string =>
         ZIO
           .effect(Some(BigDecimal(string)))
-          .mapError(ex => DynamoDBZIOError(s"The '$fieldName' has value '$string' which is not a valid number"))
+          .orElseFail(DynamoDBZIOError(s"The '$fieldName' has value '$string' which is not a valid number"))
       }
     } yield optionalDecimal
 
