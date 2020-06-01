@@ -47,7 +47,7 @@ Resources:
         - Ref: PriceMigrationEngineSalesforcePriceCreationLambdaRole
         - Ref: PriceMigrationEngineAmendmentLambdaRole
         - Ref: PriceMigrationEngineSubscriptionIdUploadLambdaRole
-        - Ref: PriceMigrationEngineNotficationEmailLambdaRole
+        - Ref: PriceMigrationEngineNotificationEmailLambdaRole
 
   PriceMigrationEngineEstimationLambdaRole:
     Type: AWS::IAM::Role
