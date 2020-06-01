@@ -47,6 +47,7 @@ Resources:
         - Ref: PriceMigrationEngineSalesforcePriceCreationLambdaRole
         - Ref: PriceMigrationEngineAmendmentLambdaRole
         - Ref: PriceMigrationEngineSubscriptionIdUploadLambdaRole
+        - Ref: PriceMigrationEngineNotficationEmailLambdaRole
 
   PriceMigrationEngineEstimationLambdaRole:
     Type: AWS::IAM::Role
@@ -159,6 +160,31 @@ Resources:
                     - {BucketName: !FindInMap [StageMap, !Ref Stage, BucketName]}
     DependsOn:
       - S3Bucket
+
+  PriceMigrationEngineNotficationEmailLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - lambda:InvokeFunction
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-notification-email-lambda-${Stage}:log-stream:*"
 
   S3Bucket:
     Type: AWS::S3::Bucket
@@ -311,3 +337,51 @@ Resources:
     DependsOn:
       - PriceMigrationEngineSubscriptionIdUploadLambdaRole
       - S3Bucket
+
+  PriceMigrationEngineNotificationEmailLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Sends notification emails to users telling them about the price rise
+      FunctionName:
+        !Sub price-migration-engine-notification-email-lambda-${Stage}
+      Code:
+        S3Bucket: membership-dist
+        S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
+      Handler: pricemigrationengine.handlers.NotificationEmailHandler::handleRequest
+      Environment:
+        Variables:
+          stage: !Ref Stage
+          batchSize: 100
+          salesforceAuthUrl:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceAuthUrl::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforceClientId:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceClientId::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforceClientSecret:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceClientSecret::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforceUserName:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceUserName::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforcePassword:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforcePassword::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforceToken:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceToken::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+      Role:
+        Fn::GetAtt:
+          - PriceMigrationEngineNotificationEmailLambdaRole
+          - Arn
+      MemorySize: 1536
+      Runtime: java8
+      Timeout: 900
+    DependsOn:
+      - PriceMigrationEngineNotificationEmailLambdaRole
