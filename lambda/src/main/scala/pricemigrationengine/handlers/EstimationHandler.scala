@@ -37,7 +37,7 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
         .update(
           CohortItem(
             result.subscriptionName,
-            EstimationComplete,
+            processingStage = EstimationComplete,
             oldPrice = Some(result.oldPrice),
             estimatedNewPrice = Some(result.estimatedNewPrice),
             currency = Some(result.currency),
