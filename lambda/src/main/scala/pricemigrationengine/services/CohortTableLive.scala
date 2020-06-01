@@ -26,7 +26,6 @@ object CohortTableLive {
         whenEstimationDone <- getOptionalInstantFromResults(cohortItem, "whenEstimationDone")
         salesforcePriceRiseId <- getOptionalStringFromResults(cohortItem, "salesforcePriceRiseId")
         whenSfShowEstimate <- getOptionalInstantFromResults(cohortItem, "whenSfShowEstimate")
-        startDate <- getOptionalDateFromResults(cohortItem, "startDate")
         newPrice <- getOptionalBigDecimalFromResults(cohortItem, "newPrice")
         newSubscriptionId <- getOptionalStringFromResults(cohortItem, "newSubscriptionId")
         whenAmendmentDone <- getOptionalInstantFromResults(cohortItem, "whenAmendmentDone")

@@ -35,11 +35,11 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
   )
   val stubLogging = console.Console.live >>> ConsoleLogging.impl
 
-    val expectedSubscriptionName = "Sub-0001"
-    val expectedStartDate = LocalDate.of(2020, 1, 1)
-    val expectedCurrency = "GBP"
-    val expectedOldPrice = BigDecimal(11.11)
-    val expectedEstimatedNewPrice = BigDecimal(22.22)
+  val expectedSubscriptionName = "Sub-0001"
+  val expectedStartDate = LocalDate.of(2020, 1, 1)
+  val expectedCurrency = "GBP"
+  val expectedOldPrice = BigDecimal(11.11)
+  val expectedEstimatedNewPrice = BigDecimal(22.22)
 
   def createStubCohortTable(updatedResultsWrittenToCohortTable:ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
@@ -68,24 +68,24 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     ZLayer.succeed(
       new SalesforceClient.Service {
         override def getSubscriptionByName(
-                                            subscriptionName: String
-                                          ): IO[SalesforceClientFailure, SalesforceSubscription] = {
+            subscriptionName: String
+        ): IO[SalesforceClientFailure, SalesforceSubscription] = {
           IO.effect(
-            SalesforceSubscription(s"SubscritionId-$subscriptionName", subscriptionName, s"Buyer-$subscriptionName")
-          )
+              SalesforceSubscription(s"SubscritionId-$subscriptionName", subscriptionName, s"Buyer-$subscriptionName")
+            )
             .orElseFail(SalesforceClientFailure(""))
         }
 
         override def createPriceRise(
-                                      priceRise: SalesforcePriceRise
-                                    ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] = {
+            priceRise: SalesforcePriceRise
+        ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] = {
           createdPriceRises.addOne(priceRise)
           ZIO.succeed(SalesforcePriceRiseCreationResponse(s"${priceRise.SF_Subscription__c}-price-rise-id"))
         }
 
         override def updatePriceRise(
-                                      priceRiseId: String, priceRise: SalesforcePriceRise
-                                    ): IO[SalesforceClientFailure, Unit] = {
+            priceRiseId: String, priceRise: SalesforcePriceRise
+        ): IO[SalesforceClientFailure, Unit] = {
           updatedPriceRises.addOne(priceRise)
           ZIO.unit
         }
