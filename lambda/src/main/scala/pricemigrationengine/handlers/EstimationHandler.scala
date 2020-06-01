@@ -1,15 +1,18 @@
 package pricemigrationengine.handlers
 
+import java.time.LocalDate
+
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
-import zio.{App, Runtime, ZEnv, ZIO, ZLayer, console}
+import zio.random.Random
+import zio.{App, Runtime, ZEnv, ZIO, ZLayer, console, random}
 
 object EstimationHandler extends App with RequestHandler[Unit, Unit] {
 
-  val main: ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora, Failure, Unit] =
+  val main: ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora with Random, Failure, Unit] =
     for {
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
       cohortItems <- CohortTable.fetch(ReadyForEstimation)
@@ -18,13 +21,13 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
 
   private def writeEstimation(
       newProductPricing: ZuoraPricingData
-  )(item: CohortItem): ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora, Failure, Unit] =
+  )(item: CohortItem): ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora with Random, Failure, Unit] =
     for {
-      config <- AmendmentConfiguration.amendmentConfig
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId)
+      earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview)
       result <- ZIO
-        .fromEither(EstimationResult(newProductPricing, subscription, invoicePreview, config.earliestStartDate))
+        .fromEither(EstimationResult(newProductPricing, subscription, invoicePreview, earliestStartDate))
         .tapBoth(
           e =>
             Logging.error(s"Failed to estimate amendment data for subscription ${subscription.subscriptionNumber}: $e"),
@@ -38,9 +41,38 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
         )
     } yield ()
 
+  /*
+   * Earliest start date spread out over 3 months.
+   */
+  private[handlers] def spreadEarliestStartDate(
+      subscription: ZuoraSubscription,
+      invoicePreview: ZuoraInvoiceList
+  ): ZIO[AmendmentConfiguration with Random, ConfigurationFailure, LocalDate] = {
+
+    def earliestStartDateForAMonthlySub(config: AmendmentConfig) =
+      for {
+        randomFactor <- random.nextIntBetween(0, 3)
+        earliestStartDate = config.earliestStartDate.plusMonths(randomFactor)
+      } yield earliestStartDate
+
+    val isMonthlySubscription =
+      invoicePreview.invoiceItems
+        .flatMap(ZuoraRatePlanCharge.matchingRatePlanCharge(subscription))
+        .flatMap(_.billingPeriod)
+        .headOption
+        .contains("Month")
+
+    AmendmentConfiguration.amendmentConfig flatMap { config =>
+      if (isMonthlySubscription)
+        earliestStartDateForAMonthlySub(config)
+      else
+        ZIO.succeed(config.earliestStartDate)
+    }
+  }
+
   private def env(
       loggingLayer: ZLayer[Any, Nothing, Logging]
-  ): ZLayer[Any, Any, Logging with AmendmentConfiguration with CohortTable with Zuora] = {
+  ): ZLayer[Any, Any, Logging with AmendmentConfiguration with CohortTable with Zuora with Random] = {
     val cohortTableLayer =
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
         DynamoDBClient.dynamoDB ++ loggingLayer ++ EnvConfiguration.amendmentImpl >>>
@@ -49,7 +81,7 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
     val zuoraLayer =
       EnvConfiguration.zuoraImpl ++ loggingLayer >>>
         ZuoraLive.impl
-    loggingLayer ++ EnvConfiguration.amendmentImpl ++ cohortTableLayer ++ zuoraLayer
+    loggingLayer ++ EnvConfiguration.amendmentImpl ++ cohortTableLayer ++ zuoraLayer ++ Random.live
   }
 
   private val runtime = Runtime.default
