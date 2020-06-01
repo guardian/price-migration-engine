@@ -41,7 +41,7 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
             oldPrice = Some(result.oldPrice),
             estimatedNewPrice = Some(result.estimatedNewPrice),
             currency = Some(result.currency),
-            expectedStartDate = Some(result.expectedStartDate),
+            startDate = Some(result.startDate),
             billingPeriod = Some(result.billingPeriod),
             whenEstimationDone = Some(Instant.now())
           )
