@@ -7,9 +7,9 @@ import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, ReadyFo
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
-import zio.{App, Runtime, ZEnv, ZIO, ZLayer, console}
+import zio.{Runtime, ZEnv, ZIO, ZLayer, console}
 
-object EstimationHandler extends App with RequestHandler[Unit, Unit] {
+object EstimationHandler extends zio.App with RequestHandler[Unit, Unit] {
 
   val main: ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora, Failure, Unit] =
     for {
@@ -44,10 +44,6 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
             billingPeriod = Some(result.billingPeriod),
             whenEstimationDone = Some(Instant.now())
           )
-        )
-        .tapBoth(
-          e => Logging.error(s"Failed to update Cohort table: $e"),
-          _ => Logging.info(s"Wrote $result to Cohort table")
         )
     } yield ()
 
