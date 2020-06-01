@@ -35,11 +35,11 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
   )
   val stubLogging = console.Console.live >>> ConsoleLogging.impl
 
-  val expectedSubscriptionName = "Sub-0001"
-  val expectedStartDate = LocalDate.of(2020, 1, 1)
-  val expectedCurrency = "GBP"
-  val expectedOldPrice = BigDecimal(11.11)
-  val expectedEstimatedNewPrice = BigDecimal(22.22)
+    val expectedSubscriptionName = "Sub-0001"
+    val expectedStartDate = LocalDate.of(2020, 1, 1)
+    val expectedCurrency = "GBP"
+    val expectedOldPrice = BigDecimal(11.11)
+    val expectedEstimatedNewPrice = BigDecimal(22.22)
 
   def createStubCohortTable(updatedResultsWrittenToCohortTable:ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
@@ -48,11 +48,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
                             filter: CohortTableFilter
                           ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
           assertEquals(filter, EstimationComplete)
-          IO.succeed(
-            ZStream(
-              cohortItem,
-            )
-          )
+          IO.succeed(ZStream(cohortItem))
         }
 
         override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
@@ -106,7 +102,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     val cohortItem = CohortItem(
       subscriptionName = expectedSubscriptionName,
       processingStage = EstimationComplete,
-      expectedStartDate = Some(expectedStartDate),
+      startDate = Some(expectedStartDate),
       currency = Some(expectedCurrency),
       oldPrice = Some(expectedOldPrice),
       estimatedNewPrice = Some(expectedEstimatedNewPrice)
@@ -164,7 +160,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
         CohortItem(
           subscriptionName = expectedSubscriptionName,
           processingStage = EstimationComplete,
-          expectedStartDate = Some(expectedStartDate),
+          startDate = Some(expectedStartDate),
           currency = Some(expectedCurrency),
           oldPrice = Some(expectedOldPrice),
           estimatedNewPrice = Some(expectedEstimatedNewPrice),
