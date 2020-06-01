@@ -161,7 +161,7 @@ Resources:
     DependsOn:
       - S3Bucket
 
-  PriceMigrationEngineNotficationEmailLambdaRole:
+  PriceMigrationEngineNotificationEmailLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
