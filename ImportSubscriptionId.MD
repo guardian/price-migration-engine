@@ -42,5 +42,10 @@ Subscription ids in this file will be excluded from the price migration process.
    aws --profile membership s3 cp ~/Downloads/<exclusions file name>.csv s3://price-migration-engine-prod/excluded-subscription-ids.csv
   ``` 
 
-  
+# Run the import lambda
+
+- Navigate to the [price-migration-engine-subscription-id-upload-lambda-PROD](https://eu-west-1.console.aws.amazon.com/lambda/home?region=eu-west-1#/functions/price-migration-engine-subscription-id-upload-lambda-PROD?tab=configuration)
+lambda in the AWS console. 
+- Click the 'Test' button
+
   

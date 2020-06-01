@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import java.time.{DateTimeException, Instant, LocalDate, OffsetDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
 
-import pricemigrationengine.model.CohortTableFilter.EstimationComplete
+import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.Exit.Success
@@ -42,7 +42,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     val expectedOldPrice = BigDecimal(11.11)
     val expectedEstimatedNewPrice = BigDecimal(22.22)
 
-    val updatedResultsWrittenToCohortTable = ArrayBuffer[SalesforcePriceRiseCreationDetails]()
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
 
     val stubCohortTable = ZLayer.succeed(
       new CohortTable.Service {
@@ -54,29 +54,21 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
             ZStream(
               CohortItem(
                 subscriptionName = expectedSubscriptionName,
+                processingStage = filter,
                 expectedStartDate = Some(expectedStartDate),
                 currency = Some(expectedCurrency),
                 oldPrice = Some(expectedOldPrice),
                 estimatedNewPrice = Some(expectedEstimatedNewPrice)
-              )
+              ),
             )
           )
         }
 
-        override def update(result: EstimationResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
-        override def update(result: AmendmentResult): ZIO[Any, CohortUpdateFailure, Unit] = ???
-
-        override def update(
-            subscriptionName: String,
-            result: SalesforcePriceRiseCreationDetails
-        ): ZIO[Any, CohortUpdateFailure, Unit] = {
+        override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
+        override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
           updatedResultsWrittenToCohortTable.addOne(result)
           IO.succeed(())
         }
-
-        override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
-
-        override def updateToCancelled(item: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
       }
     )
 
@@ -121,12 +113,20 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
     assertEquals(updatedResultsWrittenToCohortTable.size, 1)
     assertEquals(
-      updatedResultsWrittenToCohortTable(0).id,
-      s"SubscritionId-$expectedSubscriptionName-price-rise-id"
+      updatedResultsWrittenToCohortTable(0).subscriptionName,
+      s"Sub-0001"
+    )
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0).processingStage,
+      SalesforcePriceRiceCreationComplete
+    )
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0).salesforcePriceRiseId,
+      Some(s"SubscritionId-$expectedSubscriptionName-price-rise-id")
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).whenSfShowEstimate,
-      expectedCurrentTime
+      Some(expectedCurrentTime)
     )
   }
 }

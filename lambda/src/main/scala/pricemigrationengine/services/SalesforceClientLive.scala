@@ -2,7 +2,7 @@ package pricemigrationengine.services
 
 import java.time.LocalDate
 
-import pricemigrationengine.model.{SalesforceClientFailure, SalesforceConfig, SalesforcePriceRise, SalesforcePriceRiseCreationDetails, SalesforceSubscription}
+import pricemigrationengine.model.{SalesforceClientFailure, SalesforceConfig, SalesforcePriceRise, SalesforceSubscription}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 import upickle.default._
 import zio.{IO, ZIO, ZLayer}

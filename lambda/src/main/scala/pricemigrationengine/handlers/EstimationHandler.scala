@@ -1,7 +1,9 @@
 package pricemigrationengine.handlers
 
+import java.time.Instant
+
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
+import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, ReadyForEstimation}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
@@ -31,7 +33,18 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
           result => Logging.info(s"Estimated result: $result")
         )
       _ <- CohortTable
-        .update(result)
+        .update(
+          CohortItem(
+            result.subscriptionName,
+            processingStage = EstimationComplete,
+            oldPrice = Some(result.oldPrice),
+            estimatedNewPrice = Some(result.estimatedNewPrice),
+            currency = Some(result.currency),
+            expectedStartDate = Some(result.expectedStartDate),
+            billingPeriod = Some(result.billingPeriod),
+            whenEstimationDone = Some(Instant.now())
+          )
+        )
         .tapBoth(
           e => Logging.error(s"Failed to update Cohort table: $e"),
           _ => Logging.info(s"Wrote $result to Cohort table")
