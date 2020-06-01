@@ -36,27 +36,29 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
   ): ZIO[Logging with AmendmentConfiguration with Zuora, Failure, CohortItem] =
     for {
       config <- AmendmentConfiguration.amendmentConfig
-      subscription <- fetchSubscription(item)
-      invoicePreviewBeforeUpdate <- Zuora.fetchInvoicePreview(subscription.accountId)
+      subscriptionBeforeUpdate <- fetchSubscription(item)
+      invoicePreviewBeforeUpdate <- Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId)
       startDate <- ZIO.fromEither(
         AmendmentData.nextServiceStartDate(invoicePreviewBeforeUpdate, config.earliestStartDate)
       )
       update <- ZIO.fromEither(
-        ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(subscription, invoicePreviewBeforeUpdate, startDate)
+        ZuoraSubscriptionUpdate
+          .updateOfRatePlansToCurrent(subscriptionBeforeUpdate, invoicePreviewBeforeUpdate, startDate)
       )
-      newSubscriptionId <- Zuora.updateSubscription(subscription, update)
-      invoicePreviewAfterUpdate <- Zuora.fetchInvoicePreview(subscription.accountId)
+      newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
+      subscriptionAfterUpdate <- fetchSubscription(item)
+      invoicePreviewAfterUpdate <- Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId)
       totalChargeAmount <- ZIO
-        .fromEither(AmendmentData.totalChargeAmount(subscription, invoicePreviewAfterUpdate, startDate))
+        .fromEither(AmendmentData.totalChargeAmount(subscriptionAfterUpdate, invoicePreviewAfterUpdate, startDate))
         .mapError(
           e =>
             AmendmentDataFailure(
-              s"Failed to calculate amendment of subscription ${subscription.subscriptionNumber}: $e"
+              s"Failed to calculate amendment of subscription ${subscriptionBeforeUpdate.subscriptionNumber}: $e"
           )
         )
     } yield
       CohortItem(
-        subscription.subscriptionNumber,
+        subscriptionBeforeUpdate.subscriptionNumber,
         processingStage = AmendmentComplete,
         startDate = Option(startDate),
         newPrice = Some(totalChargeAmount),
