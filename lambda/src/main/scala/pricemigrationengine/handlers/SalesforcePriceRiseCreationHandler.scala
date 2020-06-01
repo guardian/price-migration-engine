@@ -31,12 +31,13 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
         .mapError { error =>
           SalesforcePriceRiseCreationFailure(s"Failed to get currentTime: $error")
         }
-      salesforcePriceRiseCreationDetails = CohortItem(
-        subscriptionName = item.subscriptionName,
-        processingStage = SalesforcePriceRiceCreationComplete,
-        salesforcePriceRiseId =  Some(updateResponse.id),
-        whenSfShowEstimate = Some(time.toInstant)
-      )
+      salesforcePriceRiseCreationDetails =
+        CohortItem(
+          subscriptionName = item.subscriptionName,
+          processingStage = SalesforcePriceRiceCreationComplete,
+          salesforcePriceRiseId =  Some(updateResponse.id),
+          whenSfShowEstimate = Some(time.toInstant)
+        )
       _ <- CohortTable.update(salesforcePriceRiseCreationDetails)
         .tapBoth(
           e => Logging.error(s"Failed to update Cohort table: $e"),

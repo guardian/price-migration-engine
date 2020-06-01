@@ -6,7 +6,7 @@ case class CohortItem(
     subscriptionName: String,
     processingStage: CohortTableFilter,
     expectedStartDate: Option[LocalDate] = None,
-    currency: Option[String] = None,
+    currency: Option[Currency] = None,
     oldPrice: Option[BigDecimal] = None,
     estimatedNewPrice: Option[BigDecimal] = None,
     billingPeriod: Option[String] = None,

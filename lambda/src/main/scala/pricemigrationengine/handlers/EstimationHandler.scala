@@ -6,9 +6,8 @@ import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, ReadyForEstimation}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.clock.Clock
 import zio.console.Console
-import zio.{App, Runtime, ZEnv, ZIO, ZLayer, clock, console}
+import zio.{App, Runtime, ZEnv, ZIO, ZLayer, console}
 
 object EstimationHandler extends App with RequestHandler[Unit, Unit] {
 
@@ -43,7 +42,7 @@ object EstimationHandler extends App with RequestHandler[Unit, Unit] {
             currency = Some(result.currency),
             expectedStartDate = Some(result.expectedStartDate),
             billingPeriod = Some(result.billingPeriod),
-            whenAmendmentDone = Some(Instant.now())
+            whenEstimationDone = Some(Instant.now())
           )
         )
         .tapBoth(

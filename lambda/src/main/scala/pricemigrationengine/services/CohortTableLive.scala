@@ -5,7 +5,6 @@ import java.time.{Instant, LocalDate, ZoneOffset}
 import java.util
 
 import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
-import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services.CohortTable.Service
 import zio.stream.ZStream
@@ -72,7 +71,7 @@ object CohortTableLive {
     cohortItem =>
       Map(
         stringUpdate("subscriptionNumber", cohortItem.subscriptionName),
-        stringUpdate("processingStage", ReadyForEstimation.value)
+        stringUpdate("processingStage", cohortItem.processingStage.value)
       ).asJava
 
   private def stringFieldUpdate(fieldName: String, stringValue: String) =

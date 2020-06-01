@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import java.io.{InputStream, InputStreamReader}
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import org.apache.commons.csv.{CSVFormat, CSVParser, CSVRecord}
+import org.apache.commons.csv.{CSVFormat, CSVParser}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services._
