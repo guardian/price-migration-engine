@@ -47,10 +47,12 @@ class CohortTableLiveTest extends munit.FunSuite {
 
         override def update[A, B](table: String, key: A, value: B)(
             implicit keySerializer: DynamoDBSerialiser[A],
-            valueSerializer: DynamoDBUpdateSerialiser[B]): IO[DynamoDBZIOError, Unit] = ???
+            valueSerializer: DynamoDBUpdateSerialiser[B]
+        ): IO[DynamoDBZIOError, Unit] = ???
 
-        override def put[A](table: String,
-                            value: A)(implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = ???
+        override def put[A](table: String, value: A)(
+            implicit valueSerializer: DynamoDBSerialiser[A]
+        ): IO[DynamoDBZIOError, Unit] = ???
       }
     )
 
@@ -100,12 +102,12 @@ class CohortTableLiveTest extends munit.FunSuite {
     val stubDynamoDBZIO = ZLayer.succeed(
       new DynamoDBZIO.Service {
         override def query[A](query: QueryRequest)(
-          implicit deserializer: DynamoDBDeserialiser[A]
+            implicit deserializer: DynamoDBDeserialiser[A]
         ): ZStream[Any, DynamoDBZIOError, A] = ???
 
         override def update[A, B](table: String, key: A, value: B)(
-          implicit keySerializer: DynamoDBSerialiser[A],
-          valueSerializer: DynamoDBUpdateSerialiser[B]
+            implicit keySerializer: DynamoDBSerialiser[A],
+            valueSerializer: DynamoDBUpdateSerialiser[B]
         ): IO[DynamoDBZIOError, Unit] = {
           tableUpdated = Some(table)
           receivedKey = Some(key.asInstanceOf[CohortTableKey])
@@ -115,24 +117,25 @@ class CohortTableLiveTest extends munit.FunSuite {
           ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
         }
 
-        override def put[A](table: String,
-                            value: A)(implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = ???
+        override def put[A](table: String, value: A)(
+            implicit valueSerializer: DynamoDBSerialiser[A]
+        ): IO[DynamoDBZIOError, Unit] = ???
       }
     )
 
     val expectedSubscriptionId = "subscription-id"
     val expectedProcessingStage = ReadyForEstimation
-    val expectedStartDate = LocalDate.now.plusDays(Random.nextInt(365))
+    val startDate = LocalDate.now.plusDays(Random.nextInt(365))
     val expectedCurrency = "GBP"
     val expectedOldPrice = Random.nextDouble()
     val expectedNewPrice = Random.nextDouble()
     val expectedEstimatedNewPrice = Random.nextDouble()
     val expectedBillingPeriod = "Monthly"
-    val expectedWhenEstimationDone =  Instant.ofEpochMilli(Random.nextLong())
+    val expectedWhenEstimationDone = Instant.ofEpochMilli(Random.nextLong())
     val expectedPriceRiseId = "price-rise-id"
-    val expectedSfShowEstimate =  Instant.ofEpochMilli(Random.nextLong())
+    val expectedSfShowEstimate = Instant.ofEpochMilli(Random.nextLong())
     val expectedNewSuscriptionId = "new-sub-id"
-    val expectedWhenAmmendmentDone =  Instant.ofEpochMilli(Random.nextLong())
+    val expectedWhenAmmendmentDone = Instant.ofEpochMilli(Random.nextLong())
 
     val cohortItem = CohortItem(
       subscriptionName = expectedSubscriptionId,
@@ -145,7 +148,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       whenEstimationDone = Some(expectedWhenEstimationDone),
       salesforcePriceRiseId = Some(expectedPriceRiseId),
       whenSfShowEstimate = Some(expectedSfShowEstimate),
-      startDate = Some(expectedStartDate),
+      startDate = Some(startDate),
       newSubscriptionId = Some(expectedNewSuscriptionId),
       whenAmendmentDone = Some(expectedWhenAmmendmentDone)
     )
@@ -208,12 +211,16 @@ class CohortTableLiveTest extends munit.FunSuite {
     )
     assertEquals(
       update.get("whenSfShowEstimate"),
-      new AttributeValueUpdate(new AttributeValue().withS(DateTimeFormatter.ISO_DATE_TIME.format(expectedSfShowEstimate.atZone(ZoneOffset.UTC))), AttributeAction.PUT),
+      new AttributeValueUpdate(
+        new AttributeValue()
+          .withS(DateTimeFormatter.ISO_DATE_TIME.format(expectedSfShowEstimate.atZone(ZoneOffset.UTC))),
+        AttributeAction.PUT
+      ),
       "whenSfShowEstimate"
     )
     assertEquals(
       update.get("startDate"),
-      new AttributeValueUpdate(new AttributeValue().withS(expectedStartDate.toString), AttributeAction.PUT),
+      new AttributeValueUpdate(new AttributeValue().withS(startDate.toString), AttributeAction.PUT),
       "startDate"
     )
     assertEquals(
@@ -223,7 +230,11 @@ class CohortTableLiveTest extends munit.FunSuite {
     )
     assertEquals(
       update.get("whenAmendmentDone"),
-      new AttributeValueUpdate(new AttributeValue().withS(DateTimeFormatter.ISO_DATE_TIME.format(expectedWhenAmmendmentDone.atZone(ZoneOffset.UTC))), AttributeAction.PUT),
+      new AttributeValueUpdate(
+        new AttributeValue()
+          .withS(DateTimeFormatter.ISO_DATE_TIME.format(expectedWhenAmmendmentDone.atZone(ZoneOffset.UTC))),
+        AttributeAction.PUT
+      ),
       "whenAmendmentDone"
     )
   }
@@ -247,8 +258,9 @@ class CohortTableLiveTest extends munit.FunSuite {
           ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
         }
 
-        override def put[A](table: String,
-                            value: A)(implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = ???
+        override def put[A](table: String, value: A)(
+            implicit valueSerializer: DynamoDBSerialiser[A]
+        ): IO[DynamoDBZIOError, Unit] = ???
       }
     )
 
@@ -257,7 +269,7 @@ class CohortTableLiveTest extends munit.FunSuite {
 
     val cohortItem = CohortItem(
       subscriptionName = expectedSubscriptionId,
-      processingStage = expectedProcessingStage,
+      processingStage = expectedProcessingStage
     )
 
     assertEquals(
@@ -280,7 +292,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     )
     assertEquals(update.get("currency"), None, "currency")
     assertEquals(update.get("oldPrice"), None, "oldPrice")
-    assertEquals(update.get("newPrice"),None, "newPrice")
+    assertEquals(update.get("newPrice"), None, "newPrice")
     assertEquals(update.get("estimatedNewPrice"), None, "estimatedNewPrice")
     assertEquals(update.get("billingPeriod"), None, "billingPeriod")
     assertEquals(update.get("salesforcePriceRiseId"), None, "salesforcePriceRiseId")
@@ -306,8 +318,9 @@ class CohortTableLiveTest extends munit.FunSuite {
             valueSerializer: DynamoDBUpdateSerialiser[B]
         ): IO[DynamoDBZIOError, Unit] = ???
 
-        override def put[A](table: String,
-                            value: A)(implicit valueSerializer: DynamoDBSerialiser[A]): IO[DynamoDBZIOError, Unit] = {
+        override def put[A](table: String, value: A)(
+            implicit valueSerializer: DynamoDBSerialiser[A]
+        ): IO[DynamoDBZIOError, Unit] = {
           tableUpdated = Some(table)
           receivedInsert = Some(value.asInstanceOf[CohortItem])
           receivedSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBSerialiser[CohortItem]])

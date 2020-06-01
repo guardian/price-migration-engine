@@ -23,7 +23,7 @@ Mappings:
       BucketName: price-migration-engine-code
     PROD:
       SecretsVersion: "0ef81375-18ec-4a94-b4b9-eb4c399e3455"
-      EarliestStartDate: 2020-12-25
+      EarliestStartDate: 2020-07-27
       BucketName: price-migration-engine-prod
 
 Resources:
