@@ -8,8 +8,6 @@ import zio.clock.Clock
 import zio.console.Console
 import zio.{App, IO, Runtime, ZEnv, ZIO, ZLayer, clock, console}
 
-
-
 object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, Unit] {
 
   val main: ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, Unit] =
@@ -22,7 +20,7 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
     item: CohortItem
   ): ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, Unit] =
     for {
-      updateResponse <- updateSalesforce(item)
+      optionalNewPriceRiseId <- updateSalesforce(item)
         .tapBoth(
           e => Logging.error(s"Failed to write create Price_Rise in salesforce: $e"),
           result => Logging.info(s"SalesforcePriceRise result: $result")
@@ -35,7 +33,7 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
         CohortItem(
           subscriptionName = item.subscriptionName,
           processingStage = SalesforcePriceRiceCreationComplete,
-          salesforcePriceRiseId =  Some(updateResponse.id),
+          salesforcePriceRiseId = optionalNewPriceRiseId,
           whenSfShowEstimate = Some(time.toInstant)
         )
       _ <- CohortTable.update(salesforcePriceRiseCreationDetails)
@@ -45,11 +43,21 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
         )
     } yield ()
 
-  private def updateSalesforce(cohortItem: CohortItem): ZIO[SalesforceClient, Failure, SalesforcePriceRiseCreationResponse] = {
+  private def updateSalesforce(cohortItem: CohortItem): ZIO[SalesforceClient, Failure, Option[String]] = {
     for {
       subscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
       priceRise <- buildPriceRise(cohortItem, subscription)
-      result <- SalesforceClient.createPriceRise(priceRise)
+      result <- cohortItem
+        .salesforcePriceRiseId
+        .fold(
+          SalesforceClient
+            .createPriceRise(priceRise)
+            .map[Option[String]](response => Some(response.id))
+        ) { priceRiseId =>
+          SalesforceClient
+            .updatePriceRise(priceRiseId, priceRise)
+            .map(_ => None)
+        }
     } yield result
   }
 

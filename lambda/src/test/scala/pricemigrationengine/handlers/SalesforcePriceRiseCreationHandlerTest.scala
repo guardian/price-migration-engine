@@ -16,83 +16,103 @@ import zio.{IO, UIO, ZIO, ZLayer, console}
 import scala.collection.mutable.ArrayBuffer
 
 class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
-  test("SalesforcePriceRiseCreateHandler should get estimated prices from ") {
-    val stubConfiguration = ZLayer.succeed(
-      new AmendmentConfiguration.Service {
-        override val config: IO[ConfigurationFailure, AmendmentConfig] =
-          IO.succeed(AmendmentConfig(LocalDate.now))
-      }
-    )
+  val stubConfiguration = ZLayer.succeed(
+    new AmendmentConfiguration.Service {
+      override val config: IO[ConfigurationFailure, AmendmentConfig] =
+        IO.succeed(AmendmentConfig(LocalDate.now))
+    }
+  )
 
-    val expectedCurrentTime = Instant.parse("2020-05-21T15:16:37Z")
-    val stubClock = ZLayer.succeed(
-      new Clock.Service {
-        override def currentTime(unit: TimeUnit): UIO[Long] = ???
-        override def currentDateTime: IO[DateTimeException, OffsetDateTime] =
-          IO.succeed(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
-        override def nanoTime: UIO[Long] = ???
-        override def sleep(duration: Duration): UIO[Unit] = ???
-      }
-    )
-    val stubLogging = console.Console.live >>> ConsoleLogging.impl
+  val expectedCurrentTime = Instant.parse("2020-05-21T15:16:37Z")
+  val stubClock = ZLayer.succeed(
+    new Clock.Service {
+      override def currentTime(unit: TimeUnit): UIO[Long] = ???
+      override def currentDateTime: IO[DateTimeException, OffsetDateTime] =
+        IO.succeed(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
+      override def nanoTime: UIO[Long] = ???
+      override def sleep(duration: Duration): UIO[Unit] = ???
+    }
+  )
+  val stubLogging = console.Console.live >>> ConsoleLogging.impl
 
-    val expectedSubscriptionName = "Sub-0001"
-    val expectedStartDate = LocalDate.of(2020, 1, 1)
-    val expectedCurrency = "GBP"
-    val expectedOldPrice = BigDecimal(11.11)
-    val expectedEstimatedNewPrice = BigDecimal(22.22)
+  val expectedSubscriptionName = "Sub-0001"
+  val expectedStartDate = LocalDate.of(2020, 1, 1)
+  val expectedCurrency = "GBP"
+  val expectedOldPrice = BigDecimal(11.11)
+  val expectedEstimatedNewPrice = BigDecimal(22.22)
 
-    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
-
-    val stubCohortTable = ZLayer.succeed(
+  def createStubCohortTable(updatedResultsWrittenToCohortTable:ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
+    ZLayer.succeed(
       new CohortTable.Service {
         override def fetch(
-            filter: CohortTableFilter
-        ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
+                            filter: CohortTableFilter
+                          ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
           assertEquals(filter, EstimationComplete)
           IO.succeed(
             ZStream(
-              CohortItem(
-                subscriptionName = expectedSubscriptionName,
-                processingStage = filter,
-                expectedStartDate = Some(expectedStartDate),
-                currency = Some(expectedCurrency),
-                oldPrice = Some(expectedOldPrice),
-                estimatedNewPrice = Some(expectedEstimatedNewPrice)
-              ),
+              cohortItem,
             )
           )
         }
 
         override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
+
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
           updatedResultsWrittenToCohortTable.addOne(result)
           IO.succeed(())
         }
       }
     )
+  }
 
-    val createdPriceRises = ArrayBuffer[SalesforcePriceRise]()
-
-    val stubSalesforceClient = ZLayer.succeed(
+  private def stubSFClient(
+    createdPriceRises: ArrayBuffer[SalesforcePriceRise],
+    updatedPriceRises: ArrayBuffer[SalesforcePriceRise]
+  ) = {
+    ZLayer.succeed(
       new SalesforceClient.Service {
         override def getSubscriptionByName(
-            subscriptionName: String
-        ): IO[SalesforceClientFailure, SalesforceSubscription] = {
+                                            subscriptionName: String
+                                          ): IO[SalesforceClientFailure, SalesforceSubscription] = {
           IO.effect(
-              SalesforceSubscription(s"SubscritionId-$subscriptionName", subscriptionName, s"Buyer-$subscriptionName")
-            )
+            SalesforceSubscription(s"SubscritionId-$subscriptionName", subscriptionName, s"Buyer-$subscriptionName")
+          )
             .orElseFail(SalesforceClientFailure(""))
         }
 
         override def createPriceRise(
-            priceRise: SalesforcePriceRise
-        ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] = {
+                                      priceRise: SalesforcePriceRise
+                                    ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] = {
           createdPriceRises.addOne(priceRise)
           ZIO.succeed(SalesforcePriceRiseCreationResponse(s"${priceRise.SF_Subscription__c}-price-rise-id"))
         }
+
+        override def updatePriceRise(
+                                      priceRiseId: String, priceRise: SalesforcePriceRise
+                                    ): IO[SalesforceClientFailure, Unit] = {
+          updatedPriceRises.addOne(priceRise)
+          ZIO.unit
+        }
       }
     )
+  }
+
+  test("SalesforcePriceRiseCreateHandler should get estimate from cohort table and create sf price rise") {
+    val createdPriceRises = ArrayBuffer[SalesforcePriceRise]()
+    val updatedPriceRises = ArrayBuffer[SalesforcePriceRise]()
+    val stubSalesforceClient = stubSFClient(createdPriceRises, updatedPriceRises)
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
+
+    val cohortItem = CohortItem(
+      subscriptionName = expectedSubscriptionName,
+      processingStage = EstimationComplete,
+      expectedStartDate = Some(expectedStartDate),
+      currency = Some(expectedCurrency),
+      oldPrice = Some(expectedOldPrice),
+      estimatedNewPrice = Some(expectedEstimatedNewPrice)
+    )
+
+    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
 
     assertEquals(
       default.unsafeRunSync(
@@ -123,6 +143,64 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     assertEquals(
       updatedResultsWrittenToCohortTable(0).salesforcePriceRiseId,
       Some(s"SubscritionId-$expectedSubscriptionName-price-rise-id")
+    )
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0).whenSfShowEstimate,
+      Some(expectedCurrentTime)
+    )
+  }
+
+  test(
+    "SalesforcePriceRiseCreateHandler should get estimate from cohort table and update sf price rise if it exists"
+  ) {
+    val createdPriceRises = ArrayBuffer[SalesforcePriceRise]()
+    val updatedPriceRises = ArrayBuffer[SalesforcePriceRise]()
+    val stubSalesforceClient = stubSFClient(createdPriceRises, updatedPriceRises)
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
+
+    val stubCohortTable =
+      createStubCohortTable(
+        updatedResultsWrittenToCohortTable,
+        CohortItem(
+          subscriptionName = expectedSubscriptionName,
+          processingStage = EstimationComplete,
+          expectedStartDate = Some(expectedStartDate),
+          currency = Some(expectedCurrency),
+          oldPrice = Some(expectedOldPrice),
+          estimatedNewPrice = Some(expectedEstimatedNewPrice),
+          salesforcePriceRiseId = Some("existing-price-rise-id")
+        )
+      )
+
+    assertEquals(
+      default.unsafeRunSync(
+        SalesforcePriceRiseCreationHandler.main
+          .provideLayer(
+            stubLogging ++ stubConfiguration ++ stubCohortTable ++ stubSalesforceClient ++ stubClock
+          )
+      ),
+      Success(())
+    )
+
+    assertEquals(updatedPriceRises.size, 1)
+    assertEquals(updatedPriceRises(0).SF_Subscription__c, s"SubscritionId-$expectedSubscriptionName")
+    assertEquals(updatedPriceRises(0).Buyer__c, s"Buyer-$expectedSubscriptionName")
+    assertEquals(updatedPriceRises(0).Current_Price_Today__c, expectedOldPrice)
+    assertEquals(updatedPriceRises(0).Guardian_Weekly_New_Price__c, expectedEstimatedNewPrice)
+    assertEquals(updatedPriceRises(0).Price_Rise_Date__c, expectedStartDate)
+
+    assertEquals(updatedResultsWrittenToCohortTable.size, 1)
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0).subscriptionName,
+      s"Sub-0001"
+    )
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0).processingStage,
+      SalesforcePriceRiceCreationComplete
+    )
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0).salesforcePriceRiseId,
+      None
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).whenSfShowEstimate,

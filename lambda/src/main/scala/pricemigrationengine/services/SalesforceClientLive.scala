@@ -77,7 +77,9 @@ object SalesforceClientLive {
           logging.info(s"Successfully loaded: ${subscription}")
         )
 
-      override def createPriceRise(priceRise: SalesforcePriceRise): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] =
+      override def createPriceRise(
+        priceRise: SalesforcePriceRise
+      ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] =
         sendRequest[SalesforcePriceRiseCreationResponse](
           Http(s"${auth.instance_url}/services/data/v43.0/sobjects/Price_Rise__c/")
             .postData(write(priceRise))
@@ -85,6 +87,20 @@ object SalesforceClientLive {
             .header("Content-Type", "application/json")
         ).tap( priceRiseId =>
           logging.info(s"Successfully created Price_Rise__c object: ${priceRiseId.id}")
+        )
+
+      override def updatePriceRise(
+        priceRiseId: String, priceRise: SalesforcePriceRise
+      ): IO[SalesforceClientFailure, Unit] =
+        sendRequest[Unit](
+          Http(s"${auth.instance_url}/services/data/v43.0/sobjects/Price_Rise__c/$priceRiseId")
+            .postData(write(priceRise))
+            .method("PATCH")
+            .header("Authorization", s"Bearer ${auth.access_token}")
+            .header("Content-Type", "application/json")
+        )
+        .tap( _ =>
+          logging.info(s"Successfully updated Price_Rise__c object: ${priceRiseId}")
         )
     }
   }
