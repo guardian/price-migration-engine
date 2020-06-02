@@ -19,10 +19,7 @@ object NotificationEmailHandler {
         DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++
           EnvConfiguration.stageImp ++ EnvConfiguration.salesforceImp >>>
         CohortTableLive.impl ++ SalesforceClientLive.impl
-    val zuoraLayer =
-      EnvConfiguration.zuoraImpl ++ loggingLayer >>>
-        ZuoraLive.impl
-    loggingLayer ++ EnvConfiguration.amendmentImpl ++ cohortTableLayer ++ zuoraLayer ++ Random.live
+    loggingLayer ++ EnvConfiguration.amendmentImpl ++ cohortTableLayer
   }
 
   private val runtime = Runtime.default
