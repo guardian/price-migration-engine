@@ -31,8 +31,8 @@ object ZuoraLive {
           private case class InvoicePreviewRequest(
               accountId: String,
               targetDate: LocalDate,
-              assumeRenewal: String = "Autorenew",
-              chargeTypeToExclude: String = "OneTime"
+              assumeRenewal: String,
+              chargeTypeToExclude: String
           )
           private implicit val rwInvoicePreviewRequest: ReadWriter[InvoicePreviewRequest] = macroRW
 
@@ -121,7 +121,14 @@ object ZuoraLive {
           def fetchInvoicePreview(accountId: String): ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList] =
             post[ZuoraInvoiceList](
               path = "operations/billing-preview",
-              body = write(InvoicePreviewRequest(accountId, targetDate = config.yearInFuture))
+              body = write(
+                InvoicePreviewRequest(
+                  accountId,
+                  targetDate = config.yearInFuture,
+                  assumeRenewal = "Autorenew",
+                  chargeTypeToExclude = "OneTime"
+                )
+              )
             ).mapError(e => ZuoraFetchFailure(s"Invoice preview for account $accountId: ${e.reason}"))
               .tap(_ => logging.info(s"Fetched invoice preview for account $accountId"))
 
@@ -163,7 +170,7 @@ object ZuoraLive {
                 e =>
                   ZuoraUpdateFailure(
                     s"Subscription ${subscription.subscriptionNumber} and update $update: ${e.reason}"
-                  ),
+                ),
                 response => response.subscriptionId
               )
               .tap(_ => logging.info(s"Updated subscription ${subscription.subscriptionNumber} with: $update"))
