@@ -80,6 +80,20 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
+  test("priceData: is correct for a 25% discounted Everyday voucher subscription") {
+    val fixtureSet = "EverydayDiscount25%"
+    val priceData = AmendmentData.priceData(
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      startDate = LocalDate.of(2020, 6, 4)
+    )
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 35.7, newPrice = 39.71, billingPeriod = "Month"))
+    )
+  }
+
   test("combinePrices: combines prices correctly") {
     val combinedPrice = AmendmentData.combinePrices(
       Seq(
@@ -128,7 +142,7 @@ class AmendmentDataTest extends munit.FunSuite {
     val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
     val serviceStartDate = LocalDate.of(2020, 6, 9)
     val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate)
-    assertEquals(totalChargeAmount, Right(BigDecimal(25.98)))
+    assertEquals(totalChargeAmount, Right(BigDecimal(25.95)))
   }
 
   test("totalChargeAmount: is correct for a discounted non-taxable product") {
