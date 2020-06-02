@@ -28,7 +28,12 @@ object ZuoraLive {
           private case class AccessToken(access_token: String)
           private implicit val rwAccessToken: ReadWriter[AccessToken] = macroRW
 
-          private case class InvoicePreviewRequest(accountId: String, targetDate: LocalDate)
+          private case class InvoicePreviewRequest(
+              accountId: String,
+              targetDate: LocalDate,
+              assumeRenewal: String = "Autorenew",
+              chargeTypeToExclude: String = "OneTime"
+          )
           private implicit val rwInvoicePreviewRequest: ReadWriter[InvoicePreviewRequest] = macroRW
 
           private case class SubscriptionUpdateResponse(subscriptionId: ZuoraSubscriptionId)
@@ -112,6 +117,7 @@ object ZuoraLive {
               .mapError(e => ZuoraFetchFailure(s"Subscription $subscriptionNumber: ${e.reason}"))
               .tap(_ => logging.info(s"Fetched subscription $subscriptionNumber"))
 
+          // See https://www.zuora.com/developer/api-reference/#operation/POST_BillingPreviewRun
           def fetchInvoicePreview(accountId: String): ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList] =
             post[ZuoraInvoiceList](
               path = "operations/billing-preview",
@@ -157,7 +163,7 @@ object ZuoraLive {
                 e =>
                   ZuoraUpdateFailure(
                     s"Subscription ${subscription.subscriptionNumber} and update $update: ${e.reason}"
-                ),
+                  ),
                 response => response.subscriptionId
               )
               .tap(_ => logging.info(s"Updated subscription ${subscription.subscriptionNumber} with: $update"))
