@@ -7,7 +7,7 @@ import zio.console.Console
 import zio.random.Random
 import zio.{Runtime, ZEnv, ZIO, ZLayer, console}
 
-class NotificationEmailHandler {
+object NotificationEmailHandler {
   val main: ZIO[Logging with CohortTable with SalesforceClient, Failure, Unit] = ???
 
   private def env(
@@ -32,7 +32,6 @@ class NotificationEmailHandler {
       .provideSomeLayer(
         env(Console.live >>> ConsoleLogging.impl)
       )
-      // output any failures in service construction - there's probably a better way to do this
       .foldM(
         e => console.putStrLn(s"Failed: $e") *> ZIO.succeed(1),
         _ => console.putStrLn("Succeeded!") *> ZIO.succeed(0)
