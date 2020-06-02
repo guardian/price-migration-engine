@@ -29,7 +29,15 @@ object SalesforceClientLive {
       requestAsMessage(request) + s" returned status ${response.code} with body:${response.body}"
     }
 
-    def sendRequest[A](request: HttpRequest)(implicit reader: Reader[A]): ZIO[Any, SalesforceClientFailure, A] =
+    def sendRequestAndParseResponse[A](request: HttpRequest)(implicit reader: Reader[A]): ZIO[Any, SalesforceClientFailure, A] =
+      for {
+        valid200Response <- sendRequest(request)
+        parsedResponse <- IO
+          .effect(read[A](valid200Response.body))
+          .mapError(ex => SalesforceClientFailure(s"${requestAsMessage(request)} failed to deserialise: $ex"))
+      } yield parsedResponse
+
+    def sendRequest(request: HttpRequest):ZIO[Any, SalesforceClientFailure, HttpResponse[String]] =
       for {
         response <- IO.effect(request.asString)
           .mapError(ex => SalesforceClientFailure(s"Request for ${requestAsMessage(request)} failed: $ex"))
@@ -38,13 +46,10 @@ object SalesforceClientLive {
         } else {
           IO.fail(SalesforceClientFailure(failureMessage(request, response)))
         }
-        parsedResponse <- IO
-          .effect(read[A](valid200Response.body))
-          .mapError(ex => SalesforceClientFailure(s"${requestAsMessage(request)} failed to deserialise: $ex"))
-      } yield parsedResponse
+      } yield valid200Response
 
     def auth(config: SalesforceConfig): IO[SalesforceClientFailure, SalesforceAuthDetails] = {
-      sendRequest[SalesforceAuthDetails](
+      sendRequestAndParseResponse[SalesforceAuthDetails](
         Http(s"${config.authUrl}/services/oauth2/token")
           .postForm(
             Seq(
@@ -69,7 +74,7 @@ object SalesforceClientLive {
       override def getSubscriptionByName(
         subscriptionName: String
       ): IO[SalesforceClientFailure, SalesforceSubscription] =
-        sendRequest[SalesforceSubscription](
+        sendRequestAndParseResponse[SalesforceSubscription](
           Http(s"${auth.instance_url}/services/data/v43.0/sobjects/SF_Subscription__c/Name/${subscriptionName}")
             .header("Authorization", s"Bearer ${auth.access_token}")
             .method("GET")
@@ -77,14 +82,31 @@ object SalesforceClientLive {
           logging.info(s"Successfully loaded: ${subscription}")
         )
 
-      override def createPriceRise(priceRise: SalesforcePriceRise): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] =
-        sendRequest[SalesforcePriceRiseCreationResponse](
+      override def createPriceRise(
+        priceRise: SalesforcePriceRise
+      ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] =
+        sendRequestAndParseResponse[SalesforcePriceRiseCreationResponse](
           Http(s"${auth.instance_url}/services/data/v43.0/sobjects/Price_Rise__c/")
             .postData(write(priceRise))
             .header("Authorization", s"Bearer ${auth.access_token}")
             .header("Content-Type", "application/json")
         ).tap( priceRiseId =>
           logging.info(s"Successfully created Price_Rise__c object: ${priceRiseId.id}")
+        )
+
+      override def updatePriceRise(
+        priceRiseId: String, priceRise: SalesforcePriceRise
+      ): IO[SalesforceClientFailure, Unit] =
+        sendRequest(
+          Http(s"${auth.instance_url}/services/data/v43.0/sobjects/Price_Rise__c/$priceRiseId")
+            .postData(write(priceRise))
+            .method("PATCH")
+            .header("Authorization", s"Bearer ${auth.access_token}")
+            .header("Content-Type", "application/json")
+        )
+        .map(_ => ())
+        .tap( _ =>
+          logging.info(s"Successfully updated Price_Rise__c object: ${priceRiseId}")
         )
     }
   }

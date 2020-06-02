@@ -9,6 +9,7 @@ object SalesforceClient {
   trait Service {
     def getSubscriptionByName(subscrptionName: String): IO[SalesforceClientFailure, SalesforceSubscription]
     def createPriceRise(priceRise: SalesforcePriceRise): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse]
+    def updatePriceRise(priceRiseId: String, priceRise: SalesforcePriceRise): IO[SalesforceClientFailure, Unit]
   }
 
   def getSubscriptionByName(
@@ -20,4 +21,10 @@ object SalesforceClient {
     priceRise: SalesforcePriceRise
   ): ZIO[SalesforceClient, SalesforceClientFailure, SalesforcePriceRiseCreationResponse] =
     ZIO.accessM(_.get.createPriceRise(priceRise))
+
+  def updatePriceRise(
+    priceRiseId: String,
+    priceRise: SalesforcePriceRise
+  ): ZIO[SalesforceClient, SalesforceClientFailure, Unit] =
+    ZIO.accessM(_.get.updatePriceRise(priceRiseId, priceRise))
 }
