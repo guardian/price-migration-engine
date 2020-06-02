@@ -28,7 +28,12 @@ object ZuoraLive {
           private case class AccessToken(access_token: String)
           private implicit val rwAccessToken: ReadWriter[AccessToken] = macroRW
 
-          private case class InvoicePreviewRequest(accountId: String, targetDate: LocalDate)
+          private case class InvoicePreviewRequest(
+              accountId: String,
+              targetDate: LocalDate,
+              assumeRenewal: String,
+              chargeTypeToExclude: String
+          )
           private implicit val rwInvoicePreviewRequest: ReadWriter[InvoicePreviewRequest] = macroRW
 
           private case class SubscriptionUpdateResponse(subscriptionId: ZuoraSubscriptionId)
@@ -110,21 +115,38 @@ object ZuoraLive {
           def fetchSubscription(subscriptionNumber: String): ZIO[Any, ZuoraFetchFailure, ZuoraSubscription] =
             get[ZuoraSubscription](s"subscriptions/$subscriptionNumber")
               .mapError(e => ZuoraFetchFailure(s"Subscription $subscriptionNumber: ${e.reason}"))
-              .tap(_ => logging.info(s"Fetched subscription $subscriptionNumber"))
+              .tapBoth(
+                e => logging.error(s"Failed to fetch subscription $subscriptionNumber: $e"),
+                _ => logging.info(s"Fetched subscription $subscriptionNumber")
+              )
 
+          // See https://www.zuora.com/developer/api-reference/#operation/POST_BillingPreviewRun
           def fetchInvoicePreview(accountId: String): ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList] =
             post[ZuoraInvoiceList](
               path = "operations/billing-preview",
-              body = write(InvoicePreviewRequest(accountId, targetDate = config.yearInFuture))
+              body = write(
+                InvoicePreviewRequest(
+                  accountId,
+                  targetDate = config.yearInFuture,
+                  assumeRenewal = "Autorenew",
+                  chargeTypeToExclude = "OneTime"
+                )
+              )
             ).mapError(e => ZuoraFetchFailure(s"Invoice preview for account $accountId: ${e.reason}"))
-              .tap(_ => logging.info(s"Fetched invoice preview for account $accountId"))
+              .tapBoth(
+                e => logging.error(s"Failed to fetch invoice preview for account $accountId: $e"),
+                _ => logging.info(s"Fetched invoice preview for account $accountId")
+              )
 
           val fetchProductCatalogue: ZIO[Any, ZuoraFetchFailure, ZuoraProductCatalogue] = {
 
             def fetchPage(idx: Int): ZIO[Any, ZuoraFetchFailure, ZuoraProductCatalogue] =
               get[ZuoraProductCatalogue](path = "catalog/products", params = Map("page" -> idx.toString))
                 .mapError(e => ZuoraFetchFailure(s"Product catalogue: ${e.reason}"))
-                .tap(_ => logging.info(s"Fetched product catalogue page $idx"))
+                .tapBoth(
+                  e => logging.error(s"Failed to fetch product catalogue page $idx: $e"),
+                  _ => logging.info(s"Fetched product catalogue page $idx")
+                )
 
             def hasNextPage(catalogue: ZuoraProductCatalogue) = catalogue.nextPage.isDefined
 
@@ -157,7 +179,7 @@ object ZuoraLive {
                 e =>
                   ZuoraUpdateFailure(
                     s"Subscription ${subscription.subscriptionNumber} and update $update: ${e.reason}"
-                ),
+                  ),
                 response => response.subscriptionId
               )
               .tap(_ => logging.info(s"Updated subscription ${subscription.subscriptionNumber} with: $update"))
