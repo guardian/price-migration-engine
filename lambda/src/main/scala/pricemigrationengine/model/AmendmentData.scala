@@ -79,7 +79,7 @@ object AmendmentData {
         invoiceItems =>
           AmendmentDataFailure(
             s"Failed to find matching rate plan charge for invoice items: ${invoiceItems.map(_.chargeNumber).mkString(", ")}"
-        )
+          )
       )
       pricings <- eitherFailingOrPassingResults(
         /*
@@ -141,9 +141,9 @@ object AmendmentData {
     if (discounts.length > 1) Left(AmendmentDataFailure(s"Multiple discounts applied: ${discounts.mkString(", ")}"))
     else
       Right {
-        applyDiscount(
+        applyDiscountAndThenSum(
           discountPercentage = discounts.headOption,
-          beforeDiscount = amounts.collect { case Right(amount) => amount }.sum
+          beforeDiscount = amounts.collect { case Right(amount) => amount }
         )
       }
   }
@@ -158,13 +158,16 @@ object AmendmentData {
       case Some(_)          => Right(0)
     }
 
-  def combinePrices(pricings: Seq[ZuoraPricing]): BigDecimal = {
-    val discountPercentage = pricings.map(_.discountPercentage).find(_ > 0)
-    val beforeDiscount = pricings.flatMap(_.price).sum
-    applyDiscount(discountPercentage, beforeDiscount)
-  }
+  def combinePrices(pricings: Seq[ZuoraPricing]): BigDecimal =
+    applyDiscountAndThenSum(
+      discountPercentage = pricings.map(_.discountPercentage).find(_ > 0),
+      beforeDiscount = pricings.flatMap(_.price)
+    )
 
-  private def applyDiscount(discountPercentage: Option[Double], beforeDiscount: BigDecimal) =
+  private def applyDiscountAndThenSum(discountPercentage: Option[Double], beforeDiscount: Seq[BigDecimal]): BigDecimal =
+    beforeDiscount.map(applyDiscount(discountPercentage)).sum
+
+  private def applyDiscount(discountPercentage: Option[Double])(beforeDiscount: BigDecimal) =
     roundDown(discountPercentage.fold(beforeDiscount)(percentage => (100 - percentage) / 100 * beforeDiscount))
 
   def roundDown(d: BigDecimal): BigDecimal = d.setScale(2, RoundingMode.DOWN)
