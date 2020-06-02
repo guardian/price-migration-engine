@@ -195,23 +195,34 @@ object CohortTableLive {
       dependencies: DynamoDBZIO with StageConfiguration with CohortTableConfiguration with Logging =>
         new Service {
           override def fetch(
-              filter: CohortTableFilter
+            filter: CohortTableFilter,
+            latestStartDateInclusive: Option[LocalDate]
           ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
             for {
               cohortTableConfig <- CohortTableConfiguration.cohortTableConfig
                 .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
               stageConfig <- StageConfiguration.stageConfig
                 .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
+              queryRequest = new QueryRequest()
+                .withTableName(s"PriceMigrationEngine${stageConfig.stage}")
+                .withIndexName("ProcessingStageIndexV2")
+                .withKeyConditionExpression(
+                  "processingStage = :processingStage" + latestStartDateInclusive.fold("") { _ =>
+                    " AND startDate <= :latestStartDateInclusive"
+                  }
+                )
+                .withExpressionAttributeValues(
+                  List(
+                    Some(":processingStage" -> new AttributeValue(filter.value)),
+                    latestStartDateInclusive.map { latestStartDateInclusive =>
+                      ":latestStartDateInclusive" -> new AttributeValue(latestStartDateInclusive.toString)
+                    }
+                  ).flatten.toMap.asJava
+                )
+                .withLimit(cohortTableConfig.batchSize)
               queryResults <- DynamoDBZIO
                 .query(
-                  new QueryRequest()
-                    .withTableName(s"PriceMigrationEngine${stageConfig.stage}")
-                    .withIndexName("ProcessingStageIndexV2")
-                    .withKeyConditionExpression("processingStage = :processingStage")
-                    .withExpressionAttributeValues(
-                      Map(":processingStage" -> new AttributeValue(filter.value)).asJava
-                    )
-                    .withLimit(cohortTableConfig.batchSize)
+                  queryRequest
                 )
                 .map(_.mapError(error => CohortFetchFailure(error.toString)))
             } yield queryResults

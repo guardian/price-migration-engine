@@ -45,8 +45,9 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     ZLayer.succeed(
       new CohortTable.Service {
         override def fetch(
-                            filter: CohortTableFilter
-                          ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
+          filter: CohortTableFilter,
+          beforeDateInclusive: Option[LocalDate]
+        ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
           assertEquals(filter, EstimationComplete)
           IO.succeed(ZStream(cohortItem))
         }

@@ -74,7 +74,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       Runtime.default.unsafeRunSync(
         for {
           result <- CohortTable
-            .fetch(ReadyForEstimation)
+            .fetch(ReadyForEstimation, None)
             .provideLayer(
               stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
                 CohortTableLive.impl
