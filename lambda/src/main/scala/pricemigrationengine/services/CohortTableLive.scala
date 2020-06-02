@@ -22,16 +22,28 @@ object CohortTableLive {
         currency <- getOptionalStringFromResults(cohortItem, "currency")
         oldPrice <- getOptionalBigDecimalFromResults(cohortItem, "oldPrice")
         estimatedNewPrice <- getOptionalBigDecimalFromResults(cohortItem, "estimatedNewPrice")
-        billingPeriod <- getOptionalStringFromResults(cohortItem, "currency")
+        billingPeriod <- getOptionalStringFromResults(cohortItem, "billingPeriod")
+        whenEstimationDone <- getOptionalInstantFromResults(cohortItem, "whenEstimationDone")
+        salesforcePriceRiseId <- getOptionalStringFromResults(cohortItem, "salesforcePriceRiseId")
+        whenSfShowEstimate <- getOptionalInstantFromResults(cohortItem, "whenSfShowEstimate")
+        newPrice <- getOptionalBigDecimalFromResults(cohortItem, "newPrice")
+        newSubscriptionId <- getOptionalStringFromResults(cohortItem, "newSubscriptionId")
+        whenAmendmentDone <- getOptionalInstantFromResults(cohortItem, "whenAmendmentDone")
       } yield
         CohortItem(
-          subscriptionNumber,
-          processingStage,
-          startDate,
-          currency,
-          oldPrice,
-          estimatedNewPrice,
-          billingPeriod
+          subscriptionName = subscriptionNumber,
+          processingStage = processingStage,
+          startDate = startDate,
+          currency = currency,
+          oldPrice = oldPrice,
+          estimatedNewPrice = estimatedNewPrice,
+          billingPeriod = billingPeriod,
+          whenEstimationDone = whenEstimationDone,
+          salesforcePriceRiseId = salesforcePriceRiseId,
+          whenSfShowEstimate = whenSfShowEstimate,
+          newPrice = newPrice,
+          newSubscriptionId = newSubscriptionId,
+          whenAmendmentDone = whenAmendmentDone
       )
 
   private implicit val cohortItemUpdateSerialiser: DynamoDBUpdateSerialiser[CohortItem] =
@@ -161,6 +173,19 @@ object CohortTableLive {
         ZIO
           .effect(Some(BigDecimal(string)))
           .orElseFail(DynamoDBZIOError(s"The '$fieldName' has value '$string' which is not a valid number"))
+      }
+    } yield optionalDecimal
+
+  private def getOptionalInstantFromResults(
+      result: util.Map[String, AttributeValue],
+      fieldName: String
+  ): IO[DynamoDBZIOError, Option[Instant]] =
+    for {
+      optionalIsoDateTimeString <- getOptionalStringFromResults(result, fieldName)
+      optionalDecimal <- optionalIsoDateTimeString.fold[IO[DynamoDBZIOError, Option[Instant]]](ZIO.none) { string =>
+        ZIO
+          .effect(Some(Instant.parse(string)))
+          .mapError(ex => DynamoDBZIOError(s"The '$fieldName' has value '$string' which is not a valid timestamp: $ex"))
       }
     } yield optionalDecimal
 

@@ -28,6 +28,20 @@ class CohortTableLiveTest extends munit.FunSuite {
     }
   )
 
+  val expectedSubscriptionId = "subscription-id"
+  val expectedProcessingStage = ReadyForEstimation
+  val expectedStartDate = LocalDate.now.plusDays(Random.nextInt(365))
+  val expectedCurrency = "GBP"
+  val expectedOldPrice = Random.nextDouble()
+  val expectedNewPrice = Random.nextDouble()
+  val expectedEstimatedNewPrice = Random.nextDouble()
+  val expectedBillingPeriod = "Monthly"
+  val expectedWhenEstimationDone =  Instant.ofEpochMilli(Random.nextLong())
+  val expectedPriceRiseId = "price-rise-id"
+  val expectedSfShowEstimate =  Instant.ofEpochMilli(Random.nextLong())
+  val expectedNewSuscriptionId = "new-sub-id"
+  val expectedWhenAmmendmentDone =  Instant.ofEpochMilli(Random.nextLong())
+
   test("Query the PriceMigrationEngine with the correct filter and parse the results") {
     val item1 = CohortItem("subscription-1", ReadyForEstimation)
     val item2 = CohortItem("subscription-2", ReadyForEstimation)
@@ -83,12 +97,39 @@ class CohortTableLiveTest extends munit.FunSuite {
       Runtime.default.unsafeRunSync(
         receivedDeserialiser.get.deserialise(
           Map(
-            "subscriptionNumber" -> new AttributeValue().withS("subscription-number"),
-            "processingStage" -> new AttributeValue().withS("ReadyForEstimation")
+            "subscriptionNumber" -> new AttributeValue().withS(expectedSubscriptionId),
+            "processingStage" -> new AttributeValue().withS(expectedProcessingStage.value),
+            "expectedStartDate" -> new AttributeValue().withS(expectedStartDate.toString),
+            "currency" -> new AttributeValue().withS(expectedCurrency),
+            "oldPrice" -> new AttributeValue().withN(expectedOldPrice.toString),
+            "estimatedNewPrice" -> new AttributeValue().withN(expectedEstimatedNewPrice.toString),
+            "billingPeriod" -> new AttributeValue().withS(expectedBillingPeriod),
+            "whenEstimationDone" -> new AttributeValue().withS(formatTimestamp(expectedWhenEstimationDone)),
+            "salesforcePriceRiseId" -> new AttributeValue().withS(expectedPriceRiseId),
+            "whenSfShowEstimate" -> new AttributeValue().withS(formatTimestamp(expectedSfShowEstimate)),
+            "startDate" -> new AttributeValue().withS(expectedStartDate.toString),
+            "newPrice" -> new AttributeValue().withN(expectedNewPrice.toString),
+            "newSubscriptionId" -> new AttributeValue().withS(expectedNewSuscriptionId),
+            "whenAmendmentDone" -> new AttributeValue().withS(formatTimestamp(expectedWhenAmmendmentDone))
           ).asJava
         )
       ),
-      Success(CohortItem("subscription-number", ReadyForEstimation))
+      Success(
+        CohortItem(subscriptionName = expectedSubscriptionId,
+          processingStage = expectedProcessingStage,
+          startDate = Some(expectedStartDate),
+          currency = Some(expectedCurrency),
+          oldPrice = Some(expectedOldPrice),
+          estimatedNewPrice = Some(expectedEstimatedNewPrice),
+          billingPeriod = Some(expectedBillingPeriod),
+          whenEstimationDone = Some(expectedWhenEstimationDone),
+          salesforcePriceRiseId = Some(expectedPriceRiseId),
+          whenSfShowEstimate = Some(expectedSfShowEstimate),
+          newPrice = Some(expectedNewPrice),
+          newSubscriptionId = Some(expectedNewSuscriptionId),
+          whenAmendmentDone = Some(expectedWhenAmmendmentDone)
+        )
+      )
     )
   }
 
@@ -123,19 +164,6 @@ class CohortTableLiveTest extends munit.FunSuite {
       }
     )
 
-    val expectedSubscriptionId = "subscription-id"
-    val expectedProcessingStage = ReadyForEstimation
-    val startDate = LocalDate.now.plusDays(Random.nextInt(365))
-    val expectedCurrency = "GBP"
-    val expectedOldPrice = Random.nextDouble()
-    val expectedNewPrice = Random.nextDouble()
-    val expectedEstimatedNewPrice = Random.nextDouble()
-    val expectedBillingPeriod = "Monthly"
-    val expectedWhenEstimationDone = Instant.ofEpochMilli(Random.nextLong())
-    val expectedPriceRiseId = "price-rise-id"
-    val expectedSfShowEstimate = Instant.ofEpochMilli(Random.nextLong())
-    val expectedNewSuscriptionId = "new-sub-id"
-    val expectedWhenAmmendmentDone = Instant.ofEpochMilli(Random.nextLong())
 
     val cohortItem = CohortItem(
       subscriptionName = expectedSubscriptionId,
@@ -148,7 +176,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       whenEstimationDone = Some(expectedWhenEstimationDone),
       salesforcePriceRiseId = Some(expectedPriceRiseId),
       whenSfShowEstimate = Some(expectedSfShowEstimate),
-      startDate = Some(startDate),
+      startDate = Some(expectedStartDate),
       newSubscriptionId = Some(expectedNewSuscriptionId),
       whenAmendmentDone = Some(expectedWhenAmmendmentDone)
     )
@@ -220,7 +248,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     )
     assertEquals(
       update.get("startDate"),
-      new AttributeValueUpdate(new AttributeValue().withS(startDate.toString), AttributeAction.PUT),
+      new AttributeValueUpdate(new AttributeValue().withS(expectedStartDate.toString), AttributeAction.PUT),
       "startDate"
     )
     assertEquals(
@@ -232,11 +260,15 @@ class CohortTableLiveTest extends munit.FunSuite {
       update.get("whenAmendmentDone"),
       new AttributeValueUpdate(
         new AttributeValue()
-          .withS(DateTimeFormatter.ISO_DATE_TIME.format(expectedWhenAmmendmentDone.atZone(ZoneOffset.UTC))),
+          .withS(formatTimestamp(expectedWhenAmmendmentDone)),
         AttributeAction.PUT
       ),
       "whenAmendmentDone"
     )
+  }
+
+  private def formatTimestamp(instant: Instant) = {
+    DateTimeFormatter.ISO_DATE_TIME.format(instant.atZone(ZoneOffset.UTC))
   }
 
   test("Update the PriceMigrationEngine table and serialise the CohortItem with missing optional values correctly") {
