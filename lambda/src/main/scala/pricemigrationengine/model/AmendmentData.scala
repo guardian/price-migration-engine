@@ -112,7 +112,7 @@ object AmendmentData {
       PriceData(
         currency,
         oldPrice,
-        newPrice = combinePrices(pricings),
+        newPrice = combinePrices(pricings, billingPeriod),
         billingPeriod
       )
     }
@@ -158,11 +158,28 @@ object AmendmentData {
       case Some(_)          => Right(0)
     }
 
-  def combinePrices(pricings: Seq[ZuoraPricing]): BigDecimal =
+  /**
+    * Combines prices over the given billing period.
+    *
+    * TODO: this assumes that the prices are per month,
+    * and that billing periods of over a month are priced in the same ratio.
+    * This is only a safe assumption for vouchers.
+    */
+  def combinePrices(pricings: Seq[ZuoraPricing], billingPeriod: String): BigDecimal = {
+    val multiplier = billingPeriod match {
+      case "Quarter"     => 3
+      case "Semi_Annual" => 6
+      case "Annual"      => 12
+      case _             => 1
+    }
     applyDiscountAndThenSum(
       discountPercentage = pricings.map(_.discountPercentage).find(_ > 0),
-      beforeDiscount = pricings.flatMap(_.price)
+      beforeDiscount = for {
+        pricing <- pricings
+        price <- pricing.price.toSeq
+      } yield price * multiplier
     )
+  }
 
   private def applyDiscountAndThenSum(discountPercentage: Option[Double], beforeDiscount: Seq[BigDecimal]): BigDecimal =
     beforeDiscount.map(applyDiscount(discountPercentage)).sum

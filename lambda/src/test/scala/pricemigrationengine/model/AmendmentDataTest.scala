@@ -99,7 +99,8 @@ class AmendmentDataTest extends munit.FunSuite {
       Seq(
         ZuoraPricing("GBP", Some(11), 0),
         ZuoraPricing("GBP", Some(10.99), 0)
-      )
+      ),
+      billingPeriod = "Month"
     )
     assertEquals(combinedPrice.toDouble, 21.99)
   }
@@ -110,9 +111,33 @@ class AmendmentDataTest extends munit.FunSuite {
         ZuoraPricing("GBP", Some(11), 0),
         ZuoraPricing("GBP", Some(10.99), 0),
         ZuoraPricing("", None, 50)
-      )
+      ),
+      billingPeriod = "Month"
     )
     assertEquals(combinedPrice.toDouble, 10.99)
+  }
+
+  test("combinePrices: combines quarterly voucher prices correctly") {
+    val combinedPrice = AmendmentData.combinePrices(
+      Seq(
+        ZuoraPricing("GBP", Some(11.99), 0),
+        ZuoraPricing("GBP", Some(10), 0)
+      ),
+      billingPeriod = "Quarter"
+    )
+    assertEquals(combinedPrice.toDouble, 65.97)
+  }
+
+  test("combinePrices: combines quarterly voucher prices and discount correctly") {
+    val combinedPrice = AmendmentData.combinePrices(
+      Seq(
+        ZuoraPricing("GBP", Some(11.99), 0),
+        ZuoraPricing("GBP", Some(10), 0),
+        ZuoraPricing("", None, 50)
+      ),
+      billingPeriod = "Quarter"
+    )
+    assertEquals(combinedPrice.toDouble, 32.98)
   }
 
   test("roundDown: rounds down to nearest hundredth of a currency unit") {
