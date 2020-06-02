@@ -11,9 +11,9 @@ aws dynamodb create-table \
     --region eu-west-1 \
     --endpoint-url http://localhost:8000 \
     --table-name PriceMigrationEngineDEV \
-    --attribute-definitions AttributeName=subscriptionNumber,AttributeType=S AttributeName=processingStage,AttributeType=S \
+    --attribute-definitions AttributeName=subscriptionNumber,AttributeType=S AttributeName=processingStage,AttributeType=S AttributeName=startDate,AttributeType=S \
     --key-schema AttributeName=subscriptionNumber,KeyType=HASH \
-    --global-secondary-indexes IndexName=ProcessingStageIndexV2,KeySchema=["{AttributeName=processingStage,KeyType=HASH}"],Projection="{ProjectionType=KEYS_ONLY}",ProvisionedThroughput="{ReadCapacityUnits=10,WriteCapacityUnits=10}" \
+    --global-secondary-indexes IndexName=ProcessingStageIndexV3,KeySchema=["{AttributeName=processingStage,KeyType=HASH}","{AttributeName=startDate,KeyType=RANGE}"],Projection="{ProjectionType=KEYS_ONLY}",ProvisionedThroughput="{ReadCapacityUnits=10,WriteCapacityUnits=10}" \
     --provisioned-throughput ReadCapacityUnits=10,WriteCapacityUnits=10 
 ```
 
@@ -30,41 +30,53 @@ aws dynamodb put-item \
 done || exit 1
 ```
 
-Get the contents of the cohort table:
+Delete the cohort table:
+```$bash
+aws dynamodb delete-table \
+    --endpoint-url http://localhost:8000 \
+    --region eu-west-1 \
+    --table-name PriceMigrationEngineDEV \
+```
+
+#Example DynamoDB queries
+
+Get the contents of the cohort table with a particular processing stage:
 ```$bash
 aws dynamodb query \
+    --profile membership \
     --region eu-west-1 \
-    --endpoint-url http://localhost:8000 \
     --table-name PriceMigrationEngineDEV \
-    --index-name ProcessingStageIndexV2 \
+    --index-name ProcessingStageIndexV3 \
     --key-condition-expression "processingStage = :stage" \
     --expression-attribute-values '{":stage":{"S":"ReadyForEstimation"}}'
+```
+
+Get the contents of the cohort table with a particular processing stage in a particular date range:
+```$bash
+aws dynamodb query \
+    --profile membership \
+    --region eu-west-1 \
+    --table-name PriceMigrationEngineDEV \
+    --index-name ProcessingStageIndexV3 \
+    --key-condition-expression "processingStage = :stage AND startDate BETWEEN :earliestDate AND :latestDate" \
+    --expression-attribute-values '{":stage":{"S":"SalesforcePriceRiseCreationComplete"},":earliestDate":{"S":"2020-06-26"},":latestDate":{"S":"2020-06-28"}}'
 ```
 
 Get an entry in the cohort table by subscription id:
 ```$bash
 aws dynamodb query \
+    --profile membership \
     --region eu-west-1 \
-    --endpoint-url http://localhost:8000 \
     --table-name PriceMigrationEngineDEV \
     --key-condition-expression "subscriptionNumber = :id" \
     --expression-attribute-values '{":id":{"S":"390493"}}'
 ```
 
-
-Delete the cohort table:
-```$bash
-aws dynamodb delete-table \
-    --region eu-west-1 \
-    --endpoint-url http://localhost:8000 \
-    --table-name PriceMigrationEngineDEV \
-```
-
 Update and item in the cohort table:
 ```$bash
 aws dynamodb update-item \
+    --profile membership \
     --region eu-west-1 \
-    --endpoint-url http://localhost:8000 \
     --table-name PriceMigrationEngineDEV \
     --key '{"subscriptionNumber":{"S":"A-S00063981"}}' \
     --update-expression "SET processingStage = :stage" \
@@ -74,16 +86,16 @@ aws dynamodb update-item \
 Describe the cohort table:
 ```
 aws dynamodb describe-table \
+    --profile membership \
     --region eu-west-1 \
-    --endpoint-url http://localhost:8000 \
     --table-name PriceMigrationEngineDEV 
 ```
 
 Get a count of items in the cohort table:
 ```
 aws dynamodb scan \
+    --profile membership \
     --region eu-west-1 \
-    --endpoint-url http://localhost:8000 \
     --table-name PriceMigrationEngineDEV \
     --select "COUNT"
 ```
