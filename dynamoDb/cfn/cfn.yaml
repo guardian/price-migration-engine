@@ -23,8 +23,6 @@ Resources:
           AttributeType: "S"
         - AttributeName: "processingStage"
           AttributeType: "S"
-        - AttributeName: "startDate"
-          AttributeType: "S"
       KeySchema:
         - AttributeName: "subscriptionNumber"
           KeyType: "HASH"
@@ -33,13 +31,5 @@ Resources:
           KeySchema:
             - AttributeName: "processingStage"
               KeyType: "HASH"
-          Projection:
-            ProjectionType: "ALL"
-        - IndexName: "ProcessingStageIndexV3"
-          KeySchema:
-            - AttributeName: "processingStage"
-              KeyType: "HASH"
-            - AttributeName: "startDate"
-              KeyType: "RANGE"
           Projection:
             ProjectionType: "ALL"
