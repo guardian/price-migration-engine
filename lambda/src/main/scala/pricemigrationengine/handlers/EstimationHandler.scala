@@ -15,7 +15,7 @@ object EstimationHandler extends zio.App with RequestHandler[Unit, Unit] {
   val main: ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora with Random, Failure, Unit] =
     for {
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
-      cohortItems <- CohortTable.fetch(ReadyForEstimation, None)
+      cohortItems <- CohortTable.fetch(ReadyForEstimation)
       _ <- cohortItems.foreach(writeEstimation(newProductPricing))
     } yield ()
 

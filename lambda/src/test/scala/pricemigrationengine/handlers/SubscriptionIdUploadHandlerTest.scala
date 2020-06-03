@@ -1,7 +1,6 @@
 package pricemigrationengine.handlers
 
 import java.io.InputStream
-import java.time.LocalDate
 
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -26,8 +25,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
     val stubCohortTable = ZLayer.succeed(
       new CohortTable.Service {
         override def fetch(
-            filter: CohortTableFilter,
-            beforeDateInclusive: Option[LocalDate]
+            filter: CohortTableFilter
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
         override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] =
