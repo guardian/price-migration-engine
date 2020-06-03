@@ -17,15 +17,17 @@ object AmendmentData {
       earliestStartDate: LocalDate
   ): Either[AmendmentDataFailure, AmendmentData] =
     for {
-      startDate <- nextServiceStartDate(invoiceList, onOrAfter = earliestStartDate)
+      startDate <- nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
       price <- priceData(pricing, subscription, invoiceList, startDate)
     } yield AmendmentData(startDate, priceData = price)
 
   def nextServiceStartDate(
       invoiceList: ZuoraInvoiceList,
+      subscription: ZuoraSubscription,
       onOrAfter: LocalDate
   ): Either[AmendmentDataFailure, LocalDate] =
-    invoiceList.invoiceItems
+    ZuoraInvoiceItem
+      .itemsForSubscription(invoiceList, subscription)
       .map(_.serviceStartDate)
       .sortBy(_.toEpochDay)
       .dropWhile(_.isBefore(onOrAfter))
@@ -61,9 +63,11 @@ object AmendmentData {
 
     def ratePlanCharge(invoiceItem: ZuoraInvoiceItem) =
       ZuoraRatePlanCharge
-        .matchingRatePlanCharge(subscription)(invoiceItem)
-        .toRight(s"No matching rate plan charge for invoice item '${invoiceItem.chargeNumber}'")
-        .filterOrElse(hasNotPriceAndDiscount, s"Rate plan charge '${invoiceItem.chargeNumber}' has price and discount")
+        .matchingRatePlanCharge(subscription, invoiceItem)
+        .filterOrElse(
+          hasNotPriceAndDiscount,
+          AmendmentDataFailure(s"Rate plan charge '${invoiceItem.chargeNumber}' has price and discount")
+        )
 
     def pricings(ratePlanCharges: Seq[ZuoraRatePlanCharge]) = {
       /*
@@ -83,13 +87,13 @@ object AmendmentData {
         .toRight(ratePlanCharge.productRatePlanChargeId)
         .map(pricing => RatePlanChargeAndPricing(ratePlanCharge, pricing))
 
-    val invoiceItems = invoiceList.invoiceItems.filter(_.serviceStartDate == startDate)
+    val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, startDate)
 
     val ratePlanCharges = {
       val ratePlanCharges = invoiceItems.map(ratePlanCharge)
       val failures = ratePlanCharges.collect { case Left(failure) => failure }
       if (failures.isEmpty) Right(ratePlanCharges.collect { case Right(charge) => charge })
-      else Left(AmendmentDataFailure(failures.mkString(", ")))
+      else Left(AmendmentDataFailure(failures.map(_.reason).mkString(", ")))
     }
 
     for {
@@ -128,8 +132,8 @@ object AmendmentData {
      * that correspond with items in the invoice list.
      */
     val amounts = for {
-      invoiceItem <- ZuoraInvoiceItem.items(invoiceList, serviceStartDate).distinctBy(_.chargeNumber)
-      ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription)(invoiceItem).toSeq
+      invoiceItem <- ZuoraInvoiceItem.items(invoiceList, subscription, serviceStartDate)
+      ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toSeq
     } yield individualChargeAmount(ratePlanCharge)
 
     val discounts = amounts.collect { case Left(percentageDiscount) => percentageDiscount }

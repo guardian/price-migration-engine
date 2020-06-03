@@ -64,7 +64,7 @@ object EstimationHandler extends zio.App with RequestHandler[Unit, Unit] {
 
     val isMonthlySubscription =
       invoicePreview.invoiceItems
-        .flatMap(ZuoraRatePlanCharge.matchingRatePlanCharge(subscription))
+        .flatMap(invoiceItem => ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toOption)
         .flatMap(_.billingPeriod)
         .headOption
         .contains("Month")
