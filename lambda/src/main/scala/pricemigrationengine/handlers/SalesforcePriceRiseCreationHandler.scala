@@ -12,7 +12,7 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
 
   val main: ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, Unit] =
     for {
-      cohortItems <- CohortTable.fetch(EstimationComplete)
+      cohortItems <- CohortTable.fetch(EstimationComplete, None)
       _ <- cohortItems.foreach(createSalesforcePriceRise)
     } yield ()
 

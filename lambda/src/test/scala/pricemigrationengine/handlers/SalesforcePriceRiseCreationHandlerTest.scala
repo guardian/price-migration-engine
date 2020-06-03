@@ -3,6 +3,7 @@ package pricemigrationengine.handlers
 import java.time.{DateTimeException, Instant, LocalDate, OffsetDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
 
+import pricemigrationengine.StubClock
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -23,16 +24,6 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     }
   )
 
-  val expectedCurrentTime = Instant.parse("2020-05-21T15:16:37Z")
-  val stubClock = ZLayer.succeed(
-    new Clock.Service {
-      override def currentTime(unit: TimeUnit): UIO[Long] = ???
-      override def currentDateTime: IO[DateTimeException, OffsetDateTime] =
-        IO.succeed(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
-      override def nanoTime: UIO[Long] = ???
-      override def sleep(duration: Duration): UIO[Unit] = ???
-    }
-  )
   val stubLogging = console.Console.live >>> ConsoleLogging.impl
 
   val expectedSubscriptionName = "Sub-0001"
@@ -45,8 +36,9 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     ZLayer.succeed(
       new CohortTable.Service {
         override def fetch(
-                            filter: CohortTableFilter
-                          ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
+          filter: CohortTableFilter,
+          beforeDateInclusive: Option[LocalDate]
+        ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
           assertEquals(filter, EstimationComplete)
           IO.succeed(ZStream(cohortItem))
         }
@@ -114,7 +106,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
       default.unsafeRunSync(
         SalesforcePriceRiseCreationHandler.main
           .provideLayer(
-            stubLogging ++ stubConfiguration ++ stubCohortTable ++ stubSalesforceClient ++ stubClock
+            stubLogging ++ stubConfiguration ++ stubCohortTable ++ stubSalesforceClient ++ StubClock.clock
           )
       ),
       Success(())
@@ -143,7 +135,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).whenSfShowEstimate,
-      Some(expectedCurrentTime)
+      Some(StubClock.expectedCurrentTime)
     )
   }
 
@@ -173,7 +165,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
       default.unsafeRunSync(
         SalesforcePriceRiseCreationHandler.main
           .provideLayer(
-            stubLogging ++ stubConfiguration ++ stubCohortTable ++ stubSalesforceClient ++ stubClock
+            stubLogging ++ stubConfiguration ++ stubCohortTable ++ stubSalesforceClient ++ StubClock.clock
           )
       ),
       Success(())
@@ -201,7 +193,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).whenSfShowEstimate,
-      Some(expectedCurrentTime)
+      Some(StubClock.expectedCurrentTime)
     )
   }
 }
