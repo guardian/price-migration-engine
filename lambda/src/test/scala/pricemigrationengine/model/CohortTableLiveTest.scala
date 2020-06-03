@@ -74,7 +74,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       Runtime.default.unsafeRunSync(
         for {
           result <- CohortTable
-            .fetch(ReadyForEstimation)
+            .fetch(ReadyForEstimation, None)
             .provideLayer(
               stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
                 CohortTableLive.impl
@@ -87,7 +87,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     )
 
     assertEquals(receivedRequest.get.getTableName, "PriceMigrationEngineDEV")
-    assertEquals(receivedRequest.get.getIndexName, "ProcessingStageIndexV2")
+    assertEquals(receivedRequest.get.getIndexName, "ProcessingStageIndexV3")
     assertEquals(receivedRequest.get.getKeyConditionExpression, "processingStage = :processingStage")
     assertEquals(
       receivedRequest.get.getExpressionAttributeValues,

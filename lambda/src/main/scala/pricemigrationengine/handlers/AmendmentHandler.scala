@@ -16,7 +16,7 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
 
   val main: ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora, Failure, Unit] =
     for {
-      cohortItems <- CohortTable.fetch(SalesforcePriceRiceCreationComplete)
+      cohortItems <- CohortTable.fetch(SalesforcePriceRiceCreationComplete, None)
       _ <- cohortItems.foreach(amend)
     } yield ()
 
