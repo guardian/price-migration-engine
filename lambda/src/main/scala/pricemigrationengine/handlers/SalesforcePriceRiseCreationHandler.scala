@@ -79,6 +79,7 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
         .orElseFail(SalesforcePriceRiseCreationFailure(s"$cohortItem does not have a startDate"))
     } yield
       SalesforcePriceRise(
+        subscription.Name,
         subscription.Buyer__c,
         currentPrice,
         newPrice,

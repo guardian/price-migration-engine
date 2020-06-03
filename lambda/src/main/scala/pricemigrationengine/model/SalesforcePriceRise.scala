@@ -3,6 +3,7 @@ package pricemigrationengine.model
 import java.time.LocalDate
 
 case class SalesforcePriceRise(
+  Name: String,
   Buyer__c: String,
   Current_Price_Today__c: BigDecimal,
   Guardian_Weekly_New_Price__c: BigDecimal,

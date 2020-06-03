@@ -113,6 +113,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     )
 
     assertEquals(createdPriceRises.size, 1)
+    assertEquals(createdPriceRises(0).Name, expectedSubscriptionName)
     assertEquals(createdPriceRises(0).SF_Subscription__c, s"SubscritionId-$expectedSubscriptionName")
     assertEquals(createdPriceRises(0).Buyer__c, s"Buyer-$expectedSubscriptionName")
     assertEquals(createdPriceRises(0).Current_Price_Today__c, expectedOldPrice)
