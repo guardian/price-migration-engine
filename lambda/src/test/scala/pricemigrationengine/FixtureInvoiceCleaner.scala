@@ -13,7 +13,7 @@ object FixtureInvoiceCleaner extends App {
       "subscriptionName" -> "subName",
       "subscriptionId" -> "subId",
       "subscriptionNumber" -> "subNum",
-      "chargeId" -> "chargeId",
+      "chargeId" -> "chargeId"
     ).foldLeft(s) {
       case (str, (fieldName, replacementVal)) =>
         str.replaceAll(s""""($fieldName)": ".+"""", s""""$$1": "$replacementVal"""")

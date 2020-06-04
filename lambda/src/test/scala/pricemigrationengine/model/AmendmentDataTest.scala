@@ -11,13 +11,15 @@ class AmendmentDataTest extends munit.FunSuite {
 
   test("nextserviceStartDate: billing date is first after migration start date") {
     val invoiceList = invoiceListFromJson("InvoicePreview.json")
-    val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, onOrAfter = migrationStartDate)
+    val subscription = subscriptionFromJson("Monthly/Subscription.json")
+    val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = migrationStartDate)
     assertEquals(serviceStartDate, Right(LocalDate.of(2021, 1, 8)))
   }
 
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date") {
     val invoiceList = invoiceListFromJson("InvoicePreviewTermEndsBeforeMigration.json")
-    val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, onOrAfter = migrationStartDate)
+    val subscription = subscriptionFromJson("Monthly/Subscription.json")
+    val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = migrationStartDate)
     assertEquals(
       serviceStartDate.left.map(_.reason.take(79)),
       Left("Cannot determine next billing date on or after 2020-12-25 from ZuoraInvoiceList")
@@ -94,25 +96,18 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
-  test("combinePrices: combines prices correctly") {
-    val combinedPrice = AmendmentData.combinePrices(
-      Seq(
-        ZuoraPricing("GBP", Some(11), 0),
-        ZuoraPricing("GBP", Some(10.99), 0)
-      )
+  test("priceData: is correct for a manually-set percentage discounted voucher subscription") {
+    val fixtureSet = "PercentageDiscount"
+    val priceData = AmendmentData.priceData(
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      startDate = LocalDate.of(2020, 8, 8)
     )
-    assertEquals(combinedPrice.toDouble, 21.99)
-  }
-
-  test("combinePrices: combines prices and discount correctly") {
-    val combinedPrice = AmendmentData.combinePrices(
-      Seq(
-        ZuoraPricing("GBP", Some(11), 0),
-        ZuoraPricing("GBP", Some(10.99), 0),
-        ZuoraPricing("", None, 50)
-      )
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 8.09, newPrice = 8.99, billingPeriod = "Month"))
     )
-    assertEquals(combinedPrice.toDouble, 10.99)
   }
 
   test("roundDown: rounds down to nearest hundredth of a currency unit") {
@@ -152,6 +147,19 @@ class AmendmentDataTest extends munit.FunSuite {
     val serviceStartDate = LocalDate.of(2020, 7, 16)
     val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate)
     assertEquals(totalChargeAmount, Right(BigDecimal(15.57)))
+  }
+
+  test("totalChargeAmount: is correct where invoice preview has multiple subscriptions") {
+    val fixtureSet = "InvoicePreviewWithMultipleSubs"
+    val totalChargeAmount = AmendmentData.totalChargeAmount(
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      serviceStartDate = LocalDate.of(2020, 8, 4)
+    )
+    assertEquals(
+      totalChargeAmount,
+      Right(BigDecimal(47.62))
+    )
   }
 
   test("individualChargeAmount: is correct for a product invoice item") {

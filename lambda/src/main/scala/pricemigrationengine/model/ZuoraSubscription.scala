@@ -60,11 +60,13 @@ object ZuoraRatePlanCharge {
     * Rate plan charge that corresponds with the given invoice item.
     */
   def matchingRatePlanCharge(
-      subscription: ZuoraSubscription
-  )(invoiceItem: ZuoraInvoiceItem): Option[ZuoraRatePlanCharge] =
+      subscription: ZuoraSubscription,
+      invoiceItem: ZuoraInvoiceItem
+  ): Either[AmendmentDataFailure, ZuoraRatePlanCharge] =
     (for {
       ratePlan <- subscription.ratePlans
       ratePlanCharge <- ratePlan.ratePlanCharges
       if ratePlanCharge.number == invoiceItem.chargeNumber
     } yield ratePlanCharge).headOption
+      .toRight(AmendmentDataFailure(s"No matching rate plan charge for invoice item '${invoiceItem.chargeNumber}'"))
 }

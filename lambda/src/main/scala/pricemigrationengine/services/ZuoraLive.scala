@@ -23,7 +23,9 @@ object ZuoraLive {
 
           private val apiVersion = "v1"
 
-          private val readTimeout = HttpOptions.readTimeout(Duration(30, SECONDS).toMillis.toInt)
+          private val timeout = Duration(30, SECONDS).toMillis.toInt
+          private val connTimeout = HttpOptions.connTimeout(timeout)
+          private val readTimeout = HttpOptions.readTimeout(timeout)
 
           private case class AccessToken(access_token: String)
           private implicit val rwAccessToken: ReadWriter[AccessToken] = macroRW
@@ -97,6 +99,7 @@ object ZuoraLive {
 
           private def handleRequest[A: Reader](request: HttpRequest): ZIO[Any, Failure, A] = {
             val response = request
+              .option(connTimeout)
               .option(readTimeout)
               .asString
             val body = response.body
@@ -179,7 +182,7 @@ object ZuoraLive {
                 e =>
                   ZuoraUpdateFailure(
                     s"Subscription ${subscription.subscriptionNumber} and update $update: ${e.reason}"
-                  ),
+                ),
                 response => response.subscriptionId
               )
               .tap(_ => logging.info(s"Updated subscription ${subscription.subscriptionNumber} with: $update"))
