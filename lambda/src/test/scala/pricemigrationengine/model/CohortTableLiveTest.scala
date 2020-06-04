@@ -41,11 +41,11 @@ class CohortTableLiveTest extends munit.FunSuite {
   val expectedSfShowEstimate =  Instant.ofEpochMilli(Random.nextLong())
   val expectedNewSuscriptionId = "new-sub-id"
   val expectedWhenAmmendmentDone =  Instant.ofEpochMilli(Random.nextLong())
+  val item1 = CohortItem("subscription-1", ReadyForEstimation)
+  val item2 = CohortItem("subscription-2", ReadyForEstimation)
+
 
   test("Query the PriceMigrationEngine with the correct filter and parse the results") {
-    val item1 = CohortItem("subscription-1", ReadyForEstimation)
-    val item2 = CohortItem("subscription-2", ReadyForEstimation)
-
     var receivedRequest: Option[QueryRequest] = None
     var receivedDeserialiser: Option[DynamoDBDeserialiser[CohortItem]] = None
 
@@ -87,7 +87,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     )
 
     assertEquals(receivedRequest.get.getTableName, "PriceMigrationEngineDEV")
-    assertEquals(receivedRequest.get.getIndexName, "ProcessingStageIndexV3")
+    assertEquals(receivedRequest.get.getIndexName, "ProcessingStageIndexV2")
     assertEquals(receivedRequest.get.getKeyConditionExpression, "processingStage = :processingStage")
     assertEquals(
       receivedRequest.get.getExpressionAttributeValues,
@@ -130,6 +130,58 @@ class CohortTableLiveTest extends munit.FunSuite {
           whenAmendmentDone = Some(expectedWhenAmmendmentDone)
         )
       )
+    )
+  }
+
+  test("Query the PriceMigrationEngine with the correct index for date range queries") {
+    var receivedRequest: Option[QueryRequest] = None
+    val expectedLatestDate = LocalDate.now()
+
+    val stubDynamoDBZIO = ZLayer.succeed(
+      new DynamoDBZIO.Service {
+        override def query[A](
+            query: QueryRequest
+        )(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] = {
+          receivedRequest = Some(query)
+          ZStream(item1).mapM(item => IO.effect(item.asInstanceOf[A]).orElseFail(DynamoDBZIOError("")))
+        }
+
+        override def update[A, B](table: String, key: A, value: B)(
+            implicit keySerializer: DynamoDBSerialiser[A],
+            valueSerializer: DynamoDBUpdateSerialiser[B]
+        ): IO[DynamoDBZIOError, Unit] = ???
+
+        override def put[A](table: String, value: A)(
+            implicit valueSerializer: DynamoDBSerialiser[A]
+        ): IO[DynamoDBZIOError, Unit] = ???
+      }
+    )
+
+    assertEquals(
+      Runtime.default.unsafeRunSync(
+        for {
+          result <- CohortTable
+            .fetch(ReadyForEstimation, Some(expectedLatestDate))
+            .provideLayer(
+              stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
+                CohortTableLive.impl
+            )
+          resultList <- result.run(Sink.collectAll[CohortItem])
+          _ = assertEquals(resultList, List(item1))
+        } yield ()
+      ),
+      Success(())
+    )
+
+    assertEquals(receivedRequest.get.getTableName, "PriceMigrationEngineDEV")
+    assertEquals(receivedRequest.get.getIndexName, "ProcessingStageStartDateIndexV1")
+    assertEquals(receivedRequest.get.getKeyConditionExpression, "processingStage = :processingStage AND startDate <= :latestStartDateInclusive")
+    assertEquals(
+      receivedRequest.get.getExpressionAttributeValues,
+      Map(
+        ":processingStage" -> new AttributeValue().withS("ReadyForEstimation"),
+        ":latestStartDateInclusive" -> new AttributeValue().withS(expectedLatestDate.toString)
+      ).asJava
     )
   }
 
