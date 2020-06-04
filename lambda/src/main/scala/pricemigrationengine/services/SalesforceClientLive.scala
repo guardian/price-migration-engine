@@ -2,7 +2,7 @@ package pricemigrationengine.services
 
 import java.time.LocalDate
 
-import pricemigrationengine.model.{SalesforceClientFailure, SalesforceConfig, SalesforcePriceRise, SalesforceSubscription}
+import pricemigrationengine.model.{SalesforceAddress, SalesforceClientFailure, SalesforceConfig, SalesforceContact, SalesforcePriceRise, SalesforceSubscription}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 import upickle.default._
 import zio.{IO, ZIO, ZLayer}
@@ -20,6 +20,8 @@ object SalesforceClientLive {
     implicit val salesforceSubscriptionRW: ReadWriter[SalesforceSubscription] = macroRW
     implicit val salesforcePriceRiseRW: ReadWriter[SalesforcePriceRise] = macroRW
     implicit val salesforcePriceIdRiseRW: ReadWriter[SalesforcePriceRiseCreationResponse] = macroRW
+    implicit val salesforceAddressRW: ReadWriter[SalesforceAddress] = macroRW
+    implicit val salesforceContactRW: ReadWriter[SalesforceContact] = macroRW
 
     def requestAsMessage(request: HttpRequest) = {
       s"${request.method} ${request.url}"
@@ -80,6 +82,17 @@ object SalesforceClientLive {
             .method("GET")
         ).tap( subscription =>
           logging.info(s"Successfully loaded: ${subscription}")
+        )
+
+      override def getContact(
+        contactId: String
+      ): IO[SalesforceClientFailure, SalesforceContact] =
+        sendRequestAndParseResponse[SalesforceContact](
+          Http(s"${auth.instance_url}/services/data/v43.0/sobjects/Contact/${contactId}")
+            .header("Authorization", s"Bearer ${auth.access_token}")
+            .method("GET")
+        ).tap(contact =>
+          logging.info(s"Successfully loaded contact: ${contact}")
         )
 
       override def createPriceRise(

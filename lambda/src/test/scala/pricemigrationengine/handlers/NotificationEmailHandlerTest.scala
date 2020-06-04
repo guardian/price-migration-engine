@@ -65,6 +65,10 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
         override def updatePriceRise(
             priceRiseId: String, priceRise: SalesforcePriceRise
         ): IO[SalesforceClientFailure, Unit] = ???
+
+        override def getContact(
+            contactId: String
+        ): IO[SalesforceClientFailure, SalesforceContact] = ???
       }
     )
   }
