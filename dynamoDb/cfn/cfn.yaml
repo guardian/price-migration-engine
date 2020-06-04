@@ -35,7 +35,7 @@ Resources:
               KeyType: "HASH"
           Projection:
             ProjectionType: "ALL"
-        - IndexName: "ProcessingStageStartDateIndexV1"
+        - IndexName: "ProcessingStageIndexV3"
           KeySchema:
             - AttributeName: "processingStage"
               KeyType: "HASH"
