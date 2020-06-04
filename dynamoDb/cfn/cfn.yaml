@@ -43,3 +43,11 @@ Resources:
               KeyType: "RANGE"
           Projection:
             ProjectionType: "ALL"
+        - IndexName: "ProcessingStageStartDateIndexV1"
+          KeySchema:
+            - AttributeName: "processingStage"
+              KeyType: "HASH"
+            - AttributeName: "startDate"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: "ALL"

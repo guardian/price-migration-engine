@@ -13,6 +13,10 @@ import zio.{IO, ZIO, ZLayer}
 import scala.jdk.CollectionConverters._
 
 object CohortTableLive {
+  private val ProcessingStageIndexName = "ProcessingStageIndexV2"
+
+  private val ProcessingStageAndStartDateIndexName = "ProcessingStageStartDateIndexV1"
+
   private implicit val cohortItemDeserialiser: DynamoDBDeserialiser[CohortItem] =
     cohortItem =>
       for {
@@ -203,9 +207,11 @@ object CohortTableLive {
                 .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
               stageConfig <- StageConfiguration.stageConfig
                 .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
+              indexName = latestStartDateInclusive
+                .fold(ProcessingStageIndexName)(_ => ProcessingStageAndStartDateIndexName)
               queryRequest = new QueryRequest()
                 .withTableName(s"PriceMigrationEngine${stageConfig.stage}")
-                .withIndexName("ProcessingStageIndexV2")
+                .withIndexName(indexName)
                 .withKeyConditionExpression(
                   "processingStage = :processingStage" + latestStartDateInclusive.fold("") { _ =>
                     " AND startDate <= :latestStartDateInclusive"
