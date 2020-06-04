@@ -205,7 +205,7 @@ object CohortTableLive {
                 .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
               queryRequest = new QueryRequest()
                 .withTableName(s"PriceMigrationEngine${stageConfig.stage}")
-                .withIndexName("ProcessingStageIndexV3")
+                .withIndexName("ProcessingStageIndexV2")
                 .withKeyConditionExpression(
                   "processingStage = :processingStage" + latestStartDateInclusive.fold("") { _ =>
                     " AND startDate <= :latestStartDateInclusive"
