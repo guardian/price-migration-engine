@@ -217,7 +217,7 @@ Resources:
               - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret::${SecretsVersion}}}'
               - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
           earliestStartDate: !FindInMap [StageMap, !Ref Stage, EarliestStartDate]
-          batchSize: 10
+          batchSize: 100
       Role:
         Fn::GetAtt:
           - PriceMigrationEngineEstimationLambdaRole
