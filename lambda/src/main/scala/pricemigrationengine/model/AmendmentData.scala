@@ -17,27 +17,37 @@ object AmendmentData {
       earliestStartDate: LocalDate
   ): Either[AmendmentDataFailure, AmendmentData] =
     for {
-      startDate <- nextServiceStartDate(invoiceList, onOrAfter = earliestStartDate)
+      startDate <- nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
       price <- priceData(pricing, subscription, invoiceList, startDate)
     } yield AmendmentData(startDate, priceData = price)
 
   def nextServiceStartDate(
       invoiceList: ZuoraInvoiceList,
+      subscription: ZuoraSubscription,
       onOrAfter: LocalDate
   ): Either[AmendmentDataFailure, LocalDate] =
-    invoiceList.invoiceItems
+    ZuoraInvoiceItem
+      .itemsForSubscription(invoiceList, subscription)
       .map(_.serviceStartDate)
       .sortBy(_.toEpochDay)
       .dropWhile(_.isBefore(onOrAfter))
       .headOption
       .toRight(AmendmentDataFailure(s"Cannot determine next billing date on or after $onOrAfter from $invoiceList"))
 
+  /*
+   * New prices can only be calculated from a combination of the rate plan charge
+   * and its corresponding product catalogue entries.
+   * This is because discounts are only reliable in the rate plan charge
+   * and new prices have to come from the product catalogue.
+   */
+  private case class RatePlanChargeAndPricing(ratePlanCharge: ZuoraRatePlanCharge, pricing: ZuoraPricing)
+
   /**
     * General algorithm:
     * <ol>
-    * <li>For a given date, gather chargeNumber and chargeAmount fields from invoice preview.</li>
-    * <li>For each chargeNumber, match it with ratePlanCharge number on sub and get corresponding productRatePlanChargeId.</li>
-    * <li>For each productRatePlanChargeId, match it with id in catalogue and get pricing currency, price and discount percentage.</li>
+    * <li>For a given date, gather chargeNumber fields from invoice preview.</li>
+    * <li>For each chargeNumber, match it with ratePlanCharge number on sub and get corresponding ratePlanCharge.</li>
+    * <li>For each ratePlanCharge, match its productRatePlanChargeId with id in catalogue and get pricing currency, price and discount percentage.</li>
     * <li>Get combined chargeAmount field for old price, and combined pricing price for new price, and currency.</li>
     * </ol>
     */
@@ -47,63 +57,53 @@ object AmendmentData {
       invoiceList: ZuoraInvoiceList,
       startDate: LocalDate
   ): Either[AmendmentDataFailure, PriceData] = {
-    /*
-     * Our matching operations can fail so this gathers up the results
-     * and just returns the failing results if there are any,
-     * otherwise returns all the successful results.
-     */
-    def eitherFailingOrPassingResults[K, V](ks: Seq[K], f: K => Option[V]): Either[Seq[K], Seq[V]] = {
-      val (fails, successes) = ks.foldLeft((Seq.empty[K], Seq.empty[V])) {
-        case ((accK, accV), k) =>
-          f(k) match {
-            case None    => (accK :+ k, accV)
-            case Some(v) => (accK, accV :+ v)
-          }
-      }
-      Either.cond(fails.isEmpty, successes, fails)
-    }
 
-    def hasNoMoreThanOneDiscount(pricings: Seq[ZuoraPricing]) =
-      pricings.count(_.discountPercentage > 0) <= 1
+    def hasNotPriceAndDiscount(ratePlanCharge: ZuoraRatePlanCharge) =
+      ratePlanCharge.price.isDefined ^ ratePlanCharge.discountPercentage.exists(_ > 0)
 
-    def hasNotPriceAndDiscount(pricings: Seq[ZuoraPricing]) =
-      pricings.forall(pricing => pricing.price.isDefined ^ pricing.discountPercentage > 0)
-
-    val invoiceItems = invoiceList.invoiceItems.filter(_.serviceStartDate == startDate)
-
-    for {
-      ratePlanCharges <- eitherFailingOrPassingResults(
-        invoiceItems,
-        ZuoraRatePlanCharge.matchingRatePlanCharge(subscription)
-      ).left.map(
-        invoiceItems =>
-          AmendmentDataFailure(
-            s"Failed to find matching rate plan charge for invoice items: ${invoiceItems.map(_.chargeNumber).mkString(", ")}"
-          )
-      )
-      pricings <- eitherFailingOrPassingResults(
-        /*
-         * distinct because where a sub has a discount rate plan,
-         * the same discount will appear against each product rate plan charge in the invoice preview.
-         */
-        ratePlanCharges.distinctBy(_.productRatePlanChargeId),
-        ZuoraPricing.matchingPricing(pricingData)
-      ).left
-        .map(
-          ids => AmendmentDataFailure(s"Failed to find matching pricing for rate plan charges: ${ids.mkString}")
-        )
-        .filterOrElse(
-          hasNoMoreThanOneDiscount,
-          AmendmentDataFailure("Has multiple discount rate plan charges")
-        )
+    def ratePlanCharge(invoiceItem: ZuoraInvoiceItem) =
+      ZuoraRatePlanCharge
+        .matchingRatePlanCharge(subscription, invoiceItem)
         .filterOrElse(
           hasNotPriceAndDiscount,
-          AmendmentDataFailure("Some rate plan charges have both a price and a discount")
+          AmendmentDataFailure(s"Rate plan charge '${invoiceItem.chargeNumber}' has price and discount")
         )
+
+    def pricings(ratePlanCharges: Seq[ZuoraRatePlanCharge]) = {
+      /*
+       * distinct because where a sub has a discount rate plan,
+       * the same discount will appear against each product rate plan charge in the invoice preview.
+       */
+      val pricings = ratePlanCharges.distinctBy(_.productRatePlanChargeId).map(pricing)
+      val failures = pricings.collect { case Left(failure) => failure }
+      if (failures.isEmpty) Right(pricings.collect { case Right(pricing) => pricing })
+      else
+        Left(AmendmentDataFailure(s"Failed to find matching pricing for rate plan charges: ${failures.mkString(", ")}"))
+    }
+
+    def pricing(ratePlanCharge: ZuoraRatePlanCharge) =
+      ZuoraPricing
+        .matchingPricing(pricingData, ratePlanCharge)
+        .toRight(ratePlanCharge.productRatePlanChargeId)
+        .map(pricing => RatePlanChargeAndPricing(ratePlanCharge, pricing))
+
+    val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, startDate)
+
+    val ratePlanCharges = {
+      val ratePlanCharges = invoiceItems.map(ratePlanCharge)
+      val failures = ratePlanCharges.collect { case Left(failure) => failure }
+      if (failures.isEmpty) Right(ratePlanCharges.collect { case Right(charge) => charge })
+      else Left(AmendmentDataFailure(failures.map(_.reason).mkString(", ")))
+    }
+
+    for {
+      ratePlanCharges <- ratePlanCharges
+      pricings <- pricings(ratePlanCharges)
       currency <- pricings.headOption
-        .map(p => Right(p.currency))
+        .map(p => Right(p.pricing.currency))
         .getOrElse(Left(AmendmentDataFailure(s"No invoice items for date: $startDate")))
       oldPrice <- totalChargeAmount(subscription, invoiceList, startDate)
+      newPrice <- combinePrices(pricings)
       billingPeriod <- ratePlanCharges
         .flatMap(_.billingPeriod)
         .headOption
@@ -112,7 +112,7 @@ object AmendmentData {
       PriceData(
         currency,
         oldPrice,
-        newPrice = combinePrices(pricings),
+        newPrice,
         billingPeriod
       )
     }
@@ -132,8 +132,8 @@ object AmendmentData {
      * that correspond with items in the invoice list.
      */
     val amounts = for {
-      invoiceItem <- ZuoraInvoiceItem.items(invoiceList, serviceStartDate).distinctBy(_.chargeNumber)
-      ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription)(invoiceItem).toSeq
+      invoiceItem <- ZuoraInvoiceItem.items(invoiceList, subscription, serviceStartDate)
+      ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toSeq
     } yield individualChargeAmount(ratePlanCharge)
 
     val discounts = amounts.collect { case Left(percentageDiscount) => percentageDiscount }
@@ -158,11 +158,50 @@ object AmendmentData {
       case Some(_)          => Right(0)
     }
 
-  def combinePrices(pricings: Seq[ZuoraPricing]): BigDecimal =
-    applyDiscountAndThenSum(
-      discountPercentage = pricings.map(_.discountPercentage).find(_ > 0),
-      beforeDiscount = pricings.flatMap(_.price)
-    )
+  /**
+    * Combines prices over the given billing period.
+    *
+    * TODO: this assumes that the prices are per month,
+    * and that billing periods of over a month are priced in the same ratio.
+    * This is only a safe assumption for vouchers.
+    */
+  private def combinePrices(
+      ratePlanChargeAndPricings: Seq[RatePlanChargeAndPricing]
+  ): Either[AmendmentDataFailure, BigDecimal] = {
+
+    def price(ratePlanChargeAndPricing: RatePlanChargeAndPricing): Either[AmendmentDataFailure, Option[BigDecimal]] = {
+      def multiplier(ratePlanCharge: ZuoraRatePlanCharge) = ratePlanCharge.billingPeriod match {
+        case Some("Month")       => Right(1)
+        case Some("Quarter")     => Right(3)
+        case Some("Semi_Annual") => Right(6)
+        case Some("Annual")      => Right(12)
+        case other =>
+          Left(AmendmentDataFailure(s"Rate plan charge '${ratePlanCharge.number}' has unknown billing period: $other"))
+      }
+      ratePlanChargeAndPricing.pricing.price.filter(_ > 0) match {
+        case None => Right(None)
+        case Some(price) =>
+          multiplier(ratePlanChargeAndPricing.ratePlanCharge) map (multiplier => Some(price * multiplier))
+      }
+    }
+
+    val discountPercentageOrFailure = {
+      val discounts = ratePlanChargeAndPricings.flatMap(_.ratePlanCharge.discountPercentage.filter(_ > 0))
+      if (discounts.length > 1) Left(AmendmentDataFailure("Subscription has more than one discount"))
+      else Right(discounts.headOption)
+    }
+
+    val prices = ratePlanChargeAndPricings.map(price)
+
+    for {
+      discountPercentage <- discountPercentageOrFailure
+      _ <- prices.collectFirst { case Left(e) => e }.toLeft(())
+    } yield
+      applyDiscountAndThenSum(
+        discountPercentage,
+        beforeDiscount = prices.collect { case Right(price) => price }.flatten
+      )
+  }
 
   private def applyDiscountAndThenSum(discountPercentage: Option[Double], beforeDiscount: Seq[BigDecimal]): BigDecimal =
     beforeDiscount.map(applyDiscount(discountPercentage)).sum

@@ -7,7 +7,7 @@
   "invoiceOwnerAccountId": "accId",
   "invoiceOwnerAccountNumber": "accNum",
   "invoiceOwnerAccountName": "accName",
-  "subscriptionNumber": "subNum",
+  "subscriptionNumber": "A-S12345678",
   "version": 2,
   "termType": "TERMED",
   "invoiceSeparately": false,

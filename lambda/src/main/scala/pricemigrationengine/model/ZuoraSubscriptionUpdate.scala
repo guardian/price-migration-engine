@@ -24,8 +24,8 @@ object ZuoraSubscriptionUpdate {
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
 
     val ratePlans = (for {
-      invoiceItem <- ZuoraInvoiceItem.items(invoiceList, date)
-      ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription)(invoiceItem).toSeq
+      invoiceItem <- ZuoraInvoiceItem.items(invoiceList, subscription, date)
+      ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toSeq
       price <- ratePlanCharge.price.toSeq
       if price > 0
       ratePlan <- ZuoraRatePlan.ratePlan(subscription, ratePlanCharge).toSeq

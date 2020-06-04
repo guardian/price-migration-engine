@@ -16,11 +16,24 @@ object ZuoraInvoiceList {
  * Don't use 'chargeAmount' field as it doesn't include tax.
  * However the price field of the corresponding rate plan charge does include tax.
  */
-case class ZuoraInvoiceItem(serviceStartDate: LocalDate, chargeNumber: String)
+case class ZuoraInvoiceItem(subscriptionNumber: String, serviceStartDate: LocalDate, chargeNumber: String)
 
 object ZuoraInvoiceItem {
   implicit val rw: ReadWriter[ZuoraInvoiceItem] = macroRW
 
-  def items(invoiceList: ZuoraInvoiceList, serviceStartDate: LocalDate): Seq[ZuoraInvoiceItem] =
-    invoiceList.invoiceItems.filter(_.serviceStartDate == serviceStartDate)
+  def itemsForSubscription(
+      invoiceList: ZuoraInvoiceList,
+      subscription: ZuoraSubscription
+  ): Seq[ZuoraInvoiceItem] =
+    invoiceList.invoiceItems
+      .filter(_.subscriptionNumber == subscription.subscriptionNumber)
+
+  def items(
+      invoiceList: ZuoraInvoiceList,
+      subscription: ZuoraSubscription,
+      serviceStartDate: LocalDate
+  ): Seq[ZuoraInvoiceItem] =
+    itemsForSubscription(invoiceList, subscription)
+      .filter(_.serviceStartDate == serviceStartDate)
+      .distinctBy(_.chargeNumber)
 }

@@ -52,11 +52,15 @@ object ZuoraProductRatePlanCharge {
   implicit val rw: ReadWriter[ZuoraProductRatePlanCharge] = macroRW
 }
 
-case class ZuoraPricing(currency: Currency, price: Option[BigDecimal], discountPercentage: Double)
+/*
+ * Don't use discount percentage from product catalogue,
+ * because it can be overridden so the default value is unreliable.
+ */
+case class ZuoraPricing(currency: Currency, price: Option[BigDecimal])
 
 object ZuoraPricing {
   implicit val rw: ReadWriter[ZuoraPricing] = macroRW
 
-  def matchingPricing(pricingData: ZuoraPricingData)(ratePlanCharge: ZuoraRatePlanCharge): Option[ZuoraPricing] =
-    pricingData.get(ratePlanCharge.productRatePlanChargeId, ratePlanCharge.currency)
+  def matchingPricing(pricingData: ZuoraPricingData, ratePlanCharge: ZuoraRatePlanCharge): Option[ZuoraPricing] =
+    pricingData.get((ratePlanCharge.productRatePlanChargeId, ratePlanCharge.currency))
 }
