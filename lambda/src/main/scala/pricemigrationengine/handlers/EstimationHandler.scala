@@ -35,8 +35,10 @@ object EstimationHandler extends zio.App with RequestHandler[Unit, Unit] {
       item: CohortItem
   ): ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora with Random, Failure, CohortItem] =
     for {
+      config <- AmendmentConfiguration.amendmentConfig
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
-      invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId)
+      invoicePreviewTargetDate = config.earliestStartDate.plusMonths(13)
+      invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
       earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview)
       result <- ZIO
         .fromEither(EstimationResult(newProductPricing, subscription, invoicePreview, earliestStartDate))
@@ -45,16 +47,17 @@ object EstimationHandler extends zio.App with RequestHandler[Unit, Unit] {
             Logging.error(s"Failed to estimate amendment data for subscription ${subscription.subscriptionNumber}: $e"),
           result => Logging.info(s"Estimated result: $result")
         )
-    } yield CohortItem(
-      result.subscriptionName,
-      processingStage = EstimationComplete,
-      oldPrice = Some(result.oldPrice),
-      estimatedNewPrice = Some(result.estimatedNewPrice),
-      currency = Some(result.currency),
-      startDate = Some(result.startDate),
-      billingPeriod = Some(result.billingPeriod),
-      whenEstimationDone = Some(Instant.now())
-    )
+    } yield
+      CohortItem(
+        result.subscriptionName,
+        processingStage = EstimationComplete,
+        oldPrice = Some(result.oldPrice),
+        estimatedNewPrice = Some(result.estimatedNewPrice),
+        currency = Some(result.currency),
+        startDate = Some(result.startDate),
+        billingPeriod = Some(result.billingPeriod),
+        whenEstimationDone = Some(Instant.now())
+      )
 
   /*
    * Earliest start date spread out over 3 months.

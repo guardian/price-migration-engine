@@ -35,8 +35,13 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
       item: CohortItem
   ): ZIO[Logging with AmendmentConfiguration with Zuora, Failure, CohortItem] =
     for {
+      config <- AmendmentConfiguration.amendmentConfig
+      invoicePreviewTargetDate = config.earliestStartDate.plusMonths(13)
       subscriptionBeforeUpdate <- fetchSubscription(item)
-      invoicePreviewBeforeUpdate <- Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId)
+      invoicePreviewBeforeUpdate <- Zuora.fetchInvoicePreview(
+        subscriptionBeforeUpdate.accountId,
+        invoicePreviewTargetDate
+      )
       startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
       update <- ZIO.fromEither(
         ZuoraSubscriptionUpdate
@@ -44,23 +49,27 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
       )
       newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
       subscriptionAfterUpdate <- fetchSubscription(item)
-      invoicePreviewAfterUpdate <- Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId)
+      invoicePreviewAfterUpdate <- Zuora.fetchInvoicePreview(
+        subscriptionAfterUpdate.accountId,
+        invoicePreviewTargetDate
+      )
       totalChargeAmount <- ZIO
         .fromEither(AmendmentData.totalChargeAmount(subscriptionAfterUpdate, invoicePreviewAfterUpdate, startDate))
         .mapError(
           e =>
             AmendmentDataFailure(
               s"Failed to calculate amendment of subscription ${subscriptionBeforeUpdate.subscriptionNumber}: $e"
-            )
+          )
         )
-    } yield CohortItem(
-      subscriptionBeforeUpdate.subscriptionNumber,
-      processingStage = AmendmentComplete,
-      startDate = Option(startDate),
-      newPrice = Some(totalChargeAmount),
-      newSubscriptionId = Some(newSubscriptionId),
-      whenAmendmentDone = Some(Instant.now())
-    )
+    } yield
+      CohortItem(
+        subscriptionBeforeUpdate.subscriptionNumber,
+        processingStage = AmendmentComplete,
+        startDate = Option(startDate),
+        newPrice = Some(totalChargeAmount),
+        newSubscriptionId = Some(newSubscriptionId),
+        whenAmendmentDone = Some(Instant.now())
+      )
 
   private def fetchSubscription(item: CohortItem): ZIO[Zuora, Failure, ZuoraSubscription] =
     Zuora
