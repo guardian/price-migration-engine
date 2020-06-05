@@ -4,6 +4,7 @@ import java.time.LocalDate
 
 import pricemigrationengine.model.{SalesforceAddress, SalesforceClientFailure, SalesforceConfig, SalesforceContact, SalesforcePriceRise, SalesforceSubscription}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
+import pricemigrationengine.model.OptionReader //This import is required do not remove
 import upickle.default._
 import zio.{IO, ZIO, ZLayer}
 
