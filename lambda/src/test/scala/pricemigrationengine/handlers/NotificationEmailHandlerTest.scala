@@ -96,7 +96,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
     )
   }
 
-  private def stubEmailSender(sendMessages: ArrayBuffer[EmailMessage]) = {
+  private def createStubEmailSender(sendMessages: ArrayBuffer[EmailMessage]) = {
     ZLayer.succeed(
       new EmailSender.Service {
         override def sendEmail(message: EmailMessage): ZIO[Any, EmailSenderFailure, Unit] =
@@ -153,7 +153,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
 
     val sentMessages = ArrayBuffer[EmailMessage]()
 
-    val stubEmailSender = stubEmailSender(sentMessages)
+    val stubEmailSender = createStubEmailSender(sentMessages)
 
     assertEquals(
       default.unsafeRunSync(
