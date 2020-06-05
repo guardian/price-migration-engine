@@ -4,8 +4,6 @@ import java.time.LocalDate
 
 import pricemigrationengine.model.{SalesforceAddress, SalesforceClientFailure, SalesforceConfig, SalesforceContact, SalesforcePriceRise, SalesforceSubscription}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
-import pricemigrationengine.model.OptionReader //This import is required do not remove
-import upickle.default._
 import zio.{IO, ZIO, ZLayer}
 
 object SalesforceClientLive {
@@ -16,6 +14,8 @@ object SalesforceClientLive {
     val logging  = dependencies.get[Logging.Service]
     val salesforceConfig  = dependencies.get[SalesforceConfiguration.Service]
 
+    import upickle.default._
+    import pricemigrationengine.model.OptionReader //This import is required do not remove
     implicit val localDateRW: ReadWriter[LocalDate] = readwriter[String].bimap[LocalDate](_.toString, LocalDate.parse)
     implicit val salesforceAuthDetailsRW: ReadWriter[SalesforceAuthDetails] = macroRW
     implicit val salesforceSubscriptionRW: ReadWriter[SalesforceSubscription] = macroRW
