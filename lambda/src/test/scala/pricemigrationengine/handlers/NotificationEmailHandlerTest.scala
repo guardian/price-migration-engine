@@ -6,6 +6,7 @@ import java.time.temporal.ChronoUnit
 import pricemigrationengine.StubClock
 import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EstimationComplete}
 import pricemigrationengine.model._
+import pricemigrationengine.model.membershipworkflow.EmailMessage
 import pricemigrationengine.services._
 import zio.Exit.Success
 import zio.Runtime.default
@@ -73,6 +74,14 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
     )
   }
 
+  private def subEmailSender() = {
+    ZLayer.succeed(
+      new EmailSender.Service {
+        override def sendEmail(message: EmailMessage): ZIO[Any, EmailSenderFailure, Unit] =
+          ZIO.unit
+      }
+    )
+  }
   test("SalesforcePriceRiseCreateHandler should get records from cohort table and SF") {
     val stubSalesforceClient = stubSFClient()
     val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
@@ -89,11 +98,13 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
 
     val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
 
+    val stubEmailSender = subEmailSender()
+
     assertEquals(
       default.unsafeRunSync(
         NotificationEmailHandler.main
           .provideLayer(
-            stubLogging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient
+            stubLogging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
           )
       ),
       Success(())

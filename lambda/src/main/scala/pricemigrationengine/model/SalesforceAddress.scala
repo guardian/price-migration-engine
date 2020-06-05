@@ -1,3 +1,9 @@
 package pricemigrationengine.model
 
-case class SalesforceAddress(street: String, city: String, state: String, postalCode: String, country: String)
+case class SalesforceAddress(
+  street: Option[String],
+  city: Option[String],
+  state: Option[String],
+  postalCode: Option[String],
+  country: Option[String]
+)
