@@ -6,6 +6,7 @@ import java.time.temporal.ChronoUnit
 import pricemigrationengine.StubClock
 import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EstimationComplete}
 import pricemigrationengine.model._
+import pricemigrationengine.model.membershipworkflow.EmailMessage
 import pricemigrationengine.services._
 import zio.Exit.Success
 import zio.Runtime.default
@@ -19,9 +20,22 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
   val expectedSubscriptionName = "Sub-0001"
   val expectedStartDate = LocalDate.of(2020, 1, 1)
   val expectedCurrency = "GBP"
-  val expectedBillingFrequency = "Monthly"
+  val expectedBillingPeriod = "Monthly"
+  val expectedNewPrice = BigDecimal(19.99)
   val expectedOldPrice = BigDecimal(11.11)
   val expectedEstimatedNewPrice = BigDecimal(22.22)
+  val expectedSFSubscriptionId = "1234"
+  val expectedBuyerId = "buyer-1"
+  val expectedIdentityId = "buyer1-identity-id"
+  val expectedEmailAddress = "buyer@email.address"
+  val expectedFirstName = "buyer1FirstName"
+  val expectedLastName = "buyer1LastName"
+  val expectedStreet = "buyer1Street"
+  val expectedCity = "buyer1City"
+  val expectedState = "buyer1State"
+  val expectedPostalCode = "buyer1PostalCode"
+  val expectedCountry = "buyer1Country"
+
 
   def createStubCohortTable(updatedResultsWrittenToCohortTable:ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
@@ -51,12 +65,18 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
     )
   }
 
-  private def stubSFClient() = {
+  private def stubSFClient(
+    subscriptions: List[SalesforceSubscription],
+    contacts: List[SalesforceContact]
+  ) = {
     ZLayer.succeed(
       new SalesforceClient.Service {
         override def getSubscriptionByName(
             subscriptionName: String
-        ): IO[SalesforceClientFailure, SalesforceSubscription] = ???
+        ): IO[SalesforceClientFailure, SalesforceSubscription] =
+          ZIO
+            .fromOption(subscriptions.find(_.Name == subscriptionName))
+            .orElseFail(SalesforceClientFailure(s"No subscription for name '$subscriptionName'"))
 
         override def createPriceRise(
             priceRise: SalesforcePriceRise
@@ -65,12 +85,57 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
         override def updatePriceRise(
             priceRiseId: String, priceRise: SalesforcePriceRise
         ): IO[SalesforceClientFailure, Unit] = ???
+
+        override def getContact(
+            contactId: String
+        ): IO[SalesforceClientFailure, SalesforceContact] =
+          ZIO
+            .fromOption(contacts.find(_.Id == contactId))
+            .orElseFail(SalesforceClientFailure(s"No subscription for name '$contactId'"))
+      }
+    )
+  }
+
+  private def createStubEmailSender(sendMessages: ArrayBuffer[EmailMessage]) = {
+    ZLayer.succeed(
+      new EmailSender.Service {
+        override def sendEmail(message: EmailMessage): ZIO[Any, EmailSenderFailure, Unit] =
+          ZIO.effect {
+            sendMessages.addOne(message)
+            ()
+          }.orElseFail(EmailSenderFailure(""))
       }
     )
   }
 
   test("SalesforcePriceRiseCreateHandler should get records from cohort table and SF") {
-    val stubSalesforceClient = stubSFClient()
+    val stubSalesforceClient =
+      stubSFClient(
+        List(
+          SalesforceSubscription(
+            expectedSFSubscriptionId,
+            expectedSubscriptionName,
+            expectedBuyerId
+          )
+        ),
+        List(
+          SalesforceContact(
+            Id = expectedBuyerId,
+            IdentityID__c = Some(expectedIdentityId),
+            Email = Some(expectedEmailAddress),
+            FirstName = Some(expectedFirstName),
+            LastName = Some(expectedLastName),
+            MailingAddress = SalesforceAddress(
+              street = Some(expectedStreet),
+              city = Some(expectedCity),
+              state = Some(expectedState),
+              postalCode = Some(expectedPostalCode),
+              country = Some(expectedCountry),
+            )
+          )
+        )
+      )
+
     val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
 
     val cohortItem = CohortItem(
@@ -78,21 +143,42 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
       processingStage = AmendmentComplete,
       startDate = Some(expectedStartDate),
       currency = Some(expectedCurrency),
+      newPrice = Some(expectedNewPrice),
       oldPrice = Some(expectedOldPrice),
       estimatedNewPrice = Some(expectedEstimatedNewPrice),
-      billingPeriod = Some(expectedBillingFrequency)
+      billingPeriod = Some(expectedBillingPeriod)
     )
 
     val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
+
+    val sentMessages = ArrayBuffer[EmailMessage]()
+
+    val stubEmailSender = createStubEmailSender(sentMessages)
 
     assertEquals(
       default.unsafeRunSync(
         NotificationEmailHandler.main
           .provideLayer(
-            stubLogging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient
+            stubLogging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
           )
       ),
       Success(())
     )
+
+    assertEquals(sentMessages.size, 1)
+    assertEquals(sentMessages(0).DataExtensionName, "price-rise-email")
+    assertEquals(sentMessages(0).SfContactId, expectedBuyerId)
+    assertEquals(sentMessages(0).IdentityUserId, Some(expectedIdentityId))
+    assertEquals(sentMessages(0).To.Address, expectedEmailAddress)
+    assertEquals(sentMessages(0).To.ContactAttributes.AddressLine1, expectedStreet)
+    assertEquals(sentMessages(0).To.ContactAttributes.Town, Some(expectedCity))
+    assertEquals(sentMessages(0).To.ContactAttributes.County, Some(expectedState))
+    assertEquals(sentMessages(0).To.ContactAttributes.Postcode, expectedPostalCode)
+    assertEquals(sentMessages(0).To.ContactAttributes.Country, expectedCountry)
+    assertEquals(sentMessages(0).To.ContactAttributes.FirstName, expectedFirstName)
+    assertEquals(sentMessages(0).To.ContactAttributes.LastName, expectedLastName)
+    assertEquals(sentMessages(0).To.ContactAttributes.NewPrice, expectedNewPrice.toString())
+    assertEquals(sentMessages(0).To.ContactAttributes.StartDate, expectedStartDate.toString())
+    assertEquals(sentMessages(0).To.ContactAttributes.BillingPeriod, expectedBillingPeriod)
   }
 }

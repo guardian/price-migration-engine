@@ -63,9 +63,13 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
             subscriptionName: String
         ): IO[SalesforceClientFailure, SalesforceSubscription] = {
           IO.effect(
-              SalesforceSubscription(s"SubscritionId-$subscriptionName", subscriptionName, s"Buyer-$subscriptionName")
+            SalesforceSubscription(
+              s"SubscritionId-$subscriptionName",
+              subscriptionName,
+              s"Buyer-$subscriptionName"
             )
-            .orElseFail(SalesforceClientFailure(""))
+          )
+          .orElseFail(SalesforceClientFailure(""))
         }
 
         override def createPriceRise(
@@ -81,6 +85,10 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
           updatedPriceRises.addOne(priceRise)
           ZIO.unit
         }
+
+        override def getContact(
+            contactId: String
+        ): IO[SalesforceClientFailure, SalesforceContact] = ???
       }
     )
   }
