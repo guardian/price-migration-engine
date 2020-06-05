@@ -25,7 +25,7 @@ object NotificationEmailHandler {
   def sendEmail(cohortItem: CohortItem): ZIO[EmailSender with SalesforceClient, Failure, Unit] = {
     for {
       sfSubscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
-      contact <- SalesforceClient.getContact(sfSubscription.Recipient__c)
+      contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
       emailAddress <- requiredField(contact.Email, "Contact.Email")
       firstName <- requiredField(contact.FirstName, "Contact.FirstName")
       lastName <- requiredField(contact.LastName, "Contact.LastName")
