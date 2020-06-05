@@ -34,12 +34,12 @@ object AmendmentData {
       .headOption
       .toRight(AmendmentDataFailure(s"Cannot determine next billing date on or after $onOrAfter from $invoiceList"))
 
-  /*
-   * New prices can only be calculated from a combination of the subscription rate plan charge
-   * and its corresponding product rate plan charge.
-   * This is because discounts are only reliable in the subscription rate plan charge
-   * and new prices have to come from the product rate plan charge.
-   */
+  /**
+    * New prices can only be calculated from a combination of the subscription rate plan charge
+    * and its corresponding product rate plan charge.<br/>
+    * This is because discounts are only reliable in the subscription rate plan charge,
+    * and new prices have to come from the product rate plan charge.
+    */
   private case class RatePlanChargePair(
       chargeFromSubscription: ZuoraRatePlanCharge,
       chargeFromProduct: ZuoraProductRatePlanCharge
@@ -114,7 +114,7 @@ object AmendmentData {
         .map(p => Right(p.chargeFromSubscription.currency))
         .getOrElse(Left(AmendmentDataFailure(s"No invoice items for date: $startDate")))
       oldPrice <- totalChargeAmount(subscription, invoiceList, startDate)
-      newPrice <- combinePrices(pairs)
+      newPrice <- totalChargeAmount(pairs)
       billingPeriod <- ratePlanCharges
         .flatMap(_.billingPeriod)
         .headOption
@@ -123,7 +123,7 @@ object AmendmentData {
   }
 
   /**
-    * Total charge amount, including taxes, for the service period starting on the given service start date.
+    * Total charge amount, including taxes and discounts, for the service period starting on the given service start date.
     */
   def totalChargeAmount(
       subscription: ZuoraSubscription,
@@ -163,29 +163,36 @@ object AmendmentData {
     }
 
   /**
-    * Combines prices over the given billing period.
+    * Total charge amount, including taxes and discounts, for a given set of <code>RatePlanChargePairs</code>,
+    * using the product rate plan charge price as a basis.<br/>
+    * Absolute prices will come from the product rate plan charge.<br/>
+    * Percentage discount amounts will come from the subscription rate plan charge.<br/>
+    * Absolute discount amounts will be ignored.
     */
-  private def combinePrices(ratePlanChargePairs: Seq[RatePlanChargePair]): Either[AmendmentDataFailure, BigDecimal] = {
+  private def totalChargeAmount(
+      ratePlanChargePairs: Seq[RatePlanChargePair]
+  ): Either[AmendmentDataFailure, BigDecimal] = {
 
-    def price(ratePlanChargePair: RatePlanChargePair): Either[AmendmentDataFailure, Option[BigDecimal]] = {
-      def multiplier(ratePlanCharge: ZuoraRatePlanCharge) = ratePlanCharge.billingPeriod match {
-        case Some("Month")       => Right(1)
-        case Some("Quarter")     => Right(3)
-        case Some("Semi_Annual") => Right(6)
-        case Some("Annual")      => Right(12)
-        case other =>
-          Left(AmendmentDataFailure(s"Rate plan charge '${ratePlanCharge.number}' has unknown billing period: $other"))
-      }
-
+    def price(ratePlanChargePair: RatePlanChargePair): Either[AmendmentDataFailure, Option[BigDecimal]] =
       ZuoraPricing
         .pricing(ratePlanChargePair.chargeFromProduct, ratePlanChargePair.chargeFromSubscription.currency)
         .flatMap(_.price)
         .filter(_ > 0) match {
         case None => Right(None)
         case Some(price) =>
-          multiplier(ratePlanChargePair.chargeFromSubscription) map (multiplier => Some(price * multiplier))
+          adjustedForBillingPeriod(
+            price,
+            ratePlanChargePair.chargeFromSubscription.billingPeriod,
+            ratePlanChargePair.chargeFromProduct.billingPeriod
+          ).map(Some(_))
+            .left
+            .map(
+              e =>
+                AmendmentDataFailure(
+                  s"Failed to calculate amount of rate plan charge ${ratePlanChargePair.chargeFromSubscription.number}: $e"
+                )
+            )
       }
-    }
 
     val discountPercentageOrFailure = {
       val discounts = ratePlanChargePairs.flatMap(_.chargeFromSubscription.discountPercentage.filter(_ > 0))
@@ -198,11 +205,10 @@ object AmendmentData {
     for {
       discountPercentage <- discountPercentageOrFailure
       _ <- prices.collectFirst { case Left(e) => e }.toLeft(())
-    } yield
-      applyDiscountAndThenSum(
-        discountPercentage,
-        beforeDiscount = prices.collect { case Right(price) => price }.flatten
-      )
+    } yield applyDiscountAndThenSum(
+      discountPercentage,
+      beforeDiscount = prices.collect { case Right(price) => price }.flatten
+    )
   }
 
   private def applyDiscountAndThenSum(discountPercentage: Option[Double], beforeDiscount: Seq[BigDecimal]): BigDecimal =
@@ -212,4 +218,40 @@ object AmendmentData {
     roundDown(discountPercentage.fold(beforeDiscount)(percentage => (100 - percentage) / 100 * beforeDiscount))
 
   def roundDown(d: BigDecimal): BigDecimal = d.setScale(2, RoundingMode.DOWN)
+
+  /**
+    * In some cases, a product rate plan charge has a monthly billing period
+    * but a subscription has overridden it with a rate plan charge with a different billing period.
+    * In these cases, the price has to be multiplied
+    * by the number of months in the subscription billing period.
+    */
+  private def adjustedForBillingPeriod(
+      price: BigDecimal,
+      subscriptionBillingPeriod: Option[String],
+      productBillingPeriod: Option[String]
+  ): Either[AmendmentDataFailure, BigDecimal] = {
+
+    val multiple = (subscriptionBillingPeriod, productBillingPeriod) match {
+      case (Some(billingPeriod), Some(prodBillingPeriod)) if billingPeriod == prodBillingPeriod => Right(1)
+      case (Some(billingPeriod), Some("Month")) =>
+        monthMultiples
+          .get(billingPeriod)
+          .map(Right(_))
+          .getOrElse(Left(AmendmentDataFailure(s"Unknown billing period: $billingPeriod")))
+      case (billingPeriod, productBillingPeriod) =>
+        Left(
+          AmendmentDataFailure(
+            s"Invalid billing period combinations: subscription = $billingPeriod, product = $productBillingPeriod"
+          )
+        )
+    }
+
+    multiple map (_ * price)
+  }
+
+  private val monthMultiples: Map[String, Int] = Map(
+    "Quarter" -> 3,
+    "Semi_Annual" -> 6,
+    "Annual" -> 12
+  )
 }
