@@ -15,7 +15,6 @@ object SalesforceClientLive {
     val logging  = dependencies.get[Logging.Service]
     val salesforceConfig  = dependencies.get[SalesforceConfiguration.Service]
 
-    import pricemigrationengine.upickle.OptionPickler._
     implicit val localDateRW: ReadWriter[LocalDate] = readwriter[String].bimap[LocalDate](_.toString, LocalDate.parse)
     implicit val salesforceAuthDetailsRW: ReadWriter[SalesforceAuthDetails] = macroRW
     implicit val salesforceSubscriptionRW: ReadWriter[SalesforceSubscription] = macroRW
