@@ -30,9 +30,7 @@ object NotificationEmailHandler {
       firstName <- requiredField(contact.FirstName, "Contact.FirstName")
       lastName <- requiredField(contact.LastName, "Contact.LastName")
       street <- requiredField(contact.MailingAddress.street, "Contact.MailingAddress.street")
-      city <- requiredField(contact.MailingAddress.city, "Contact.MailingAddress.city")
       postalCode <- requiredField(contact.MailingAddress.postalCode, "Contact.MailingAddress.postalCode")
-      state <- requiredField(contact.MailingAddress.state, "Contact.MailingAddress.state")
       country <- requiredField(contact.MailingAddress.country, "Contact.MailingAddress.country")
       newPrice <- requiredField(cohortItem.newPrice.map(_.toString()), "CohortItem.newPrice")
       startDate <- requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate")
@@ -46,9 +44,9 @@ object NotificationEmailHandler {
               FirstName = firstName,
               LastName = lastName,
               AddressLine1 = street,
-              Town = city,
+              Town = contact.MailingAddress.city,
               Postcode = postalCode,
-              County = state,
+              County = contact.MailingAddress.state,
               Country = country,
               NewPrice = newPrice,
               StartDate = startDate,
