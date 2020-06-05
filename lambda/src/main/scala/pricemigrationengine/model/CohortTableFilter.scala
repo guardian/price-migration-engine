@@ -21,6 +21,7 @@ object CohortTableFilter {
 
   val all = Set(
     ReadyForEstimation,
+    EstimationFailed,
     EstimationComplete,
     SalesforcePriceRiceCreationComplete,
     AmendmentComplete,
