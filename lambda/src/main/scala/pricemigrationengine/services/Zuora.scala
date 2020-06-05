@@ -1,5 +1,7 @@
 package pricemigrationengine.services
 
+import java.time.LocalDate
+
 import pricemigrationengine.model._
 import zio.ZIO
 
@@ -9,7 +11,7 @@ object Zuora {
 
     def fetchSubscription(subscriptionNumber: String): ZIO[Any, ZuoraFetchFailure, ZuoraSubscription]
 
-    def fetchInvoicePreview(accountId: String): ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList]
+    def fetchInvoicePreview(accountId: String, targetDate: LocalDate): ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList]
 
     val fetchProductCatalogue: ZIO[Any, ZuoraFetchFailure, ZuoraProductCatalogue]
 
@@ -22,8 +24,8 @@ object Zuora {
   def fetchSubscription(subscriptionNumber: String): ZIO[Zuora, Failure, ZuoraSubscription] =
     ZIO.accessM(_.get.fetchSubscription(subscriptionNumber))
 
-  def fetchInvoicePreview(accountId: String): ZIO[Zuora, ZuoraFetchFailure, ZuoraInvoiceList] =
-    ZIO.accessM(_.get.fetchInvoicePreview(accountId))
+  def fetchInvoicePreview(accountId: String, targetDate: LocalDate): ZIO[Zuora, ZuoraFetchFailure, ZuoraInvoiceList] =
+    ZIO.accessM(_.get.fetchInvoicePreview(accountId, targetDate))
 
   val fetchProductCatalogue: ZIO[Zuora, ZuoraFetchFailure, ZuoraProductCatalogue] =
     ZIO.accessM(_.get.fetchProductCatalogue)

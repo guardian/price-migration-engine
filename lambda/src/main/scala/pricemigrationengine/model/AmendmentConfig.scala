@@ -10,8 +10,7 @@ case class AmendmentConfig(
 case class ZuoraConfig(
     apiHost: String,
     clientId: String,
-    clientSecret: String,
-    yearInFuture: LocalDate = LocalDate.now.plusYears(1)
+    clientSecret: String
 )
 
 case class DynamoDBConfig(endpoint: Option[DynamoDBEndpointConfig])
