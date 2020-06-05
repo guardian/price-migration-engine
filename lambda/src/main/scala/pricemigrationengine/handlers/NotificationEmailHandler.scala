@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import com.amazonaws.services.lambda.runtime.Context
 import pricemigrationengine.model.CohortTableFilter.AmendmentComplete
 import pricemigrationengine.model.membershipworkflow.{EmailMessage, EmailPayload, EmailPayloadContactAttributes}
-import pricemigrationengine.model.{CohortItem, Failure, NotificationEmailFailure}
+import pricemigrationengine.model.{CohortItem, Failure, NotificationEmailHandlerFailure}
 import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.console.Console
@@ -14,7 +14,7 @@ object NotificationEmailHandler {
 
   val main: ZIO[Logging with CohortTable with SalesforceClient with Clock with EmailSender, Failure, Unit] = {
     for {
-      now <- clock.currentDateTime.mapError(ex => NotificationEmailFailure(s"Failed to get time: $ex"))
+      now <- clock.currentDateTime.mapError(ex => NotificationEmailHandlerFailure(s"Failed to get time: $ex"))
       subscriptions <- CohortTable.fetch(
         AmendmentComplete, Some(now.toLocalDate.plusDays(NotificationEmailLeadTimeDays))
       )
@@ -64,7 +64,7 @@ object NotificationEmailHandler {
   }
 
   def requiredField(field: Option[String], fieldName: String) = {
-    ZIO.fromOption(field).orElseFail(NotificationEmailFailure(s"$fieldName is a required field"))
+    ZIO.fromOption(field).orElseFail(NotificationEmailHandlerFailure(s"$fieldName is a required field"))
   }
 
 

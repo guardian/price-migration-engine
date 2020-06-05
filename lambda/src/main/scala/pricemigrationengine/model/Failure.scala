@@ -22,5 +22,5 @@ case class SalesforceClientFailure(reason: String) extends Failure
 case class S3Failure(reason: String) extends Failure
 case class SubscriptionIdUploadFailure(reason: String) extends Failure
 
-case class NotificationEmailFailure(reason: String) extends Failure
+case class NotificationEmailHandlerFailure(reason: String) extends Failure
 case class EmailSenderFailure(reason: String) extends Failure
