@@ -82,7 +82,7 @@ object SalesforceClientLive {
             .header("Authorization", s"Bearer ${auth.access_token}")
             .method("GET")
         ).tap( subscription =>
-          logging.info(s"Successfully loaded: ${subscription}")
+          logging.info(s"Successfully loaded: ${subscription.Name}")
         )
 
       override def getContact(
@@ -93,7 +93,7 @@ object SalesforceClientLive {
             .header("Authorization", s"Bearer ${auth.access_token}")
             .method("GET")
         ).tap(contact =>
-          logging.info(s"Successfully loaded contact: ${contact}")
+          logging.info(s"Successfully loaded contact: ${contact.Id}")
         )
 
       override def createPriceRise(
