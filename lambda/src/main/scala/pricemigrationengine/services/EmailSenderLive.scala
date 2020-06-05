@@ -9,7 +9,6 @@ object EmailSenderLive {
     new EmailSender.Service {
       override def sendEmail(message: EmailMessage): ZIO[Any, EmailSenderFailure, Unit] = {
         Logging.info(s"Sending email for ${message.SfContactId}")
-
       }.provide(logging)
     }
   }
