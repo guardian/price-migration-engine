@@ -124,13 +124,16 @@ object ZuoraLive {
               )
 
           // See https://www.zuora.com/developer/api-reference/#operation/POST_BillingPreviewRun
-          def fetchInvoicePreview(accountId: String): ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList] =
+          def fetchInvoicePreview(
+              accountId: String,
+              targetDate: LocalDate
+          ): ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList] =
             post[ZuoraInvoiceList](
               path = "operations/billing-preview",
               body = write(
                 InvoicePreviewRequest(
                   accountId,
-                  targetDate = config.yearInFuture,
+                  targetDate,
                   assumeRenewal = "Autorenew",
                   chargeTypeToExclude = "OneTime"
                 )
