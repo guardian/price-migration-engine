@@ -2,8 +2,7 @@ package pricemigrationengine.model
 
 import java.time.LocalDate
 
-import pricemigrationengine.model.Dates.isDateRangeCurrent
-import upickle.default.{ReadWriter, macroRW}
+import upickle.default._
 
 case class ZuoraProductCatalogue(products: Set[ZuoraProduct], nextPage: Option[String] = None)
 
@@ -14,11 +13,9 @@ object ZuoraProductCatalogue {
   def empty: ZuoraProductCatalogue = ZuoraProductCatalogue(products = Set.empty)
 
   def productPricingMap(catalogue: ZuoraProductCatalogue): ZuoraPricingData = {
-    def isActiveProduct(p: ZuoraProduct) = isDateRangeCurrent(p.effectiveStartDate, p.effectiveEndDate)
-    def isActiveProductRatePlan(p: ZuoraProductRatePlan) = isDateRangeCurrent(p.effectiveStartDate, p.effectiveEndDate)
     val prices = for {
-      product <- catalogue.products.filter(isActiveProduct)
-      productRatePlan <- product.productRatePlans.filter(isActiveProductRatePlan)
+      product <- catalogue.products
+      productRatePlan <- product.productRatePlans
       productRatePlanCharge <- productRatePlan.productRatePlanCharges
     } yield productRatePlanCharge.id -> productRatePlanCharge
     prices.toMap
