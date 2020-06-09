@@ -18,10 +18,9 @@ object ZuoraProductCatalogue {
     def isActiveProductRatePlan(p: ZuoraProductRatePlan) = isDateRangeCurrent(p.effectiveStartDate, p.effectiveEndDate)
     val prices = for {
       product <- catalogue.products.filter(isActiveProduct)
-      ratePlan <- product.productRatePlans.filter(isActiveProductRatePlan)
-      ratePlanCharge <- ratePlan.productRatePlanCharges
-      pricing <- ratePlanCharge.pricing
-    } yield (ratePlanCharge.id, pricing.currency) -> pricing
+      productRatePlan <- product.productRatePlans.filter(isActiveProductRatePlan)
+      productRatePlanCharge <- productRatePlan.productRatePlanCharges
+    } yield productRatePlanCharge.id -> productRatePlanCharge
     prices.toMap
   }
 }
@@ -46,7 +45,7 @@ object ZuoraProductRatePlan {
   implicit val rw: ReadWriter[ZuoraProductRatePlan] = macroRW
 }
 
-case class ZuoraProductRatePlanCharge(id: String, pricing: Set[ZuoraPricing])
+case class ZuoraProductRatePlanCharge(id: String, billingPeriod: Option[String], pricing: Set[ZuoraPricing])
 
 object ZuoraProductRatePlanCharge {
   implicit val rw: ReadWriter[ZuoraProductRatePlanCharge] = macroRW
@@ -61,6 +60,6 @@ case class ZuoraPricing(currency: Currency, price: Option[BigDecimal])
 object ZuoraPricing {
   implicit val rw: ReadWriter[ZuoraPricing] = macroRW
 
-  def matchingPricing(pricingData: ZuoraPricingData, ratePlanCharge: ZuoraRatePlanCharge): Option[ZuoraPricing] =
-    pricingData.get((ratePlanCharge.productRatePlanChargeId, ratePlanCharge.currency))
+  def pricing(productRatePlanCharge: ZuoraProductRatePlanCharge, currency: Currency): Option[ZuoraPricing] =
+    productRatePlanCharge.pricing.find(_.currency == currency)
 }

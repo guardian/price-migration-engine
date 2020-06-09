@@ -110,6 +110,62 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
+  test("priceData: is correct for a quarterly voucher subscription") {
+    val fixtureSet = "QuarterlyVoucher"
+    val priceData = AmendmentData.priceData(
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      startDate = LocalDate.of(2020, 7, 5)
+    )
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 62.27, newPrice = 65.97, billingPeriod = "Quarter"))
+    )
+  }
+
+  test("priceData: is correct for a quarterly GW subscription") {
+    val fixtureSet = "QuarterlyGW"
+    val priceData = AmendmentData.priceData(
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      startDate = LocalDate.of(2020, 7, 28)
+    )
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 37.50, newPrice = 42.40, billingPeriod = "Quarter"))
+    )
+  }
+
+  test("priceData: is correct for a semi-annual voucher subscription") {
+    val fixtureSet = "SemiAnnualVoucher"
+    val priceData = AmendmentData.priceData(
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      startDate = LocalDate.of(2021, 1, 13)
+    )
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 220.74, newPrice = 269.94, billingPeriod = "Semi_Annual"))
+    )
+  }
+
+  test("priceData: is correct for an annual voucher subscription") {
+    val fixtureSet = "AnnualVoucher"
+    val priceData = AmendmentData.priceData(
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      startDate = LocalDate.of(2020, 12, 7)
+    )
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 249.08, newPrice = 263.88, billingPeriod = "Annual"))
+    )
+  }
+
   test("roundDown: rounds down to nearest hundredth of a currency unit") {
     assertEquals(AmendmentData.roundDown(10.995).toDouble, 10.99)
   }

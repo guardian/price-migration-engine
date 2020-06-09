@@ -49,8 +49,8 @@ class EstimationHandlerTest extends munit.FunSuite {
 
   test("spreadEarliestStartDate: gives default value for a quarterly subscription") {
     val earliestStartDateCalc = EstimationHandler.spreadEarliestStartDate(
-      subscription = Fixtures.subscriptionFromJson("Quarterly/Subscription.json"),
-      invoicePreview = Fixtures.invoiceListFromJson("Quarterly/InvoicePreview.json")
+      subscription = Fixtures.subscriptionFromJson("QuarterlyVoucher/Subscription.json"),
+      invoicePreview = Fixtures.invoiceListFromJson("QuarterlyVoucher/InvoicePreview.json")
     )
     val earliestStartDate = runtime.unsafeRun(earliestStartDateCalc.provideLayer(env))
     assertEquals(earliestStartDate, LocalDate.of(2020, 6, 2))
