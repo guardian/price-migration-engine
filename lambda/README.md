@@ -1,5 +1,67 @@
-#Price Migration Engine
+# Price Migration Engine - Lambdas
 
+## Development
+
+### Code structure
+
+The codebase is structured to keep a clear separation between [pure](https://en.wikipedia.org/wiki/Pure_function) 
+and [effectful](https://en.wikipedia.org/wiki/Side_effect_(computer_science)) code.  
+(*Effectful* has different meanings, but I mean by it having side-effects or not pure.)
+
+The [model](src/main/scala/pricemigrationengine/model) package holds all the pure code in the project.
+All code here is deterministic.  It neither generates nor depends on 
+any kind of real-world effect; including random numbers, relative dates, logging or printing to console.
+
+The effects of the code are generated and consumed through [services](src/main/scala/pricemigrationengine/services), 
+following the [ZIO convention](https://zio.dev/docs/overview/overview_testing_effects#environmental-effects).  Each service has a type, an interface and at least one
+implementation. For example, the [Zuora type](src/main/scala/pricemigrationengine/services/package.scala), 
+[service definition](src/main/scala/pricemigrationengine/services/Zuora.scala) and 
+[live implementation](src/main/scala/pricemigrationengine/services/ZuoraLive.scala).
+
+These services are composed together into ZIO vertical and horizontal layers, 
+and these layers form the runtime environment for each of the lambdas by 
+compile-time dependency injection.  A vertical layer is one in which one service depends on another: 
+they are related together by the `>>>` operator.  In a horizontal layer, 
+two peer services are related together by the `++` operator.  
+For a more detailed explanation of how these layers work, see the [ZIO documentation](https://zio.dev/docs/howto/howto_use_layers).
+
+The lambdas are all in the [handlers](src/main/scala/pricemigrationengine/handlers) package.
+
+All the [dependencies](../project/Dependencies.scala) of the project have been chosen for their light weight and 
+minimal number of transitive dependencies,
+so that the artefact generated is of minimal size and lambdas can warm up quickly.  
+
+The same generated jar is used by all the lambdas.  The only variation in their deployment is 
+the configuration of the main endpoint.
+
+### To run lambdas locally in Intellij
+You can run or debug any of the lambdas in any deployment environment from Intellij.  
+You will need up-to-date AWS credentials stored locally.  
+Set up a run configuration for the lambda, using the following environment variables:
+* AWS_PROFILE=`profileName`
+* stage=`DEV|CODE|PROD`  
+
+and also the specific environment variables for the lambda you are running.
+
+#### Specific environment variables per lambda
+
+##### EstimationHandler
+* earliestStartDate=`earliestStartDate`
+* batchSize=`batchSize`
+* zuoraApiHost=`host`
+* zuoraClientId=`personal clientId`
+* zuoraClientSecret=`personal clientSecret`
+
+##### AmendmentHandler
+* earliestStartDate=`earliestStartDate`
+* batchSize=`batchSize`
+* zuoraApiHost=`host`
+* zuoraClientId=`personal clientId`
+* zuoraClientSecret=`personal clientSecret`
+
+## Importing subscription id for a price migration
+
+See [ImportSubscriptionId.MD](ImportSubscriptionId.MD)
 
 ##Configuration
 

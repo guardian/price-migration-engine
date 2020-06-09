@@ -8,6 +8,24 @@ case class AmendmentData(startDate: LocalDate, priceData: PriceData)
 
 case class PriceData(currency: Currency, oldPrice: BigDecimal, newPrice: BigDecimal, billingPeriod: String)
 
+/**
+  * <p>Data used to estimate and report on price-rise amendments to subscriptions.</p>
+  *
+  * <p>The general approach here is to use a combination of Zuora invoice previews, subscriptions
+  * and the product catalogue to determine billing dates, current charges and future charges.</p>
+  *
+  * <p>We use invoice previews only to find future billing dates and the list of rate plan charge numbers
+  * that will apply on future billing dates.  The amounts given in the invoice preview are unreliable
+  * because they don't include tax or give any way to calculate tax.</p>
+  *
+  * <p>To find the detail of the rate plan charge, we use the rate plan charge numbers from invoice previews
+  * to look up rate plan charges in subscriptions.  The price of a rate plan charge in a subscription
+  * is the only reliable way to get the price including tax.</p>
+  *
+  * <p>The combination of a subscription rate plan charge and the corresponding product rate plan charge,
+  * found in the product catalogue, give us all the information we need to calculate future charges
+  * including taxes and discounts.</p>
+  */
 object AmendmentData {
 
   def apply(
@@ -190,7 +208,7 @@ object AmendmentData {
               e =>
                 AmendmentDataFailure(
                   s"Failed to calculate amount of rate plan charge ${ratePlanChargePair.chargeFromSubscription.number}: $e"
-                )
+              )
             )
       }
 
@@ -205,10 +223,11 @@ object AmendmentData {
     for {
       discountPercentage <- discountPercentageOrFailure
       _ <- prices.collectFirst { case Left(e) => e }.toLeft(())
-    } yield applyDiscountAndThenSum(
-      discountPercentage,
-      beforeDiscount = prices.collect { case Right(price) => price }.flatten
-    )
+    } yield
+      applyDiscountAndThenSum(
+        discountPercentage,
+        beforeDiscount = prices.collect { case Right(price) => price }.flatten
+      )
   }
 
   private def applyDiscountAndThenSum(discountPercentage: Option[Double], beforeDiscount: Seq[BigDecimal]): BigDecimal =
