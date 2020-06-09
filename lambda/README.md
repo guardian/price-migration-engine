@@ -18,7 +18,7 @@ implementation. For example, the [Zuora type](src/main/scala/pricemigrationengin
 [service definition](src/main/scala/pricemigrationengine/services/Zuora.scala) and 
 [live implementation](src/main/scala/pricemigrationengine/services/ZuoraLive.scala).
 
-These services are composed together into ZIO vertical and horizontal layers, 
+These services are composed together into ZIO vertical and horizontal [layers](https://github.com/zio/zio/blob/master/docs/datatypes/zlayer.md), 
 and these layers form the runtime environment for each of the lambdas by 
 compile-time dependency injection.  A vertical layer is one in which one service depends on another: 
 they are related together by the `>>>` operator.  In a horizontal layer, 
