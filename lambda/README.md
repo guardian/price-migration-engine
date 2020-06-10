@@ -4,7 +4,7 @@
 
 ### Code structure
 
-The codebase is structured to keep a clear separation between [pure](https://en.wikipedia.org/wiki/Pure_function) 
+The codebase is structured to keep a clear separation between [pure](https://docs.scala-lang.org/overviews/scala-book/pure-functions.html) 
 and [effectful](https://en.wikipedia.org/wiki/Side_effect_(computer_science)) code.  
 (*Effectful* has different meanings, but I mean by it having side-effects or not pure.)
 
