@@ -1,8 +1,6 @@
 package pricemigrationengine.model
 
-import java.time.LocalDate
-
-import upickle.default._
+import upickle.default.{ReadWriter, macroRW}
 
 case class ZuoraProductCatalogue(products: Set[ZuoraProduct], nextPage: Option[String] = None)
 
@@ -15,7 +13,7 @@ object ZuoraProductCatalogue {
   def productPricingMap(catalogue: ZuoraProductCatalogue): ZuoraPricingData = {
     val prices = for {
       product <- catalogue.products
-      productRatePlan <- product.productRatePlans
+      productRatePlan <- product.productRatePlans.filterNot(_.status == "Expired")
       productRatePlanCharge <- productRatePlan.productRatePlanCharges
     } yield productRatePlanCharge.id -> productRatePlanCharge
     prices.toMap
@@ -23,9 +21,7 @@ object ZuoraProductCatalogue {
 }
 
 case class ZuoraProduct(
-    productRatePlans: Set[ZuoraProductRatePlan],
-    effectiveStartDate: LocalDate,
-    effectiveEndDate: LocalDate
+    productRatePlans: Set[ZuoraProductRatePlan]
 )
 
 object ZuoraProduct {
@@ -33,9 +29,8 @@ object ZuoraProduct {
 }
 
 case class ZuoraProductRatePlan(
-    productRatePlanCharges: Set[ZuoraProductRatePlanCharge],
-    effectiveStartDate: LocalDate,
-    effectiveEndDate: LocalDate
+    status: String,
+    productRatePlanCharges: Set[ZuoraProductRatePlanCharge]
 )
 
 object ZuoraProductRatePlan {
