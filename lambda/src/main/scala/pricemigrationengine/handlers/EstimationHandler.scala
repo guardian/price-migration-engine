@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import java.time.{Instant, LocalDate}
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, EstimationFailed, ReadyForEstimation}
+import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
@@ -24,8 +24,9 @@ object EstimationHandler extends zio.App with RequestHandler[Unit, Unit] {
   )(item: CohortItem): ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora with Random, Failure, Unit] =
     doEstimation(newProductPricing, item).foldM(
       failure = {
-        case _: AmendmentDataFailure => CohortTable.update(CohortItem(item.subscriptionName, EstimationFailed))
-        case e                       => ZIO.fail(e)
+        case _: AmendmentDataFailure         => CohortTable.update(CohortItem(item.subscriptionName, EstimationFailed))
+        case _: CancelledSubscriptionFailure => CohortTable.update(CohortItem(item.subscriptionName, Cancelled))
+        case e                               => ZIO.fail(e)
       },
       success = CohortTable.update
     )
@@ -36,7 +37,9 @@ object EstimationHandler extends zio.App with RequestHandler[Unit, Unit] {
   ): ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora with Random, Failure, CohortItem] =
     for {
       config <- AmendmentConfiguration.amendmentConfig
-      subscription <- Zuora.fetchSubscription(item.subscriptionName)
+      subscription <- Zuora
+        .fetchSubscription(item.subscriptionName)
+        .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
       invoicePreviewTargetDate = config.earliestStartDate.plusMonths(13)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
       earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview)

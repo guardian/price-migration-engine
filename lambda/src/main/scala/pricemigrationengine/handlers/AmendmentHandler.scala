@@ -74,7 +74,7 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
   private def fetchSubscription(item: CohortItem): ZIO[Zuora, Failure, ZuoraSubscription] =
     Zuora
       .fetchSubscription(item.subscriptionName)
-      .filterOrFail(_.status == "Active")(CancelledSubscriptionFailure(item.subscriptionName))
+      .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
 
   private def env(
       loggingLayer: ZLayer[Any, Nothing, Logging]
