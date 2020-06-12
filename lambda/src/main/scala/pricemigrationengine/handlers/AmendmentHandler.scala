@@ -16,14 +16,15 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
 
   val main: ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora, Failure, Unit] =
     for {
+      newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
       cohortItems <- CohortTable.fetch(SalesforcePriceRiceCreationComplete, None)
-      _ <- cohortItems.foreach(amend)
+      _ <- cohortItems.foreach(amend(newProductPricing))
     } yield ()
 
-  private def amend(
+  private def amend(newProductPricing: ZuoraPricingData)(
       item: CohortItem
   ): ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora, Failure, Unit] =
-    doAmendment(item).foldM(
+    doAmendment(newProductPricing, item).foldM(
       failure = {
         case _: CancelledSubscriptionFailure => CohortTable.update(CohortItem(item.subscriptionName, Cancelled))
         case e                               => ZIO.fail(e)
@@ -32,6 +33,7 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
     )
 
   private def doAmendment(
+      newProductPricing: ZuoraPricingData,
       item: CohortItem
   ): ZIO[Logging with AmendmentConfiguration with Zuora, Failure, CohortItem] =
     for {
@@ -45,7 +47,12 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
       startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
       update <- ZIO.fromEither(
         ZuoraSubscriptionUpdate
-          .updateOfRatePlansToCurrent(subscriptionBeforeUpdate, invoicePreviewBeforeUpdate, startDate)
+          .updateOfRatePlansToCurrent(
+            newProductPricing,
+            subscriptionBeforeUpdate,
+            invoicePreviewBeforeUpdate,
+            startDate
+          )
       )
       newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
       subscriptionAfterUpdate <- fetchSubscription(item)
@@ -59,17 +66,16 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
           e =>
             AmendmentDataFailure(
               s"Failed to calculate amendment of subscription ${subscriptionBeforeUpdate.subscriptionNumber}: $e"
-          )
+            )
         )
-    } yield
-      CohortItem(
-        subscriptionBeforeUpdate.subscriptionNumber,
-        processingStage = AmendmentComplete,
-        startDate = Option(startDate),
-        newPrice = Some(totalChargeAmount),
-        newSubscriptionId = Some(newSubscriptionId),
-        whenAmendmentDone = Some(Instant.now())
-      )
+    } yield CohortItem(
+      subscriptionBeforeUpdate.subscriptionNumber,
+      processingStage = AmendmentComplete,
+      startDate = Option(startDate),
+      newPrice = Some(totalChargeAmount),
+      newSubscriptionId = Some(newSubscriptionId),
+      whenAmendmentDone = Some(Instant.now())
+    )
 
   private def fetchSubscription(item: CohortItem): ZIO[Zuora, Failure, ZuoraSubscription] =
     Zuora

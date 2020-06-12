@@ -244,7 +244,7 @@ object AmendmentData {
     * In these cases, the price has to be multiplied
     * by the number of months in the subscription billing period.
     */
-  private def adjustedForBillingPeriod(
+  private[model] def adjustedForBillingPeriod(
       price: BigDecimal,
       subscriptionBillingPeriod: Option[String],
       productBillingPeriod: Option[String]
