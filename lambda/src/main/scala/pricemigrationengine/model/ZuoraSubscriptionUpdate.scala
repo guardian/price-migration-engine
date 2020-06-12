@@ -40,13 +40,12 @@ object ZuoraSubscriptionUpdate {
     if (ratePlans.isEmpty)
       Left(AmendmentDataFailure("No rate plans to update"))
     else
-      for {
-        adds <- ratePlans.map(AddZuoraRatePlan.fromRatePlan(pricingData, date)).sequence
-      } yield
+      ratePlans.map(AddZuoraRatePlan.fromRatePlan(pricingData, date)).sequence.map { adds =>
         ZuoraSubscriptionUpdate(
           add = adds,
           remove = ratePlans.map(ratePlan => RemoveZuoraRatePlan(ratePlan.id, date))
         )
+      }
   }
 }
 
