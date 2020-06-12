@@ -2,6 +2,7 @@ package pricemigrationengine.model
 
 import java.time.LocalDate
 
+import pricemigrationengine.model.Either._
 import upickle.default._
 
 case class ZuoraSubscriptionUpdate(
@@ -40,11 +41,12 @@ object ZuoraSubscriptionUpdate {
       Left(AmendmentDataFailure("No rate plans to update"))
     else
       for {
-        adds <- Either.fromSeq(ratePlans.map(AddZuoraRatePlan.fromRatePlan(pricingData, date)))
-      } yield ZuoraSubscriptionUpdate(
-        add = adds,
-        remove = ratePlans.map(ratePlan => RemoveZuoraRatePlan(ratePlan.id, date))
-      )
+        adds <- ratePlans.map(AddZuoraRatePlan.fromRatePlan(pricingData, date)).sequence
+      } yield
+        ZuoraSubscriptionUpdate(
+          add = adds,
+          remove = ratePlans.map(ratePlan => RemoveZuoraRatePlan(ratePlan.id, date))
+        )
   }
 }
 
@@ -87,11 +89,10 @@ object ChargeOverride {
       pricingData: ZuoraPricingData,
       ratePlan: ZuoraRatePlan
   ): Either[AmendmentDataFailure, Seq[ChargeOverride]] =
-    Either
-      .fromSeq(for {
-        ratePlanCharge <- ratePlan.ratePlanCharges
-        productRatePlanCharge <- pricingData.get(ratePlanCharge.productRatePlanChargeId).toSeq
-      } yield fromRatePlanCharge(productRatePlanCharge, ratePlanCharge))
+    (for {
+      ratePlanCharge <- ratePlan.ratePlanCharges
+      productRatePlanCharge <- pricingData.get(ratePlanCharge.productRatePlanChargeId).toSeq
+    } yield fromRatePlanCharge(productRatePlanCharge, ratePlanCharge)).sequence
       .map(_.flatten)
 
   /**
