@@ -39,13 +39,16 @@ object ZuoraSubscriptionUpdate {
 
     if (ratePlans.isEmpty)
       Left(AmendmentDataFailure("No rate plans to update"))
-    else
-      ratePlans.map(AddZuoraRatePlan.fromRatePlan(pricingData, date)).sequence.map { adds =>
+    else if (ratePlans.size > 1)
+      Left(AmendmentDataFailure(s"Multiple rate plans to update: ${ratePlans.map(_.id)}"))
+    else {
+      ratePlans.map(AddZuoraRatePlan.fromRatePlan(pricingData, date)).sequence.map { add =>
         ZuoraSubscriptionUpdate(
-          add = adds,
+          add,
           remove = ratePlans.map(ratePlan => RemoveZuoraRatePlan(ratePlan.id, date))
         )
       }
+    }
   }
 }
 
