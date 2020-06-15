@@ -7,7 +7,7 @@ import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, Cancelle
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
-import zio.{App, Runtime, ZEnv, ZIO, ZLayer, console}
+import zio.{App, Runtime, ZEnv, ZIO, ZLayer}
 
 /**
   * Carries out price-rise amendments in Zuora.
@@ -66,16 +66,17 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
           e =>
             AmendmentDataFailure(
               s"Failed to calculate amendment of subscription ${subscriptionBeforeUpdate.subscriptionNumber}: $e"
-            )
+          )
         )
-    } yield CohortItem(
-      subscriptionBeforeUpdate.subscriptionNumber,
-      processingStage = AmendmentComplete,
-      startDate = Option(startDate),
-      newPrice = Some(totalChargeAmount),
-      newSubscriptionId = Some(newSubscriptionId),
-      whenAmendmentDone = Some(Instant.now())
-    )
+    } yield
+      CohortItem(
+        subscriptionBeforeUpdate.subscriptionNumber,
+        processingStage = AmendmentComplete,
+        startDate = Option(startDate),
+        newPrice = Some(totalChargeAmount),
+        newSubscriptionId = Some(newSubscriptionId),
+        whenAmendmentDone = Some(Instant.now())
+      )
 
   private def fetchSubscription(item: CohortItem): ZIO[Zuora, Failure, ZuoraSubscription] =
     Zuora
@@ -83,8 +84,9 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
       .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
 
   private def env(
-      loggingLayer: ZLayer[Any, Nothing, Logging]
+      loggingService: Logging.Service
   ) = {
+    val loggingLayer = ZLayer.succeed(loggingService)
     val cohortTableLayer =
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
         DynamoDBClient.dynamoDB ++ loggingLayer ++ EnvConfiguration.amendmentImpl >>>
@@ -93,7 +95,8 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
     val zuoraLayer =
       EnvConfiguration.zuoraImpl ++ loggingLayer >>>
         ZuoraLive.impl
-    loggingLayer ++ EnvConfiguration.amendmentImpl ++ cohortTableLayer ++ zuoraLayer
+    (loggingLayer ++ EnvConfiguration.amendmentImpl ++ cohortTableLayer ++ zuoraLayer)
+      .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
   }
 
   private val runtime = Runtime.default
@@ -101,18 +104,14 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
     main
       .provideSomeLayer(
-        env(Console.live >>> ConsoleLogging.impl)
+        env(ConsoleLogging.service(Console.Service.live))
       )
-      // output any failures in service construction - there's probably a better way to do this
-      .foldM(
-        e => console.putStrLn(s"Failed: $e") *> ZIO.succeed(1),
-        _ => console.putStrLn("Succeeded!") *> ZIO.succeed(0)
-      )
+      .fold(_ => 1, _ => 0)
 
   def handleRequest(unused: Unit, context: Context): Unit =
     runtime.unsafeRun(
       main.provideSomeLayer(
-        env(LambdaLogging.impl(context))
+        env(LambdaLogging.service(context))
       )
     )
 }

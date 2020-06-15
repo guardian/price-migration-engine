@@ -6,7 +6,7 @@ import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.console.Console
-import zio.{App, IO, Runtime, ZEnv, ZIO, ZLayer, clock, console}
+import zio.{App, IO, Runtime, ZEnv, ZIO, ZLayer, clock}
 
 object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, Unit] {
 
@@ -44,13 +44,12 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
     } yield ()
 
   private def updateSalesforce(
-    cohortItem: CohortItem
+      cohortItem: CohortItem
   ): ZIO[SalesforceClient, Failure, Option[String]] = {
     for {
       subscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
       priceRise <- buildPriceRise(cohortItem, subscription)
-      result <- cohortItem
-        .salesforcePriceRiseId
+      result <- cohortItem.salesforcePriceRiseId
         .fold(
           SalesforceClient
             .createPriceRise(priceRise)
@@ -58,7 +57,7 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
         ) { priceRiseId =>
           SalesforceClient
             .updatePriceRise(priceRiseId, priceRise)
-            .map(_ => None)
+            .as(None)
         }
     } yield result
   }
@@ -89,12 +88,14 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
   }
 
   private def env(
-      loggingLayer: ZLayer[Any, Nothing, Logging]
+      loggingService: Logging.Service
   ): ZLayer[Any, Any, Logging with CohortTable with SalesforceClient with Clock] = {
+    val loggingLayer = ZLayer.succeed(loggingService)
     loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
       DynamoDBClient.dynamoDB ++ loggingLayer >>>
       DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++ EnvConfiguration.stageImp ++ EnvConfiguration.salesforceImp >>>
-      loggingLayer ++ CohortTableLive.impl ++ SalesforceClientLive.impl ++ Clock.live
+      (loggingLayer ++ CohortTableLive.impl ++ SalesforceClientLive.impl ++ Clock.live)
+        .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
   }
 
   private val runtime = Runtime.default
@@ -102,17 +103,14 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
     main
       .provideSomeLayer(
-        env(Console.live >>> ConsoleLogging.impl)
+        env(ConsoleLogging.service(Console.Service.live))
       )
-      .foldM(
-        e => console.putStrLn(s"Failed: $e") *> ZIO.succeed(1),
-        _ => console.putStrLn("Succeeded!") *> ZIO.succeed(0)
-      )
+      .fold(_ => 1, _ => 0)
 
   def handleRequest(unused: Unit, context: Context): Unit =
     runtime.unsafeRun(
       main.provideSomeLayer(
-        env(LambdaLogging.impl(context))
+        env(LambdaLogging.service(context))
       )
     )
 }
