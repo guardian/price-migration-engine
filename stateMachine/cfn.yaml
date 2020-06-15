@@ -1,0 +1,148 @@
+Description: Price-migration orchestration engine.
+
+Parameters:
+
+  Stage:
+    Type: String
+    AllowedValues:
+      - PROD
+      - CODE
+      - DEV
+    Default: DEV
+
+  ResourceNamePrefix:
+    Type: String
+    Default: price-migration-engine
+
+Resources:
+
+  CohortStateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/states/${ResourceNamePrefix}-cohort-steps-${Stage}
+      RetentionInDays: 180
+
+  CohortStateMachineExecutionRole:
+    Type: AWS::IAM::Role
+    DependsOn:
+      - CohortStateMachineLogGroup
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: !Sub states.${AWS::Region}.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaInvokePolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource:
+                  - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-EstimatingLambda
+                  - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingSalesforceRecordsLambda
+        - PolicyName: LoggingPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:ListLogDeliveries
+                  - logs:GetLogDelivery
+                  - logs:CreateLogDelivery
+                  - logs:UpdateLogDelivery
+                  - logs:DescribeLogGroups
+                Resource:
+                  - !GetAtt CohortStateMachineLogGroup.Arn
+
+  CohortStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    DependsOn:
+      - CohortStateMachineLogGroup
+      - CohortStateMachineExecutionRole
+    Properties:
+      StateMachineName:
+        !Sub ${ResourceNamePrefix}-cohort-steps-${Stage}
+      RoleArn: !GetAtt CohortStateMachineExecutionRole.Arn
+      LoggingConfiguration:
+        Level: ALL
+        IncludeExecutionData: TRUE
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt CohortStateMachineLogGroup.Arn
+      DefinitionString:
+        !Sub
+        - |
+          {
+            "Comment": "Price-migration orchestration engine.",
+            "StartAt": "WritingEstimatesToSalesforce",
+            "States": {
+              "WritingEstimatesToSalesforce": {
+                "Type": "Parallel",
+                "End": true,
+                "Branches": [
+                  {
+                    "StartAt": "Estimating",
+                    "States": {
+                      "Estimating": {
+                        "Type": "Task",
+                        "Resource": "${EstimatingLambdaArn}",
+                        "Retry": [
+                          {
+                            "ErrorEquals": [
+                              "Lambda.Unknown"
+                            ],
+                            "IntervalSeconds": 10,
+                            "MaxAttempts": 25000,
+                            "BackoffRate": 1.0
+                          },
+                          {
+                            "ErrorEquals": [
+                              "States.ALL"
+                            ],
+                            "IntervalSeconds": 30,
+                            "MaxAttempts": 25000,
+                            "BackoffRate": 2.0
+                          }
+                        ],
+                        "End": true
+                      }
+                    }
+                  },
+                  {
+                    "StartAt": "CreatingSalesforceRecords",
+                    "States": {
+                      "CreatingSalesforceRecords": {
+                        "Type": "Task",
+                        "Resource": "${CreatingSalesforceRecordsLambdaArn}",
+                        "Retry": [
+                          {
+                            "ErrorEquals": [
+                              "Lambda.Unknown"
+                            ],
+                            "IntervalSeconds": 10,
+                            "MaxAttempts": 25000,
+                            "BackoffRate": 1.0
+                          },
+                          {
+                            "ErrorEquals": [
+                              "States.ALL"
+                            ],
+                            "IntervalSeconds": 30,
+                            "MaxAttempts": 25000,
+                            "BackoffRate": 2.0
+                          }
+                        ],
+                        "End": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        - EstimatingLambdaArn:
+            Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-EstimatingLambda
+          CreatingSalesforceRecordsLambdaArn:
+            Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingSalesforceRecordsLambda
