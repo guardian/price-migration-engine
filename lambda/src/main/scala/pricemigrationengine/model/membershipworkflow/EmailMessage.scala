@@ -1,5 +1,7 @@
 package pricemigrationengine.model.membershipworkflow
 
+import pricemigrationengine.model.OptionWriter //required
+import pricemigrationengine.model.OptionReader //required
 import upickle.default.{ReadWriter, macroRW}
 
 case class EmailPayloadContactAttributes(

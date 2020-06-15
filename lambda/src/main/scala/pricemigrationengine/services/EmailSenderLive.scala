@@ -53,6 +53,6 @@ object EmailSenderLive {
   }
 
   def serialiseMessage(message: EmailMessage): String = {
-    write(message)
+    write(message, indent = 2)
   }
 }

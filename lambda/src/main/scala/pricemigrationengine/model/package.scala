@@ -26,8 +26,9 @@ package object model {
     case Null    => None
     case jsValue => Some(read[T](jsValue))
   }
-  implicit def OptionWriter[T: Writer]: Writer[Option[T]] = writer[Value].comap {
-    case Some(value) => write(value)
-    case None        => Null
+
+  implicit def OptionWriter[T: Writer]: Writer[Option[T]] = writer[T].comap {
+    case Some(value) => value
+    case None        => null.asInstanceOf[T]
   }
 }
