@@ -385,3 +385,13 @@ Resources:
       Timeout: 900
     DependsOn:
       - PriceMigrationEngineNotificationEmailLambdaRole
+
+Outputs:
+  PriceMigrationEngineEstimationLambdaOutput:
+    Value: !GetAtt PriceMigrationEngineEstimationLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-EstimatingLambda"
+  PriceMigrationEngineSalesforcePriceCreationLambdaOutput:
+    Value: !GetAtt PriceMigrationEngineSalesforcePriceCreationLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-CreatingSalesforceRecordsLambda"
