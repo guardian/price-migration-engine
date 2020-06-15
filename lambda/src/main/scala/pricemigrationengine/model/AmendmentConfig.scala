@@ -29,3 +29,7 @@ case class SalesforceConfig(
     password: String,
     token: String
 )
+
+case class EmailSenderConfig(sqsEmailQueueName: String)
+
+case class NotificationEmailHandlerConfig(brazeCampaignName: String)

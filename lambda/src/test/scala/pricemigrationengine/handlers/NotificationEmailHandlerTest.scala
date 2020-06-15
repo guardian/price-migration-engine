@@ -7,7 +7,7 @@ import pricemigrationengine.StubClock
 import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EstimationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
-import pricemigrationengine.services._
+import pricemigrationengine.services.{NotificationEmailHandlerConfiguration, _}
 import zio.Exit.Success
 import zio.Runtime.default
 import zio._
@@ -35,7 +35,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
   val expectedState = "buyer1State"
   val expectedPostalCode = "buyer1PostalCode"
   val expectedCountry = "buyer1Country"
-
+  val expectedDataExtensionName = "price-rise-email-campaign-name"
 
   def createStubCohortTable(updatedResultsWrittenToCohortTable:ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
@@ -108,6 +108,17 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
     )
   }
 
+  private val stubConfig: ULayer[NotificationEmailHandlerConfiguration] = ZLayer.succeed(
+    new NotificationEmailHandlerConfiguration.Service {
+      val config: UIO[NotificationEmailHandlerConfig] = IO.succeed(
+        NotificationEmailHandlerConfig(
+          brazeCampaignName = expectedDataExtensionName
+        )
+      )
+    }
+  )
+
+
   test("SalesforcePriceRiseCreateHandler should get records from cohort table and SF") {
     val stubSalesforceClient =
       stubSFClient(
@@ -159,14 +170,14 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
       default.unsafeRunSync(
         NotificationEmailHandler.main
           .provideLayer(
-            stubLogging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
+            stubLogging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender ++ stubConfig
           )
       ),
       Success(())
     )
 
     assertEquals(sentMessages.size, 1)
-    assertEquals(sentMessages(0).DataExtensionName, "price-rise-email")
+    assertEquals(sentMessages(0).DataExtensionName, expectedDataExtensionName)
     assertEquals(sentMessages(0).SfContactId, expectedBuyerId)
     assertEquals(sentMessages(0).IdentityUserId, Some(expectedIdentityId))
     assertEquals(sentMessages(0).To.Address, expectedEmailAddress)

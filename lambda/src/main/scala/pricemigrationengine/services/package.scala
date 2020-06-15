@@ -18,4 +18,6 @@ package object services {
   type SalesforceClient = Has[SalesforceClient.Service]
   type S3 = Has[S3.Service]
   type EmailSender = Has[EmailSender.Service]
+  type EmailSenderConfiguration = Has[EmailSenderConfiguration.Service]
+  type NotificationEmailHandlerConfiguration = Has[NotificationEmailHandlerConfiguration.Service]
 }

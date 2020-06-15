@@ -97,4 +97,26 @@ object EnvConfiguration {
         )
     }
   }
+
+  val notificationEmailHandlerImp: ZLayer[Any, Nothing, NotificationEmailHandlerConfiguration] = ZLayer.succeed {
+    new NotificationEmailHandlerConfiguration.Service {
+      val config: IO[ConfigurationFailure, NotificationEmailHandlerConfig] = for {
+        brazeCampaignName <- env("brazeCampaignName")
+      } yield
+        NotificationEmailHandlerConfig(
+          brazeCampaignName = brazeCampaignName
+        )
+    }
+  }
+
+  val emailSenderImp: ZLayer[Any, Nothing, EmailSenderConfiguration] = ZLayer.succeed {
+    new EmailSenderConfiguration.Service {
+      val config: IO[ConfigurationFailure, EmailSenderConfig] = for {
+        emailSqsQueueName <- env("emailSqsQueueName")
+      } yield
+        EmailSenderConfig(
+          sqsEmailQueueName = emailSqsQueueName
+        )
+    }
+  }
 }
