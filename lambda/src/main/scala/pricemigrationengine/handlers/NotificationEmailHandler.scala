@@ -10,9 +10,13 @@ import zio.console.Console
 import zio.{Runtime, ZEnv, ZIO, ZLayer, clock, console}
 
 object NotificationEmailHandler {
+  //Mapping to environment specific braze campaign id is provided by membership-workflow:
+  //https://github.com/guardian/membership-workflow/blob/master/conf/PROD.public.conf#L39
+  val BrazeCampaignName = "SV_Price_Rise_Notification"
+
   private val NotificationEmailLeadTimeDays = 30
 
-  val main: ZIO[Logging with CohortTable with SalesforceClient with Clock with EmailSender with NotificationEmailHandlerConfiguration, Failure, Unit] = {
+  val main: ZIO[Logging with CohortTable with SalesforceClient with Clock with EmailSender, Failure, Unit] = {
     for {
       now <- clock.currentDateTime.mapError(ex => NotificationEmailHandlerFailure(s"Failed to get time: $ex"))
       subscriptions <- CohortTable.fetch(
@@ -24,9 +28,8 @@ object NotificationEmailHandler {
 
   def sendEmail(
     cohortItem: CohortItem
-  ): ZIO[EmailSender with SalesforceClient with NotificationEmailHandlerConfiguration, Failure, Unit] = {
+  ): ZIO[EmailSender with SalesforceClient, Failure, Unit] = {
     for {
-      config <- NotificationEmailHandlerConfiguration.notificationEmailHandlerConfig
       sfSubscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
       emailAddress <- requiredField(contact.Email, "Contact.Email")
@@ -56,7 +59,7 @@ object NotificationEmailHandler {
               BillingPeriod = billingPeriod
             )
           ),
-          config.brazeCampaignName,
+          BrazeCampaignName,
           contact.Id,
           contact.IdentityID__c
         )
@@ -71,13 +74,13 @@ object NotificationEmailHandler {
 
   private def env(
     loggingLayer: ZLayer[Any, Nothing, Logging]
-  ): ZLayer[Any, Any, Logging with CohortTable with SalesforceClient with Clock with EmailSender with NotificationEmailHandlerConfiguration] = {
+  ): ZLayer[Any, Any, Logging with CohortTable with SalesforceClient with Clock with EmailSender] = {
     val cohortTableLayer =
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
         DynamoDBClient.dynamoDB ++ loggingLayer >>>
         DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++
           EnvConfiguration.stageImp ++ EnvConfiguration.salesforceImp ++ EnvConfiguration.emailSenderImp >>>
-        CohortTableLive.impl ++ SalesforceClientLive.impl ++ Clock.live ++ EmailSenderLive.impl ++ EnvConfiguration.notificationEmailHandlerImp
+        CohortTableLive.impl ++ SalesforceClientLive.impl ++ Clock.live ++ EmailSenderLive.impl
     loggingLayer ++ cohortTableLayer
   }
 

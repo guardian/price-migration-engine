@@ -65,12 +65,3 @@ object EmailSenderConfiguration {
   val emailSenderConfig: ZIO[EmailSenderConfiguration, ConfigurationFailure, EmailSenderConfig] =
     ZIO.accessM(_.get.config)
 }
-
-object NotificationEmailHandlerConfiguration {
-  trait Service {
-    val config: IO[ConfigurationFailure, NotificationEmailHandlerConfig]
-  }
-
-  val notificationEmailHandlerConfig: ZIO[NotificationEmailHandlerConfiguration, ConfigurationFailure, NotificationEmailHandlerConfig] =
-    ZIO.accessM(_.get.config)
-}

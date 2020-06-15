@@ -31,5 +31,3 @@ case class SalesforceConfig(
 )
 
 case class EmailSenderConfig(sqsEmailQueueName: String)
-
-case class NotificationEmailHandlerConfig(brazeCampaignName: String)

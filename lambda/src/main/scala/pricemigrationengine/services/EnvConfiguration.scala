@@ -98,17 +98,6 @@ object EnvConfiguration {
     }
   }
 
-  val notificationEmailHandlerImp: ZLayer[Any, Nothing, NotificationEmailHandlerConfiguration] = ZLayer.succeed {
-    new NotificationEmailHandlerConfiguration.Service {
-      val config: IO[ConfigurationFailure, NotificationEmailHandlerConfig] = for {
-        brazeCompaignName <- env("brazeCampaignName")
-      } yield
-        NotificationEmailHandlerConfig(
-          brazeCampaignName = brazeCompaignName
-        )
-    }
-  }
-
   val emailSenderImp: ZLayer[Any, Nothing, EmailSenderConfiguration] = ZLayer.succeed {
     new EmailSenderConfiguration.Service {
       val config: IO[ConfigurationFailure, EmailSenderConfig] = for {

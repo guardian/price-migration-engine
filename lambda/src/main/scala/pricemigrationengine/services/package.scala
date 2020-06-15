@@ -19,5 +19,4 @@ package object services {
   type S3 = Has[S3.Service]
   type EmailSender = Has[EmailSender.Service]
   type EmailSenderConfiguration = Has[EmailSenderConfiguration.Service]
-  type NotificationEmailHandlerConfiguration = Has[NotificationEmailHandlerConfiguration.Service]
 }
