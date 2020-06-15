@@ -1,5 +1,7 @@
 package pricemigrationengine.model.membershipworkflow
 
+import upickle.default.{ReadWriter, macroRW}
+
 case class EmailPayloadContactAttributes(
   FirstName: String,
   LastName: String,
@@ -13,6 +15,18 @@ case class EmailPayloadContactAttributes(
   BillingPeriod: String
 )
 
+object EmailPayloadContactAttributes {
+  implicit val rw: ReadWriter[EmailPayloadContactAttributes] = macroRW
+}
+
 case class EmailPayload(Address: String, ContactAttributes: EmailPayloadContactAttributes)
 
+object EmailPayload {
+  implicit val rw: ReadWriter[EmailPayload] = macroRW
+}
+
 case class EmailMessage(To: EmailPayload, DataExtensionName: String, SfContactId: String, IdentityUserId: Option[String])
+
+object EmailMessage {
+  implicit val rw: ReadWriter[EmailMessage] = macroRW
+}
