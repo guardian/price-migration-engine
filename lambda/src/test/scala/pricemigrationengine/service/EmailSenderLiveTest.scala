@@ -35,16 +35,16 @@ class EmailSenderLiveTest extends munit.FunSuite {
         |    "Address": "test@test.com",
         |    "ContactAttributes": {
         |      "SubscriberAttributes": {
-        |        "FirstName": "firstName",
-        |        "LastName": "lastName",
-        |        "AddressLine1": "address line 1",
-        |        "Town": "town",
-        |        "Postcode": "postcode",
-        |        "County": "county",
-        |        "Country": "country",
-        |        "NewPrice": "1.23",
-        |        "StartDate": "2020-01-01",
-        |        "BillingPeriod": "Monthly"
+        |        "first_name": "firstName",
+        |        "last_name": "lastName",
+        |        "billing_address_1": "address line 1",
+        |        "billing_city": "town",
+        |        "billing_postal_code": "postcode",
+        |        "billing_state": "county",
+        |        "billing_country": "country",
+        |        "payment_amount": "1.23",
+        |        "next_payment_date": "2020-01-01",
+        |        "payment_frequency": "Monthly"
         |      }
         |    }
         |  },
@@ -86,16 +86,16 @@ class EmailSenderLiveTest extends munit.FunSuite {
         |    "Address": "test@test.com",
         |    "ContactAttributes": {
         |      "SubscriberAttributes": {
-        |        "FirstName": "firstName",
-        |        "LastName": "lastName",
-        |        "AddressLine1": "address line 1",
-        |        "Town": null,
-        |        "Postcode": "postcode",
-        |        "County": null,
-        |        "Country": "country",
-        |        "NewPrice": "1.23",
-        |        "StartDate": "2020-01-01",
-        |        "BillingPeriod": "Monthly"
+        |        "first_name": "firstName",
+        |        "last_name": "lastName",
+        |        "billing_address_1": "address line 1",
+        |        "billing_city": null,
+        |        "billing_postal_code": "postcode",
+        |        "billing_state": null,
+        |        "billing_country": "country",
+        |        "payment_amount": "1.23",
+        |        "next_payment_date": "2020-01-01",
+        |        "payment_frequency": "Monthly"
         |      }
         |    }
         |  },

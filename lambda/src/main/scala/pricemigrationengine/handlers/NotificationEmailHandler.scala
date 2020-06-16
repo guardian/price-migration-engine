@@ -49,16 +49,16 @@ object NotificationEmailHandler {
             ContactAttributes =
               EmailPayloadContactAttributes(
                 SubscriberAttributes = EmailPayloadSubscriberAttributes(
-                  FirstName = firstName,
-                  LastName = lastName,
-                  AddressLine1 = street,
-                  Town = contact.MailingAddress.city,
-                  Postcode = postalCode,
-                  County = contact.MailingAddress.state,
-                  Country = country,
-                  NewPrice = newPrice,
-                  StartDate = startDate,
-                  BillingPeriod = billingPeriod
+                  first_name = firstName,
+                  last_name = lastName,
+                  billing_address_1 = street,
+                  billing_city = contact.MailingAddress.city,
+                  billing_postal_code = postalCode,
+                  billing_state = contact.MailingAddress.state,
+                  billing_country = country,
+                  payment_amount = newPrice,
+                  next_payment_date = startDate,
+                  payment_frequency = billingPeriod
                 )
               )
           ),
