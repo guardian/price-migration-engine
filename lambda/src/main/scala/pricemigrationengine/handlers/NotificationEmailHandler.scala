@@ -46,22 +46,21 @@ object NotificationEmailHandler {
         message = EmailMessage(
           EmailPayload(
             Address = emailAddress,
-            ContactAttributes =
-              EmailPayloadContactAttributes(
-                SubscriberAttributes = EmailPayloadSubscriberAttributes(
-                  first_name = firstName,
-                  last_name = lastName,
-                  billing_address_1 = street,
-                  billing_city = contact.MailingAddress.city,
-                  billing_postal_code = postalCode,
-                  billing_state = contact.MailingAddress.state,
-                  billing_country = country,
-                  payment_amount = newPrice,
-                  next_payment_date = startDate,
-                  payment_frequency = billingPeriod,
-                  subscription_id = cohortItem.subscriptionName
-                )
+            ContactAttributes = EmailPayloadContactAttributes(
+              SubscriberAttributes = EmailPayloadSubscriberAttributes(
+                first_name = firstName,
+                last_name = lastName,
+                billing_address_1 = street,
+                billing_city = contact.MailingAddress.city,
+                billing_postal_code = postalCode,
+                billing_state = contact.MailingAddress.state,
+                billing_country = country,
+                payment_amount = newPrice,
+                next_payment_date = startDate,
+                payment_frequency = billingPeriod,
+                subscription_id = cohortItem.subscriptionName
               )
+            )
           ),
           BrazeCampaignName,
           contact.Id,
@@ -83,7 +82,7 @@ object NotificationEmailHandler {
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
         DynamoDBClient.dynamoDB ++ loggingLayer >>>
         DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++
-          EnvConfiguration.stageImp ++ EnvConfiguration.salesforceImp ++ EnvConfiguration.emailSenderImp >>>
+        EnvConfiguration.stageImp ++ EnvConfiguration.salesforceImp ++ EnvConfiguration.emailSenderImp >>>
         CohortTableLive.impl ++ SalesforceClientLive.impl ++ Clock.live ++ EmailSenderLive.impl
     loggingLayer ++ cohortTableLayer
   }

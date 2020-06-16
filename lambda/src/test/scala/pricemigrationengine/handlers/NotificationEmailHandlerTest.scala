@@ -180,5 +180,6 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount, expectedNewPrice.toString())
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date, expectedStartDate.toString())
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_frequency, expectedBillingPeriod)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.subscription_id, expectedSubscriptionName)
   }
 }

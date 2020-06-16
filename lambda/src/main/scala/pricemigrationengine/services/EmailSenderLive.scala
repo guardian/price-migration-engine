@@ -2,7 +2,6 @@ package pricemigrationengine.services
 
 import com.amazonaws.services.sqs.{AmazonSQSAsync, AmazonSQSAsyncClientBuilder}
 import com.amazonaws.services.sqs.model.{SendMessageRequest, SendMessageResult}
-import javax.xml.ws.{AsyncHandler, Response}
 import pricemigrationengine.model.{ConfigurationFailure, EmailSenderFailure, Failure}
 import pricemigrationengine.model.membershipworkflow.EmailMessage
 import zio.{ZIO, ZLayer}
