@@ -12,7 +12,7 @@ import zio.{Runtime, ZEnv, ZIO, ZLayer, clock, console}
 object NotificationEmailHandler {
   //Mapping to environment specific braze campaign id is provided by membership-workflow:
   //https://github.com/guardian/membership-workflow/blob/master/conf/PROD.public.conf#L39
-  val BrazeCampaignName = "SV_Price_Rise_Notification"
+  val BrazeCampaignName = "SV_VO_Pricerise_Q22020"
 
   private val NotificationEmailLeadTimeDays = 30
 

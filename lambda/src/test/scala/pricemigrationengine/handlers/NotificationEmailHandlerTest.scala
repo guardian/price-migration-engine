@@ -35,7 +35,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
   val expectedState = "buyer1State"
   val expectedPostalCode = "buyer1PostalCode"
   val expectedCountry = "buyer1Country"
-  val expectedDataExtensionName = "SV_Price_Rise_Notification"
+  val expectedDataExtensionName = "SV_VO_Pricerise_Q22020"
 
   def createStubCohortTable(updatedResultsWrittenToCohortTable:ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
