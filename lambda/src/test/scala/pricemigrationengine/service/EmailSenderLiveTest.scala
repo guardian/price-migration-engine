@@ -57,7 +57,7 @@ class EmailSenderLiveTest extends munit.FunSuite {
     )
   }
 
-  test("EmailSenderLive should serialise message with missing optional valuescorrectly") {
+  test("EmailSenderLive should serialise message with missing optional values correctly") {
     assertEquals(
       EmailSenderLive.serialiseMessage(
         EmailMessage(

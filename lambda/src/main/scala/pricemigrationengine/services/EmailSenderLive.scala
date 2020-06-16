@@ -13,7 +13,7 @@ object EmailSenderLive {
       for {
         config <- EmailSenderConfiguration
           .emailSenderConfig
-          .mapError { error: ConfigurationFailure =>
+          .mapError { error =>
             EmailSenderFailure(s"Failed to get email sender configuration: $error")
           }
         sqsClient <- ZIO.effect {
