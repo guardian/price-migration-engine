@@ -18,6 +18,8 @@ object CohortTableFilter {
    * so is ineligible for further processing.
    */
   case object Cancelled extends CohortTableFilter { override val value: String = "Cancelled" }
+  case object EmailSendProcessing extends CohortTableFilter { override val value: String = "EmailSendProcessing" }
+  case object EmailSendComplete extends CohortTableFilter { override val value: String = "EmailSendComplete" }
 
   val all = Set(
     ReadyForEstimation,

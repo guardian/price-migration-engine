@@ -1,9 +1,9 @@
 package pricemigrationengine.handlers
 
 import com.amazonaws.services.lambda.runtime.Context
-import pricemigrationengine.model.CohortTableFilter.AmendmentComplete
+import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EmailSendComplete, EmailSendProcessing}
 import pricemigrationengine.model.membershipworkflow.{EmailMessage, EmailPayload, EmailPayloadContactAttributes, EmailPayloadSubscriberAttributes}
-import pricemigrationengine.model.{CohortItem, Failure, NotificationEmailHandlerFailure}
+import pricemigrationengine.model.{CohortItem, CohortTableFilter, Failure, NotificationEmailHandlerFailure}
 import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.console.Console
@@ -28,7 +28,7 @@ object NotificationEmailHandler {
 
   def sendEmail(
     cohortItem: CohortItem
-  ): ZIO[EmailSender with SalesforceClient, Failure, Unit] = {
+  ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock, Failure, Unit] = {
     for {
       sfSubscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
@@ -41,6 +41,8 @@ object NotificationEmailHandler {
       newPrice <- requiredField(cohortItem.newPrice.map(_.toString()), "CohortItem.newPrice")
       startDate <- requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate")
       billingPeriod <- requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod")
+
+      _ <- updateCohortItemStatus(cohortItem.subscriptionName, EmailSendProcessing)
 
       _ <- EmailSender.sendEmail(
         message = EmailMessage(
@@ -67,6 +69,8 @@ object NotificationEmailHandler {
           contact.IdentityID__c
         )
       )
+
+      _ <- updateCohortItemStatus(cohortItem.subscriptionName, EmailSendComplete)
     } yield ()
   }
 
@@ -74,6 +78,20 @@ object NotificationEmailHandler {
     ZIO.fromOption(field).orElseFail(NotificationEmailHandlerFailure(s"$fieldName is a required field"))
   }
 
+  def updateCohortItemStatus(subscriptionNumber: String, processingStage: CohortTableFilter) = {
+    for {
+      now <- clock.currentDateTime.mapError(ex => NotificationEmailHandlerFailure(s"Failed to get time: $ex"))
+      _ <- CohortTable.update(
+        CohortItem(
+          subscriptionName = subscriptionNumber,
+          processingStage = processingStage,
+          whenEmailSent = Some(now.toInstant)
+        )
+      ).mapError { error =>
+        NotificationEmailHandlerFailure(s"Failed set status CohortItem $subscriptionNumber to $processingStage: $error")
+      }
+    } yield ()
+  }
 
   private def env(
     loggingLayer: ZLayer[Any, Nothing, Logging]
