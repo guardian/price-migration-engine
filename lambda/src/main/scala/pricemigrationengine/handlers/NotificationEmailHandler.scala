@@ -58,7 +58,8 @@ object NotificationEmailHandler {
                   billing_country = country,
                   payment_amount = newPrice,
                   next_payment_date = startDate,
-                  payment_frequency = billingPeriod
+                  payment_frequency = billingPeriod,
+                  subscription_id = cohortItem.subscriptionName
                 )
               )
           ),

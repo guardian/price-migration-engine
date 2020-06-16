@@ -21,7 +21,8 @@ class EmailSenderLiveTest extends munit.FunSuite {
                 "country",
                 "1.23",
                 "2020-01-01",
-                "Monthly"
+                "Monthly",
+                "Subscription-001"
               )
             )
           ),
@@ -44,7 +45,8 @@ class EmailSenderLiveTest extends munit.FunSuite {
         |        "billing_country": "country",
         |        "payment_amount": "1.23",
         |        "next_payment_date": "2020-01-01",
-        |        "payment_frequency": "Monthly"
+        |        "payment_frequency": "Monthly",
+        |        "subscription_id": "Subscription-001"
         |      }
         |    }
         |  },
@@ -72,7 +74,8 @@ class EmailSenderLiveTest extends munit.FunSuite {
                 "country",
                 "1.23",
                 "2020-01-01",
-                "Monthly"
+                "Monthly",
+                "Subscription-001"
               )
             )
           ),
@@ -95,7 +98,8 @@ class EmailSenderLiveTest extends munit.FunSuite {
         |        "billing_country": "country",
         |        "payment_amount": "1.23",
         |        "next_payment_date": "2020-01-01",
-        |        "payment_frequency": "Monthly"
+        |        "payment_frequency": "Monthly",
+        |        "subscription_id": "Subscription-001"
         |      }
         |    }
         |  },
