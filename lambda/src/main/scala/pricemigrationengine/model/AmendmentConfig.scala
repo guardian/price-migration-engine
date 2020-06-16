@@ -29,3 +29,5 @@ case class SalesforceConfig(
     password: String,
     token: String
 )
+
+case class EmailSenderConfig(sqsEmailQueueName: String)

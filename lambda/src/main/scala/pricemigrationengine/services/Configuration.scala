@@ -56,3 +56,12 @@ object StageConfiguration {
   val stageConfig: ZIO[StageConfiguration, ConfigurationFailure, StageConfig] =
     ZIO.accessM(_.get.config)
 }
+
+object EmailSenderConfiguration {
+  trait Service {
+    val config: IO[ConfigurationFailure, EmailSenderConfig]
+  }
+
+  val emailSenderConfig: ZIO[EmailSenderConfiguration, ConfigurationFailure, EmailSenderConfig] =
+    ZIO.accessM(_.get.config)
+}

@@ -6,6 +6,7 @@ object Dependencies {
 
   lazy val awsDynamoDb = "com.amazonaws" % "aws-java-sdk-dynamodb" % awsSdkVersion
   lazy val awsS3 = "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion
+  lazy val awsSQS = "com.amazonaws" % "aws-java-sdk-sqs" % awsSdkVersion
   lazy val zio = "dev.zio" %% "zio" % zioVersion
   lazy val zioStreams = "dev.zio" %% "zio-streams" % zioVersion
   lazy val upickle = "com.lihaoyi" %% "upickle" % "1.1.0"

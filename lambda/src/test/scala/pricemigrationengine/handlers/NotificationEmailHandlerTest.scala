@@ -35,7 +35,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
   val expectedState = "buyer1State"
   val expectedPostalCode = "buyer1PostalCode"
   val expectedCountry = "buyer1Country"
-
+  val expectedDataExtensionName = "SV_VO_Pricerise_Q22020"
 
   def createStubCohortTable(updatedResultsWrittenToCohortTable:ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
@@ -166,19 +166,20 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
     )
 
     assertEquals(sentMessages.size, 1)
-    assertEquals(sentMessages(0).DataExtensionName, "price-rise-email")
+    assertEquals(sentMessages(0).DataExtensionName, expectedDataExtensionName)
     assertEquals(sentMessages(0).SfContactId, expectedBuyerId)
     assertEquals(sentMessages(0).IdentityUserId, Some(expectedIdentityId))
     assertEquals(sentMessages(0).To.Address, expectedEmailAddress)
-    assertEquals(sentMessages(0).To.ContactAttributes.AddressLine1, expectedStreet)
-    assertEquals(sentMessages(0).To.ContactAttributes.Town, Some(expectedCity))
-    assertEquals(sentMessages(0).To.ContactAttributes.County, Some(expectedState))
-    assertEquals(sentMessages(0).To.ContactAttributes.Postcode, expectedPostalCode)
-    assertEquals(sentMessages(0).To.ContactAttributes.Country, expectedCountry)
-    assertEquals(sentMessages(0).To.ContactAttributes.FirstName, expectedFirstName)
-    assertEquals(sentMessages(0).To.ContactAttributes.LastName, expectedLastName)
-    assertEquals(sentMessages(0).To.ContactAttributes.NewPrice, expectedNewPrice.toString())
-    assertEquals(sentMessages(0).To.ContactAttributes.StartDate, expectedStartDate.toString())
-    assertEquals(sentMessages(0).To.ContactAttributes.BillingPeriod, expectedBillingPeriod)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_1, expectedStreet)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_city, Some(expectedCity))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_state, Some(expectedState))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_postal_code, expectedPostalCode)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_country, expectedCountry)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, expectedFirstName)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, expectedLastName)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount, expectedNewPrice.toString())
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date, expectedStartDate.toString())
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_frequency, expectedBillingPeriod)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.subscription_id, expectedSubscriptionName)
   }
 }

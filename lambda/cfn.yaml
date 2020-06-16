@@ -14,17 +14,20 @@ Parameters:
 Mappings:
   StageMap:
     DEV:
-      SecretsVersion: "e159cf84-2ae6-4600-8444-d8c4c74531d5"
+      SecretsVersion: "6559354e-556f-4609-a89f-222824495d5d"
       EarliestStartDate: 2020-05-15
       BucketName: price-migration-engine-dev
+      SQSQueueName: contributions-thanks-dev
     CODE:
-      SecretsVersion: "a0df5201-f2d9-4699-a704-805e7c1df2ee"
+      SecretsVersion: "52529e0a-438b-4b63-8a08-35f158ed0bee"
       EarliestStartDate: 2020-05-15
       BucketName: price-migration-engine-code
+      SQSQueueName: contributions-thanks-dev
     PROD:
-      SecretsVersion: "0ef81375-18ec-4a94-b4b9-eb4c399e3455"
+      SecretsVersion: "dd295c21-39df-47d0-b3b2-0d420ee3b055"
       EarliestStartDate: 2020-07-27
       BucketName: price-migration-engine-prod
+      SQSQueueName: contributions-thanks
 
 Resources:
 
@@ -185,6 +188,16 @@ Resources:
                   - lambda:InvokeFunction
                 Resource:
                   - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-notification-email-lambda-${Stage}:log-stream:*"
+        - PolicyName: SendEmailRequestSQSMessage
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:GetQueueUrl
+                  - sqs:SendMessage
+                Resource: !Sub
+                  - "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${QueueName}"
+                  - { QueueName: !FindInMap [ StageMap, !Ref Stage, SQSQueueName ] }
 
   S3Bucket:
     Type: AWS::S3::Bucket
@@ -375,6 +388,10 @@ Resources:
           salesforceToken:
             !Sub
             - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceToken::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          sqsEmailQueueName:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:sqsEmailQueueName::${SecretsVersion}}}'
             - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
       Role:
         Fn::GetAtt:

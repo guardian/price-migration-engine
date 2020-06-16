@@ -2,7 +2,7 @@ package pricemigrationengine.handlers
 
 import com.amazonaws.services.lambda.runtime.Context
 import pricemigrationengine.model.CohortTableFilter.AmendmentComplete
-import pricemigrationengine.model.membershipworkflow.{EmailMessage, EmailPayload, EmailPayloadContactAttributes}
+import pricemigrationengine.model.membershipworkflow.{EmailMessage, EmailPayload, EmailPayloadContactAttributes, EmailPayloadSubscriberAttributes}
 import pricemigrationengine.model.{CohortItem, Failure, NotificationEmailHandlerFailure}
 import pricemigrationengine.services._
 import zio.clock.Clock
@@ -10,6 +10,10 @@ import zio.console.Console
 import zio.{Runtime, ZEnv, ZIO, ZLayer, clock, console}
 
 object NotificationEmailHandler {
+  //Mapping to environment specific braze campaign id is provided by membership-workflow:
+  //https://github.com/guardian/membership-workflow/blob/master/conf/PROD.public.conf#L39
+  val BrazeCampaignName = "SV_VO_Pricerise_Q22020"
+
   private val NotificationEmailLeadTimeDays = 30
 
   val main: ZIO[Logging with CohortTable with SalesforceClient with Clock with EmailSender, Failure, Unit] = {
@@ -22,7 +26,9 @@ object NotificationEmailHandler {
     } yield ()
   }
 
-  def sendEmail(cohortItem: CohortItem): ZIO[EmailSender with SalesforceClient, Failure, Unit] = {
+  def sendEmail(
+    cohortItem: CohortItem
+  ): ZIO[EmailSender with SalesforceClient, Failure, Unit] = {
     for {
       sfSubscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
@@ -41,19 +47,22 @@ object NotificationEmailHandler {
           EmailPayload(
             Address = emailAddress,
             ContactAttributes = EmailPayloadContactAttributes(
-              FirstName = firstName,
-              LastName = lastName,
-              AddressLine1 = street,
-              Town = contact.MailingAddress.city,
-              Postcode = postalCode,
-              County = contact.MailingAddress.state,
-              Country = country,
-              NewPrice = newPrice,
-              StartDate = startDate,
-              BillingPeriod = billingPeriod
+              SubscriberAttributes = EmailPayloadSubscriberAttributes(
+                first_name = firstName,
+                last_name = lastName,
+                billing_address_1 = street,
+                billing_city = contact.MailingAddress.city,
+                billing_postal_code = postalCode,
+                billing_state = contact.MailingAddress.state,
+                billing_country = country,
+                payment_amount = newPrice,
+                next_payment_date = startDate,
+                payment_frequency = billingPeriod,
+                subscription_id = cohortItem.subscriptionName
+              )
             )
           ),
-          "price-rise-email",
+          BrazeCampaignName,
           contact.Id,
           contact.IdentityID__c
         )
@@ -73,7 +82,7 @@ object NotificationEmailHandler {
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
         DynamoDBClient.dynamoDB ++ loggingLayer >>>
         DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++
-          EnvConfiguration.stageImp ++ EnvConfiguration.salesforceImp >>>
+        EnvConfiguration.stageImp ++ EnvConfiguration.salesforceImp ++ EnvConfiguration.emailSenderImp >>>
         CohortTableLive.impl ++ SalesforceClientLive.impl ++ Clock.live ++ EmailSenderLive.impl
     loggingLayer ++ cohortTableLayer
   }

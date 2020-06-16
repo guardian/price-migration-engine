@@ -28,6 +28,7 @@ lazy val lambda = (project in file("lambda"))
       awsDynamoDb,
       awsLambda,
       awsS3,
+      awsSQS,
       http,
       commonsCsv,
       munit % Test

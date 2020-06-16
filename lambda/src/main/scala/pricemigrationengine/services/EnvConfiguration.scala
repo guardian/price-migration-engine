@@ -97,4 +97,15 @@ object EnvConfiguration {
         )
     }
   }
+
+  val emailSenderImp: ZLayer[Any, Nothing, EmailSenderConfiguration] = ZLayer.succeed {
+    new EmailSenderConfiguration.Service {
+      val config: IO[ConfigurationFailure, EmailSenderConfig] =
+        for {
+          emailSqsQueueName <- env("sqsEmailQueueName")
+        } yield EmailSenderConfig(
+          sqsEmailQueueName = emailSqsQueueName
+        )
+    }
+  }
 }
