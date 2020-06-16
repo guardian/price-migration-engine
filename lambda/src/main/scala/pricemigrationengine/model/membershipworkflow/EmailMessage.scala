@@ -4,7 +4,7 @@ import pricemigrationengine.model.OptionWriter //required
 import pricemigrationengine.model.OptionReader //required
 import upickle.default.{ReadWriter, macroRW}
 
-case class EmailPayloadContactAttributes(
+case class EmailPayloadSubscriberAttributes(
   FirstName: String,
   LastName: String,
   AddressLine1: String,
@@ -16,6 +16,12 @@ case class EmailPayloadContactAttributes(
   StartDate: String,
   BillingPeriod: String
 )
+
+object EmailPayloadSubscriberAttributes {
+  implicit val rw: ReadWriter[EmailPayloadSubscriberAttributes] = macroRW
+}
+
+case class EmailPayloadContactAttributes(SubscriberAttributes: EmailPayloadSubscriberAttributes)
 
 object EmailPayloadContactAttributes {
   implicit val rw: ReadWriter[EmailPayloadContactAttributes] = macroRW

@@ -2,7 +2,7 @@ package pricemigrationengine.handlers
 
 import com.amazonaws.services.lambda.runtime.Context
 import pricemigrationengine.model.CohortTableFilter.AmendmentComplete
-import pricemigrationengine.model.membershipworkflow.{EmailMessage, EmailPayload, EmailPayloadContactAttributes}
+import pricemigrationengine.model.membershipworkflow.{EmailMessage, EmailPayload, EmailPayloadContactAttributes, EmailPayloadSubscriberAttributes}
 import pricemigrationengine.model.{CohortItem, Failure, NotificationEmailHandlerFailure}
 import pricemigrationengine.services._
 import zio.clock.Clock
@@ -46,18 +46,21 @@ object NotificationEmailHandler {
         message = EmailMessage(
           EmailPayload(
             Address = emailAddress,
-            ContactAttributes = EmailPayloadContactAttributes(
-              FirstName = firstName,
-              LastName = lastName,
-              AddressLine1 = street,
-              Town = contact.MailingAddress.city,
-              Postcode = postalCode,
-              County = contact.MailingAddress.state,
-              Country = country,
-              NewPrice = newPrice,
-              StartDate = startDate,
-              BillingPeriod = billingPeriod
-            )
+            ContactAttributes =
+              EmailPayloadContactAttributes(
+                SubscriberAttributes = EmailPayloadSubscriberAttributes(
+                  FirstName = firstName,
+                  LastName = lastName,
+                  AddressLine1 = street,
+                  Town = contact.MailingAddress.city,
+                  Postcode = postalCode,
+                  County = contact.MailingAddress.state,
+                  Country = country,
+                  NewPrice = newPrice,
+                  StartDate = startDate,
+                  BillingPeriod = billingPeriod
+                )
+              )
           ),
           BrazeCampaignName,
           contact.Id,
