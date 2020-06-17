@@ -103,3 +103,29 @@ The configuration can be updated using the aws console as follows:
   - Take the UUID from the value of the "VersionId" field in the response from the above.
   - Update the Mappings > StageMap > <Stage> > SecretsVersion field in this projects [cloudformation template](cfn.yaml)
   - Build and deploy the changes using riffraff  
+
+## Billing Address Format
+
+The notification letters initiated by the NotificationEmailHandler gets contact details including the billing address
+from salesforce. 
+
+The salesforce data model is as follows:  
+
+```json
+{
+    "street": "90 York Way",
+    "city": "London",
+    "country": "United Kingdom",
+    "postalCode": "N1 9GU",
+    "state": null
+}
+```
+
+However Zuora and the subscription form have both addressLine1 and addressLine2 (optional). These two fields are
+concatenated together when they are synced over from Zuora to Salesforce.
+
+Using addressLine1 and addressLine2 for the direct messages would be preferable, however the issue was discovered
+too late in the day to resolve it. 
+
+In an attempt to make it simpler to resolve this in the future we are sending billing_address_2 all the way though 
+sqs/membership-workflow/braze/latcham but we are populating it with an empty string in the NotificationEmailHandler.

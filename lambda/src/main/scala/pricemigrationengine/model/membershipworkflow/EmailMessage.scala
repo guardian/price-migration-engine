@@ -5,9 +5,11 @@ import pricemigrationengine.model.OptionReader //required
 import upickle.default.{ReadWriter, macroRW}
 
 case class EmailPayloadSubscriberAttributes(
+  title: Option[String],
   first_name: String,
   last_name: String,
   billing_address_1: String,
+  billing_address_2: Option[String],
   billing_city: Option[String],
   billing_postal_code: String,
   billing_state: Option[String],
