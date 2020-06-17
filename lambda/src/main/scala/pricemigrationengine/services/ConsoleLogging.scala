@@ -4,11 +4,11 @@ import zio.console.Console
 import zio.{UIO, ZLayer}
 
 object ConsoleLogging {
-  val impl: ZLayer[Console, Nothing, Logging] = ZLayer.fromService(
-    console =>
-      new Logging.Service {
-        def info(s: String): UIO[Unit] = console.putStrLn(s"INFO: $s")
-        def error(s: String): UIO[Unit] = console.putStrLn(s"ERROR: $s")
-    }
-  )
+
+  def service(consoleService: Console.Service): Logging.Service = new Logging.Service {
+    def info(s: String): UIO[Unit] = consoleService.putStrLn(s"INFO: $s")
+    def error(s: String): UIO[Unit] = consoleService.putStrLn(s"ERROR: $s")
+  }
+
+  val impl: ZLayer[Console, Nothing, Logging] = ZLayer.fromService(service)
 }
