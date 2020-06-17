@@ -7,7 +7,7 @@ import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, Cancelle
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
-import zio.{App, Runtime, ZEnv, ZIO, ZLayer}
+import zio.{App, ExitCode, Runtime, ZEnv, ZIO, ZLayer}
 
 /**
   * Carries out price-rise amendments in Zuora.
@@ -101,12 +101,12 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
 
   private val runtime = Runtime.default
 
-  def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
+  def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
     main
       .provideSomeLayer(
         env(ConsoleLogging.service(Console.Service.live))
       )
-      .fold(_ => 1, _ => 0)
+      .exitCode
 
   def handleRequest(unused: Unit, context: Context): Unit =
     runtime.unsafeRun(
