@@ -130,6 +130,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
       Id = expectedBuyerId,
       IdentityID__c = Some(expectedIdentityId),
       Email = Some(expectedEmailAddress),
+      Salutation = Some(expectedSalutation),
       FirstName = Some(expectedFirstName),
       LastName = Some(expectedLastName),
       MailingAddress =
