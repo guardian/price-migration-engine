@@ -27,6 +27,8 @@ object CohortTableFilter {
     EstimationComplete,
     SalesforcePriceRiceCreationComplete,
     AmendmentComplete,
-    Cancelled
+    Cancelled,
+    EmailSendProcessing,
+    EmailSendComplete
   )
 }

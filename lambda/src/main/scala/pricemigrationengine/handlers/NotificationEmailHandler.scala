@@ -1,7 +1,7 @@
 package pricemigrationengine.handlers
 
 import com.amazonaws.services.lambda.runtime.Context
-import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EmailSendComplete, EmailSendProcessing}
+import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EmailSendComplete, EmailSendProcessing, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model.membershipworkflow.{EmailMessage, EmailPayload, EmailPayloadContactAttributes, EmailPayloadSubscriberAttributes}
 import pricemigrationengine.model.{CohortItem, CohortTableFilter, Failure, NotificationEmailHandlerFailure}
 import pricemigrationengine.services._
@@ -20,7 +20,7 @@ object NotificationEmailHandler {
     for {
       now <- clock.currentDateTime.mapError(ex => NotificationEmailHandlerFailure(s"Failed to get time: $ex"))
       subscriptions <- CohortTable.fetch(
-        AmendmentComplete,
+        SalesforcePriceRiceCreationComplete,
         Some(now.toLocalDate.plusDays(NotificationEmailLeadTimeDays))
       )
       _ <- subscriptions.foreach(sendEmail)
