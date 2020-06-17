@@ -1,0 +1,10 @@
+stacks:
+- membership
+regions:
+- eu-west-1
+deployments:
+  cfn:
+    type: cloud-formation
+    app: price-migration-engine-state-machine
+    parameters:
+      templatePath: cfn.yaml
