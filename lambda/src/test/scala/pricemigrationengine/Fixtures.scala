@@ -20,4 +20,10 @@ object Fixtures {
 
   def invoiceListFromJson(resource: String): ZuoraInvoiceList =
     instanceFromJson[ZuoraInvoiceList](resource)
+
+  def subscriptionAndInvoicePreviewFromFolder(folderName: String): (ZuoraSubscription, ZuoraInvoiceList) = {
+    val subscription = Fixtures.subscriptionFromJson(s"$folderName/Subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson(s"$folderName/InvoicePreview.json")
+    (subscription, invoicePreview)
+  }
 }
