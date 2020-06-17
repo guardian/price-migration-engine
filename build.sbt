@@ -4,7 +4,7 @@ import sbt.Keys.{description, name}
 ThisBuild / scalaVersion := "2.13.2"
 
 lazy val root = (project in file("."))
-  .aggregate(dynamoDb, lambda)
+  .aggregate(dynamoDb, lambda, stateMachine)
 
 lazy val dynamoDb = (project in file("dynamoDb"))
   .enablePlugins(RiffRaffArtifact)
@@ -41,4 +41,15 @@ lazy val lambda = (project in file("lambda"))
     riffRaffUploadManifestBucket := Option("riffraff-builds"),
     riffRaffManifestProjectName := "MemSub::Subscriptions::Lambda::PriceMigrationEngine",
     riffRaffArtifactResources += (project.base / "cfn.yaml", "cfn/cfn.yaml")
+  )
+
+lazy val stateMachine = (project in file("stateMachine"))
+  .enablePlugins(RiffRaffArtifact)
+  .settings(
+    name := "price-migration-engine-state-machine",
+    description := "Cloudformation for price migration state machine.",
+    riffRaffPackageType := (baseDirectory.value / "cfn"),
+    riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
+    riffRaffUploadManifestBucket := Option("riffraff-builds"),
+    riffRaffManifestProjectName := "MemSub::Subscriptions::StateMachine::PriceMigrationEngine"
   )

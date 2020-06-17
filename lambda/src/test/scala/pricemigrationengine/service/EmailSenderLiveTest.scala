@@ -12,9 +12,11 @@ class EmailSenderLiveTest extends munit.FunSuite {
             "test@test.com",
             EmailPayloadContactAttributes(
               EmailPayloadSubscriberAttributes(
+                Some("title"),
                 "firstName",
                 "lastName",
                 "address line 1",
+                Some("address line 2"),
                 Some("town"),
                 "postcode",
                 Some("county"),
@@ -36,9 +38,11 @@ class EmailSenderLiveTest extends munit.FunSuite {
         |    "Address": "test@test.com",
         |    "ContactAttributes": {
         |      "SubscriberAttributes": {
+        |        "title": "title",
         |        "first_name": "firstName",
         |        "last_name": "lastName",
         |        "billing_address_1": "address line 1",
+        |        "billing_address_2": "address line 2",
         |        "billing_city": "town",
         |        "billing_postal_code": "postcode",
         |        "billing_state": "county",
@@ -65,9 +69,11 @@ class EmailSenderLiveTest extends munit.FunSuite {
             "test@test.com",
             EmailPayloadContactAttributes(
               EmailPayloadSubscriberAttributes(
+                None,
                 "firstName",
                 "lastName",
                 "address line 1",
+                None,
                 None,
                 "postcode",
                 None,
@@ -89,9 +95,11 @@ class EmailSenderLiveTest extends munit.FunSuite {
         |    "Address": "test@test.com",
         |    "ContactAttributes": {
         |      "SubscriberAttributes": {
+        |        "title": null,
         |        "first_name": "firstName",
         |        "last_name": "lastName",
         |        "billing_address_1": "address line 1",
+        |        "billing_address_2": null,
         |        "billing_city": null,
         |        "billing_postal_code": "postcode",
         |        "billing_state": null,

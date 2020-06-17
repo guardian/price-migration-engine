@@ -36,6 +36,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
   val expectedPostalCode = "buyer1PostalCode"
   val expectedCountry = "buyer1Country"
   val expectedDataExtensionName = "SV_VO_Pricerise_Q22020"
+  val expectedSalutation = "Ms"
 
   def createStubCohortTable(updatedResultsWrittenToCohortTable:ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
@@ -176,10 +177,12 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages(0).IdentityUserId, Some(expectedIdentityId))
     assertEquals(sentMessages(0).To.Address, expectedEmailAddress)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_1, expectedStreet)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_2, None)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_city, Some(expectedCity))
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_state, Some(expectedState))
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_postal_code, expectedPostalCode)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_country, expectedCountry)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, Some(expectedSalutation))
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, expectedFirstName)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, expectedLastName)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount, expectedNewPrice.toString())
