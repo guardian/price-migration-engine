@@ -21,7 +21,6 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
   val expectedStartDate = LocalDate.of(2020, 1, 1)
   val expectedCurrency = "GBP"
   val expectedBillingPeriod = "Monthly"
-  val expectedNewPrice = BigDecimal(19.99)
   val expectedOldPrice = BigDecimal(11.11)
   val expectedEstimatedNewPrice = BigDecimal(22.22)
   val expectedSFSubscriptionId = "1234"
@@ -149,7 +148,6 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
       processingStage = AmendmentComplete,
       startDate = Some(expectedStartDate),
       currency = Some(expectedCurrency),
-      newPrice = Some(expectedNewPrice),
       oldPrice = Some(expectedOldPrice),
       estimatedNewPrice = Some(expectedEstimatedNewPrice),
       billingPeriod = Some(expectedBillingPeriod)
@@ -186,7 +184,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, Some(expectedSalutation))
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, expectedFirstName)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, expectedLastName)
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount, expectedNewPrice.toString())
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount, expectedEstimatedNewPrice.toString())
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date, expectedStartDate.toString())
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_frequency, expectedBillingPeriod)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.subscription_id, expectedSubscriptionName)
