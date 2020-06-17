@@ -6,7 +6,7 @@ import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.console.Console
-import zio.{App, IO, Runtime, ZEnv, ZIO, ZLayer, clock}
+import zio.{App, ExitCode, IO, Runtime, ZEnv, ZIO, ZLayer, clock}
 
 object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, Unit] {
 
@@ -100,12 +100,12 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
 
   private val runtime = Runtime.default
 
-  def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
+  def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
     main
       .provideSomeLayer(
         env(ConsoleLogging.service(Console.Service.live))
       )
-      .fold(_ => 1, _ => 0)
+      .exitCode
 
   def handleRequest(unused: Unit, context: Context): Unit =
     runtime.unsafeRun(
