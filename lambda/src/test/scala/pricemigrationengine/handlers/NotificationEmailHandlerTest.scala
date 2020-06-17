@@ -36,6 +36,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
   val expectedPostalCode = "buyer1PostalCode"
   val expectedCountry = "buyer1Country"
   val expectedDataExtensionName = "SV_VO_Pricerise_Q22020"
+  val expectedSalutation = "Ms"
 
   def createStubCohortTable(updatedResultsWrittenToCohortTable:ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
@@ -123,6 +124,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
             Id = expectedBuyerId,
             IdentityID__c = Some(expectedIdentityId),
             Email = Some(expectedEmailAddress),
+            Salutation = Some(expectedSalutation),
             FirstName = Some(expectedFirstName),
             LastName = Some(expectedLastName),
             MailingAddress = SalesforceAddress(
@@ -175,6 +177,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_state, Some(expectedState))
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_postal_code, expectedPostalCode)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_country, expectedCountry)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, Some(expectedSalutation))
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, expectedFirstName)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, expectedLastName)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount, expectedNewPrice.toString())

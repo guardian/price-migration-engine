@@ -12,6 +12,7 @@ class EmailSenderLiveTest extends munit.FunSuite {
             "test@test.com",
             EmailPayloadContactAttributes(
               EmailPayloadSubscriberAttributes(
+                Some("title"),
                 "firstName",
                 "lastName",
                 "address line 1",
@@ -36,6 +37,7 @@ class EmailSenderLiveTest extends munit.FunSuite {
         |    "Address": "test@test.com",
         |    "ContactAttributes": {
         |      "SubscriberAttributes": {
+        |        "title": "title",
         |        "first_name": "firstName",
         |        "last_name": "lastName",
         |        "billing_address_1": "address line 1",
@@ -65,6 +67,7 @@ class EmailSenderLiveTest extends munit.FunSuite {
             "test@test.com",
             EmailPayloadContactAttributes(
               EmailPayloadSubscriberAttributes(
+                None,
                 "firstName",
                 "lastName",
                 "address line 1",
@@ -89,6 +92,7 @@ class EmailSenderLiveTest extends munit.FunSuite {
         |    "Address": "test@test.com",
         |    "ContactAttributes": {
         |      "SubscriberAttributes": {
+        |        "title": null,
         |        "first_name": "firstName",
         |        "last_name": "lastName",
         |        "billing_address_1": "address line 1",

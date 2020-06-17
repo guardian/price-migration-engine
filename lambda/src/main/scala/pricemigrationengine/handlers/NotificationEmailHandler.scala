@@ -49,6 +49,7 @@ object NotificationEmailHandler {
             Address = emailAddress,
             ContactAttributes = EmailPayloadContactAttributes(
               SubscriberAttributes = EmailPayloadSubscriberAttributes(
+                title = contact.Salutation,
                 first_name = firstName,
                 last_name = lastName,
                 billing_address_1 = street,
