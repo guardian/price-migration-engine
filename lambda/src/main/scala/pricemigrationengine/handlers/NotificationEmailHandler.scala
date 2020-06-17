@@ -7,7 +7,7 @@ import pricemigrationengine.model.{CohortItem, Failure, NotificationEmailHandler
 import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.console.Console
-import zio.{Runtime, ZEnv, ZIO, ZLayer, clock, console}
+import zio.{Runtime, ZEnv, ZIO, ZLayer, clock}
 
 object NotificationEmailHandler {
   //Mapping to environment specific braze campaign id is provided by membership-workflow:
@@ -20,7 +20,8 @@ object NotificationEmailHandler {
     for {
       now <- clock.currentDateTime.mapError(ex => NotificationEmailHandlerFailure(s"Failed to get time: $ex"))
       subscriptions <- CohortTable.fetch(
-        AmendmentComplete, Some(now.toLocalDate.plusDays(NotificationEmailLeadTimeDays))
+        AmendmentComplete,
+        Some(now.toLocalDate.plusDays(NotificationEmailLeadTimeDays))
       )
       _ <- subscriptions.foreach(sendEmail)
     } yield ()
@@ -70,21 +71,22 @@ object NotificationEmailHandler {
     } yield ()
   }
 
-  def requiredField(field: Option[String], fieldName: String) = {
+  def requiredField(field: Option[String], fieldName: String): ZIO[Any, NotificationEmailHandlerFailure, String] = {
     ZIO.fromOption(field).orElseFail(NotificationEmailHandlerFailure(s"$fieldName is a required field"))
   }
 
-
   private def env(
-    loggingLayer: ZLayer[Any, Nothing, Logging]
+      loggingService: Logging.Service
   ): ZLayer[Any, Any, Logging with CohortTable with SalesforceClient with Clock with EmailSender] = {
+    val loggingLayer = ZLayer.succeed(loggingService)
     val cohortTableLayer =
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
         DynamoDBClient.dynamoDB ++ loggingLayer >>>
         DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++
         EnvConfiguration.stageImp ++ EnvConfiguration.salesforceImp ++ EnvConfiguration.emailSenderImp >>>
         CohortTableLive.impl ++ SalesforceClientLive.impl ++ Clock.live ++ EmailSenderLive.impl
-    loggingLayer ++ cohortTableLayer
+    (loggingLayer ++ cohortTableLayer)
+      .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
   }
 
   private val runtime = Runtime.default
@@ -92,17 +94,14 @@ object NotificationEmailHandler {
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
     main
       .provideSomeLayer(
-        env(Console.live >>> ConsoleLogging.impl)
+        env(ConsoleLogging.service(Console.Service.live))
       )
-      .foldM(
-        e => console.putStrLn(s"Failed: $e") *> ZIO.succeed(1),
-        _ => console.putStrLn("Succeeded!") *> ZIO.succeed(0)
-      )
+      .fold(_ => 1, _ => 0)
 
   def handleRequest(unused: Unit, context: Context): Unit =
     runtime.unsafeRun(
       main.provideSomeLayer(
-        env(LambdaLogging.impl(context))
+        env(LambdaLogging.service(context))
       )
     )
 }

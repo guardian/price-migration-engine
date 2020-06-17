@@ -9,14 +9,14 @@ import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
 import zio.stream.ZStream
-import zio.{App, IO, Managed, Runtime, ZEnv, ZIO, ZLayer, ZManaged, console}
+import zio.{App, IO, Runtime, ZEnv, ZIO, ZLayer}
 
 import scala.jdk.CollectionConverters._
 
 object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
   private val csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader()
 
-  val main = {
+  val main: ZIO[CohortTable with Logging with S3 with StageConfiguration, Failure, Unit] = {
     for {
       config <- StageConfiguration.stageConfig
       exclusionsManagedStream <- S3.getObject(
@@ -39,27 +39,29 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
   }
 
   def parseExclusions(inputStream: InputStream): IO[SubscriptionIdUploadFailure, Set[String]] = {
-    ZIO.effect(
-      new CSVParser(new InputStreamReader(inputStream, "UTF-8"), csvFormat)
-        .getRecords.asScala
-        .map(_.get(0))
-        .toSet
-    ).mapError { ex =>
-      SubscriptionIdUploadFailure(s"Failed to read and parse the exclusions file: $ex")
-    }
+    ZIO
+      .effect(
+        new CSVParser(new InputStreamReader(inputStream, "UTF-8"), csvFormat).getRecords.asScala
+          .map(_.get(0))
+          .toSet
+      )
+      .mapError { ex =>
+        SubscriptionIdUploadFailure(s"Failed to read and parse the exclusions file: $ex")
+      }
   }
 
-  def writeSubscriptionIdsToCohortTable(inputStream: InputStream, exclusions: Set[String]): ZIO[CohortTable with Logging, Failure, Long] = {
+  def writeSubscriptionIdsToCohortTable(
+      inputStream: InputStream,
+      exclusions: Set[String]
+  ): ZIO[CohortTable with Logging, Failure, Long] = {
     ZStream
       .fromJavaIterator(
         new CSVParser(new InputStreamReader(inputStream, "UTF-8"), csvFormat).iterator()
       )
-      .mapError { ex =>
-        SubscriptionIdUploadFailure(s"Failed to read subscription csv stream: $ex")
-      }
-      .map { csvRecord =>
-        csvRecord.get(0)
-      }
+      .bimap(
+        ex => SubscriptionIdUploadFailure(s"Failed to read subscription csv stream: $ex"),
+        csvRecord => csvRecord.get(0)
+      )
       .filterM { subscriptionId =>
         if (exclusions.contains(subscriptionId)) {
           for {
@@ -75,29 +77,28 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
       .runCount
   }
 
-  private def env(loggingLayer: ZLayer[Any, Nothing, Logging]) = {
+  private def env(loggingService: Logging.Service) = {
+    val loggingLayer = ZLayer.succeed(loggingService)
     val cohortTableLayer =
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
         DynamoDBClient.dynamoDB ++ loggingLayer >>>
         DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.stageImp ++ EnvConfiguration.cohortTableImp >>>
         CohortTableLive.impl ++ S3Live.impl ++ EnvConfiguration.stageImp
-    loggingLayer ++ cohortTableLayer
+    (loggingLayer ++ cohortTableLayer)
+      .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
   }
 
   private val runtime = Runtime.default
 
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
     main
-      .provideSomeLayer(env(Console.live >>> ConsoleLogging.impl))
-      .foldM(
-        e => console.putStrLn(s"Failed: $e") *> ZIO.succeed(1),
-        _ => console.putStrLn("Succeeded!") *> ZIO.succeed(0)
-      )
+      .provideSomeLayer(env(ConsoleLogging.service(Console.Service.live)))
+      .fold(_ => 1, _ => 0)
 
   def handleRequest(unused: Unit, context: Context): Unit =
     runtime.unsafeRun(
       main.provideSomeLayer(
-        env(LambdaLogging.impl(context))
+        env(LambdaLogging.service(context))
       )
     )
 }

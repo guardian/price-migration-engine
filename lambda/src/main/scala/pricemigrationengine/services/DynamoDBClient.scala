@@ -1,18 +1,19 @@
 package pricemigrationengine.services
 
 import com.amazonaws.client.builder.AwsClientBuilder
-import com.amazonaws.services.dynamodbv2.model.{PutItemRequest, PutItemResult, QueryRequest, QueryResult, UpdateItemRequest, UpdateItemResult}
+import com.amazonaws.services.dynamodbv2.model._
 import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClient}
+import pricemigrationengine.model.ConfigurationFailure
 import zio.{ZIO, ZLayer, ZManaged}
 
 object DynamoDBClient {
-  val dynamoDB: ZLayer[Logging with DynamoDBConfiguration, String, DynamoDBClient] =
+  val dynamoDB: ZLayer[Logging with DynamoDBConfiguration, ConfigurationFailure, DynamoDBClient] =
     ZLayer.fromManaged(
       ZManaged.fromFunctionM { dependencies: Logging with DynamoDBConfiguration =>
         ZManaged
           .make(
             for {
-              config <- DynamoDBConfiguration.dynamoDBConfig.mapError(_.toString)
+              config <- DynamoDBConfiguration.dynamoDBConfig
               client <- ZIO
                 .effect(
                   config.endpoint
@@ -23,11 +24,11 @@ object DynamoDBClient {
                     }
                     .build()
                 )
-                .mapError(ex => s"Failed to create the dynamoDb client: $ex")
+                .mapError(ex => ConfigurationFailure(s"Failed to create the dynamoDb client: $ex"))
             } yield client
           ) { dynamoDB: AmazonDynamoDB =>
             ZIO
-              .effect(dynamoDB.shutdown)
+              .effect(dynamoDB.shutdown())
               .catchAll(ex => Logging.error(s"Failed to close dynamo db connection: $ex"))
           }
           .provide(dependencies)

@@ -8,7 +8,7 @@ import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
 import zio.random.Random
-import zio.{Runtime, ZEnv, ZIO, ZLayer, console, random}
+import zio.{Runtime, ZEnv, ZIO, ZLayer, random}
 
 object EstimationHandler extends zio.App with RequestHandler[Unit, Unit] {
 
@@ -92,8 +92,9 @@ object EstimationHandler extends zio.App with RequestHandler[Unit, Unit] {
   }
 
   private def env(
-      loggingLayer: ZLayer[Any, Nothing, Logging]
-  ): ZLayer[Any, Any, Logging with AmendmentConfiguration with CohortTable with Zuora with Random] = {
+      loggingService: Logging.Service
+  ): ZLayer[Any, ConfigurationFailure, Logging with AmendmentConfiguration with CohortTable with Zuora with Random] = {
+    val loggingLayer = ZLayer.succeed(loggingService)
     val cohortTableLayer =
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
         DynamoDBClient.dynamoDB ++ loggingLayer ++ EnvConfiguration.amendmentImpl >>>
@@ -102,7 +103,8 @@ object EstimationHandler extends zio.App with RequestHandler[Unit, Unit] {
     val zuoraLayer =
       EnvConfiguration.zuoraImpl ++ loggingLayer >>>
         ZuoraLive.impl
-    loggingLayer ++ EnvConfiguration.amendmentImpl ++ cohortTableLayer ++ zuoraLayer ++ Random.live
+    (loggingLayer ++ EnvConfiguration.amendmentImpl ++ cohortTableLayer ++ zuoraLayer ++ Random.live)
+      .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
   }
 
   private val runtime = Runtime.default
@@ -110,18 +112,14 @@ object EstimationHandler extends zio.App with RequestHandler[Unit, Unit] {
   def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
     main
       .provideSomeLayer(
-        env(Console.live >>> ConsoleLogging.impl)
+        env(ConsoleLogging.service(Console.Service.live))
       )
-      // output any failures in service construction - there's probably a better way to do this
-      .foldM(
-        e => console.putStrLn(s"Failed: $e") *> ZIO.succeed(1),
-        _ => console.putStrLn("Succeeded!") *> ZIO.succeed(0)
-      )
+      .fold(_ => 1, _ => 0)
 
   def handleRequest(unused: Unit, context: Context): Unit =
     runtime.unsafeRun(
       main.provideSomeLayer(
-        env(LambdaLogging.impl(context))
+        env(LambdaLogging.service(context))
       )
     )
 }
