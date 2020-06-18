@@ -36,9 +36,9 @@ object NotificationEmailHandler {
       emailAddress <- requiredField(contact.Email, "Contact.Email")
       firstName <- requiredField(contact.FirstName, "Contact.FirstName")
       lastName <- requiredField(contact.LastName, "Contact.LastName")
-      street <- requiredField(contact.MailingAddress.street, "Contact.MailingAddress.street")
-      postalCode <- requiredField(contact.MailingAddress.postalCode, "Contact.MailingAddress.postalCode")
-      country <- requiredField(contact.MailingAddress.country, "Contact.MailingAddress.country")
+      street <- requiredField(contact.OtherAddress.street, "Contact.OtherAddress.street")
+      postalCode <- requiredField(contact.OtherAddress.postalCode, "Contact.OtherAddress.postalCode")
+      country <- requiredField(contact.OtherAddress.country, "Contact.OtherAddress.country")
       estimatedNewPrice <- requiredField(cohortItem.estimatedNewPrice.map(_.toString()), "CohortItem.estimatedNewPrice")
       startDate <- requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate")
       billingPeriod <- requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod")
@@ -57,9 +57,9 @@ object NotificationEmailHandler {
                 last_name = lastName,
                 billing_address_1 = street,
                 billing_address_2 = None,  //See 'Billing Address Format' section in the readme
-                billing_city = contact.MailingAddress.city,
+                billing_city = contact.OtherAddress.city,
                 billing_postal_code = postalCode,
-                billing_state = contact.MailingAddress.state,
+                billing_state = contact.OtherAddress.state,
                 billing_country = country,
                 payment_amount = estimatedNewPrice,
                 next_payment_date = startDate,
