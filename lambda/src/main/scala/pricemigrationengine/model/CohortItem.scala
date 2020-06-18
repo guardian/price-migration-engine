@@ -15,5 +15,6 @@ case class CohortItem(
     whenSfShowEstimate: Option[Instant] = None,
     newPrice: Option[BigDecimal] = None,
     newSubscriptionId: Option[ZuoraSubscriptionId] = None,
-    whenAmendmentDone: Option[Instant] = None
+    whenAmendmentDone: Option[Instant] = None,
+    whenEmailSent: Option[Instant] = None
 )

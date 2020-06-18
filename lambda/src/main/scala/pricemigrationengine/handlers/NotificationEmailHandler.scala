@@ -1,9 +1,9 @@
 package pricemigrationengine.handlers
 
 import com.amazonaws.services.lambda.runtime.Context
-import pricemigrationengine.model.CohortTableFilter.AmendmentComplete
+import pricemigrationengine.model.CohortTableFilter.{EmailSendComplete, EmailSendProcessingOrError, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model.membershipworkflow.{EmailMessage, EmailPayload, EmailPayloadContactAttributes, EmailPayloadSubscriberAttributes}
-import pricemigrationengine.model.{CohortItem, Failure, NotificationEmailHandlerFailure}
+import pricemigrationengine.model.{CohortItem, CohortTableFilter, EmailSenderFailure, Failure, NotificationEmailHandlerFailure}
 import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.console.Console
@@ -20,7 +20,7 @@ object NotificationEmailHandler {
     for {
       now <- clock.currentDateTime.mapError(ex => NotificationEmailHandlerFailure(s"Failed to get time: $ex"))
       subscriptions <- CohortTable.fetch(
-        AmendmentComplete,
+        SalesforcePriceRiceCreationComplete,
         Some(now.toLocalDate.plusDays(NotificationEmailLeadTimeDays))
       )
       _ <- subscriptions.foreach(sendEmail)
@@ -29,7 +29,7 @@ object NotificationEmailHandler {
 
   def sendEmail(
     cohortItem: CohortItem
-  ): ZIO[EmailSender with SalesforceClient, Failure, Unit] = {
+  ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock, Failure, Unit] = {
     for {
       sfSubscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
@@ -39,9 +39,12 @@ object NotificationEmailHandler {
       street <- requiredField(contact.MailingAddress.street, "Contact.MailingAddress.street")
       postalCode <- requiredField(contact.MailingAddress.postalCode, "Contact.MailingAddress.postalCode")
       country <- requiredField(contact.MailingAddress.country, "Contact.MailingAddress.country")
-      newPrice <- requiredField(cohortItem.newPrice.map(_.toString()), "CohortItem.newPrice")
+      estimatedNewPrice <- requiredField(cohortItem.estimatedNewPrice.map(_.toString()), "CohortItem.estimatedNewPrice")
       startDate <- requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate")
       billingPeriod <- requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod")
+      paymentFrequency <- paymentFrequency(billingPeriod)
+
+      _ <- updateCohortItemStatus(cohortItem.subscriptionName, EmailSendProcessingOrError)
 
       _ <- EmailSender.sendEmail(
         message = EmailMessage(
@@ -58,9 +61,9 @@ object NotificationEmailHandler {
                 billing_postal_code = postalCode,
                 billing_state = contact.MailingAddress.state,
                 billing_country = country,
-                payment_amount = newPrice,
+                payment_amount = estimatedNewPrice,
                 next_payment_date = startDate,
-                payment_frequency = billingPeriod,
+                payment_frequency = paymentFrequency,
                 subscription_id = cohortItem.subscriptionName
               )
             )
@@ -70,11 +73,40 @@ object NotificationEmailHandler {
           contact.IdentityID__c
         )
       )
+
+      _ <- updateCohortItemStatus(cohortItem.subscriptionName, EmailSendComplete)
     } yield ()
   }
 
   def requiredField(field: Option[String], fieldName: String): ZIO[Any, NotificationEmailHandlerFailure, String] = {
     ZIO.fromOption(field).orElseFail(NotificationEmailHandlerFailure(s"$fieldName is a required field"))
+  }
+
+  val paymentFrequencyMapping = Map(
+    "Month" -> "Monthly",
+    "Quarter" -> "Quarterly",
+    "Semi_Annual" -> "Semiannually"
+
+  )
+
+  def paymentFrequency(billingPeriod: String) =
+    ZIO
+      .fromOption(paymentFrequencyMapping.get(billingPeriod))
+      .orElseFail(EmailSenderFailure(s"No payment frequency mapping found for billing period: $billingPeriod"))
+
+  def updateCohortItemStatus(subscriptionNumber: String, processingStage: CohortTableFilter) = {
+    for {
+      now <- clock.currentDateTime.mapError(ex => NotificationEmailHandlerFailure(s"Failed to get time: $ex"))
+      _ <- CohortTable.update(
+        CohortItem(
+          subscriptionName = subscriptionNumber,
+          processingStage = processingStage,
+          whenEmailSent = Some(now.toInstant)
+        )
+      ).mapError { error =>
+        NotificationEmailHandlerFailure(s"Failed set status CohortItem $subscriptionNumber to $processingStage: $error")
+      }
+    } yield ()
   }
 
   private def env(
