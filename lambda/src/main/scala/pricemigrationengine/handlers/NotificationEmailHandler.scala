@@ -1,7 +1,7 @@
 package pricemigrationengine.handlers
 
 import com.amazonaws.services.lambda.runtime.Context
-import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EmailSendComplete, EmailSendProcessing, SalesforcePriceRiceCreationComplete}
+import pricemigrationengine.model.CohortTableFilter.{EmailSendComplete, EmailSendProcessingOrError, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model.membershipworkflow.{EmailMessage, EmailPayload, EmailPayloadContactAttributes, EmailPayloadSubscriberAttributes}
 import pricemigrationengine.model.{CohortItem, CohortTableFilter, EmailSenderFailure, Failure, NotificationEmailHandlerFailure}
 import pricemigrationengine.services._
@@ -44,7 +44,7 @@ object NotificationEmailHandler {
       billingPeriod <- requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod")
       paymentFrequency <- paymentFrequency(billingPeriod)
 
-      _ <- updateCohortItemStatus(cohortItem.subscriptionName, EmailSendProcessing)
+      _ <- updateCohortItemStatus(cohortItem.subscriptionName, EmailSendProcessingOrError)
 
       _ <- EmailSender.sendEmail(
         message = EmailMessage(

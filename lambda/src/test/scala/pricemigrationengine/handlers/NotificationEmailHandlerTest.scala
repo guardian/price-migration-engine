@@ -4,7 +4,7 @@ import java.time._
 import java.time.temporal.ChronoUnit
 
 import pricemigrationengine.StubClock
-import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EmailSendComplete, EmailSendProcessing, EstimationComplete, SalesforcePriceRiceCreationComplete}
+import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EmailSendComplete, EmailSendProcessingOrError, EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
 import pricemigrationengine.services._
@@ -195,7 +195,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
       updatedResultsWrittenToCohortTable(0),
       CohortItem(
         subscriptionName = expectedSubscriptionName,
-        processingStage = EmailSendProcessing,
+        processingStage = EmailSendProcessingOrError,
         whenEmailSent = Some(StubClock.expectedCurrentTime)
       )
     )
@@ -230,7 +230,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
       updatedResultsWrittenToCohortTable(0),
       CohortItem(
         subscriptionName = expectedSubscriptionName,
-        processingStage = EmailSendProcessing,
+        processingStage = EmailSendProcessingOrError,
         whenEmailSent = Some(StubClock.expectedCurrentTime)
       )
     )
