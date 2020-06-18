@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import com.amazonaws.services.lambda.runtime.Context
 import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EmailSendComplete, EmailSendProcessing, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model.membershipworkflow.{EmailMessage, EmailPayload, EmailPayloadContactAttributes, EmailPayloadSubscriberAttributes}
-import pricemigrationengine.model.{CohortItem, CohortTableFilter, Failure, NotificationEmailHandlerFailure}
+import pricemigrationengine.model.{CohortItem, CohortTableFilter, EmailSenderFailure, Failure, NotificationEmailHandlerFailure}
 import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.console.Console
@@ -42,6 +42,7 @@ object NotificationEmailHandler {
       estimatedNewPrice <- requiredField(cohortItem.estimatedNewPrice.map(_.toString()), "CohortItem.estimatedNewPrice")
       startDate <- requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate")
       billingPeriod <- requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod")
+      paymentFrequency <- paymentFrequency(billingPeriod)
 
       _ <- updateCohortItemStatus(cohortItem.subscriptionName, EmailSendProcessing)
 
@@ -62,7 +63,7 @@ object NotificationEmailHandler {
                 billing_country = country,
                 payment_amount = estimatedNewPrice,
                 next_payment_date = startDate,
-                payment_frequency = s"${billingPeriod}ly",
+                payment_frequency = paymentFrequency,
                 subscription_id = cohortItem.subscriptionName
               )
             )
@@ -80,6 +81,18 @@ object NotificationEmailHandler {
   def requiredField(field: Option[String], fieldName: String): ZIO[Any, NotificationEmailHandlerFailure, String] = {
     ZIO.fromOption(field).orElseFail(NotificationEmailHandlerFailure(s"$fieldName is a required field"))
   }
+
+  val paymentFrequencyMapping = Map(
+    "Month" -> "Monthly",
+    "Quarter" -> "Quarterly",
+    "Semi_Annual" -> "Semiannually"
+
+  )
+
+  def paymentFrequency(billingPeriod: String) =
+    ZIO
+      .fromOption(paymentFrequencyMapping.get(billingPeriod))
+      .orElseFail(EmailSenderFailure(s"No payment frequency mapping found for billing period: $billingPeriod"))
 
   def updateCohortItemStatus(subscriptionNumber: String, processingStage: CohortTableFilter) = {
     for {
