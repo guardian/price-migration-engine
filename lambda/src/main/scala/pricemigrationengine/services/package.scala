@@ -10,6 +10,8 @@ package object services {
   type CohortTableConfiguration = Has[CohortTableConfiguration.Service]
   type SalesforceConfiguration = Has[SalesforceConfiguration.Service]
   type StageConfiguration = Has[StageConfiguration.Service]
+  type CohortStateMachine = Has[CohortStateMachine.Service]
+  type CohortSpecTable = Has[CohortSpecTable.Service]
   type CohortTable = Has[CohortTable.Service]
   type Zuora = Has[Zuora.Service]
   type Logging = Has[Logging.Service]
