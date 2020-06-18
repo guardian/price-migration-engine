@@ -133,7 +133,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
       Salutation = Some(expectedSalutation),
       FirstName = Some(expectedFirstName),
       LastName = Some(expectedLastName),
-      MailingAddress =
+      OtherAddress =
         SalesforceAddress(
           street = Some(expectedStreet),
           city = Some(expectedCity),
