@@ -13,7 +13,7 @@ aws dynamodb create-table \
     --table-name PriceMigrationEngineDEV \
     --attribute-definitions AttributeName=subscriptionNumber,AttributeType=S AttributeName=processingStage,AttributeType=S AttributeName=startDate,AttributeType=S \
     --key-schema AttributeName=subscriptionNumber,KeyType=HASH \
-    --global-secondary-indexes IndexName=ProcessingStageIndexV3,KeySchema=["{AttributeName=processingStage,KeyType=HASH}","{AttributeName=startDate,KeyType=RANGE}"],Projection="{ProjectionType=KEYS_ONLY}",ProvisionedThroughput="{ReadCapacityUnits=10,WriteCapacityUnits=10}" \
+    --global-secondary-indexes IndexName=ProcessingStageIndexV2,KeySchema=["{AttributeName=processingStage,KeyType=HASH}","{AttributeName=startDate,KeyType=RANGE}"],Projection="{ProjectionType=KEYS_ONLY}",ProvisionedThroughput="{ReadCapacityUnits=10,WriteCapacityUnits=10}" \
     --provisioned-throughput ReadCapacityUnits=10,WriteCapacityUnits=10 
 ```
 
@@ -46,7 +46,7 @@ aws dynamodb query \
     --profile membership \
     --region eu-west-1 \
     --table-name PriceMigrationEngineDEV \
-    --index-name ProcessingStageIndexV3 \
+    --index-name ProcessingStageIndexV2 \
     --key-condition-expression "processingStage = :stage" \
     --expression-attribute-values '{":stage":{"S":"ReadyForEstimation"}}'
 ```
@@ -57,7 +57,7 @@ aws dynamodb query \
     --profile membership \
     --region eu-west-1 \
     --table-name PriceMigrationEngineDEV \
-    --index-name ProcessingStageIndexV3 \
+    --index-name ProcessingStageStartDateIndexV1 \
     --key-condition-expression "processingStage = :stage AND startDate BETWEEN :earliestDate AND :latestDate" \
     --expression-attribute-values '{":stage":{"S":"SalesforcePriceRiseCreationComplete"},":earliestDate":{"S":"2020-06-26"},":latestDate":{"S":"2020-06-28"}}'
 ```
