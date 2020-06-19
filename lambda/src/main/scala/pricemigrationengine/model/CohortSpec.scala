@@ -21,5 +21,5 @@ case class CohortSpec(
 object CohortSpec {
 
   def isActive(spec: CohortSpec)(date: LocalDate): Boolean =
-    !(spec.importStartDate.isAfter(date) || spec.migrationCompleteDate.exists(_.isBefore(date)))
+    !spec.importStartDate.isAfter(date) && spec.migrationCompleteDate.forall(_.isAfter(date))
 }
