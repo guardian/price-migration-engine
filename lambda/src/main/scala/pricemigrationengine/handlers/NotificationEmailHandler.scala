@@ -14,7 +14,7 @@ object NotificationEmailHandler {
   //https://github.com/guardian/membership-workflow/blob/master/conf/PROD.public.conf#L39
   val BrazeCampaignName = "SV_VO_Pricerise_Q22020"
 
-  private val NotificationEmailLeadTimeDays = 30
+  private val NotificationEmailLeadTimeDays = 37
 
   val main: ZIO[Logging with CohortTable with SalesforceClient with Clock with EmailSender, Failure, Unit] = {
     for {
