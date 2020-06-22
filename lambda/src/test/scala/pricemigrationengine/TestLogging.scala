@@ -5,5 +5,4 @@ import zio.console
 
 object TestLogging {
   val logging = console.Console.live >>> ConsoleLogging.impl
-
 }
