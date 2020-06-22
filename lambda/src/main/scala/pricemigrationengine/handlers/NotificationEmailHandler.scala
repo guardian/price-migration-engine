@@ -23,7 +23,8 @@ object NotificationEmailHandler {
         SalesforcePriceRiceCreationComplete,
         Some(now.toLocalDate.plusDays(NotificationEmailLeadTimeDays))
       )
-      _ <- subscriptions.foreach(sendEmail)
+      count <- subscriptions.mapM(sendEmail).runCount
+      _ <- Logging.info(s"Successfully sent $count prices rise notifications")
     } yield ()
   }
 
