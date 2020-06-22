@@ -18,9 +18,9 @@ object CohortTableFilter {
    * so is ineligible for further processing.
    */
   case object Cancelled extends CohortTableFilter { override val value: String = "Cancelled" }
-  case object EmailSendProcessingOrError extends CohortTableFilter { override val value: String = "EmailSendProcessingOrError" }
-  case object EmailSendComplete extends CohortTableFilter { override val value: String = "EmailSendComplete" }
-  case object EmailSendDateWrittenToSalesforce extends CohortTableFilter { override val value: String = "EmailSendDateWrittenToSalesforce" }
+  case object MailSendProcessingOrError extends CohortTableFilter { override val value: String = "MailSendProcessingOrError" }
+  case object MailSendComplete extends CohortTableFilter { override val value: String = "MailSendComplete" }
+  case object MailSendDateWrittenToSalesforce extends CohortTableFilter { override val value: String = "MailSendDateWrittenToSalesforce" }
 
   val all = Set(
     ReadyForEstimation,
@@ -29,7 +29,8 @@ object CohortTableFilter {
     SalesforcePriceRiceCreationComplete,
     AmendmentComplete,
     Cancelled,
-    EmailSendProcessingOrError,
-    EmailSendComplete
+    MailSendProcessingOrError,
+    MailSendComplete,
+    MailSendDateWrittenToSalesforce
   )
 }
