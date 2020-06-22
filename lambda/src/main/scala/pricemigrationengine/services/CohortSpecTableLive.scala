@@ -1,33 +1,26 @@
 package pricemigrationengine.services
 
-import java.time.LocalDate
+import java.util
 
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, ScanRequest}
 import pricemigrationengine.model._
+import pricemigrationengine.model.dynamodb.Conversions._
 import zio.{IO, ZIO, ZLayer}
 
-import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 object CohortSpecTableLive {
 
   private val tableNamePrefix = "price-migration-engine-cohort-spec"
 
-  private def toCohortSpec(values: mutable.Map[String, AttributeValue]): Either[CohortSpecFetchFailure, CohortSpec] = {
-
-    def stringFieldValue(fields: mutable.Map[String, AttributeValue],
-                         fieldName: String): Either[CohortSpecFetchFailure, String] =
-      fields.get(fieldName).map(_.getS).toRight(CohortSpecFetchFailure(s"Can't read field '$fieldName'"))
-
-    def optStringFieldValue(fields: mutable.Map[String, AttributeValue], fieldName: String): Option[String] =
-      fields.get(fieldName).map(_.getS)
-
+  private def toCohortSpec(values: util.Map[String, AttributeValue]): Either[CohortSpecFetchFailure, CohortSpec] = {
+    def errorMapped[A](orig: Either[String, A]): Either[CohortSpecFetchFailure, A] =
+      orig.left.map(e => CohortSpecFetchFailure(e))
     for {
-      cohortName <- stringFieldValue(values, "cohortName")
-      earliestPriceMigrationStartDate <- stringFieldValue(values, "earliestPriceMigrationStartDate").map(
-        LocalDate.parse)
-      importStartDate <- stringFieldValue(values, "importStartDate").map(LocalDate.parse)
-      migrationCompleteDate <- Right(optStringFieldValue(values, "migrationCompleteDate").map(LocalDate.parse))
+      cohortName <- errorMapped(getStringFromResults(values, "cohortName"))
+      earliestPriceMigrationStartDate <- errorMapped(getDateFromResults(values, "earliestPriceMigrationStartDate"))
+      importStartDate <- errorMapped(getDateFromResults(values, "importStartDate"))
+      migrationCompleteDate <- errorMapped(getOptionalDateFromResults(values, "migrationCompleteDate"))
     } yield
       CohortSpec(
         cohortName,
@@ -51,7 +44,7 @@ object CohortSpecTableLive {
             specs <- ZIO.foreach(scanResult.getItems.asScala)(
               result =>
                 ZIO
-                  .fromEither(toCohortSpec(result.asScala))
+                  .fromEither(toCohortSpec(result))
                   .mapError(e => CohortSpecFetchFailure(s"Failed to parse '$result': ${e.reason}")))
           } yield specs.toSet).tap(specs => Logging.info(s"Fetched ${specs.size} cohort specs"))
         }.provide(modules)
