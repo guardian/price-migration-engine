@@ -20,7 +20,7 @@ function query() {
     --projection-expression "subscriptionNumber" \
     --key-condition-expression "processingStage = :s AND startDate <= :d " \
     --expression-attribute-values "{\":s\": {\"S\": \"$2\"}, \":d\": {\"S\": \"$3\"}}" \
-    --page-size "100000"
+    --max-items "100000"
 }
 
 query "$1" "$2" "$3" | jq --raw-output '.Items[] | .subscriptionNumber | .S'
