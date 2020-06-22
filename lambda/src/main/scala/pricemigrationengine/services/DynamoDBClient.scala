@@ -39,6 +39,10 @@ object DynamoDBClient {
     ZIO.accessM(client => ZIO.effect(client.get.query(queryRequest)))
   }
 
+  def scan(scanRequest: ScanRequest): ZIO[DynamoDBClient, Throwable, ScanResult] = {
+    ZIO.accessM(client => ZIO.effect(client.get.scan(scanRequest)))
+  }
+
   def updateItem(updateRequest: UpdateItemRequest): ZIO[DynamoDBClient, Throwable, UpdateItemResult] = {
     ZIO.access(_.get.updateItem(updateRequest))
   }

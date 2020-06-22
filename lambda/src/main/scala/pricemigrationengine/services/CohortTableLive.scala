@@ -1,11 +1,10 @@
 package pricemigrationengine.services
 
-import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDate, ZoneOffset}
-import java.util
+import java.time.LocalDate
 
-import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
+import com.amazonaws.services.dynamodbv2.model.{AttributeValue, QueryRequest}
 import pricemigrationengine.model._
+import pricemigrationengine.model.dynamodb.Conversions._
 import pricemigrationengine.services.CohortTable.Service
 import zio.stream.ZStream
 import zio.{IO, ZIO, ZLayer}
@@ -17,38 +16,41 @@ object CohortTableLive {
 
   private val ProcessingStageAndStartDateIndexName = "ProcessingStageStartDateIndexV1"
 
-  private implicit val cohortItemDeserialiser: DynamoDBDeserialiser[CohortItem] =
-    cohortItem =>
-      for {
-        subscriptionNumber <- getStringFromResults(cohortItem, "subscriptionNumber")
-        processingStage <- getCohortTableFilter(cohortItem, "processingStage")
-        startDate <- getOptionalDateFromResults(cohortItem, "startDate")
-        currency <- getOptionalStringFromResults(cohortItem, "currency")
-        oldPrice <- getOptionalBigDecimalFromResults(cohortItem, "oldPrice")
-        estimatedNewPrice <- getOptionalBigDecimalFromResults(cohortItem, "estimatedNewPrice")
-        billingPeriod <- getOptionalStringFromResults(cohortItem, "billingPeriod")
-        whenEstimationDone <- getOptionalInstantFromResults(cohortItem, "whenEstimationDone")
-        salesforcePriceRiseId <- getOptionalStringFromResults(cohortItem, "salesforcePriceRiseId")
-        whenSfShowEstimate <- getOptionalInstantFromResults(cohortItem, "whenSfShowEstimate")
-        newPrice <- getOptionalBigDecimalFromResults(cohortItem, "newPrice")
-        newSubscriptionId <- getOptionalStringFromResults(cohortItem, "newSubscriptionId")
-        whenAmendmentDone <- getOptionalInstantFromResults(cohortItem, "whenAmendmentDone")
-      } yield
-        CohortItem(
-          subscriptionName = subscriptionNumber,
-          processingStage = processingStage,
-          startDate = startDate,
-          currency = currency,
-          oldPrice = oldPrice,
-          estimatedNewPrice = estimatedNewPrice,
-          billingPeriod = billingPeriod,
-          whenEstimationDone = whenEstimationDone,
-          salesforcePriceRiseId = salesforcePriceRiseId,
-          whenSfShowEstimate = whenSfShowEstimate,
-          newPrice = newPrice,
-          newSubscriptionId = newSubscriptionId,
-          whenAmendmentDone = whenAmendmentDone
+  private implicit val cohortItemDeserialiser: DynamoDBDeserialiser[CohortItem] = { cohortItem =>
+    import scala.language.implicitConversions
+    implicit def errorMapped[A](orig: Either[String, A]): IO[DynamoDBZIOError, A] =
+      ZIO.fromEither(orig).mapError(DynamoDBZIOError)
+    for {
+      subscriptionNumber <- getStringFromResults(cohortItem, "subscriptionNumber")
+      processingStage <- getCohortTableFilter(cohortItem, "processingStage")
+      startDate <- getOptionalDateFromResults(cohortItem, "startDate")
+      currency <- getOptionalStringFromResults(cohortItem, "currency")
+      oldPrice <- getOptionalBigDecimalFromResults(cohortItem, "oldPrice")
+      estimatedNewPrice <- getOptionalBigDecimalFromResults(cohortItem, "estimatedNewPrice")
+      billingPeriod <- getOptionalStringFromResults(cohortItem, "billingPeriod")
+      whenEstimationDone <- getOptionalInstantFromResults(cohortItem, "whenEstimationDone")
+      salesforcePriceRiseId <- getOptionalStringFromResults(cohortItem, "salesforcePriceRiseId")
+      whenSfShowEstimate <- getOptionalInstantFromResults(cohortItem, "whenSfShowEstimate")
+      newPrice <- getOptionalBigDecimalFromResults(cohortItem, "newPrice")
+      newSubscriptionId <- getOptionalStringFromResults(cohortItem, "newSubscriptionId")
+      whenAmendmentDone <- getOptionalInstantFromResults(cohortItem, "whenAmendmentDone")
+    } yield
+      CohortItem(
+        subscriptionName = subscriptionNumber,
+        processingStage = processingStage,
+        startDate = startDate,
+        currency = currency,
+        oldPrice = oldPrice,
+        estimatedNewPrice = estimatedNewPrice,
+        billingPeriod = billingPeriod,
+        whenEstimationDone = whenEstimationDone,
+        salesforcePriceRiseId = salesforcePriceRiseId,
+        whenSfShowEstimate = whenSfShowEstimate,
+        newPrice = newPrice,
+        newSubscriptionId = newSubscriptionId,
+        whenAmendmentDone = whenAmendmentDone
       )
+  }
 
   private implicit val cohortItemUpdateSerialiser: DynamoDBUpdateSerialiser[CohortItem] =
     cohortItem =>
@@ -89,118 +91,14 @@ object CohortTableLive {
         stringUpdate("processingStage", cohortItem.processingStage.value)
       ).asJava
 
-  private def stringFieldUpdate(fieldName: String, stringValue: String) =
-    fieldName -> new AttributeValueUpdate(new AttributeValue().withS(stringValue), AttributeAction.PUT)
-
-  private def dateFieldUpdate(fieldName: String, dateValue: LocalDate) =
-    fieldName -> new AttributeValueUpdate(
-      new AttributeValue().withS(dateValue.format(DateTimeFormatter.ISO_LOCAL_DATE)),
-      AttributeAction.PUT
-    )
-
-  private def instantFieldUpdate(fieldName: String, instant: Instant) =
-    fieldName -> new AttributeValueUpdate(
-      new AttributeValue().withS(DateTimeFormatter.ISO_DATE_TIME.format(instant.atZone(ZoneOffset.UTC))),
-      AttributeAction.PUT
-    )
-
-  private def bigDecimalFieldUpdate(fieldName: String, value: BigDecimal) =
-    fieldName -> new AttributeValueUpdate(new AttributeValue().withN(value.toString), AttributeAction.PUT)
-
-  private def stringUpdate(fieldName: String, stringValue: String) =
-    fieldName -> new AttributeValue().withS(stringValue)
-
-  private def getStringFromResults(result: util.Map[String, AttributeValue], fieldName: String) = {
-    for {
-      optionalString <- getOptionalStringFromResults(result, fieldName)
-      string <- ZIO
-        .fromOption(optionalString)
-        .orElseFail(DynamoDBZIOError(s"The '$fieldName' field did not exist in the record '$result''"))
-    } yield string
-  }
-
-  private def getCohortTableFilter(result: util.Map[String, AttributeValue], fieldName: String) = {
-    for {
-      string <- getStringFromResults(result, fieldName)
-      string <- ZIO
-        .fromOption(CohortTableFilter.all.find(_.value == string))
-        .orElseFail(DynamoDBZIOError(s"The '$fieldName' contained an invalid CohortTableFilter '$string'"))
-    } yield string
-  }
-
-  private def getOptionalStringFromResults(
-      result: util.Map[String, AttributeValue],
-      fieldName: String
-  ): IO[DynamoDBZIOError, Option[String]] = {
-    result.asScala
-      .get(fieldName)
-      .fold[IO[DynamoDBZIOError, Option[String]]](ZIO.none) { attributeValue =>
-        ZIO
-          .fromOption(Option(attributeValue.getS))
-          .bimap(_ => DynamoDBZIOError(s"The '$fieldName' field was not a string in the record '$result'"), Some.apply)
-      }
-  }
-
-  private def getOptionalNumberStringFromResults(
-      result: util.Map[String, AttributeValue],
-      fieldName: String
-  ): IO[DynamoDBZIOError, Option[String]] = {
-    result.asScala
-      .get(fieldName)
-      .fold[IO[DynamoDBZIOError, Option[String]]](ZIO.none) { attributeValue =>
-        ZIO
-          .fromOption(Option(attributeValue.getN))
-          .bimap(_ => DynamoDBZIOError(s"The '$fieldName' field was not a number in the record '$result'"), Some.apply)
-      }
-  }
-
-  private def getOptionalDateFromResults(
-      result: util.Map[String, AttributeValue],
-      fieldName: String
-  ): IO[DynamoDBZIOError, Option[LocalDate]] =
-    for {
-      optionalString <- getOptionalStringFromResults(result, fieldName)
-      optionalDate <- optionalString.fold[IO[DynamoDBZIOError, Option[LocalDate]]](ZIO.none) { string =>
-        ZIO
-          .effect(Some(LocalDate.parse(string)))
-          .orElseFail(DynamoDBZIOError(s"The '$fieldName' has value '$string' which is not a valid date yyyy-MM-dd"))
-      }
-    } yield optionalDate
-
-  private def getOptionalBigDecimalFromResults(
-      result: util.Map[String, AttributeValue],
-      fieldName: String
-  ): IO[DynamoDBZIOError, Option[BigDecimal]] =
-    for {
-      optionalNumberString <- getOptionalNumberStringFromResults(result, fieldName)
-      optionalDecimal <- optionalNumberString.fold[IO[DynamoDBZIOError, Option[BigDecimal]]](ZIO.none) { string =>
-        ZIO
-          .effect(Some(BigDecimal(string)))
-          .orElseFail(DynamoDBZIOError(s"The '$fieldName' has value '$string' which is not a valid number"))
-      }
-    } yield optionalDecimal
-
-  private def getOptionalInstantFromResults(
-      result: util.Map[String, AttributeValue],
-      fieldName: String
-  ): IO[DynamoDBZIOError, Option[Instant]] =
-    for {
-      optionalIsoDateTimeString <- getOptionalStringFromResults(result, fieldName)
-      optionalDecimal <- optionalIsoDateTimeString.fold[IO[DynamoDBZIOError, Option[Instant]]](ZIO.none) { string =>
-        ZIO
-          .effect(Some(Instant.parse(string)))
-          .mapError(ex => DynamoDBZIOError(s"The '$fieldName' has value '$string' which is not a valid timestamp: $ex"))
-      }
-    } yield optionalDecimal
-
   val impl
     : ZLayer[DynamoDBZIO with StageConfiguration with CohortTableConfiguration with Logging, Nothing, CohortTable] =
     ZLayer.fromFunction {
       dependencies: DynamoDBZIO with StageConfiguration with CohortTableConfiguration with Logging =>
         new Service {
           override def fetch(
-            filter: CohortTableFilter,
-            latestStartDateInclusive: Option[LocalDate]
+              filter: CohortTableFilter,
+              latestStartDateInclusive: Option[LocalDate]
           ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
             for {
               cohortTableConfig <- CohortTableConfiguration.cohortTableConfig

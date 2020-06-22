@@ -25,7 +25,7 @@ Mappings:
       SQSQueueName: contributions-thanks-dev
     PROD:
       SecretsVersion: "dd295c21-39df-47d0-b3b2-0d420ee3b055"
-      EarliestStartDate: 2020-07-27
+      EarliestStartDate: 2020-08-02
       BucketName: price-migration-engine-prod
       SQSQueueName: contributions-thanks
 

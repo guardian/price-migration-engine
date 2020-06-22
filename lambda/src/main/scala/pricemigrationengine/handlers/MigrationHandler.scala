@@ -8,14 +8,13 @@ import zio.{ExitCode, Runtime, ULayer, ZEnv, ZIO}
 /**
   * Executes price migration for active cohorts.
   */
-class MigrationHandler extends zio.App with RequestHandler[Unit, Unit] {
+object MigrationHandler extends zio.App with RequestHandler[Unit, Unit] {
 
   private val migrateActiveCohorts =
     for {
-      cohortSpecStream <- CohortSpecTable.fetchAll
-      _ <- cohortSpecStream
-        .filterM(cohort => Time.today.map(CohortSpec.isActive(cohort)))
-        .foreach(cohort => CohortStateMachine.startExecution(cohort))
+      cohortSpecs <- CohortSpecTable.fetchAll
+      activeSpecs <- ZIO.filter(cohortSpecs)(cohort => Time.today.map(CohortSpec.isActive(cohort)))
+      _ <- ZIO.foreach(activeSpecs)(CohortStateMachine.startExecution)
     } yield ()
 
   private val runtime = Runtime.default
