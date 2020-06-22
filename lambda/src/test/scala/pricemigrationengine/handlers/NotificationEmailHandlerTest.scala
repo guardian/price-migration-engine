@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import java.time._
 import java.time.temporal.ChronoUnit
 
-import pricemigrationengine.StubClock
+import pricemigrationengine.{StubClock, TestLogging}
 import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EmailSendComplete, EmailSendProcessingOrError, EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
@@ -16,7 +16,6 @@ import zio.stream.ZStream
 import scala.collection.mutable.ArrayBuffer
 
 class NotificationEmailHandlerTest extends munit.FunSuite {
-  val stubLogging = console.Console.live >>> ConsoleLogging.impl
   val expectedSubscriptionName = "Sub-0001"
   val expectedStartDate = LocalDate.of(2020, 1, 1)
   val expectedCurrency = "GBP"
@@ -165,7 +164,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
       default.unsafeRunSync(
         NotificationEmailHandler.main
           .provideLayer(
-            stubLogging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
+            TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
           )
       ),
       Success(())
@@ -219,7 +218,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
       default.unsafeRunSync(
         NotificationEmailHandler.main
           .provideLayer(
-            stubLogging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ failingStubEmailSender
+            TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ failingStubEmailSender
           )
       ),
       Failure(Cause.fail(EmailSenderFailure("Bang!!")))

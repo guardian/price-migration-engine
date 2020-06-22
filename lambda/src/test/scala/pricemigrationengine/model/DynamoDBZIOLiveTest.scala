@@ -4,6 +4,7 @@ import java.util
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.model._
+import pricemigrationengine.TestLogging
 import pricemigrationengine.services._
 import zio.Exit.Success
 import zio.Runtime.default
@@ -13,8 +14,6 @@ import zio.{ZIO, ZLayer, console}
 import scala.jdk.CollectionConverters._
 
 class DynamoDBZIOLiveTest extends munit.FunSuite {
-  val stubLogging = console.Console.live >>> ConsoleLogging.impl
-
   test("DynamoDBZIOLive should get all batches of query results and convert the batches to a stream") {
     def item(id: String) = Map("id" -> new AttributeValue(id)).asJava
 
@@ -42,7 +41,7 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
     default.unsafeRunSync(
       DynamoDBZIO
         .query(queryRequest)
-        .provideLayer((stubDynamoDBClient ++ stubLogging) >>> DynamoDBZIOLive.impl)
+        .provideLayer((stubDynamoDBClient ++ TestLogging.logging) >>> DynamoDBZIOLive.impl)
     ) match {
       case Success(results) =>
         assertEquals(
@@ -80,7 +79,7 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
       default.unsafeRunSync(
         DynamoDBZIO
           .update("a-table", "key", "value")
-          .provideLayer((stubDynamoDBClient ++ stubLogging) >>> DynamoDBZIOLive.impl)
+          .provideLayer((stubDynamoDBClient ++ TestLogging.logging) >>> DynamoDBZIOLive.impl)
       ),
       Success(())
     )

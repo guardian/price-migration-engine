@@ -5,24 +5,25 @@ import java.time.LocalDate
 import pricemigrationengine.model.{SalesforceAddress, SalesforceClientFailure, SalesforceConfig, SalesforceContact, SalesforcePriceRise, SalesforceSubscription}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 import zio.{IO, ZIO, ZLayer}
+import upickle.default._
+import pricemigrationengine.model.OptionReader //This import is required do not remove
+import pricemigrationengine.model.OptionWriter //This import is required do not remove
 
 object SalesforceClientLive {
   private case class SalesforceAuthDetails(access_token: String, instance_url: String)
+  implicit private val localDateRW: ReadWriter[LocalDate] = readwriter[String].bimap[LocalDate](_.toString, LocalDate.parse)
+  implicit private val salesforceAuthDetailsRW: ReadWriter[SalesforceAuthDetails] = macroRW
+  implicit private val salesforceSubscriptionRW: ReadWriter[SalesforceSubscription] = macroRW
+  implicit private val salesforcePriceRiseRW: ReadWriter[SalesforcePriceRise] = macroRW
+  implicit private val salesforcePriceIdRiseRW: ReadWriter[SalesforcePriceRiseCreationResponse] = macroRW
+  implicit private val salesforceAddressRW: ReadWriter[SalesforceAddress] = macroRW
+  implicit private val salesforceContactRW: ReadWriter[SalesforceContact] = macroRW
 
   val impl: ZLayer[SalesforceConfiguration with Logging, SalesforceClientFailure, SalesforceClient] =
     ZLayer.fromFunctionM { dependencies: SalesforceConfiguration with Logging =>
     val logging  = dependencies.get[Logging.Service]
     val salesforceConfig  = dependencies.get[SalesforceConfiguration.Service]
 
-    import upickle.default._
-    import pricemigrationengine.model.OptionReader //This import is required do not remove
-    implicit val localDateRW: ReadWriter[LocalDate] = readwriter[String].bimap[LocalDate](_.toString, LocalDate.parse)
-    implicit val salesforceAuthDetailsRW: ReadWriter[SalesforceAuthDetails] = macroRW
-    implicit val salesforceSubscriptionRW: ReadWriter[SalesforceSubscription] = macroRW
-    implicit val salesforcePriceRiseRW: ReadWriter[SalesforcePriceRise] = macroRW
-    implicit val salesforcePriceIdRiseRW: ReadWriter[SalesforcePriceRiseCreationResponse] = macroRW
-    implicit val salesforceAddressRW: ReadWriter[SalesforceAddress] = macroRW
-    implicit val salesforceContactRW: ReadWriter[SalesforceContact] = macroRW
 
     def requestAsMessage(request: HttpRequest) = {
       s"${request.method} ${request.url}"
@@ -101,7 +102,7 @@ object SalesforceClientLive {
       ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] =
         sendRequestAndParseResponse[SalesforcePriceRiseCreationResponse](
           Http(s"${auth.instance_url}/services/data/v43.0/sobjects/Price_Rise__c/")
-            .postData(write(priceRise))
+            .postData(serialisePriceRise(priceRise))
             .header("Authorization", s"Bearer ${auth.access_token}")
             .header("Content-Type", "application/json")
         ).tap( priceRiseId =>
@@ -113,7 +114,7 @@ object SalesforceClientLive {
       ): IO[SalesforceClientFailure, Unit] =
         sendRequest(
           Http(s"${auth.instance_url}/services/data/v43.0/sobjects/Price_Rise__c/$priceRiseId")
-            .postData(write(priceRise))
+            .postData(serialisePriceRise(priceRise))
             .method("PATCH")
             .header("Authorization", s"Bearer ${auth.access_token}")
             .header("Content-Type", "application/json")
@@ -122,6 +123,11 @@ object SalesforceClientLive {
         .tap( _ =>
           logging.info(s"Successfully updated Price_Rise__c object: ${priceRiseId}")
         )
+
     }
+  }
+
+  def serialisePriceRise(priceRise: SalesforcePriceRise) = {
+    write(priceRise, indent = 2)
   }
 }

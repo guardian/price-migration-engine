@@ -1,26 +1,28 @@
 package pricemigrationengine.handlers
 
+import java.time.{LocalDate, ZoneOffset}
+
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
+import pricemigrationengine.model.CohortTableFilter.{EmailSendComplete, EmailSendDateWrittenToSalesforce}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.console.Console
 import zio.{App, ExitCode, IO, Runtime, ZEnv, ZIO, ZLayer, clock}
 
-object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, Unit] {
+object SalesforceNotificationDateUpdateHandler extends App with RequestHandler[Unit, Unit] {
 
   val main: ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, Unit] =
     for {
-      cohortItems <- CohortTable.fetch(EstimationComplete, None)
-      _ <- cohortItems.foreach(createSalesforcePriceRise)
+      cohortItems <- CohortTable.fetch(EmailSendComplete, None)
+      _ <- cohortItems.foreach(updateDateLetterSentInSF)
     } yield ()
 
-  private def createSalesforcePriceRise(
+  private def updateDateLetterSentInSF(
       item: CohortItem
   ): ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, Unit] =
     for {
-      optionalNewPriceRiseId <- updateSalesforce(item)
+      _ <- updateSalesforce(item)
         .tapBoth(
           e => Logging.error(s"Failed to write create Price_Rise in salesforce: $e"),
           result => Logging.info(s"SalesforcePriceRise result: $result")
@@ -31,9 +33,8 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
         }
       salesforcePriceRiseCreationDetails = CohortItem(
         subscriptionName = item.subscriptionName,
-        processingStage = SalesforcePriceRiceCreationComplete,
-        salesforcePriceRiseId = optionalNewPriceRiseId,
-        whenSfShowEstimate = Some(time.toInstant)
+        processingStage = EmailSendDateWrittenToSalesforce,
+        whenEmailSentWrittenToSalesforce = Some(time.toInstant)
       )
       _ <- CohortTable
         .update(salesforcePriceRiseCreationDetails)
@@ -47,43 +48,30 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
       cohortItem: CohortItem
   ): ZIO[SalesforceClient, Failure, Option[String]] = {
     for {
-      subscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
-      priceRise <- buildPriceRise(cohortItem, subscription)
-      result <- cohortItem.salesforcePriceRiseId
-        .fold(
-          SalesforceClient
-            .createPriceRise(priceRise)
-            .map[Option[String]](response => Some(response.id))
-        ) { priceRiseId =>
-          SalesforceClient
-            .updatePriceRise(priceRiseId, priceRise)
-            .as(None)
+      priceRise <- buildPriceRise(cohortItem)
+      salesforcePriceRiseId <- IO
+        .fromOption(cohortItem.salesforcePriceRiseId)
+        .mapError { _ =>
+          SalesforcePriceRiseCreationFailure(
+            "CohortItem.salesforcePriceRiseId is required to update salesforce"
+          )
         }
+      result <- SalesforceClient
+        .updatePriceRise(salesforcePriceRiseId, priceRise)
+        .as(None)
     } yield result
   }
 
   def buildPriceRise(
-      cohortItem: CohortItem,
-      subscription: SalesforceSubscription
+      cohortItem: CohortItem
   ): IO[SalesforcePriceRiseCreationFailure, SalesforcePriceRise] = {
     for {
-      currentPrice <- ZIO
-        .fromOption(cohortItem.oldPrice)
-        .orElseFail(SalesforcePriceRiseCreationFailure(s"$cohortItem does not have an oldPrice"))
-      newPrice <- ZIO
-        .fromOption(cohortItem.estimatedNewPrice)
-        .orElseFail(SalesforcePriceRiseCreationFailure(s"$cohortItem does not have an estimatedNewPrice"))
-      priceRiseDate <- ZIO
-        .fromOption(cohortItem.startDate)
-        .orElseFail(SalesforcePriceRiseCreationFailure(s"$cohortItem does not have a startDate"))
+      notificationSendTimestamp <- ZIO
+        .fromOption(cohortItem.whenEmailSent)
+        .orElseFail(SalesforcePriceRiseCreationFailure(s"$cohortItem does not have a whenEmailSent field"))
     } yield
       SalesforcePriceRise(
-        Some(subscription.Name),
-        Some(subscription.Buyer__c),
-        Some(currentPrice),
-        Some(newPrice),
-        Some(priceRiseDate),
-        Some(subscription.Id)
+        Date_Letter_Sent__c = Some(LocalDate.from(notificationSendTimestamp.atOffset(ZoneOffset.UTC)))
       )
   }
 
