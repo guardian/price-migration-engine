@@ -4,7 +4,7 @@ import java.time._
 import java.time.temporal.ChronoUnit
 
 import pricemigrationengine.{StubClock, TestLogging}
-import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, EmailSendComplete, EmailSendProcessingOrError, EstimationComplete, SalesforcePriceRiceCreationComplete}
+import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, NotificationSendComplete, NotificationSendProcessingOrError, EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
 import pricemigrationengine.services._
@@ -15,12 +15,12 @@ import zio.stream.ZStream
 
 import scala.collection.mutable.ArrayBuffer
 
-class NotificationEmailHandlerTest extends munit.FunSuite {
+class NotificationHandlerTest extends munit.FunSuite {
   val expectedSubscriptionName = "Sub-0001"
   val expectedStartDate = LocalDate.of(2020, 1, 1)
   val expectedCurrency = "GBP"
   val expectedBillingPeriod = "Month"
-  val expectedBillingPeriodInEmail = "Monthly"
+  val expectedBillingPeriodInNotification = "Monthly"
   val expectedOldPrice = BigDecimal(11.11)
   val expectedEstimatedNewPrice = BigDecimal(22.22)
   val expectedSFSubscriptionId = "1234"
@@ -153,7 +153,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
       billingPeriod = Some(expectedBillingPeriod)
     )
 
-  test("NotificationEmailHandler should get records from cohort table and SF and send Email with the data") {
+  test("NotificationHandler should get records from cohort table and SF and send Email with the data") {
     val stubSalesforceClient = stubSFClient(List(salesforceSubscription), List(salesforceContact))
     val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
     val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
@@ -162,7 +162,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        NotificationEmailHandler.main
+        NotificationHandler.main
           .provideLayer(
             TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
           )
@@ -186,7 +186,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, expectedLastName)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount, expectedEstimatedNewPrice.toString())
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date, expectedStartDate.toString())
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_frequency, expectedBillingPeriodInEmail)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_frequency, expectedBillingPeriodInNotification)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.subscription_id, expectedSubscriptionName)
 
     assertEquals(updatedResultsWrittenToCohortTable.size, 2)
@@ -194,21 +194,21 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
       updatedResultsWrittenToCohortTable(0),
       CohortItem(
         subscriptionName = expectedSubscriptionName,
-        processingStage = EmailSendProcessingOrError,
-        whenEmailSent = Some(StubClock.expectedCurrentTime)
+        processingStage = NotificationSendProcessingOrError,
+        whenNotificationSent = Some(StubClock.expectedCurrentTime)
       )
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(1),
       CohortItem(
         subscriptionName = expectedSubscriptionName,
-        processingStage = EmailSendComplete,
-        whenEmailSent = Some(StubClock.expectedCurrentTime)
+        processingStage = NotificationSendComplete,
+        whenNotificationSent = Some(StubClock.expectedCurrentTime)
       )
     )
   }
 
-  test("NotificationEmailHandler should leave ChortItem in processing state if email send fails") {
+  test("NotificationHandler should leave ChortItem in processing state if email send fails") {
     val stubSalesforceClient = stubSFClient(List(salesforceSubscription), List(salesforceContact))
     val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
     val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
@@ -216,7 +216,7 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        NotificationEmailHandler.main
+        NotificationHandler.main
           .provideLayer(
             TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ failingStubEmailSender
           )
@@ -229,8 +229,8 @@ class NotificationEmailHandlerTest extends munit.FunSuite {
       updatedResultsWrittenToCohortTable(0),
       CohortItem(
         subscriptionName = expectedSubscriptionName,
-        processingStage = EmailSendProcessingOrError,
-        whenEmailSent = Some(StubClock.expectedCurrentTime)
+        processingStage = NotificationSendProcessingOrError,
+        whenNotificationSent = Some(StubClock.expectedCurrentTime)
       )
     )
   }

@@ -50,7 +50,7 @@ Resources:
         - Ref: PriceMigrationEngineSalesforcePriceCreationLambdaRole
         - Ref: PriceMigrationEngineAmendmentLambdaRole
         - Ref: PriceMigrationEngineSubscriptionIdUploadLambdaRole
-        - Ref: PriceMigrationEngineNotificationEmailLambdaRole
+        - Ref: PriceMigrationEngineNotificationLambdaRole
 
   PriceMigrationEngineEstimationLambdaRole:
     Type: AWS::IAM::Role
@@ -164,7 +164,7 @@ Resources:
     DependsOn:
       - S3Bucket
 
-  PriceMigrationEngineNotificationEmailLambdaRole:
+  PriceMigrationEngineNotificationLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -188,7 +188,7 @@ Resources:
                   - lambda:InvokeFunction
                 Resource:
                   - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-notification-email-lambda-${Stage}:log-stream:*"
-        - PolicyName: SendEmailRequestSQSMessage
+        - PolicyName: SendNotificationRequestSQSMessage
           PolicyDocument:
             Statement:
               - Effect: Allow
@@ -351,16 +351,16 @@ Resources:
       - PriceMigrationEngineSubscriptionIdUploadLambdaRole
       - S3Bucket
 
-  PriceMigrationEngineNotificationEmailLambda:
+  PriceMigrationEngineNotificationLambda:
     Type: AWS::Lambda::Function
     Properties:
-      Description: Sends notification emails to users telling them about the price rise
+      Description: Sends notification mails to users telling them about the price rise
       FunctionName:
-        !Sub price-migration-engine-notification-email-lambda-${Stage}
+        !Sub price-migration-engine-notification-lambda-${Stage}
       Code:
         S3Bucket: membership-dist
         S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
-      Handler: pricemigrationengine.handlers.NotificationEmailHandler::handleRequest
+      Handler: pricemigrationengine.handlers.NotificationHandler::handleRequest
       Environment:
         Variables:
           stage: !Ref Stage
@@ -395,13 +395,13 @@ Resources:
             - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
       Role:
         Fn::GetAtt:
-          - PriceMigrationEngineNotificationEmailLambdaRole
+          - PriceMigrationEngineNotificationLambdaRole
           - Arn
       MemorySize: 1536
       Runtime: java8
       Timeout: 900
     DependsOn:
-      - PriceMigrationEngineNotificationEmailLambdaRole
+      - PriceMigrationEngineNotificationLambdaRole
 
 Outputs:
   PriceMigrationEngineEstimationLambdaOutput:

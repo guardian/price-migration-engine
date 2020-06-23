@@ -50,10 +50,10 @@ and they are ready to be pick up by the next stage.
 For the most part the lambdas are idempotent, so if a stage fails at any point it can be re-run and it will reprocess
 items in the CohortTable that were not completely processed in the failed execution.
  
-In some cases lambdas are not idempotent, eg the NotificationEmailHandler which has the potential to send 
+In some cases lambdas are not idempotent, eg the NotificationHandler which has the potential to send 
 multiple direct messages to customers for the same subscription. This lambda sets the status of the CohortItem to a 
-'processing' status before sending the email and sets it to a 'complete' status once the email has been sent 
-successfully. If the email send fails the cohort item stay in the 'processing' state which will reqire manual 
+'processing' status before sending the notification and sets it to a 'complete' status once the notification has been sent 
+successfully. If the notification send fails the cohort item stay in the 'processing' state which will require manual 
 intervention to put it into a state where it would be re-processed or made available to the next stage for 
 subsequent processing.
 
@@ -65,8 +65,8 @@ The stages are as follows
 | N/A | SubscriptionIdUploadHandler | Initialises the items in the CohortTable for more details see:See [ImportSubscriptionId.MD](ImportSubscriptionId.MD) | ReadyForEstimation |
 | ReadyForEstimation | EstimationHandler | Uses Zuora to 'estimate' new price and start date of price rise | EstimationComplete |
 | EstimationComplete | SalesforcePriceRiseCreationHandler | Creates the prices rise object in SF so the estimated information is available to CSRs | SalesforcePriceRiceCreationComplete/Cancelled (if cancellation detected) |
-| SalesforcePriceRiceCreationComplete | NotificationEmailHandler | Sends prices rise notification direct mail to customer via braze | EmailSendProcessing (on failure)/EmailSendComplete (on success) |
-| EmailSendComplete | AmendmentHandler | Applies the prices rise amendment to Zuora | AmendmentComplete/Cancelled (if cancellation detected) |
+| SalesforcePriceRiceCreationComplete | NotificationHandler | Sends prices rise notification direct notification to customer via braze | NotificationSendProcessing (on failure)/NotificationSendComplete (on success) |
+| NotificationSendComplete | AmendmentHandler | Applies the prices rise amendment to Zuora | AmendmentComplete/Cancelled (if cancellation detected) |
  
 
 ### To run lambdas locally in Intellij
@@ -141,7 +141,7 @@ The configuration can be updated using the aws console as follows:
 
 ## Billing Address Format
 
-The notification letters initiated by the NotificationEmailHandler gets contact details including the billing address
+The notification letters initiated by the NotificationHandler gets contact details including the billing address
 from salesforce. 
 
 The salesforce data model is as follows:  
@@ -163,4 +163,4 @@ Using addressLine1 and addressLine2 for the direct messages would be preferable,
 too late in the day to resolve it. 
 
 In an attempt to make it simpler to resolve this in the future we are sending billing_address_2 all the way though 
-sqs/membership-workflow/braze/latcham but we are populating it with an empty string in the NotificationEmailHandler.
+sqs/membership-workflow/braze/latcham but we are populating it with an empty string in the NotificationHandler.

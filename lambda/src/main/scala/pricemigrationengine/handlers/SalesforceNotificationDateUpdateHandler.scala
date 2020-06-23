@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import java.time.{LocalDate, ZoneOffset}
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import pricemigrationengine.model.CohortTableFilter.{EmailSendComplete, EmailSendDateWrittenToSalesforce}
+import pricemigrationengine.model.CohortTableFilter.{NotificationSendComplete, NotificationSendDateWrittenToSalesforce}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.clock.Clock
@@ -14,7 +14,7 @@ object SalesforceNotificationDateUpdateHandler extends App with RequestHandler[U
 
   val main: ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, Unit] =
     for {
-      cohortItems <- CohortTable.fetch(EmailSendComplete, None)
+      cohortItems <- CohortTable.fetch(NotificationSendComplete, None)
       _ <- cohortItems.foreach(updateDateLetterSentInSF)
     } yield ()
 
@@ -33,8 +33,8 @@ object SalesforceNotificationDateUpdateHandler extends App with RequestHandler[U
         }
       salesforcePriceRiseDetails = CohortItem(
         subscriptionName = item.subscriptionName,
-        processingStage = EmailSendDateWrittenToSalesforce,
-        whenEmailSentWrittenToSalesforce = Some(time.toInstant)
+        processingStage = NotificationSendDateWrittenToSalesforce,
+        whenNotificationSentWrittenToSalesforce = Some(time.toInstant)
       )
       _ <- CohortTable
         .update(salesforcePriceRiseDetails)
@@ -67,7 +67,7 @@ object SalesforceNotificationDateUpdateHandler extends App with RequestHandler[U
   ): IO[SalesforcePriceRiseWriteFailure, SalesforcePriceRise] = {
     for {
       notificationSendTimestamp <- ZIO
-        .fromOption(cohortItem.whenEmailSent)
+        .fromOption(cohortItem.whenNotificationSent)
         .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a whenEmailSent field"))
     } yield
       SalesforcePriceRise(

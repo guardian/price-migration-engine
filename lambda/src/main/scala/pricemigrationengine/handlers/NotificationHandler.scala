@@ -1,34 +1,34 @@
 package pricemigrationengine.handlers
 
 import com.amazonaws.services.lambda.runtime.Context
-import pricemigrationengine.model.CohortTableFilter.{EmailSendComplete, EmailSendProcessingOrError, SalesforcePriceRiceCreationComplete}
+import pricemigrationengine.model.CohortTableFilter.{NotificationSendComplete, NotificationSendProcessingOrError, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model.membershipworkflow.{EmailMessage, EmailPayload, EmailPayloadContactAttributes, EmailPayloadSubscriberAttributes}
-import pricemigrationengine.model.{CohortItem, CohortTableFilter, EmailSenderFailure, Failure, NotificationEmailHandlerFailure}
+import pricemigrationengine.model.{CohortItem, CohortTableFilter, EmailSenderFailure, Failure, NotificationHandlerFailure}
 import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.console.Console
 import zio.{Runtime, ZEnv, ZIO, ZLayer, clock}
 
-object NotificationEmailHandler {
+object NotificationHandler {
   //Mapping to environment specific braze campaign id is provided by membership-workflow:
   //https://github.com/guardian/membership-workflow/blob/master/conf/PROD.public.conf#L39
   val BrazeCampaignName = "SV_VO_Pricerise_Q22020"
 
-  private val NotificationEmailLeadTimeDays = 37
+  private val NotificationLeadTimeDays = 37
 
   val main: ZIO[Logging with CohortTable with SalesforceClient with Clock with EmailSender, Failure, Unit] = {
     for {
-      now <- clock.currentDateTime.mapError(ex => NotificationEmailHandlerFailure(s"Failed to get time: $ex"))
+      now <- clock.currentDateTime.mapError(ex => NotificationHandlerFailure(s"Failed to get time: $ex"))
       subscriptions <- CohortTable.fetch(
         SalesforcePriceRiceCreationComplete,
-        Some(now.toLocalDate.plusDays(NotificationEmailLeadTimeDays))
+        Some(now.toLocalDate.plusDays(NotificationLeadTimeDays))
       )
-      count <- subscriptions.mapM(sendEmail).runCount
+      count <- subscriptions.mapM(sendNotification).runCount
       _ <- Logging.info(s"Successfully sent $count prices rise notifications")
     } yield ()
   }
 
-  def sendEmail(
+  def sendNotification(
     cohortItem: CohortItem
   ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock, Failure, Unit] = {
     for {
@@ -45,7 +45,7 @@ object NotificationEmailHandler {
       billingPeriod <- requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod")
       paymentFrequency <- paymentFrequency(billingPeriod)
 
-      _ <- updateCohortItemStatus(cohortItem.subscriptionName, EmailSendProcessingOrError)
+      _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendProcessingOrError)
 
       _ <- EmailSender.sendEmail(
         message = EmailMessage(
@@ -75,12 +75,12 @@ object NotificationEmailHandler {
         )
       )
 
-      _ <- updateCohortItemStatus(cohortItem.subscriptionName, EmailSendComplete)
+      _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete)
     } yield ()
   }
 
-  def requiredField(field: Option[String], fieldName: String): ZIO[Any, NotificationEmailHandlerFailure, String] = {
-    ZIO.fromOption(field).orElseFail(NotificationEmailHandlerFailure(s"$fieldName is a required field"))
+  def requiredField(field: Option[String], fieldName: String): ZIO[Any, NotificationHandlerFailure, String] = {
+    ZIO.fromOption(field).orElseFail(NotificationHandlerFailure(s"$fieldName is a required field"))
   }
 
   val paymentFrequencyMapping = Map(
@@ -97,15 +97,15 @@ object NotificationEmailHandler {
 
   def updateCohortItemStatus(subscriptionNumber: String, processingStage: CohortTableFilter) = {
     for {
-      now <- clock.currentDateTime.mapError(ex => NotificationEmailHandlerFailure(s"Failed to get time: $ex"))
+      now <- clock.currentDateTime.mapError(ex => NotificationHandlerFailure(s"Failed to get time: $ex"))
       _ <- CohortTable.update(
         CohortItem(
           subscriptionName = subscriptionNumber,
           processingStage = processingStage,
-          whenEmailSent = Some(now.toInstant)
+          whenNotificationSent = Some(now.toInstant)
         )
       ).mapError { error =>
-        NotificationEmailHandlerFailure(s"Failed set status CohortItem $subscriptionNumber to $processingStage: $error")
+        NotificationHandlerFailure(s"Failed set status CohortItem $subscriptionNumber to $processingStage: $error")
       }
     } yield ()
   }
