@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import java.time.{DateTimeException, Instant, LocalDate, OffsetDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
 
-import pricemigrationengine.StubClock
+import pricemigrationengine.{StubClock, TestLogging}
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -23,8 +23,6 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
         IO.succeed(AmendmentConfig(LocalDate.now))
     }
   )
-
-  val stubLogging = console.Console.live >>> ConsoleLogging.impl
 
   val expectedSubscriptionName = "Sub-0001"
   val expectedStartDate = LocalDate.of(2020, 1, 1)
@@ -76,7 +74,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
             priceRise: SalesforcePriceRise
         ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] = {
           createdPriceRises.addOne(priceRise)
-          ZIO.succeed(SalesforcePriceRiseCreationResponse(s"${priceRise.SF_Subscription__c}-price-rise-id"))
+          ZIO.succeed(SalesforcePriceRiseCreationResponse(s"${priceRise.SF_Subscription__c.getOrElse("none")}-price-rise-id"))
         }
 
         override def updatePriceRise(
@@ -114,19 +112,19 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
       default.unsafeRunSync(
         SalesforcePriceRiseCreationHandler.main
           .provideLayer(
-            stubLogging ++ stubConfiguration ++ stubCohortTable ++ stubSalesforceClient ++ StubClock.clock
+            TestLogging.logging ++ stubConfiguration ++ stubCohortTable ++ stubSalesforceClient ++ StubClock.clock
           )
       ),
       Success(())
     )
 
     assertEquals(createdPriceRises.size, 1)
-    assertEquals(createdPriceRises(0).Name, expectedSubscriptionName)
-    assertEquals(createdPriceRises(0).SF_Subscription__c, s"SubscritionId-$expectedSubscriptionName")
-    assertEquals(createdPriceRises(0).Buyer__c, s"Buyer-$expectedSubscriptionName")
-    assertEquals(createdPriceRises(0).Current_Price_Today__c, expectedOldPrice)
-    assertEquals(createdPriceRises(0).Guardian_Weekly_New_Price__c, expectedEstimatedNewPrice)
-    assertEquals(createdPriceRises(0).Price_Rise_Date__c, expectedStartDate)
+    assertEquals(createdPriceRises(0).Name, Some(expectedSubscriptionName))
+    assertEquals(createdPriceRises(0).SF_Subscription__c, Some(s"SubscritionId-$expectedSubscriptionName"))
+    assertEquals(createdPriceRises(0).Buyer__c, Some(s"Buyer-$expectedSubscriptionName"))
+    assertEquals(createdPriceRises(0).Current_Price_Today__c, Some(expectedOldPrice))
+    assertEquals(createdPriceRises(0).Guardian_Weekly_New_Price__c, Some(expectedEstimatedNewPrice))
+    assertEquals(createdPriceRises(0).Price_Rise_Date__c, Some(expectedStartDate))
 
     assertEquals(updatedResultsWrittenToCohortTable.size, 1)
     assertEquals(
@@ -173,18 +171,18 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
       default.unsafeRunSync(
         SalesforcePriceRiseCreationHandler.main
           .provideLayer(
-            stubLogging ++ stubConfiguration ++ stubCohortTable ++ stubSalesforceClient ++ StubClock.clock
+            TestLogging.logging ++ stubConfiguration ++ stubCohortTable ++ stubSalesforceClient ++ StubClock.clock
           )
       ),
       Success(())
     )
 
     assertEquals(updatedPriceRises.size, 1)
-    assertEquals(updatedPriceRises(0).SF_Subscription__c, s"SubscritionId-$expectedSubscriptionName")
-    assertEquals(updatedPriceRises(0).Buyer__c, s"Buyer-$expectedSubscriptionName")
-    assertEquals(updatedPriceRises(0).Current_Price_Today__c, expectedOldPrice)
-    assertEquals(updatedPriceRises(0).Guardian_Weekly_New_Price__c, expectedEstimatedNewPrice)
-    assertEquals(updatedPriceRises(0).Price_Rise_Date__c, expectedStartDate)
+    assertEquals(updatedPriceRises(0).SF_Subscription__c, Some(s"SubscritionId-$expectedSubscriptionName"))
+    assertEquals(updatedPriceRises(0).Buyer__c, Some(s"Buyer-$expectedSubscriptionName"))
+    assertEquals(updatedPriceRises(0).Current_Price_Today__c, Some(expectedOldPrice))
+    assertEquals(updatedPriceRises(0).Guardian_Weekly_New_Price__c, Some(expectedEstimatedNewPrice))
+    assertEquals(updatedPriceRises(0).Price_Rise_Date__c, Some(expectedStartDate))
 
     assertEquals(updatedResultsWrittenToCohortTable.size, 1)
     assertEquals(

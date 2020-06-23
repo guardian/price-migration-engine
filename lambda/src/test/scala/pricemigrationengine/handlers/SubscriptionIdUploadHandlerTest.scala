@@ -3,6 +3,7 @@ package pricemigrationengine.handlers
 import java.io.InputStream
 import java.time.LocalDate
 
+import pricemigrationengine.TestLogging
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.Exit.Success
@@ -58,13 +59,11 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
       }
     )
 
-    val stubLogging = console.Console.live >>> ConsoleLogging.impl
-
     assertEquals(
       default.unsafeRunSync(
         SubscriptionIdUploadHandler.main
           .provideLayer(
-            stubLogging ++ stubConfiguration ++ stubCohortTable ++ stubS3
+            TestLogging.logging ++ stubConfiguration ++ stubCohortTable ++ stubS3
           )
       ),
       Success(())

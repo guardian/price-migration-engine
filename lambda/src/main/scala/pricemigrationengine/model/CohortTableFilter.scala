@@ -20,6 +20,7 @@ object CohortTableFilter {
   case object Cancelled extends CohortTableFilter { override val value: String = "Cancelled" }
   case object EmailSendProcessingOrError extends CohortTableFilter { override val value: String = "EmailSendProcessingOrError" }
   case object EmailSendComplete extends CohortTableFilter { override val value: String = "EmailSendComplete" }
+  case object EmailSendDateWrittenToSalesforce extends CohortTableFilter { override val value: String = "EmailSendDateWrittenToSalesforce" }
 
   val all = Set(
     ReadyForEstimation,
