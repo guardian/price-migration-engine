@@ -27,7 +27,7 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
         )
       time <- clock.currentDateTime
         .mapError { error =>
-          SalesforcePriceRiseCreationFailure(s"Failed to get currentTime: $error")
+          SalesforcePriceRiseWriteFailure(s"Failed to get currentTime: $error")
         }
       salesforcePriceRiseCreationDetails = CohortItem(
         subscriptionName = item.subscriptionName,
@@ -65,17 +65,17 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
   def buildPriceRise(
       cohortItem: CohortItem,
       subscription: SalesforceSubscription
-  ): IO[SalesforcePriceRiseCreationFailure, SalesforcePriceRise] = {
+  ): IO[SalesforcePriceRiseWriteFailure, SalesforcePriceRise] = {
     for {
       currentPrice <- ZIO
         .fromOption(cohortItem.oldPrice)
-        .orElseFail(SalesforcePriceRiseCreationFailure(s"$cohortItem does not have an oldPrice"))
+        .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have an oldPrice"))
       newPrice <- ZIO
         .fromOption(cohortItem.estimatedNewPrice)
-        .orElseFail(SalesforcePriceRiseCreationFailure(s"$cohortItem does not have an estimatedNewPrice"))
+        .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have an estimatedNewPrice"))
       priceRiseDate <- ZIO
         .fromOption(cohortItem.startDate)
-        .orElseFail(SalesforcePriceRiseCreationFailure(s"$cohortItem does not have a startDate"))
+        .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a startDate"))
     } yield
       SalesforcePriceRise(
         Some(subscription.Name),

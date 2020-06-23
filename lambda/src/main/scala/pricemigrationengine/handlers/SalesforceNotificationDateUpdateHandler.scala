@@ -29,18 +29,18 @@ object SalesforceNotificationDateUpdateHandler extends App with RequestHandler[U
         )
       time <- clock.currentDateTime
         .mapError { error =>
-          SalesforcePriceRiseCreationFailure(s"Failed to get currentTime: $error")
+          SalesforcePriceRiseWriteFailure(s"Failed to get currentTime: $error")
         }
-      salesforcePriceRiseCreationDetails = CohortItem(
+      salesforcePriceRiseDetails = CohortItem(
         subscriptionName = item.subscriptionName,
         processingStage = EmailSendDateWrittenToSalesforce,
         whenEmailSentWrittenToSalesforce = Some(time.toInstant)
       )
       _ <- CohortTable
-        .update(salesforcePriceRiseCreationDetails)
+        .update(salesforcePriceRiseDetails)
         .tapBoth(
           e => Logging.error(s"Failed to update Cohort table: $e"),
-          _ => Logging.info(s"Wrote $salesforcePriceRiseCreationDetails to Cohort table")
+          _ => Logging.info(s"Wrote $salesforcePriceRiseDetails to Cohort table")
         )
     } yield ()
 
@@ -52,7 +52,7 @@ object SalesforceNotificationDateUpdateHandler extends App with RequestHandler[U
       salesforcePriceRiseId <- IO
         .fromOption(cohortItem.salesforcePriceRiseId)
         .mapError { _ =>
-          SalesforcePriceRiseCreationFailure(
+          SalesforcePriceRiseWriteFailure(
             "CohortItem.salesforcePriceRiseId is required to update salesforce"
           )
         }
@@ -64,11 +64,11 @@ object SalesforceNotificationDateUpdateHandler extends App with RequestHandler[U
 
   def buildPriceRise(
       cohortItem: CohortItem
-  ): IO[SalesforcePriceRiseCreationFailure, SalesforcePriceRise] = {
+  ): IO[SalesforcePriceRiseWriteFailure, SalesforcePriceRise] = {
     for {
       notificationSendTimestamp <- ZIO
         .fromOption(cohortItem.whenEmailSent)
-        .orElseFail(SalesforcePriceRiseCreationFailure(s"$cohortItem does not have a whenEmailSent field"))
+        .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a whenEmailSent field"))
     } yield
       SalesforcePriceRise(
         Date_Letter_Sent__c = Some(LocalDate.from(notificationSendTimestamp.atOffset(ZoneOffset.UTC)))
