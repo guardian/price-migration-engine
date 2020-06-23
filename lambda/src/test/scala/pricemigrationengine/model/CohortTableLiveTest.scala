@@ -40,7 +40,9 @@ class CohortTableLiveTest extends munit.FunSuite {
   val expectedPriceRiseId = "price-rise-id"
   val expectedSfShowEstimate =  Instant.ofEpochMilli(Random.nextLong())
   val expectedNewSuscriptionId = "new-sub-id"
-  val expectedWhenAmmendmentDone =  Instant.ofEpochMilli(Random.nextLong())
+  val expectedWhenAmmendmentDone = Instant.ofEpochMilli(Random.nextLong())
+  val expectedWhenNotificationSent = Instant.ofEpochMilli(Random.nextLong())
+  val expectedWhenNotificationSentWrittenToSalesforce = Instant.ofEpochMilli(Random.nextLong())
   val item1 = CohortItem("subscription-1", ReadyForEstimation)
   val item2 = CohortItem("subscription-2", ReadyForEstimation)
 
@@ -110,7 +112,10 @@ class CohortTableLiveTest extends munit.FunSuite {
             "startDate" -> new AttributeValue().withS(expectedStartDate.toString),
             "newPrice" -> new AttributeValue().withN(expectedNewPrice.toString),
             "newSubscriptionId" -> new AttributeValue().withS(expectedNewSuscriptionId),
-            "whenAmendmentDone" -> new AttributeValue().withS(formatTimestamp(expectedWhenAmmendmentDone))
+            "whenAmendmentDone" -> new AttributeValue().withS(formatTimestamp(expectedWhenAmmendmentDone)),
+            "whenNotificationSent" -> new AttributeValue().withS(formatTimestamp(expectedWhenNotificationSent)),
+            "whenNotificationSentWrittenToSalesforce" ->
+              new AttributeValue().withS(formatTimestamp(expectedWhenNotificationSentWrittenToSalesforce)),
           ).asJava
         )
       ),
@@ -127,7 +132,9 @@ class CohortTableLiveTest extends munit.FunSuite {
           whenSfShowEstimate = Some(expectedSfShowEstimate),
           newPrice = Some(expectedNewPrice),
           newSubscriptionId = Some(expectedNewSuscriptionId),
-          whenAmendmentDone = Some(expectedWhenAmmendmentDone)
+          whenAmendmentDone = Some(expectedWhenAmmendmentDone),
+          whenNotificationSent = Some(expectedWhenNotificationSent),
+          whenNotificationSentWrittenToSalesforce = Some(expectedWhenNotificationSentWrittenToSalesforce),
         )
       )
     )
@@ -230,7 +237,9 @@ class CohortTableLiveTest extends munit.FunSuite {
       whenSfShowEstimate = Some(expectedSfShowEstimate),
       startDate = Some(expectedStartDate),
       newSubscriptionId = Some(expectedNewSuscriptionId),
-      whenAmendmentDone = Some(expectedWhenAmmendmentDone)
+      whenAmendmentDone = Some(expectedWhenAmmendmentDone),
+      whenNotificationSent = Some(expectedWhenNotificationSent),
+      whenNotificationSentWrittenToSalesforce = Some(expectedWhenNotificationSentWrittenToSalesforce)
     )
 
     assertEquals(
@@ -316,6 +325,24 @@ class CohortTableLiveTest extends munit.FunSuite {
         AttributeAction.PUT
       ),
       "whenAmendmentDone"
+    )
+    assertEquals(
+      update.get("whenNotificationSentWrittenToSalesforce"),
+      new AttributeValueUpdate(
+        new AttributeValue()
+          .withS(formatTimestamp(expectedWhenNotificationSentWrittenToSalesforce)),
+        AttributeAction.PUT
+      ),
+      "whenNotificationSentWrittenToSalesforce"
+    )
+    assertEquals(
+      update.get("whenNotificationSent"),
+      new AttributeValueUpdate(
+        new AttributeValue()
+          .withS(formatTimestamp(expectedWhenNotificationSent)),
+        AttributeAction.PUT
+      ),
+      "whenNotificationSent"
     )
   }
 
