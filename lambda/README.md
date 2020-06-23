@@ -52,8 +52,8 @@ items in the CohortTable that were not completely processed in the failed execut
  
 In some cases lambdas are not idempotent, eg the NotificationHandler which has the potential to send 
 multiple direct messages to customers for the same subscription. This lambda sets the status of the CohortItem to a 
-'processing' status before sending the mail and sets it to a 'complete' status once the mail has been sent 
-successfully. If the mail send fails the cohort item stay in the 'processing' state which will reqire manual 
+'processing' status before sending the notification and sets it to a 'complete' status once the notification has been sent 
+successfully. If the notification send fails the cohort item stay in the 'processing' state which will require manual 
 intervention to put it into a state where it would be re-processed or made available to the next stage for 
 subsequent processing.
 
@@ -65,7 +65,7 @@ The stages are as follows
 | N/A | SubscriptionIdUploadHandler | Initialises the items in the CohortTable for more details see:See [ImportSubscriptionId.MD](ImportSubscriptionId.MD) | ReadyForEstimation |
 | ReadyForEstimation | EstimationHandler | Uses Zuora to 'estimate' new price and start date of price rise | EstimationComplete |
 | EstimationComplete | SalesforcePriceRiseCreationHandler | Creates the prices rise object in SF so the estimated information is available to CSRs | SalesforcePriceRiceCreationComplete/Cancelled (if cancellation detected) |
-| SalesforcePriceRiceCreationComplete | NotificationHandler | Sends prices rise notification direct mail to customer via braze | NotificationSendProcessing (on failure)/NotificationSendComplete (on success) |
+| SalesforcePriceRiceCreationComplete | NotificationHandler | Sends prices rise notification direct notification to customer via braze | NotificationSendProcessing (on failure)/NotificationSendComplete (on success) |
 | NotificationSendComplete | AmendmentHandler | Applies the prices rise amendment to Zuora | AmendmentComplete/Cancelled (if cancellation detected) |
  
 
@@ -163,4 +163,4 @@ Using addressLine1 and addressLine2 for the direct messages would be preferable,
 too late in the day to resolve it. 
 
 In an attempt to make it simpler to resolve this in the future we are sending billing_address_2 all the way though 
-sqs/membership-workflow/braze/latcham but we are populating it with an empty string in the NotificationEmailHandler.
+sqs/membership-workflow/braze/latcham but we are populating it with an empty string in the NotificationHandler.
