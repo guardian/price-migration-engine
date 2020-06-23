@@ -2,7 +2,7 @@ package pricemigrationengine.handlers
 
 import java.time.{LocalDate, ZoneOffset}
 
-import pricemigrationengine.model.CohortTableFilter.{MailSendComplete, MailSendDateWrittenToSalesforce}
+import pricemigrationengine.model.CohortTableFilter.{NotificationSendComplete, NotificationSendDateWrittenToSalesforce}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import pricemigrationengine.{StubClock, TestLogging}
@@ -25,7 +25,7 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
           filter: CohortTableFilter,
           beforeDateInclusive: Option[LocalDate]
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
-          assertEquals(filter, MailSendComplete)
+          assertEquals(filter, NotificationSendComplete)
           IO.succeed(ZStream(cohortItem))
         }
 
@@ -73,9 +73,9 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
 
     val cohortItem = CohortItem(
       subscriptionName = expectedSubscriptionName,
-      processingStage = MailSendComplete,
+      processingStage = NotificationSendComplete,
       salesforcePriceRiseId = Some(expectedPriceRiseId),
-      whenMailSent = Some(expectedWhenEmailSentDate.atStartOfDay().toInstant(ZoneOffset.UTC))
+      whenNotificationSent = Some(expectedWhenEmailSentDate.atStartOfDay().toInstant(ZoneOffset.UTC))
     )
 
     val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
@@ -106,10 +106,10 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).processingStage,
-      MailSendDateWrittenToSalesforce
+      NotificationSendDateWrittenToSalesforce
     )
     assertEquals(
-      updatedResultsWrittenToCohortTable(0).whenMailSentWrittenToSalesforce,
+      updatedResultsWrittenToCohortTable(0).whenNotificationSentWrittenToSalesforce,
       Some(StubClock.expectedCurrentTime)
     )
   }

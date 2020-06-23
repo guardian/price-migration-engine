@@ -1,12 +1,23 @@
 package pricemigrationengine.services
 
+import com.amazonaws.services.sqs.model.SendMessageRequest
 import com.amazonaws.services.sqs.{AmazonSQSAsync, AmazonSQSAsyncClientBuilder}
-import com.amazonaws.services.sqs.model.{SendMessageRequest, SendMessageResult}
-import pricemigrationengine.model.{ConfigurationFailure, EmailSenderFailure, Failure}
+import pricemigrationengine.model.EmailSenderFailure
 import pricemigrationengine.model.membershipworkflow.EmailMessage
-import zio.{ZIO, ZLayer}
 import upickle.default.write
+import zio.{ZIO, ZLayer}
 
+/**
+ * The email sender takes the information in the supplied EmailMessage object and sends it to the membership-workflow
+ * app via the contribution-thanks sqs queue.
+ *
+ * Membership workflow will then trigger the braze campaign associated with the DataExtensionName in the sqs message.
+ *
+ * In the case of the notifications sent by the price migration engine braze is configured to trigger a 'web-hook'.
+ *
+ * The web hook is essentially an api call to Latcham our direct mail partner, who will use the information in the
+ * web hook to print a physical letter notifying the customer of the price rise and send it to the customer.
+ */
 object EmailSenderLive {
   val impl: ZLayer[Logging with EmailSenderConfiguration, EmailSenderFailure, EmailSender] = ZLayer.fromFunctionM { dependencies =>
     (
