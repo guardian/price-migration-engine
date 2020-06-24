@@ -68,6 +68,9 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
               s"Failed to calculate amendment of subscription ${subscriptionBeforeUpdate.subscriptionNumber}: $e"
           )
         )
+        .tap(newPrice =>
+          Logging.info(
+            s"Amendment made: ${item.subscriptionName}: price change on $startDate: ${item.oldPrice} -> $newPrice (estimated ${item.estimatedNewPrice})"))
     } yield
       CohortItem(
         subscriptionBeforeUpdate.subscriptionNumber,
