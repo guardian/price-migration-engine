@@ -132,7 +132,7 @@ class CohortTableLiveTest extends munit.FunSuite {
           whenSfShowEstimate = Some(expectedSfShowEstimate),
           newPrice = Some(expectedNewPrice),
           newSubscriptionId = Some(expectedNewSuscriptionId),
-          whenAmendmentDone = Some(expectedWhenAmmendmentDone),
+          whenAmendmentDone = Some(expectedWhenAmendmentDone),
           whenNotificationSent = Some(expectedWhenNotificationSent),
           whenNotificationSentWrittenToSalesforce = Some(expectedWhenNotificationSentWrittenToSalesforce),
         )
