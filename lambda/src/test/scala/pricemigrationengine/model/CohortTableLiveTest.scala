@@ -39,8 +39,10 @@ class CohortTableLiveTest extends munit.FunSuite {
   val expectedWhenEstimationDone =  Instant.ofEpochMilli(Random.nextLong())
   val expectedPriceRiseId = "price-rise-id"
   val expectedSfShowEstimate =  Instant.ofEpochMilli(Random.nextLong())
-  val expectedNewSuscriptionId = "new-sub-id"
-  val expectedWhenAmmendmentDone =  Instant.ofEpochMilli(Random.nextLong())
+  val expectedNewSubscriptionId = "new-sub-id"
+  val expectedWhenAmendmentDone = Instant.ofEpochMilli(Random.nextLong())
+  val expectedWhenNotificationSent = Instant.ofEpochMilli(Random.nextLong())
+  val expectedWhenNotificationSentWrittenToSalesforce = Instant.ofEpochMilli(Random.nextLong())
   val item1 = CohortItem("subscription-1", ReadyForEstimation)
   val item2 = CohortItem("subscription-2", ReadyForEstimation)
 
@@ -109,8 +111,11 @@ class CohortTableLiveTest extends munit.FunSuite {
             "whenSfShowEstimate" -> new AttributeValue().withS(formatTimestamp(expectedSfShowEstimate)),
             "startDate" -> new AttributeValue().withS(expectedStartDate.toString),
             "newPrice" -> new AttributeValue().withN(expectedNewPrice.toString),
-            "newSubscriptionId" -> new AttributeValue().withS(expectedNewSuscriptionId),
-            "whenAmendmentDone" -> new AttributeValue().withS(formatTimestamp(expectedWhenAmmendmentDone))
+            "newSubscriptionId" -> new AttributeValue().withS(expectedNewSubscriptionId),
+            "whenAmendmentDone" -> new AttributeValue().withS(formatTimestamp(expectedWhenAmendmentDone)),
+            "whenNotificationSent" -> new AttributeValue().withS(formatTimestamp(expectedWhenNotificationSent)),
+            "whenNotificationSentWrittenToSalesforce" ->
+              new AttributeValue().withS(formatTimestamp(expectedWhenNotificationSentWrittenToSalesforce)),
           ).asJava
         )
       ),
@@ -126,8 +131,10 @@ class CohortTableLiveTest extends munit.FunSuite {
           salesforcePriceRiseId = Some(expectedPriceRiseId),
           whenSfShowEstimate = Some(expectedSfShowEstimate),
           newPrice = Some(expectedNewPrice),
-          newSubscriptionId = Some(expectedNewSuscriptionId),
-          whenAmendmentDone = Some(expectedWhenAmmendmentDone)
+          newSubscriptionId = Some(expectedNewSubscriptionId),
+          whenAmendmentDone = Some(expectedWhenAmendmentDone),
+          whenNotificationSent = Some(expectedWhenNotificationSent),
+          whenNotificationSentWrittenToSalesforce = Some(expectedWhenNotificationSentWrittenToSalesforce),
         )
       )
     )
@@ -229,8 +236,10 @@ class CohortTableLiveTest extends munit.FunSuite {
       salesforcePriceRiseId = Some(expectedPriceRiseId),
       whenSfShowEstimate = Some(expectedSfShowEstimate),
       startDate = Some(expectedStartDate),
-      newSubscriptionId = Some(expectedNewSuscriptionId),
-      whenAmendmentDone = Some(expectedWhenAmmendmentDone)
+      newSubscriptionId = Some(expectedNewSubscriptionId),
+      whenAmendmentDone = Some(expectedWhenAmendmentDone),
+      whenNotificationSent = Some(expectedWhenNotificationSent),
+      whenNotificationSentWrittenToSalesforce = Some(expectedWhenNotificationSentWrittenToSalesforce)
     )
 
     assertEquals(
@@ -305,17 +314,35 @@ class CohortTableLiveTest extends munit.FunSuite {
     )
     assertEquals(
       update.get("newSubscriptionId"),
-      new AttributeValueUpdate(new AttributeValue().withS(expectedNewSuscriptionId), AttributeAction.PUT),
+      new AttributeValueUpdate(new AttributeValue().withS(expectedNewSubscriptionId), AttributeAction.PUT),
       "newSubscriptionId"
     )
     assertEquals(
       update.get("whenAmendmentDone"),
       new AttributeValueUpdate(
         new AttributeValue()
-          .withS(formatTimestamp(expectedWhenAmmendmentDone)),
+          .withS(formatTimestamp(expectedWhenAmendmentDone)),
         AttributeAction.PUT
       ),
       "whenAmendmentDone"
+    )
+    assertEquals(
+      update.get("whenNotificationSentWrittenToSalesforce"),
+      new AttributeValueUpdate(
+        new AttributeValue()
+          .withS(formatTimestamp(expectedWhenNotificationSentWrittenToSalesforce)),
+        AttributeAction.PUT
+      ),
+      "whenNotificationSentWrittenToSalesforce"
+    )
+    assertEquals(
+      update.get("whenNotificationSent"),
+      new AttributeValueUpdate(
+        new AttributeValue()
+          .withS(formatTimestamp(expectedWhenNotificationSent)),
+        AttributeAction.PUT
+      ),
+      "whenNotificationSent"
     )
   }
 

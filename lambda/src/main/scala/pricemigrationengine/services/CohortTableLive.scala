@@ -34,6 +34,9 @@ object CohortTableLive {
       newPrice <- getOptionalBigDecimalFromResults(cohortItem, "newPrice")
       newSubscriptionId <- getOptionalStringFromResults(cohortItem, "newSubscriptionId")
       whenAmendmentDone <- getOptionalInstantFromResults(cohortItem, "whenAmendmentDone")
+      whenNotificationSent <- getOptionalInstantFromResults(cohortItem, "whenNotificationSent")
+      whenNotificationSentWrittenToSalesforce <-
+        getOptionalInstantFromResults(cohortItem, "whenNotificationSentWrittenToSalesforce")
     } yield
       CohortItem(
         subscriptionName = subscriptionNumber,
@@ -48,7 +51,9 @@ object CohortTableLive {
         whenSfShowEstimate = whenSfShowEstimate,
         newPrice = newPrice,
         newSubscriptionId = newSubscriptionId,
-        whenAmendmentDone = whenAmendmentDone
+        whenAmendmentDone = whenAmendmentDone,
+        whenNotificationSent = whenNotificationSent,
+        whenNotificationSentWrittenToSalesforce = whenNotificationSentWrittenToSalesforce
       )
   }
 
@@ -78,8 +83,17 @@ object CohortTableLive {
         cohortItem.newSubscriptionId
           .map(newSubscriptionId => stringFieldUpdate("newSubscriptionId", newSubscriptionId)),
         cohortItem.whenAmendmentDone
-          .map(whenAmendmentDone => instantFieldUpdate("whenAmendmentDone", whenAmendmentDone))
-      ).flatten.toMap.asJava
+          .map(whenAmendmentDone => instantFieldUpdate("whenAmendmentDone", whenAmendmentDone)),
+        cohortItem.whenNotificationSent
+          .map(whenNotificationSent => instantFieldUpdate("whenNotificationSent", whenNotificationSent)),
+        cohortItem.whenNotificationSentWrittenToSalesforce
+          .map(whenNotificationSentWrittenToSalesforce =>
+            instantFieldUpdate(
+              "whenNotificationSentWrittenToSalesforce",
+              whenNotificationSentWrittenToSalesforce
+            )
+          )
+  ).flatten.toMap.asJava
 
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =
     key => Map(stringUpdate("subscriptionNumber", key.subscriptionNumber)).asJava

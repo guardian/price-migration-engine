@@ -22,4 +22,5 @@ deployments:
       - price-migration-engine-amendment-lambda-
       - price-migration-engine-subscription-id-upload-lambda-
       - price-migration-engine-notification-lambda-
+      - price-migration-engine-salesforce-notification-date-lambda-
     dependencies: [cfn]
