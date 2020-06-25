@@ -31,7 +31,7 @@ object CohortTableDatalakeExportHandler extends App with RequestHandler[Unit, Un
     } yield ()
   }
 
-  def writeCsvToS3(cohortItems: ZStream[Any, CohortFetchFailure, CohortItem]) = {
+  def writeCsvToS3(cohortItems: ZStream[Any, CohortFetchFailure, CohortItem]): ZIO[S3, Failure, Long] = {
     for {
       inputStream <- ZIO.effectTotal(new PipedInputStream())
       outputStream <-  ZIO.effectTotal(new PipedOutputStream(inputStream))
@@ -42,7 +42,8 @@ object CohortTableDatalakeExportHandler extends App with RequestHandler[Unit, Un
           },
         writeCsvToStream(cohortItems, outputStream)
       )
-    } yield ()
+      (_, count) = result
+    } yield count
   }
 
   def writeCsvToStream(
