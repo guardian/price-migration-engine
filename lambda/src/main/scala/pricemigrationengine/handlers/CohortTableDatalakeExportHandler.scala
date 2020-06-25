@@ -55,7 +55,7 @@ object CohortTableDatalakeExportHandler extends App with RequestHandler[Unit, Un
   ): IO[Failure, Long] = {
     val managedCsvPrinter = ZManaged.makeEffect(
       new CSVPrinter(
-        new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8.name())),
+        new OutputStreamWriter(outputStream, StandardCharsets.UTF_8.name()),
         csvFormat
       )
     )(printer => printer.close(true)).mapError { ex =>
