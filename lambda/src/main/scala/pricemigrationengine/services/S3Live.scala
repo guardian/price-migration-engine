@@ -24,7 +24,7 @@ object S3Live {
 
       override def putObject(s3Location: S3Location, inputStream: InputStream): IO[S3Failure, Unit] =
         IO.effect(
-          s3.putObject(s3Location.bucket, s3Location.path, inputStream, null)
+          s3.putObject(s3Location.bucket, s3Location.path, "test")
         ).bimap(
           ex => S3Failure(s"Failed to write s3 object $s3Location: ${ex.getMessage}"),
           _ => ()
