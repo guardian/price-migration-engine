@@ -6,7 +6,7 @@ import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.console.Console
-import zio.{App, ExitCode, IO, Runtime, ZEnv, ZIO, ZLayer, clock}
+import zio.{App, ExitCode, IO, Runtime, ZEnv, ZIO, ZLayer}
 
 object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, Unit] {
 
@@ -25,15 +25,12 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
           e => Logging.error(s"Failed to write create Price_Rise in salesforce: $e"),
           result => Logging.info(s"SalesforcePriceRise result: $result")
         )
-      time <- clock.currentDateTime
-        .mapError { error =>
-          SalesforcePriceRiseWriteFailure(s"Failed to get currentTime: $error")
-        }
+      now <- Time.thisInstant
       salesforcePriceRiseCreationDetails = CohortItem(
         subscriptionName = item.subscriptionName,
         processingStage = SalesforcePriceRiceCreationComplete,
         salesforcePriceRiseId = optionalNewPriceRiseId,
-        whenSfShowEstimate = Some(time.toInstant)
+        whenSfShowEstimate = Some(now)
       )
       _ <- CohortTable
         .update(salesforcePriceRiseCreationDetails)
