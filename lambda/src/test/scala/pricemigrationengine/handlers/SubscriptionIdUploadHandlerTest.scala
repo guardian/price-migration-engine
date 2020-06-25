@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import java.io.InputStream
+import java.io.{InputStream, OutputStream}
 import java.time.LocalDate
 
 import pricemigrationengine.TestLogging
@@ -56,6 +56,8 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
           case S3Location("price-migration-engine-dev", "salesforce-subscription-id-report.csv") =>
             loadTestResource("/SubscriptionIds.csv")
         }
+
+        override def putObject(s3Location: S3Location, inputStream: InputStream): IO[S3Failure, Unit] = ???
       }
     )
 
