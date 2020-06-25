@@ -1,9 +1,24 @@
 package pricemigrationengine.handlers
 
 import com.amazonaws.services.lambda.runtime.Context
-import pricemigrationengine.model.CohortTableFilter.{NotificationSendComplete, NotificationSendProcessingOrError, SalesforcePriceRiceCreationComplete}
-import pricemigrationengine.model.membershipworkflow.{EmailMessage, EmailPayload, EmailPayloadContactAttributes, EmailPayloadSubscriberAttributes}
-import pricemigrationengine.model.{CohortItem, CohortTableFilter, EmailSenderFailure, Failure, NotificationHandlerFailure}
+import pricemigrationengine.model.CohortTableFilter.{
+  NotificationSendComplete,
+  NotificationSendProcessingOrError,
+  SalesforcePriceRiceCreationComplete
+}
+import pricemigrationengine.model.membershipworkflow.{
+  EmailMessage,
+  EmailPayload,
+  EmailPayloadContactAttributes,
+  EmailPayloadSubscriberAttributes
+}
+import pricemigrationengine.model.{
+  CohortItem,
+  CohortTableFilter,
+  EmailSenderFailure,
+  Failure,
+  NotificationHandlerFailure
+}
 import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.console.Console
@@ -18,10 +33,10 @@ object NotificationHandler {
 
   val main: ZIO[Logging with CohortTable with SalesforceClient with Clock with EmailSender, Failure, Unit] = {
     for {
-      now <- clock.currentDateTime.mapError(ex => NotificationHandlerFailure(s"Failed to get time: $ex"))
+      today <- Time.today
       subscriptions <- CohortTable.fetch(
         SalesforcePriceRiceCreationComplete,
-        Some(now.toLocalDate.plusDays(NotificationLeadTimeDays))
+        Some(today.plusDays(NotificationLeadTimeDays))
       )
       count <- subscriptions.mapM(sendNotification).runCount
       _ <- Logging.info(s"Successfully sent $count prices rise notifications")
@@ -29,7 +44,7 @@ object NotificationHandler {
   }
 
   def sendNotification(
-    cohortItem: CohortItem
+      cohortItem: CohortItem
   ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock, Failure, Unit] = {
     for {
       sfSubscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
@@ -57,7 +72,7 @@ object NotificationHandler {
                 first_name = firstName,
                 last_name = lastName,
                 billing_address_1 = street,
-                billing_address_2 = None,  //See 'Billing Address Format' section in the readme
+                billing_address_2 = None, //See 'Billing Address Format' section in the readme
                 billing_city = contact.OtherAddress.city,
                 billing_postal_code = postalCode,
                 billing_state = contact.OtherAddress.state,
@@ -87,7 +102,6 @@ object NotificationHandler {
     "Month" -> "Monthly",
     "Quarter" -> "Quarterly",
     "Semi_Annual" -> "Semiannually"
-
   )
 
   def paymentFrequency(billingPeriod: String) =
@@ -97,16 +111,18 @@ object NotificationHandler {
 
   def updateCohortItemStatus(subscriptionNumber: String, processingStage: CohortTableFilter) = {
     for {
-      now <- clock.currentDateTime.mapError(ex => NotificationHandlerFailure(s"Failed to get time: $ex"))
-      _ <- CohortTable.update(
-        CohortItem(
-          subscriptionName = subscriptionNumber,
-          processingStage = processingStage,
-          whenNotificationSent = Some(now.toInstant)
+      now <- Time.thisInstant
+      _ <- CohortTable
+        .update(
+          CohortItem(
+            subscriptionName = subscriptionNumber,
+            processingStage = processingStage,
+            whenNotificationSent = Some(now)
+          )
         )
-      ).mapError { error =>
-        NotificationHandlerFailure(s"Failed set status CohortItem $subscriptionNumber to $processingStage: $error")
-      }
+        .mapError { error =>
+          NotificationHandlerFailure(s"Failed set status CohortItem $subscriptionNumber to $processingStage: $error")
+        }
     } yield ()
   }
 
@@ -118,7 +134,7 @@ object NotificationHandler {
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
         DynamoDBClient.dynamoDB ++ loggingLayer >>>
         DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++
-        EnvConfiguration.stageImp ++ EnvConfiguration.salesforceImp ++ EnvConfiguration.emailSenderImp >>>
+          EnvConfiguration.stageImp ++ EnvConfiguration.salesforceImp ++ EnvConfiguration.emailSenderImp >>>
         CohortTableLive.impl ++ SalesforceClientLive.impl ++ Clock.live ++ EmailSenderLive.impl
     (loggingLayer ++ cohortTableLayer)
       .tapError(e => loggingService.error(s"Failed to create service environment: $e"))

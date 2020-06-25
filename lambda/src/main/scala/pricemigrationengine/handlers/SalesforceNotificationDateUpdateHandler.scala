@@ -8,7 +8,7 @@ import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.console.Console
-import zio.{App, ExitCode, IO, Runtime, ZEnv, ZIO, ZLayer, clock}
+import zio.{App, ExitCode, IO, Runtime, ZEnv, ZIO, ZLayer}
 
 object SalesforceNotificationDateUpdateHandler extends App with RequestHandler[Unit, Unit] {
 
@@ -27,14 +27,11 @@ object SalesforceNotificationDateUpdateHandler extends App with RequestHandler[U
           e => Logging.error(s"Failed to write create Price_Rise in salesforce: $e"),
           result => Logging.info(s"SalesforcePriceRise result: $result")
         )
-      time <- clock.currentDateTime
-        .mapError { error =>
-          SalesforcePriceRiseWriteFailure(s"Failed to get currentTime: $error")
-        }
+      now <- Time.thisInstant
       salesforcePriceRiseDetails = CohortItem(
         subscriptionName = item.subscriptionName,
         processingStage = NotificationSendDateWrittenToSalesforce,
-        whenNotificationSentWrittenToSalesforce = Some(time.toInstant)
+        whenNotificationSentWrittenToSalesforce = Some(now)
       )
       _ <- CohortTable
         .update(salesforcePriceRiseDetails)
@@ -51,11 +48,10 @@ object SalesforceNotificationDateUpdateHandler extends App with RequestHandler[U
       priceRise <- buildPriceRise(cohortItem)
       salesforcePriceRiseId <- IO
         .fromOption(cohortItem.salesforcePriceRiseId)
-        .mapError { _ =>
+        .orElseFail(
           SalesforcePriceRiseWriteFailure(
             "CohortItem.salesforcePriceRiseId is required to update salesforce"
-          )
-        }
+          ))
       result <- SalesforceClient
         .updatePriceRise(salesforcePriceRiseId, priceRise)
         .as(None)
