@@ -25,18 +25,21 @@ object CohortTableDatalakeExportHandler extends App with RequestHandler[Unit, Un
         s"price-migration-engine-${config.stage.toLowerCase}",
         s"cohortTableExport-${today}.csv"
       )
-      recordCount <- writeCsvToS3(records)
+      recordCount <- writeCsvToS3(records, s3Location)
       _ <- Logging
         .info(s"Wrote $recordCount CohortItems to s3: $s3Location")
     } yield ()
   }
 
-  def writeCsvToS3(cohortItems: ZStream[Any, CohortFetchFailure, CohortItem]): ZIO[S3, Failure, Long] = {
+  def writeCsvToS3(
+    cohortItems: ZStream[Any, CohortFetchFailure, CohortItem],
+    s3Location: S3Location
+  ): ZIO[S3, Failure, Long] = {
     for {
       inputStream <- ZIO.effectTotal(new PipedInputStream())
       outputStream <-  ZIO.effectTotal(new PipedOutputStream(inputStream))
       result <- ZIO.tupledPar(
-        S3.putObject(S3Location("", ""), inputStream)
+        S3.putObject(s3Location, inputStream)
           .mapError { failure =>
             CohortTableDatalakeExportFailure(s"Failed to write CohortItems to s3: ${failure.reason}")
           },
@@ -55,7 +58,7 @@ object CohortTableDatalakeExportHandler extends App with RequestHandler[Unit, Un
         new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8.name())),
         csvFormat
       )
-    )(printer => printer.flush()).mapError { ex =>
+    )(printer => printer.close()).mapError { ex =>
       CohortTableDatalakeExportFailure(s"Failed to write CohortItems as CSV to s3: ${ex.getMessage}")
     }
 
