@@ -14,7 +14,7 @@ import zio.{App, ExitCode, Runtime, ZEnv, ZIO, ZLayer}
   */
 object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
 
-  val main: ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora, Failure, Unit] =
+  val main: ZIO[Logging with CohortTable with Zuora, Failure, Unit] =
     for {
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
       cohortItems <- CohortTable.fetch(SalesforcePriceRiceCreationComplete, None)
@@ -23,7 +23,7 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
 
   private def amend(newProductPricing: ZuoraPricingData)(
       item: CohortItem
-  ): ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora, Failure, Unit] =
+  ): ZIO[Logging with CohortTable with Zuora, Failure, Unit] =
     doAmendment(newProductPricing, item).foldM(
       failure = {
         case _: CancelledSubscriptionFailure => CohortTable.update(CohortItem(item.subscriptionName, Cancelled))
@@ -35,16 +35,15 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
   private def doAmendment(
       newProductPricing: ZuoraPricingData,
       item: CohortItem
-  ): ZIO[Logging with AmendmentConfiguration with Zuora, Failure, CohortItem] =
+  ): ZIO[Logging with Zuora, Failure, CohortItem] =
     for {
-      config <- AmendmentConfiguration.amendmentConfig
-      invoicePreviewTargetDate = config.earliestStartDate.plusMonths(13)
+      startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
+      invoicePreviewTargetDate = startDate.plusMonths(13)
       subscriptionBeforeUpdate <- fetchSubscription(item)
       invoicePreviewBeforeUpdate <- Zuora.fetchInvoicePreview(
         subscriptionBeforeUpdate.accountId,
         invoicePreviewTargetDate
       )
-      startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
       update <- ZIO.fromEither(
         ZuoraSubscriptionUpdate
           .updateOfRatePlansToCurrent(
@@ -92,13 +91,13 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
     val loggingLayer = ZLayer.succeed(loggingService)
     val cohortTableLayer =
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
-        DynamoDBClient.dynamoDB ++ loggingLayer ++ EnvConfiguration.amendmentImpl >>>
+        DynamoDBClient.dynamoDB ++ loggingLayer >>>
         DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++ EnvConfiguration.stageImp >>>
         CohortTableLive.impl
     val zuoraLayer =
       EnvConfiguration.zuoraImpl ++ loggingLayer >>>
         ZuoraLive.impl
-    (loggingLayer ++ EnvConfiguration.amendmentImpl ++ cohortTableLayer ++ zuoraLayer)
+    (loggingLayer ++ cohortTableLayer ++ zuoraLayer)
       .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
   }
 
