@@ -34,7 +34,7 @@ object CohortTableDatalakeExportHandler extends App with RequestHandler[Unit, Un
   def writeCsvToS3(
     cohortItems: ZStream[Any, CohortFetchFailure, CohortItem],
     s3Location: S3Location
-  ): ZIO[S3, Failure, Long] = {
+  ): ZIO[S3 with Logging, Failure, Long] = {
     for {
       inputStream <- ZIO.effectTotal(new PipedInputStream())
       outputStream <-  ZIO.effectTotal(new PipedOutputStream(inputStream))
@@ -45,7 +45,8 @@ object CohortTableDatalakeExportHandler extends App with RequestHandler[Unit, Un
           },
         writeCsvToStream(cohortItems, outputStream)
       )
-      (_, count) = result
+      (putResult, count) = result
+      _ <- Logging.info(s"Successfully wrote cohort table to $s3Location: $putResult")
     } yield count
   }
 
