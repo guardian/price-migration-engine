@@ -35,8 +35,9 @@ object CohortTableLive {
       newSubscriptionId <- getOptionalStringFromResults(cohortItem, "newSubscriptionId")
       whenAmendmentDone <- getOptionalInstantFromResults(cohortItem, "whenAmendmentDone")
       whenNotificationSent <- getOptionalInstantFromResults(cohortItem, "whenNotificationSent")
-      whenNotificationSentWrittenToSalesforce <-
-        getOptionalInstantFromResults(cohortItem, "whenNotificationSentWrittenToSalesforce")
+      whenNotificationSentWrittenToSalesforce <- getOptionalInstantFromResults(
+        cohortItem,
+        "whenNotificationSentWrittenToSalesforce")
     } yield
       CohortItem(
         subscriptionName = subscriptionNumber,
@@ -87,13 +88,15 @@ object CohortTableLive {
         cohortItem.whenNotificationSent
           .map(whenNotificationSent => instantFieldUpdate("whenNotificationSent", whenNotificationSent)),
         cohortItem.whenNotificationSentWrittenToSalesforce
-          .map(whenNotificationSentWrittenToSalesforce =>
-            instantFieldUpdate(
-              "whenNotificationSentWrittenToSalesforce",
-              whenNotificationSentWrittenToSalesforce
-            )
-          )
-  ).flatten.toMap.asJava
+          .map(
+            whenNotificationSentWrittenToSalesforce =>
+              instantFieldUpdate(
+                "whenNotificationSentWrittenToSalesforce",
+                whenNotificationSentWrittenToSalesforce
+            )),
+        cohortItem.whenAmendmentWrittenToSalesforce.map(instant =>
+          instantFieldUpdate("whenAmendmentWrittenToSalesforce", instant))
+      ).flatten.toMap.asJava
 
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =
     key => Map(stringUpdate("subscriptionNumber", key.subscriptionNumber)).asJava
