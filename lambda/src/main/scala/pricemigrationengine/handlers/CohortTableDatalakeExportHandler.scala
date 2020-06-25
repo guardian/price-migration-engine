@@ -58,7 +58,7 @@ object CohortTableDatalakeExportHandler extends App with RequestHandler[Unit, Un
         new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8.name())),
         csvFormat
       )
-    )(printer => printer.close()).mapError { ex =>
+    )(printer => printer.close(true)).mapError { ex =>
       CohortTableDatalakeExportFailure(s"Failed to write CohortItems as CSV to s3: ${ex.getMessage}")
     }
 
@@ -66,7 +66,7 @@ object CohortTableDatalakeExportHandler extends App with RequestHandler[Unit, Un
      cohortItems
        .mapM { cohortItem =>
           ZIO
-            .effect(printer.printRecord(""))
+            .effect(printer.printRecord("abc"))
             .mapError { ex =>
               CohortTableDatalakeExportFailure(s"Failed to write CohortItem as CSV to s3: ${ex.getMessage}")
             }
