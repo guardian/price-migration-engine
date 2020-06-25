@@ -19,11 +19,8 @@ object CohortTableDatalakeExportHandler extends App with RequestHandler[Unit, Un
   val main: ZIO[CohortTable with Logging with S3 with StageConfiguration with Clock, Failure, Unit] = {
     for {
       config <- StageConfiguration.stageConfig
-
-      records <- CohortTable.fetch(ReadyForEstimation, None)
-
+      records <- CohortTable.fetchAll()
       today <- Time.today
-
       s3Location = S3Location(
         s"price-migration-engine-${config.stage.toLowerCase}",
         s"cohortTableExport-${today}.csv"
