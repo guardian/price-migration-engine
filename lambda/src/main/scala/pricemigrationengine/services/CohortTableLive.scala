@@ -2,7 +2,7 @@ package pricemigrationengine.services
 
 import java.time.LocalDate
 
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, QueryRequest}
+import com.amazonaws.services.dynamodbv2.model.{AttributeValue, QueryRequest, ScanRequest}
 import pricemigrationengine.model._
 import pricemigrationengine.model.dynamodb.Conversions._
 import pricemigrationengine.services.CohortTable.Service
@@ -168,6 +168,23 @@ object CohortTableLive {
                 e => Logging.error(s"Failed to update Cohort table: $e"),
                 _ => Logging.info(s"Wrote $result to Cohort table")
               )
+          }.provide(dependencies)
+
+          override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
+            for {
+              cohortTableConfig <- CohortTableConfiguration.cohortTableConfig
+                .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
+              stageConfig <- StageConfiguration.stageConfig
+                .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
+              queryRequest = new ScanRequest()
+                .withTableName(s"PriceMigrationEngine${stageConfig.stage}")
+                .withLimit(cohortTableConfig.batchSize)
+              queryResults <- DynamoDBZIO
+                .scan(
+                  queryRequest
+                )
+                .map(_.mapError(error => CohortFetchFailure(error.toString)))
+            } yield queryResults
           }.provide(dependencies)
         }
     }

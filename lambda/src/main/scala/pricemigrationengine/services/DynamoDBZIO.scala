@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, AttributeValueUpdate, QueryRequest}
+import com.amazonaws.services.dynamodbv2.model.{AttributeValue, AttributeValueUpdate, QueryRequest, ScanRequest}
 import zio.stream.ZStream
 import zio.{IO, URIO, ZIO}
 
@@ -14,6 +14,8 @@ object DynamoDBZIO {
   trait Service {
     def query[A](query: QueryRequest)
                 (implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A]
+    def scan[A](query: ScanRequest)
+                (implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A]
     def update[A, B](table: String, key: A, value: B)
                     (implicit keySerializer: DynamoDBSerialiser[A],
                      valueSerializer: DynamoDBUpdateSerialiser[B]): IO[DynamoDBZIOError, Unit]
@@ -25,6 +27,12 @@ object DynamoDBZIO {
     query: QueryRequest
   )(implicit deserializer: DynamoDBDeserialiser[A]): URIO[DynamoDBZIO, ZStream[Any, DynamoDBZIOError, A]] = {
     ZIO.access(_.get.query(query))
+  }
+
+  def scan[A](
+    query: ScanRequest
+  )(implicit deserializer: DynamoDBDeserialiser[A]): URIO[DynamoDBZIO, ZStream[Any, DynamoDBZIOError, A]] = {
+    ZIO.access(_.get.scan(query))
   }
 
   def update[A, B](table: String, key: A, value: B)
