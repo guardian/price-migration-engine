@@ -40,6 +40,7 @@ Resources:
           - Effect: Allow
             Action:
               - dynamodb:Query
+              - dynamodb:Scan
               - dynamodb:UpdateItem
               - dynamodb:PutItem
             Resource:
