@@ -1,27 +1,13 @@
 package pricemigrationengine.handlers
 
 import com.amazonaws.services.lambda.runtime.Context
-import pricemigrationengine.model.CohortTableFilter.{
-  NotificationSendComplete,
-  NotificationSendProcessingOrError,
-  SalesforcePriceRiceCreationComplete
-}
-import pricemigrationengine.model.membershipworkflow.{
-  EmailMessage,
-  EmailPayload,
-  EmailPayloadContactAttributes,
-  EmailPayloadSubscriberAttributes
-}
-import pricemigrationengine.model.{
-  CohortItem,
-  CohortTableFilter,
-  EmailSenderFailure,
-  Failure,
-  NotificationHandlerFailure
-}
+import pricemigrationengine.model.CohortTableFilter.{NotificationSendComplete, NotificationSendProcessingOrError, SalesforcePriceRiceCreationComplete}
+import pricemigrationengine.model.membershipworkflow.{EmailMessage, EmailPayload, EmailPayloadContactAttributes, EmailPayloadSubscriberAttributes}
+import pricemigrationengine.model.{CohortItem, CohortTableFilter, EmailSenderFailure, Failure, NotificationHandlerFailure}
 import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.console.Console
+import zio.stream.ZStream
 import zio.{Runtime, ZEnv, ZIO, ZLayer, clock}
 
 object NotificationHandler {
@@ -38,7 +24,14 @@ object NotificationHandler {
         SalesforcePriceRiceCreationComplete,
         Some(today.plusDays(NotificationLeadTimeDays))
       )
-      count <- subscriptions.take(100).mapM(sendNotification).runCount
+      count <- subscriptions
+        .take(100)
+        .mapM(sendNotification)
+        .catchAll { failure =>
+          Logging.error(s"Failed to send price rise notification: $failure")
+          ZStream.empty
+        }
+        .runCount
       _ <- Logging.info(s"Successfully sent $count prices rise notifications")
     } yield ()
   }
