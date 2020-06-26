@@ -221,7 +221,7 @@ class NotificationHandlerTest extends munit.FunSuite {
             TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ failingStubEmailSender
           )
       ),
-      Failure(Cause.fail(EmailSenderFailure("Bang!!")))
+      Success()
     )
 
     assertEquals(updatedResultsWrittenToCohortTable.size, 1)
