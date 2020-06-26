@@ -38,7 +38,7 @@ object NotificationHandler {
         SalesforcePriceRiceCreationComplete,
         Some(today.plusDays(NotificationLeadTimeDays))
       )
-      count <- subscriptions.mapM(sendNotification).runCount
+      count <- subscriptions.take(100).mapM(sendNotification).runCount
       _ <- Logging.info(s"Successfully sent $count prices rise notifications")
     } yield ()
   }
