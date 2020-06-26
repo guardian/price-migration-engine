@@ -188,7 +188,7 @@ Resources:
                   - logs:PutLogEvents
                   - lambda:InvokeFunction
                 Resource:
-                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-notification-email-lambda-${Stage}:log-stream:*"
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-notification-lambda-${Stage}:log-stream:*"
         - PolicyName: SendNotificationRequestSQSMessage
           PolicyDocument:
             Statement:
