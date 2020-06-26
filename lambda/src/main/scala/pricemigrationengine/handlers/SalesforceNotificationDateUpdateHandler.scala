@@ -35,10 +35,6 @@ object SalesforceNotificationDateUpdateHandler extends App with RequestHandler[U
       )
       _ <- CohortTable
         .update(salesforcePriceRiseDetails)
-        .tapBoth(
-          e => Logging.error(s"Failed to update Cohort table: $e"),
-          _ => Logging.info(s"Wrote $salesforcePriceRiseDetails to Cohort table")
-        )
     } yield ()
 
   private def updateSalesforce(
