@@ -17,5 +17,6 @@ case class CohortItem(
     newSubscriptionId: Option[ZuoraSubscriptionId] = None,
     whenAmendmentDone: Option[Instant] = None,
     whenNotificationSent: Option[Instant] = None,
-    whenNotificationSentWrittenToSalesforce: Option[Instant] = None
+    whenNotificationSentWrittenToSalesforce: Option[Instant] = None,
+    whenAmendmentWrittenToSalesforce: Option[Instant] = None
 )
