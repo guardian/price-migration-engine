@@ -15,6 +15,9 @@ object NotificationHandler {
   //https://github.com/guardian/membership-workflow/blob/master/conf/PROD.public.conf#L39
   val BrazeCampaignName = "SV_VO_Pricerise_Q22020"
 
+  val Successful = 1
+  val Unsuccessful = 0
+
   private val NotificationLeadTimeDays = 37
 
   val main: ZIO[Logging with CohortTable with SalesforceClient with Clock with EmailSender, Failure, Unit] = {
@@ -27,19 +30,16 @@ object NotificationHandler {
       count <- subscriptions
         .take(100)
         .mapM(sendNotification)
-        .catchAll { failure =>
-          Logging.error(s"Failed to send price rise notification: $failure")
-          ZStream.empty
-        }
-        .runCount
+        .fold(0) { (sum, count) => sum + count }
       _ <- Logging.info(s"Successfully sent $count prices rise notifications")
     } yield ()
   }
 
   def sendNotification(
       cohortItem: CohortItem
-  ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock, Failure, Unit] = {
-    for {
+  ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock with Logging, Failure, Int] = {
+    val result = for {
+      _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       sfSubscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
       emailAddress <- requiredField(contact.Email, "Contact.Email")
@@ -84,7 +84,13 @@ object NotificationHandler {
       )
 
       _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete)
-    } yield ()
+    } yield Successful
+
+    result.catchAll { failure =>
+      for {
+        _ <- Logging.error(s"Failed to send price rise notification: $failure")
+      } yield Unsuccessful
+    }
   }
 
   def requiredField(field: Option[String], fieldName: String): ZIO[Any, NotificationHandlerFailure, String] = {
