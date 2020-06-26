@@ -32,12 +32,7 @@ object SalesforcePriceRiseCreationHandler extends App with RequestHandler[Unit, 
         salesforcePriceRiseId = optionalNewPriceRiseId,
         whenSfShowEstimate = Some(now)
       )
-      _ <- CohortTable
-        .update(salesforcePriceRiseCreationDetails)
-        .tapBoth(
-          e => Logging.error(s"Failed to update Cohort table: $e"),
-          _ => Logging.info(s"Wrote $salesforcePriceRiseCreationDetails to Cohort table")
-        )
+      _ <- CohortTable.update(salesforcePriceRiseCreationDetails)
     } yield ()
 
   private def updateSalesforce(
