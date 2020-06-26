@@ -3,7 +3,11 @@ package pricemigrationengine.handlers
 import java.time.Instant
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, Cancelled, SalesforcePriceRiceCreationComplete}
+import pricemigrationengine.model.CohortTableFilter.{
+  AmendmentComplete,
+  Cancelled,
+  NotificationSendDateWrittenToSalesforce
+}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.console.Console
@@ -17,7 +21,7 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
   val main: ZIO[Logging with CohortTable with Zuora, Failure, Unit] =
     for {
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
-      cohortItems <- CohortTable.fetch(SalesforcePriceRiceCreationComplete, None)
+      cohortItems <- CohortTable.fetch(NotificationSendDateWrittenToSalesforce, None)
       _ <- cohortItems.foreach(amend(newProductPricing))
     } yield ()
 
