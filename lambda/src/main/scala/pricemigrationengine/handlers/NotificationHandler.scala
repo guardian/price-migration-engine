@@ -42,7 +42,6 @@ object NotificationHandler {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       sfSubscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
-      emailAddress <- requiredField(contact.Email, "Contact.Email")
       firstName <- requiredField(contact.FirstName, "Contact.FirstName")
       lastName <- requiredField(contact.LastName, "Contact.LastName")
       street <- requiredField(contact.OtherAddress.street, "Contact.OtherAddress.street")
@@ -58,7 +57,7 @@ object NotificationHandler {
       _ <- EmailSender.sendEmail(
         message = EmailMessage(
           EmailPayload(
-            Address = emailAddress,
+            Address = contact.Email.getOrElse(""),
             ContactAttributes = EmailPayloadContactAttributes(
               SubscriberAttributes = EmailPayloadSubscriberAttributes(
                 title = contact.Salutation,
