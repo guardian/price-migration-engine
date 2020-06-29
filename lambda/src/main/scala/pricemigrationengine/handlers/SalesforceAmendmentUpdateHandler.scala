@@ -16,7 +16,12 @@ object SalesforceAmendmentUpdateHandler extends zio.App with RequestHandler[Unit
   private val main: ZIO[CohortTable with SalesforceClient with Clock with Logging, Failure, Unit] =
     for {
       cohortItems <- CohortTable.fetch(AmendmentComplete, None)
-      _ <- cohortItems.foreach(updateSfWithNewSubscriptionId)
+      _ <- cohortItems.foreach(
+        item =>
+          updateSfWithNewSubscriptionId(item).tapBoth(
+            e => Logging.error(s"Failed to update price rise record for ${item.subscriptionName}: $e"),
+            _ => Logging.info(s"Amendment of ${item.subscriptionName} recorded in Salesforce")
+        ))
     } yield ()
 
   private def updateSfWithNewSubscriptionId(
@@ -26,16 +31,8 @@ object SalesforceAmendmentUpdateHandler extends zio.App with RequestHandler[Unit
       priceRise <- ZIO.fromEither(buildPriceRise(item))
       salesforcePriceRiseId <- IO
         .fromOption(item.salesforcePriceRiseId)
-        .orElseFail(
-          SalesforcePriceRiseWriteFailure(
-            s"${item.subscriptionName}: salesforcePriceRiseId is required to update Salesforce"
-          ))
-      _ <- SalesforceClient
-        .updatePriceRise(salesforcePriceRiseId, priceRise)
-        .tapBoth(
-          e => Logging.error(s"${item.subscriptionName}: failed to update Salesforce: $e"),
-          _ => Logging.info(s"Amendment of ${item.subscriptionName} recorded in Salesforce")
-        )
+        .orElseFail(SalesforcePriceRiseWriteFailure("salesforcePriceRiseId is required to update Salesforce"))
+      _ <- SalesforceClient.updatePriceRise(salesforcePriceRiseId, priceRise)
       now <- Time.thisInstant
       _ <- CohortTable
         .update(
