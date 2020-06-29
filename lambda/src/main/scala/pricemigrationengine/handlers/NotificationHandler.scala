@@ -57,7 +57,7 @@ object NotificationHandler {
       _ <- EmailSender.sendEmail(
         message = EmailMessage(
           EmailPayload(
-            Address = contact.Email.getOrElse(""),
+            Address = contact.Email,
             ContactAttributes = EmailPayloadContactAttributes(
               SubscriberAttributes = EmailPayloadSubscriberAttributes(
                 title = contact.Salutation,

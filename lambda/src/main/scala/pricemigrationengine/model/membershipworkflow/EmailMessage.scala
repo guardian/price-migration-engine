@@ -30,7 +30,7 @@ object EmailPayloadContactAttributes {
   implicit val rw: ReadWriter[EmailPayloadContactAttributes] = macroRW
 }
 
-case class EmailPayload(Address: String, ContactAttributes: EmailPayloadContactAttributes)
+case class EmailPayload(Address: Option[String], ContactAttributes: EmailPayloadContactAttributes)
 
 object EmailPayload {
   implicit val rw: ReadWriter[EmailPayload] = macroRW
