@@ -52,6 +52,7 @@ Resources:
         - Ref: PriceMigrationEngineSubscriptionIdUploadLambdaRole
         - Ref: PriceMigrationEngineNotificationLambdaRole
         - Ref: PriceMigrationEngineSalesforceNotificationDateUpdateLambdaRole
+        - Ref: PriceMigrationEngineSalesforceAmendmentUpdateLambdaRole
 
   PriceMigrationEngineEstimationLambdaRole:
     Type: AWS::IAM::Role
@@ -224,6 +225,31 @@ Resources:
                   - lambda:InvokeFunction
                 Resource:
                   - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-salesforce-notification-date-update-lambda-${Stage}:log-stream:*"
+
+  PriceMigrationEngineSalesforceAmendmentUpdateLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - lambda:InvokeFunction
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-salesforce-amendment-update-lambda-${Stage}:log-stream:*"
 
   S3Bucket:
     Type: AWS::S3::Bucket
@@ -476,6 +502,54 @@ Resources:
       Timeout: 900
     DependsOn:
       - PriceMigrationEngineSalesforceNotificationDateUpdateLambdaRole
+
+  PriceMigrationEngineSalesforceAmendmentUpdateLambda:
+    Type: AWS::Lambda::Function
+    DependsOn:
+      - PriceMigrationEngineSalesforceAmendmentUpdateLambdaRole
+    Properties:
+      Description: Updates Salesforce with evidence of the price-rise amendment that was applied in Zuora.
+      FunctionName:
+        !Sub price-migration-engine-salesforce-amendment-update-lambda-${Stage}
+      Code:
+        S3Bucket: membership-dist
+        S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
+      Handler: pricemigrationengine.handlers.SalesforceAmendmentUpdateHandler::handleRequest
+      Environment:
+        Variables:
+          stage: !Ref Stage
+          batchSize: 100
+          salesforceAuthUrl:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceAuthUrl::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforceClientId:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceClientId::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforceClientSecret:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceClientSecret::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforceUserName:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceUserName::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforcePassword:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforcePassword::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforceToken:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceToken::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+      Role:
+        Fn::GetAtt:
+          - PriceMigrationEngineSalesforceAmendmentUpdateLambdaRole
+          - Arn
+      MemorySize: 1536
+      Runtime: java8
+      Timeout: 900
 
 Outputs:
   PriceMigrationEngineEstimationLambdaOutput:
