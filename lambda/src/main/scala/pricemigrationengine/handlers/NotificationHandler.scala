@@ -45,9 +45,10 @@ object NotificationHandler {
       emailAddress <- requiredField(contact.Email, "Contact.Email")
       firstName <- requiredField(contact.FirstName, "Contact.FirstName")
       lastName <- requiredField(contact.LastName, "Contact.LastName")
-      street <- requiredField(contact.OtherAddress.street, "Contact.OtherAddress.street")
-      postalCode <- requiredField(contact.OtherAddress.postalCode, "Contact.OtherAddress.postalCode")
-      country <- requiredField(contact.OtherAddress.country, "Contact.OtherAddress.country")
+      otherAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress" )
+      street <- requiredField(otherAddress.street, "Contact.OtherAddress.street")
+      postalCode <- requiredField(otherAddress.postalCode, "Contact.OtherAddress.postalCode")
+      country <- requiredField(otherAddress.country, "Contact.OtherAddress.country")
       estimatedNewPrice <- requiredField(cohortItem.estimatedNewPrice.map(_.toString()), "CohortItem.estimatedNewPrice")
       startDate <- requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate")
       billingPeriod <- requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod")
@@ -66,9 +67,9 @@ object NotificationHandler {
                 last_name = lastName,
                 billing_address_1 = street,
                 billing_address_2 = None, //See 'Billing Address Format' section in the readme
-                billing_city = contact.OtherAddress.city,
+                billing_city = otherAddress.city,
                 billing_postal_code = postalCode,
-                billing_state = contact.OtherAddress.state,
+                billing_state = otherAddress.state,
                 billing_country = country,
                 payment_amount = estimatedNewPrice,
                 next_payment_date = startDate,
@@ -93,14 +94,15 @@ object NotificationHandler {
     }
   }
 
-  def requiredField(field: Option[String], fieldName: String): ZIO[Any, NotificationHandlerFailure, String] = {
+  def requiredField[A](field: Option[A], fieldName: String): ZIO[Any, NotificationHandlerFailure, A] = {
     ZIO.fromOption(field).orElseFail(NotificationHandlerFailure(s"$fieldName is a required field"))
   }
 
   val paymentFrequencyMapping = Map(
     "Month" -> "Monthly",
     "Quarter" -> "Quarterly",
-    "Semi_Annual" -> "Semiannually"
+    "Semi_Annual" -> "Semiannually",
+    "Annual" -> "Annually"
   )
 
   def paymentFrequency(billingPeriod: String) =
