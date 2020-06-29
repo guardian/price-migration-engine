@@ -101,7 +101,8 @@ object NotificationHandler {
   val paymentFrequencyMapping = Map(
     "Month" -> "Monthly",
     "Quarter" -> "Quarterly",
-    "Semi_Annual" -> "Semiannually"
+    "Semi_Annual" -> "Semiannually",
+    "Annual" -> "Annually"
   )
 
   def paymentFrequency(billingPeriod: String) =
