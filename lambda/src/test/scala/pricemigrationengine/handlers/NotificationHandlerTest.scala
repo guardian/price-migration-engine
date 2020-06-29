@@ -133,12 +133,14 @@ class NotificationHandlerTest extends munit.FunSuite {
       FirstName = Some(expectedFirstName),
       LastName = Some(expectedLastName),
       OtherAddress =
-        SalesforceAddress(
-          street = Some(expectedStreet),
-          city = Some(expectedCity),
-          state = Some(expectedState),
-          postalCode = Some(expectedPostalCode),
-          country = Some(expectedCountry),
+        Some(
+          SalesforceAddress(
+            street = Some(expectedStreet),
+            city = Some(expectedCity),
+            state = Some(expectedState),
+            postalCode = Some(expectedPostalCode),
+            country = Some(expectedCountry),
+          )
         )
     )
 
