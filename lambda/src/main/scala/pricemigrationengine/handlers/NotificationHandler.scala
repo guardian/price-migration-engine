@@ -1,9 +1,9 @@
 package pricemigrationengine.handlers
 
 import com.amazonaws.services.lambda.runtime.Context
-import pricemigrationengine.model.CohortTableFilter.{NotificationSendComplete, NotificationSendProcessingOrError, SalesforcePriceRiceCreationComplete}
+import pricemigrationengine.model.CohortTableFilter.{Cancelled, NotificationSendComplete, NotificationSendProcessingOrError, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model.membershipworkflow.{EmailMessage, EmailPayload, EmailPayloadContactAttributes, EmailPayloadSubscriberAttributes}
-import pricemigrationengine.model.{CohortItem, CohortTableFilter, EmailSenderFailure, Failure, NotificationHandlerFailure}
+import pricemigrationengine.model.{CohortItem, CohortTableFilter, EmailSenderFailure, Failure, NotificationHandlerFailure, SalesforceSubscription}
 import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.console.Console
@@ -18,6 +18,8 @@ object NotificationHandler {
   val Successful = 1
   val Unsuccessful = 0
 
+  val Cancelled_Status = "Cancelled"
+
   private val NotificationLeadTimeDays = 37
 
   val main: ZIO[Logging with CohortTable with SalesforceClient with Clock with EmailSender, Failure, Unit] = {
@@ -28,7 +30,7 @@ object NotificationHandler {
         Some(today.plusDays(NotificationLeadTimeDays))
       )
       count <- subscriptions
-        .take(100)
+        .take(150)
         .mapM(sendNotification)
         .fold(0) { (sum, count) => sum + count }
       _ <- Logging.info(s"Successfully sent $count prices rise notifications")
@@ -36,16 +38,29 @@ object NotificationHandler {
   }
 
   def sendNotification(
-      cohortItem: CohortItem
-  ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock with Logging, Failure, Int] = {
+    cohortItem: CohortItem
+  ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock with Logging, Failure, Int] =
+    for {
+      sfSubscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
+      count <-
+        if (sfSubscription.Status__c != Cancelled_Status) {
+          sendNotification(cohortItem, sfSubscription)
+        } else {
+          putSubIntoCancelledStatus(cohortItem.subscriptionName)
+        }
+    } yield count
+
+  def sendNotification(
+                        cohortItem: CohortItem,
+                        sfSubscription: SalesforceSubscription
+                      ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock with Logging, Failure, Int] = {
     val result = for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
-      sfSubscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
       emailAddress <- requiredField(contact.Email, "Contact.Email")
       firstName <- requiredField(contact.FirstName, "Contact.FirstName")
       lastName <- requiredField(contact.LastName, "Contact.LastName")
-      otherAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress" )
+      otherAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
       street <- requiredField(otherAddress.street, "Contact.OtherAddress.street")
       postalCode <- requiredField(otherAddress.postalCode, "Contact.OtherAddress.postalCode")
       country <- requiredField(otherAddress.country, "Contact.OtherAddress.country")
@@ -126,6 +141,18 @@ object NotificationHandler {
         }
     } yield ()
   }
+
+  def putSubIntoCancelledStatus(subscriptionName: String): ZIO[Logging with CohortTable, Failure, Int] =
+    for {
+      _ <- CohortTable
+        .update(
+          CohortItem(
+            subscriptionName = subscriptionName,
+            processingStage = Cancelled,
+          )
+        )
+      _ <- Logging.error(s"Subscription $subscriptionName has been cancelled, price rise notification not sent")
+    } yield 0
 
   private def env(
       loggingService: Logging.Service
