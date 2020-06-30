@@ -51,9 +51,9 @@ object NotificationHandler {
     } yield count
 
   def sendNotification(
-                        cohortItem: CohortItem,
-                        sfSubscription: SalesforceSubscription
-                      ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock with Logging, Failure, Int] = {
+    cohortItem: CohortItem,
+    sfSubscription: SalesforceSubscription
+  ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock with Logging, Failure, Int] = {
     val result = for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
