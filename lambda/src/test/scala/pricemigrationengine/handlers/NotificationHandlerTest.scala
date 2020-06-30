@@ -4,7 +4,7 @@ import java.time._
 import java.time.temporal.ChronoUnit
 
 import pricemigrationengine.{StubClock, TestLogging}
-import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, NotificationSendComplete, NotificationSendProcessingOrError, EstimationComplete, SalesforcePriceRiceCreationComplete}
+import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, Cancelled, NotificationSendComplete, NotificationSendProcessingOrError, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
 import pricemigrationengine.services._
@@ -36,6 +36,7 @@ class NotificationHandlerTest extends munit.FunSuite {
   val expectedCountry = "buyer1Country"
   val expectedDataExtensionName = "SV_VO_Pricerise_Q22020"
   val expectedSalutation = "Ms"
+  val expectedSfStatus = "Active"
 
   def createStubCohortTable(updatedResultsWrittenToCohortTable:ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
@@ -121,7 +122,8 @@ class NotificationHandlerTest extends munit.FunSuite {
     SalesforceSubscription(
       expectedSFSubscriptionId,
       expectedSubscriptionName,
-      expectedBuyerId
+      expectedBuyerId,
+      expectedSfStatus
     )
 
   private val salesforceContact: SalesforceContact =
@@ -210,7 +212,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
   }
 
-  test("NotificationHandler should leave ChortItem in processing state if email send fails") {
+  test("NotificationHandler should leave CohortItem in processing state if email send fails") {
     val stubSalesforceClient = stubSFClient(List(salesforceSubscription), List(salesforceContact))
     val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
     val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
@@ -235,5 +237,34 @@ class NotificationHandlerTest extends munit.FunSuite {
         whenNotificationSent = Some(StubClock.expectedCurrentTime)
       )
     )
+  }
+
+  test("NotificationHandler should leave CohortItem in cancelled state if subscription is cancelled") {
+    val cancelledSubscription = salesforceSubscription.copy(Status__c = "Cancelled")
+    val stubSalesforceClient = stubSFClient(List(cancelledSubscription), List(salesforceContact))
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
+    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
+    val sentMessages = ArrayBuffer[EmailMessage]()
+    val stubEmailSender = createStubEmailSender(sentMessages)
+
+    assertEquals(
+      default.unsafeRunSync(
+        NotificationHandler.main
+          .provideLayer(
+            TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
+          )
+      ),
+      Success()
+    )
+
+    assertEquals(updatedResultsWrittenToCohortTable.size, 1)
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0),
+      CohortItem(
+        subscriptionName = expectedSubscriptionName,
+        processingStage = Cancelled,
+      )
+    )
+    assertEquals(sentMessages.size, 0)
   }
 }
