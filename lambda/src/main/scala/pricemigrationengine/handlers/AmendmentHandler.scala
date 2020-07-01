@@ -1,15 +1,10 @@
 package pricemigrationengine.handlers
 
-import java.time.Instant
-
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import pricemigrationengine.model.CohortTableFilter.{
-  AmendmentComplete,
-  Cancelled,
-  NotificationSendDateWrittenToSalesforce
-}
+import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 import pricemigrationengine.model._
 import pricemigrationengine.services._
+import zio.clock.Clock
 import zio.console.Console
 import zio.{App, ExitCode, Runtime, ZEnv, ZIO, ZLayer}
 
@@ -18,70 +13,67 @@ import zio.{App, ExitCode, Runtime, ZEnv, ZIO, ZLayer}
   */
 object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
 
-  val main: ZIO[Logging with CohortTable with Zuora, Failure, Unit] =
+  val main: ZIO[Logging with CohortTable with Zuora with Clock, Failure, Unit] =
     for {
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
-      cohortItems <- CohortTable.fetch(NotificationSendDateWrittenToSalesforce, None)
-      _ <- cohortItems.foreach(amend(newProductPricing))
+      cohortItems <- CohortTable
+        .fetch(NotificationSendDateWrittenToSalesforce, None)
+      _ <- cohortItems.foreach(
+        item =>
+          amend(newProductPricing, item).tapBoth(
+            Logging.logFailure(item),
+            Logging.logSuccess(item)
+        ))
     } yield ()
 
-  private def amend(newProductPricing: ZuoraPricingData)(
-      item: CohortItem
-  ): ZIO[Logging with CohortTable with Zuora, Failure, Unit] =
-    doAmendment(newProductPricing, item).foldM(
-      failure = {
-        case _: CancelledSubscriptionFailure => CohortTable.update(CohortItem(item.subscriptionName, Cancelled))
-        case e                               => ZIO.fail(e)
-      },
-      success = CohortTable.update
-    )
+  private def amend(newProductPricing: ZuoraPricingData,
+                    item: CohortItem): ZIO[CohortTable with Zuora with Clock, Failure, AmendmentResult] =
+    for {
+      result <- doAmendment(newProductPricing, item).foldM(
+        failure = {
+          case _: CancelledSubscriptionFailure =>
+            val result = CancelledAmendmentResult(item.subscriptionName)
+            CohortTable.update(CohortItem.fromCancelledAmendmentResult(result)) zipRight ZIO.succeed(result)
+          case e => ZIO.fail(e)
+        },
+        success = { result =>
+          CohortTable.update(
+            CohortItem.fromSuccessfulAmendmentResult(result)
+          ) zipRight ZIO.succeed(result)
+        }
+      )
+    } yield result
 
-  private def doAmendment(
-      newProductPricing: ZuoraPricingData,
-      item: CohortItem
-  ): ZIO[Logging with Zuora, Failure, CohortItem] =
+  private def doAmendment(newProductPricing: ZuoraPricingData,
+                          item: CohortItem): ZIO[Zuora with Clock, Failure, SuccessfulAmendmentResult] =
     for {
       startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
+      oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(AmendmentDataFailure(s"No old price in $item"))
+      estimatedNewPrice <- ZIO
+        .fromOption(item.estimatedNewPrice)
+        .orElseFail(AmendmentDataFailure(s"No estimated new price in $item"))
       invoicePreviewTargetDate = startDate.plusMonths(13)
       subscriptionBeforeUpdate <- fetchSubscription(item)
-      invoicePreviewBeforeUpdate <- Zuora.fetchInvoicePreview(
-        subscriptionBeforeUpdate.accountId,
-        invoicePreviewTargetDate
-      )
-      update <- ZIO.fromEither(
-        ZuoraSubscriptionUpdate
-          .updateOfRatePlansToCurrent(
-            newProductPricing,
-            subscriptionBeforeUpdate,
-            invoicePreviewBeforeUpdate,
-            startDate
-          )
-      )
+      invoicePreviewBeforeUpdate <- Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId,
+                                                              invoicePreviewTargetDate)
+      update <- ZIO.fromEither(ZuoraSubscriptionUpdate
+        .updateOfRatePlansToCurrent(newProductPricing, subscriptionBeforeUpdate, invoicePreviewBeforeUpdate, startDate))
       newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
       subscriptionAfterUpdate <- fetchSubscription(item)
-      invoicePreviewAfterUpdate <- Zuora.fetchInvoicePreview(
-        subscriptionAfterUpdate.accountId,
-        invoicePreviewTargetDate
-      )
-      totalChargeAmount <- ZIO
-        .fromEither(AmendmentData.totalChargeAmount(subscriptionAfterUpdate, invoicePreviewAfterUpdate, startDate))
-        .mapError(
-          e =>
-            AmendmentDataFailure(
-              s"Failed to calculate amendment of subscription ${subscriptionBeforeUpdate.subscriptionNumber}: $e"
-          )
-        )
-        .tap(newPrice =>
-          Logging.info(
-            s"Amendment made: ${item.subscriptionName}: price change on $startDate: ${item.oldPrice} -> $newPrice (estimated ${item.estimatedNewPrice})"))
+      invoicePreviewAfterUpdate <- Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId,
+                                                             invoicePreviewTargetDate)
+      newPrice <- ZIO.fromEither(
+        AmendmentData.totalChargeAmount(subscriptionAfterUpdate, invoicePreviewAfterUpdate, startDate))
+      whenDone <- Time.thisInstant
     } yield
-      CohortItem(
-        subscriptionBeforeUpdate.subscriptionNumber,
-        processingStage = AmendmentComplete,
-        startDate = Option(startDate),
-        newPrice = Some(totalChargeAmount),
-        newSubscriptionId = Some(newSubscriptionId),
-        whenAmendmentDone = Some(Instant.now())
+      SuccessfulAmendmentResult(
+        item.subscriptionName,
+        startDate,
+        oldPrice,
+        newPrice,
+        estimatedNewPrice,
+        newSubscriptionId,
+        whenDone
       )
 
   private def fetchSubscription(item: CohortItem): ZIO[Zuora, Failure, ZuoraSubscription] =
@@ -109,14 +101,14 @@ object AmendmentHandler extends App with RequestHandler[Unit, Unit] {
 
   def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
     main
-      .provideSomeLayer(
+      .provideCustomLayer(
         env(ConsoleLogging.service(Console.Service.live))
       )
       .exitCode
 
   def handleRequest(unused: Unit, context: Context): Unit =
     runtime.unsafeRun(
-      main.provideSomeLayer(
+      main.provideCustomLayer(
         env(LambdaLogging.service(context))
       )
     )
