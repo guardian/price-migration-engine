@@ -259,7 +259,7 @@ Resources:
   PriceMigrationEngineEstimationLambda:
     Type: AWS::Lambda::Function
     Properties:
-      Description: Lambda used to create estimated price, start date and other details of a price rise
+      Description: Lambda used to create estimated price, start date and other details of a price rise.
       FunctionName:
         !Sub price-migration-engine-estimation-lambda-${Stage}
       Code:
@@ -271,16 +271,16 @@ Resources:
           stage: !Ref Stage
           zuoraApiHost:
             !Sub
-              - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraApiHost::${SecretsVersion}}}'
-              - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraApiHost::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
           zuoraClientId:
             !Sub
-              - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientId::${SecretsVersion}}}'
-              - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientId::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
           zuoraClientSecret:
             !Sub
-              - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret::${SecretsVersion}}}'
-              - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
           earliestStartDate: !FindInMap [StageMap, !Ref Stage, EarliestStartDate]
           batchSize: 100
       Role:
@@ -560,3 +560,15 @@ Outputs:
     Value: !GetAtt PriceMigrationEngineSalesforcePriceCreationLambda.Arn
     Export:
       Name: !Sub "${AWS::StackName}-CreatingSalesforceRecordsLambda"
+  PriceMigrationEngineNotificationLambdaOutput:
+    Value: !GetAtt PriceMigrationEngineNotificationLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-NotifyingSubscribersLambda"
+  PriceMigrationEngineAmendmentLambdaOutput:
+    Value: !GetAtt PriceMigrationEngineAmendmentLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-AmendingLambda"
+  PriceMigrationEngineSalesforceAmendmentUpdateLambdaOutput:
+    Value: !GetAtt PriceMigrationEngineSalesforceAmendmentUpdateLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-UpdatingSalesforceWithAmendsLambda"
