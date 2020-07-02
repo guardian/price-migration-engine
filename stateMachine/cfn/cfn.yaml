@@ -43,6 +43,7 @@ Resources:
                 Resource:
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-EstimatingLambda
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingSalesforceRecordsLambda
+                  - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-NotifyingSubscribersLambda
         - PolicyName: LoggingPolicy
           PolicyDocument:
             Statement:
@@ -76,69 +77,58 @@ Resources:
         - |
           {
             "Comment": "Price-migration orchestration engine.",
-            "StartAt": "WritingEstimatesToSalesforce",
+            "StartAt": "Estimating",
             "States": {
-              "WritingEstimatesToSalesforce": {
-                "Type": "Parallel",
-                "End": true,
-                "Branches": [
-                  {
-                    "StartAt": "Estimating",
-                    "States": {
-                      "Estimating": {
-                        "Type": "Task",
-                        "Resource": "${EstimatingLambdaArn}",
-                        "Retry": [
-                          {
-                            "ErrorEquals": [
-                              "Lambda.Unknown"
-                            ],
-                            "IntervalSeconds": 10,
-                            "MaxAttempts": 25000,
-                            "BackoffRate": 1.0
-                          },
-                          {
-                            "ErrorEquals": [
-                              "States.ALL"
-                            ],
-                            "IntervalSeconds": 30,
-                            "MaxAttempts": 25000,
-                            "BackoffRate": 2.0
-                          }
-                        ],
-                        "End": true
-                      }
-                    }
-                  },
-                  {
-                    "StartAt": "CreatingSalesforceRecords",
-                    "States": {
-                      "CreatingSalesforceRecords": {
-                        "Type": "Task",
-                        "Resource": "${CreatingSalesforceRecordsLambdaArn}",
-                        "Retry": [
-                          {
-                            "ErrorEquals": [
-                              "Lambda.Unknown"
-                            ],
-                            "IntervalSeconds": 10,
-                            "MaxAttempts": 25000,
-                            "BackoffRate": 1.0
-                          },
-                          {
-                            "ErrorEquals": [
-                              "States.ALL"
-                            ],
-                            "IntervalSeconds": 30,
-                            "MaxAttempts": 25000,
-                            "BackoffRate": 2.0
-                          }
-                        ],
-                        "End": true
-                      }
-                    }
-                  }
-                ]
+              "Estimating": {
+                "Type": "Task",
+                "Resource": "${EstimatingLambdaArn}",
+                "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.Unknown"
+                  ],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 25000,
+                  "BackoffRate": 1.0
+                },
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "IntervalSeconds": 30,
+                  "MaxAttempts": 25000,
+                  "BackoffRate": 2.0
+                }
+                ],
+                "Next": "CreatingSalesforceRecords"
+              },
+              "CreatingSalesforceRecords": {
+                "Type": "Task",
+                "Resource": "${CreatingSalesforceRecordsLambdaArn}",
+                "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.Unknown"
+                  ],
+                  "IntervalSeconds": 10,
+                  "MaxAttempts": 25000,
+                  "BackoffRate": 1.0
+                },
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "IntervalSeconds": 30,
+                  "MaxAttempts": 25000,
+                  "BackoffRate": 2.0
+                }
+                ],
+                "Next": "NotifyingSubscribers"
+              },
+              "NotifyingSubscribers": {
+                "Type": "Task",
+                "Resource": "${NotifyingSubscribersLambdaArn}",
+                "End": true
               }
             }
           }
@@ -146,3 +136,5 @@ Resources:
             Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-EstimatingLambda
           CreatingSalesforceRecordsLambdaArn:
             Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingSalesforceRecordsLambda
+          NotifyingSubscribersLambdaArn:
+            Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-NotifyingSubscribersLambda
