@@ -55,7 +55,8 @@ Resources:
                   - logs:UpdateLogDelivery
                   - logs:DescribeLogGroups
                 Resource:
-                  - !GetAtt CohortStateMachineLogGroup.Arn
+#                  - !GetAtt CohortStateMachineLogGroup.Arn
+                  - "*"
 
   CohortStateMachine:
     Type: AWS::StepFunctions::StateMachine
