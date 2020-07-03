@@ -39,9 +39,10 @@ object NotificationHandler {
 
   def sendNotification(
     cohortItem: CohortItem
-  ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock with Logging, Failure, Int] =
-    for {
-      sfSubscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
+  ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock with Logging, Failure, Int] = {
+    val result = for {
+      sfSubscription <- SalesforceClient
+        .getSubscriptionByName(cohortItem.subscriptionName)
       count <-
         if (sfSubscription.Status__c != Cancelled_Status) {
           sendNotification(cohortItem, sfSubscription)
@@ -50,11 +51,18 @@ object NotificationHandler {
         }
     } yield count
 
+    result.catchAll { failure =>
+      for {
+        _ <- Logging.error(s"Failed to send price rise notification: $failure")
+      } yield Unsuccessful
+    }
+  }
+
   def sendNotification(
     cohortItem: CohortItem,
     sfSubscription: SalesforceSubscription
-  ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock with Logging, Failure, Int] = {
-    val result = for {
+  ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock with Logging, Failure, Int] =
+    for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
       emailAddress <- requiredField(contact.Email, "Contact.Email")
@@ -101,13 +109,6 @@ object NotificationHandler {
 
       _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete)
     } yield Successful
-
-    result.catchAll { failure =>
-      for {
-        _ <- Logging.error(s"Failed to send price rise notification: $failure")
-      } yield Unsuccessful
-    }
-  }
 
   def requiredField[A](field: Option[A], fieldName: String): ZIO[Any, NotificationHandlerFailure, A] = {
     ZIO.fromOption(field).orElseFail(NotificationHandlerFailure(s"$fieldName is a required field"))
