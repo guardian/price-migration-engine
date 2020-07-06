@@ -103,9 +103,19 @@ object EnvConfiguration {
       val config: IO[ConfigurationFailure, EmailSenderConfig] =
         for {
           emailSqsQueueName <- env("sqsEmailQueueName")
-        } yield EmailSenderConfig(
-          sqsEmailQueueName = emailSqsQueueName
-        )
+        } yield
+          EmailSenderConfig(
+            sqsEmailQueueName = emailSqsQueueName
+          )
+    }
+  }
+
+  val cohortStateMachineImpl: ZLayer[Any, ConfigurationFailure, CohortStateMachineConfiguration] = ZLayer.fromEffect {
+    env("cohortStateMachineArn") map { arn =>
+      new CohortStateMachineConfiguration.Service {
+        val config: IO[ConfigurationFailure, CohortStateMachineConfig] =
+          ZIO.succeed(CohortStateMachineConfig(stateMachineArn = arn))
+      }
     }
   }
 }

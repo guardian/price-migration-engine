@@ -2,6 +2,8 @@ package pricemigrationengine.model
 
 import java.time.LocalDate
 
+import upickle.default.{ReadWriter, macroRW}
+
 /**
   * Specification of a cohort.
   *
@@ -19,6 +21,8 @@ case class CohortSpec(
 )
 
 object CohortSpec {
+
+  implicit val rw: ReadWriter[CohortSpec] = macroRW
 
   def isActive(spec: CohortSpec)(date: LocalDate): Boolean =
     !spec.importStartDate.isAfter(date) && spec.migrationCompleteDate.forall(_.isAfter(date))

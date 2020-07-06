@@ -65,3 +65,11 @@ object EmailSenderConfiguration {
   val emailSenderConfig: ZIO[EmailSenderConfiguration, ConfigurationFailure, EmailSenderConfig] =
     ZIO.accessM(_.get.config)
 }
+
+object CohortStateMachineConfiguration {
+  trait Service {
+    val config: IO[ConfigurationFailure, CohortStateMachineConfig]
+  }
+  val cohortStateMachineConfig: ZIO[CohortStateMachineConfiguration, ConfigurationFailure, CohortStateMachineConfig] =
+    ZIO.accessM(_.get.config)
+}
