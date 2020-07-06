@@ -3,6 +3,7 @@ package pricemigrationengine.handlers
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import pricemigrationengine.model.CohortSpec
 import pricemigrationengine.services._
+import zio.blocking.Blocking
 import zio.console.Console
 import zio.{ExitCode, Runtime, ZEnv, ZIO, ZLayer}
 
@@ -22,12 +23,12 @@ object MigrationHandler extends zio.App with RequestHandler[Unit, Unit] {
     } yield ()).tapError(e => Logging.error(s"Migration run failed: $e"))
 
   private def env(loggingService: Logging.Service) =
-    ZLayer.succeed(loggingService) and EnvConfiguration.dynamoDbImpl andTo
+    (ZLayer.succeed(loggingService) and EnvConfiguration.dynamoDbImpl andTo
       DynamoDBClient.dynamoDB andTo
       EnvConfiguration.stageImp andTo
-      EnvConfiguration.cohortStateMachineImpl andTo
-      (CohortSpecTableLive.impl and CohortStateMachineLive.impl)
-        .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
+      EnvConfiguration.cohortStateMachineImpl and Blocking.live andTo
+      (CohortSpecTableLive.impl and CohortStateMachineLive.impl))
+      .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
 
   def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
     migrateActiveCohorts
