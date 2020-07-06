@@ -15,17 +15,14 @@ Mappings:
   StageMap:
     DEV:
       SecretsVersion: "6559354e-556f-4609-a89f-222824495d5d"
-      EarliestStartDate: 2020-05-15
       BucketName: price-migration-engine-dev
       SQSQueueName: contributions-thanks-dev
     CODE:
       SecretsVersion: "52529e0a-438b-4b63-8a08-35f158ed0bee"
-      EarliestStartDate: 2020-05-15
       BucketName: price-migration-engine-code
       SQSQueueName: contributions-thanks-dev
     PROD:
       SecretsVersion: "dd295c21-39df-47d0-b3b2-0d420ee3b055"
-      EarliestStartDate: 2020-08-02
       BucketName: price-migration-engine-prod
       SQSQueueName: contributions-thanks
 
@@ -281,7 +278,6 @@ Resources:
             !Sub
               - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret::${SecretsVersion}}}'
               - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          earliestStartDate: !FindInMap [StageMap, !Ref Stage, EarliestStartDate]
           batchSize: 100
       Role:
         Fn::GetAtt:
@@ -366,7 +362,6 @@ Resources:
             !Sub
             - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret::${SecretsVersion}}}'
             - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          earliestStartDate: !FindInMap [StageMap, !Ref Stage, EarliestStartDate]
           batchSize: 100
       Role:
         Fn::GetAtt:
@@ -560,3 +555,7 @@ Outputs:
     Value: !GetAtt PriceMigrationEngineSalesforcePriceCreationLambda.Arn
     Export:
       Name: !Sub "${AWS::StackName}-CreatingSalesforceRecordsLambda"
+  PriceMigrationEngineNotificationLambdaOutput:
+    Value: !GetAtt PriceMigrationEngineNotificationLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-NotifyingSubscribersLambda"

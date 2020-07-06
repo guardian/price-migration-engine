@@ -5,7 +5,6 @@ import zio.Has
 
 package object services {
 
-  type AmendmentConfiguration = Has[AmendmentConfiguration.Service]
   type ZuoraConfiguration = Has[ZuoraConfiguration.Service]
   type DynamoDBConfiguration = Has[DynamoDBConfiguration.Service]
   type CohortTableConfiguration = Has[CohortTableConfiguration.Service]
