@@ -1,12 +1,5 @@
 package pricemigrationengine.model
 
-import java.time.LocalDate
-
-case class AmendmentConfig(
-    // earliest date that price migration can take place
-    earliestStartDate: LocalDate
-)
-
 case class ZuoraConfig(
     apiHost: String,
     clientId: String,

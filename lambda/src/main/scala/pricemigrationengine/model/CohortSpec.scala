@@ -26,4 +26,6 @@ object CohortSpec {
 
   def isActive(spec: CohortSpec)(date: LocalDate): Boolean =
     !spec.importStartDate.isAfter(date) && spec.migrationCompleteDate.forall(_.isAfter(date))
+
+  def isValid(spec: CohortSpec): Boolean = spec.earliestPriceMigrationStartDate.isAfter(spec.importStartDate)
 }
