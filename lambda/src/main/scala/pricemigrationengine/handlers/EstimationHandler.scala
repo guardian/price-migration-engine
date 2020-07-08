@@ -14,6 +14,11 @@ import zio.{ExitCode, IO, Runtime, ZEnv, ZIO, ZLayer, random}
 
 import scala.io.Source
 
+/**
+  * Calculates start date and new price for a set of CohortItems.
+  *
+  * Expected input is a CohortSpec in json format.
+  */
 object EstimationHandler extends zio.App with RequestHandler[InputStream, Unit] {
 
   def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora with Random, Failure, Unit] =
