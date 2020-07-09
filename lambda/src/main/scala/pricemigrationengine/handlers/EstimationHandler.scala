@@ -29,7 +29,8 @@ object EstimationHandler extends zio.App with RequestHandler[InputStream, Unit] 
     } yield ()
 
   private def estimate(newProductPricing: ZuoraPricingData, earliestStartDate: LocalDate)(
-      item: CohortItem): ZIO[Logging with CohortTable with Zuora with Random, Failure, Unit] =
+      item: CohortItem
+  ): ZIO[Logging with CohortTable with Zuora with Random, Failure, Unit] =
     doEstimation(newProductPricing, item, earliestStartDate).foldM(
       failure = {
         case _: AmendmentDataFailure         => CohortTable.update(CohortItem(item.subscriptionName, EstimationFailed))
@@ -42,32 +43,35 @@ object EstimationHandler extends zio.App with RequestHandler[InputStream, Unit] 
   private def doEstimation(
       newProductPricing: ZuoraPricingData,
       item: CohortItem,
-      earliestStartDate: LocalDate): ZIO[Logging with CohortTable with Zuora with Random, Failure, CohortItem] =
+      earliestStartDate: LocalDate
+  ): ZIO[Logging with CohortTable with Zuora with Random, Failure, CohortItem] =
     for {
-      subscription <- Zuora
-        .fetchSubscription(item.subscriptionName)
-        .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
+      subscription <-
+        Zuora
+          .fetchSubscription(item.subscriptionName)
+          .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
       invoicePreviewTargetDate = earliestStartDate.plusMonths(13)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
       earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, earliestStartDate)
-      result <- ZIO
-        .fromEither(EstimationResult(newProductPricing, subscription, invoicePreview, earliestStartDate))
-        .tapBoth(
-          e =>
-            Logging.error(s"Failed to estimate amendment data for subscription ${subscription.subscriptionNumber}: $e"),
-          result => Logging.info(s"Estimated result: $result")
-        )
-    } yield
-      CohortItem(
-        result.subscriptionName,
-        processingStage = EstimationComplete,
-        oldPrice = Some(result.oldPrice),
-        estimatedNewPrice = Some(result.estimatedNewPrice),
-        currency = Some(result.currency),
-        startDate = Some(result.startDate),
-        billingPeriod = Some(result.billingPeriod),
-        whenEstimationDone = Some(Instant.now())
-      )
+      result <-
+        ZIO
+          .fromEither(EstimationResult(newProductPricing, subscription, invoicePreview, earliestStartDate))
+          .tapBoth(
+            e =>
+              Logging
+                .error(s"Failed to estimate amendment data for subscription ${subscription.subscriptionNumber}: $e"),
+            result => Logging.info(s"Estimated result: $result")
+          )
+    } yield CohortItem(
+      result.subscriptionName,
+      processingStage = EstimationComplete,
+      oldPrice = Some(result.oldPrice),
+      estimatedNewPrice = Some(result.estimatedNewPrice),
+      currency = Some(result.currency),
+      startDate = Some(result.startDate),
+      billingPeriod = Some(result.billingPeriod),
+      whenEstimationDone = Some(Instant.now())
+    )
 
   /*
    * Earliest start date spread out over 3 months.
@@ -75,7 +79,8 @@ object EstimationHandler extends zio.App with RequestHandler[InputStream, Unit] 
   private[handlers] def spreadEarliestStartDate(
       subscription: ZuoraSubscription,
       invoicePreview: ZuoraInvoiceList,
-      earliestStartDate: LocalDate): ZIO[Random, ConfigurationFailure, LocalDate] = {
+      earliestStartDate: LocalDate
+  ): ZIO[Random, ConfigurationFailure, LocalDate] = {
 
     lazy val earliestStartDateForAMonthlySub =
       for {
@@ -96,8 +101,9 @@ object EstimationHandler extends zio.App with RequestHandler[InputStream, Unit] 
       ZIO.succeed(earliestStartDate)
   }
 
-  private def env(loggingService: Logging.Service)
-    : ZLayer[Any, ConfigurationFailure, Logging with CohortTable with Zuora with Random] = {
+  private def env(
+      loggingService: Logging.Service
+  ): ZLayer[Any, ConfigurationFailure, Logging with CohortTable with Zuora with Random] = {
     val loggingLayer = ZLayer.succeed(loggingService)
     val cohortTableLayer =
       loggingLayer ++ EnvConfiguration.dynamoDbImpl andTo
@@ -112,19 +118,22 @@ object EstimationHandler extends zio.App with RequestHandler[InputStream, Unit] 
   }
 
   private def go(loggingService: Logging.Service, input: IO[Failure, String]) =
-    for {
-      cohortSpec <- input
-        .flatMap(inputStr => ZIO.effect(read[CohortSpec](inputStr)))
-        .filterOrElse(CohortSpec.isValid)(spec => ZIO.fail(ConfigurationFailure(s"Invalid spec: $spec")))
-        .tapBoth(e => loggingService.error(s"Failed to read valid spec: $e"),
-                 spec => loggingService.info(s"Input: $spec"))
-      _ <- main(cohortSpec).provideCustomLayer(env(loggingService))
-    } yield ()
+    (for {
+      inputStr <- input
+      cohortSpec <-
+        ZIO
+          .effect(Option(read[CohortSpec](inputStr)))
+          .mapError(e => InputFailure(s"Failed to parse json: $e"))
+          .filterOrElse(_.exists(CohortSpec.isValid))(spec => ZIO.fail(InputFailure(s"Invalid cohort spec: $spec")))
+          .tap(spec => loggingService.info(s"Input: $spec"))
+      validSpec <- ZIO.fromOption(cohortSpec)
+      _ <- main(validSpec).provideCustomLayer(env(loggingService))
+    } yield ()).tapError(e => loggingService.error(s"Failed to read input: $e"))
 
   def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
     go(
       loggingService = ConsoleLogging.service(Console.Service.live),
-      input = ZIO.fromOption(args.headOption).orElseFail(ConfigurationFailure("No input"))
+      input = ZIO.fromOption(args.headOption).orElseFail(InputFailure("No input"))
     ).exitCode
 
   def handleRequest(input: InputStream, context: Context): Unit =
@@ -133,6 +142,7 @@ object EstimationHandler extends zio.App with RequestHandler[InputStream, Unit] 
         loggingService = LambdaLogging.service(context),
         input = ZIO
           .effect(Source.fromInputStream(input).mkString)
-          .mapError(e => ConfigurationFailure(s"Cannot read from input stream: $e"))
-      ))
+          .mapError(e => InputFailure(s"Cannot read from input stream: $e"))
+      )
+    )
 }
