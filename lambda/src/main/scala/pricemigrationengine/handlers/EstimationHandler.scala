@@ -122,17 +122,18 @@ object EstimationHandler extends zio.App with RequestHandler[InputStream, Unit] 
       inputStr <- input
       cohortSpec <-
         ZIO
-          .effect(read[CohortSpec](inputStr))
-          .mapError(e => ConfigurationFailure(s"Failed to parse json: $e"))
-          .filterOrElse(CohortSpec.isValid)(spec => ZIO.fail(ConfigurationFailure(s"Invalid spec: $spec")))
+          .effect(Option(read[CohortSpec](inputStr)))
+          .mapError(e => InputFailure(s"Failed to parse json: $e"))
+          .filterOrElse(_.exists(CohortSpec.isValid))(spec => ZIO.fail(InputFailure(s"Invalid cohort spec: $spec")))
           .tap(spec => loggingService.info(s"Input: $spec"))
-      _ <- main(cohortSpec).provideCustomLayer(env(loggingService))
-    } yield ()).tapError(e => loggingService.error(s"Failed to read valid spec: $e"))
+      validSpec <- ZIO.fromOption(cohortSpec)
+      _ <- main(validSpec).provideCustomLayer(env(loggingService))
+    } yield ()).tapError(e => loggingService.error(s"Failed to read input: $e"))
 
   def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
     go(
       loggingService = ConsoleLogging.service(Console.Service.live),
-      input = ZIO.fromOption(args.headOption).orElseFail(ConfigurationFailure("No input"))
+      input = ZIO.fromOption(args.headOption).orElseFail(InputFailure("No input"))
     ).exitCode
 
   def handleRequest(input: InputStream, context: Context): Unit =
@@ -141,7 +142,7 @@ object EstimationHandler extends zio.App with RequestHandler[InputStream, Unit] 
         loggingService = LambdaLogging.service(context),
         input = ZIO
           .effect(Source.fromInputStream(input).mkString)
-          .mapError(e => ConfigurationFailure(s"Cannot read from input stream: $e"))
+          .mapError(e => InputFailure(s"Cannot read from input stream: $e"))
       )
     )
 }
