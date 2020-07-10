@@ -1,32 +1,38 @@
 package pricemigrationengine.handlers
 
-import java.io.InputStream
+import java.io.{InputStream, OutputStream}
 import java.time.{Instant, LocalDate}
 
-import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
+import com.amazonaws.services.lambda.runtime.{Context, RequestStreamHandler}
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import upickle.default.read
+import ujson.Readable
+import upickle.default.{read, stream}
 import zio.console.Console
 import zio.random.Random
-import zio.{ExitCode, IO, Runtime, ZEnv, ZIO, ZLayer, random}
-
-import scala.io.Source
+import zio.{ExitCode, Runtime, ZEnv, ZIO, ZLayer, random}
 
 /**
   * Calculates start date and new price for a set of CohortItems.
   *
   * Expected input is a CohortSpec in json format.
+  *
+  * Output is a HandlerOutput in json format.
   */
-object EstimationHandler extends zio.App with RequestHandler[InputStream, Unit] {
+object EstimationHandler extends zio.App with RequestStreamHandler {
 
-  def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora with Random, Failure, Unit] =
+  // TODO: move to config
+  private val batchSize = 100
+
+  def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora with Random, Failure, HandlerOutput] =
     for {
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
       cohortItems <- CohortTable.fetch(ReadyForEstimation, None)
-      _ <- cohortItems.foreach(estimate(newProductPricing, cohortSpec.earliestPriceMigrationStartDate))
-    } yield ()
+      _ <- cohortItems.take(batchSize).foreach(estimate(newProductPricing, cohortSpec.earliestPriceMigrationStartDate))
+      itemsToGo <- CohortTable.fetch(ReadyForEstimation, None)
+      numItemsToGo <- itemsToGo.take(1).runCount
+    } yield HandlerOutput(cohortSpec, isComplete = numItemsToGo == 0)
 
   private def estimate(newProductPricing: ZuoraPricingData, earliestStartDate: LocalDate)(
       item: CohortItem
@@ -117,32 +123,39 @@ object EstimationHandler extends zio.App with RequestHandler[InputStream, Unit] 
       .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
   }
 
-  private def go(loggingService: Logging.Service, input: IO[Failure, String]) =
+  private def go(loggingService: Logging.Service, input: Readable): ZIO[ZEnv, Failure, HandlerOutput] =
     (for {
-      inputStr <- input
       cohortSpec <-
         ZIO
-          .effect(Option(read[CohortSpec](inputStr)))
+          .effect(Option(read[CohortSpec](input)))
           .mapError(e => InputFailure(s"Failed to parse json: $e"))
           .filterOrElse(_.exists(CohortSpec.isValid))(spec => ZIO.fail(InputFailure(s"Invalid cohort spec: $spec")))
           .tap(spec => loggingService.info(s"Input: $spec"))
-      validSpec <- ZIO.fromOption(cohortSpec)
-      _ <- main(validSpec).provideCustomLayer(env(loggingService))
-    } yield ()).tapError(e => loggingService.error(s"Failed to read input: $e"))
+      validSpec <- ZIO.fromOption(cohortSpec).orElseFail(InputFailure("No input"))
+      output <- main(validSpec).provideCustomLayer(env(loggingService))
+    } yield output).tapBoth(
+      e => loggingService.error(e.toString),
+      output => loggingService.info(s"Output: $output")
+    )
 
   def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
-    go(
-      loggingService = ConsoleLogging.service(Console.Service.live),
-      input = ZIO.fromOption(args.headOption).orElseFail(InputFailure("No input"))
-    ).exitCode
-
-  def handleRequest(input: InputStream, context: Context): Unit =
-    Runtime.default.unsafeRun(
-      go(
-        loggingService = LambdaLogging.service(context),
-        input = ZIO
-          .effect(Source.fromInputStream(input).mkString)
-          .mapError(e => InputFailure(s"Cannot read from input stream: $e"))
+    (for {
+      input <- ZIO.fromOption(args.headOption).orElseFail(InputFailure("No input"))
+      _ <- go(
+        loggingService = ConsoleLogging.service(Console.Service.live),
+        input = input
       )
-    )
+    } yield ()).exitCode
+
+  def handleRequest(input: InputStream, output: OutputStream, context: Context): Unit = {
+    val program = for {
+      handlerOutput <- go(
+        loggingService = LambdaLogging.service(context),
+        input
+      )
+      writable <- ZIO.effect(stream(handlerOutput))
+      _ <- ZIO.effect(writable.writeBytesTo(output))
+    } yield ()
+    Runtime.default.unsafeRun(program)
+  }
 }
