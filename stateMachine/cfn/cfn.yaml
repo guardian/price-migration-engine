@@ -88,14 +88,6 @@ Resources:
                 "Retry": [
                   {
                     "ErrorEquals": [
-                      "Lambda.Unknown"
-                    ],
-                    "IntervalSeconds": 10,
-                    "MaxAttempts": 25000,
-                    "BackoffRate": 1.0
-                  },
-                  {
-                    "ErrorEquals": [
                       "States.ALL"
                     ],
                     "IntervalSeconds": 30,

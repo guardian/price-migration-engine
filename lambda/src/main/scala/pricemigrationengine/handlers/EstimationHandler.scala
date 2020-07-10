@@ -22,11 +22,14 @@ import zio.{ExitCode, Runtime, ZEnv, ZIO, ZLayer, random}
   */
 object EstimationHandler extends zio.App with RequestStreamHandler {
 
+  // TODO: move to config
+  private val batchSize = 100
+
   def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora with Random, Failure, HandlerOutput] =
     for {
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
       cohortItems <- CohortTable.fetch(ReadyForEstimation, None)
-      _ <- cohortItems.foreach(estimate(newProductPricing, cohortSpec.earliestPriceMigrationStartDate))
+      _ <- cohortItems.take(batchSize).foreach(estimate(newProductPricing, cohortSpec.earliestPriceMigrationStartDate))
       itemsToGo <- CohortTable.fetch(ReadyForEstimation, None)
       numItemsToGo <- itemsToGo.take(1).runCount
     } yield HandlerOutput(cohortSpec, isComplete = numItemsToGo == 0)
