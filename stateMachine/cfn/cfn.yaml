@@ -120,14 +120,6 @@ Resources:
                 "Retry": [
                   {
                     "ErrorEquals": [
-                      "Lambda.Unknown"
-                    ],
-                    "IntervalSeconds": 10,
-                    "MaxAttempts": 25000,
-                    "BackoffRate": 1.0
-                  },
-                  {
-                    "ErrorEquals": [
                       "States.ALL"
                     ],
                     "IntervalSeconds": 30,
@@ -158,14 +150,6 @@ Resources:
                 "Retry": [
                   {
                     "ErrorEquals": [
-                      "Lambda.Unknown"
-                    ],
-                    "IntervalSeconds": 10,
-                    "MaxAttempts": 25000,
-                    "BackoffRate": 1.0
-                  },
-                  {
-                    "ErrorEquals": [
                       "States.ALL"
                     ],
                     "IntervalSeconds": 30,
@@ -194,14 +178,6 @@ Resources:
                 "InputPath": "$.cohortSpec",
                 "ResultPath": "$.result",
                 "Retry": [
-                  {
-                    "ErrorEquals": [
-                      "Lambda.Unknown"
-                    ],
-                    "IntervalSeconds": 10,
-                    "MaxAttempts": 25000,
-                    "BackoffRate": 1.0
-                  },
                   {
                     "ErrorEquals": [
                       "States.ALL"
