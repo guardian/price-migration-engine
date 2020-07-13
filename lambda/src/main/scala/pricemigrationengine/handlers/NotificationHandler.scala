@@ -30,7 +30,6 @@ object NotificationHandler {
         Some(today.plusDays(NotificationLeadTimeDays))
       )
       count <- subscriptions
-        .take(1000)
         .mapM(sendNotification)
         .fold(0) { (sum, count) => sum + count }
       _ <- Logging.info(s"Successfully sent $count prices rise notifications")
