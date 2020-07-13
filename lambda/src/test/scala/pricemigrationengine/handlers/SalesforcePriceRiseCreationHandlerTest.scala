@@ -29,7 +29,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
   )
 
   private val expectedHandlerOutput = HandlerOutput(
-    isComplete = false
+    isComplete = true
   )
 
   def createStubCohortTable(updatedResultsWrittenToCohortTable: ArrayBuffer[CohortItem], cohortItem: CohortItem) = {

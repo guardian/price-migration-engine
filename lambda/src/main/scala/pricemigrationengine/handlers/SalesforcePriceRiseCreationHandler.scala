@@ -15,13 +15,9 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
       cohortSpec: CohortSpec
   ): ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, HandlerOutput] =
     for {
-      cohortItems <- fetchFromCohortTable
-      _ <- cohortItems.take(batchSize).foreach(createSalesforcePriceRise)
-      itemsToGo <- fetchFromCohortTable
-      numItemsToGo <- itemsToGo.take(1).runCount
-    } yield HandlerOutput(isComplete = numItemsToGo == 0)
-
-  private def fetchFromCohortTable = CohortTable.fetch(EstimationComplete, None)
+      cohortItems <- CohortTable.fetch(EstimationComplete, None)
+      count <- cohortItems.take(batchSize).mapM(createSalesforcePriceRise).runCount
+    } yield HandlerOutput(isComplete = count < batchSize)
 
   private def createSalesforcePriceRise(
       item: CohortItem

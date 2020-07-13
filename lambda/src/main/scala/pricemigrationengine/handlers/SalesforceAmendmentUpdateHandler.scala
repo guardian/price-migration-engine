@@ -18,21 +18,18 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
       cohortSpec: CohortSpec
   ): ZIO[CohortTable with SalesforceClient with Clock with Logging, Failure, HandlerOutput] =
     for {
-      cohortItems <- fetchFromCohortTable
-      _ <-
+      cohortItems <- CohortTable.fetch(AmendmentComplete, None)
+      count <-
         cohortItems
           .take(batchSize)
-          .foreach(item =>
+          .mapM(item =>
             updateSfWithNewSubscriptionId(item).tapBoth(
               e => Logging.error(s"Failed to update price rise record for ${item.subscriptionName}: $e"),
               _ => Logging.info(s"Amendment of ${item.subscriptionName} recorded in Salesforce")
             )
           )
-      itemsToGo <- fetchFromCohortTable
-      numItemsToGo <- itemsToGo.take(1).runCount
-    } yield HandlerOutput(isComplete = numItemsToGo == 0)
-
-  private def fetchFromCohortTable = CohortTable.fetch(AmendmentComplete, None)
+          .runCount
+    } yield HandlerOutput(isComplete = count < batchSize)
 
   private def updateSfWithNewSubscriptionId(
       item: CohortItem

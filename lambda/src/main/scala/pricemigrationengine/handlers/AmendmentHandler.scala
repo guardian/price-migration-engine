@@ -12,21 +12,18 @@ import zio.{ZEnv, ZIO, ZLayer}
 object AmendmentHandler extends CohortHandler {
 
   // TODO: move to config
-  private val batchSize = 100
+  private val batchSize = 150
 
   def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora with Clock, Failure, HandlerOutput] =
     for {
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
-      cohortItems <- fetchFromCohortTable
-      _ <-
+      cohortItems <- CohortTable.fetch(NotificationSendDateWrittenToSalesforce, None)
+      count <-
         cohortItems
           .take(batchSize)
-          .foreach(item => amend(newProductPricing, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
-      itemsToGo <- fetchFromCohortTable
-      numItemsToGo <- itemsToGo.take(1).runCount
-    } yield HandlerOutput(isComplete = numItemsToGo == 0)
-
-  private def fetchFromCohortTable = CohortTable.fetch(NotificationSendDateWrittenToSalesforce, None)
+          .mapM(item => amend(newProductPricing, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
+          .runCount
+    } yield HandlerOutput(isComplete = count < batchSize)
 
   private def amend(
       newProductPricing: ZuoraPricingData,

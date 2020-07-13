@@ -27,17 +27,21 @@ trait CohortHandler extends zio.App with RequestStreamHandler {
 
   private def go(loggingService: Logging.Service, input: Readable): ZIO[ZEnv, Failure, HandlerOutput] =
     (for {
+      cohortSpec <- validSpec(loggingService, input)
+      output <- handle(cohortSpec, loggingService)
+    } yield output).tap(output => loggingService.info(s"Output: $output"))
+
+  private def validSpec(loggingService: Logging.Service, input: Readable): ZIO[ZEnv, Failure, CohortSpec] =
+    (for {
       cohortSpec <-
         ZIO
           .effect(read[CohortSpec](input))
           .bimap(e => InputFailure(s"Failed to parse json: $e"), Option(_))
           .filterOrElse(_.exists(CohortSpec.isValid))(spec => ZIO.fail(InputFailure(s"Invalid cohort spec: $spec")))
-          .tap(spec => loggingService.info(s"Input: $spec"))
       validSpec <- ZIO.fromOption(cohortSpec).orElseFail(InputFailure("No input"))
-      output <- handle(validSpec, loggingService)
-    } yield output).tapBoth(
+    } yield validSpec).tapBoth(
       e => loggingService.error(e.toString),
-      output => loggingService.info(s"Output: $output")
+      spec => loggingService.info(s"Input: $spec")
     )
 
   final def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] = {

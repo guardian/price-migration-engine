@@ -18,18 +18,18 @@ import zio.{ZEnv, ZIO, ZLayer, random}
 object EstimationHandler extends CohortHandler {
 
   // TODO: move to config
-  private val batchSize = 100
+  private val batchSize = 150
 
   def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora with Random, Failure, HandlerOutput] =
     for {
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
-      cohortItems <- fetchFromCohortTable
-      _ <- cohortItems.take(batchSize).foreach(estimate(newProductPricing, cohortSpec.earliestPriceMigrationStartDate))
-      itemsToGo <- fetchFromCohortTable
-      numItemsToGo <- itemsToGo.take(1).runCount
-    } yield HandlerOutput(isComplete = numItemsToGo == 0)
-
-  private def fetchFromCohortTable = CohortTable.fetch(ReadyForEstimation, None)
+      cohortItems <- CohortTable.fetch(ReadyForEstimation, None)
+      count <-
+        cohortItems
+          .take(batchSize)
+          .mapM(estimate(newProductPricing, cohortSpec.earliestPriceMigrationStartDate))
+          .runCount
+    } yield HandlerOutput(isComplete = count < batchSize)
 
   private def estimate(newProductPricing: ZuoraPricingData, earliestStartDate: LocalDate)(
       item: CohortItem
