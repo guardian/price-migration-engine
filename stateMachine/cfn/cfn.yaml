@@ -85,6 +85,8 @@ Resources:
                 "Type": "Task",
                 "Comment": "Calculating start date and new price for each sub in this cohort.",
                 "Resource": "${EstimatingLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
                 "Retry": [
                   {
                     "ErrorEquals": [
@@ -102,7 +104,7 @@ Resources:
                 "Comment": "Is the estimating step complete?",
                 "Choices": [
                 {
-                  "Variable": "$.isComplete",
+                  "Variable": "$.result.isComplete",
                   "BooleanEquals": false,
                   "Next": "Estimating"
                 }
@@ -113,6 +115,8 @@ Resources:
                 "Type": "Task",
                 "Comment": "Inserting a price-rise record for each sub in this cohort into Salesforce.",
                 "Resource": "${CreatingSalesforceRecordsLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
                 "Retry": [
                   {
                     "ErrorEquals": [
@@ -138,7 +142,7 @@ Resources:
                 "Comment": "Is the creating Salesforce records step complete?",
                 "Choices": [
                 {
-                  "Variable": "$.isComplete",
+                  "Variable": "$.result.isComplete",
                   "BooleanEquals": false,
                   "Next": "CreatingSalesforceRecords"
                 }
@@ -149,6 +153,8 @@ Resources:
                 "Type": "Task",
                 "Comment": "Applying price-rise amendment in Zuora on each sub in this cohort.",
                 "Resource": "${AmendingLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
                 "Retry": [
                   {
                     "ErrorEquals": [
@@ -174,7 +180,7 @@ Resources:
                 "Comment": "Is the amending step complete?",
                 "Choices": [
                 {
-                  "Variable": "$.isComplete",
+                  "Variable": "$.result.isComplete",
                   "BooleanEquals": false,
                   "Next": "Amending"
                 }
@@ -185,6 +191,8 @@ Resources:
                 "Type": "Task",
                 "Comment": "Updating price-rise record for each sub in this cohort with amendment evidence.",
                 "Resource": "${UpdatingSalesforceWithAmendsLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
                 "Retry": [
                   {
                     "ErrorEquals": [
@@ -210,7 +218,7 @@ Resources:
                 "Comment": "Is the updating Salesforce with amendments step complete?",
                 "Choices": [
                 {
-                  "Variable": "$.isComplete",
+                  "Variable": "$.result.isComplete",
                   "BooleanEquals": false,
                   "Next": "UpdatingSalesforceWithAmendments"
                 }

@@ -9,10 +9,6 @@ import upickle.default.{ReadWriter, macroRW}
   */
 case class HandlerOutput(
     /**
-      * Specification that was the input to the handler.
-      */
-    cohortSpec: CohortSpec,
-    /**
       * True iff the process completed in the time available to the handler.
       */
     isComplete: Boolean

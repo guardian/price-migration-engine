@@ -19,7 +19,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
       _ <- cohortItems.take(batchSize).foreach(createSalesforcePriceRise)
       itemsToGo <- fetchFromCohortTable
       numItemsToGo <- itemsToGo.take(1).runCount
-    } yield HandlerOutput(cohortSpec, isComplete = numItemsToGo == 0)
+    } yield HandlerOutput(isComplete = numItemsToGo == 0)
 
   private def fetchFromCohortTable = CohortTable.fetch(EstimationComplete, None)
 

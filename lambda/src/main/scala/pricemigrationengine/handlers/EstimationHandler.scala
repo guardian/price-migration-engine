@@ -27,7 +27,7 @@ object EstimationHandler extends CohortHandler {
       _ <- cohortItems.take(batchSize).foreach(estimate(newProductPricing, cohortSpec.earliestPriceMigrationStartDate))
       itemsToGo <- fetchFromCohortTable
       numItemsToGo <- itemsToGo.take(1).runCount
-    } yield HandlerOutput(cohortSpec, isComplete = numItemsToGo == 0)
+    } yield HandlerOutput(isComplete = numItemsToGo == 0)
 
   private def fetchFromCohortTable = CohortTable.fetch(ReadyForEstimation, None)
 

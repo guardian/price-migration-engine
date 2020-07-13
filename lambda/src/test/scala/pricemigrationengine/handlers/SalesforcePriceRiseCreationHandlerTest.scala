@@ -29,7 +29,6 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
   )
 
   private val expectedHandlerOutput = HandlerOutput(
-    cohortSpec = stubCohortSpec,
     isComplete = false
   )
 

@@ -24,7 +24,7 @@ object AmendmentHandler extends CohortHandler {
           .foreach(item => amend(newProductPricing, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
       itemsToGo <- fetchFromCohortTable
       numItemsToGo <- itemsToGo.take(1).runCount
-    } yield HandlerOutput(cohortSpec, isComplete = numItemsToGo == 0)
+    } yield HandlerOutput(isComplete = numItemsToGo == 0)
 
   private def fetchFromCohortTable = CohortTable.fetch(NotificationSendDateWrittenToSalesforce, None)
 
