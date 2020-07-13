@@ -85,6 +85,8 @@ Resources:
                 "Type": "Task",
                 "Comment": "Calculating start date and new price for each sub in this cohort.",
                 "Resource": "${EstimatingLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
                 "Retry": [
                   {
                     "ErrorEquals": [
@@ -102,7 +104,7 @@ Resources:
                 "Comment": "Is the estimating step complete?",
                 "Choices": [
                 {
-                  "Variable": "$.isComplete",
+                  "Variable": "$.result.isComplete",
                   "BooleanEquals": false,
                   "Next": "Estimating"
                 }
@@ -113,15 +115,9 @@ Resources:
                 "Type": "Task",
                 "Comment": "Inserting a price-rise record for each sub in this cohort into Salesforce.",
                 "Resource": "${CreatingSalesforceRecordsLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
                 "Retry": [
-                  {
-                    "ErrorEquals": [
-                      "Lambda.Unknown"
-                    ],
-                    "IntervalSeconds": 10,
-                    "MaxAttempts": 25000,
-                    "BackoffRate": 1.0
-                  },
                   {
                     "ErrorEquals": [
                       "States.ALL"
@@ -131,21 +127,27 @@ Resources:
                     "BackoffRate": 2.0
                   }
                 ],
-                "Next": "Amending"
+                "Next": "IsCreatingSalesforceRecordsComplete"
+              },
+              "IsCreatingSalesforceRecordsComplete": {
+                "Type": "Choice",
+                "Comment": "Is the creating Salesforce records step complete?",
+                "Choices": [
+                {
+                  "Variable": "$.result.isComplete",
+                  "BooleanEquals": false,
+                  "Next": "CreatingSalesforceRecords"
+                }
+                ],
+                "Default": "Amending"
               },
               "Amending": {
                 "Type": "Task",
                 "Comment": "Applying price-rise amendment in Zuora on each sub in this cohort.",
                 "Resource": "${AmendingLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
                 "Retry": [
-                  {
-                    "ErrorEquals": [
-                      "Lambda.Unknown"
-                    ],
-                    "IntervalSeconds": 10,
-                    "MaxAttempts": 25000,
-                    "BackoffRate": 1.0
-                  },
                   {
                     "ErrorEquals": [
                       "States.ALL"
@@ -155,21 +157,27 @@ Resources:
                     "BackoffRate": 2.0
                   }
                 ],
-                "Next": "UpdatingSalesforceWithAmendments"
+                "Next": "IsAmendingComplete"
+              },
+              "IsAmendingComplete": {
+                "Type": "Choice",
+                "Comment": "Is the amending step complete?",
+                "Choices": [
+                {
+                  "Variable": "$.result.isComplete",
+                  "BooleanEquals": false,
+                  "Next": "Amending"
+                }
+                ],
+                "Default": "UpdatingSalesforceWithAmendments"
               },
               "UpdatingSalesforceWithAmendments": {
                 "Type": "Task",
                 "Comment": "Updating price-rise record for each sub in this cohort with amendment evidence.",
                 "Resource": "${UpdatingSalesforceWithAmendsLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
                 "Retry": [
-                  {
-                    "ErrorEquals": [
-                      "Lambda.Unknown"
-                    ],
-                    "IntervalSeconds": 10,
-                    "MaxAttempts": 25000,
-                    "BackoffRate": 1.0
-                  },
                   {
                     "ErrorEquals": [
                       "States.ALL"
@@ -179,7 +187,23 @@ Resources:
                     "BackoffRate": 2.0
                   }
                 ],
-                "End": true
+                "Next": "IsUpdatingSalesforceWithAmendmentsComplete"
+              },
+              "IsUpdatingSalesforceWithAmendmentsComplete": {
+                "Type": "Choice",
+                "Comment": "Is the updating Salesforce with amendments step complete?",
+                "Choices": [
+                {
+                  "Variable": "$.result.isComplete",
+                  "BooleanEquals": false,
+                  "Next": "UpdatingSalesforceWithAmendments"
+                }
+                ],
+                "Default": "Complete"
+              },
+              "Complete": {
+                "Type": "Succeed",
+                "Comment": "All steps are complete."
               }
             }
           }

@@ -21,6 +21,17 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
   val expectedOldPrice = BigDecimal(11.11)
   val expectedEstimatedNewPrice = BigDecimal(22.22)
 
+  private val stubCohortSpec = CohortSpec(
+    cohortName = "cohortName",
+    earliestPriceMigrationStartDate = LocalDate.of(2020, 1, 1),
+    importStartDate = LocalDate.of(2020, 1, 1),
+    migrationCompleteDate = None
+  )
+
+  private val expectedHandlerOutput = HandlerOutput(
+    isComplete = true
+  )
+
   def createStubCohortTable(updatedResultsWrittenToCohortTable: ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
       new CohortTable.Service {
@@ -52,14 +63,13 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
             subscriptionName: String
         ): IO[SalesforceClientFailure, SalesforceSubscription] = {
           IO.effect(
-              SalesforceSubscription(
-                s"SubscritionId-$subscriptionName",
-                subscriptionName,
-                s"Buyer-$subscriptionName",
-                "Active"
-              )
+            SalesforceSubscription(
+              s"SubscritionId-$subscriptionName",
+              subscriptionName,
+              s"Buyer-$subscriptionName",
+              "Active"
             )
-            .orElseFail(SalesforceClientFailure(""))
+          ).orElseFail(SalesforceClientFailure(""))
         }
 
         override def createPriceRise(
@@ -67,7 +77,8 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
         ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] = {
           createdPriceRises.addOne(priceRise)
           ZIO.succeed(
-            SalesforcePriceRiseCreationResponse(s"${priceRise.SF_Subscription__c.getOrElse("none")}-price-rise-id"))
+            SalesforcePriceRiseCreationResponse(s"${priceRise.SF_Subscription__c.getOrElse("none")}-price-rise-id")
+          )
         }
 
         override def updatePriceRise(
@@ -104,12 +115,13 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        SalesforcePriceRiseCreationHandler.main
+        SalesforcePriceRiseCreationHandler
+          .main(stubCohortSpec)
           .provideLayer(
             TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ StubClock.clock
           )
       ),
-      Success(())
+      Success(expectedHandlerOutput)
     )
 
     assertEquals(createdPriceRises.size, 1)
@@ -163,12 +175,13 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        SalesforcePriceRiseCreationHandler.main
+        SalesforcePriceRiseCreationHandler
+          .main(stubCohortSpec)
           .provideLayer(
             TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ StubClock.clock
           )
       ),
-      Success(())
+      Success(expectedHandlerOutput)
     )
 
     assertEquals(updatedPriceRises.size, 1)
