@@ -14,9 +14,7 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
   // TODO: move to config
   private val batchSize = 1000
 
-  private def main(
-      cohortSpec: CohortSpec
-  ): ZIO[CohortTable with SalesforceClient with Clock with Logging, Failure, HandlerOutput] =
+  private val main: ZIO[CohortTable with SalesforceClient with Clock with Logging, Failure, HandlerOutput] =
     for {
       cohortItems <- CohortTable.fetch(AmendmentComplete, None)
       count <-
@@ -61,16 +59,17 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
       .toRight(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a newSubscriptionId field"))
 
   private def env(
+      cohortSpec: CohortSpec,
       loggingService: Logging.Service
   ): ZLayer[Any, Failure, Logging with CohortTable with SalesforceClient with Clock] = {
     val loggingLayer = ZLayer.succeed(loggingService)
     loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
       DynamoDBClient.dynamoDB ++ loggingLayer >>>
       DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++ EnvConfiguration.stageImp ++ EnvConfiguration.salesforceImp >>>
-      (loggingLayer ++ CohortTableLive.impl ++ SalesforceClientLive.impl ++ Clock.live)
+      (loggingLayer ++ CohortTableLive.impl(cohortSpec.tableName) ++ SalesforceClientLive.impl ++ Clock.live)
         .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
   }
 
   def handle(input: CohortSpec, loggingService: Logging.Service): ZIO[ZEnv, Failure, HandlerOutput] =
-    main(input).provideCustomLayer(env(loggingService))
+    main.provideCustomLayer(env(input, loggingService))
 }

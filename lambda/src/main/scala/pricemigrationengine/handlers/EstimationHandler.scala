@@ -105,6 +105,7 @@ object EstimationHandler extends CohortHandler {
   }
 
   private def env(
+      cohortSpec: CohortSpec,
       loggingService: Logging.Service
   ): ZLayer[Any, ConfigurationFailure, Logging with CohortTable with Zuora with Random] = {
     val loggingLayer = ZLayer.succeed(loggingService)
@@ -112,7 +113,7 @@ object EstimationHandler extends CohortHandler {
       loggingLayer ++ EnvConfiguration.dynamoDbImpl andTo
         DynamoDBClient.dynamoDB andTo
         DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++ EnvConfiguration.stageImp andTo
-        CohortTableLive.impl
+        CohortTableLive.impl(cohortSpec.tableName)
     val zuoraLayer =
       EnvConfiguration.zuoraImpl ++ loggingLayer >>>
         ZuoraLive.impl
@@ -121,5 +122,5 @@ object EstimationHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec, loggingService: Logging.Service): ZIO[ZEnv, Failure, HandlerOutput] =
-    main(input).provideCustomLayer(env(loggingService))
+    main(input).provideCustomLayer(env(input, loggingService))
 }
