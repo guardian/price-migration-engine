@@ -12,7 +12,7 @@ import zio.{IO, ZEnv, ZIO, ZLayer}
 object SalesforceAmendmentUpdateHandler extends CohortHandler {
 
   // TODO: move to config
-  private val batchSize = 1000
+  private val batchSize = 2000
 
   private def main(
       cohortSpec: CohortSpec
