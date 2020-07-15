@@ -4,6 +4,7 @@ sealed trait Failure {
   val reason: String
 }
 
+case class InputFailure(reason: String) extends Failure
 case class ConfigurationFailure(reason: String) extends Failure
 
 case class TimeFailure(reason: String) extends Failure

@@ -1,49 +1,54 @@
 package pricemigrationengine.handlers
 
-import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, AmendmentWrittenToSalesforce}
-import pricemigrationengine.model.{CohortItem, Failure, SalesforcePriceRise, SalesforcePriceRiseWriteFailure}
+import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.clock.Clock
-import zio.console.Console
-import zio.{ExitCode, IO, Runtime, ZEnv, ZIO, ZLayer}
+import zio.{IO, ZEnv, ZIO, ZLayer}
 
 /**
   * Updates Salesforce with evidence of the price-rise amendment that was applied in Zuora.
   */
-object SalesforceAmendmentUpdateHandler extends zio.App with RequestHandler[Unit, Unit] {
+object SalesforceAmendmentUpdateHandler extends CohortHandler {
 
-  private val main: ZIO[CohortTable with SalesforceClient with Clock with Logging, Failure, Unit] =
+  // TODO: move to config
+  private val batchSize = 2000
+
+  private val main: ZIO[CohortTable with SalesforceClient with Clock with Logging, Failure, HandlerOutput] =
     for {
       cohortItems <- CohortTable.fetch(AmendmentComplete, None)
-      _ <- cohortItems.foreach(updateSfWithNewSubscriptionId)
-    } yield ()
+      count <-
+        cohortItems
+          .take(batchSize)
+          .mapM(item =>
+            updateSfWithNewSubscriptionId(item).tapBoth(
+              e => Logging.error(s"Failed to update price rise record for ${item.subscriptionName}: $e"),
+              _ => Logging.info(s"Amendment of ${item.subscriptionName} recorded in Salesforce")
+            )
+          )
+          .runCount
+    } yield HandlerOutput(isComplete = count < batchSize)
 
   private def updateSfWithNewSubscriptionId(
       item: CohortItem
   ): ZIO[CohortTable with SalesforceClient with Clock with Logging, Failure, Unit] =
     for {
       priceRise <- ZIO.fromEither(buildPriceRise(item))
-      salesforcePriceRiseId <- IO
-        .fromOption(item.salesforcePriceRiseId)
-        .orElseFail(
-          SalesforcePriceRiseWriteFailure(
-            s"${item.subscriptionName}: salesforcePriceRiseId is required to update Salesforce"
-          ))
-      _ <- SalesforceClient
-        .updatePriceRise(salesforcePriceRiseId, priceRise)
-        .tapBoth(
-          e => Logging.error(s"${item.subscriptionName}: failed to update Salesforce: $e"),
-          _ => Logging.info(s"Amendment of ${item.subscriptionName} recorded in Salesforce")
-        )
+      salesforcePriceRiseId <-
+        IO
+          .fromOption(item.salesforcePriceRiseId)
+          .orElseFail(SalesforcePriceRiseWriteFailure("salesforcePriceRiseId is required to update Salesforce"))
+      _ <- SalesforceClient.updatePriceRise(salesforcePriceRiseId, priceRise)
       now <- Time.thisInstant
-      _ <- CohortTable
-        .update(
-          CohortItem(
-            subscriptionName = item.subscriptionName,
-            processingStage = AmendmentWrittenToSalesforce,
-            whenAmendmentWrittenToSalesforce = Some(now)
-          ))
+      _ <-
+        CohortTable
+          .update(
+            CohortItem(
+              subscriptionName = item.subscriptionName,
+              processingStage = AmendmentWrittenToSalesforce,
+              whenAmendmentWrittenToSalesforce = Some(now)
+            )
+          )
     } yield ()
 
   private def buildPriceRise(
@@ -54,27 +59,17 @@ object SalesforceAmendmentUpdateHandler extends zio.App with RequestHandler[Unit
       .toRight(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a newSubscriptionId field"))
 
   private def env(
+      cohortSpec: CohortSpec,
       loggingService: Logging.Service
-  ): ZLayer[Any, Any, Logging with CohortTable with SalesforceClient with Clock] = {
+  ): ZLayer[Any, Failure, Logging with CohortTable with SalesforceClient with Clock] = {
     val loggingLayer = ZLayer.succeed(loggingService)
     loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
       DynamoDBClient.dynamoDB ++ loggingLayer >>>
       DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++ EnvConfiguration.stageImp ++ EnvConfiguration.salesforceImp >>>
-      (loggingLayer ++ CohortTableLive.impl ++ SalesforceClientLive.impl ++ Clock.live)
+      (loggingLayer ++ CohortTableLive.impl(cohortSpec.tableName) ++ SalesforceClientLive.impl ++ Clock.live)
         .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
   }
 
-  def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
-    main
-      .provideSomeLayer(
-        env(ConsoleLogging.service(Console.Service.live))
-      )
-      .exitCode
-
-  def handleRequest(unused: Unit, context: Context): Unit =
-    Runtime.default.unsafeRun(
-      main.provideSomeLayer(
-        env(LambdaLogging.service(context))
-      )
-    )
+  def handle(input: CohortSpec, loggingService: Logging.Service): ZIO[ZEnv, Failure, HandlerOutput] =
+    main.provideCustomLayer(env(input, loggingService))
 }

@@ -9,7 +9,7 @@ import pricemigrationengine.services._
 import zio.Exit.Success
 import zio.Runtime.default
 import zio.stream.Sink
-import zio.{ZIO, ZLayer, console}
+import zio.{Chunk, ZIO, ZLayer}
 
 import scala.jdk.CollectionConverters._
 
@@ -46,7 +46,7 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
       case Success(results) =>
         assertEquals(
           default.unsafeRunSync(results.run(Sink.collectAll[String])),
-          Success(List("id-1", "id-2", "id-3"))
+          Success(Chunk("id-1", "id-2", "id-3"))
         )
       case failure =>
         fail(s"Query returned failure $failure")

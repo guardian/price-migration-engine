@@ -2,27 +2,39 @@ package pricemigrationengine.handlers
 
 import java.time.{Instant, LocalDate}
 
-import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.console.Console
 import zio.random.Random
-import zio.{ExitCode, Runtime, ZEnv, ZIO, ZLayer, random}
+import zio.{ZEnv, ZIO, ZLayer, random}
 
-object EstimationHandler extends zio.App with RequestHandler[Unit, Unit] {
+/**
+  * Calculates start date and new price for a set of CohortItems.
+  *
+  * Expected input is a CohortSpec in json format.
+  *
+  * Output is a HandlerOutput in json format.
+  */
+object EstimationHandler extends CohortHandler {
 
-  val main: ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora with Random, Failure, Unit] =
+  // TODO: move to config
+  private val batchSize = 150
+
+  def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora with Random, Failure, HandlerOutput] =
     for {
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
       cohortItems <- CohortTable.fetch(ReadyForEstimation, None)
-      _ <- cohortItems.foreach(estimate(newProductPricing))
-    } yield ()
+      count <-
+        cohortItems
+          .take(batchSize)
+          .mapM(estimate(newProductPricing, cohortSpec.earliestPriceMigrationStartDate))
+          .runCount
+    } yield HandlerOutput(isComplete = count < batchSize)
 
-  private def estimate(
-      newProductPricing: ZuoraPricingData
-  )(item: CohortItem): ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora with Random, Failure, Unit] =
-    doEstimation(newProductPricing, item).foldM(
+  private def estimate(newProductPricing: ZuoraPricingData, earliestStartDate: LocalDate)(
+      item: CohortItem
+  ): ZIO[Logging with CohortTable with Zuora with Random, Failure, Unit] =
+    doEstimation(newProductPricing, item, earliestStartDate).foldM(
       failure = {
         case _: AmendmentDataFailure         => CohortTable.update(CohortItem(item.subscriptionName, EstimationFailed))
         case _: CancelledSubscriptionFailure => CohortTable.update(CohortItem(item.subscriptionName, Cancelled))
@@ -33,48 +45,51 @@ object EstimationHandler extends zio.App with RequestHandler[Unit, Unit] {
 
   private def doEstimation(
       newProductPricing: ZuoraPricingData,
-      item: CohortItem
-  ): ZIO[Logging with AmendmentConfiguration with CohortTable with Zuora with Random, Failure, CohortItem] =
+      item: CohortItem,
+      earliestStartDate: LocalDate
+  ): ZIO[Logging with CohortTable with Zuora with Random, Failure, CohortItem] =
     for {
-      config <- AmendmentConfiguration.amendmentConfig
-      subscription <- Zuora
-        .fetchSubscription(item.subscriptionName)
-        .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
-      invoicePreviewTargetDate = config.earliestStartDate.plusMonths(13)
+      subscription <-
+        Zuora
+          .fetchSubscription(item.subscriptionName)
+          .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
+      invoicePreviewTargetDate = earliestStartDate.plusMonths(13)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
-      earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview)
-      result <- ZIO
-        .fromEither(EstimationResult(newProductPricing, subscription, invoicePreview, earliestStartDate))
-        .tapBoth(
-          e =>
-            Logging.error(s"Failed to estimate amendment data for subscription ${subscription.subscriptionNumber}: $e"),
-          result => Logging.info(s"Estimated result: $result")
-        )
-    } yield
-      CohortItem(
-        result.subscriptionName,
-        processingStage = EstimationComplete,
-        oldPrice = Some(result.oldPrice),
-        estimatedNewPrice = Some(result.estimatedNewPrice),
-        currency = Some(result.currency),
-        startDate = Some(result.startDate),
-        billingPeriod = Some(result.billingPeriod),
-        whenEstimationDone = Some(Instant.now())
-      )
+      earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, earliestStartDate)
+      result <-
+        ZIO
+          .fromEither(EstimationResult(newProductPricing, subscription, invoicePreview, earliestStartDate))
+          .tapBoth(
+            e =>
+              Logging
+                .error(s"Failed to estimate amendment data for subscription ${subscription.subscriptionNumber}: $e"),
+            result => Logging.info(s"Estimated result: $result")
+          )
+    } yield CohortItem(
+      result.subscriptionName,
+      processingStage = EstimationComplete,
+      oldPrice = Some(result.oldPrice),
+      estimatedNewPrice = Some(result.estimatedNewPrice),
+      currency = Some(result.currency),
+      startDate = Some(result.startDate),
+      billingPeriod = Some(result.billingPeriod),
+      whenEstimationDone = Some(Instant.now())
+    )
 
   /*
    * Earliest start date spread out over 3 months.
    */
   private[handlers] def spreadEarliestStartDate(
       subscription: ZuoraSubscription,
-      invoicePreview: ZuoraInvoiceList
-  ): ZIO[AmendmentConfiguration with Random, ConfigurationFailure, LocalDate] = {
+      invoicePreview: ZuoraInvoiceList,
+      earliestStartDate: LocalDate
+  ): ZIO[Random, ConfigurationFailure, LocalDate] = {
 
-    def earliestStartDateForAMonthlySub(config: AmendmentConfig) =
+    lazy val earliestStartDateForAMonthlySub =
       for {
         randomFactor <- random.nextIntBetween(0, 3)
-        earliestStartDate = config.earliestStartDate.plusMonths(randomFactor)
-      } yield earliestStartDate
+        actualEarliestStartDate = earliestStartDate.plusMonths(randomFactor)
+      } yield actualEarliestStartDate
 
     val isMonthlySubscription =
       invoicePreview.invoiceItems
@@ -83,43 +98,29 @@ object EstimationHandler extends zio.App with RequestHandler[Unit, Unit] {
         .headOption
         .contains("Month")
 
-    AmendmentConfiguration.amendmentConfig flatMap { config =>
-      if (isMonthlySubscription)
-        earliestStartDateForAMonthlySub(config)
-      else
-        ZIO.succeed(config.earliestStartDate)
-    }
+    if (isMonthlySubscription)
+      earliestStartDateForAMonthlySub
+    else
+      ZIO.succeed(earliestStartDate)
   }
 
   private def env(
+      cohortSpec: CohortSpec,
       loggingService: Logging.Service
-  ): ZLayer[Any, ConfigurationFailure, Logging with AmendmentConfiguration with CohortTable with Zuora with Random] = {
+  ): ZLayer[Any, ConfigurationFailure, Logging with CohortTable with Zuora with Random] = {
     val loggingLayer = ZLayer.succeed(loggingService)
     val cohortTableLayer =
-      loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
-        DynamoDBClient.dynamoDB ++ loggingLayer ++ EnvConfiguration.amendmentImpl >>>
-        DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++ EnvConfiguration.stageImp >>>
-        CohortTableLive.impl
+      loggingLayer ++ EnvConfiguration.dynamoDbImpl andTo
+        DynamoDBClient.dynamoDB andTo
+        DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++ EnvConfiguration.stageImp andTo
+        CohortTableLive.impl(cohortSpec.tableName)
     val zuoraLayer =
       EnvConfiguration.zuoraImpl ++ loggingLayer >>>
         ZuoraLive.impl
-    (loggingLayer ++ EnvConfiguration.amendmentImpl ++ cohortTableLayer ++ zuoraLayer ++ Random.live)
+    (loggingLayer ++ cohortTableLayer ++ zuoraLayer ++ Random.live)
       .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
   }
 
-  private val runtime = Runtime.default
-
-  def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
-    main
-      .provideSomeLayer(
-        env(ConsoleLogging.service(Console.Service.live))
-      )
-      .exitCode
-
-  def handleRequest(unused: Unit, context: Context): Unit =
-    runtime.unsafeRun(
-      main.provideSomeLayer(
-        env(LambdaLogging.service(context))
-      )
-    )
+  def handle(input: CohortSpec, loggingService: Logging.Service): ZIO[ZEnv, Failure, HandlerOutput] =
+    main(input).provideCustomLayer(env(input, loggingService))
 }

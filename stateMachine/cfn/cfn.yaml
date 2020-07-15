@@ -44,6 +44,8 @@ Resources:
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-EstimatingLambda
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingSalesforceRecordsLambda
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-NotifyingSubscribersLambda
+                  - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-AmendingLambda
+                  - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-UpdatingSalesforceWithAmendsLambda
         - PolicyName: LoggingPolicy
           PolicyDocument:
             Statement:
@@ -55,7 +57,6 @@ Resources:
                   - logs:UpdateLogDelivery
                   - logs:DescribeLogGroups
                 Resource:
-#                  - !GetAtt CohortStateMachineLogGroup.Arn
                   - "*"
 
   CohortStateMachine:
@@ -82,54 +83,132 @@ Resources:
             "States": {
               "Estimating": {
                 "Type": "Task",
+                "Comment": "Calculating start date and new price for each sub in this cohort.",
                 "Resource": "${EstimatingLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
                 "Retry": [
+                  {
+                    "ErrorEquals": [
+                      "States.ALL"
+                    ],
+                    "IntervalSeconds": 30,
+                    "MaxAttempts": 25000,
+                    "BackoffRate": 2.0
+                  }
+                ],
+                "Next": "IsEstimatingComplete"
+              },
+              "IsEstimatingComplete": {
+                "Type": "Choice",
+                "Comment": "Is the estimating step complete?",
+                "Choices": [
                 {
-                  "ErrorEquals": [
-                    "Lambda.Unknown"
-                  ],
-                  "IntervalSeconds": 10,
-                  "MaxAttempts": 25000,
-                  "BackoffRate": 1.0
-                },
-                {
-                  "ErrorEquals": [
-                    "States.ALL"
-                  ],
-                  "IntervalSeconds": 30,
-                  "MaxAttempts": 25000,
-                  "BackoffRate": 2.0
+                  "Variable": "$.result.isComplete",
+                  "BooleanEquals": false,
+                  "Next": "Estimating"
                 }
                 ],
-                "Next": "CreatingSalesforceRecords"
+                "Default": "CreatingSalesforceRecords"
               },
               "CreatingSalesforceRecords": {
                 "Type": "Task",
+                "Comment": "Inserting a price-rise record for each sub in this cohort into Salesforce.",
                 "Resource": "${CreatingSalesforceRecordsLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
                 "Retry": [
+                  {
+                    "ErrorEquals": [
+                      "States.ALL"
+                    ],
+                    "IntervalSeconds": 30,
+                    "MaxAttempts": 25000,
+                    "BackoffRate": 2.0
+                  }
+                ],
+                "Next": "IsCreatingSalesforceRecordsComplete"
+              },
+              "IsCreatingSalesforceRecordsComplete": {
+                "Type": "Choice",
+                "Comment": "Is the creating Salesforce records step complete?",
+                "Choices": [
                 {
-                  "ErrorEquals": [
-                    "Lambda.Unknown"
-                  ],
-                  "IntervalSeconds": 10,
-                  "MaxAttempts": 25000,
-                  "BackoffRate": 1.0
-                },
-                {
-                  "ErrorEquals": [
-                    "States.ALL"
-                  ],
-                  "IntervalSeconds": 30,
-                  "MaxAttempts": 25000,
-                  "BackoffRate": 2.0
+                  "Variable": "$.result.isComplete",
+                  "BooleanEquals": false,
+                  "Next": "CreatingSalesforceRecords"
                 }
                 ],
-                "Next": "NotifyingSubscribers"
+                "Default": "Amending"
               },
               "NotifyingSubscribers": {
                 "Type": "Task",
                 "Resource": "${NotifyingSubscribersLambdaArn}",
-                "End": true
+                "Next": "Amending"
+              }
+              "Amending": {
+                "Type": "Task",
+                "Comment": "Applying price-rise amendment in Zuora on each sub in this cohort.",
+                "Resource": "${AmendingLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                      "States.ALL"
+                    ],
+                    "IntervalSeconds": 30,
+                    "MaxAttempts": 25000,
+                    "BackoffRate": 2.0
+                  }
+                ],
+                "Next": "IsAmendingComplete"
+              },
+              "IsAmendingComplete": {
+                "Type": "Choice",
+                "Comment": "Is the amending step complete?",
+                "Choices": [
+                {
+                  "Variable": "$.result.isComplete",
+                  "BooleanEquals": false,
+                  "Next": "Amending"
+                }
+                ],
+                "Default": "UpdatingSalesforceWithAmendments"
+              },
+              "UpdatingSalesforceWithAmendments": {
+                "Type": "Task",
+                "Comment": "Updating price-rise record for each sub in this cohort with amendment evidence.",
+                "Resource": "${UpdatingSalesforceWithAmendsLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                      "States.ALL"
+                    ],
+                    "IntervalSeconds": 30,
+                    "MaxAttempts": 25000,
+                    "BackoffRate": 2.0
+                  }
+                ],
+                "Next": "IsUpdatingSalesforceWithAmendmentsComplete"
+              },
+              "IsUpdatingSalesforceWithAmendmentsComplete": {
+                "Type": "Choice",
+                "Comment": "Is the updating Salesforce with amendments step complete?",
+                "Choices": [
+                {
+                  "Variable": "$.result.isComplete",
+                  "BooleanEquals": false,
+                  "Next": "UpdatingSalesforceWithAmendments"
+                }
+                ],
+                "Default": "Complete"
+              },
+              "Complete": {
+                "Type": "Succeed",
+                "Comment": "All steps are complete."
               }
             }
           }
@@ -139,3 +218,7 @@ Resources:
             Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingSalesforceRecordsLambda
           NotifyingSubscribersLambdaArn:
             Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-NotifyingSubscribersLambda
+          AmendingLambdaArn:
+            Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-AmendingLambda
+          UpdatingSalesforceWithAmendsLambdaArn:
+            Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-UpdatingSalesforceWithAmendsLambda
