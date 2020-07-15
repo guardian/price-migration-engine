@@ -14,6 +14,9 @@ import scala.jdk.CollectionConverters._
 import scala.util.Random
 
 class CohortTableLiveTest extends munit.FunSuite {
+
+  private val tableNameFixture = "PriceMigrationEngineDEV"
+
   val stubCohortTableConfiguration = ZLayer.succeed(
     new CohortTableConfiguration.Service {
       override val config: IO[ConfigurationFailure, CohortTableConfig] =
@@ -79,7 +82,7 @@ class CohortTableLiveTest extends munit.FunSuite {
               .fetch(ReadyForEstimation, None)
               .provideLayer(
                 stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
-                  CohortTableLive.impl
+                  CohortTableLive.impl(tableNameFixture)
               )
           resultList <- result.run(Sink.collectAll[CohortItem])
           _ = assertEquals(resultList, Chunk(item1, item2))
@@ -88,7 +91,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       Success(())
     )
 
-    assertEquals(receivedRequest.get.getTableName, "PriceMigrationEngineDEV")
+    assertEquals(receivedRequest.get.getTableName, tableNameFixture)
     assertEquals(receivedRequest.get.getIndexName, "ProcessingStageIndexV2")
     assertEquals(receivedRequest.get.getKeyConditionExpression, "processingStage = :processingStage")
     assertEquals(
@@ -173,7 +176,7 @@ class CohortTableLiveTest extends munit.FunSuite {
               .fetch(ReadyForEstimation, Some(expectedLatestDate))
               .provideLayer(
                 stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
-                  CohortTableLive.impl
+                  CohortTableLive.impl(tableNameFixture)
               )
           resultList <- result.run(Sink.collectAll[CohortItem])
           _ = assertEquals(resultList, Chunk(item1))
@@ -182,7 +185,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       Success(())
     )
 
-    assertEquals(receivedRequest.get.getTableName, "PriceMigrationEngineDEV")
+    assertEquals(receivedRequest.get.getTableName, tableNameFixture)
     assertEquals(receivedRequest.get.getIndexName, "ProcessingStageStartDateIndexV1")
     assertEquals(
       receivedRequest.get.getKeyConditionExpression,
@@ -252,13 +255,13 @@ class CohortTableLiveTest extends munit.FunSuite {
           .update(cohortItem)
           .provideLayer(
             stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
-              CohortTableLive.impl
+              CohortTableLive.impl(tableNameFixture)
           )
       ),
       Success(())
     )
 
-    assertEquals(tableUpdated.get, "PriceMigrationEngineDEV")
+    assertEquals(tableUpdated.get, tableNameFixture)
     assertEquals(receivedKey.get.subscriptionNumber, expectedSubscriptionId)
     assertEquals(
       receivedKeySerialiser.get.serialise(receivedKey.get),
@@ -393,7 +396,7 @@ class CohortTableLiveTest extends munit.FunSuite {
           .update(cohortItem)
           .provideLayer(
             stubStageConfiguration ++ stubCohortTableConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
-              CohortTableLive.impl
+              CohortTableLive.impl(tableNameFixture)
           )
       ),
       Success(())
@@ -452,13 +455,13 @@ class CohortTableLiveTest extends munit.FunSuite {
           .put(cohortItem)
           .provideLayer(
             stubStageConfiguration ++ stubCohortTableConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
-              CohortTableLive.impl
+              CohortTableLive.impl(tableNameFixture)
           )
       ),
       Success(())
     )
 
-    assertEquals(tableUpdated.get, "PriceMigrationEngineDEV")
+    assertEquals(tableUpdated.get, tableNameFixture)
     val insert = receivedSerialiser.get.serialise(receivedInsert.get)
     assertEquals(insert.get("subscriptionNumber"), new AttributeValue().withS("Subscription-id"))
     assertEquals(insert.get("processingStage"), new AttributeValue().withS("ReadyForEstimation"))

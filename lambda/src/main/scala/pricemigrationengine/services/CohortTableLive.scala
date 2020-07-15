@@ -35,27 +35,25 @@ object CohortTableLive {
       newSubscriptionId <- getOptionalStringFromResults(cohortItem, "newSubscriptionId")
       whenAmendmentDone <- getOptionalInstantFromResults(cohortItem, "whenAmendmentDone")
       whenNotificationSent <- getOptionalInstantFromResults(cohortItem, "whenNotificationSent")
-      whenNotificationSentWrittenToSalesforce <- getOptionalInstantFromResults(
-        cohortItem,
-        "whenNotificationSentWrittenToSalesforce")
-    } yield
-      CohortItem(
-        subscriptionName = subscriptionNumber,
-        processingStage = processingStage,
-        startDate = startDate,
-        currency = currency,
-        oldPrice = oldPrice,
-        estimatedNewPrice = estimatedNewPrice,
-        billingPeriod = billingPeriod,
-        whenEstimationDone = whenEstimationDone,
-        salesforcePriceRiseId = salesforcePriceRiseId,
-        whenSfShowEstimate = whenSfShowEstimate,
-        newPrice = newPrice,
-        newSubscriptionId = newSubscriptionId,
-        whenAmendmentDone = whenAmendmentDone,
-        whenNotificationSent = whenNotificationSent,
-        whenNotificationSentWrittenToSalesforce = whenNotificationSentWrittenToSalesforce
-      )
+      whenNotificationSentWrittenToSalesforce <-
+        getOptionalInstantFromResults(cohortItem, "whenNotificationSentWrittenToSalesforce")
+    } yield CohortItem(
+      subscriptionName = subscriptionNumber,
+      processingStage = processingStage,
+      startDate = startDate,
+      currency = currency,
+      oldPrice = oldPrice,
+      estimatedNewPrice = estimatedNewPrice,
+      billingPeriod = billingPeriod,
+      whenEstimationDone = whenEstimationDone,
+      salesforcePriceRiseId = salesforcePriceRiseId,
+      whenSfShowEstimate = whenSfShowEstimate,
+      newPrice = newPrice,
+      newSubscriptionId = newSubscriptionId,
+      whenAmendmentDone = whenAmendmentDone,
+      whenNotificationSent = whenNotificationSent,
+      whenNotificationSentWrittenToSalesforce = whenNotificationSentWrittenToSalesforce
+    )
   }
 
   private implicit val cohortItemUpdateSerialiser: DynamoDBUpdateSerialiser[CohortItem] =
@@ -88,14 +86,15 @@ object CohortTableLive {
         cohortItem.whenNotificationSent
           .map(whenNotificationSent => instantFieldUpdate("whenNotificationSent", whenNotificationSent)),
         cohortItem.whenNotificationSentWrittenToSalesforce
-          .map(
-            whenNotificationSentWrittenToSalesforce =>
-              instantFieldUpdate(
-                "whenNotificationSentWrittenToSalesforce",
-                whenNotificationSentWrittenToSalesforce
-            )),
+          .map(whenNotificationSentWrittenToSalesforce =>
+            instantFieldUpdate(
+              "whenNotificationSentWrittenToSalesforce",
+              whenNotificationSentWrittenToSalesforce
+            )
+          ),
         cohortItem.whenAmendmentWrittenToSalesforce.map(instant =>
-          instantFieldUpdate("whenAmendmentWrittenToSalesforce", instant))
+          instantFieldUpdate("whenAmendmentWrittenToSalesforce", instant)
+        )
       ).flatten.toMap.asJava
 
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =
@@ -108,8 +107,9 @@ object CohortTableLive {
         stringUpdate("processingStage", cohortItem.processingStage.value)
       ).asJava
 
-  val impl
-    : ZLayer[DynamoDBZIO with StageConfiguration with CohortTableConfiguration with Logging, Nothing, CohortTable] =
+  def impl(
+      tableName: String
+  ): ZLayer[DynamoDBZIO with StageConfiguration with CohortTableConfiguration with Logging, Nothing, CohortTable] =
     ZLayer.fromFunction {
       dependencies: DynamoDBZIO with StageConfiguration with CohortTableConfiguration with Logging =>
         new Service {
@@ -118,14 +118,14 @@ object CohortTableLive {
               latestStartDateInclusive: Option[LocalDate]
           ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
             for {
-              cohortTableConfig <- CohortTableConfiguration.cohortTableConfig
-                .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
-              stageConfig <- StageConfiguration.stageConfig
-                .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
-              indexName = latestStartDateInclusive
-                .fold(ProcessingStageIndexName)(_ => ProcessingStageAndStartDateIndexName)
+              cohortTableConfig <-
+                CohortTableConfiguration.cohortTableConfig
+                  .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
+              indexName =
+                latestStartDateInclusive
+                  .fold(ProcessingStageIndexName)(_ => ProcessingStageAndStartDateIndexName)
               queryRequest = new QueryRequest()
-                .withTableName(s"PriceMigrationEngine${stageConfig.stage}")
+                .withTableName(tableName)
                 .withIndexName(indexName)
                 .withKeyConditionExpression(
                   "processingStage = :processingStage" + latestStartDateInclusive.fold("") { _ =>
@@ -141,31 +141,30 @@ object CohortTableLive {
                   ).flatten.toMap.asJava
                 )
                 .withLimit(cohortTableConfig.batchSize)
-              queryResults <- DynamoDBZIO
-                .query(
-                  queryRequest
-                )
-                .map(_.mapError(error => CohortFetchFailure(error.toString)))
+              queryResults <-
+                DynamoDBZIO
+                  .query(
+                    queryRequest
+                  )
+                  .map(_.mapError(error => CohortFetchFailure(error.toString)))
             } yield queryResults
           }.provide(dependencies)
 
           override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
             for {
-              config <- StageConfiguration.stageConfig
-                .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
-              result <- DynamoDBZIO
-                .put(s"PriceMigrationEngine${config.stage}", cohortItem)
-                .mapError(error => CohortUpdateFailure(error.toString))
+              result <-
+                DynamoDBZIO
+                  .put(table = tableName, value = cohortItem)
+                  .mapError(error => CohortUpdateFailure(error.toString))
             } yield result
           }.provide(dependencies)
 
           override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
             (for {
-              config <- StageConfiguration.stageConfig
-                .mapError(error => CohortUpdateFailure(s"Failed to get configuration:${error.reason}"))
-              result <- DynamoDBZIO
-                .update(s"PriceMigrationEngine${config.stage}", CohortTableKey(result.subscriptionName), result)
-                .mapError(error => CohortUpdateFailure(error.toString))
+              result <-
+                DynamoDBZIO
+                  .update(table = tableName, key = CohortTableKey(result.subscriptionName), value = result)
+                  .mapError(error => CohortUpdateFailure(error.toString))
             } yield result)
               .tapBoth(
                 e => Logging.error(s"Failed to update Cohort table: $e"),

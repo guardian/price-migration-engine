@@ -16,7 +16,7 @@ object AmendmentHandler extends CohortHandler {
   // TODO: move to config
   private val batchSize = 150
 
-  def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora with Clock, Failure, HandlerOutput] =
+  val main: ZIO[Logging with CohortTable with Zuora with Clock, Failure, HandlerOutput] =
     for {
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
       cohortItems <- CohortTable.fetch(NotificationSendDateWrittenToSalesforce, None)
@@ -96,6 +96,7 @@ object AmendmentHandler extends CohortHandler {
       .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
 
   private def env(
+      cohortSpec: CohortSpec,
       loggingService: Logging.Service
   ): ZLayer[Any, ConfigurationFailure, Logging with CohortTable with Zuora] = {
     val loggingLayer = ZLayer.succeed(loggingService)
@@ -103,7 +104,7 @@ object AmendmentHandler extends CohortHandler {
       loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
         DynamoDBClient.dynamoDB ++ loggingLayer >>>
         DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++ EnvConfiguration.stageImp >>>
-        CohortTableLive.impl
+        CohortTableLive.impl(cohortSpec.tableName)
     val zuoraLayer =
       EnvConfiguration.zuoraImpl ++ loggingLayer >>>
         ZuoraLive.impl
@@ -112,5 +113,5 @@ object AmendmentHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec, loggingService: Logging.Service): ZIO[ZEnv, Failure, HandlerOutput] =
-    main(input).provideCustomLayer(env(loggingService))
+    main.provideCustomLayer(env(input, loggingService))
 }

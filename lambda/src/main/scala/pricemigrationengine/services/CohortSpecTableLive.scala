@@ -18,16 +18,15 @@ object CohortSpecTableLive {
       orig.left.map(e => CohortSpecFetchFailure(e))
     for {
       cohortName <- errorMapped(getStringFromResults(values, "cohortName"))
-      earliestPriceMigrationStartDate <- errorMapped(getDateFromResults(values, "earliestPriceMigrationStartDate"))
       importStartDate <- errorMapped(getDateFromResults(values, "importStartDate"))
+      earliestPriceMigrationStartDate <- errorMapped(getDateFromResults(values, "earliestPriceMigrationStartDate"))
       migrationCompleteDate <- errorMapped(getOptionalDateFromResults(values, "migrationCompleteDate"))
-    } yield
-      CohortSpec(
-        cohortName,
-        earliestPriceMigrationStartDate,
-        importStartDate,
-        migrationCompleteDate
-      )
+    } yield CohortSpec(
+      cohortName,
+      importStartDate,
+      earliestPriceMigrationStartDate,
+      migrationCompleteDate
+    )
   }
 
   val impl: ZLayer[DynamoDBClient with StageConfiguration with Logging, ConfigurationFailure, CohortSpecTable] =
@@ -38,14 +37,15 @@ object CohortSpecTableLive {
           (for {
             stageConfig <- StageConfiguration.stageConfig
             scanRequest = new ScanRequest().withTableName(s"$tableNamePrefix-${stageConfig.stage}")
-            scanResult <- DynamoDBClient
-              .scan(scanRequest)
-              .mapError(e => CohortSpecFetchFailure(s"Failed to fetch cohort specs: $e"))
-            specs <- ZIO.foreach(scanResult.getItems.asScala)(
-              result =>
-                ZIO
-                  .fromEither(toCohortSpec(result))
-                  .mapError(e => CohortSpecFetchFailure(s"Failed to parse '$result': ${e.reason}")))
+            scanResult <-
+              DynamoDBClient
+                .scan(scanRequest)
+                .mapError(e => CohortSpecFetchFailure(s"Failed to fetch cohort specs: $e"))
+            specs <- ZIO.foreach(scanResult.getItems.asScala)(result =>
+              ZIO
+                .fromEither(toCohortSpec(result))
+                .mapError(e => CohortSpecFetchFailure(s"Failed to parse '$result': ${e.reason}"))
+            )
           } yield specs.toSet).tap(specs => Logging.info(s"Fetched ${specs.size} cohort specs"))
         }.provide(modules)
 

@@ -11,9 +11,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
   // TODO: move to config
   private val batchSize = 1000
 
-  private[handlers] def main(
-      cohortSpec: CohortSpec
-  ): ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, HandlerOutput] =
+  private[handlers] val main: ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, HandlerOutput] =
     for {
       cohortItems <- CohortTable.fetch(EstimationComplete, None)
       count <- cohortItems.take(batchSize).mapM(createSalesforcePriceRise).runCount
@@ -86,16 +84,17 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
   }
 
   private def env(
+      cohortSpec: CohortSpec,
       loggingService: Logging.Service
   ): ZLayer[Any, Failure, Logging with CohortTable with SalesforceClient with Clock] = {
     val loggingLayer = ZLayer.succeed(loggingService)
     loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
       DynamoDBClient.dynamoDB ++ loggingLayer >>>
       DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++ EnvConfiguration.stageImp ++ EnvConfiguration.salesforceImp >>>
-      (loggingLayer ++ CohortTableLive.impl ++ SalesforceClientLive.impl ++ Clock.live)
+      (loggingLayer ++ CohortTableLive.impl(cohortSpec.tableName) ++ SalesforceClientLive.impl ++ Clock.live)
         .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
   }
 
   def handle(input: CohortSpec, loggingService: Logging.Service): ZIO[ZEnv, Failure, HandlerOutput] =
-    main(input).provideCustomLayer(env(loggingService))
+    main.provideCustomLayer(env(input, loggingService))
 }

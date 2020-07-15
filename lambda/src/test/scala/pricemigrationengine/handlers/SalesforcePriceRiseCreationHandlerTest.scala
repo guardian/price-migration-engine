@@ -21,13 +21,6 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
   val expectedOldPrice = BigDecimal(11.11)
   val expectedEstimatedNewPrice = BigDecimal(22.22)
 
-  private val stubCohortSpec = CohortSpec(
-    cohortName = "cohortName",
-    earliestPriceMigrationStartDate = LocalDate.of(2020, 1, 1),
-    importStartDate = LocalDate.of(2020, 1, 1),
-    migrationCompleteDate = None
-  )
-
   private val expectedHandlerOutput = HandlerOutput(
     isComplete = true
   )
@@ -115,8 +108,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        SalesforcePriceRiseCreationHandler
-          .main(stubCohortSpec)
+        SalesforcePriceRiseCreationHandler.main
           .provideLayer(
             TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ StubClock.clock
           )
@@ -175,8 +167,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        SalesforcePriceRiseCreationHandler
-          .main(stubCohortSpec)
+        SalesforcePriceRiseCreationHandler.main
           .provideLayer(
             TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ StubClock.clock
           )

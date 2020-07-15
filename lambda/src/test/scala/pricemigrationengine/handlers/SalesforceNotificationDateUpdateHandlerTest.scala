@@ -15,15 +15,15 @@ import scala.collection.mutable.ArrayBuffer
 
 class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
   val expectedSubscriptionName = "Sub-0001"
-  val expectedWhenEmailSentDate = LocalDate.of(2020,3,23)
+  val expectedWhenEmailSentDate = LocalDate.of(2020, 3, 23)
   val expectedPriceRiseId = "price-rise-id"
 
-  def createStubCohortTable(updatedResultsWrittenToCohortTable:ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
+  def createStubCohortTable(updatedResultsWrittenToCohortTable: ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
       new CohortTable.Service {
         override def fetch(
-          filter: CohortTableFilter,
-          beforeDateInclusive: Option[LocalDate]
+            filter: CohortTableFilter,
+            beforeDateInclusive: Option[LocalDate]
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
           assertEquals(filter, NotificationSendComplete)
           IO.succeed(ZStream(cohortItem))
@@ -40,7 +40,7 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
   }
 
   private def stubSFClient(
-    updatedPriceRises: ArrayBuffer[SalesforcePriceRise]
+      updatedPriceRises: ArrayBuffer[SalesforcePriceRise]
   ) = {
     ZLayer.succeed(
       new SalesforceClient.Service {
@@ -53,7 +53,8 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
         ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] = ???
 
         override def updatePriceRise(
-            priceRiseId: String, priceRise: SalesforcePriceRise
+            priceRiseId: String,
+            priceRise: SalesforcePriceRise
         ): IO[SalesforceClientFailure, Unit] = {
           updatedPriceRises.addOne(priceRise)
           ZIO.unit
@@ -87,7 +88,7 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
             TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ StubClock.clock
           )
       ),
-      Success(())
+      Success(HandlerOutput(isComplete = true))
     )
 
     assertEquals(updatedPriceRises.size, 1)
