@@ -8,7 +8,7 @@ import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.services._
 import zio.Exit.Success
 import zio.stream.{Sink, ZStream}
-import zio.{IO, Runtime, ZIO, ZLayer}
+import zio.{Chunk, IO, Runtime, ZIO, ZLayer}
 
 import scala.jdk.CollectionConverters._
 import scala.util.Random
@@ -85,7 +85,7 @@ class CohortTableLiveTest extends munit.FunSuite {
                   CohortTableLive.impl(tableNameFixture)
               )
           resultList <- result.run(Sink.collectAll[CohortItem])
-          _ = assertEquals(resultList, List(item1, item2))
+          _ = assertEquals(resultList, Chunk(item1, item2))
         } yield ()
       ),
       Success(())
@@ -179,7 +179,7 @@ class CohortTableLiveTest extends munit.FunSuite {
                   CohortTableLive.impl(tableNameFixture)
               )
           resultList <- result.run(Sink.collectAll[CohortItem])
-          _ = assertEquals(resultList, List(item1))
+          _ = assertEquals(resultList, Chunk(item1))
         } yield ()
       ),
       Success(())
