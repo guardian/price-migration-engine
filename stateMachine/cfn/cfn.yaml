@@ -141,6 +141,11 @@ Resources:
                 ],
                 "Default": "Amending"
               },
+              "NotifyingSubscribers": {
+                "Type": "Task",
+                "Resource": "${NotifyingSubscribersLambdaArn}",
+                "Next": "Amending"
+              }
               "Amending": {
                 "Type": "Task",
                 "Comment": "Applying price-rise amendment in Zuora on each sub in this cohort.",
