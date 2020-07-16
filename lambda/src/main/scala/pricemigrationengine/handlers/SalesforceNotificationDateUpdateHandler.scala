@@ -2,21 +2,19 @@ package pricemigrationengine.handlers
 
 import java.time.{LocalDate, ZoneOffset}
 
-import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import pricemigrationengine.model.CohortTableFilter.{NotificationSendComplete, NotificationSendDateWrittenToSalesforce}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.clock.Clock
-import zio.console.Console
-import zio.{App, ExitCode, IO, Runtime, ZEnv, ZIO, ZLayer}
+import zio.{IO, ZEnv, ZIO, ZLayer}
 
-object SalesforceNotificationDateUpdateHandler extends App with RequestHandler[Unit, Unit] {
+object SalesforceNotificationDateUpdateHandler extends CohortHandler {
 
-  val main: ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, Unit] =
+  val main: ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, HandlerOutput] =
     for {
       cohortItems <- CohortTable.fetch(NotificationSendComplete, None)
       _ <- cohortItems.foreach(updateDateLetterSentInSF)
-    } yield ()
+    } yield HandlerOutput(isComplete = true)
 
   private def updateDateLetterSentInSF(
       item: CohortItem
@@ -33,8 +31,9 @@ object SalesforceNotificationDateUpdateHandler extends App with RequestHandler[U
         processingStage = NotificationSendDateWrittenToSalesforce,
         whenNotificationSentWrittenToSalesforce = Some(now)
       )
-      _ <- CohortTable
-        .update(salesforcePriceRiseDetails)
+      _ <-
+        CohortTable
+          .update(salesforcePriceRiseDetails)
     } yield ()
 
   private def updateSalesforce(
@@ -42,15 +41,18 @@ object SalesforceNotificationDateUpdateHandler extends App with RequestHandler[U
   ): ZIO[SalesforceClient, Failure, Option[String]] = {
     for {
       priceRise <- buildPriceRise(cohortItem)
-      salesforcePriceRiseId <- IO
-        .fromOption(cohortItem.salesforcePriceRiseId)
-        .orElseFail(
-          SalesforcePriceRiseWriteFailure(
-            "CohortItem.salesforcePriceRiseId is required to update salesforce"
-          ))
-      result <- SalesforceClient
-        .updatePriceRise(salesforcePriceRiseId, priceRise)
-        .as(None)
+      salesforcePriceRiseId <-
+        IO
+          .fromOption(cohortItem.salesforcePriceRiseId)
+          .orElseFail(
+            SalesforcePriceRiseWriteFailure(
+              "CohortItem.salesforcePriceRiseId is required to update salesforce"
+            )
+          )
+      result <-
+        SalesforceClient
+          .updatePriceRise(salesforcePriceRiseId, priceRise)
+          .as(None)
     } yield result
   }
 
@@ -58,39 +60,27 @@ object SalesforceNotificationDateUpdateHandler extends App with RequestHandler[U
       cohortItem: CohortItem
   ): IO[SalesforcePriceRiseWriteFailure, SalesforcePriceRise] = {
     for {
-      notificationSendTimestamp <- ZIO
-        .fromOption(cohortItem.whenNotificationSent)
-        .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a whenEmailSent field"))
-    } yield
-      SalesforcePriceRise(
-        Date_Letter_Sent__c = Some(LocalDate.from(notificationSendTimestamp.atOffset(ZoneOffset.UTC)))
-      )
+      notificationSendTimestamp <-
+        ZIO
+          .fromOption(cohortItem.whenNotificationSent)
+          .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a whenEmailSent field"))
+    } yield SalesforcePriceRise(
+      Date_Letter_Sent__c = Some(LocalDate.from(notificationSendTimestamp.atOffset(ZoneOffset.UTC)))
+    )
   }
 
   private def env(
+      cohortSpec: CohortSpec,
       loggingService: Logging.Service
-  ): ZLayer[Any, Any, Logging with CohortTable with SalesforceClient with Clock] = {
+  ): ZLayer[Any, Failure, Logging with CohortTable with SalesforceClient with Clock] = {
     val loggingLayer = ZLayer.succeed(loggingService)
     loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
       DynamoDBClient.dynamoDB ++ loggingLayer >>>
       DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++ EnvConfiguration.stageImp ++ EnvConfiguration.salesforceImp >>>
-      (loggingLayer ++ CohortTableLive.impl ++ SalesforceClientLive.impl ++ Clock.live)
+      (loggingLayer ++ CohortTableLive.impl(cohortSpec.tableName) ++ SalesforceClientLive.impl ++ Clock.live)
         .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
   }
 
-  private val runtime = Runtime.default
-
-  def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
-    main
-      .provideSomeLayer(
-        env(ConsoleLogging.service(Console.Service.live))
-      )
-      .exitCode
-
-  def handleRequest(unused: Unit, context: Context): Unit =
-    runtime.unsafeRun(
-      main.provideSomeLayer(
-        env(LambdaLogging.service(context))
-      )
-    )
+  def handle(input: CohortSpec, loggingService: Logging.Service): ZIO[ZEnv, Failure, HandlerOutput] =
+    main.provideCustomLayer(env(input, loggingService))
 }

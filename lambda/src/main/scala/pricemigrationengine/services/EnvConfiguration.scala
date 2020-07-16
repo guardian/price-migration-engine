@@ -1,7 +1,6 @@
 package pricemigrationengine.services
 
 import java.lang.System.getenv
-import java.time.LocalDate
 
 import pricemigrationengine.model._
 import zio.{IO, ZIO, ZLayer}
@@ -17,14 +16,6 @@ object EnvConfiguration {
     ZIO
       .effect(Option(getenv(name)))
       .mapError(e => ConfigurationFailure(e.getMessage))
-
-  val amendmentImpl: ZLayer[Any, Nothing, AmendmentConfiguration] = ZLayer.succeed {
-    new AmendmentConfiguration.Service {
-      val config: IO[ConfigurationFailure, AmendmentConfig] = for {
-        earliestStartDate <- env("earliestStartDate").map(LocalDate.parse)
-      } yield AmendmentConfig(earliestStartDate)
-    }
-  }
 
   val zuoraImpl: ZLayer[Any, Nothing, ZuoraConfiguration] = ZLayer.succeed {
     new ZuoraConfiguration.Service {
@@ -103,9 +94,19 @@ object EnvConfiguration {
       val config: IO[ConfigurationFailure, EmailSenderConfig] =
         for {
           emailSqsQueueName <- env("sqsEmailQueueName")
-        } yield EmailSenderConfig(
-          sqsEmailQueueName = emailSqsQueueName
-        )
+        } yield
+          EmailSenderConfig(
+            sqsEmailQueueName = emailSqsQueueName
+          )
+    }
+  }
+
+  val cohortStateMachineImpl: ZLayer[Any, ConfigurationFailure, CohortStateMachineConfiguration] = ZLayer.fromEffect {
+    env("cohortStateMachineArn") map { arn =>
+      new CohortStateMachineConfiguration.Service {
+        val config: IO[ConfigurationFailure, CohortStateMachineConfig] =
+          ZIO.succeed(CohortStateMachineConfig(stateMachineArn = arn))
+      }
     }
   }
 }

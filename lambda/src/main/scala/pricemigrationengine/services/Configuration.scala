@@ -3,15 +3,6 @@ package pricemigrationengine.services
 import pricemigrationengine.model._
 import zio.{IO, ZIO}
 
-object AmendmentConfiguration {
-  trait Service {
-    val config: IO[ConfigurationFailure, AmendmentConfig]
-  }
-
-  val amendmentConfig: ZIO[AmendmentConfiguration, ConfigurationFailure, AmendmentConfig] =
-    ZIO.accessM(_.get.config)
-}
-
 object ZuoraConfiguration {
   trait Service {
     val config: IO[ConfigurationFailure, ZuoraConfig]
@@ -63,5 +54,13 @@ object EmailSenderConfiguration {
   }
 
   val emailSenderConfig: ZIO[EmailSenderConfiguration, ConfigurationFailure, EmailSenderConfig] =
+    ZIO.accessM(_.get.config)
+}
+
+object CohortStateMachineConfiguration {
+  trait Service {
+    val config: IO[ConfigurationFailure, CohortStateMachineConfig]
+  }
+  val cohortStateMachineConfig: ZIO[CohortStateMachineConfiguration, ConfigurationFailure, CohortStateMachineConfig] =
     ZIO.accessM(_.get.config)
 }

@@ -1,13 +1,16 @@
 package pricemigrationengine.model
 
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit.DAYS
 
 import pricemigrationengine.model.Either._
-import upickle.default._
+import upickle.default.{ReadWriter, macroRW}
 
 case class ZuoraSubscriptionUpdate(
     add: Seq[AddZuoraRatePlan],
-    remove: Seq[RemoveZuoraRatePlan]
+    remove: Seq[RemoveZuoraRatePlan],
+    currentTerm: Option[Int],
+    currentTermPeriodType: Option[String]
 )
 
 object ZuoraSubscriptionUpdate {
@@ -26,11 +29,11 @@ object ZuoraSubscriptionUpdate {
       pricingData: ZuoraPricingData,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-      date: LocalDate
+      effectiveDate: LocalDate
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
 
     val ratePlans = (for {
-      invoiceItem <- ZuoraInvoiceItem.items(invoiceList, subscription, date)
+      invoiceItem <- ZuoraInvoiceItem.items(invoiceList, subscription, effectiveDate)
       ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toSeq
       price <- ratePlanCharge.price.toSeq
       if price > 0
@@ -42,10 +45,16 @@ object ZuoraSubscriptionUpdate {
     else if (ratePlans.size > 1)
       Left(AmendmentDataFailure(s"Multiple rate plans to update: ${ratePlans.map(_.id)}"))
     else {
-      ratePlans.map(AddZuoraRatePlan.fromRatePlan(pricingData, date)).sequence.map { add =>
+      ratePlans.map(AddZuoraRatePlan.fromRatePlan(pricingData, effectiveDate)).sequence.map { add =>
+        val isTermTooShort = subscription.termEndDate.isBefore(effectiveDate)
         ZuoraSubscriptionUpdate(
           add,
-          remove = ratePlans.map(ratePlan => RemoveZuoraRatePlan(ratePlan.id, date))
+          remove = ratePlans.map(ratePlan => RemoveZuoraRatePlan(ratePlan.id, effectiveDate)),
+          currentTerm =
+            if (isTermTooShort)
+              Some(subscription.termStartDate.until(effectiveDate, DAYS).toInt)
+            else None,
+          currentTermPeriodType = if (isTermTooShort) Some("Day") else None
         )
       }
     }

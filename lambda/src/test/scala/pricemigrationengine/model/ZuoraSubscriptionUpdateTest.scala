@@ -26,7 +26,9 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
           ),
           remove = List(
             RemoveZuoraRatePlan(ratePlanId = "rp2", contractEffectiveDate = date)
-          )
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
         )
       )
     )
@@ -50,7 +52,9 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
           ),
           remove = List(
             RemoveZuoraRatePlan(ratePlanId = "rp2", contractEffectiveDate = date)
-          )
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
         )
       )
     )
@@ -89,7 +93,9 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
           ),
           remove = List(
             RemoveZuoraRatePlan(ratePlanId = "rp456", contractEffectiveDate = date)
-          )
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
         )
       )
     )
@@ -113,7 +119,9 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
           ),
           remove = List(
             RemoveZuoraRatePlan(ratePlanId = "rp123", contractEffectiveDate = date)
-          )
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
         )
       )
     )
@@ -172,7 +180,9 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
           ),
           remove = List(
             RemoveZuoraRatePlan(ratePlanId = "rp42", contractEffectiveDate = date)
-          )
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
         )
       )
     )
@@ -211,6 +221,38 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
           ),
           remove = List(
             RemoveZuoraRatePlan(ratePlanId = "rp571", contractEffectiveDate = date)
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
+    )
+  }
+
+  test("updateOfRatePlansToCurrent: extends term when term ends before effective date of update") {
+    val fixtureSet = "TermEndsEarly"
+    val date = LocalDate.of(2020, 8, 5)
+    val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      date
+    )
+    assertEquals(
+      update,
+      Right(
+        ZuoraSubscriptionUpdate(
+          currentTerm = Some(393),
+          currentTermPeriodType = Some("Day"),
+          add = List(
+            AddZuoraRatePlan(
+              productRatePlanId = "2c92a0fe5af9a6b9015b0fe1ecc0116c",
+              contractEffectiveDate = date,
+              chargeOverrides = Nil
+            )
+          ),
+          remove = List(
+            RemoveZuoraRatePlan(ratePlanId = "rp572", contractEffectiveDate = date)
           )
         )
       )
