@@ -14,17 +14,17 @@ Parameters:
 Mappings:
   StageMap:
     DEV:
-      SecretsVersion: "6559354e-556f-4609-a89f-222824495d5d"
+      SecretsVersion: "4db851a7-5832-4ce2-9356-b4c412d80f30"
       BucketName: price-migration-engine-dev
-      SQSQueueName: contributions-thanks-dev
+      SQSQueueName: direct-mail-CODE
     CODE:
-      SecretsVersion: "52529e0a-438b-4b63-8a08-35f158ed0bee"
+      SecretsVersion: "4c808606-4f2b-4925-bf71-8fd75a102e2b"
       BucketName: price-migration-engine-code
-      SQSQueueName: contributions-thanks-dev
+      SQSQueueName: direct-mail-CODE
     PROD:
-      SecretsVersion: "dd295c21-39df-47d0-b3b2-0d420ee3b055"
+      SecretsVersion: "b069693b-69dd-40ee-a586-70d409778d2b"
       BucketName: price-migration-engine-prod
-      SQSQueueName: contributions-thanks
+      SQSQueueName: direct-mail-PROD
 
 Resources:
 
@@ -437,9 +437,7 @@ Resources:
             - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceToken::${SecretsVersion}}}'
             - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
           sqsEmailQueueName:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:sqsEmailQueueName::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+            !FindInMap [ StageMap, !Ref Stage, SQSQueueName ]
       Role:
         Fn::GetAtt:
           - PriceMigrationEngineNotificationLambdaRole

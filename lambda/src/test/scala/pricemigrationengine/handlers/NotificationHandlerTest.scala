@@ -180,7 +180,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages(0).DataExtensionName, expectedDataExtensionName)
     assertEquals(sentMessages(0).SfContactId, expectedBuyerId)
     assertEquals(sentMessages(0).IdentityUserId, Some(expectedIdentityId))
-    assertEquals(sentMessages(0).To.Address, expectedEmailAddress)
+    assertEquals(sentMessages(0).To.Address, Some(expectedEmailAddress))
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_1, expectedStreet)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_2, None)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_city, Some(expectedCity))
