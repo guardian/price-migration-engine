@@ -85,6 +85,8 @@ object NotificationHandler extends CohortHandler {
       billingPeriod <- requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod")
       paymentFrequency <- paymentFrequency(billingPeriod)
 
+      _ <- logMissingEmailAddress(cohortItem, contact)
+
       _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendProcessingOrError)
 
       _ <- EmailSender.sendEmail(
@@ -120,6 +122,16 @@ object NotificationHandler extends CohortHandler {
 
   def requiredField[A](field: Option[A], fieldName: String): ZIO[Any, NotificationHandlerFailure, A] = {
     ZIO.fromOption(field).orElseFail(NotificationHandlerFailure(s"$fieldName is a required field"))
+  }
+
+  def logMissingEmailAddress(cohortItem: CohortItem, sfContact: SalesforceContact)  = {
+    if(sfContact.Email.isEmpty) {
+      Logging.info(
+        s"Subscription ${cohortItem.subscriptionName} is for contact ${sfContact.Id} that has not email address"
+      )
+    } else {
+      ZIO.unit
+    }
   }
 
   val paymentFrequencyMapping = Map(
