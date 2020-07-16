@@ -20,14 +20,14 @@ object EstimationHandler extends CohortHandler {
   // TODO: move to config
   private val batchSize = 150
 
-  def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora with Random, Failure, HandlerOutput] =
+  def main(earliestStartDate: LocalDate): ZIO[Logging with CohortTable with Zuora with Random, Failure, HandlerOutput] =
     for {
       newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
       cohortItems <- CohortTable.fetch(ReadyForEstimation, None)
       count <-
         cohortItems
           .take(batchSize)
-          .mapM(estimate(newProductPricing, cohortSpec.earliestPriceMigrationStartDate))
+          .mapM(estimate(newProductPricing, earliestStartDate))
           .runCount
     } yield HandlerOutput(isComplete = count < batchSize)
 
@@ -104,23 +104,10 @@ object EstimationHandler extends CohortHandler {
       ZIO.succeed(earliestStartDate)
   }
 
-  private def env(
-      cohortSpec: CohortSpec,
-      loggingService: Logging.Service
-  ): ZLayer[Any, ConfigurationFailure, Logging with CohortTable with Zuora with Random] = {
-    val loggingLayer = ZLayer.succeed(loggingService)
-    val cohortTableLayer =
-      loggingLayer ++ EnvConfiguration.dynamoDbImpl andTo
-        DynamoDBClient.dynamoDB andTo
-        DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++ EnvConfiguration.stageImp andTo
-        CohortTableLive.impl(cohortSpec.tableName)
-    val zuoraLayer =
-      EnvConfiguration.zuoraImpl ++ loggingLayer >>>
-        ZuoraLive.impl
-    (loggingLayer ++ cohortTableLayer ++ zuoraLayer ++ Random.live)
-      .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
-  }
+  private def env(cohortSpec: CohortSpec): ZLayer[Logging, ConfigurationFailure, CohortTable with Zuora with Logging] =
+    (LiveLayer.cohortTable(cohortSpec.tableName) and LiveLayer.zuora and LiveLayer.logging)
+      .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
-  def handle(input: CohortSpec, loggingService: Logging.Service): ZIO[ZEnv, Failure, HandlerOutput] =
-    main(input).provideCustomLayer(env(input, loggingService))
+  def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
+    main(input.earliestPriceMigrationStartDate).provideSomeLayer[ZEnv with Logging](env(input))
 }

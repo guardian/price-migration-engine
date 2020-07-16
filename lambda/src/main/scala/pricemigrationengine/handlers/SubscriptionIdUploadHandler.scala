@@ -77,19 +77,11 @@ object SubscriptionIdUploadHandler extends CohortHandler {
   }
 
   private def env(
-      cohortSpec: CohortSpec,
-      loggingService: Logging.Service
-  ): ZLayer[Any, Failure, Logging with CohortTable with S3 with StageConfiguration] = {
-    val loggingLayer = ZLayer.succeed(loggingService)
-    val cohortTableLayer =
-      loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
-        DynamoDBClient.dynamoDB ++ loggingLayer >>>
-        DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.stageImp ++ EnvConfiguration.cohortTableImp >>>
-        CohortTableLive.impl(cohortSpec.tableName) ++ S3Live.impl ++ EnvConfiguration.stageImp
-    (loggingLayer ++ cohortTableLayer)
-      .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
-  }
+      cohortSpec: CohortSpec
+  ): ZLayer[Logging, Failure, CohortTable with S3 with StageConfiguration with Logging] =
+    (LiveLayer.cohortTable(cohortSpec.tableName) and LiveLayer.s3 and EnvConfiguration.stageImp and LiveLayer.logging)
+      .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
-  def handle(input: CohortSpec, loggingService: Logging.Service): ZIO[ZEnv, Failure, HandlerOutput] =
-    main.provideCustomLayer(env(input, loggingService))
+  def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
+    main.provideSomeLayer[ZEnv with Logging](env(input))
 }

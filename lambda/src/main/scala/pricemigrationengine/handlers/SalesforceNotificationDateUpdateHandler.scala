@@ -69,18 +69,10 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
     )
   }
 
-  private def env(
-      cohortSpec: CohortSpec,
-      loggingService: Logging.Service
-  ): ZLayer[Any, Failure, Logging with CohortTable with SalesforceClient with Clock] = {
-    val loggingLayer = ZLayer.succeed(loggingService)
-    loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
-      DynamoDBClient.dynamoDB ++ loggingLayer >>>
-      DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++ EnvConfiguration.stageImp ++ EnvConfiguration.salesforceImp >>>
-      (loggingLayer ++ CohortTableLive.impl(cohortSpec.tableName) ++ SalesforceClientLive.impl ++ Clock.live)
-        .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
-  }
+  private def env(cohortSpec: CohortSpec): ZLayer[Logging, Failure, CohortTable with SalesforceClient with Logging] =
+    (LiveLayer.cohortTable(cohortSpec.tableName) and LiveLayer.salesforce and LiveLayer.logging)
+      .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
-  def handle(input: CohortSpec, loggingService: Logging.Service): ZIO[ZEnv, Failure, HandlerOutput] =
-    main.provideCustomLayer(env(input, loggingService))
+  def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
+    main.provideSomeLayer[ZEnv with Logging](env(input))
 }
