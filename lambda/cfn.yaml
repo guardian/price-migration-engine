@@ -292,7 +292,7 @@ Resources:
   PriceMigrationEngineSalesforcePriceCreationLambda:
     Type: AWS::Lambda::Function
     Properties:
-      Description: Lambda used to create Price_Rise__c objects in salesforce realting to the price rise.
+      Description: Lambda used to create Price_Rise__c objects in salesforce relating to the price rise.
       FunctionName:
         !Sub price-migration-engine-salesforce-price-rise-lambda-${Stage}
       Code:
@@ -557,6 +557,10 @@ Outputs:
     Value: !GetAtt PriceMigrationEngineNotificationLambda.Arn
     Export:
       Name: !Sub "${AWS::StackName}-NotifyingSubscribersLambda"
+  PriceMigrationEngineSalesforceNotificationDateUpdateLambdaOutput:
+    Value: !GetAtt PriceMigrationEngineSalesforceNotificationDateUpdateLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-UpdatingSalesforceWithNotificationsLambda"
   PriceMigrationEngineAmendmentLambdaOutput:
     Value: !GetAtt PriceMigrationEngineAmendmentLambda.Arn
     Export:
