@@ -178,20 +178,12 @@ object NotificationHandler extends CohortHandler {
     } yield 0
 
   private def env(
-      cohortSpec: CohortSpec,
-      loggingService: Logging.Service
-  ): ZLayer[Any, Failure, Logging with CohortTable with SalesforceClient with Clock with EmailSender] = {
-    val loggingLayer = ZLayer.succeed(loggingService)
-    val cohortTableLayer =
-      loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
-        DynamoDBClient.dynamoDB ++ loggingLayer >>>
-        DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++
-          EnvConfiguration.stageImp ++ EnvConfiguration.salesforceImp ++ EnvConfiguration.emailSenderImp >>>
-        CohortTableLive.impl(cohortSpec.tableName) ++ SalesforceClientLive.impl ++ Clock.live ++ EmailSenderLive.impl
-    (loggingLayer ++ cohortTableLayer)
-      .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
-  }
+      cohortSpec: CohortSpec
+  ): ZLayer[Logging, Failure, CohortTable with SalesforceClient with EmailSender with Logging] =
+    (LiveLayer.cohortTable(cohortSpec.tableName) and LiveLayer.salesforce and LiveLayer.emailSender and ZLayer
+      .identity[Logging])
+      .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
-  def handle(input: CohortSpec, loggingService: Logging.Service): ZIO[ZEnv, Failure, HandlerOutput] =
-    main.provideCustomLayer(env(input, loggingService))
+  def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
+    main.provideSomeLayer[ZEnv with Logging](env(input))
 }

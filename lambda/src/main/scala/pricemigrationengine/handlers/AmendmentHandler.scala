@@ -96,22 +96,12 @@ object AmendmentHandler extends CohortHandler {
       .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
 
   private def env(
-      cohortSpec: CohortSpec,
-      loggingService: Logging.Service
-  ): ZLayer[Any, ConfigurationFailure, Logging with CohortTable with Zuora] = {
-    val loggingLayer = ZLayer.succeed(loggingService)
-    val cohortTableLayer =
-      loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
-        DynamoDBClient.dynamoDB ++ loggingLayer >>>
-        DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.cohortTableImp ++ EnvConfiguration.stageImp >>>
-        CohortTableLive.impl(cohortSpec.tableName)
-    val zuoraLayer =
-      EnvConfiguration.zuoraImpl ++ loggingLayer >>>
-        ZuoraLive.impl
-    (loggingLayer ++ cohortTableLayer ++ zuoraLayer)
-      .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
+      cohortSpec: CohortSpec
+  ): ZLayer[Logging, ConfigurationFailure, CohortTable with Zuora with Logging] = {
+    (LiveLayer.cohortTable(cohortSpec.tableName) and LiveLayer.zuora and LiveLayer.logging)
+      .tapError(e => Logging.error(s"Failed to create service environment: $e"))
   }
 
-  def handle(input: CohortSpec, loggingService: Logging.Service): ZIO[ZEnv, Failure, HandlerOutput] =
-    main.provideCustomLayer(env(input, loggingService))
+  def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
+    main.provideSomeLayer[ZEnv with Logging](env(input))
 }
