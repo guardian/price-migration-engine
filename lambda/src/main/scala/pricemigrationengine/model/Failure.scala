@@ -14,6 +14,7 @@ case class CohortStateMachineFailure(reason: String) extends Failure
 case class CohortSpecFetchFailure(reason: String) extends Failure
 case class CohortSpecUpdateFailure(reason: String) extends Failure
 
+case class CohortTableCreateFailure(reason: String) extends Failure
 case class CohortFetchFailure(reason: String) extends Failure
 case class CohortUpdateFailure(reason: String) extends Failure
 

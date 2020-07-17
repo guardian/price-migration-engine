@@ -16,6 +16,7 @@ package object services {
   type CohortStateMachine = Has[CohortStateMachine.Service]
   type CohortSpecTable = Has[CohortSpecTable.Service]
   type CohortTable = Has[CohortTable.Service]
+  type CohortTableDdl = Has[CohortTableDdl.Service]
   type Zuora = Has[Zuora.Service]
   type Logging = Has[Logging.Service]
   type DynamoDBClient = Has[AmazonDynamoDB]

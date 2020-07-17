@@ -25,7 +25,7 @@ case class CohortSpec(
 ) {
   val tableName: String = tmpTableName getOrElse {
     val transformed = cohortName.replaceAll("[^A-Za-z0-9-_]", "")
-    s"PriceRise-$transformed"
+    s"PriceMigration-$transformed"
   }
 }
 
