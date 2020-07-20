@@ -15,7 +15,7 @@ import scala.util.Try
 
 object CohortTableDatalakeExportHandler extends CohortHandler {
   private val csvFormat = CSVFormat.DEFAULT.withHeader("").withQuoteMode(QuoteMode.ALL)
-  private val TempFilePath = "/tmp/"
+  private val TempFileDirectory = "/tmp/"
 
   def main(
       cohortSpec: CohortSpec
@@ -35,7 +35,7 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
       s3Location: S3Location,
       cohortSpec: CohortSpec
   ): ZIO[S3 with Logging, Failure, Unit] =
-    localTempFile(TempFilePath + "").use { filePath =>
+    localTempFile().use { filePath =>
       for {
         recordsWritten <- openOutputStream(filePath).use { tempFileOutputStream =>
           writeCsvToStream(cohortItems, tempFileOutputStream, cohortSpec)
@@ -54,12 +54,12 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
       } yield recordsWritten
     }
 
-  def localTempFile(path: String): ZManaged[Any, CohortTableDatalakeExportFailure, Path] =
+  def localTempFile(): ZManaged[Any, CohortTableDatalakeExportFailure, Path] =
     ZManaged.make(
       ZIO
-        .effect(Files.createTempFile(new File("/tmp/").toPath, "CohortTableExport", "csv"))
+        .effect(Files.createTempFile(new File(TempFileDirectory).toPath, "CohortTableExport", "csv"))
         .mapError { throwable =>
-          CohortTableDatalakeExportFailure(s"Failed to create temp file $path: ${throwable.getMessage}")
+          CohortTableDatalakeExportFailure(s"Failed to create temp file in $TempFileDirectory: ${throwable.getMessage}")
         }
     )(path => ZIO.effectTotal(Try(Files.delete(path))))
 
