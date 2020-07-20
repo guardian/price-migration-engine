@@ -12,7 +12,9 @@ case class ZuoraSubscription(
     ratePlans: List[ZuoraRatePlan],
     accountNumber: String,
     accountId: String,
-    status: String
+    status: String,
+    termStartDate: LocalDate,
+    termEndDate: LocalDate
 )
 
 object ZuoraSubscription {

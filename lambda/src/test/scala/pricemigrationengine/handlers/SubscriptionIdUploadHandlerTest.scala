@@ -35,10 +35,9 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
         override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
         override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] =
           IO.effect {
-              subscriptionsWrittenToCohortTable.addOne(cohortItem)
-              ()
-            }
-            .orElseFail(CohortUpdateFailure(""))
+            subscriptionsWrittenToCohortTable.addOne(cohortItem)
+            ()
+          }.orElseFail(CohortUpdateFailure(""))
       }
     )
 
@@ -52,12 +51,13 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
             .mapError(ex => S3Failure(s"Failed to load test resource: $ex"))
         }
 
-        override def getObject(s3Location: S3Location): ZManaged[Any, S3Failure, InputStream] = s3Location match {
-          case S3Location("price-migration-engine-dev", "excluded-subscription-ids.csv") =>
-            loadTestResource("/SubscriptionExclusions.csv")
-          case S3Location("price-migration-engine-dev", "salesforce-subscription-id-report.csv") =>
-            loadTestResource("/SubscriptionIds.csv")
-        }
+        override def getObject(s3Location: S3Location): ZManaged[Any, S3Failure, InputStream] =
+          s3Location match {
+            case S3Location("price-migration-engine-dev", "excluded-subscription-ids.csv") =>
+              loadTestResource("/SubscriptionExclusions.csv")
+            case S3Location("price-migration-engine-dev", "salesforce-subscription-id-report.csv") =>
+              loadTestResource("/SubscriptionIds.csv")
+          }
 
         override def putObject(s3Location: S3Location, inputStream: InputStream): IO[S3Failure, PutObjectResult] = ???
       }
@@ -70,7 +70,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
             TestLogging.logging ++ stubConfiguration ++ stubCohortTable ++ stubS3
           )
       ),
-      Success(())
+      Success(HandlerOutput(isComplete = true))
     )
     assertEquals(subscriptionsWrittenToCohortTable.size, 2)
     assertEquals(subscriptionsWrittenToCohortTable(0).subscriptionName, "A-S123456")

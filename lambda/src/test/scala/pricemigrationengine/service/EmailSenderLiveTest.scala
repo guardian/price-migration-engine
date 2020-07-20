@@ -9,7 +9,7 @@ class EmailSenderLiveTest extends munit.FunSuite {
       EmailSenderLive.serialiseMessage(
         EmailMessage(
           EmailPayload(
-            "test@test.com",
+            Some("test@test.com"),
             EmailPayloadContactAttributes(
               EmailPayloadSubscriberAttributes(
                 Some("title"),
@@ -66,7 +66,7 @@ class EmailSenderLiveTest extends munit.FunSuite {
       EmailSenderLive.serialiseMessage(
         EmailMessage(
           EmailPayload(
-            "test@test.com",
+            Some("test@test.com"),
             EmailPayloadContactAttributes(
               EmailPayloadSubscriberAttributes(
                 None,

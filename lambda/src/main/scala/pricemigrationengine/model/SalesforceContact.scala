@@ -7,5 +7,5 @@ case class SalesforceContact(
   Salutation: Option[String],
   FirstName: Option[String],
   LastName: Option[String],
-  OtherAddress: SalesforceAddress
+  OtherAddress: Option[SalesforceAddress]
 )

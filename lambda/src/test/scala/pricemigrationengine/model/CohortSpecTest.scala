@@ -10,11 +10,12 @@ class CohortSpecTest extends munit.FunSuite {
   private def isActive(onDay: LocalDate, migrationComplete: Option[LocalDate] = Some(migrationCompleteDate)) =
     CohortSpec.isActive(
       CohortSpec(
-        "name",
-        LocalDate.of(2021, 1, 1),
+        cohortName = "name",
         importStartDate,
+        earliestPriceMigrationStartDate = LocalDate.of(2021, 1, 1),
         migrationComplete
-      ))(onDay)
+      )
+    )(onDay)
 
   test("isActive: should be false when given date is before import start date") {
     assertEquals(isActive(importStartDate.minusDays(3)), false)
@@ -38,5 +39,27 @@ class CohortSpecTest extends munit.FunSuite {
 
   test("isActive: should be true when given date is after import start date and migration isn't complete") {
     assertEquals(isActive(importStartDate.plusDays(3), migrationComplete = None), true)
+  }
+
+  test("tableName: should be tmpTableName field value when present") {
+    val cohortSpec = CohortSpec(
+      cohortName = "name",
+      importStartDate = LocalDate.of(2020, 1, 1),
+      earliestPriceMigrationStartDate = LocalDate.of(2020, 1, 1),
+      migrationCompleteDate = None,
+      tmpTableName = Some("givenName")
+    )
+    assertEquals(cohortSpec.tableName, "givenName")
+  }
+
+  test("tableName: should be transformed cohort name when tmpTableName field value not present") {
+    val cohortSpec = CohortSpec(
+      cohortName = "Home Delivery 2018",
+      importStartDate = LocalDate.of(2020, 1, 1),
+      earliestPriceMigrationStartDate = LocalDate.of(2020, 1, 1),
+      migrationCompleteDate = None,
+      tmpTableName = None
+    )
+    assertEquals(cohortSpec.tableName, "PriceMigration-HomeDelivery2018")
   }
 }

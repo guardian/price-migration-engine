@@ -1,7 +1,7 @@
 import Dependencies._
 import sbt.Keys.{description, name}
 
-ThisBuild / scalaVersion := "2.13.2"
+ThisBuild / scalaVersion := "2.13.3"
 
 lazy val root = (project in file("."))
   .aggregate(dynamoDb, lambda, stateMachine)
@@ -29,6 +29,7 @@ lazy val lambda = (project in file("lambda"))
       awsLambda,
       awsS3,
       awsSQS,
+      awsStateMachine,
       http,
       commonsCsv,
       munit % Test

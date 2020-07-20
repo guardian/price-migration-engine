@@ -3,12 +3,12 @@ package pricemigrationengine.handlers
 import java.time._
 import java.time.temporal.ChronoUnit
 
-import pricemigrationengine.{StubClock, TestLogging}
-import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, NotificationSendComplete, NotificationSendProcessingOrError, EstimationComplete, SalesforcePriceRiceCreationComplete}
+import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
 import pricemigrationengine.services._
-import zio.Exit.{Failure, Success}
+import pricemigrationengine.{StubClock, TestLogging}
+import zio.Exit.Success
 import zio.Runtime.default
 import zio._
 import zio.stream.ZStream
@@ -36,13 +36,14 @@ class NotificationHandlerTest extends munit.FunSuite {
   val expectedCountry = "buyer1Country"
   val expectedDataExtensionName = "SV_VO_Pricerise_Q22020"
   val expectedSalutation = "Ms"
+  val expectedSfStatus = "Active"
 
-  def createStubCohortTable(updatedResultsWrittenToCohortTable:ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
+  def createStubCohortTable(updatedResultsWrittenToCohortTable: ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
       new CohortTable.Service {
         override def fetch(
-          filter: CohortTableFilter,
-          beforeDateInclusive: Option[LocalDate]
+            filter: CohortTableFilter,
+            beforeDateInclusive: Option[LocalDate]
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
           assertEquals(filter, SalesforcePriceRiceCreationComplete)
           assertEquals(
@@ -68,8 +69,8 @@ class NotificationHandlerTest extends munit.FunSuite {
   }
 
   private def stubSFClient(
-    subscriptions: List[SalesforceSubscription],
-    contacts: List[SalesforceContact]
+      subscriptions: List[SalesforceSubscription],
+      contacts: List[SalesforceContact]
   ) = {
     ZLayer.succeed(
       new SalesforceClient.Service {
@@ -85,7 +86,8 @@ class NotificationHandlerTest extends munit.FunSuite {
         ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] = ???
 
         override def updatePriceRise(
-            priceRiseId: String, priceRise: SalesforcePriceRise
+            priceRiseId: String,
+            priceRise: SalesforcePriceRise
         ): IO[SalesforceClientFailure, Unit] = ???
 
         override def getContact(
@@ -102,10 +104,12 @@ class NotificationHandlerTest extends munit.FunSuite {
     ZLayer.succeed(
       new EmailSender.Service {
         override def sendEmail(message: EmailMessage): ZIO[Any, EmailSenderFailure, Unit] =
-          ZIO.effect {
-            sendMessages.addOne(message)
-            ()
-          }.orElseFail(EmailSenderFailure(""))
+          ZIO
+            .effect {
+              sendMessages.addOne(message)
+              ()
+            }
+            .orElseFail(EmailSenderFailure(""))
       }
     )
   }
@@ -123,7 +127,8 @@ class NotificationHandlerTest extends munit.FunSuite {
     SalesforceSubscription(
       expectedSFSubscriptionId,
       expectedSubscriptionName,
-      expectedBuyerId
+      expectedBuyerId,
+      expectedSfStatus
     )
 
   private val salesforceContact: SalesforceContact =
@@ -134,14 +139,15 @@ class NotificationHandlerTest extends munit.FunSuite {
       Salutation = Some(expectedSalutation),
       FirstName = Some(expectedFirstName),
       LastName = Some(expectedLastName),
-      OtherAddress =
+      OtherAddress = Some(
         SalesforceAddress(
           street = Some(expectedStreet),
           city = Some(expectedCity),
           state = Some(expectedState),
           postalCode = Some(expectedPostalCode),
-          country = Some(expectedCountry),
+          country = Some(expectedCountry)
         )
+      )
     )
 
   private val cohortItem =
@@ -169,14 +175,14 @@ class NotificationHandlerTest extends munit.FunSuite {
             TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
           )
       ),
-      Success(())
+      Success(HandlerOutput(isComplete = true))
     )
 
     assertEquals(sentMessages.size, 1)
     assertEquals(sentMessages(0).DataExtensionName, expectedDataExtensionName)
     assertEquals(sentMessages(0).SfContactId, expectedBuyerId)
     assertEquals(sentMessages(0).IdentityUserId, Some(expectedIdentityId))
-    assertEquals(sentMessages(0).To.Address, expectedEmailAddress)
+    assertEquals(sentMessages(0).To.Address, Some(expectedEmailAddress))
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_1, expectedStreet)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_2, None)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_city, Some(expectedCity))
@@ -186,9 +192,18 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, Some(expectedSalutation))
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, expectedFirstName)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, expectedLastName)
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount, expectedEstimatedNewPrice.toString())
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date, expectedStartDate.toString())
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_frequency, expectedBillingPeriodInNotification)
+    assertEquals(
+      sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount,
+      expectedEstimatedNewPrice.toString()
+    )
+    assertEquals(
+      sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date,
+      expectedStartDate.toString()
+    )
+    assertEquals(
+      sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_frequency,
+      expectedBillingPeriodInNotification
+    )
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.subscription_id, expectedSubscriptionName)
 
     assertEquals(updatedResultsWrittenToCohortTable.size, 2)
@@ -210,7 +225,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
   }
 
-  test("NotificationHandler should leave ChortItem in processing state if email send fails") {
+  test("NotificationHandler should leave CohortItem in processing state if email send fails") {
     val stubSalesforceClient = stubSFClient(List(salesforceSubscription), List(salesforceContact))
     val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
     val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
@@ -223,7 +238,7 @@ class NotificationHandlerTest extends munit.FunSuite {
             TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ failingStubEmailSender
           )
       ),
-      Failure(Cause.fail(EmailSenderFailure("Bang!!")))
+      Success(HandlerOutput(isComplete = true))
     )
 
     assertEquals(updatedResultsWrittenToCohortTable.size, 1)
@@ -235,5 +250,34 @@ class NotificationHandlerTest extends munit.FunSuite {
         whenNotificationSent = Some(StubClock.expectedCurrentTime)
       )
     )
+  }
+
+  test("NotificationHandler should leave CohortItem in cancelled state if subscription is cancelled") {
+    val cancelledSubscription = salesforceSubscription.copy(Status__c = "Cancelled")
+    val stubSalesforceClient = stubSFClient(List(cancelledSubscription), List(salesforceContact))
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
+    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
+    val sentMessages = ArrayBuffer[EmailMessage]()
+    val stubEmailSender = createStubEmailSender(sentMessages)
+
+    assertEquals(
+      default.unsafeRunSync(
+        NotificationHandler.main
+          .provideLayer(
+            TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
+          )
+      ),
+      Success(HandlerOutput(isComplete = true))
+    )
+
+    assertEquals(updatedResultsWrittenToCohortTable.size, 1)
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0),
+      CohortItem(
+        subscriptionName = expectedSubscriptionName,
+        processingStage = Cancelled
+      )
+    )
+    assertEquals(sentMessages.size, 0)
   }
 }
