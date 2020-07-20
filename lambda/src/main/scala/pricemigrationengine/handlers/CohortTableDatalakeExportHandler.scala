@@ -1,21 +1,21 @@
 package pricemigrationengine.handlers
 
-import java.io.{BufferedWriter, OutputStream, OutputStreamWriter, PipedInputStream, PipedOutputStream}
+import java.io.{File, OutputStream, OutputStreamWriter}
 import java.nio.charset.StandardCharsets
+import java.nio.file.{Files, Path}
 
-import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import org.apache.commons.csv.{CSVFormat, CSVPrinter, QuoteMode}
-import pricemigrationengine.handlers.SalesforcePriceRiseCreationHandler.{env, main}
-import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services._
+import zio._
 import zio.clock.Clock
-import zio.console.Console
 import zio.stream.ZStream
-import zio.{App, ExitCode, IO, Runtime, ZEnv, ZIO, ZLayer, ZManaged, clock}
+
+import scala.util.Try
 
 object CohortTableDatalakeExportHandler extends CohortHandler {
   private val csvFormat = CSVFormat.DEFAULT.withHeader("").withQuoteMode(QuoteMode.ALL)
+  private val TempFilePath = "/tmp/"
 
   def main(
     cohortSpec: CohortSpec
@@ -26,7 +26,7 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
       today <- Time.today
       s3Location = S3Location(
         s"price-migration-engine-${config.stage.toLowerCase}",
-        s"cohortTableExport-$today.csv"
+        s"${cohortSpec.cohortName}.csv"
       )
       recordCount <- writeCsvToS3(records, s3Location)
       _ <- Logging
@@ -37,19 +37,37 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
     cohortItems: ZStream[Any, CohortFetchFailure, CohortItem],
     s3Location: S3Location
   ): ZIO[S3 with Logging, Failure, Long] =
-    for {
-      inputStream <- ZIO.effectTotal(new PipedInputStream())
-      outputStream <-  ZIO.effectTotal(new PipedOutputStream(inputStream))
-      result <- ZIO.tupledPar(
-        S3.putObject(s3Location, inputStream)
-          .mapError { failure =>
-            CohortTableDatalakeExportFailure(s"Failed to write CohortItems to s3: ${failure.reason}")
-          },
-        writeCsvToStream(cohortItems, outputStream)
+    localTempFile(TempFilePath + "")
+      .use( filePath =>
+        for {
+          recordsWritten <- openOutputStream(filePath).use { tempFileOutputStream =>
+            writeCsvToStream(cohortItems, tempFileOutputStream)
+          }
+
+          putResult <- S3.putObject(s3Location, filePath.toFile)
+            .mapError { failure =>
+              CohortTableDatalakeExportFailure(s"Failed to write CohortItems to s3: ${failure.reason}")
+            }
+
+          _ <- Logging.info(s"Successfully wrote cohort table to $s3Location: $putResult")
+        } yield recordsWritten
       )
-      (putResult, count) = result
-      _ <- Logging.info(s"Successfully wrote cohort table to $s3Location: $putResult")
-    } yield count
+
+  def localTempFile(path: String): ZManaged[Any, CohortTableDatalakeExportFailure, Path] =
+    ZManaged.make(
+      ZIO.effect(Files.createTempFile(new File("/tmp/").toPath, "CohortTableExport", "csv"))
+        .mapError { throwable =>
+          CohortTableDatalakeExportFailure(s"Failed to create temp file $path: ${throwable.getMessage}")
+        }
+    )(path => ZIO.effectTotal(Try(Files.delete(path))))
+
+  def openOutputStream(path: Path): ZManaged[Any, CohortTableDatalakeExportFailure, OutputStream] =
+    ZManaged.make(
+      ZIO.effect(Files.newOutputStream(path))
+        .mapError { throwable =>
+          CohortTableDatalakeExportFailure(s"Failed to write to temp files $path: ${throwable.getMessage}")
+        }
+      )(stream => ZIO.effectTotal(stream.close()))
 
   def writeCsvToStream(
     cohortItems: ZStream[Any, Failure, CohortItem],

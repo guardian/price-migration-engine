@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import java.io.{InputStream, OutputStream}
+import java.io.{File, InputStream}
 import java.time.LocalDate
 
 import com.amazonaws.services.s3.model.PutObjectResult
@@ -59,7 +59,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
               loadTestResource("/SubscriptionIds.csv")
           }
 
-        override def putObject(s3Location: S3Location, inputStream: InputStream): IO[S3Failure, PutObjectResult] = ???
+        override def putObject(s3Location: S3Location, file: File): IO[S3Failure, PutObjectResult] = ???
       }
     )
 
