@@ -105,7 +105,7 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
           .effect(
             printer.printRecord(
               cohortSpec.cohortName,
-              cohortSpec.tmpTableName,
+              cohortSpec.tmpTableName.getOrElse(""),
               cohortItem.subscriptionName,
               cohortItem.processingStage.value,
               cohortItem.startDate.getOrElse(""),
