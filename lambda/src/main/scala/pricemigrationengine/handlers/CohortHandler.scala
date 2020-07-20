@@ -43,9 +43,15 @@ trait CohortHandler extends zio.App with RequestStreamHandler {
 
   final def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
     (for {
-      input <- ZIO.fromOption(args.headOption).orElseFail(InputFailure("No input"))
-      _ <- go(input).provideCustomLayer(ConsoleLogging.impl)
-    } yield ()).exitCode
+      input <-
+        ZIO
+          .fromOption(args.headOption)
+          .orElseFail(InputFailure("No input"))
+          .tapError(e => Logging.error(e.toString))
+      _ <- go(input)
+    } yield ())
+      .provideCustomLayer(ConsoleLogging.impl)
+      .exitCode
 
   final def handleRequest(input: InputStream, output: OutputStream, context: Context): Unit =
     Runtime.default.unsafeRun {

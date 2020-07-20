@@ -14,17 +14,18 @@ object DynamoDBClient {
           .make(
             for {
               config <- DynamoDBConfiguration.dynamoDBConfig
-              client <- ZIO
-                .effect(
-                  config.endpoint
-                    .foldLeft(AmazonDynamoDBClient.builder()) { (builder, endpoint) =>
-                      builder.withEndpointConfiguration(
-                        new AwsClientBuilder.EndpointConfiguration(endpoint.serviceEndpoint, endpoint.signingRegion)
-                      )
-                    }
-                    .build()
-                )
-                .mapError(ex => ConfigurationFailure(s"Failed to create the dynamoDb client: $ex"))
+              client <-
+                ZIO
+                  .effect(
+                    config.endpoint
+                      .foldLeft(AmazonDynamoDBClient.builder()) { (builder, endpoint) =>
+                        builder.withEndpointConfiguration(
+                          new AwsClientBuilder.EndpointConfiguration(endpoint.serviceEndpoint, endpoint.signingRegion)
+                        )
+                      }
+                      .build()
+                  )
+                  .mapError(ex => ConfigurationFailure(s"Failed to create the dynamoDb client: $ex"))
             } yield client
           ) { dynamoDB: AmazonDynamoDB =>
             ZIO
@@ -44,10 +45,21 @@ object DynamoDBClient {
   }
 
   def updateItem(updateRequest: UpdateItemRequest): ZIO[DynamoDBClient, Throwable, UpdateItemResult] = {
-    ZIO.access(_.get.updateItem(updateRequest))
+    ZIO.accessM(client => ZIO.effect(client.get.updateItem(updateRequest)))
   }
 
   def putItem(updateRequest: PutItemRequest): ZIO[DynamoDBClient, Throwable, PutItemResult] = {
-    ZIO.access(_.get.putItem(updateRequest))
+    ZIO.accessM(client => ZIO.effect(client.get.putItem(updateRequest)))
   }
+
+  def describeTable(tableName: String): ZIO[DynamoDBClient, Throwable, DescribeTableResult] =
+    ZIO.accessM(client => ZIO.effect(client.get.describeTable(tableName)))
+
+  def createTable(request: CreateTableRequest): ZIO[DynamoDBClient, Throwable, CreateTableResult] =
+    ZIO.accessM(client => ZIO.effect(client.get.createTable(request)))
+
+  def updateContinuousBackups(
+      request: UpdateContinuousBackupsRequest
+  ): ZIO[DynamoDBClient, Throwable, UpdateContinuousBackupsResult] =
+    ZIO.accessM(client => ZIO.effect(client.get.updateContinuousBackups(request)))
 }

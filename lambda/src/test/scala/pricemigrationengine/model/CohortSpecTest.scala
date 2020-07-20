@@ -60,6 +60,6 @@ class CohortSpecTest extends munit.FunSuite {
       migrationCompleteDate = None,
       tmpTableName = None
     )
-    assertEquals(cohortSpec.tableName, "PriceRise-HomeDelivery2018")
+    assertEquals(cohortSpec.tableName, "PriceMigration-HomeDelivery2018")
   }
 }
