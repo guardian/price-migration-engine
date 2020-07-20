@@ -66,7 +66,7 @@ object CohortTableDdlLive {
             .updateContinuousBackups(enableBackups)
             .tapError(_ => Logging.info(s"Waiting to enable continuous backups ..."))
             .retry(
-              exponential(1.second) && recurs(10)
+              exponential(1.second) && recurs(8)
             ) // have to wait for table to be created before enabling backups
 
           result.mapError(e => CohortTableCreateFailure(e.toString))

@@ -1,10 +1,9 @@
 package pricemigrationengine.services
 
-import java.time.LocalDate
-
 import com.amazonaws.services.stepfunctions.model.StartExecutionResult
 import pricemigrationengine.model.{CohortSpec, CohortStateMachineFailure}
 import zio.ZIO
+import zio.clock.Clock
 
 /**
   * Kicks off the migration process for a particular cohort.
@@ -14,10 +13,11 @@ import zio.ZIO
 object CohortStateMachine {
 
   trait Service {
-    def startExecution(date: LocalDate)(spec: CohortSpec): ZIO[Any, CohortStateMachineFailure, StartExecutionResult]
+    def startExecution(spec: CohortSpec): ZIO[Clock, CohortStateMachineFailure, StartExecutionResult]
   }
 
-  def startExecution(date: LocalDate)(
-      spec: CohortSpec): ZIO[CohortStateMachine, CohortStateMachineFailure, StartExecutionResult] =
-    ZIO.accessM(_.get.startExecution(date)(spec))
+  def startExecution(
+      spec: CohortSpec
+  ): ZIO[CohortStateMachine with Clock, CohortStateMachineFailure, StartExecutionResult] =
+    ZIO.accessM(_.get.startExecution(spec))
 }
