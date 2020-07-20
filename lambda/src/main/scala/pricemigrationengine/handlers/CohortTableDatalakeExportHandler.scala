@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import org.apache.commons.csv.{CSVFormat, CSVPrinter, QuoteMode}
+import pricemigrationengine.handlers.SalesforcePriceRiseCreationHandler.{env, main}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -13,28 +14,29 @@ import zio.console.Console
 import zio.stream.ZStream
 import zio.{App, ExitCode, IO, Runtime, ZEnv, ZIO, ZLayer, ZManaged, clock}
 
-object CohortTableDatalakeExportHandler extends App with RequestHandler[Unit, Unit] {
-  val csvFormat = CSVFormat.DEFAULT.withHeader("").withQuoteMode(QuoteMode.ALL)
+object CohortTableDatalakeExportHandler extends CohortHandler {
+  private val csvFormat = CSVFormat.DEFAULT.withHeader("").withQuoteMode(QuoteMode.ALL)
 
-  val main: ZIO[CohortTable with Logging with S3 with StageConfiguration with Clock, Failure, Unit] = {
+  def main(
+    cohortSpec: CohortSpec
+  ): ZIO[Logging with CohortTable with S3 with StageConfiguration with Clock, Failure, HandlerOutput] =
     for {
       config <- StageConfiguration.stageConfig
       records <- CohortTable.fetchAll()
       today <- Time.today
       s3Location = S3Location(
         s"price-migration-engine-${config.stage.toLowerCase}",
-        s"cohortTableExport-${today}.csv"
+        s"cohortTableExport-$today.csv"
       )
       recordCount <- writeCsvToS3(records, s3Location)
       _ <- Logging
         .info(s"Wrote $recordCount CohortItems to s3: $s3Location")
-    } yield ()
-  }
+    } yield HandlerOutput(isComplete = true)
 
   def writeCsvToS3(
     cohortItems: ZStream[Any, CohortFetchFailure, CohortItem],
     s3Location: S3Location
-  ): ZIO[S3 with Logging, Failure, Long] = {
+  ): ZIO[S3 with Logging, Failure, Long] =
     for {
       inputStream <- ZIO.effectTotal(new PipedInputStream())
       outputStream <-  ZIO.effectTotal(new PipedOutputStream(inputStream))
@@ -48,7 +50,6 @@ object CohortTableDatalakeExportHandler extends App with RequestHandler[Unit, Un
       (putResult, count) = result
       _ <- Logging.info(s"Successfully wrote cohort table to $s3Location: $putResult")
     } yield count
-  }
 
   def writeCsvToStream(
     cohortItems: ZStream[Any, Failure, CohortItem],
@@ -76,30 +77,12 @@ object CohortTableDatalakeExportHandler extends App with RequestHandler[Unit, Un
     }
   }
 
-  private def env(loggingService: Logging.Service) = {
-    val loggingLayer = ZLayer.succeed(loggingService)
-    val cohortTableLayer =
-      loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
-        DynamoDBClient.dynamoDB ++ loggingLayer >>>
-        DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.stageImp ++ EnvConfiguration.cohortTableImp >>>
-        CohortTableLive.impl ++ S3Live.impl ++ EnvConfiguration.stageImp ++ Clock.live
-    (loggingLayer ++ cohortTableLayer)
-      .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
-  }
+  private def env(
+    cohortSpec: CohortSpec
+  ): ZLayer[Logging, Failure, CohortTable with S3 with Logging with StageConfiguration] =
+    (LiveLayer.cohortTable(cohortSpec.tableName) and LiveLayer.s3 and LiveLayer.logging and LiveLayer.stageConfig)
+      .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
-  private val runtime = Runtime.default
-
-  def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
-    main
-      .provideSomeLayer(
-        env(ConsoleLogging.service(Console.Service.live))
-      )
-      .exitCode
-
-  def handleRequest(unused: Unit, context: Context): Unit =
-    runtime.unsafeRun(
-      main.provideSomeLayer(
-        env(LambdaLogging.service(context))
-      )
-    )
+  def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
+    main(input).provideSomeLayer[ZEnv with Logging](env(input))
 }
