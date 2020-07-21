@@ -38,6 +38,12 @@ class NotificationHandlerTest extends munit.FunSuite {
   val expectedSalutation = "Ms"
   val expectedSfStatus = "Active"
 
+  val mailingAddressStreet = "buyer1MailStreet"
+  val mailingAddressCity = "buyer1MailCity"
+  val mailingAddressState = "buyer1MailState"
+  val mailingAddressPostalCode = "buyer1MailPostalCode"
+  val mailingAddressCountry = "buyer1MailCountry"
+
   def createStubCohortTable(updatedResultsWrittenToCohortTable: ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
       new CohortTable.Service {
@@ -145,6 +151,15 @@ class NotificationHandlerTest extends munit.FunSuite {
           postalCode = Some(expectedPostalCode),
           country = Some(expectedCountry)
         )
+      ),
+      MailingAddress = Some(
+        SalesforceAddress(
+          street = Some(mailingAddressStreet),
+          city = Some(mailingAddressCity),
+          state = Some(mailingAddressState),
+          postalCode = Some(mailingAddressPostalCode),
+          country = Some(mailingAddressCountry)
+        )
       )
     )
 
@@ -221,6 +236,99 @@ class NotificationHandlerTest extends munit.FunSuite {
         whenNotificationSent = Some(StubClock.expectedCurrentTime)
       )
     )
+  }
+
+  test("NotificationHandler should fallback to using contact mailing address if no billing address") {
+    val stubSalesforceClient =
+      stubSFClient(List(salesforceSubscription), List(salesforceContact.copy(OtherAddress = None)))
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
+    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
+    val sentMessages = ArrayBuffer[EmailMessage]()
+    val stubEmailSender = createStubEmailSender(sentMessages)
+
+    assertEquals(
+      default.unsafeRunSync(
+        NotificationHandler.main
+          .provideLayer(
+            TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
+          )
+      ),
+      Success(HandlerOutput(isComplete = true))
+    )
+
+    assertEquals(sentMessages.size, 1)
+    assertEquals(sentMessages(0).DataExtensionName, expectedDataExtensionName)
+    assertEquals(sentMessages(0).SfContactId, expectedBuyerId)
+    assertEquals(sentMessages(0).IdentityUserId, Some(expectedIdentityId))
+    assertEquals(sentMessages(0).To.Address, Some(expectedEmailAddress))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_1, mailingAddressStreet)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_2, None)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_city, Some(mailingAddressCity))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_state, Some(mailingAddressState))
+    assertEquals(
+      sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_postal_code,
+      mailingAddressPostalCode
+    )
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_country, mailingAddressCountry)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, Some(expectedSalutation))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, expectedFirstName)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, expectedLastName)
+    assertEquals(
+      sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount,
+      expectedEstimatedNewPrice.toString()
+    )
+    assertEquals(
+      sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date,
+      expectedStartDate.toString()
+    )
+    assertEquals(
+      sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_frequency,
+      expectedBillingPeriodInNotification
+    )
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.subscription_id, expectedSubscriptionName)
+
+    assertEquals(updatedResultsWrittenToCohortTable.size, 2)
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0),
+      CohortItem(
+        subscriptionName = expectedSubscriptionName,
+        processingStage = NotificationSendProcessingOrError,
+        whenNotificationSent = Some(StubClock.expectedCurrentTime)
+      )
+    )
+    assertEquals(
+      updatedResultsWrittenToCohortTable(1),
+      CohortItem(
+        subscriptionName = expectedSubscriptionName,
+        processingStage = NotificationSendComplete,
+        whenNotificationSent = Some(StubClock.expectedCurrentTime)
+      )
+    )
+  }
+
+  test("NotificationHandler should send no messages if no billing address or mailing address") {
+    val stubSalesforceClient =
+      stubSFClient(
+        List(salesforceSubscription),
+        List(salesforceContact.copy(OtherAddress = None, MailingAddress = None))
+      )
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
+    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
+    val sentMessages = ArrayBuffer[EmailMessage]()
+    val stubEmailSender = createStubEmailSender(sentMessages)
+
+    assertEquals(
+      default.unsafeRunSync(
+        NotificationHandler.main
+          .provideLayer(
+            TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
+          )
+      ),
+      Success(HandlerOutput(isComplete = true))
+    )
+
+    assertEquals(sentMessages.size, 0)
+    assertEquals(updatedResultsWrittenToCohortTable.size, 0)
   }
 
   test("NotificationHandler should leave CohortItem in processing state if email send fails") {
