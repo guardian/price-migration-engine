@@ -2,6 +2,10 @@ package pricemigrationengine.model
 
 import java.time.LocalDate
 
+import com.amazonaws.services.dynamodbv2.model.AttributeValue
+
+import scala.jdk.CollectionConverters._
+
 class CohortSpecTest extends munit.FunSuite {
 
   private val importStartDate = LocalDate.of(2020, 5, 1)
@@ -61,5 +65,27 @@ class CohortSpecTest extends munit.FunSuite {
       tmpTableName = None
     )
     assertEquals(cohortSpec.tableName, "PriceMigration-HomeDelivery2018")
+  }
+
+  test("fromDynamoDbItem: should include all fields") {
+    val item = Map(
+      "cohortName" -> new AttributeValue().withS("Home Delivery 2018"),
+      "importStartDate" -> new AttributeValue().withS("2020-01-01"),
+      "earliestPriceMigrationStartDate" -> new AttributeValue().withS("2020-01-01"),
+      "tmpTableName" -> new AttributeValue().withS("tmpName")
+    ).asJava
+    val cohortSpec = CohortSpec.fromDynamoDbItem(item)
+    assertEquals(
+      cohortSpec,
+      Right(
+        CohortSpec(
+          cohortName = "Home Delivery 2018",
+          importStartDate = LocalDate.of(2020, 1, 1),
+          earliestPriceMigrationStartDate = LocalDate.of(2020, 1, 1),
+          migrationCompleteDate = None,
+          tmpTableName = Some("tmpName")
+        )
+      )
+    )
   }
 }

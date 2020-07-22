@@ -1,7 +1,10 @@
 package pricemigrationengine.model
 
 import java.time.LocalDate
+import java.util
 
+import com.amazonaws.services.dynamodbv2.model.AttributeValue
+import pricemigrationengine.model.dynamodb.Conversions._
 import upickle.default.{ReadWriter, macroRW}
 
 /**
@@ -35,4 +38,19 @@ object CohortSpec {
     !spec.importStartDate.isAfter(date) && spec.migrationCompleteDate.forall(_.isAfter(date))
 
   def isValid(spec: CohortSpec): Boolean = spec.earliestPriceMigrationStartDate.isAfter(spec.importStartDate)
+
+  def fromDynamoDbItem(values: util.Map[String, AttributeValue]): Either[CohortSpecFetchFailure, CohortSpec] =
+    (for {
+      cohortName <- getStringFromResults(values, "cohortName")
+      importStartDate <- getDateFromResults(values, "importStartDate")
+      earliestPriceMigrationStartDate <- getDateFromResults(values, "earliestPriceMigrationStartDate")
+      migrationCompleteDate <- getOptionalDateFromResults(values, "migrationCompleteDate")
+      tmpTableName <- getOptionalStringFromResults(values, "tmpTableName")
+    } yield CohortSpec(
+      cohortName,
+      importStartDate,
+      earliestPriceMigrationStartDate,
+      migrationCompleteDate,
+      tmpTableName
+    )).left.map(e => CohortSpecFetchFailure(e))
 }
