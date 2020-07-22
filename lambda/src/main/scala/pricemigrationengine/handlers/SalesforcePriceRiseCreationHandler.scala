@@ -84,7 +84,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
   }
 
   private def env(cohortSpec: CohortSpec): ZLayer[Logging, Failure, CohortTable with SalesforceClient with Logging] =
-    (LiveLayer.cohortTable(cohortSpec.tableName) and LiveLayer.salesforce and LiveLayer.logging)
+    (LiveLayer.cohortTable(cohortSpec) and LiveLayer.salesforce and LiveLayer.logging)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
   def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =

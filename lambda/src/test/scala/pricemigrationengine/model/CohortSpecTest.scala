@@ -49,7 +49,7 @@ class CohortSpecTest extends munit.FunSuite {
       migrationCompleteDate = None,
       tmpTableName = Some("givenName")
     )
-    assertEquals(cohortSpec.tableName, "givenName")
+    assertEquals(cohortSpec.tableName(stage = "DEV"), "givenName")
   }
 
   test("tableName: should be transformed cohort name when tmpTableName field value not present") {
@@ -60,6 +60,6 @@ class CohortSpecTest extends munit.FunSuite {
       migrationCompleteDate = None,
       tmpTableName = None
     )
-    assertEquals(cohortSpec.tableName, "PriceMigration-HomeDelivery2018")
+    assertEquals(cohortSpec.tableName(stage = "PROD"), "PriceMigration-PROD-HomeDelivery2018")
   }
 }

@@ -1,7 +1,7 @@
 package pricemigrationengine.services
 
 import com.amazonaws.services.dynamodbv2.model.CreateTableResult
-import pricemigrationengine.model.CohortTableCreateFailure
+import pricemigrationengine.model.{CohortSpec, CohortTableCreateFailure}
 import zio.{IO, ZIO}
 
 object CohortTableDdl {
@@ -13,12 +13,12 @@ object CohortTableDdl {
   trait Service {
 
     /**
-      * Create a table if it doesn't already exist.
+      * Create a table for the given CohortSpec if it doesn't already exist.
       * Otherwise do nothing.
       */
-    def createTable(tableName: String): IO[CohortTableCreateFailure, Option[CreateTableResult]]
+    def createTable(cohortSpec: CohortSpec): IO[CohortTableCreateFailure, Option[CreateTableResult]]
   }
 
-  def createTable(tableName: String): ZIO[CohortTableDdl, CohortTableCreateFailure, Option[CreateTableResult]] =
-    ZIO.accessM(_.get.createTable(tableName))
+  def createTable(cohortSpec: CohortSpec): ZIO[CohortTableDdl, CohortTableCreateFailure, Option[CreateTableResult]] =
+    ZIO.accessM(_.get.createTable(cohortSpec))
 }

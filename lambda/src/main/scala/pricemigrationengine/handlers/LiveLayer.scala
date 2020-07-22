@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.{ConfigurationFailure, EmailSenderFailure, SalesforceClientFailure}
+import pricemigrationengine.model.{CohortSpec, ConfigurationFailure, EmailSenderFailure, SalesforceClientFailure}
 import pricemigrationengine.services._
 import zio.blocking.Blocking
 import zio.clock.Clock
@@ -13,13 +13,13 @@ object LiveLayer {
   private val dynamoDbClient: ZLayer[Logging, ConfigurationFailure, DynamoDBClient] =
     EnvConfiguration.dynamoDbImpl and logging to DynamoDBClient.dynamoDB
 
-  def cohortTable(tableName: String): ZLayer[Logging, ConfigurationFailure, CohortTable] =
-    dynamoDbClient and logging to
-      DynamoDBZIOLive.impl and EnvConfiguration.cohortTableImp and EnvConfiguration.stageImp and logging to
-      CohortTableLive.impl(tableName)
+  def cohortTable(cohortSpec: CohortSpec): ZLayer[Logging, ConfigurationFailure, CohortTable] =
+    dynamoDbClient and logging andTo
+      DynamoDBZIOLive.impl and EnvConfiguration.cohortTableImp and EnvConfiguration.stageImp to
+      CohortTableLive.impl(cohortSpec)
 
   val cohortTableDdl: ZLayer[Logging, ConfigurationFailure, CohortTableDdl] =
-    Clock.live and dynamoDbClient and logging to CohortTableDdlLive.impl
+    Clock.live and dynamoDbClient and EnvConfiguration.stageImp and logging to CohortTableDdlLive.impl
 
   val cohortSpecTable: ZLayer[Logging, ConfigurationFailure, CohortSpecTable] =
     dynamoDbClient and EnvConfiguration.stageImp and logging to CohortSpecTableLive.impl
