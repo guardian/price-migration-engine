@@ -13,22 +13,6 @@ object CohortSpecTableLive {
 
   private val tableNamePrefix = "price-migration-engine-cohort-spec"
 
-  private def toCohortSpec(values: util.Map[String, AttributeValue]): Either[CohortSpecFetchFailure, CohortSpec] = {
-    def errorMapped[A](orig: Either[String, A]): Either[CohortSpecFetchFailure, A] =
-      orig.left.map(e => CohortSpecFetchFailure(e))
-    for {
-      cohortName <- errorMapped(getStringFromResults(values, "cohortName"))
-      importStartDate <- errorMapped(getDateFromResults(values, "importStartDate"))
-      earliestPriceMigrationStartDate <- errorMapped(getDateFromResults(values, "earliestPriceMigrationStartDate"))
-      migrationCompleteDate <- errorMapped(getOptionalDateFromResults(values, "migrationCompleteDate"))
-    } yield CohortSpec(
-      cohortName,
-      importStartDate,
-      earliestPriceMigrationStartDate,
-      migrationCompleteDate
-    )
-  }
-
   val impl: ZLayer[DynamoDBClient with StageConfiguration with Logging, ConfigurationFailure, CohortSpecTable] =
     ZLayer.fromFunction { modules: DynamoDBClient with StageConfiguration with Logging =>
       new CohortSpecTable.Service {
@@ -43,7 +27,7 @@ object CohortSpecTableLive {
                 .mapError(e => CohortSpecFetchFailure(s"Failed to fetch cohort specs: $e"))
             specs <- ZIO.foreach(scanResult.getItems.asScala)(result =>
               ZIO
-                .fromEither(toCohortSpec(result))
+                .fromEither(CohortSpec.fromDynamoDbItem(result))
                 .mapError(e => CohortSpecFetchFailure(s"Failed to parse '$result': ${e.reason}"))
             )
           } yield specs.toSet).tap(specs => Logging.info(s"Fetched ${specs.size} cohort specs"))
