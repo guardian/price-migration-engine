@@ -20,7 +20,7 @@ case class CohortSpec(
     cohortName: String,
     importStartDate: LocalDate,
     earliestPriceMigrationStartDate: LocalDate,
-    migrationCompleteDate: Option[LocalDate],
+    migrationCompleteDate: Option[LocalDate] = None,
     tmpTableName: Option[String] = None // TODO: remove when price migration 2020 complete
 ) {
   val normalisedCohortName: String = cohortName.replaceAll("[^A-Za-z0-9-_]", "")
