@@ -1,14 +1,16 @@
 package pricemigrationengine.services
 
-import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 import com.amazonaws.regions.Regions.EU_WEST_1
 import com.amazonaws.services.stepfunctions.AWSStepFunctionsClientBuilder
-import com.amazonaws.services.stepfunctions.model.{StartExecutionRequest, StartExecutionResult}
+import com.amazonaws.services.stepfunctions.model.StartExecutionRequest
+import pricemigrationengine.handlers.Time
 import pricemigrationengine.model._
 import upickle.default.{ReadWriter, macroRW, write}
+import zio.{ZIO, ZLayer}
 import zio.blocking.Blocking
-import zio.{IO, ZLayer}
 
 object CohortStateMachineLive {
 
@@ -28,21 +30,26 @@ object CohortStateMachineLive {
       ConfigurationFailure,
       CohortStateMachine.Service
     ] { (configuration, logging, blocking) =>
-      configuration.config map { config =>
-        new CohortStateMachine.Service {
-          def startExecution(date: LocalDate)(spec: CohortSpec): IO[CohortStateMachineFailure, StartExecutionResult] =
+      configuration.config map { config => spec =>
+        for {
+          time <- Time.thisInstant.mapError(e => CohortStateMachineFailure(e.toString))
+          timeStr <-
+            ZIO
+              .effect(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm").withZone(ZoneId.systemDefault).format(time))
+              .mapError(e => CohortStateMachineFailure(e.toString))
+          result <-
             blocking
               .effectBlocking(
                 stateMachine.startExecution(
                   new StartExecutionRequest()
                     .withStateMachineArn(config.stateMachineArn)
-                    .withName(s"${spec.cohortName}-$date")
+                    .withName(s"${spec.normalisedCohortName}-$timeStr")
                     .withInput(write(StateMachineInput(spec)))
                 )
               )
               .mapError(e => CohortStateMachineFailure(s"Failed to start execution: $e"))
               .tap(result => logging.info(s"Started execution: $result"))
-        }
+        } yield result
       }
     }
   }
