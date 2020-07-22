@@ -40,8 +40,8 @@ Resources:
               - dynamodb:UpdateItem
               - dynamodb:PutItem
             Resource:
-              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}"
-              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigration*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigration*/*"
       Roles:
         - Ref: PriceMigrationEngineEstimationLambdaRole
         - Ref: PriceMigrationEngineSalesforcePriceCreationLambdaRole
