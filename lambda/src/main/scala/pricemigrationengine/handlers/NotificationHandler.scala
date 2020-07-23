@@ -74,7 +74,9 @@ object NotificationHandler extends CohortHandler {
     for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
-      firstName <- requiredField(contact.FirstName, "Contact.FirstName")
+      firstName <- requiredField(contact.FirstName, "Contact.FirstName").orElse(
+        requiredField(contact.Salutation, "Contact.Salutation")
+      )
       lastName <- requiredField(contact.LastName, "Contact.LastName")
       targetAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress").orElse(
         requiredField(contact.MailingAddress, "Contact.MailingAddress")
@@ -97,7 +99,9 @@ object NotificationHandler extends CohortHandler {
             Address = contact.Email,
             ContactAttributes = EmailPayloadContactAttributes(
               SubscriberAttributes = EmailPayloadSubscriberAttributes(
-                title = contact.Salutation,
+                title = contact.FirstName flatMap (_ =>
+                  contact.Salutation
+                ), // if no first name, we use salutation as first name and leave this field empty
                 first_name = firstName,
                 last_name = lastName,
                 billing_address_1 = street,
