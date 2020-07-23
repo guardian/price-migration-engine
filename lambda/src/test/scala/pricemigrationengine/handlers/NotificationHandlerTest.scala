@@ -256,11 +256,6 @@ class NotificationHandlerTest extends munit.FunSuite {
       Success(HandlerOutput(isComplete = true))
     )
 
-    assertEquals(sentMessages.size, 1)
-    assertEquals(sentMessages(0).DataExtensionName, expectedDataExtensionName)
-    assertEquals(sentMessages(0).SfContactId, expectedBuyerId)
-    assertEquals(sentMessages(0).IdentityUserId, Some(expectedIdentityId))
-    assertEquals(sentMessages(0).To.Address, Some(expectedEmailAddress))
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_1, mailingAddressStreet)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_2, None)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_city, Some(mailingAddressCity))
@@ -270,43 +265,9 @@ class NotificationHandlerTest extends munit.FunSuite {
       mailingAddressPostalCode
     )
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_country, mailingAddressCountry)
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, Some(expectedSalutation))
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, expectedFirstName)
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, expectedLastName)
-    assertEquals(
-      sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount,
-      expectedEstimatedNewPrice.toString()
-    )
-    assertEquals(
-      sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date,
-      expectedStartDate.toString()
-    )
-    assertEquals(
-      sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_frequency,
-      expectedBillingPeriodInNotification
-    )
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.subscription_id, expectedSubscriptionName)
-
-    assertEquals(updatedResultsWrittenToCohortTable.size, 2)
-    assertEquals(
-      updatedResultsWrittenToCohortTable(0),
-      CohortItem(
-        subscriptionName = expectedSubscriptionName,
-        processingStage = NotificationSendProcessingOrError,
-        whenNotificationSent = Some(StubClock.expectedCurrentTime)
-      )
-    )
-    assertEquals(
-      updatedResultsWrittenToCohortTable(1),
-      CohortItem(
-        subscriptionName = expectedSubscriptionName,
-        processingStage = NotificationSendComplete,
-        whenNotificationSent = Some(StubClock.expectedCurrentTime)
-      )
-    )
   }
 
-  test("NotificationHandler should send no messages if no billing address or mailing address") {
+  test("NotificationHandler should send no message if no billing address or mailing address") {
     val stubSalesforceClient =
       stubSFClient(
         List(salesforceSubscription),
@@ -329,6 +290,30 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(sentMessages.size, 0)
     assertEquals(updatedResultsWrittenToCohortTable.size, 0)
+  }
+
+  test(
+    "NotificationHandler should use salutation in place of first name and leave title field empty if contact has no first name"
+  ) {
+    val stubSalesforceClient =
+      stubSFClient(List(salesforceSubscription), List(salesforceContact.copy(FirstName = None)))
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
+    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
+    val sentMessages = ArrayBuffer[EmailMessage]()
+    val stubEmailSender = createStubEmailSender(sentMessages)
+
+    assertEquals(
+      default.unsafeRunSync(
+        NotificationHandler.main
+          .provideLayer(
+            TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
+          )
+      ),
+      Success(HandlerOutput(isComplete = true))
+    )
+
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, None)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, expectedSalutation)
   }
 
   test("NotificationHandler should leave CohortItem in processing state if email send fails") {
