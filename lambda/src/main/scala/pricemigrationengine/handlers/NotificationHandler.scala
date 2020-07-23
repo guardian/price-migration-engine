@@ -19,10 +19,6 @@ import zio.{ZEnv, ZIO, ZLayer}
 
 object NotificationHandler extends CohortHandler {
 
-  //Mapping to environment specific braze campaign id is provided by membership-workflow:
-  //https://github.com/guardian/membership-workflow/blob/master/conf/PROD.public.conf#L39
-  val BrazeCampaignName = "SV_VO_Pricerise_Q22020"
-
   val Successful = 1
   val Unsuccessful = 0
 
@@ -30,7 +26,9 @@ object NotificationHandler extends CohortHandler {
 
   private val NotificationLeadTimeDays = 37
 
-  val main: ZIO[Logging with CohortTable with SalesforceClient with Clock with EmailSender, Failure, HandlerOutput] = {
+  def main(
+      brazeCampaignName: String
+  ): ZIO[Logging with CohortTable with SalesforceClient with Clock with EmailSender, Failure, HandlerOutput] = {
     for {
       today <- Time.today
       subscriptions <- CohortTable.fetch(
@@ -39,13 +37,13 @@ object NotificationHandler extends CohortHandler {
       )
       count <-
         subscriptions
-          .mapM(sendNotification)
+          .mapM(sendNotification(brazeCampaignName))
           .fold(0) { (sum, count) => sum + count }
       _ <- Logging.info(s"Successfully sent $count price rise notifications")
     } yield HandlerOutput(isComplete = true)
   }
 
-  def sendNotification(
+  def sendNotification(brazeCampaignName: String)(
       cohortItem: CohortItem
   ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock with Logging, Failure, Int] = {
     val result = for {
@@ -54,7 +52,7 @@ object NotificationHandler extends CohortHandler {
           .getSubscriptionByName(cohortItem.subscriptionName)
       count <-
         if (sfSubscription.Status__c != Cancelled_Status) {
-          sendNotification(cohortItem, sfSubscription)
+          sendNotification(brazeCampaignName, cohortItem, sfSubscription)
         } else {
           putSubIntoCancelledStatus(cohortItem.subscriptionName)
         }
@@ -68,6 +66,7 @@ object NotificationHandler extends CohortHandler {
   }
 
   def sendNotification(
+      brazeCampaignName: String,
       cohortItem: CohortItem,
       sfSubscription: SalesforceSubscription
   ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock with Logging, Failure, Int] =
@@ -117,7 +116,7 @@ object NotificationHandler extends CohortHandler {
               )
             )
           ),
-          BrazeCampaignName,
+          brazeCampaignName,
           contact.Id,
           contact.IdentityID__c
         )
@@ -145,12 +144,12 @@ object NotificationHandler extends CohortHandler {
     "Annual" -> "Annually"
   )
 
-  def paymentFrequency(billingPeriod: String) =
+  private def paymentFrequency(billingPeriod: String) =
     ZIO
       .fromOption(paymentFrequencyMapping.get(billingPeriod))
       .orElseFail(EmailSenderFailure(s"No payment frequency mapping found for billing period: $billingPeriod"))
 
-  def updateCohortItemStatus(subscriptionNumber: String, processingStage: CohortTableFilter) = {
+  private def updateCohortItemStatus(subscriptionNumber: String, processingStage: CohortTableFilter) = {
     for {
       now <- Time.thisInstant
       _ <-
@@ -188,5 +187,5 @@ object NotificationHandler extends CohortHandler {
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
   def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
-    main.provideSomeLayer[ZEnv with Logging](env(input))
+    main(input.brazeCampaignName).provideSomeLayer[ZEnv with Logging](env(input))
 }

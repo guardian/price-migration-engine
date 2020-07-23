@@ -15,6 +15,7 @@ class CohortSpecTest extends munit.FunSuite {
     CohortSpec.isActive(
       CohortSpec(
         cohortName = "name",
+        brazeCampaignName = "cmp123",
         importStartDate,
         earliestPriceMigrationStartDate = LocalDate.of(2021, 1, 1),
         migrationComplete
@@ -48,6 +49,7 @@ class CohortSpecTest extends munit.FunSuite {
   test("tableName: should be tmpTableName field value when present") {
     val cohortSpec = CohortSpec(
       cohortName = "name",
+      brazeCampaignName = "cmp123",
       importStartDate = LocalDate.of(2020, 1, 1),
       earliestPriceMigrationStartDate = LocalDate.of(2020, 1, 1),
       migrationCompleteDate = None,
@@ -59,6 +61,7 @@ class CohortSpecTest extends munit.FunSuite {
   test("tableName: should be transformed cohort name when tmpTableName field value not present") {
     val cohortSpec = CohortSpec(
       cohortName = "Home Delivery 2018",
+      brazeCampaignName = "cmp123",
       importStartDate = LocalDate.of(2020, 1, 1),
       earliestPriceMigrationStartDate = LocalDate.of(2020, 1, 1),
       migrationCompleteDate = None,
@@ -70,6 +73,7 @@ class CohortSpecTest extends munit.FunSuite {
   test("fromDynamoDbItem: should include all fields") {
     val item = Map(
       "cohortName" -> new AttributeValue().withS("Home Delivery 2018"),
+      "brazeCampaignName" -> new AttributeValue().withS("cmp123"),
       "importStartDate" -> new AttributeValue().withS("2020-01-01"),
       "earliestPriceMigrationStartDate" -> new AttributeValue().withS("2020-01-01"),
       "tmpTableName" -> new AttributeValue().withS("tmpName")
@@ -80,6 +84,7 @@ class CohortSpecTest extends munit.FunSuite {
       Right(
         CohortSpec(
           cohortName = "Home Delivery 2018",
+          brazeCampaignName = "cmp123",
           importStartDate = LocalDate.of(2020, 1, 1),
           earliestPriceMigrationStartDate = LocalDate.of(2020, 1, 1),
           migrationCompleteDate = None,
