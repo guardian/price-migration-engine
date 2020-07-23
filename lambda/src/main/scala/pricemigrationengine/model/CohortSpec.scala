@@ -27,7 +27,7 @@ case class CohortSpec(
     tmpTableName: Option[String] = None // TODO: remove when price migration 2020 complete
 ) {
   val normalisedCohortName: String = cohortName.replaceAll("[^A-Za-z0-9-_]", "")
-  val tableName: String = tmpTableName getOrElse s"PriceMigration-$normalisedCohortName"
+  def tableName(stage: String): String = tmpTableName getOrElse s"PriceMigration-$stage-$normalisedCohortName"
 }
 
 object CohortSpec {

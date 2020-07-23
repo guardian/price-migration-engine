@@ -1,7 +1,7 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.model.{CohortSpec, ConfigurationFailure, Failure, HandlerOutput}
-import pricemigrationengine.services.{CohortTableDdl, Logging}
+import pricemigrationengine.services.{CohortTableDdl, EnvConfiguration, Logging, StageConfiguration}
 import zio.{ZEnv, ZIO, ZLayer}
 
 /**
@@ -9,14 +9,14 @@ import zio.{ZEnv, ZIO, ZLayer}
   */
 object CohortTableCreationHandler extends CohortHandler {
 
-  def main(tableName: String): ZIO[CohortTableDdl with Logging, Failure, HandlerOutput] =
+  def main(cohortSpec: CohortSpec): ZIO[CohortTableDdl with Logging, Failure, HandlerOutput] =
     CohortTableDdl
-      .createTable(tableName)
+      .createTable(cohortSpec)
       .tapBoth(
-        e => Logging.error(s"Failed to create table '$tableName': $e"),
+        e => Logging.error(s"Failed to create table for $cohortSpec: $e"),
         {
-          case None         => Logging.info(s"No action. Table '$tableName' already exists.")
-          case Some(result) => Logging.info(s"Created table '$tableName': $result")
+          case None         => Logging.info(s"No action. Table for $cohortSpec already exists.")
+          case Some(result) => Logging.info(s"Created table: $result")
         }
       )
       .as(HandlerOutput(isComplete = true))
@@ -26,5 +26,5 @@ object CohortTableCreationHandler extends CohortHandler {
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
   def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
-    main(input.tableName).provideSomeLayer[ZEnv with Logging](env)
+    main(input).provideSomeLayer[ZEnv with Logging](env)
 }

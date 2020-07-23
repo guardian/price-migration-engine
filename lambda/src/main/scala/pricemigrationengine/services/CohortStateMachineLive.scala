@@ -16,6 +16,7 @@ import zio.{ZIO, ZLayer}
 object CohortStateMachineLive {
 
   private case class StateMachineInput(cohortSpec: CohortSpec)
+
   private implicit val rw: ReadWriter[StateMachineInput] = macroRW
 
   val impl

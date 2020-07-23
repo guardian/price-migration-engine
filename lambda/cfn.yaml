@@ -42,6 +42,8 @@ Resources:
             Resource:
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigration-${Stage}-*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigration-${Stage}-*/*"
       Roles:
         - Ref: PriceMigrationEngineEstimationLambdaRole
         - Ref: PriceMigrationEngineSalesforcePriceCreationLambdaRole
