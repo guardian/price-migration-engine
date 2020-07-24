@@ -175,27 +175,27 @@ object CohortTableLive {
                     _ => Logging.info(s"Wrote $result to Cohort table")
                   )
               }.provide(dependencies)
+
+              override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
+                for {
+                  cohortTableConfig <- CohortTableConfiguration.cohortTableConfig
+                    .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
+                  stageConfig <- StageConfiguration.stageConfig
+                    .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
+                  queryRequest = new ScanRequest()
+                    .withTableName(s"PriceMigrationEngine${stageConfig.stage}")
+                    .withLimit(cohortTableConfig.batchSize)
+                  queryResults <- DynamoDBZIO
+                    .scan(
+                      queryRequest
+                    )
+                    .map(_.mapError(error => CohortFetchFailure(error.toString)))
+                } yield queryResults
+              }.provide(dependencies)
+
             }
           }
           .provide(dependencies)
-
-          override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
-            for {
-              cohortTableConfig <- CohortTableConfiguration.cohortTableConfig
-                .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
-              stageConfig <- StageConfiguration.stageConfig
-                .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
-              queryRequest = new ScanRequest()
-                .withTableName(s"PriceMigrationEngine${stageConfig.stage}")
-                .withLimit(cohortTableConfig.batchSize)
-              queryResults <- DynamoDBZIO
-                .scan(
-                  queryRequest
-                )
-                .map(_.mapError(error => CohortFetchFailure(error.toString)))
-            } yield queryResults
-          }.provide(dependencies)
         }
-    }
-  }
+      }
 }

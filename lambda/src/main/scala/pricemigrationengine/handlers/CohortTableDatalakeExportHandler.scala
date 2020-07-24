@@ -25,7 +25,7 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
       records <- CohortTable.fetchAll()
       s3Location = S3Location(
         s"price-migration-engine-${config.stage.toLowerCase}",
-        s"${cohortSpec.tableName}.csv"
+        s"data.csv"
       )
       _ <- writeCsvToS3(records, s3Location, cohortSpec)
     } yield HandlerOutput(isComplete = true)
@@ -51,7 +51,7 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
           s"Successfully wrote cohort table ${cohortSpec.tmpTableName} containing $recordsWritten items " +
             s"to $s3Location: $putResult"
         )
-      } yield recordsWritten
+      } yield ()
     }
 
   def localTempFile(): ZManaged[Any, CohortTableDatalakeExportFailure, Path] =
@@ -150,7 +150,7 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
   private def env(
       cohortSpec: CohortSpec
   ): ZLayer[Logging, Failure, CohortTable with S3 with Logging with StageConfiguration] =
-    (LiveLayer.cohortTable(cohortSpec.tableName) and LiveLayer.s3 and LiveLayer.logging and LiveLayer.stageConfig)
+    (LiveLayer.cohortTable(cohortSpec) and LiveLayer.s3 and LiveLayer.logging and LiveLayer.stageConfig)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
   def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
