@@ -38,6 +38,12 @@ class NotificationHandlerTest extends munit.FunSuite {
   val expectedSalutation = "Ms"
   val expectedSfStatus = "Active"
 
+  val mailingAddressStreet = "buyer1MailStreet"
+  val mailingAddressCity = "buyer1MailCity"
+  val mailingAddressState = "buyer1MailState"
+  val mailingAddressPostalCode = "buyer1MailPostalCode"
+  val mailingAddressCountry = "buyer1MailCountry"
+
   def createStubCohortTable(updatedResultsWrittenToCohortTable: ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
       new CohortTable.Service {
@@ -147,6 +153,15 @@ class NotificationHandlerTest extends munit.FunSuite {
           postalCode = Some(expectedPostalCode),
           country = Some(expectedCountry)
         )
+      ),
+      MailingAddress = Some(
+        SalesforceAddress(
+          street = Some(mailingAddressStreet),
+          city = Some(mailingAddressCity),
+          state = Some(mailingAddressState),
+          postalCode = Some(mailingAddressPostalCode),
+          country = Some(mailingAddressCountry)
+        )
       )
     )
 
@@ -223,6 +238,84 @@ class NotificationHandlerTest extends munit.FunSuite {
         whenNotificationSent = Some(StubClock.expectedCurrentTime)
       )
     )
+  }
+
+  test("NotificationHandler should fallback to using contact mailing address if no billing address") {
+    val stubSalesforceClient =
+      stubSFClient(List(salesforceSubscription), List(salesforceContact.copy(OtherAddress = None)))
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
+    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
+    val sentMessages = ArrayBuffer[EmailMessage]()
+    val stubEmailSender = createStubEmailSender(sentMessages)
+
+    assertEquals(
+      default.unsafeRunSync(
+        NotificationHandler.main
+          .provideLayer(
+            TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
+          )
+      ),
+      Success(HandlerOutput(isComplete = true))
+    )
+
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_1, mailingAddressStreet)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_2, None)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_city, Some(mailingAddressCity))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_state, Some(mailingAddressState))
+    assertEquals(
+      sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_postal_code,
+      mailingAddressPostalCode
+    )
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_country, mailingAddressCountry)
+  }
+
+  test("NotificationHandler should send no message if no billing address or mailing address") {
+    val stubSalesforceClient =
+      stubSFClient(
+        List(salesforceSubscription),
+        List(salesforceContact.copy(OtherAddress = None, MailingAddress = None))
+      )
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
+    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
+    val sentMessages = ArrayBuffer[EmailMessage]()
+    val stubEmailSender = createStubEmailSender(sentMessages)
+
+    assertEquals(
+      default.unsafeRunSync(
+        NotificationHandler.main
+          .provideLayer(
+            TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
+          )
+      ),
+      Success(HandlerOutput(isComplete = true))
+    )
+
+    assertEquals(sentMessages.size, 0)
+    assertEquals(updatedResultsWrittenToCohortTable.size, 0)
+  }
+
+  test(
+    "NotificationHandler should use salutation in place of first name and leave title field empty if contact has no first name"
+  ) {
+    val stubSalesforceClient =
+      stubSFClient(List(salesforceSubscription), List(salesforceContact.copy(FirstName = None)))
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
+    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
+    val sentMessages = ArrayBuffer[EmailMessage]()
+    val stubEmailSender = createStubEmailSender(sentMessages)
+
+    assertEquals(
+      default.unsafeRunSync(
+        NotificationHandler.main
+          .provideLayer(
+            TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
+          )
+      ),
+      Success(HandlerOutput(isComplete = true))
+    )
+
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, None)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, expectedSalutation)
   }
 
   test("NotificationHandler should leave CohortItem in processing state if email send fails") {

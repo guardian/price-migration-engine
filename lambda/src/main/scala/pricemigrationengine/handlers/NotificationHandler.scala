@@ -74,12 +74,16 @@ object NotificationHandler extends CohortHandler {
     for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
-      firstName <- requiredField(contact.FirstName, "Contact.FirstName")
+      firstName <- requiredField(contact.FirstName, "Contact.FirstName").orElse(
+        requiredField(contact.Salutation, "Contact.Salutation")
+      )
       lastName <- requiredField(contact.LastName, "Contact.LastName")
-      otherAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
-      street <- requiredField(otherAddress.street, "Contact.OtherAddress.street")
-      postalCode <- requiredField(otherAddress.postalCode, "Contact.OtherAddress.postalCode")
-      country <- requiredField(otherAddress.country, "Contact.OtherAddress.country")
+      targetAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress").orElse(
+        requiredField(contact.MailingAddress, "Contact.MailingAddress")
+      )
+      street <- requiredField(targetAddress.street, "Contact.OtherAddress.street")
+      postalCode <- requiredField(targetAddress.postalCode, "Contact.OtherAddress.postalCode")
+      country <- requiredField(targetAddress.country, "Contact.OtherAddress.country")
       estimatedNewPrice <- requiredField(cohortItem.estimatedNewPrice.map(_.toString()), "CohortItem.estimatedNewPrice")
       startDate <- requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate")
       billingPeriod <- requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod")
@@ -95,14 +99,16 @@ object NotificationHandler extends CohortHandler {
             Address = contact.Email,
             ContactAttributes = EmailPayloadContactAttributes(
               SubscriberAttributes = EmailPayloadSubscriberAttributes(
-                title = contact.Salutation,
+                title = contact.FirstName flatMap (_ =>
+                  contact.Salutation
+                ), // if no first name, we use salutation as first name and leave this field empty
                 first_name = firstName,
                 last_name = lastName,
                 billing_address_1 = street,
                 billing_address_2 = None, //See 'Billing Address Format' section in the readme
-                billing_city = otherAddress.city,
+                billing_city = targetAddress.city,
                 billing_postal_code = postalCode,
-                billing_state = otherAddress.state,
+                billing_state = targetAddress.state,
                 billing_country = country,
                 payment_amount = estimatedNewPrice,
                 next_payment_date = startDate,
@@ -124,14 +130,12 @@ object NotificationHandler extends CohortHandler {
     ZIO.fromOption(field).orElseFail(NotificationHandlerFailure(s"$fieldName is a required field"))
   }
 
-  def logMissingEmailAddress(cohortItem: CohortItem, sfContact: SalesforceContact)  = {
-    if(sfContact.Email.isEmpty) {
-      Logging.info(
+  def logMissingEmailAddress(cohortItem: CohortItem, sfContact: SalesforceContact): ZIO[Logging, Nothing, Unit] = {
+    Logging
+      .info(
         s"Subscription ${cohortItem.subscriptionName} is for contact ${sfContact.Id} that has not email address"
       )
-    } else {
-      ZIO.unit
-    }
+      .when(sfContact.Email.isEmpty)
   }
 
   val paymentFrequencyMapping = Map(
@@ -180,8 +184,7 @@ object NotificationHandler extends CohortHandler {
   private def env(
       cohortSpec: CohortSpec
   ): ZLayer[Logging, Failure, CohortTable with SalesforceClient with EmailSender with Logging] =
-    (LiveLayer.cohortTable(cohortSpec.tableName) and LiveLayer.salesforce and LiveLayer.emailSender and ZLayer
-      .identity[Logging])
+    (LiveLayer.cohortTable(cohortSpec) and LiveLayer.salesforce and LiveLayer.emailSender and LiveLayer.logging)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
   def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =

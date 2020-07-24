@@ -15,7 +15,11 @@ import scala.util.Random
 
 class CohortTableLiveTest extends munit.FunSuite {
 
-  private val tableNameFixture = "PriceMigrationEngineDEV"
+  private val cohortSpec = CohortSpec(
+    cohortName = "name",
+    importStartDate = LocalDate.of(2020, 1, 1),
+    earliestPriceMigrationStartDate = LocalDate.of(2020, 1, 1)
+  )
 
   val stubCohortTableConfiguration = ZLayer.succeed(
     new CohortTableConfiguration.Service {
@@ -31,6 +35,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     }
   )
 
+  val expectedTableName = "PriceMigration-DEV-name"
   val expectedSubscriptionId = "subscription-id"
   val expectedProcessingStage = ReadyForEstimation
   val expectedStartDate = LocalDate.now.plusDays(Random.nextInt(365))
@@ -84,7 +89,7 @@ class CohortTableLiveTest extends munit.FunSuite {
               .fetch(ReadyForEstimation, None)
               .provideLayer(
                 stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
-                  CohortTableLive.impl(tableNameFixture)
+                  CohortTableLive.impl(cohortSpec)
               )
           resultList <- result.run(Sink.collectAll[CohortItem])
           _ = assertEquals(resultList, Chunk(item1, item2))
@@ -93,7 +98,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       Success(())
     )
 
-    assertEquals(receivedRequest.get.getTableName, tableNameFixture)
+    assertEquals(receivedRequest.get.getTableName, expectedTableName)
     assertEquals(receivedRequest.get.getIndexName, "ProcessingStageIndexV2")
     assertEquals(receivedRequest.get.getKeyConditionExpression, "processingStage = :processingStage")
     assertEquals(
@@ -180,7 +185,7 @@ class CohortTableLiveTest extends munit.FunSuite {
               .fetch(ReadyForEstimation, Some(expectedLatestDate))
               .provideLayer(
                 stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
-                  CohortTableLive.impl(tableNameFixture)
+                  CohortTableLive.impl(cohortSpec)
               )
           resultList <- result.run(Sink.collectAll[CohortItem])
           _ = assertEquals(resultList, Chunk(item1))
@@ -189,7 +194,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       Success(())
     )
 
-    assertEquals(receivedRequest.get.getTableName, tableNameFixture)
+    assertEquals(receivedRequest.get.getTableName, expectedTableName)
     assertEquals(receivedRequest.get.getIndexName, "ProcessingStageStartDateIndexV1")
     assertEquals(
       receivedRequest.get.getKeyConditionExpression,
@@ -261,13 +266,13 @@ class CohortTableLiveTest extends munit.FunSuite {
           .update(cohortItem)
           .provideLayer(
             stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
-              CohortTableLive.impl(tableNameFixture)
+              CohortTableLive.impl(cohortSpec)
           )
       ),
       Success(())
     )
 
-    assertEquals(tableUpdated.get, tableNameFixture)
+    assertEquals(tableUpdated.get, expectedTableName)
     assertEquals(receivedKey.get.subscriptionNumber, expectedSubscriptionId)
     assertEquals(
       receivedKeySerialiser.get.serialise(receivedKey.get),
@@ -404,7 +409,7 @@ class CohortTableLiveTest extends munit.FunSuite {
           .update(cohortItem)
           .provideLayer(
             stubStageConfiguration ++ stubCohortTableConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
-              CohortTableLive.impl(tableNameFixture)
+              CohortTableLive.impl(cohortSpec)
           )
       ),
       Success(())
@@ -465,13 +470,13 @@ class CohortTableLiveTest extends munit.FunSuite {
           .put(cohortItem)
           .provideLayer(
             stubStageConfiguration ++ stubCohortTableConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
-              CohortTableLive.impl(tableNameFixture)
+              CohortTableLive.impl(cohortSpec)
           )
       ),
       Success(())
     )
 
-    assertEquals(tableUpdated.get, tableNameFixture)
+    assertEquals(tableUpdated.get, expectedTableName)
     val insert = receivedSerialiser.get.serialise(receivedInsert.get)
     assertEquals(insert.get("subscriptionNumber"), new AttributeValue().withS("Subscription-id"))
     assertEquals(insert.get("processingStage"), new AttributeValue().withS("ReadyForEstimation"))

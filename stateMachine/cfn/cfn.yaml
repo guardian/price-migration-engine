@@ -41,6 +41,7 @@ Resources:
                 Action:
                   - lambda:InvokeFunction
                 Resource:
+                  - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingCohortTableLambda
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-EstimatingLambda
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingSalesforceRecordsLambda
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-NotifyingSubscribersLambda
@@ -59,6 +60,73 @@ Resources:
                   - logs:DescribeLogGroups
                 Resource:
                   - "*"
+
+  PriceMigrationLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - lambda:InvokeFunction
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-lambda-${Stage}:log-stream:*"
+        - PolicyName: CohortSpecTablePolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:Scan
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/price-migration-engine-cohort-spec-${Stage}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/price-migration-engine-cohort-spec-${Stage}/*"
+        - PolicyName: CohortStateMachinePolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - states:StartExecution
+                Resource:
+                  - !Ref CohortStateMachine
+
+  PriceMigrationLambda:
+    Type: AWS::Lambda::Function
+    DependsOn:
+      - PriceMigrationLambdaRole
+      - CohortStateMachine
+    Properties:
+      Description: Kicks off state machines to process each cohort.
+      FunctionName:
+        !Sub price-migration-lambda-${Stage}
+      Code:
+        S3Bucket: membership-dist
+        S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
+      Handler: pricemigrationengine.handlers.MigrationHandler::handleRequest
+      Environment:
+        Variables:
+          stage: !Ref Stage
+          cohortStateMachineArn: !Ref CohortStateMachine
+      Role:
+        Fn::GetAtt:
+          - PriceMigrationLambdaRole
+          - Arn
+      MemorySize: 1536
+      Runtime: java8
+      Timeout: 900
 
   CohortStateMachine:
     Type: AWS::StepFunctions::StateMachine
@@ -80,8 +148,16 @@ Resources:
         - |
           {
             "Comment": "Price-migration orchestration engine.",
-            "StartAt": "Estimating",
+            "StartAt": "CreatingCohortTable",
             "States": {
+              "CreatingCohortTable": {
+                "Type": "Task",
+                "Comment": "Creating cohort table if it doesn't already exist.",
+                "Resource": "${CreatingCohortTableLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
+                "Next": "Estimating"
+              },
               "Estimating": {
                 "Type": "Task",
                 "Comment": "Calculating start date and new price for each sub in this cohort.",
@@ -184,7 +260,9 @@ Resources:
               }
             }
           }
-        - EstimatingLambdaArn:
+        - CreatingCohortTableLambdaArn:
+            Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingCohortTableLambda
+          EstimatingLambdaArn:
             Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-EstimatingLambda
           CreatingSalesforceRecordsLambdaArn:
             Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingSalesforceRecordsLambda
