@@ -44,6 +44,8 @@ class NotificationHandlerTest extends munit.FunSuite {
   val mailingAddressPostalCode = "buyer1MailPostalCode"
   val mailingAddressCountry = "buyer1MailCountry"
 
+  val brazeCampaignName = "SV_VO_Pricerise_Q22020"
+
   def createStubCohortTable(updatedResultsWrittenToCohortTable: ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
       new CohortTable.Service {
@@ -183,7 +185,8 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        NotificationHandler.main
+        NotificationHandler
+          .main(brazeCampaignName)
           .provideLayer(
             TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
           )
@@ -248,7 +251,8 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        NotificationHandler.main
+        NotificationHandler
+          .main(brazeCampaignName)
           .provideLayer(
             TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
           )
@@ -280,7 +284,8 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        NotificationHandler.main
+        NotificationHandler
+          .main(brazeCampaignName)
           .provideLayer(
             TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
           )
@@ -304,7 +309,8 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        NotificationHandler.main
+        NotificationHandler
+          .main(brazeCampaignName)
           .provideLayer(
             TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
           )
@@ -324,7 +330,8 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        NotificationHandler.main
+        NotificationHandler
+          .main(brazeCampaignName)
           .provideLayer(
             TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ failingStubEmailSender
           )
@@ -353,7 +360,8 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        NotificationHandler.main
+        NotificationHandler
+          .main(brazeCampaignName)
           .provideLayer(
             TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
           )
