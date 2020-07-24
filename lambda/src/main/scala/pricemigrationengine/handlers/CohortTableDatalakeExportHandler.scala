@@ -27,18 +27,19 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
         s"price-migration-engine-${config.stage.toLowerCase}",
         s"data.csv"
       )
-      _ <- writeCsvToS3(records, s3Location, cohortSpec)
+      _ <- writeCsvToS3(records, s3Location, cohortSpec, config)
     } yield HandlerOutput(isComplete = true)
 
   def writeCsvToS3(
       cohortItems: ZStream[Any, CohortFetchFailure, CohortItem],
       s3Location: S3Location,
-      cohortSpec: CohortSpec
+      cohortSpec: CohortSpec,
+      stageConfig: StageConfig
   ): ZIO[S3 with Logging, Failure, Unit] =
     localTempFile().use { filePath =>
       for {
         recordsWritten <- openOutputStream(filePath).use { tempFileOutputStream =>
-          writeCsvToStream(cohortItems, tempFileOutputStream, cohortSpec)
+          writeCsvToStream(cohortItems, tempFileOutputStream, cohortSpec, stageConfig)
         }
 
         putResult <-
@@ -48,7 +49,7 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
             }
 
         _ <- Logging.info(
-          s"Successfully wrote cohort table ${cohortSpec.tmpTableName} containing $recordsWritten items " +
+          s"Successfully wrote cohort table ${cohortSpec.tableName(stageConfig.stage)} containing $recordsWritten items " +
             s"to $s3Location: $putResult"
         )
       } yield ()
@@ -75,7 +76,8 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
   def writeCsvToStream(
       cohortItems: ZStream[Any, Failure, CohortItem],
       outputStream: OutputStream,
-      cohortSpec: CohortSpec
+      cohortSpec: CohortSpec,
+      stageConfig: StageConfig
   ): IO[Failure, Long] = {
     managedCSVPrinter(
       outputStream,
@@ -105,7 +107,7 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
           .effect(
             printer.printRecord(
               cohortSpec.cohortName,
-              cohortSpec.tmpTableName.getOrElse(""),
+              cohortSpec.tableName(stageConfig.stage),
               cohortItem.subscriptionName,
               cohortItem.processingStage.value,
               cohortItem.startDate.getOrElse(""),
