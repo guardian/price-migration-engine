@@ -2,7 +2,7 @@ package pricemigrationengine.services
 
 import java.time.LocalDate
 
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, QueryRequest}
+import com.amazonaws.services.dynamodbv2.model.{AttributeValue, QueryRequest, ScanRequest}
 import pricemigrationengine.model._
 import pricemigrationengine.model.dynamodb.Conversions._
 import zio.stream.ZStream
@@ -112,72 +112,80 @@ object CohortTableLive {
     CohortTable
   ] = {
     ZLayer.fromFunctionM {
-      dependencies: DynamoDBZIO with StageConfiguration with CohortTableConfiguration with Logging =>
-        StageConfiguration.stageConfig
-          .map(config => cohortSpec.tableName(config.stage))
-          .map { tableName =>
-            new CohortTable.Service {
-              override def fetch(
-                  filter: CohortTableFilter,
-                  latestStartDateInclusive: Option[LocalDate]
-              ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
-                for {
-                  cohortTableConfig <-
-                    CohortTableConfiguration.cohortTableConfig
-                      .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
-                  indexName =
-                    latestStartDateInclusive
-                      .fold(ProcessingStageIndexName)(_ => ProcessingStageAndStartDateIndexName)
-                  queryRequest = new QueryRequest()
-                    .withTableName(tableName)
-                    .withIndexName(indexName)
-                    .withKeyConditionExpression(
-                      "processingStage = :processingStage" + latestStartDateInclusive.fold("") { _ =>
-                        " AND startDate <= :latestStartDateInclusive"
-                      }
-                    )
-                    .withExpressionAttributeValues(
-                      List(
-                        Some(":processingStage" -> new AttributeValue(filter.value)),
-                        latestStartDateInclusive.map { latestStartDateInclusive =>
-                          ":latestStartDateInclusive" -> new AttributeValue(latestStartDateInclusive.toString)
-                        }
-                      ).flatten.toMap.asJava
-                    )
-                    .withLimit(cohortTableConfig.batchSize)
-                  queryResults <-
-                    DynamoDBZIO
-                      .query(
-                        queryRequest
-                      )
-                      .map(_.mapError(error => CohortFetchFailure(error.toString)))
-                } yield queryResults
-              }.provide(dependencies)
-
-              override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
-                for {
-                  result <-
-                    DynamoDBZIO
-                      .put(table = tableName, value = cohortItem)
-                      .mapError(error => CohortUpdateFailure(error.toString))
-                } yield result
-              }.provide(dependencies)
-
-              override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
-                (for {
-                  result <-
-                    DynamoDBZIO
-                      .update(table = tableName, key = CohortTableKey(result.subscriptionName), value = result)
-                      .mapError(error => CohortUpdateFailure(error.toString))
-                } yield result)
-                  .tapBoth(
-                    e => Logging.error(s"Failed to update Cohort table: $e"),
-                    _ => Logging.info(s"Wrote $result to Cohort table")
+      dependencies: DynamoDBZIO with StageConfiguration with CohortTableConfiguration with Logging => {
+        for {
+         config <- StageConfiguration.stageConfig
+         tableName = cohortSpec.tableName(config.stage)
+         cohortTableConfig <- CohortTableConfiguration.cohortTableConfig
+        } yield new CohortTable.Service {
+            override def fetch(
+                filter: CohortTableFilter,
+                latestStartDateInclusive: Option[LocalDate]
+            ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
+              val indexName =
+                latestStartDateInclusive
+                  .fold(ProcessingStageIndexName)(_ => ProcessingStageAndStartDateIndexName)
+              val queryRequest =
+                new QueryRequest()
+                  .withTableName(tableName)
+                  .withIndexName(indexName)
+                  .withKeyConditionExpression(
+                    "processingStage = :processingStage" + latestStartDateInclusive.fold("") { _ =>
+                      " AND startDate <= :latestStartDateInclusive"
+                    }
                   )
-              }.provide(dependencies)
-            }
+                  .withExpressionAttributeValues(
+                    List(
+                      Some(":processingStage" -> new AttributeValue(filter.value)),
+                      latestStartDateInclusive.map { latestStartDateInclusive =>
+                        ":latestStartDateInclusive" -> new AttributeValue(latestStartDateInclusive.toString)
+                      }
+                    ).flatten.toMap.asJava
+                  )
+                  .withLimit(cohortTableConfig.batchSize)
+              DynamoDBZIO.query(queryRequest).map(_.mapError(error => CohortFetchFailure(error.toString)))
+            }.provide(dependencies)
+
+            override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
+              for {
+                result <-
+                  DynamoDBZIO
+                    .put(table = tableName, value = cohortItem)
+                    .mapError(error => CohortUpdateFailure(error.toString))
+              } yield result
+            }.provide(dependencies)
+
+            override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
+              (for {
+                result <-
+                  DynamoDBZIO
+                    .update(table = tableName, key = CohortTableKey(result.subscriptionName), value = result)
+                    .mapError(error => CohortUpdateFailure(error.toString))
+              } yield result)
+                .tapBoth(
+                  e => Logging.error(s"Failed to update Cohort table: $e"),
+                  _ => Logging.info(s"Wrote $result to Cohort table")
+                )
+            }.provide(dependencies)
+
+            override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
+              for {
+                cohortTableConfig <- CohortTableConfiguration.cohortTableConfig
+                  .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
+                stageConfig <- StageConfiguration.stageConfig
+                  .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
+                queryRequest = new ScanRequest()
+                  .withTableName(s"PriceMigrationEngine${stageConfig.stage}")
+                  .withLimit(cohortTableConfig.batchSize)
+                queryResults <- DynamoDBZIO
+                  .scan(
+                    queryRequest
+                  )
+                  .map(_.mapError(error => CohortFetchFailure(error.toString)))
+              } yield queryResults
+            }.provide(dependencies)
           }
-          .provide(dependencies)
+      }.provide(dependencies)
     }
   }
 }

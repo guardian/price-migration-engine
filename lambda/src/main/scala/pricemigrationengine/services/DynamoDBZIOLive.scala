@@ -2,7 +2,7 @@ package pricemigrationengine.services
 
 import java.util
 
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemRequest, QueryRequest, QueryResult, UpdateItemRequest}
+import com.amazonaws.services.dynamodbv2.model.{AttributeValue, PutItemRequest, QueryRequest, QueryResult, ScanRequest, ScanResult, UpdateItemRequest}
 import pricemigrationengine.services.DynamoDBZIO.Service
 import zio.stream.ZStream
 import zio.{IO, ZIO, ZLayer}
@@ -41,6 +41,36 @@ object DynamoDBZIOLive {
             _ <- Logging.info(s"Starting query: $queryRequest")
             results <- DynamoDBClient.query(queryRequest)
               .mapError(ex => DynamoDBZIOError(s"Failed to execute query $queryRequest : $ex"))
+          } yield results
+        }.provide(dependencies)
+
+        override def scan[A](query: ScanRequest)(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] = {
+          recursivelyExecuteScanUntilAllResultsAreStreamed(query)
+            .mapM(deserializer.deserialise)
+        }
+
+        private def recursivelyExecuteScanUntilAllResultsAreStreamed[A](
+          query: ScanRequest
+        ): ZStream[Any, DynamoDBZIOError, util.Map[String, AttributeValue]] = {
+          ZStream.unfoldM(Some(query).asInstanceOf[Option[ScanRequest]]) {
+            case Some(queryRequest) =>
+              for {
+                scanResult <- sendScanRequest(queryRequest)
+                _ <- Logging.info(s"Received query results for batch with ${scanResult.getCount} items")
+                queryForNextBatch = Option(scanResult.getLastEvaluatedKey)
+                  .map(lastEvaluatedKey => queryRequest.clone().withExclusiveStartKey(lastEvaluatedKey))
+              } yield Some((scanResult.getItems().asScala, queryForNextBatch))
+            case None =>
+              ZIO.succeed(None)
+          }
+            .flatMap(resultList => ZStream.fromIterable(resultList))
+        }.provide(dependencies)
+
+        private def sendScanRequest[A](queryRequest: ScanRequest): ZIO[Any, DynamoDBZIOError, ScanResult] = {
+          for {
+            _ <- Logging.info(s"Starting scan: $queryRequest")
+            results <- DynamoDBClient.scan(queryRequest)
+              .mapError(ex => DynamoDBZIOError(s"Failed to execute scan $queryRequest : $ex"))
           } yield results
         }.provide(dependencies)
 

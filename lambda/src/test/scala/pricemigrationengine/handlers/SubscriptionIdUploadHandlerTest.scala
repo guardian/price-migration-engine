@@ -1,8 +1,9 @@
 package pricemigrationengine.handlers
 
-import java.io.InputStream
+import java.io.{File, InputStream}
 import java.time.LocalDate
 
+import com.amazonaws.services.s3.model.PutObjectResult
 import pricemigrationengine.TestLogging
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -31,6 +32,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
             beforeDateInclusive: Option[LocalDate]
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
+        override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
         override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] =
           IO.effect {
             subscriptionsWrittenToCohortTable.addOne(cohortItem)
@@ -56,6 +58,8 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
             case S3Location("price-migration-engine-dev", "salesforce-subscription-id-report.csv") =>
               loadTestResource("/SubscriptionIds.csv")
           }
+
+        override def putObject(s3Location: S3Location, file: File): IO[S3Failure, PutObjectResult] = ???
       }
     )
 

@@ -3,7 +3,7 @@ package pricemigrationengine.model
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate, ZoneOffset}
 
-import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest}
+import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate, QueryRequest, ScanRequest}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.services._
 import zio.Exit.Success
@@ -77,6 +77,8 @@ class CohortTableLiveTest extends munit.FunSuite {
         override def put[A](table: String, value: A)(implicit
             valueSerializer: DynamoDBSerialiser[A]
         ): IO[DynamoDBZIOError, Unit] = ???
+
+        override def scan[A](query: ScanRequest)(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] = ???
       }
     )
 
@@ -171,6 +173,8 @@ class CohortTableLiveTest extends munit.FunSuite {
         override def put[A](table: String, value: A)(implicit
             valueSerializer: DynamoDBSerialiser[A]
         ): IO[DynamoDBZIOError, Unit] = ???
+
+        override def scan[A](query: ScanRequest)(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] = ???
       }
     )
 
@@ -234,6 +238,8 @@ class CohortTableLiveTest extends munit.FunSuite {
         override def put[A](table: String, value: A)(implicit
             valueSerializer: DynamoDBSerialiser[A]
         ): IO[DynamoDBZIOError, Unit] = ???
+
+        override def scan[A](query: ScanRequest)(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] = ???
       }
     )
 
@@ -385,6 +391,8 @@ class CohortTableLiveTest extends munit.FunSuite {
         override def put[A](table: String, value: A)(implicit
             valueSerializer: DynamoDBSerialiser[A]
         ): IO[DynamoDBZIOError, Unit] = ???
+
+        override def scan[A](query: ScanRequest)(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] = ???
       }
     )
 
@@ -450,6 +458,8 @@ class CohortTableLiveTest extends munit.FunSuite {
           receivedSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBSerialiser[CohortItem]])
           ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
         }
+
+        override def scan[A](query: ScanRequest)(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] = ???
       }
     )
 

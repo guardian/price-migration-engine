@@ -70,6 +70,8 @@ class NotificationHandlerTest extends munit.FunSuite {
           updatedResultsWrittenToCohortTable.addOne(result)
           IO.succeed(())
         }
+
+        override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
       }
     )
   }
