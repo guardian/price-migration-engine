@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import java.time.{Instant, LocalDate}
+import java.time.LocalDate
 
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
@@ -27,27 +27,37 @@ object EstimationHandler extends CohortHandler {
       count <-
         cohortItems
           .take(batchSize)
-          .mapM(estimate(newProductPricing, earliestStartDate))
+          .mapM(item =>
+            estimate(newProductPricing, earliestStartDate)(item)
+              .tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
+          )
           .runCount
+          .tapError(e => Logging.error(e.toString))
     } yield HandlerOutput(isComplete = count < batchSize)
 
   private def estimate(newProductPricing: ZuoraPricingData, earliestStartDate: LocalDate)(
       item: CohortItem
-  ): ZIO[Logging with CohortTable with Zuora with Random, Failure, Unit] =
+  ): ZIO[CohortTable with Zuora with Random, Failure, EstimationResult] =
     doEstimation(newProductPricing, item, earliestStartDate).foldM(
       failure = {
-        case _: AmendmentDataFailure         => CohortTable.update(CohortItem(item.subscriptionName, EstimationFailed))
-        case _: CancelledSubscriptionFailure => CohortTable.update(CohortItem(item.subscriptionName, Cancelled))
-        case e                               => ZIO.fail(e)
+        case _: AmendmentDataFailure =>
+          val result = FailedEstimationResult(item.subscriptionName)
+          CohortTable.update(CohortItem.fromFailedEstimationResult(result)) zipRight ZIO.succeed(result)
+        case _: CancelledSubscriptionFailure =>
+          val result = CancelledEstimationResult(item.subscriptionName)
+          CohortTable.update(CohortItem.fromCancelledEstimationResult(result)) zipRight ZIO.succeed(result)
+        case e => ZIO.fail(e)
       },
-      success = CohortTable.update
+      success = { result =>
+        CohortTable.update(CohortItem.fromSuccessfulEstimationResult(result)) zipRight ZIO.succeed(result)
+      }
     )
 
   private def doEstimation(
       newProductPricing: ZuoraPricingData,
       item: CohortItem,
       earliestStartDate: LocalDate
-  ): ZIO[Logging with CohortTable with Zuora with Random, Failure, CohortItem] =
+  ): ZIO[Zuora with Random, Failure, SuccessfulEstimationResult] =
     for {
       subscription <-
         Zuora
@@ -56,25 +66,8 @@ object EstimationHandler extends CohortHandler {
       invoicePreviewTargetDate = earliestStartDate.plusMonths(13)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
       earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, earliestStartDate)
-      result <-
-        ZIO
-          .fromEither(EstimationResult(newProductPricing, subscription, invoicePreview, earliestStartDate))
-          .tapBoth(
-            e =>
-              Logging
-                .error(s"Failed to estimate amendment data for subscription ${subscription.subscriptionNumber}: $e"),
-            result => Logging.info(s"Estimated result: $result")
-          )
-    } yield CohortItem(
-      result.subscriptionName,
-      processingStage = EstimationComplete,
-      oldPrice = Some(result.oldPrice),
-      estimatedNewPrice = Some(result.estimatedNewPrice),
-      currency = Some(result.currency),
-      startDate = Some(result.startDate),
-      billingPeriod = Some(result.billingPeriod),
-      whenEstimationDone = Some(Instant.now())
-    )
+      result <- ZIO.fromEither(EstimationResult(newProductPricing, subscription, invoicePreview, earliestStartDate))
+    } yield result
 
   /*
    * Earliest start date spread out over 3 months.
