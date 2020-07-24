@@ -15,13 +15,25 @@ object SubscriptionIdUploadHandler extends CohortHandler {
 
   private val csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader()
 
-  val main: ZIO[CohortTable with Logging with S3 with StageConfiguration, Failure, HandlerOutput] = {
+  def main(
+      cohortSpec: CohortSpec
+  ): ZIO[CohortTable with S3 with StageConfiguration with Logging, Failure, HandlerOutput] =
+    importCohort(cohortSpec).catchSome {
+      case e: S3Failure =>
+        Logging.info(s"No action.  Cohort already imported: ${e.reason}") zipRight ZIO.succeed(
+          HandlerOutput(isComplete = true)
+        )
+    }
+
+  private def importCohort(
+      cohortSpec: CohortSpec
+  ): ZIO[CohortTable with Logging with S3 with StageConfiguration, Failure, HandlerOutput] = {
     for {
       config <- StageConfiguration.stageConfig
       exclusionsManagedStream <- S3.getObject(
         S3Location(
           s"price-migration-engine-${config.stage.toLowerCase}",
-          "excluded-subscription-ids.csv"
+          s"${cohortSpec.normalisedCohortName}/excluded-subscription-ids.csv"
         )
       )
       exclusions <- exclusionsManagedStream.use(parseExclusions)
@@ -29,7 +41,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
       subscriptionIdsManagedStream <- S3.getObject(
         S3Location(
           s"price-migration-engine-${config.stage.toLowerCase}",
-          "salesforce-subscription-id-report.csv"
+          s"${cohortSpec.normalisedCohortName}/salesforce-subscription-id-report.csv"
         )
       )
       count <- subscriptionIdsManagedStream.use(stream => writeSubscriptionIdsToCohortTable(stream, exclusions))
@@ -83,5 +95,5 @@ object SubscriptionIdUploadHandler extends CohortHandler {
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
   def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
-    main.provideSomeLayer[ZEnv with Logging](env(input))
+    main(input).provideSomeLayer[ZEnv with Logging](env(input))
 }
