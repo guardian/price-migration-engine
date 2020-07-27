@@ -4,6 +4,7 @@ import java.io.{File, OutputStream, OutputStreamWriter}
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 
+import com.amazonaws.services.s3.model.CannedAccessControlList
 import org.apache.commons.csv.{CSVFormat, CSVPrinter, QuoteMode}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -41,7 +42,7 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
         }
 
         putResult <-
-          S3.putObject(s3Location, filePath.toFile)
+          S3.putObject(s3Location, filePath.toFile, Some(CannedAccessControlList.BucketOwnerRead))
             .mapError { failure =>
               CohortTableDatalakeExportFailure(s"Failed to write CohortItems to s3: ${failure.reason}")
             }

@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import java.io.{File, InputStream}
 import java.time._
 
-import com.amazonaws.services.s3.model.PutObjectResult
+import com.amazonaws.services.s3.model.{CannedAccessControlList, PutObjectResult}
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -41,7 +41,11 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
     new S3.Service {
       override def getObject(s3Location: S3Location): ZManaged[Any, S3Failure, InputStream] = ???
 
-      override def putObject(s3Location: S3Location, file: File): IO[S3Failure, PutObjectResult] =
+      override def putObject(
+        s3Location: S3Location,
+        file: File,
+        cannedAccessControlList: Option[CannedAccessControlList]
+      ): IO[S3Failure, PutObjectResult] =
         for {
           fileContents <- ZIO.effectTotal(Source.fromFile(file, "UTF-8").getLines().mkString("\n"))
           _ <- ZIO.effectTotal(filesWrittenToS3.addOne((s3Location, fileContents)))
