@@ -702,3 +702,7 @@ Outputs:
     Value: !GetAtt PriceMigrationEngineSalesforceAmendmentUpdateLambda.Arn
     Export:
       Name: !Sub "${AWS::StackName}-UpdatingSalesforceWithAmendsLambda"
+  PriceMigrationEngineCohortTableDatalakeExportLambdaOutput:
+    Value: !GetAtt PriceMigrationEngineCohortTableDatalakeExportLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-ExportingCohortTableToDatalakeLambda"

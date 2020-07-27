@@ -51,6 +51,7 @@ Resources:
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-UpdatingSalesforceWithNotificationsLambda
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-AmendingLambda
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-UpdatingSalesforceWithAmendsLambda
+                  - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-ExportingCohortTableToDatalakeLambda
         - PolicyName: LoggingPolicy
           PolicyDocument:
             Statement:
@@ -281,6 +282,26 @@ Resources:
                   "Next": "UpdatingSalesforceWithAmendments"
                 }
                 ],
+                "Default": "ExportingCohortTableToDatalake"
+              },
+              "ExportingCohortTableToDatalake": {
+                "Type": "Task",
+                "Comment": "Exporting cohort data to the datalake.",
+                "Resource": "${ExportingCohortTableToDatalakeLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
+                "Next": "IsUpdatingSalesforceWithAmendmentsComplete"
+              },
+              "IsExportingCohortTableToDatalakeComplete": {
+                "Type": "Choice",
+                "Comment": "Is the exporting cohort data to the datalake step complete?",
+                "Choices": [
+                {
+                  "Variable": "$.result.isComplete",
+                  "BooleanEquals": false,
+                  "Next": "ExportingCohortTableToDatalake"
+                }
+                ],
                 "Default": "Complete"
               },
               "Complete": {
@@ -303,3 +324,5 @@ Resources:
             Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-AmendingLambda
           UpdatingSalesforceWithAmendsLambdaArn:
             Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-UpdatingSalesforceWithAmendsLambda
+          ExportingCohortTableToDatalakeLambdaArn:
+            Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-ExportingCohortTableToDatalakeLambda
