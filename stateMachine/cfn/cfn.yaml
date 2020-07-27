@@ -14,6 +14,9 @@ Parameters:
     Type: String
     Default: price-migration-engine
 
+Conditions:
+  IsProd: !Equals [!Ref "Stage", "PROD"]
+
 Resources:
 
   CohortStateMachineLogGroup:
@@ -127,6 +130,32 @@ Resources:
       MemorySize: 1536
       Runtime: java8
       Timeout: 900
+
+  PriceMigrationLambdaScheduleRule:
+    Type: AWS::Events::Rule
+    DependsOn:
+      - PriceMigrationLambda
+    Condition: IsProd
+    Properties:
+      Description: Trigger daily 7 am kick-off of state machines for active cohorts.
+      ScheduleExpression: "cron(0 7 ? * * *)"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt PriceMigrationLambda.Arn
+          Id: !Ref PriceMigrationLambda
+          Input: "null"
+
+  PriceMigrationLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - PriceMigrationLambda
+      - PriceMigrationLambdaScheduleRule
+    Condition: IsProd
+    Properties:
+      Action: lambda:invokeFunction
+      FunctionName: !Ref PriceMigrationLambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt PriceMigrationLambdaScheduleRule.Arn
 
   CohortStateMachine:
     Type: AWS::StepFunctions::StateMachine
