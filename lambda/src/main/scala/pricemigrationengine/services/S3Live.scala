@@ -9,18 +9,21 @@ import pricemigrationengine.model.S3Failure
 import zio.{IO, ZLayer, ZManaged}
 
 object S3Live {
-  val impl: ZLayer[Logging, Nothing, S3] = ZLayer.fromFunction { dependencies =>
+  val impl: ZLayer[Any, Nothing, S3] = ZLayer.succeed {
     val s3 = AmazonS3ClientBuilder.standard.withRegion(Regions.EU_WEST_1).build
 
+    //noinspection ConvertExpressionToSAM
     new S3.Service {
       override def getObject(s3Location: S3Location): ZManaged[Any, S3Failure, InputStream] = {
-        ZManaged.makeEffect(
-          s3
-            .getObject(s3Location.bucket, s3Location.path)
-            .getObjectContent()
-        ) { objectContent: InputStream =>
-          objectContent.close()
-        }.mapError(ex => S3Failure(s"Failed to get $s3Location: $ex" ))
+        ZManaged
+          .makeEffect(
+            s3
+              .getObject(s3Location.bucket, s3Location.key)
+              .getObjectContent()
+          ) { objectContent: InputStream =>
+            objectContent.close()
+          }
+          .mapError(ex => S3Failure(s"Failed to get $s3Location: $ex"))
       }
 
       override def putObject(s3Location: S3Location, localFile: File, cannedAcl: Option[CannedAccessControlList]): IO[S3Failure, PutObjectResult] =
@@ -29,7 +32,7 @@ object S3Live {
             cannedAcl.foldLeft(
               new PutObjectRequest(
                 s3Location.bucket,
-                s3Location.path,
+                s3Location.key,
                 localFile
               )
             ) { (putRequest, cal) =>
