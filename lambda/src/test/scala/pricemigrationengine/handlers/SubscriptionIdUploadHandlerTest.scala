@@ -53,9 +53,9 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
 
         override def getObject(s3Location: S3Location): ZManaged[Any, S3Failure, InputStream] =
           s3Location match {
-            case S3Location("price-migration-engine-dev", "excluded-subscription-ids.csv") =>
+            case S3Location("price-migration-engine-dev", "cohortName/excluded-subscription-ids.csv") =>
               loadTestResource("/SubscriptionExclusions.csv")
-            case S3Location("price-migration-engine-dev", "salesforce-subscription-id-report.csv") =>
+            case S3Location("price-migration-engine-dev", "cohortName/salesforce-subscription-id-report.csv") =>
               loadTestResource("/SubscriptionIds.csv")
           }
 
@@ -65,7 +65,15 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        SubscriptionIdUploadHandler.main
+        SubscriptionIdUploadHandler
+          .main(
+            CohortSpec(
+              cohortName = "cohortName",
+              brazeCampaignName = "cmp123",
+              importStartDate = LocalDate.of(2020, 1, 1),
+              earliestPriceMigrationStartDate = LocalDate.of(2020, 1, 1)
+            )
+          )
           .provideLayer(
             TestLogging.logging ++ stubConfiguration ++ stubCohortTable ++ stubS3
           )
