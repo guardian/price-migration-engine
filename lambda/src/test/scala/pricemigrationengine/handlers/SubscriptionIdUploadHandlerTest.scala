@@ -33,7 +33,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
         override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
-        override def create(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] =
+        override def create(cohortItem: CohortItem): ZIO[Any, Failure, Unit] =
           IO.effect {
             subscriptionsWrittenToCohortTable.addOne(cohortItem)
             ()

@@ -78,12 +78,16 @@ object SubscriptionIdUploadHandler extends CohortHandler {
           Logging.info(s"Filtering subscription $subscriptionId as it is in the exclusion file") zipRight
             ZIO.succeed(false)
         } else
-          Logging.info(s"Importing subscription $subscriptionId ...") zipRight
-            ZIO.succeed(true)
+          ZIO.succeed(true)
       }
       .mapM { subscriptionId =>
         CohortTable
           .create(CohortItem(subscriptionId, ReadyForEstimation))
+          .tap(_ => Logging.info(s"Imported subscription $subscriptionId"))
+          .catchSome {
+            case _: CohortItemAlreadyPresentFailure =>
+              Logging.info(s"Ignored $subscriptionId as already in table") zipRight ZIO.succeed(())
+          }
           .tapError(e => Logging.error(s"Subscription $subscriptionId failed: $e"))
       }
       .runCount

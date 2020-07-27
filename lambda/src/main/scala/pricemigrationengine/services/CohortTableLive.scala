@@ -2,7 +2,12 @@ package pricemigrationengine.services
 
 import java.time.LocalDate
 
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, QueryRequest, ScanRequest}
+import com.amazonaws.services.dynamodbv2.model.{
+  AttributeValue,
+  ConditionalCheckFailedException,
+  QueryRequest,
+  ScanRequest
+}
 import pricemigrationengine.model._
 import pricemigrationengine.model.dynamodb.Conversions._
 import zio.stream.ZStream
@@ -53,7 +58,7 @@ object CohortTableLive {
         whenNotificationSent = whenNotificationSent,
         whenNotificationSentWrittenToSalesforce = whenNotificationSentWrittenToSalesforce
       )
-    ).mapError(DynamoDBZIOError)
+    ).mapError(e => DynamoDBZIOError(e))
   }
 
   private implicit val cohortItemUpdateSerialiser: DynamoDBUpdateSerialiser[CohortItem] =
@@ -148,12 +153,16 @@ object CohortTableLive {
               DynamoDBZIO.query(queryRequest).map(_.mapError(error => CohortFetchFailure(error.toString)))
             }.provide(dependencies)
 
-            override def create(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
+            override def create(cohortItem: CohortItem): ZIO[Any, Failure, Unit] = {
               for {
                 result <-
                   DynamoDBZIO
                     .create(table = tableName, keyName = keyAttribName, value = cohortItem)
-                    .mapError(error => CohortUpdateFailure(error.toString))
+                    .mapError {
+                      case DynamoDBZIOError(reason, _: Some[ConditionalCheckFailedException]) =>
+                        CohortItemAlreadyPresentFailure(reason)
+                      case error => CohortCreateFailure(error.toString)
+                    }
               } yield result
             }.provide(dependencies)
 

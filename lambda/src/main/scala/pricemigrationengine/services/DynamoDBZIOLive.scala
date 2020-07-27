@@ -104,7 +104,7 @@ object DynamoDBZIOLive {
         ): IO[DynamoDBZIOError, Unit] =
           DynamoDBClient
             .createItem(new PutItemRequest(table, valueSerializer.serialise(value)), keyName)
-            .mapError(ex => DynamoDBZIOError(s"Failed to write value '$value' to '$table': $ex"))
+            .mapError(ex => DynamoDBZIOError(s"Failed to write value '$value' to '$table': $ex", Some(ex)))
             .unit
             .provide(dependencies)
       }

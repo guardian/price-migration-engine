@@ -4,7 +4,7 @@ import com.amazonaws.services.dynamodbv2.model.{AttributeValue, AttributeValueUp
 import zio.stream.ZStream
 import zio.{IO, URIO, ZIO}
 
-case class DynamoDBZIOError(message: String)
+case class DynamoDBZIOError(message: String, cause: Option[Throwable] = None)
 
 trait DynamoDBSerialiser[A] { def serialise(value: A): java.util.Map[String, AttributeValue] }
 trait DynamoDBUpdateSerialiser[A] { def serialise(value: A): java.util.Map[String, AttributeValueUpdate] }
