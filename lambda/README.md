@@ -164,3 +164,7 @@ too late in the day to resolve it.
 
 In an attempt to make it simpler to resolve this in the future we are sending billing_address_2 all the way though 
 sqs/membership-workflow/braze/latcham but we are populating it with an empty string in the NotificationHandler.
+
+## Datalake Export
+
+The data for each cohort is exported each day to the data lake. See [DatalakeExport.MD](DatalakeExport.MD) for more details.
