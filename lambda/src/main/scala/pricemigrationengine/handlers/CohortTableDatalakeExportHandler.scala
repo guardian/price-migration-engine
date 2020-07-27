@@ -8,7 +8,6 @@ import org.apache.commons.csv.{CSVFormat, CSVPrinter, QuoteMode}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio._
-import zio.clock.Clock
 import zio.stream.ZStream
 
 import scala.util.Try
@@ -19,22 +18,21 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
 
   def main(
       cohortSpec: CohortSpec
-  ): ZIO[Logging with CohortTable with S3 with ExportConfiguration with Clock, Failure, HandlerOutput] =
+  ): ZIO[Logging with CohortTable with S3 with ExportConfiguration, Failure, HandlerOutput] =
     for {
       config <- ExportConfiguration.exportConfig
       records <- CohortTable.fetchAll()
       s3Location = S3Location(
         config.exportBucketName,
-        s"data.csv"
+        s"/data/${cohortSpec.cohortName}.csv"
       )
-      _ <- writeCsvToS3(records, s3Location, cohortSpec, config)
+      _ <- writeCsvToS3(records, s3Location, cohortSpec)
     } yield HandlerOutput(isComplete = true)
 
   def writeCsvToS3(
       cohortItems: ZStream[Any, CohortFetchFailure, CohortItem],
       s3Location: S3Location,
-      cohortSpec: CohortSpec,
-      exportConfig: ExportConfig
+      cohortSpec: CohortSpec
   ): ZIO[S3 with Logging, Failure, Unit] =
     localTempFile().use { filePath =>
       for {
