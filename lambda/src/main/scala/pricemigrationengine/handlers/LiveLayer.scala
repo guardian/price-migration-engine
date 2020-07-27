@@ -39,6 +39,6 @@ object LiveLayer {
   val s3: ZLayer[Logging, ConfigurationFailure, S3] =
     logging to S3Live.impl
 
-  val stageConfig: ZLayer[Any, Nothing, StageConfiguration] =
-    EnvConfiguration.stageImp
+  val exportConfig: ZLayer[Any, ConfigurationFailure, ExportConfiguration] =
+    EnvConfiguration.exportConfigImpl
 }

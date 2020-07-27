@@ -19,12 +19,12 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
 
   def main(
       cohortSpec: CohortSpec
-  ): ZIO[Logging with CohortTable with S3 with StageConfiguration with Clock, Failure, HandlerOutput] =
+  ): ZIO[Logging with CohortTable with S3 with ExportConfiguration with Clock, Failure, HandlerOutput] =
     for {
-      config <- StageConfiguration.stageConfig
+      config <- ExportConfiguration.exportConfig
       records <- CohortTable.fetchAll()
       s3Location = S3Location(
-        s"price-migration-engine-${config.stage.toLowerCase}",
+        config.exportBucketName,
         s"data.csv"
       )
       _ <- writeCsvToS3(records, s3Location, cohortSpec, config)
@@ -34,12 +34,12 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
       cohortItems: ZStream[Any, CohortFetchFailure, CohortItem],
       s3Location: S3Location,
       cohortSpec: CohortSpec,
-      stageConfig: StageConfig
+      exportConfig: ExportConfig
   ): ZIO[S3 with Logging, Failure, Unit] =
     localTempFile().use { filePath =>
       for {
         recordsWritten <- openOutputStream(filePath).use { tempFileOutputStream =>
-          writeCsvToStream(cohortItems, tempFileOutputStream, cohortSpec, stageConfig)
+          writeCsvToStream(cohortItems, tempFileOutputStream, cohortSpec)
         }
 
         putResult <-
@@ -49,7 +49,7 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
             }
 
         _ <- Logging.info(
-          s"Successfully wrote cohort table ${cohortSpec.tableName(stageConfig.stage)} containing $recordsWritten items " +
+          s"Successfully wrote cohort '${cohortSpec.cohortName}' containing $recordsWritten items " +
             s"to $s3Location: $putResult"
         )
       } yield ()
@@ -74,16 +74,14 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
     )(stream => ZIO.effectTotal(stream.close()))
 
   def writeCsvToStream(
-      cohortItems: ZStream[Any, Failure, CohortItem],
-      outputStream: OutputStream,
-      cohortSpec: CohortSpec,
-      stageConfig: StageConfig
+    cohortItems: ZStream[Any, Failure, CohortItem],
+    outputStream: OutputStream,
+    cohortSpec: CohortSpec
   ): IO[Failure, Long] = {
     managedCSVPrinter(
       outputStream,
       List(
         "cohortName",
-        "cohortTable",
         "subscriptionName",
         "processingStage",
         "startDate",
@@ -107,7 +105,6 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
           .effect(
             printer.printRecord(
               cohortSpec.cohortName,
-              cohortSpec.tableName(stageConfig.stage),
               cohortItem.subscriptionName,
               cohortItem.processingStage.value,
               cohortItem.startDate.getOrElse(""),
@@ -151,8 +148,8 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
 
   private def env(
       cohortSpec: CohortSpec
-  ): ZLayer[Logging, Failure, CohortTable with S3 with Logging with StageConfiguration] =
-    (LiveLayer.cohortTable(cohortSpec) and LiveLayer.s3 and LiveLayer.logging and LiveLayer.stageConfig)
+  ): ZLayer[Logging, Failure, CohortTable with S3 with Logging with ExportConfiguration] =
+    (LiveLayer.cohortTable(cohortSpec) and LiveLayer.s3 and LiveLayer.logging and LiveLayer.exportConfig)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
   def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =

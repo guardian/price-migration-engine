@@ -109,4 +109,13 @@ object EnvConfiguration {
       }
     }
   }
+
+  val exportConfigImpl: ZLayer[Any, ConfigurationFailure, ExportConfiguration] = ZLayer.fromEffect {
+    env("exportBucketName") map { exportBucketName =>
+      new ExportConfiguration.Service {
+        val config: IO[ConfigurationFailure, ExportConfig] =
+          ZIO.succeed(ExportConfig(exportBucketName = exportBucketName))
+      }
+    }
+  }
 }
