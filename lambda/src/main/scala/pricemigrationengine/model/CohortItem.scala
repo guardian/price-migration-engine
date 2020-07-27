@@ -2,7 +2,7 @@ package pricemigrationengine.model
 
 import java.time.{Instant, LocalDate}
 
-import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, Cancelled}
+import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, Cancelled, EstimationComplete, EstimationFailed}
 
 case class CohortItem(
     subscriptionName: String,
@@ -25,14 +25,33 @@ case class CohortItem(
 
 object CohortItem {
 
-  def fromSuccessfulAmendmentResult(result: SuccessfulAmendmentResult): CohortItem = CohortItem(
-    result.subscriptionNumber,
-    processingStage = AmendmentComplete,
-    startDate = Some(result.startDate),
-    newPrice = Some(result.newPrice),
-    newSubscriptionId = Some(result.newSubscriptionId),
-    whenAmendmentDone = Some(result.whenDone)
-  )
+  def fromSuccessfulEstimationResult(result: SuccessfulEstimationResult): CohortItem =
+    CohortItem(
+      result.subscriptionName,
+      processingStage = EstimationComplete,
+      oldPrice = Some(result.oldPrice),
+      estimatedNewPrice = Some(result.estimatedNewPrice),
+      currency = Some(result.currency),
+      startDate = Some(result.startDate),
+      billingPeriod = Some(result.billingPeriod),
+      whenEstimationDone = Some(Instant.now())
+    )
+
+  def fromFailedEstimationResult(result: FailedEstimationResult): CohortItem =
+    CohortItem(result.subscriptionNumber, EstimationFailed)
+
+  def fromCancelledEstimationResult(result: CancelledEstimationResult): CohortItem =
+    CohortItem(result.subscriptionNumber, Cancelled)
+
+  def fromSuccessfulAmendmentResult(result: SuccessfulAmendmentResult): CohortItem =
+    CohortItem(
+      result.subscriptionNumber,
+      processingStage = AmendmentComplete,
+      startDate = Some(result.startDate),
+      newPrice = Some(result.newPrice),
+      newSubscriptionId = Some(result.newSubscriptionId),
+      whenAmendmentDone = Some(result.whenDone)
+    )
 
   def fromCancelledAmendmentResult(result: CancelledAmendmentResult): CohortItem =
     CohortItem(result.subscriptionNumber, Cancelled)
