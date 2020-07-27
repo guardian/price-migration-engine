@@ -290,7 +290,7 @@ Resources:
                 "Resource": "${ExportingCohortTableToDatalakeLambdaArn}",
                 "InputPath": "$.cohortSpec",
                 "ResultPath": "$.result",
-                "Next": "IsUpdatingSalesforceWithAmendmentsComplete"
+                "Next": "IsExportingCohortTableToDatalakeComplete"
               },
               "IsExportingCohortTableToDatalakeComplete": {
                 "Type": "Choice",
