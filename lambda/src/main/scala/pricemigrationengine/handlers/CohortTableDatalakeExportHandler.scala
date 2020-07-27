@@ -79,23 +79,23 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
     managedCSVPrinter(
       outputStream,
       List(
-        "cohortName",
-        "subscriptionName",
-        "processingStage",
-        "startDate",
+        "cohort_name",
+        "subscription_name",
+        "processing_stage",
+        "start_date",
         "currency",
-        "oldPrice",
-        "estimatedNewPrice",
-        "billingPeriod",
-        "whenEstimationDone",
-        "salesforcePriceRiseId",
-        "whenSfShowEstimate",
-        "newPrice",
-        "newSubscriptionId",
-        "whenAmendmentDone",
-        "whenNotificationSent",
-        "whenNotificationSentWrittenToSalesforce",
-        "whenAmendmentWrittenToSalesforce"
+        "old_price",
+        "estimated_new_price",
+        "billing_period",
+        "when_estimation_done",
+        "salesforce_price_rise_id",
+        "when_sf_show_estimate",
+        "new_price",
+        "new_subscription_id",
+        "when_amendment_done",
+        "when_notification_sent",
+        "when_notification_sent_written_to_salesforce",
+        "when_amendment_written_to_salesforce"
       )
     ).use { printer =>
       cohortItems.mapM { cohortItem =>
