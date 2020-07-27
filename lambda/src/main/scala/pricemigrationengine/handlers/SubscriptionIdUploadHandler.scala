@@ -75,15 +75,16 @@ object SubscriptionIdUploadHandler extends CohortHandler {
       )
       .filterM { subscriptionId =>
         if (exclusions.contains(subscriptionId)) {
-          for {
-            _ <- Logging.info(s"Filtering subscription $subscriptionId as it is in the exclusion file")
-          } yield false
-        } else {
-          ZIO.succeed(true)
-        }
+          Logging.info(s"Filtering subscription $subscriptionId as it is in the exclusion file") zipRight
+            ZIO.succeed(false)
+        } else
+          Logging.info(s"Importing subscription $subscriptionId ...") zipRight
+            ZIO.succeed(true)
       }
-      .tap { subcriptionId =>
-        CohortTable.put(CohortItem(subcriptionId, ReadyForEstimation))
+      .mapM { subscriptionId =>
+        CohortTable
+          .create(CohortItem(subscriptionId, ReadyForEstimation))
+          .tapError(e => Logging.error(s"Subscription $subscriptionId failed: $e"))
       }
       .runCount
   }

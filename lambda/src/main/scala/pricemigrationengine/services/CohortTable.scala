@@ -17,7 +17,7 @@ object CohortTable {
 
     def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]]
 
-    def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit]
+    def create(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit]
 
     def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit]
   }
@@ -31,8 +31,8 @@ object CohortTable {
   def fetchAll(): ZIO[CohortTable, CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] =
     ZIO.accessM(_.get.fetchAll())
 
-  def put(subscription: CohortItem): ZIO[CohortTable, CohortUpdateFailure, Unit] =
-    ZIO.accessM(_.get.put(subscription))
+  def create(subscription: CohortItem): ZIO[CohortTable, CohortUpdateFailure, Unit] =
+    ZIO.accessM(_.get.create(subscription))
 
   def update(result: CohortItem): ZIO[CohortTable, CohortUpdateFailure, Unit] =
     ZIO.accessM(_.get.update(result))
