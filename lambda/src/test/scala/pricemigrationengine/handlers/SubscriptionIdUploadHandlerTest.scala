@@ -60,10 +60,12 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
           }
 
         override def putObject(
-          s3Location: S3Location,
-          file: File,
-          cannedAccessControlList: Option[CannedAccessControlList]
+            s3Location: S3Location,
+            file: File,
+            cannedAccessControlList: Option[CannedAccessControlList]
         ): IO[S3Failure, PutObjectResult] = ???
+
+        override def deleteObject(s3Location: S3Location): IO[S3Failure, Unit] = ???
       }
     )
 
