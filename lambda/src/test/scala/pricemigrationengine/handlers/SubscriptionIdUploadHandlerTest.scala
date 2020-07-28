@@ -65,7 +65,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
             cannedAccessControlList: Option[CannedAccessControlList]
         ): IO[S3Failure, PutObjectResult] = ???
 
-        override def deleteObject(s3Location: S3Location): IO[S3Failure, Unit] = ???
+        override def deleteObject(s3Location: S3Location): IO[S3Failure, Unit] = ZIO.succeed(())
       }
     )
 

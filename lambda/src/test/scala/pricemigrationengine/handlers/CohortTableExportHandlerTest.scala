@@ -37,21 +37,24 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
     )
   }
 
-  def createStubS3(filesWrittenToS3: ArrayBuffer[(S3Location, String)]): Layer[Nothing, Has[S3.Service]] = ZLayer.succeed(
-    new S3.Service {
-      override def getObject(s3Location: S3Location): ZManaged[Any, S3Failure, InputStream] = ???
+  def createStubS3(filesWrittenToS3: ArrayBuffer[(S3Location, String)]): Layer[Nothing, Has[S3.Service]] =
+    ZLayer.succeed(
+      new S3.Service {
+        override def getObject(s3Location: S3Location): ZManaged[Any, S3Failure, InputStream] = ???
 
-      override def putObject(
-        s3Location: S3Location,
-        file: File,
-        cannedAccessControlList: Option[CannedAccessControlList]
-      ): IO[S3Failure, PutObjectResult] =
-        for {
-          fileContents <- ZIO.effectTotal(Source.fromFile(file, "UTF-8").getLines().mkString("\n"))
-          _ <- ZIO.effectTotal(filesWrittenToS3.addOne((s3Location, fileContents)))
-        } yield new PutObjectResult()
-    }
-  )
+        override def putObject(
+            s3Location: S3Location,
+            file: File,
+            cannedAccessControlList: Option[CannedAccessControlList]
+        ): IO[S3Failure, PutObjectResult] =
+          for {
+            fileContents <- ZIO.effectTotal(Source.fromFile(file, "UTF-8").getLines().mkString("\n"))
+            _ <- ZIO.effectTotal(filesWrittenToS3.addOne((s3Location, fileContents)))
+          } yield new PutObjectResult()
+
+        def deleteObject(s3Location: S3Location): IO[S3Failure, Unit] = ???
+      }
+    )
 
   val expectedS3ExportBucketName = "export-s3-bucket-name"
 
@@ -71,7 +74,7 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
     val cohortItem = CohortItem(
       subscriptionName = "subscription 1",
       processingStage = NotificationSendComplete,
-      startDate = Some(LocalDate.of(2020,1,1)),
+      startDate = Some(LocalDate.of(2020, 1, 1)),
       currency = Some("USD"),
       oldPrice = Some(1.00),
       estimatedNewPrice = Some(2.00),
@@ -119,7 +122,7 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
 
     val cohortItem = CohortItem(
       subscriptionName = "subscription 2",
-      processingStage = ReadyForEstimation,
+      processingStage = ReadyForEstimation
     )
 
     val stubCohortTable = createStubCohortTable(List(cohortItem))
