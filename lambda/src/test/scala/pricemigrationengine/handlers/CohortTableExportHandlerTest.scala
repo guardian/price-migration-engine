@@ -26,7 +26,7 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
             beforeDateInclusive: Option[LocalDate]
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
 
-        override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
+        override def create(cohortItem: CohortItem): ZIO[Any, Failure, Unit] = ???
 
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
 
