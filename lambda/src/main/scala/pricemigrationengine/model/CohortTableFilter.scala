@@ -42,16 +42,19 @@ object CohortTableFilter {
     override val value: String = "NotificationSendProcessingOrError"
   }
 
+  case object AmendmentFailed extends CohortTableFilter { override val value: String = "AmendmentFailed" }
+
   val all = Set(
-    ReadyForEstimation,
-    EstimationFailed,
-    EstimationComplete,
-    SalesforcePriceRiceCreationComplete,
     AmendmentComplete,
+    AmendmentFailed,
+    AmendmentWrittenToSalesforce,
     Cancelled,
-    NotificationSendProcessingOrError,
+    EstimationComplete,
+    EstimationFailed,
     NotificationSendComplete,
     NotificationSendDateWrittenToSalesforce,
-    AmendmentWrittenToSalesforce
+    NotificationSendProcessingOrError,
+    ReadyForEstimation,
+    SalesforcePriceRiceCreationComplete,
   )
 }
