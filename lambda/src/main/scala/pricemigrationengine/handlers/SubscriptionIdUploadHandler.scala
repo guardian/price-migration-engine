@@ -6,6 +6,7 @@ import org.apache.commons.csv.{CSVFormat, CSVParser}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services._
+import zio.clock.Clock
 import zio.stream.ZStream
 import zio.{IO, ZEnv, ZIO, ZLayer}
 
@@ -37,14 +38,28 @@ object SubscriptionIdUploadHandler extends CohortHandler {
 
   def main(
       cohortSpec: CohortSpec
-  ): ZIO[CohortTable with S3 with StageConfiguration with Logging, Failure, HandlerOutput] =
+  ): ZIO[CohortTable with S3 with StageConfiguration with Clock with Logging, Failure, HandlerOutput] =
+    (for {
+      today <- Time.today
+      _ <-
+        if (today.isBefore(cohortSpec.importStartDate))
+          Logging.info(s"No action.  Import start date ${cohortSpec.importStartDate} is in the future.") zipRight
+            ZIO.succeed(())
+        else
+          importCohortAndCleanUp(cohortSpec)
+    } yield HandlerOutput(isComplete = true))
+      .tapError(e => Logging.error(e.toString))
+
+  def importCohortAndCleanUp(
+      cohortSpec: CohortSpec
+  ): ZIO[CohortTable with S3 with StageConfiguration with Logging, Failure, Unit] =
     for {
       _ <- importCohort(cohortSpec).catchSome {
         case e: S3Failure => Logging.info(s"No action.  Cohort already imported: ${e.reason}") zipRight ZIO.succeed(())
       }
       src <- sourceLocation(cohortSpec)
       _ <- S3.deleteObject(src)
-    } yield HandlerOutput(isComplete = true)
+    } yield ()
 
   private def importCohort(
       cohortSpec: CohortSpec
@@ -111,5 +126,5 @@ object SubscriptionIdUploadHandler extends CohortHandler {
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
   def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
-    main(input).provideSomeLayer[ZEnv with Logging](env(input)).tapError(e => Logging.error(e.toString))
+    main(input).provideSomeLayer[ZEnv with Logging](env(input))
 }
