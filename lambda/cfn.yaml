@@ -27,7 +27,7 @@ Mappings:
       SecretsVersion: "b069693b-69dd-40ee-a586-70d409778d2b"
       BucketName: price-migration-engine-prod
       SQSQueueName: direct-mail-PROD
-      ExportBucketName: price-migration-engine-prod
+      ExportBucketName: ophan-clean-price-migration-engine-cohort-items
 
 Resources:
 
