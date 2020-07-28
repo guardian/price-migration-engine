@@ -64,7 +64,7 @@ class NotificationHandlerTest extends munit.FunSuite {
           IO.succeed(ZStream(cohortItem))
         }
 
-        override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
+        override def create(cohortItem: CohortItem): ZIO[Any, Failure, Unit] = ???
 
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
           updatedResultsWrittenToCohortTable.addOne(result)

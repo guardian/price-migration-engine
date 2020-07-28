@@ -48,9 +48,10 @@ object DynamoDBClient {
     ZIO.accessM(client => ZIO.effect(client.get.updateItem(updateRequest)))
   }
 
-  def putItem(updateRequest: PutItemRequest): ZIO[DynamoDBClient, Throwable, PutItemResult] = {
-    ZIO.accessM(client => ZIO.effect(client.get.putItem(updateRequest)))
-  }
+  def createItem(createRequest: PutItemRequest, keyName: String): ZIO[DynamoDBClient, Throwable, PutItemResult] =
+    ZIO.accessM(client =>
+      ZIO.effect(client.get.putItem(createRequest.withConditionExpression(s"attribute_not_exists($keyName)")))
+    )
 
   def describeTable(tableName: String): ZIO[DynamoDBClient, Throwable, DescribeTableResult] =
     ZIO.accessM(client => ZIO.effect(client.get.describeTable(tableName)))
