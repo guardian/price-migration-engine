@@ -25,7 +25,7 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
       records <- CohortTable.fetchAll()
       s3Location = S3Location(
         config.exportBucketName,
-        s"/data/${cohortSpec.cohortName}.csv"
+        s"data/${cohortSpec.cohortName}.csv"
       )
       _ <- writeCsvToS3(records, s3Location, cohortSpec)
     } yield HandlerOutput(isComplete = true)
