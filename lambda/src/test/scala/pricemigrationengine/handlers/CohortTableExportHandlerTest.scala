@@ -57,8 +57,8 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
 
   val stubConfig = ZLayer.succeed(
     new ExportConfiguration.Service {
-      override val config: IO[ConfigurationFailure, ExportConfig] =
-        IO.succeed(ExportConfig(expectedS3ExportBucketName))
+      override val config: ExportConfig =
+        ExportConfig(expectedS3ExportBucketName)
     }
   )
 

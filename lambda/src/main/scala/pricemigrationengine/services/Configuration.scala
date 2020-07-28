@@ -67,8 +67,8 @@ object CohortStateMachineConfiguration {
 
 object ExportConfiguration {
   trait Service {
-    val config: IO[ConfigurationFailure, ExportConfig]
+    val config: ExportConfig
   }
   val exportConfig: ZIO[ExportConfiguration, ConfigurationFailure, ExportConfig] =
-    ZIO.accessM(_.get.config)
+    ZIO.access(_.get.config)
 }
