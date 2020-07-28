@@ -35,3 +35,29 @@ This approach would run the export job as part of the state machine processing e
 The proposed solution is to use solution 2 as it is the simplest solution and eliminates unnecessary expense.
 
 Writing ORC/Parquet is an additional complication, the first cohort generates a 13m csv file, which doesnt warrant the addition effort in implementing ORC/Parquet
+
+## Details
+
+The CohortTableExportHandler exports the CohortItems to s3 here. NOTE: you need to be logged into the aws console using the profile Ophan - ETL job maintainer with access to Identity and Salesforce buckets' :
+
+[https://s3.console.aws.amazon.com/s3/buckets/ophan-clean-price-migration-engine-cohort-items/data/?region=eu-west-1&tab=overview](https://s3.console.aws.amazon.com/s3/buckets/ophan-clean-price-migration-engine-cohort-items/data/?region=eu-west-1&tab=overview)
+
+There is an airflow job that runs at 12:00-GMT, for details see:
+
+[https://github.com/guardian/ophan-data-lake/blob/master/airflow/dags/supporter_experience.py](https://github.com/guardian/ophan-data-lake/blob/master/airflow/dags/supporter_experience.py)
+
+There is a job that runs at 09:00-GMT that imports the above data and makes it available in the big query table:
+
+```sql
+datatech-platform-prod.datalake.price_migration_engine_cohort_items
+```
+
+This means there will currently be around a 24 hour delay in the data appearing in big query table.
+
+This could be resolved by scheduling the price-migration-engine earlier in the day.  
+
+You can access big query here:
+
+[https://console.cloud.google.com/bigquery](https://console.cloud.google.com/bigquery)
+
+You may need to request access to the tables, you can do so on the 'Data Tech' chat channel.
