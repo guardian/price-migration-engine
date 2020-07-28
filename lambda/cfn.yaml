@@ -357,6 +357,31 @@ Resources:
     DependsOn:
       - PriceMigrationEngineTableCreateLambdaRole
 
+  PriceMigrationEngineSubscriptionIdUploadLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Uploads subscription id CSV files into price migration engine.
+      FunctionName:
+        !Sub price-migration-engine-subscription-id-upload-lambda-${Stage}
+      Code:
+        S3Bucket: membership-dist
+        S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
+      Handler: pricemigrationengine.handlers.SubscriptionIdUploadHandler::handleRequest
+      Environment:
+        Variables:
+          stage: !Ref Stage
+          batchSize: 100
+      Role:
+        Fn::GetAtt:
+          - PriceMigrationEngineSubscriptionIdUploadLambdaRole
+          - Arn
+      MemorySize: 1536
+      Runtime: java8
+      Timeout: 900
+    DependsOn:
+      - PriceMigrationEngineSubscriptionIdUploadLambdaRole
+      - S3Bucket
+
   PriceMigrationEngineEstimationLambda:
     Type: AWS::Lambda::Function
     Properties:
@@ -476,31 +501,6 @@ Resources:
       Timeout: 900
     DependsOn:
       - PriceMigrationEngineAmendmentLambdaRole
-
-  PriceMigrationEngineSubscriptionIdUploadLambda:
-    Type: AWS::Lambda::Function
-    Properties:
-      Description: Uploads subscription id CSV files into price migration engine.
-      FunctionName:
-        !Sub price-migration-engine-subscription-id-upload-lambda-${Stage}
-      Code:
-        S3Bucket: membership-dist
-        S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
-      Handler: pricemigrationengine.handlers.SubscriptionIdUploadHandler::handleRequest
-      Environment:
-        Variables:
-          stage: !Ref Stage
-          batchSize: 100
-      Role:
-        Fn::GetAtt:
-          - PriceMigrationEngineSubscriptionIdUploadLambdaRole
-          - Arn
-      MemorySize: 1536
-      Runtime: java8
-      Timeout: 900
-    DependsOn:
-      - PriceMigrationEngineSubscriptionIdUploadLambdaRole
-      - S3Bucket
 
   PriceMigrationEngineNotificationLambda:
     Type: AWS::Lambda::Function
@@ -679,6 +679,10 @@ Outputs:
     Value: !GetAtt PriceMigrationEngineTableCreateLambda.Arn
     Export:
       Name: !Sub "${AWS::StackName}-CreatingCohortTableLambda"
+  PriceMigrationEngineSubscriptionIdUploadLambdaOutput:
+    Value: !GetAtt PriceMigrationEngineSubscriptionIdUploadLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-ImportingLambda"
   PriceMigrationEngineEstimationLambdaOutput:
     Value: !GetAtt PriceMigrationEngineEstimationLambda.Arn
     Export:
