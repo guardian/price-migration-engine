@@ -26,3 +26,7 @@ case class SalesforceConfig(
 case class EmailSenderConfig(sqsEmailQueueName: String)
 
 case class CohortStateMachineConfig(stateMachineArn: String)
+
+case class ExportConfig(
+    exportBucketName: String
+)

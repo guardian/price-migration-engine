@@ -12,6 +12,7 @@ package object services {
   type StageConfiguration = Has[StageConfiguration.Service]
   type EmailSenderConfiguration = Has[EmailSenderConfiguration.Service]
   type CohortStateMachineConfiguration = Has[CohortStateMachineConfiguration.Service]
+  type ExportConfiguration = Has[ExportConfiguration.Service]
 
   type CohortStateMachine = Has[CohortStateMachine.Service]
   type CohortSpecTable = Has[CohortSpecTable.Service]

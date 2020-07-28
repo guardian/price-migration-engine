@@ -64,3 +64,11 @@ object CohortStateMachineConfiguration {
   val cohortStateMachineConfig: ZIO[CohortStateMachineConfiguration, ConfigurationFailure, CohortStateMachineConfig] =
     ZIO.accessM(_.get.config)
 }
+
+object ExportConfiguration {
+  trait Service {
+    val config: ExportConfig
+  }
+  val exportConfig: ZIO[ExportConfiguration, ConfigurationFailure, ExportConfig] =
+    ZIO.access(_.get.config)
+}

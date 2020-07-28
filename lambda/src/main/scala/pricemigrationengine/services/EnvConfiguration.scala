@@ -3,7 +3,7 @@ package pricemigrationengine.services
 import java.lang.System.getenv
 
 import pricemigrationengine.model._
-import zio.{IO, ZIO, ZLayer}
+import zio.{IO, UIO, ZIO, ZLayer}
 
 object EnvConfiguration {
   def env(name: String): IO[ConfigurationFailure, String] =
@@ -106,6 +106,15 @@ object EnvConfiguration {
       new CohortStateMachineConfiguration.Service {
         val config: IO[ConfigurationFailure, CohortStateMachineConfig] =
           ZIO.succeed(CohortStateMachineConfig(stateMachineArn = arn))
+      }
+    }
+  }
+
+  val exportConfigImpl: ZLayer[Any, ConfigurationFailure, ExportConfiguration] = ZLayer.fromEffect {
+    env("exportBucketName") map { exportBucketName =>
+      new ExportConfiguration.Service {
+        val config: ExportConfig =
+          ExportConfig(exportBucketName = exportBucketName)
       }
     }
   }
