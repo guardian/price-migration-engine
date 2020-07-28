@@ -30,7 +30,7 @@ case class CohortSpec(
     migrationCompleteDate: Option[LocalDate] = None,
     tmpTableName: Option[String] = None // TODO: remove when price migration 2020 complete
 ) {
-  val normalisedCohortName: String = cohortName.replaceAll("[^A-Za-z0-9-_]", "")
+  val normalisedCohortName: String = cohortName.replaceAll(" ", "")
   def tableName(stage: String): String = tmpTableName getOrElse s"PriceMigration-$stage-$normalisedCohortName"
 }
 
@@ -41,7 +41,13 @@ object CohortSpec {
   def isActive(spec: CohortSpec)(date: LocalDate): Boolean =
     !spec.importStartDate.isAfter(date) && spec.migrationCompleteDate.forall(_.isAfter(date))
 
-  def isValid(spec: CohortSpec): Boolean = spec.earliestPriceMigrationStartDate.isAfter(spec.importStartDate)
+  def isValid(spec: CohortSpec): Boolean = {
+    def isValidStringValue(s: String) = s.trim == s && s.nonEmpty && s.matches("[A-Za-z0-9-_ ]+")
+    isValidStringValue(spec.cohortName) &&
+    isValidStringValue(spec.brazeCampaignName) &&
+    spec.tmpTableName.forall(isValidStringValue) &&
+    spec.earliestPriceMigrationStartDate.isAfter(spec.importStartDate)
+  }
 
   def fromDynamoDbItem(values: util.Map[String, AttributeValue]): Either[CohortSpecFetchFailure, CohortSpec] =
     (for {
