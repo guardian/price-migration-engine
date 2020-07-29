@@ -40,8 +40,8 @@ object EstimationHandler extends CohortHandler {
   ): ZIO[CohortTable with Zuora with Random, Failure, EstimationResult] =
     doEstimation(newProductPricing, item, earliestStartDate).foldM(
       failure = {
-        case _: AmendmentDataFailure =>
-          val result = FailedEstimationResult(item.subscriptionName)
+        case failure: AmendmentDataFailure =>
+          val result = FailedEstimationResult(item.subscriptionName, failure.reason)
           CohortTable.update(CohortItem.fromFailedEstimationResult(result)) zipRight ZIO.succeed(result)
         case _: CancelledSubscriptionFailure =>
           val result = CancelledEstimationResult(item.subscriptionName)
@@ -66,7 +66,12 @@ object EstimationHandler extends CohortHandler {
       invoicePreviewTargetDate = earliestStartDate.plusMonths(13)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
       earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, earliestStartDate)
-      result <- ZIO.fromEither(EstimationResult(newProductPricing, subscription, invoicePreview, earliestStartDate))
+      result <-
+        ZIO
+          .fromEither(EstimationResult(newProductPricing, subscription, invoicePreview, earliestStartDate))
+          .filterOrFail(result => result.estimatedNewPrice > result.oldPrice)(
+            AmendmentDataFailure("No increase in price")
+          )
     } yield result
 
   /*

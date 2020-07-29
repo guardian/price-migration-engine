@@ -33,6 +33,6 @@ object EstimationResult {
     }
 }
 
-case class FailedEstimationResult(subscriptionNumber: String) extends EstimationResult
+case class FailedEstimationResult(subscriptionNumber: String, reason: String) extends EstimationResult
 
 case class CancelledEstimationResult(subscriptionNumber: String) extends EstimationResult
