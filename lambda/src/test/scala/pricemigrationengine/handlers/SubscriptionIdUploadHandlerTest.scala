@@ -4,7 +4,7 @@ import java.io.{File, InputStream}
 import java.time.LocalDate
 
 import com.amazonaws.services.s3.model.{CannedAccessControlList, PutObjectResult}
-import pricemigrationengine.TestLogging
+import pricemigrationengine.{StubClock, TestLogging}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.Exit.Success
@@ -60,10 +60,12 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
           }
 
         override def putObject(
-          s3Location: S3Location,
-          file: File,
-          cannedAccessControlList: Option[CannedAccessControlList]
+            s3Location: S3Location,
+            file: File,
+            cannedAccessControlList: Option[CannedAccessControlList]
         ): IO[S3Failure, PutObjectResult] = ???
+
+        override def deleteObject(s3Location: S3Location): IO[S3Failure, Unit] = ZIO.succeed(())
       }
     )
 
@@ -79,7 +81,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
             )
           )
           .provideLayer(
-            TestLogging.logging ++ stubConfiguration ++ stubCohortTable ++ stubS3
+            TestLogging.logging ++ stubConfiguration ++ stubCohortTable ++ stubS3 ++ StubClock.clock
           )
       ),
       Success(HandlerOutput(isComplete = true))
