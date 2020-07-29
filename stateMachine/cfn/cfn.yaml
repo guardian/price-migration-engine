@@ -45,6 +45,7 @@ Resources:
                   - lambda:InvokeFunction
                 Resource:
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingCohortTableLambda
+                  - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-ImportingLambda
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-EstimatingLambda
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingSalesforceRecordsLambda
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-NotifyingSubscribersLambda
@@ -186,6 +187,14 @@ Resources:
                 "Resource": "${CreatingCohortTableLambdaArn}",
                 "InputPath": "$.cohortSpec",
                 "ResultPath": "$.result",
+                "Next": "Importing"
+              },
+              "Importing": {
+                "Type": "Task",
+                "Comment": "Importing subs into cohort table.",
+                "Resource": "${ImportingLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
                 "Next": "Estimating"
               },
               "Estimating": {
@@ -312,6 +321,8 @@ Resources:
           }
         - CreatingCohortTableLambdaArn:
             Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingCohortTableLambda
+          ImportingLambdaArn:
+            Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-ImportingLambda
           EstimatingLambdaArn:
             Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-EstimatingLambda
           CreatingSalesforceRecordsLambdaArn:
