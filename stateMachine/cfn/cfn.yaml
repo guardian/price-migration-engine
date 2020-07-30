@@ -337,3 +337,27 @@ Resources:
             Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-UpdatingSalesforceWithAmendsLambda
           ExportingCohortTableToDatalakeLambdaArn:
             Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-ExportingCohortTableToDatalakeLambda
+
+  CohortStateMachineAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn:
+      - CohortStateMachine
+    Condition: IsProd
+    Properties:
+      AlarmName: "URGENT 9-5 - PROD: Failure in price-rise engine"
+      AlarmDescription: >
+        IMPACT: If this is not dealt with, the price rise may be unable to continue.
+        For troubleshooting tips, see https://github.com/guardian/price-migration-engine/blob/master/troubleshooting.md
+      Namespace: AWS/States
+      Dimensions:
+        - Name: StateMachineArn
+          Value: !Ref CohortStateMachine
+      MetricName: ExecutionsFailed
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      Period: 60
+      EvaluationPeriods: 1
+      Statistic: Sum
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:KelvinTest
