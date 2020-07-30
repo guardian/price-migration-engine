@@ -338,26 +338,50 @@ Resources:
           ExportingCohortTableToDatalakeLambdaArn:
             Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-ExportingCohortTableToDatalakeLambda
 
+  PriceMigrationLambdaAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn:
+      - PriceMigrationLambda
+    Condition: IsProd
+    Properties:
+      AlarmName: "URGENT 9-5 - PROD: Price-rise engine: Failure to kick-off process"
+      AlarmDescription: >
+        IMPACT: If this is not dealt with, no price-rise processes will run.
+        For troubleshooting tips, see https://github.com/guardian/price-migration-engine/blob/master/troubleshooting.md
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref PriceMigrationLambda
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      Period: 60
+      EvaluationPeriods: 1
+      Statistic: Sum
+      TreatMissingData: missing
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:KelvinTest
+
   CohortStateMachineAlarm:
     Type: AWS::CloudWatch::Alarm
     DependsOn:
       - CohortStateMachine
     Condition: IsProd
     Properties:
-      AlarmName: "URGENT 9-5 - PROD: Failure in price-rise engine"
+      AlarmName: "URGENT 9-5 - PROD: Price-rise engine: Failure to complete process"
       AlarmDescription: >
         IMPACT: If this is not dealt with, the price rise may be unable to continue.
         For troubleshooting tips, see https://github.com/guardian/price-migration-engine/blob/master/troubleshooting.md
       Namespace: AWS/States
+      MetricName: ExecutionsFailed
       Dimensions:
         - Name: StateMachineArn
           Value: !Ref CohortStateMachine
-      MetricName: ExecutionsFailed
       ComparisonOperator: GreaterThanThreshold
       Threshold: 0
       Period: 60
       EvaluationPeriods: 1
       Statistic: Sum
-      TreatMissingData: notBreaching
+      TreatMissingData: missing
       AlarmActions:
         - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:KelvinTest
