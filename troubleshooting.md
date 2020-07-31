@@ -61,8 +61,10 @@ To move a sub into a holding state:
 
 ## Manually restarting the triggering lambda
 
+This will start up a cohort state machine for each active cohort.
+
 :warning: **Check that there are no cohort state machines running before doing this!  
-Having two state machines running over the same DynamoDB table could lead to dirty reads.**
+Running two state machines over the same DynamoDB table could lead to dirty reads.**
 
 1. Check state machine `price-migration-engine-cohort-steps-PROD`.  If there are no running executions:
 1. In the AWS console, find the lambda called `price-migration-lambda-PROD` and `Test` it with a `null` input.  
