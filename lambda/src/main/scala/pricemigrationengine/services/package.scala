@@ -20,7 +20,7 @@ package object services {
   type CohortTableDdl = Has[CohortTableDdl.Service]
   type Zuora = Has[Zuora.Service]
   type Logging = Has[Logging.Service]
-  type DynamoDBClient = Has[AmazonDynamoDB]
+  type DynamoDBClient = Has[DynamoDBClient.Service]
   type DynamoDBZIO = Has[DynamoDBZIO.Service]
   type SalesforceClient = Has[SalesforceClient.Service]
   type S3 = Has[S3.Service]
