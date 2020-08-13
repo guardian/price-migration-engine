@@ -60,7 +60,9 @@ object NotificationHandler extends CohortHandler {
 
     result.catchAll { failure =>
       for {
-        _ <- Logging.error(s"Failed to send price rise notification: $failure")
+        _ <- Logging.error(
+          s"Subscription ${cohortItem.subscriptionName}: Failed to send price rise notification: $failure"
+        )
       } yield Unsuccessful
     }
   }
