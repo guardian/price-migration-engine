@@ -1,3 +1,4 @@
+[![Known Vulnerabilities](https://snyk.io/test/github/guardian/price-migration-engine/badge.svg?targetFile=build.sbt)](https://snyk.io/test/github/guardian/price-migration-engine?targetFile=build.sbt)
 # Price Migration Engine
 
 This repo consists of a set of lambdas and DynamoDB table templates that are designed to interact together in a state 
