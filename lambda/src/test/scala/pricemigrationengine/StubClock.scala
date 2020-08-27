@@ -14,7 +14,7 @@ object StubClock {
       override def currentTime(unit: TimeUnit): UIO[Long] = ???
       override def currentDateTime: IO[DateTimeException, OffsetDateTime] =
         IO.succeed(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
-      override def nanoTime: UIO[Long] = ???
+      override def nanoTime: UIO[Long] = UIO.succeed(1L)
       override def sleep(duration: Duration): UIO[Unit] = ???
     }
   )

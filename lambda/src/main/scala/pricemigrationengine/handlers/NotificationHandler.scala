@@ -16,6 +16,7 @@ import pricemigrationengine.model.membershipworkflow.{
 import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.{ZEnv, ZIO, ZLayer}
+import zio.duration._
 
 object NotificationHandler extends CohortHandler {
 
@@ -37,6 +38,8 @@ object NotificationHandler extends CohortHandler {
       )
       count <-
         subscriptions
+          .chunkN(1)
+          .throttleShape(1, 250.milliseconds)(costFn = _ => 1)
           .mapM(sendNotification(brazeCampaignName))
           .fold(0) { (sum, count) => sum + count }
       _ <- Logging.info(s"Successfully sent $count price rise notifications")
