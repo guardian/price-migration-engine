@@ -1,66 +1,36 @@
 package pricemigrationengine.services
 
-import com.amazonaws.client.builder.AwsClientBuilder
 import com.amazonaws.services.dynamodbv2.model._
-import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClient}
-import pricemigrationengine.model.ConfigurationFailure
-import zio.{ZIO, ZLayer, ZManaged}
+import zio.{RIO, Task}
 
 object DynamoDBClient {
-  val dynamoDB: ZLayer[Logging with DynamoDBConfiguration, ConfigurationFailure, DynamoDBClient] =
-    ZLayer.fromManaged(
-      ZManaged.fromFunctionM { dependencies: Logging with DynamoDBConfiguration =>
-        ZManaged
-          .make(
-            for {
-              config <- DynamoDBConfiguration.dynamoDBConfig
-              client <-
-                ZIO
-                  .effect(
-                    config.endpoint
-                      .foldLeft(AmazonDynamoDBClient.builder()) { (builder, endpoint) =>
-                        builder.withEndpointConfiguration(
-                          new AwsClientBuilder.EndpointConfiguration(endpoint.serviceEndpoint, endpoint.signingRegion)
-                        )
-                      }
-                      .build()
-                  )
-                  .mapError(ex => ConfigurationFailure(s"Failed to create the dynamoDb client: $ex"))
-            } yield client
-          ) { dynamoDB: AmazonDynamoDB =>
-            ZIO
-              .effect(dynamoDB.shutdown())
-              .catchAll(ex => Logging.error(s"Failed to close dynamo db connection: $ex"))
-          }
-          .provide(dependencies)
-      }
-    )
-
-  def query(queryRequest: QueryRequest): ZIO[DynamoDBClient, Throwable, QueryResult] = {
-    ZIO.accessM(client => ZIO.effect(client.get.query(queryRequest)))
+  trait Service {
+    def query(queryRequest: QueryRequest): Task[QueryResult]
+    def scan(scanRequest: ScanRequest): Task[ScanResult]
+    def updateItem(updateRequest: UpdateItemRequest): Task[UpdateItemResult]
+    def createItem(createRequest: PutItemRequest, keyName: String): Task[PutItemResult]
+    def describeTable(tableName: String): Task[DescribeTableResult]
+    def createTable(request: CreateTableRequest): Task[CreateTableResult]
+    def updateContinuousBackups(request: UpdateContinuousBackupsRequest): Task[UpdateContinuousBackupsResult]
   }
 
-  def scan(scanRequest: ScanRequest): ZIO[DynamoDBClient, Throwable, ScanResult] = {
-    ZIO.accessM(client => ZIO.effect(client.get.scan(scanRequest)))
-  }
+  def query(queryRequest: QueryRequest): RIO[DynamoDBClient, QueryResult] = RIO.accessM(_.get.query(queryRequest))
 
-  def updateItem(updateRequest: UpdateItemRequest): ZIO[DynamoDBClient, Throwable, UpdateItemResult] = {
-    ZIO.accessM(client => ZIO.effect(client.get.updateItem(updateRequest)))
-  }
+  def scan(scanRequest: ScanRequest): RIO[DynamoDBClient, ScanResult] = RIO.accessM(_.get.scan(scanRequest))
 
-  def createItem(createRequest: PutItemRequest, keyName: String): ZIO[DynamoDBClient, Throwable, PutItemResult] =
-    ZIO.accessM(client =>
-      ZIO.effect(client.get.putItem(createRequest.withConditionExpression(s"attribute_not_exists($keyName)")))
-    )
+  def updateItem(updateRequest: UpdateItemRequest): RIO[DynamoDBClient, UpdateItemResult] =
+    RIO.accessM(_.get.updateItem(updateRequest))
 
-  def describeTable(tableName: String): ZIO[DynamoDBClient, Throwable, DescribeTableResult] =
-    ZIO.accessM(client => ZIO.effect(client.get.describeTable(tableName)))
+  def createItem(createRequest: PutItemRequest, keyName: String): RIO[DynamoDBClient, PutItemResult] =
+    RIO.accessM(_.get.createItem(createRequest, keyName))
 
-  def createTable(request: CreateTableRequest): ZIO[DynamoDBClient, Throwable, CreateTableResult] =
-    ZIO.accessM(client => ZIO.effect(client.get.createTable(request)))
+  def describeTable(tableName: String): RIO[DynamoDBClient, DescribeTableResult] =
+    RIO.accessM(_.get.describeTable(tableName))
+
+  def createTable(request: CreateTableRequest): RIO[DynamoDBClient, CreateTableResult] =
+    RIO.accessM(_.get.createTable(request))
 
   def updateContinuousBackups(
       request: UpdateContinuousBackupsRequest
-  ): ZIO[DynamoDBClient, Throwable, UpdateContinuousBackupsResult] =
-    ZIO.accessM(client => ZIO.effect(client.get.updateContinuousBackups(request)))
+  ): RIO[DynamoDBClient, UpdateContinuousBackupsResult] = RIO.accessM(_.get.updateContinuousBackups(request))
 }
