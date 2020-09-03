@@ -187,7 +187,19 @@ Resources:
                 "Resource": "${CreatingCohortTableLambdaArn}",
                 "InputPath": "$.cohortSpec",
                 "ResultPath": "$.result",
-                "Next": "Importing"
+                "Next": "Importing",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
               },
               "Importing": {
                 "Type": "Task",
@@ -195,7 +207,19 @@ Resources:
                 "Resource": "${ImportingLambdaArn}",
                 "InputPath": "$.cohortSpec",
                 "ResultPath": "$.result",
-                "Next": "Estimating"
+                "Next": "Estimating",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
               },
               "Estimating": {
                 "Type": "Task",
@@ -203,17 +227,29 @@ Resources:
                 "Resource": "${EstimatingLambdaArn}",
                 "InputPath": "$.cohortSpec",
                 "ResultPath": "$.result",
-                "Next": "IsEstimatingComplete"
+                "Next": "IsEstimatingComplete",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
               },
               "IsEstimatingComplete": {
                 "Type": "Choice",
                 "Comment": "Is the estimating step complete?",
                 "Choices": [
-                {
-                  "Variable": "$.result.isComplete",
-                  "BooleanEquals": false,
-                  "Next": "Estimating"
-                }
+                  {
+                    "Variable": "$.result.isComplete",
+                    "BooleanEquals": false,
+                    "Next": "Estimating"
+                  }
                 ],
                 "Default": "CreatingSalesforceRecords"
               },
@@ -223,17 +259,29 @@ Resources:
                 "Resource": "${CreatingSalesforceRecordsLambdaArn}",
                 "InputPath": "$.cohortSpec",
                 "ResultPath": "$.result",
-                "Next": "IsCreatingSalesforceRecordsComplete"
+                "Next": "IsCreatingSalesforceRecordsComplete",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
               },
               "IsCreatingSalesforceRecordsComplete": {
                 "Type": "Choice",
                 "Comment": "Is the creating Salesforce records step complete?",
                 "Choices": [
-                {
-                  "Variable": "$.result.isComplete",
-                  "BooleanEquals": false,
-                  "Next": "CreatingSalesforceRecords"
-                }
+                  {
+                    "Variable": "$.result.isComplete",
+                    "BooleanEquals": false,
+                    "Next": "CreatingSalesforceRecords"
+                  }
                 ],
                 "Default": "NotifyingSubscribers"
               },
@@ -243,7 +291,19 @@ Resources:
                 "Resource": "${NotifyingSubscribersLambdaArn}",
                 "InputPath": "$.cohortSpec",
                 "ResultPath": "$.result",
-                "Next": "UpdatingSalesforceWithNotifications"
+                "Next": "UpdatingSalesforceWithNotifications",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
               },
               "UpdatingSalesforceWithNotifications": {
                 "Type": "Task",
@@ -251,7 +311,19 @@ Resources:
                 "Resource": "${UpdatingSalesforceWithNotificationsLambdaArn}",
                 "InputPath": "$.cohortSpec",
                 "ResultPath": "$.result",
-                "Next": "Amending"
+                "Next": "Amending",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
               },
               "Amending": {
                 "Type": "Task",
@@ -259,17 +331,29 @@ Resources:
                 "Resource": "${AmendingLambdaArn}",
                 "InputPath": "$.cohortSpec",
                 "ResultPath": "$.result",
-                "Next": "IsAmendingComplete"
+                "Next": "IsAmendingComplete",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
               },
               "IsAmendingComplete": {
                 "Type": "Choice",
                 "Comment": "Is the amending step complete?",
                 "Choices": [
-                {
-                  "Variable": "$.result.isComplete",
-                  "BooleanEquals": false,
-                  "Next": "Amending"
-                }
+                  {
+                    "Variable": "$.result.isComplete",
+                    "BooleanEquals": false,
+                    "Next": "Amending"
+                  }
                 ],
                 "Default": "UpdatingSalesforceWithAmendments"
               },
@@ -279,17 +363,29 @@ Resources:
                 "Resource": "${UpdatingSalesforceWithAmendsLambdaArn}",
                 "InputPath": "$.cohortSpec",
                 "ResultPath": "$.result",
-                "Next": "IsUpdatingSalesforceWithAmendmentsComplete"
+                "Next": "IsUpdatingSalesforceWithAmendmentsComplete",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
               },
               "IsUpdatingSalesforceWithAmendmentsComplete": {
                 "Type": "Choice",
                 "Comment": "Is the updating Salesforce with amendments step complete?",
                 "Choices": [
-                {
-                  "Variable": "$.result.isComplete",
-                  "BooleanEquals": false,
-                  "Next": "UpdatingSalesforceWithAmendments"
-                }
+                  {
+                    "Variable": "$.result.isComplete",
+                    "BooleanEquals": false,
+                    "Next": "UpdatingSalesforceWithAmendments"
+                  }
                 ],
                 "Default": "ExportingCohortTableToDatalake"
               },
@@ -299,17 +395,29 @@ Resources:
                 "Resource": "${ExportingCohortTableToDatalakeLambdaArn}",
                 "InputPath": "$.cohortSpec",
                 "ResultPath": "$.result",
-                "Next": "IsExportingCohortTableToDatalakeComplete"
+                "Next": "IsExportingCohortTableToDatalakeComplete",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
               },
               "IsExportingCohortTableToDatalakeComplete": {
                 "Type": "Choice",
                 "Comment": "Is the exporting cohort data to the datalake step complete?",
                 "Choices": [
-                {
-                  "Variable": "$.result.isComplete",
-                  "BooleanEquals": false,
-                  "Next": "ExportingCohortTableToDatalake"
-                }
+                  {
+                    "Variable": "$.result.isComplete",
+                    "BooleanEquals": false,
+                    "Next": "ExportingCohortTableToDatalake"
+                  }
                 ],
                 "Default": "Complete"
               },
