@@ -3,8 +3,6 @@ package pricemigrationengine.services
 import java.time.LocalDate
 
 import pricemigrationengine.model.{
-  OptionReader,
-  OptionWriter,
   SalesforceAddress,
   SalesforceClientFailure,
   SalesforceConfig,

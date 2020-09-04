@@ -2,12 +2,7 @@ package pricemigrationengine.services
 
 import java.time.LocalDate
 
-import com.amazonaws.services.dynamodbv2.model.{
-  AttributeValue,
-  ConditionalCheckFailedException,
-  QueryRequest,
-  ScanRequest
-}
+import com.amazonaws.services.dynamodbv2.model.{AttributeValue, QueryRequest, ScanRequest}
 import pricemigrationengine.model._
 import pricemigrationengine.model.dynamodb.Conversions._
 import zio.stream.ZStream
@@ -159,7 +154,7 @@ object CohortTableLive {
                   DynamoDBZIO
                     .create(table = tableName, keyName = keyAttribName, value = cohortItem)
                     .mapError {
-                      case DynamoDBZIOError(reason, _: Some[ConditionalCheckFailedException]) =>
+                      case DynamoDBZIOError(reason, _: Some[_]) =>
                         CohortItemAlreadyPresentFailure(reason)
                       case error => CohortCreateFailure(error.toString)
                     }
