@@ -1,7 +1,7 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.model.{CohortSpec, ConfigurationFailure, Failure, HandlerOutput}
-import pricemigrationengine.services.{CohortTableDdl, EnvConfiguration, Logging, StageConfiguration}
+import pricemigrationengine.services.{CohortTableDdl, Logging}
 import zio.{ZEnv, ZIO, ZLayer}
 
 /**

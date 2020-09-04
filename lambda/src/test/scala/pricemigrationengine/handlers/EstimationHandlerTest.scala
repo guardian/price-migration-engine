@@ -4,7 +4,7 @@ import java.time.LocalDate
 
 import pricemigrationengine.Fixtures
 import zio.random.Random
-import zio.{Chunk, Runtime, UIO, ULayer, ZLayer}
+import zio.{BuildFrom, Chunk, Runtime, UIO, ULayer, ZLayer}
 
 class EstimationHandlerTest extends munit.FunSuite {
 
@@ -29,7 +29,9 @@ class EstimationHandlerTest extends munit.FunSuite {
       def nextPrintableChar: UIO[Char] = ???
       def nextString(length: Int): UIO[String] = ???
       def setSeed(seed: Long): UIO[Unit] = ???
-      def shuffle[A](list: List[A]): UIO[List[A]] = ???
+      def shuffle[A, Collection[+Element] <: Iterable[Element]](collection: Collection[A])(implicit
+          bf: BuildFrom[Collection[A], A, Collection[A]]
+      ): UIO[Collection[A]] = ???
     }
   )
 

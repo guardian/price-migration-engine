@@ -1,10 +1,7 @@
 package pricemigrationengine.services
 
-import java.util
-
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, ScanRequest}
+import com.amazonaws.services.dynamodbv2.model.ScanRequest
 import pricemigrationengine.model._
-import pricemigrationengine.model.dynamodb.Conversions._
 import zio.{IO, ZIO, ZLayer}
 
 import scala.jdk.CollectionConverters._
@@ -25,7 +22,7 @@ object CohortSpecTableLive {
               DynamoDBClient
                 .scan(scanRequest)
                 .mapError(e => CohortSpecFetchFailure(s"Failed to fetch cohort specs: $e"))
-            specs <- ZIO.foreach(scanResult.getItems.asScala)(result =>
+            specs <- ZIO.foreach(scanResult.getItems.asScala.toList)(result =>
               ZIO
                 .fromEither(CohortSpec.fromDynamoDbItem(result))
                 .mapError(e => CohortSpecFetchFailure(s"Failed to parse '$result': ${e.reason}"))

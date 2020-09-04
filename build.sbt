@@ -1,6 +1,8 @@
 import Dependencies._
 import sbt.Keys.{description, name}
 
+Global / onChangedBuildSource := ReloadOnSourceChanges
+
 ThisBuild / scalaVersion := "2.13.3"
 
 lazy val root = (project in file("."))
@@ -41,7 +43,7 @@ lazy val lambda = (project in file("lambda"))
     riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
     riffRaffUploadManifestBucket := Option("riffraff-builds"),
     riffRaffManifestProjectName := "MemSub::Subscriptions::Lambda::PriceMigrationEngine",
-    riffRaffArtifactResources += (project.base / "cfn.yaml", "cfn/cfn.yaml")
+    riffRaffArtifactResources += ((project.base / "cfn.yaml", "cfn/cfn.yaml"))
   )
 
 lazy val stateMachine = (project in file("stateMachine"))
