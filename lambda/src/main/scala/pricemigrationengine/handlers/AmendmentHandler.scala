@@ -3,9 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.Schedule.{exponential, recurs}
 import zio.clock.Clock
-import zio.duration._
 import zio.{ZEnv, ZIO, ZLayer}
 
 /**
@@ -31,21 +29,19 @@ object AmendmentHandler extends CohortHandler {
       newProductPricing: ZuoraPricingData,
       item: CohortItem
   ): ZIO[CohortTable with Zuora with Clock, Failure, AmendmentResult] =
-    for {
-      result <- doAmendment(newProductPricing, item).foldM(
-        failure = {
-          case _: CancelledSubscriptionFailure =>
-            val result = CancelledAmendmentResult(item.subscriptionName)
-            CohortTable.update(CohortItem.fromCancelledAmendmentResult(result)) zipRight ZIO.succeed(result)
-          case e => ZIO.fail(e)
-        },
-        success = { result =>
-          CohortTable.update(
-            CohortItem.fromSuccessfulAmendmentResult(result)
-          ) zipRight ZIO.succeed(result)
-        }
-      )
-    } yield result
+    doAmendment(newProductPricing, item).foldM(
+      failure = {
+        case _: CancelledSubscriptionFailure =>
+          val result = CancelledAmendmentResult(item.subscriptionName)
+          CohortTable.update(CohortItem.fromCancelledAmendmentResult(result)) zipRight ZIO.succeed(result)
+        case e => ZIO.fail(e)
+      },
+      success = { result =>
+        CohortTable.update(
+          CohortItem.fromSuccessfulAmendmentResult(result)
+        ) zipRight ZIO.succeed(result)
+      }
+    )
 
   private def doAmendment(
       newProductPricing: ZuoraPricingData,
@@ -74,9 +70,7 @@ object AmendmentHandler extends CohortHandler {
       newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
       subscriptionAfterUpdate <- fetchSubscription(item)
       invoicePreviewAfterUpdate <-
-        Zuora
-          .fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)
-          .retry(exponential(1.second) && recurs(5)) // to work around StaleObjectStateException in Zuora response
+        Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)
       newPrice <-
         ZIO.fromEither(AmendmentData.totalChargeAmount(subscriptionAfterUpdate, invoicePreviewAfterUpdate, startDate))
       whenDone <- Time.thisInstant

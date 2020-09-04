@@ -154,25 +154,19 @@ object CohortTableLive {
             }.provide(dependencies)
 
             override def create(cohortItem: CohortItem): ZIO[Any, Failure, Unit] = {
-              for {
-                result <-
-                  DynamoDBZIO
-                    .create(table = tableName, keyName = keyAttribName, value = cohortItem)
-                    .mapError {
-                      case DynamoDBZIOError(reason, _: Some[ConditionalCheckFailedException]) =>
-                        CohortItemAlreadyPresentFailure(reason)
-                      case error => CohortCreateFailure(error.toString)
-                    }
-              } yield result
+              DynamoDBZIO
+                .create(table = tableName, keyName = keyAttribName, value = cohortItem)
+                .mapError {
+                  case DynamoDBZIOError(reason, _: Some[_]) =>
+                    CohortItemAlreadyPresentFailure(reason)
+                  case error => CohortCreateFailure(error.toString)
+                }
             }.provide(dependencies)
 
             override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
-              (for {
-                result <-
-                  DynamoDBZIO
-                    .update(table = tableName, key = CohortTableKey(result.subscriptionName), value = result)
-                    .mapError(error => CohortUpdateFailure(error.toString))
-              } yield result)
+              DynamoDBZIO
+                .update(table = tableName, key = CohortTableKey(result.subscriptionName), value = result)
+                .mapError(error => CohortUpdateFailure(error.toString))
                 .tapBoth(
                   e => Logging.error(s"Failed to update Cohort table: $e"),
                   _ => Logging.info(s"Wrote $result to Cohort table")
