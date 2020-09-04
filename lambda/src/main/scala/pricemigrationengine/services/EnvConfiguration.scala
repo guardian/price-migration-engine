@@ -3,7 +3,7 @@ package pricemigrationengine.services
 import java.lang.System.getenv
 
 import pricemigrationengine.model._
-import zio.{IO, UIO, ZIO, ZLayer}
+import zio.{IO, ZIO, ZLayer}
 
 object EnvConfiguration {
   def env(name: String): IO[ConfigurationFailure, String] =
@@ -23,12 +23,11 @@ object EnvConfiguration {
         zuoraApiHost <- env("zuoraApiHost")
         zuoraClientId <- env("zuoraClientId")
         zuoraClientSecret <- env("zuoraClientSecret")
-      } yield
-        ZuoraConfig(
-          zuoraApiHost,
-          zuoraClientId,
-          zuoraClientSecret
-        )
+      } yield ZuoraConfig(
+        zuoraApiHost,
+        zuoraClientId,
+        zuoraClientSecret
+      )
     }
   }
 
@@ -37,12 +36,12 @@ object EnvConfiguration {
       val config: IO[ConfigurationFailure, DynamoDBConfig] = for {
         dynamoDBServiceEndpointOption <- optionalEnv("dynamodb.serviceEndpoint")
         dynamoDBSigningRegionOption <- optionalEnv("dynamodb.signingRegion")
-        dynamoDBEndpoint = dynamoDBServiceEndpointOption
-          .flatMap(endpoint => dynamoDBSigningRegionOption.map(region => DynamoDBEndpointConfig(endpoint, region)))
-      } yield
-        DynamoDBConfig(
-          dynamoDBEndpoint
-        )
+        dynamoDBEndpoint =
+          dynamoDBServiceEndpointOption
+            .flatMap(endpoint => dynamoDBSigningRegionOption.map(region => DynamoDBEndpointConfig(endpoint, region)))
+      } yield DynamoDBConfig(
+        dynamoDBEndpoint
+      )
     }
   }
 
@@ -50,10 +49,9 @@ object EnvConfiguration {
     new CohortTableConfiguration.Service {
       val config: IO[ConfigurationFailure, CohortTableConfig] = for {
         batchSize <- env("batchSize").map(_.toInt)
-      } yield
-        CohortTableConfig(
-          batchSize
-        )
+      } yield CohortTableConfig(
+        batchSize
+      )
     }
   }
 
@@ -66,15 +64,14 @@ object EnvConfiguration {
         salesforceUserName <- env("salesforceUserName")
         salesforcePassword <- env("salesforcePassword")
         salesforceToken <- env("salesforceToken")
-      } yield
-        SalesforceConfig(
-          salesforceAuthUrl,
-          salesforceClientId,
-          salesforceClientSecret,
-          salesforceUserName,
-          salesforcePassword,
-          salesforceToken
-        )
+      } yield SalesforceConfig(
+        salesforceAuthUrl,
+        salesforceClientId,
+        salesforceClientSecret,
+        salesforceUserName,
+        salesforcePassword,
+        salesforceToken
+      )
     }
   }
 
@@ -82,10 +79,9 @@ object EnvConfiguration {
     new StageConfiguration.Service {
       val config: IO[ConfigurationFailure, StageConfig] = for {
         stage <- env("stage")
-      } yield
-        StageConfig(
-          stage
-        )
+      } yield StageConfig(
+        stage
+      )
     }
   }
 
@@ -94,10 +90,9 @@ object EnvConfiguration {
       val config: IO[ConfigurationFailure, EmailSenderConfig] =
         for {
           emailSqsQueueName <- env("sqsEmailQueueName")
-        } yield
-          EmailSenderConfig(
-            sqsEmailQueueName = emailSqsQueueName
-          )
+        } yield EmailSenderConfig(
+          sqsEmailQueueName = emailSqsQueueName
+        )
     }
   }
 
