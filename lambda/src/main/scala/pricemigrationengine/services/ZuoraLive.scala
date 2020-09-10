@@ -67,19 +67,23 @@ object ZuoraLive {
               Left(ZuoraFetchFailure(failureMessage(request, response)))
           }
 
+          private def retry[E, A](effect: => ZIO[Any, E, A]): ZIO[Any, E, A] = effect
+            .retry(exponential(1.second) && recurs(5))
+            .provideLayer(ZLayer.succeed(clock))
+
           private def get[A: Reader](
               path: String,
               params: Map[String, String] = Map.empty
           ): ZIO[Any, ZuoraFetchFailure, A] =
             for {
               accessToken <- ZIO.fromEither(fetchedAccessToken)
-              a <- handleRequest[A](
-                Http(s"${config.apiHost}/$apiVersion/$path")
-                  .params(params)
-                  .header("Authorization", s"Bearer $accessToken")
-              ).mapError(e => ZuoraFetchFailure(e.reason))
-                .retry(exponential(1.second) && recurs(5))
-                .provideLayer(ZLayer.succeed(clock))
+              a <- retry(
+                handleRequest[A](
+                  Http(s"${config.apiHost}/$apiVersion/$path")
+                    .params(params)
+                    .header("Authorization", s"Bearer $accessToken")
+                ).mapError(e => ZuoraFetchFailure(e.reason))
+              )
             } yield a
 
           private def post[A: Reader](path: String, body: String): ZIO[Any, ZuoraUpdateFailure, A] =
@@ -137,17 +141,19 @@ object ZuoraLive {
               accountId: String,
               targetDate: LocalDate
           ): ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList] =
-            post[ZuoraInvoiceList](
-              path = "operations/billing-preview",
-              body = write(
-                InvoicePreviewRequest(
-                  accountId,
-                  targetDate,
-                  assumeRenewal = "Autorenew",
-                  chargeTypeToExclude = "OneTime"
+            retry(
+              post[ZuoraInvoiceList](
+                path = "operations/billing-preview",
+                body = write(
+                  InvoicePreviewRequest(
+                    accountId,
+                    targetDate,
+                    assumeRenewal = "Autorenew",
+                    chargeTypeToExclude = "OneTime"
+                  )
                 )
-              )
-            ).mapError(e => ZuoraFetchFailure(s"Invoice preview for account $accountId: ${e.reason}"))
+              ).mapError(e => ZuoraFetchFailure(s"Invoice preview for account $accountId: ${e.reason}"))
+            )
               .tapBoth(
                 e => logging.error(s"Failed to fetch invoice preview for account $accountId: $e"),
                 _ => logging.info(s"Fetched invoice preview for account $accountId")
