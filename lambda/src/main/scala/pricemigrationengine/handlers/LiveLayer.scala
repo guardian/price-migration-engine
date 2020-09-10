@@ -28,7 +28,7 @@ object LiveLayer {
     Blocking.live and logging and EnvConfiguration.cohortStateMachineImpl to CohortStateMachineLive.impl
 
   val zuora: ZLayer[Logging, ConfigurationFailure, Zuora] =
-    EnvConfiguration.zuoraImpl and logging to ZuoraLive.impl
+    EnvConfiguration.zuoraImpl and Clock.live and logging to ZuoraLive.impl
 
   val salesforce: ZLayer[Logging, SalesforceClientFailure, SalesforceClient] =
     EnvConfiguration.salesforceImp and logging to SalesforceClientLive.impl
