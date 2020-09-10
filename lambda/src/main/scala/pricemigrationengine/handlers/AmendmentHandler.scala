@@ -3,7 +3,9 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 import pricemigrationengine.model._
 import pricemigrationengine.services._
+import zio.Schedule.{exponential, recurs}
 import zio.clock.Clock
+import zio.duration._
 import zio.{ZEnv, ZIO, ZLayer}
 
 /**
@@ -70,7 +72,9 @@ object AmendmentHandler extends CohortHandler {
       newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
       subscriptionAfterUpdate <- fetchSubscription(item)
       invoicePreviewAfterUpdate <-
-        Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)
+        Zuora
+          .fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)
+          .retry(exponential(1.second) && recurs(5)) // to work around StaleObjectStateException in Zuora response
       newPrice <-
         ZIO.fromEither(AmendmentData.totalChargeAmount(subscriptionAfterUpdate, invoicePreviewAfterUpdate, startDate))
       whenDone <- Time.thisInstant

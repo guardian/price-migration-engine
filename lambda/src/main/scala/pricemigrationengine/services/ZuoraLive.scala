@@ -78,6 +78,8 @@ object ZuoraLive {
                   .params(params)
                   .header("Authorization", s"Bearer $accessToken")
               ).mapError(e => ZuoraFetchFailure(e.reason))
+                .retry(exponential(1.second) && recurs(5))
+                .provideLayer(ZLayer.succeed(clock))
             } yield a
 
           private def post[A: Reader](path: String, body: String): ZIO[Any, ZuoraUpdateFailure, A] =
@@ -107,8 +109,6 @@ object ZuoraLive {
               response <-
                 ZIO
                   .effect(request.option(connTimeout).option(readTimeout).asString)
-                  .retry(exponential(1.second) && recurs(5))
-                  .provideLayer(ZLayer.succeed(clock))
                   .mapError(e => ZuoraFailure(failureMessage(request, e)))
                   .filterOrElse(_.code == 200)(response => ZIO.fail(ZuoraFailure(failureMessage(request, response))))
               a <-
