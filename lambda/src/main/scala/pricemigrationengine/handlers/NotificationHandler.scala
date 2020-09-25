@@ -79,12 +79,10 @@ object NotificationHandler extends CohortHandler {
         requiredField(contact.Salutation, "Contact.Salutation")
       )
       lastName <- requiredField(contact.LastName, "Contact.LastName")
-      targetAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress").orElse(
-        requiredField(contact.MailingAddress, "Contact.MailingAddress")
-      )
-      street <- requiredField(targetAddress.street, "Contact.OtherAddress.street")
-      postalCode <- requiredField(targetAddress.postalCode, "Contact.OtherAddress.postalCode")
-      country <- requiredField(targetAddress.country, "Contact.OtherAddress.country")
+      address <- targetAddress(contact)
+      street <- requiredField(address.street, "Contact.OtherAddress.street")
+      postalCode <- requiredField(address.postalCode, "Contact.OtherAddress.postalCode")
+      country <- requiredField(address.country, "Contact.OtherAddress.country")
       estimatedNewPrice <- requiredField(cohortItem.estimatedNewPrice.map(_.toString()), "CohortItem.estimatedNewPrice")
       startDate <- requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate")
       billingPeriod <- requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod")
@@ -100,16 +98,17 @@ object NotificationHandler extends CohortHandler {
             Address = contact.Email,
             ContactAttributes = EmailPayloadContactAttributes(
               SubscriberAttributes = EmailPayloadSubscriberAttributes(
-                title = contact.FirstName flatMap (_ =>
-                  contact.Salutation
-                ), // if no first name, we use salutation as first name and leave this field empty
+                title =
+                  contact.FirstName flatMap (_ =>
+                    contact.Salutation
+                  ), // if no first name, we use salutation as first name and leave this field empty
                 first_name = firstName,
                 last_name = lastName,
                 billing_address_1 = street,
                 billing_address_2 = None, //See 'Billing Address Format' section in the readme
-                billing_city = targetAddress.city,
+                billing_city = address.city,
                 billing_postal_code = postalCode,
-                billing_state = targetAddress.state,
+                billing_state = address.state,
                 billing_country = country,
                 payment_amount = estimatedNewPrice,
                 next_payment_date = startDate,
@@ -126,6 +125,15 @@ object NotificationHandler extends CohortHandler {
 
       _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete)
     } yield Successful
+
+  def targetAddress(contact: SalesforceContact): ZIO[Any, NotificationHandlerFailure, SalesforceAddress] =
+    (for {
+      billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
+      _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
+      _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
+    } yield billingAddress).orElse(
+      requiredField(contact.MailingAddress, "Contact.MailingAddress")
+    )
 
   def requiredField[A](field: Option[A], fieldName: String): ZIO[Any, NotificationHandlerFailure, A] = {
     ZIO.fromOption(field).orElseFail(NotificationHandlerFailure(s"$fieldName is a required field"))

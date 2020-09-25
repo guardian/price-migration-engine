@@ -34,9 +34,12 @@ lazy val lambda = (project in file("lambda"))
       awsStateMachine,
       http,
       commonsCsv,
-      munit % Test
+      munit % Test,
+      zioTest % Test,
+      zioTestSbt % Test
     ),
     testFrameworks += new TestFramework("munit.Framework"),
+    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
     description := "Lambda jar for the Price Migration Engine",
     assemblyJarName := "price-migration-engine-lambda.jar",
     riffRaffPackageType := assembly.value,
