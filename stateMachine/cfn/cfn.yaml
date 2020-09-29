@@ -14,6 +14,9 @@ Parameters:
     Type: String
     Default: price-migration-engine
 
+Conditions:
+  IsProd: !Equals [!Ref "Stage", "PROD"]
+
 Resources:
 
   CohortStateMachineLogGroup:
@@ -41,8 +44,15 @@ Resources:
                 Action:
                   - lambda:InvokeFunction
                 Resource:
+                  - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingCohortTableLambda
+                  - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-ImportingLambda
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-EstimatingLambda
                   - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingSalesforceRecordsLambda
+                  - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-NotifyingSubscribersLambda
+                  - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-UpdatingSalesforceWithNotificationsLambda
+                  - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-AmendingLambda
+                  - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-UpdatingSalesforceWithAmendsLambda
+                  - Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-ExportingCohortTableToDatalakeLambda
         - PolicyName: LoggingPolicy
           PolicyDocument:
             Statement:
@@ -54,7 +64,100 @@ Resources:
                   - logs:UpdateLogDelivery
                   - logs:DescribeLogGroups
                 Resource:
-                  - !GetAtt CohortStateMachineLogGroup.Arn
+                  - "*"
+
+  PriceMigrationLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - lambda:InvokeFunction
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-lambda-${Stage}:log-stream:*"
+        - PolicyName: CohortSpecTablePolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:Scan
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/price-migration-engine-cohort-spec-${Stage}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/price-migration-engine-cohort-spec-${Stage}/*"
+        - PolicyName: CohortStateMachinePolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - states:StartExecution
+                Resource:
+                  - !Ref CohortStateMachine
+
+  PriceMigrationLambda:
+    Type: AWS::Lambda::Function
+    DependsOn:
+      - PriceMigrationLambdaRole
+      - CohortStateMachine
+    Properties:
+      Description: Kicks off state machines to process each cohort.
+      FunctionName:
+        !Sub price-migration-lambda-${Stage}
+      Code:
+        S3Bucket: membership-dist
+        S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
+      Handler: pricemigrationengine.handlers.MigrationHandler::handleRequest
+      Environment:
+        Variables:
+          stage: !Ref Stage
+          cohortStateMachineArn: !Ref CohortStateMachine
+      Role:
+        Fn::GetAtt:
+          - PriceMigrationLambdaRole
+          - Arn
+      MemorySize: 1536
+      Runtime: java8
+      Timeout: 900
+
+  PriceMigrationLambdaScheduleRule:
+    Type: AWS::Events::Rule
+    DependsOn:
+      - PriceMigrationLambda
+    Condition: IsProd
+    Properties:
+      Description: Trigger daily 7 am kick-off of state machines for active cohorts.
+      ScheduleExpression: "cron(0 7 ? * * *)"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt PriceMigrationLambda.Arn
+          Id: !Ref PriceMigrationLambda
+          Input: "null"
+
+  PriceMigrationLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - PriceMigrationLambda
+      - PriceMigrationLambdaScheduleRule
+    Condition: IsProd
+    Properties:
+      Action: lambda:invokeFunction
+      FunctionName: !Ref PriceMigrationLambda
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt PriceMigrationLambdaScheduleRule.Arn
 
   CohortStateMachine:
     Type: AWS::StepFunctions::StateMachine
@@ -76,73 +179,317 @@ Resources:
         - |
           {
             "Comment": "Price-migration orchestration engine.",
-            "StartAt": "WritingEstimatesToSalesforce",
+            "StartAt": "CreatingCohortTable",
             "States": {
-              "WritingEstimatesToSalesforce": {
-                "Type": "Parallel",
-                "End": true,
-                "Branches": [
+              "CreatingCohortTable": {
+                "Type": "Task",
+                "Comment": "Creating cohort table if it doesn't already exist.",
+                "Resource": "${CreatingCohortTableLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
+                "Next": "Importing",
+                "Retry": [
                   {
-                    "StartAt": "Estimating",
-                    "States": {
-                      "Estimating": {
-                        "Type": "Task",
-                        "Resource": "${EstimatingLambdaArn}",
-                        "Retry": [
-                          {
-                            "ErrorEquals": [
-                              "Lambda.Unknown"
-                            ],
-                            "IntervalSeconds": 10,
-                            "MaxAttempts": 25000,
-                            "BackoffRate": 1.0
-                          },
-                          {
-                            "ErrorEquals": [
-                              "States.ALL"
-                            ],
-                            "IntervalSeconds": 30,
-                            "MaxAttempts": 25000,
-                            "BackoffRate": 2.0
-                          }
-                        ],
-                        "End": true
-                      }
-                    }
-                  },
-                  {
-                    "StartAt": "CreatingSalesforceRecords",
-                    "States": {
-                      "CreatingSalesforceRecords": {
-                        "Type": "Task",
-                        "Resource": "${CreatingSalesforceRecordsLambdaArn}",
-                        "Retry": [
-                          {
-                            "ErrorEquals": [
-                              "Lambda.Unknown"
-                            ],
-                            "IntervalSeconds": 10,
-                            "MaxAttempts": 25000,
-                            "BackoffRate": 1.0
-                          },
-                          {
-                            "ErrorEquals": [
-                              "States.ALL"
-                            ],
-                            "IntervalSeconds": 30,
-                            "MaxAttempts": 25000,
-                            "BackoffRate": 2.0
-                          }
-                        ],
-                        "End": true
-                      }
-                    }
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
                   }
                 ]
+              },
+              "Importing": {
+                "Type": "Task",
+                "Comment": "Importing subs into cohort table.",
+                "Resource": "${ImportingLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
+                "Next": "Estimating",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
+              },
+              "Estimating": {
+                "Type": "Task",
+                "Comment": "Calculating start date and new price for each sub in this cohort.",
+                "Resource": "${EstimatingLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
+                "Next": "IsEstimatingComplete",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
+              },
+              "IsEstimatingComplete": {
+                "Type": "Choice",
+                "Comment": "Is the estimating step complete?",
+                "Choices": [
+                  {
+                    "Variable": "$.result.isComplete",
+                    "BooleanEquals": false,
+                    "Next": "Estimating"
+                  }
+                ],
+                "Default": "CreatingSalesforceRecords"
+              },
+              "CreatingSalesforceRecords": {
+                "Type": "Task",
+                "Comment": "Inserting a price-rise record for each sub in this cohort into Salesforce.",
+                "Resource": "${CreatingSalesforceRecordsLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
+                "Next": "IsCreatingSalesforceRecordsComplete",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
+              },
+              "IsCreatingSalesforceRecordsComplete": {
+                "Type": "Choice",
+                "Comment": "Is the creating Salesforce records step complete?",
+                "Choices": [
+                  {
+                    "Variable": "$.result.isComplete",
+                    "BooleanEquals": false,
+                    "Next": "CreatingSalesforceRecords"
+                  }
+                ],
+                "Default": "NotifyingSubscribers"
+              },
+              "NotifyingSubscribers": {
+                "Type": "Task",
+                "Comment": "Notifying subscribers via Braze about their new price.",
+                "Resource": "${NotifyingSubscribersLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
+                "Next": "UpdatingSalesforceWithNotifications",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
+              },
+              "UpdatingSalesforceWithNotifications": {
+                "Type": "Task",
+                "Comment": "Updating price-rise records with date that notification was put on queue to Braze.",
+                "Resource": "${UpdatingSalesforceWithNotificationsLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
+                "Next": "Amending",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
+              },
+              "Amending": {
+                "Type": "Task",
+                "Comment": "Applying price-rise amendment in Zuora on each sub in this cohort.",
+                "Resource": "${AmendingLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
+                "Next": "IsAmendingComplete",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
+              },
+              "IsAmendingComplete": {
+                "Type": "Choice",
+                "Comment": "Is the amending step complete?",
+                "Choices": [
+                  {
+                    "Variable": "$.result.isComplete",
+                    "BooleanEquals": false,
+                    "Next": "Amending"
+                  }
+                ],
+                "Default": "UpdatingSalesforceWithAmendments"
+              },
+              "UpdatingSalesforceWithAmendments": {
+                "Type": "Task",
+                "Comment": "Updating price-rise record for each sub in this cohort with amendment evidence.",
+                "Resource": "${UpdatingSalesforceWithAmendsLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
+                "Next": "IsUpdatingSalesforceWithAmendmentsComplete",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
+              },
+              "IsUpdatingSalesforceWithAmendmentsComplete": {
+                "Type": "Choice",
+                "Comment": "Is the updating Salesforce with amendments step complete?",
+                "Choices": [
+                  {
+                    "Variable": "$.result.isComplete",
+                    "BooleanEquals": false,
+                    "Next": "UpdatingSalesforceWithAmendments"
+                  }
+                ],
+                "Default": "ExportingCohortTableToDatalake"
+              },
+              "ExportingCohortTableToDatalake": {
+                "Type": "Task",
+                "Comment": "Exporting cohort data to the datalake.",
+                "Resource": "${ExportingCohortTableToDatalakeLambdaArn}",
+                "InputPath": "$.cohortSpec",
+                "ResultPath": "$.result",
+                "Next": "IsExportingCohortTableToDatalakeComplete",
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException"
+                    ],
+                    "IntervalSeconds": 2,
+                    "MaxAttempts": 6,
+                    "BackoffRate": 2
+                  }
+                ]
+              },
+              "IsExportingCohortTableToDatalakeComplete": {
+                "Type": "Choice",
+                "Comment": "Is the exporting cohort data to the datalake step complete?",
+                "Choices": [
+                  {
+                    "Variable": "$.result.isComplete",
+                    "BooleanEquals": false,
+                    "Next": "ExportingCohortTableToDatalake"
+                  }
+                ],
+                "Default": "Complete"
+              },
+              "Complete": {
+                "Type": "Succeed",
+                "Comment": "All steps are complete."
               }
             }
           }
-        - EstimatingLambdaArn:
+        - CreatingCohortTableLambdaArn:
+            Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingCohortTableLambda
+          ImportingLambdaArn:
+            Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-ImportingLambda
+          EstimatingLambdaArn:
             Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-EstimatingLambda
           CreatingSalesforceRecordsLambdaArn:
             Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-CreatingSalesforceRecordsLambda
+          NotifyingSubscribersLambdaArn:
+            Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-NotifyingSubscribersLambda
+          UpdatingSalesforceWithNotificationsLambdaArn:
+            Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-UpdatingSalesforceWithNotificationsLambda
+          AmendingLambdaArn:
+            Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-AmendingLambda
+          UpdatingSalesforceWithAmendsLambdaArn:
+            Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-UpdatingSalesforceWithAmendsLambda
+          ExportingCohortTableToDatalakeLambdaArn:
+            Fn::ImportValue: !Sub membership-${Stage}-${ResourceNamePrefix}-lambda-ExportingCohortTableToDatalakeLambda
+
+  PriceMigrationLambdaAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn:
+      - PriceMigrationLambda
+    Condition: IsProd
+    Properties:
+      AlarmName: "URGENT 9-5 - PROD: Price-rise engine: Failure to kick-off process"
+      AlarmDescription: >
+        IMPACT: If this is not dealt with, no price-rise processes will run.
+        For troubleshooting tips, see https://github.com/guardian/price-migration-engine/blob/main/troubleshooting.md
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref PriceMigrationLambda
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      Period: 60
+      EvaluationPeriods: 1
+      Statistic: Sum
+      TreatMissingData: missing
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
+
+  CohortStateMachineAlarm:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn:
+      - CohortStateMachine
+    Condition: IsProd
+    Properties:
+      AlarmName: "URGENT 9-5 - PROD: Price-rise engine: Failure to complete process"
+      AlarmDescription: >
+        IMPACT: If this is not dealt with, the price rise may be unable to continue.
+        For troubleshooting tips, see https://github.com/guardian/price-migration-engine/blob/main/troubleshooting.md
+      Namespace: AWS/States
+      MetricName: ExecutionsFailed
+      Dimensions:
+        - Name: StateMachineArn
+          Value: !Ref CohortStateMachine
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 0
+      Period: 60
+      EvaluationPeriods: 1
+      Statistic: Sum
+      TreatMissingData: missing
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev

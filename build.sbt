@@ -1,7 +1,9 @@
 import Dependencies._
 import sbt.Keys.{description, name}
 
-ThisBuild / scalaVersion := "2.13.2"
+Global / onChangedBuildSource := ReloadOnSourceChanges
+
+ThisBuild / scalaVersion := "2.13.3"
 
 lazy val root = (project in file("."))
   .aggregate(dynamoDb, lambda, stateMachine)
@@ -29,6 +31,7 @@ lazy val lambda = (project in file("lambda"))
       awsLambda,
       awsS3,
       awsSQS,
+      awsStateMachine,
       http,
       commonsCsv,
       munit % Test,
@@ -43,7 +46,7 @@ lazy val lambda = (project in file("lambda"))
     riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
     riffRaffUploadManifestBucket := Option("riffraff-builds"),
     riffRaffManifestProjectName := "MemSub::Subscriptions::Lambda::PriceMigrationEngine",
-    riffRaffArtifactResources += (project.base / "cfn.yaml", "cfn/cfn.yaml")
+    riffRaffArtifactResources += ((project.base / "cfn.yaml", "cfn/cfn.yaml"))
   )
 
 lazy val stateMachine = (project in file("stateMachine"))

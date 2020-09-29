@@ -16,7 +16,7 @@ function update() {
     --key "{\"subscriptionNumber\": {\"S\": \"$3\"}}" \
     --update-expression "SET #P = :p" \
     --expression-attribute-names "{\"#P\": \"processingStage\"}" \
-    --expression-attribute-values "{\":p\": {\"S\": \"$2\"}}" #\
+    --expression-attribute-values "{\":p\": {\"S\": \"$2\"}}" \
     --return-values UPDATED_OLD
 }
 

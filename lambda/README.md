@@ -34,6 +34,41 @@ so that the artefact generated is of minimal size and lambdas can warm up quickl
 The same generated jar is used by all the lambdas.  The only variation in their deployment is 
 the configuration of the main endpoint.
 
+# Workflow
+
+The process of implementing price rises has a number of discrete steps, each being implemented by a separate lambda.
+
+The steps are primarily co-ordinated via the dynamoDB 'CohortTable' which contains an item for each subscription
+that is put through the price rise process. 
+
+When each lambda is executed it will select items from the CohortTable which have a 'processingStage' of a 
+particular value. 
+
+Once complete they set the 'processingStage' to a value that indicates that stage has been executed
+and they are ready to be pick up by the next stage.
+
+For the most part the lambdas are idempotent, so if a stage fails at any point it can be re-run and it will reprocess
+items in the CohortTable that were not completely processed in the failed execution.
+ 
+In some cases lambdas are not idempotent, eg the NotificationHandler which has the potential to send 
+multiple direct messages to customers for the same subscription. This lambda sets the status of the CohortItem to a 
+'processing' status before sending the notification and sets it to a 'complete' status once the notification has been sent 
+successfully. If the notification send fails the cohort item stay in the 'processing' state which will require manual 
+intervention to put it into a state where it would be re-processed or made available to the next stage for 
+subsequent processing.
+
+The stages are as follows
+
+
+| Processing stage at start | Lambda | Description | Processing stage on completion |
+|---------|---|---|---|
+| N/A | SubscriptionIdUploadHandler | Initialises the items in the CohortTable for more details see:See [ImportSubscriptionId.MD](../ImportSubscriptionId.MD) | ReadyForEstimation |
+| ReadyForEstimation | EstimationHandler | Uses Zuora to 'estimate' new price and start date of price rise | EstimationComplete |
+| EstimationComplete | SalesforcePriceRiseCreationHandler | Creates the prices rise object in SF so the estimated information is available to CSRs | SalesforcePriceRiceCreationComplete/Cancelled (if cancellation detected) |
+| SalesforcePriceRiceCreationComplete | NotificationHandler | Sends prices rise notification direct notification to customer via braze | NotificationSendProcessing (on failure)/NotificationSendComplete (on success) |
+| NotificationSendComplete | AmendmentHandler | Applies the prices rise amendment to Zuora | AmendmentComplete/Cancelled (if cancellation detected) |
+ 
+
 ### To run lambdas locally in Intellij
 You can run or debug any of the lambdas in any deployment environment from Intellij.  
 You will need up-to-date AWS credentials stored locally.  
@@ -61,7 +96,7 @@ and also the specific environment variables for the lambda you are running.
 
 ## Importing subscription id for a price migration
 
-See [ImportSubscriptionId.MD](ImportSubscriptionId.MD)
+See [ImportSubscriptionId.MD](../ImportSubscriptionId.MD)
 
 ##Configuration
 
@@ -106,7 +141,7 @@ The configuration can be updated using the aws console as follows:
 
 ## Billing Address Format
 
-The notification letters initiated by the NotificationEmailHandler gets contact details including the billing address
+The notification letters initiated by the NotificationHandler gets contact details including the billing address
 from salesforce. 
 
 The salesforce data model is as follows:  
@@ -128,4 +163,17 @@ Using addressLine1 and addressLine2 for the direct messages would be preferable,
 too late in the day to resolve it. 
 
 In an attempt to make it simpler to resolve this in the future we are sending billing_address_2 all the way though 
-sqs/membership-workflow/braze/latcham but we are populating it with an empty string in the NotificationEmailHandler.
+sqs/membership-workflow/braze/latcham but we are populating it with an empty string in the NotificationHandler.
+
+## Datalake Export
+
+The data for each cohort is exported each day to the data lake. See [DatalakeExport.MD](DatalakeExport.MD) for more details.
+
+## How are direct mail letters sent? 
+
+- `NotificationHandle`r lambda sends SQS message to contribution-thanks for pickup by membership-workflow
+- membership-workflow processes the queue and sends message to API triggered campaign in Braze (for example, SV_VO_Pricerise_Q22020)
+- The Braze campaign has a [webhook](https://www.braze.com/docs/user_guide/message_building_by_channel/webhooks/creating_a_webhook/) configured which sends a message to braze.latchamdirect.co.uk:9090/api/Braze
+- Note the [retry](https://www.braze.com/docs/user_guide/message_building_by_channel/webhooks/creating_a_webhook/#errors-retry-logic-and-timeouts) logic of the webhook
+- Beware that Latcham has capacitfy of 1000 messages per minute, whilst Braze has 50K per second
+- Minimal webhook logs can be found in Braze `Developer Console` under Activity Log and filtered by `Webhook Errors` 

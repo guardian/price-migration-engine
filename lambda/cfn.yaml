@@ -14,20 +14,20 @@ Parameters:
 Mappings:
   StageMap:
     DEV:
-      SecretsVersion: "6559354e-556f-4609-a89f-222824495d5d"
-      EarliestStartDate: 2020-05-15
+      SecretsVersion: "4db851a7-5832-4ce2-9356-b4c412d80f30"
       BucketName: price-migration-engine-dev
-      SQSQueueName: contributions-thanks-dev
+      SQSQueueName: direct-mail-CODE
+      ExportBucketName: price-migration-engine-dev
     CODE:
-      SecretsVersion: "52529e0a-438b-4b63-8a08-35f158ed0bee"
-      EarliestStartDate: 2020-05-15
+      SecretsVersion: "4c808606-4f2b-4925-bf71-8fd75a102e2b"
       BucketName: price-migration-engine-code
-      SQSQueueName: contributions-thanks-dev
+      SQSQueueName: direct-mail-CODE
+      ExportBucketName: price-migration-engine-code
     PROD:
-      SecretsVersion: "dd295c21-39df-47d0-b3b2-0d420ee3b055"
-      EarliestStartDate: 2020-07-27
+      SecretsVersion: "b069693b-69dd-40ee-a586-70d409778d2b"
       BucketName: price-migration-engine-prod
-      SQSQueueName: contributions-thanks
+      SQSQueueName: direct-mail-PROD
+      ExportBucketName: ophan-clean-price-migration-engine-cohort-items
 
 Resources:
 
@@ -40,17 +40,59 @@ Resources:
           - Effect: Allow
             Action:
               - dynamodb:Query
+              - dynamodb:Scan
               - dynamodb:UpdateItem
               - dynamodb:PutItem
             Resource:
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}"
               - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigrationEngine${Stage}/*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigration-${Stage}-*"
+              - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigration-${Stage}-*/*"
       Roles:
         - Ref: PriceMigrationEngineEstimationLambdaRole
         - Ref: PriceMigrationEngineSalesforcePriceCreationLambdaRole
         - Ref: PriceMigrationEngineAmendmentLambdaRole
         - Ref: PriceMigrationEngineSubscriptionIdUploadLambdaRole
-        - Ref: PriceMigrationEngineNotificationEmailLambdaRole
+        - Ref: PriceMigrationEngineNotificationLambdaRole
+        - Ref: PriceMigrationEngineSalesforceNotificationDateUpdateLambdaRole
+        - Ref: PriceMigrationEngineSalesforceAmendmentUpdateLambdaRole
+        - Ref: PriceMigrationEngineCohortTableDatalakeExportLambdaRole
+
+  PriceMigrationEngineTableCreateLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - lambda:InvokeFunction
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-table-create-lambda-${Stage}:log-stream:*"
+        - PolicyName: CohortTablePolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:DescribeTable
+                  - dynamodb:CreateTable
+                  - dynamodb:UpdateContinuousBackups
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigration*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/PriceMigration*/*"
 
   PriceMigrationEngineEstimationLambdaRole:
     Type: AWS::IAM::Role
@@ -156,15 +198,20 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - s3:ListBucket
                   - s3:GetObject
+                  - s3:DeleteObject
                 Resource:
+                  - !Sub
+                    - "arn:aws:s3:::${BucketName}"
+                    - {BucketName: !FindInMap [StageMap, !Ref Stage, BucketName]}
                   - !Sub
                     - "arn:aws:s3:::${BucketName}/*"
                     - {BucketName: !FindInMap [StageMap, !Ref Stage, BucketName]}
     DependsOn:
       - S3Bucket
 
-  PriceMigrationEngineNotificationEmailLambdaRole:
+  PriceMigrationEngineNotificationLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -187,8 +234,8 @@ Resources:
                   - logs:PutLogEvents
                   - lambda:InvokeFunction
                 Resource:
-                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-notification-email-lambda-${Stage}:log-stream:*"
-        - PolicyName: SendEmailRequestSQSMessage
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-notification-lambda-${Stage}:log-stream:*"
+        - PolicyName: SendNotificationRequestSQSMessage
           PolicyDocument:
             Statement:
               - Effect: Allow
@@ -199,15 +246,151 @@ Resources:
                   - "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${QueueName}"
                   - { QueueName: !FindInMap [ StageMap, !Ref Stage, SQSQueueName ] }
 
+  PriceMigrationEngineSalesforceNotificationDateUpdateLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - lambda:InvokeFunction
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-salesforce-notification-date-lambda-${Stage}:log-stream:*"
+
+  PriceMigrationEngineSalesforceAmendmentUpdateLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - lambda:InvokeFunction
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-salesforce-amendment-update-lambda-${Stage}:log-stream:*"
+
+  PriceMigrationEngineCohortTableDatalakeExportLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - lambda:InvokeFunction
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-cohort-table-datalake-export-lambda-${Stage}:log-stream:*"
+        - PolicyName: S3BucketPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:PutObjectAcl
+                Resource:
+                  - !Sub
+                    - "arn:aws:s3:::${ExportBucketName}/*"
+                    - {ExportBucketName: !FindInMap [StageMap, !Ref Stage, ExportBucketName]}
+    DependsOn:
+      - S3Bucket
+
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !FindInMap [StageMap, !Ref Stage, BucketName]
 
+  PriceMigrationEngineTableCreateLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Creates cohort table, if it doesn't already exist.
+      FunctionName:
+        !Sub price-migration-engine-table-create-lambda-${Stage}
+      Code:
+        S3Bucket: membership-dist
+        S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
+      Handler: pricemigrationengine.handlers.CohortTableCreationHandler::handleRequest
+      Environment:
+        Variables:
+          stage: !Ref Stage
+      Role:
+        Fn::GetAtt:
+          - PriceMigrationEngineTableCreateLambdaRole
+          - Arn
+      MemorySize: 1536
+      Runtime: java8
+      Timeout: 900
+    DependsOn:
+      - PriceMigrationEngineTableCreateLambdaRole
+
+  PriceMigrationEngineSubscriptionIdUploadLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Uploads subscription id CSV files into price migration engine.
+      FunctionName:
+        !Sub price-migration-engine-subscription-id-upload-lambda-${Stage}
+      Code:
+        S3Bucket: membership-dist
+        S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
+      Handler: pricemigrationengine.handlers.SubscriptionIdUploadHandler::handleRequest
+      Environment:
+        Variables:
+          stage: !Ref Stage
+          batchSize: 100
+      Role:
+        Fn::GetAtt:
+          - PriceMigrationEngineSubscriptionIdUploadLambdaRole
+          - Arn
+      MemorySize: 1536
+      Runtime: java8
+      Timeout: 900
+    DependsOn:
+      - PriceMigrationEngineSubscriptionIdUploadLambdaRole
+      - S3Bucket
+
   PriceMigrationEngineEstimationLambda:
     Type: AWS::Lambda::Function
     Properties:
-      Description: Lambda used to create estimated price, start date and other details of a price rise
+      Description: Lambda used to create estimated price, start date and other details of a price rise.
       FunctionName:
         !Sub price-migration-engine-estimation-lambda-${Stage}
       Code:
@@ -219,17 +402,16 @@ Resources:
           stage: !Ref Stage
           zuoraApiHost:
             !Sub
-              - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraApiHost::${SecretsVersion}}}'
-              - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraApiHost::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
           zuoraClientId:
             !Sub
-              - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientId::${SecretsVersion}}}'
-              - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientId::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
           zuoraClientSecret:
             !Sub
-              - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret::${SecretsVersion}}}'
-              - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          earliestStartDate: !FindInMap [StageMap, !Ref Stage, EarliestStartDate]
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
           batchSize: 100
       Role:
         Fn::GetAtt:
@@ -244,7 +426,7 @@ Resources:
   PriceMigrationEngineSalesforcePriceCreationLambda:
     Type: AWS::Lambda::Function
     Properties:
-      Description: Lambda used to create Price_Rise__c objects in salesforce realting to the price rise.
+      Description: Lambda used to create Price_Rise__c objects in salesforce relating to the price rise.
       FunctionName:
         !Sub price-migration-engine-salesforce-price-rise-lambda-${Stage}
       Code:
@@ -314,7 +496,6 @@ Resources:
             !Sub
             - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret::${SecretsVersion}}}'
             - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          earliestStartDate: !FindInMap [StageMap, !Ref Stage, EarliestStartDate]
           batchSize: 100
       Role:
         Fn::GetAtt:
@@ -326,41 +507,16 @@ Resources:
     DependsOn:
       - PriceMigrationEngineAmendmentLambdaRole
 
-  PriceMigrationEngineSubscriptionIdUploadLambda:
+  PriceMigrationEngineNotificationLambda:
     Type: AWS::Lambda::Function
     Properties:
-      Description: Uploads subscription id CSV files into price migration engine.
+      Description: Sends notification mails to users telling them about the price rise
       FunctionName:
-        !Sub price-migration-engine-subscription-id-upload-lambda-${Stage}
+        !Sub price-migration-engine-notification-lambda-${Stage}
       Code:
         S3Bucket: membership-dist
         S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
-      Handler: pricemigrationengine.handlers.SubscriptionIdUploadHandler::handleRequest
-      Environment:
-        Variables:
-          stage: !Ref Stage
-          batchSize: 100
-      Role:
-        Fn::GetAtt:
-          - PriceMigrationEngineSubscriptionIdUploadLambdaRole
-          - Arn
-      MemorySize: 1536
-      Runtime: java8
-      Timeout: 900
-    DependsOn:
-      - PriceMigrationEngineSubscriptionIdUploadLambdaRole
-      - S3Bucket
-
-  PriceMigrationEngineNotificationEmailLambda:
-    Type: AWS::Lambda::Function
-    Properties:
-      Description: Sends notification emails to users telling them about the price rise
-      FunctionName:
-        !Sub price-migration-engine-notification-email-lambda-${Stage}
-      Code:
-        S3Bucket: membership-dist
-        S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
-      Handler: pricemigrationengine.handlers.NotificationEmailHandler::handleRequest
+      Handler: pricemigrationengine.handlers.NotificationHandler::handleRequest
       Environment:
         Variables:
           stage: !Ref Stage
@@ -390,20 +546,148 @@ Resources:
             - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceToken::${SecretsVersion}}}'
             - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
           sqsEmailQueueName:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:sqsEmailQueueName::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+            !FindInMap [ StageMap, !Ref Stage, SQSQueueName ]
       Role:
         Fn::GetAtt:
-          - PriceMigrationEngineNotificationEmailLambdaRole
+          - PriceMigrationEngineNotificationLambdaRole
           - Arn
       MemorySize: 1536
       Runtime: java8
       Timeout: 900
     DependsOn:
-      - PriceMigrationEngineNotificationEmailLambdaRole
+      - PriceMigrationEngineNotificationLambdaRole
+
+  PriceMigrationEngineSalesforceNotificationDateUpdateLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Lambda used to update Price_Rise__c objects in salesforce with the notification sent date.
+      FunctionName:
+        !Sub price-migration-engine-salesforce-notification-date-lambda-${Stage}
+      Code:
+        S3Bucket: membership-dist
+        S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
+      Handler: pricemigrationengine.handlers.SalesforceNotificationDateUpdateHandler::handleRequest
+      Environment:
+        Variables:
+          stage: !Ref Stage
+          batchSize: 100
+          salesforceAuthUrl:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceAuthUrl::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforceClientId:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceClientId::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforceClientSecret:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceClientSecret::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforceUserName:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceUserName::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforcePassword:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforcePassword::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforceToken:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceToken::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+      Role:
+        Fn::GetAtt:
+          - PriceMigrationEngineSalesforceNotificationDateUpdateLambdaRole
+          - Arn
+      MemorySize: 1536
+      Runtime: java8
+      Timeout: 900
+    DependsOn:
+      - PriceMigrationEngineSalesforceNotificationDateUpdateLambdaRole
+
+  PriceMigrationEngineSalesforceAmendmentUpdateLambda:
+    Type: AWS::Lambda::Function
+    DependsOn:
+      - PriceMigrationEngineSalesforceAmendmentUpdateLambdaRole
+    Properties:
+      Description: Updates Salesforce with evidence of the price-rise amendment that was applied in Zuora.
+      FunctionName:
+        !Sub price-migration-engine-salesforce-amendment-update-lambda-${Stage}
+      Code:
+        S3Bucket: membership-dist
+        S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
+      Handler: pricemigrationengine.handlers.SalesforceAmendmentUpdateHandler::handleRequest
+      Environment:
+        Variables:
+          stage: !Ref Stage
+          batchSize: 100
+          salesforceAuthUrl:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceAuthUrl::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforceClientId:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceClientId::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforceClientSecret:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceClientSecret::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforceUserName:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceUserName::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforcePassword:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforcePassword::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+          salesforceToken:
+            !Sub
+            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceToken::${SecretsVersion}}}'
+            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
+      Role:
+        Fn::GetAtt:
+          - PriceMigrationEngineSalesforceAmendmentUpdateLambdaRole
+          - Arn
+      MemorySize: 1536
+      Runtime: java8
+      Timeout: 900
+
+  PriceMigrationEngineCohortTableDatalakeExportLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Exports the cohort table to s3 for so it is available for import into the datalake.
+      FunctionName:
+        !Sub price-migration-engine-cohort-table-datalake-export-lambda-${Stage}
+      Code:
+        S3Bucket: membership-dist
+        S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
+      Handler: pricemigrationengine.handlers.CohortTableDatalakeExportHandler::handleRequest
+      Environment:
+        Variables:
+          stage: !Ref Stage
+          batchSize: 100
+          exportBucketName: !FindInMap [StageMap, !Ref Stage, ExportBucketName]
+      Role:
+        Fn::GetAtt:
+          - PriceMigrationEngineCohortTableDatalakeExportLambdaRole
+          - Arn
+      MemorySize: 1536
+      Runtime: java8
+      Timeout: 900
+    DependsOn:
+      - PriceMigrationEngineCohortTableDatalakeExportLambdaRole
+      - S3Bucket
 
 Outputs:
+  PriceMigrationEngineTableCreateLambdaOutput:
+    Value: !GetAtt PriceMigrationEngineTableCreateLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-CreatingCohortTableLambda"
+  PriceMigrationEngineSubscriptionIdUploadLambdaOutput:
+    Value: !GetAtt PriceMigrationEngineSubscriptionIdUploadLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-ImportingLambda"
   PriceMigrationEngineEstimationLambdaOutput:
     Value: !GetAtt PriceMigrationEngineEstimationLambda.Arn
     Export:
@@ -412,3 +696,23 @@ Outputs:
     Value: !GetAtt PriceMigrationEngineSalesforcePriceCreationLambda.Arn
     Export:
       Name: !Sub "${AWS::StackName}-CreatingSalesforceRecordsLambda"
+  PriceMigrationEngineNotificationLambdaOutput:
+    Value: !GetAtt PriceMigrationEngineNotificationLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-NotifyingSubscribersLambda"
+  PriceMigrationEngineSalesforceNotificationDateUpdateLambdaOutput:
+    Value: !GetAtt PriceMigrationEngineSalesforceNotificationDateUpdateLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-UpdatingSalesforceWithNotificationsLambda"
+  PriceMigrationEngineAmendmentLambdaOutput:
+    Value: !GetAtt PriceMigrationEngineAmendmentLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-AmendingLambda"
+  PriceMigrationEngineSalesforceAmendmentUpdateLambdaOutput:
+    Value: !GetAtt PriceMigrationEngineSalesforceAmendmentUpdateLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-UpdatingSalesforceWithAmendsLambda"
+  PriceMigrationEngineCohortTableDatalakeExportLambdaOutput:
+    Value: !GetAtt PriceMigrationEngineCohortTableDatalakeExportLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-ExportingCohortTableToDatalakeLambda"

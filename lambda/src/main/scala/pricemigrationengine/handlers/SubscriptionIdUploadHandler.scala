@@ -2,41 +2,78 @@ package pricemigrationengine.handlers
 
 import java.io.{InputStream, InputStreamReader}
 
-import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import org.apache.commons.csv.{CSVFormat, CSVParser}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.console.Console
+import zio.clock.Clock
 import zio.stream.ZStream
-import zio.{App, ExitCode, IO, Runtime, ZEnv, ZIO, ZLayer}
+import zio.{IO, ZEnv, ZIO, ZLayer}
 
 import scala.jdk.CollectionConverters._
 
-object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
+object SubscriptionIdUploadHandler extends CohortHandler {
+
   private val csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader()
 
-  val main: ZIO[CohortTable with Logging with S3 with StageConfiguration, Failure, Unit] = {
-    for {
-      config <- StageConfiguration.stageConfig
-      exclusionsManagedStream <- S3.getObject(
-        S3Location(
-          s"price-migration-engine-${config.stage.toLowerCase}",
-          "excluded-subscription-ids.csv"
-        )
+  private def sourceLocation(cohortSpec: CohortSpec): ZIO[StageConfiguration, ConfigurationFailure, S3Location] =
+    StageConfiguration.stageConfig map { stageConfig =>
+      S3Location(
+        s"price-migration-engine-${stageConfig.stage.toLowerCase}",
+        s"${cohortSpec.normalisedCohortName}"
       )
+    }
+
+  private def sourceSublocation(
+      cohortSpec: CohortSpec,
+      sublocation: String
+  ): ZIO[StageConfiguration, ConfigurationFailure, S3Location] =
+    sourceLocation(cohortSpec).map(loc => loc.copy(key = s"${loc.key}/$sublocation"))
+
+  private def importSourceLocation(cohortSpec: CohortSpec) =
+    sourceSublocation(cohortSpec, "salesforce-subscription-id-report.csv")
+
+  private def exclusionSourceLocation(cohortSpec: CohortSpec) =
+    sourceSublocation(cohortSpec, "excluded-subscription-ids.csv")
+
+  def main(
+      cohortSpec: CohortSpec
+  ): ZIO[CohortTable with S3 with StageConfiguration with Clock with Logging, Failure, HandlerOutput] =
+    (for {
+      today <- Time.today
+      _ <-
+        if (today.isBefore(cohortSpec.importStartDate))
+          Logging.info(s"No action.  Import start date ${cohortSpec.importStartDate} is in the future.") zipRight
+            ZIO.succeed(())
+        else
+          importCohortAndCleanUp(cohortSpec)
+    } yield HandlerOutput(isComplete = true))
+      .tapError(e => Logging.error(e.toString))
+
+  def importCohortAndCleanUp(
+      cohortSpec: CohortSpec
+  ): ZIO[CohortTable with S3 with StageConfiguration with Logging, Failure, Unit] =
+    for {
+      _ <- importCohort(cohortSpec).catchSome {
+        case e: S3Failure => Logging.info(s"No action.  Cohort already imported: ${e.reason}") zipRight ZIO.succeed(())
+      }
+      src <- sourceLocation(cohortSpec)
+      _ <- S3.deleteObject(src)
+    } yield ()
+
+  private def importCohort(
+      cohortSpec: CohortSpec
+  ): ZIO[CohortTable with Logging with S3 with StageConfiguration, Failure, Unit] =
+    for {
+      exclusionsSrc <- exclusionSourceLocation(cohortSpec)
+      exclusionsManagedStream <- S3.getObject(exclusionsSrc)
       exclusions <- exclusionsManagedStream.use(parseExclusions)
       _ <- Logging.info(s"Loaded excluded subscriptions: $exclusions")
-      subscriptionIdsManagedStream <- S3.getObject(
-        S3Location(
-          s"price-migration-engine-${config.stage.toLowerCase}",
-          "salesforce-subscription-id-report.csv"
-        )
-      )
+      importSrc <- importSourceLocation(cohortSpec)
+      subscriptionIdsManagedStream <- S3.getObject(importSrc)
       count <- subscriptionIdsManagedStream.use(stream => writeSubscriptionIdsToCohortTable(stream, exclusions))
       _ <- Logging.info(s"Wrote $count subscription ids to the cohort table")
     } yield ()
-  }
 
   def parseExclusions(inputStream: InputStream): IO[SubscriptionIdUploadFailure, Set[String]] = {
     ZIO
@@ -64,43 +101,30 @@ object SubscriptionIdUploadHandler extends App with RequestHandler[Unit, Unit] {
       )
       .filterM { subscriptionId =>
         if (exclusions.contains(subscriptionId)) {
-          for {
-            _ <- Logging.info(s"Filtering subscription $subscriptionId as it is in the exclusion file")
-          } yield false
-        } else {
+          Logging.info(s"Filtering subscription $subscriptionId as it is in the exclusion file") zipRight
+            ZIO.succeed(false)
+        } else
           ZIO.succeed(true)
-        }
       }
-      .tap { subcriptionId =>
-        CohortTable.put(CohortItem(subcriptionId, ReadyForEstimation))
+      .mapM { subscriptionId =>
+        CohortTable
+          .create(CohortItem(subscriptionId, ReadyForEstimation))
+          .tap(_ => Logging.info(s"Imported subscription $subscriptionId"))
+          .catchSome {
+            case _: CohortItemAlreadyPresentFailure =>
+              Logging.info(s"Ignored $subscriptionId as already in table") zipRight ZIO.succeed(())
+          }
+          .tapError(e => Logging.error(s"Subscription $subscriptionId failed: $e"))
       }
       .runCount
   }
 
-  private def env(loggingService: Logging.Service) = {
-    val loggingLayer = ZLayer.succeed(loggingService)
-    val cohortTableLayer =
-      loggingLayer ++ EnvConfiguration.dynamoDbImpl >>>
-        DynamoDBClient.dynamoDB ++ loggingLayer >>>
-        DynamoDBZIOLive.impl ++ loggingLayer ++ EnvConfiguration.stageImp ++ EnvConfiguration.cohortTableImp >>>
-        CohortTableLive.impl ++ S3Live.impl ++ EnvConfiguration.stageImp
-    (loggingLayer ++ cohortTableLayer)
-      .tapError(e => loggingService.error(s"Failed to create service environment: $e"))
-  }
+  private def env(
+      cohortSpec: CohortSpec
+  ): ZLayer[Logging, Failure, CohortTable with S3 with StageConfiguration with Logging] =
+    (LiveLayer.cohortTable(cohortSpec) and LiveLayer.s3 and EnvConfiguration.stageImp and LiveLayer.logging)
+      .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
-  private val runtime = Runtime.default
-
-  def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
-    main
-      .provideSomeLayer(
-        env(ConsoleLogging.service(Console.Service.live))
-      )
-      .exitCode
-
-  def handleRequest(unused: Unit, context: Context): Unit =
-    runtime.unsafeRun(
-      main.provideSomeLayer(
-        env(LambdaLogging.service(context))
-      )
-    )
+  def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
+    main(input).provideSomeLayer[ZEnv with Logging](env(input))
 }

@@ -3,22 +3,12 @@ package pricemigrationengine.handlers
 import java.time.LocalDate
 
 import pricemigrationengine.Fixtures
-import pricemigrationengine.model.AmendmentConfig
-import pricemigrationengine.services.AmendmentConfiguration
 import zio.random.Random
-import zio.{Chunk, IO, Runtime, UIO, ULayer, ZLayer}
+import zio.{BuildFrom, Chunk, Runtime, UIO, ULayer, ZLayer}
 
 class EstimationHandlerTest extends munit.FunSuite {
 
-  private val config: ULayer[AmendmentConfiguration] = ZLayer.succeed(
-    new AmendmentConfiguration.Service {
-      val config: UIO[AmendmentConfig] = IO.succeed(
-        AmendmentConfig(
-          earliestStartDate = LocalDate.of(2020, 6, 2)
-        )
-      )
-    }
-  )
+  private val absoluteEarliestStartDate = LocalDate.of(2020, 6, 2)
 
   private val random: ULayer[Random] = ZLayer.succeed(
     new Random.Service {
@@ -39,18 +29,21 @@ class EstimationHandlerTest extends munit.FunSuite {
       def nextPrintableChar: UIO[Char] = ???
       def nextString(length: Int): UIO[String] = ???
       def setSeed(seed: Long): UIO[Unit] = ???
-      def shuffle[A](list: List[A]): UIO[List[A]] = ???
+      def shuffle[A, Collection[+Element] <: Iterable[Element]](collection: Collection[A])(implicit
+          bf: BuildFrom[Collection[A], A, Collection[A]]
+      ): UIO[Collection[A]] = ???
     }
   )
 
-  private val env = config ++ random
+  private val env = random
 
   private val runtime = Runtime.default
 
   test("spreadEarliestStartDate: gives default value for a quarterly subscription") {
     val earliestStartDateCalc = EstimationHandler.spreadEarliestStartDate(
       subscription = Fixtures.subscriptionFromJson("QuarterlyVoucher/Subscription.json"),
-      invoicePreview = Fixtures.invoiceListFromJson("QuarterlyVoucher/InvoicePreview.json")
+      invoicePreview = Fixtures.invoiceListFromJson("QuarterlyVoucher/InvoicePreview.json"),
+      absoluteEarliestStartDate
     )
     val earliestStartDate = runtime.unsafeRun(earliestStartDateCalc.provideLayer(env))
     assertEquals(earliestStartDate, LocalDate.of(2020, 6, 2))
@@ -59,7 +52,8 @@ class EstimationHandlerTest extends munit.FunSuite {
   test("spreadEarliestStartDate: gives randomised value for a monthly subscription") {
     val earliestStartDateCalc = EstimationHandler.spreadEarliestStartDate(
       subscription = Fixtures.subscriptionFromJson("Monthly/Subscription.json"),
-      invoicePreview = Fixtures.invoiceListFromJson("Monthly/InvoicePreview.json")
+      invoicePreview = Fixtures.invoiceListFromJson("Monthly/InvoicePreview.json"),
+      absoluteEarliestStartDate
     )
     val earliestStartDate = runtime.unsafeRun(earliestStartDateCalc.provideLayer(env))
     assertEquals(earliestStartDate, LocalDate.of(2020, 7, 2))

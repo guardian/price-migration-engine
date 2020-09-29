@@ -1,8 +1,10 @@
 package pricemigrationengine.handlers
 
-import java.io.InputStream
+import java.io.{File, InputStream}
 import java.time.LocalDate
 
+import com.amazonaws.services.s3.model.{CannedAccessControlList, PutObjectResult}
+import pricemigrationengine.{StubClock, TestLogging}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.Exit.Success
@@ -30,12 +32,12 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
             beforeDateInclusive: Option[LocalDate]
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
-        override def put(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] =
+        override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
+        override def create(cohortItem: CohortItem): ZIO[Any, Failure, Unit] =
           IO.effect {
-              subscriptionsWrittenToCohortTable.addOne(cohortItem)
-              ()
-            }
-            .orElseFail(CohortUpdateFailure(""))
+            subscriptionsWrittenToCohortTable.addOne(cohortItem)
+            ()
+          }.orElseFail(CohortUpdateFailure(""))
       }
     )
 
@@ -49,25 +51,40 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
             .mapError(ex => S3Failure(s"Failed to load test resource: $ex"))
         }
 
-        override def getObject(s3Location: S3Location): ZManaged[Any, S3Failure, InputStream] = s3Location match {
-          case S3Location("price-migration-engine-dev", "excluded-subscription-ids.csv") =>
-            loadTestResource("/SubscriptionExclusions.csv")
-          case S3Location("price-migration-engine-dev", "salesforce-subscription-id-report.csv") =>
-            loadTestResource("/SubscriptionIds.csv")
-        }
+        override def getObject(s3Location: S3Location): ZManaged[Any, S3Failure, InputStream] =
+          s3Location match {
+            case S3Location("price-migration-engine-dev", "cohortName/excluded-subscription-ids.csv") =>
+              loadTestResource("/SubscriptionExclusions.csv")
+            case S3Location("price-migration-engine-dev", "cohortName/salesforce-subscription-id-report.csv") =>
+              loadTestResource("/SubscriptionIds.csv")
+          }
+
+        override def putObject(
+            s3Location: S3Location,
+            file: File,
+            cannedAccessControlList: Option[CannedAccessControlList]
+        ): IO[S3Failure, PutObjectResult] = ???
+
+        override def deleteObject(s3Location: S3Location): IO[S3Failure, Unit] = ZIO.succeed(())
       }
     )
 
-    val stubLogging = console.Console.live >>> ConsoleLogging.impl
-
     assertEquals(
       default.unsafeRunSync(
-        SubscriptionIdUploadHandler.main
+        SubscriptionIdUploadHandler
+          .main(
+            CohortSpec(
+              cohortName = "cohortName",
+              brazeCampaignName = "cmp123",
+              importStartDate = LocalDate.of(2020, 1, 1),
+              earliestPriceMigrationStartDate = LocalDate.of(2020, 1, 1)
+            )
+          )
           .provideLayer(
-            stubLogging ++ stubConfiguration ++ stubCohortTable ++ stubS3
+            TestLogging.logging ++ stubConfiguration ++ stubCohortTable ++ stubS3 ++ StubClock.clock
           )
       ),
-      Success(())
+      Success(HandlerOutput(isComplete = true))
     )
     assertEquals(subscriptionsWrittenToCohortTable.size, 2)
     assertEquals(subscriptionsWrittenToCohortTable(0).subscriptionName, "A-S123456")

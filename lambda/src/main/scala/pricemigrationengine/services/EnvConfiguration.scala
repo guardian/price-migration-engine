@@ -1,7 +1,6 @@
 package pricemigrationengine.services
 
 import java.lang.System.getenv
-import java.time.LocalDate
 
 import pricemigrationengine.model._
 import zio.{IO, ZIO, ZLayer}
@@ -18,26 +17,17 @@ object EnvConfiguration {
       .effect(Option(getenv(name)))
       .mapError(e => ConfigurationFailure(e.getMessage))
 
-  val amendmentImpl: ZLayer[Any, Nothing, AmendmentConfiguration] = ZLayer.succeed {
-    new AmendmentConfiguration.Service {
-      val config: IO[ConfigurationFailure, AmendmentConfig] = for {
-        earliestStartDate <- env("earliestStartDate").map(LocalDate.parse)
-      } yield AmendmentConfig(earliestStartDate)
-    }
-  }
-
   val zuoraImpl: ZLayer[Any, Nothing, ZuoraConfiguration] = ZLayer.succeed {
     new ZuoraConfiguration.Service {
       val config: IO[ConfigurationFailure, ZuoraConfig] = for {
         zuoraApiHost <- env("zuoraApiHost")
         zuoraClientId <- env("zuoraClientId")
         zuoraClientSecret <- env("zuoraClientSecret")
-      } yield
-        ZuoraConfig(
-          zuoraApiHost,
-          zuoraClientId,
-          zuoraClientSecret
-        )
+      } yield ZuoraConfig(
+        zuoraApiHost,
+        zuoraClientId,
+        zuoraClientSecret
+      )
     }
   }
 
@@ -46,12 +36,12 @@ object EnvConfiguration {
       val config: IO[ConfigurationFailure, DynamoDBConfig] = for {
         dynamoDBServiceEndpointOption <- optionalEnv("dynamodb.serviceEndpoint")
         dynamoDBSigningRegionOption <- optionalEnv("dynamodb.signingRegion")
-        dynamoDBEndpoint = dynamoDBServiceEndpointOption
-          .flatMap(endpoint => dynamoDBSigningRegionOption.map(region => DynamoDBEndpointConfig(endpoint, region)))
-      } yield
-        DynamoDBConfig(
-          dynamoDBEndpoint
-        )
+        dynamoDBEndpoint =
+          dynamoDBServiceEndpointOption
+            .flatMap(endpoint => dynamoDBSigningRegionOption.map(region => DynamoDBEndpointConfig(endpoint, region)))
+      } yield DynamoDBConfig(
+        dynamoDBEndpoint
+      )
     }
   }
 
@@ -59,10 +49,9 @@ object EnvConfiguration {
     new CohortTableConfiguration.Service {
       val config: IO[ConfigurationFailure, CohortTableConfig] = for {
         batchSize <- env("batchSize").map(_.toInt)
-      } yield
-        CohortTableConfig(
-          batchSize
-        )
+      } yield CohortTableConfig(
+        batchSize
+      )
     }
   }
 
@@ -75,15 +64,14 @@ object EnvConfiguration {
         salesforceUserName <- env("salesforceUserName")
         salesforcePassword <- env("salesforcePassword")
         salesforceToken <- env("salesforceToken")
-      } yield
-        SalesforceConfig(
-          salesforceAuthUrl,
-          salesforceClientId,
-          salesforceClientSecret,
-          salesforceUserName,
-          salesforcePassword,
-          salesforceToken
-        )
+      } yield SalesforceConfig(
+        salesforceAuthUrl,
+        salesforceClientId,
+        salesforceClientSecret,
+        salesforceUserName,
+        salesforcePassword,
+        salesforceToken
+      )
     }
   }
 
@@ -91,10 +79,9 @@ object EnvConfiguration {
     new StageConfiguration.Service {
       val config: IO[ConfigurationFailure, StageConfig] = for {
         stage <- env("stage")
-      } yield
-        StageConfig(
-          stage
-        )
+      } yield StageConfig(
+        stage
+      )
     }
   }
 
@@ -106,6 +93,24 @@ object EnvConfiguration {
         } yield EmailSenderConfig(
           sqsEmailQueueName = emailSqsQueueName
         )
+    }
+  }
+
+  val cohortStateMachineImpl: ZLayer[Any, ConfigurationFailure, CohortStateMachineConfiguration] = ZLayer.fromEffect {
+    env("cohortStateMachineArn") map { arn =>
+      new CohortStateMachineConfiguration.Service {
+        val config: IO[ConfigurationFailure, CohortStateMachineConfig] =
+          ZIO.succeed(CohortStateMachineConfig(stateMachineArn = arn))
+      }
+    }
+  }
+
+  val exportConfigImpl: ZLayer[Any, ConfigurationFailure, ExportConfiguration] = ZLayer.fromEffect {
+    env("exportBucketName") map { exportBucketName =>
+      new ExportConfiguration.Service {
+        val config: ExportConfig =
+          ExportConfig(exportBucketName = exportBucketName)
+      }
     }
   }
 }

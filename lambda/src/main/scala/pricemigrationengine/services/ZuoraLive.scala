@@ -4,26 +4,28 @@ import java.time.LocalDate
 
 import pricemigrationengine.model._
 import scalaj.http.{Http, HttpOptions, HttpRequest, HttpResponse}
-import upickle.default._
+import upickle.default.{ReadWriter, Reader, macroRW, read, write}
+import zio.Schedule.{exponential, recurs}
+import zio.clock.Clock
+import zio.duration._
 import zio.{ZIO, ZLayer}
 
-import scala.concurrent.duration._
-
 object ZuoraLive {
-  val impl: ZLayer[ZuoraConfiguration with Logging, ConfigurationFailure, Zuora] = ZLayer
+  val impl: ZLayer[ZuoraConfiguration with Clock with Logging, ConfigurationFailure, Zuora] = ZLayer
     .fromServicesM[
       ZuoraConfiguration.Service,
+      Clock.Service,
       Logging.Service,
-      ZuoraConfiguration with Logging,
+      ZuoraConfiguration with Clock with Logging,
       ConfigurationFailure,
       Zuora.Service
-    ] { (configuration, logging) =>
+    ] { (configuration, clock, logging) =>
       configuration.config map { config =>
         new Zuora.Service {
 
           private val apiVersion = "v1"
 
-          private val timeout = Duration(30, SECONDS).toMillis.toInt
+          private val timeout = 30.seconds.toMillis.toInt
           private val connTimeout = HttpOptions.connTimeout(timeout)
           private val readTimeout = HttpOptions.readTimeout(timeout)
 
@@ -65,55 +67,66 @@ object ZuoraLive {
               Left(ZuoraFetchFailure(failureMessage(request, response)))
           }
 
-          private def get[A: Reader](path: String, params: Map[String, String] = Map.empty): ZIO[Any, Failure, A] =
+          private def retry[E, A](effect: => ZIO[Any, E, A]): ZIO[Any, E, A] = effect
+            .retry(exponential(1.second) && recurs(5))
+            .provideLayer(ZLayer.succeed(clock))
+
+          private def get[A: Reader](
+              path: String,
+              params: Map[String, String] = Map.empty
+          ): ZIO[Any, ZuoraFetchFailure, A] =
             for {
               accessToken <- ZIO.fromEither(fetchedAccessToken)
-              a <- handleRequest[A](
-                Http(s"${config.apiHost}/$apiVersion/$path")
-                  .params(params)
-                  .header("Authorization", s"Bearer $accessToken")
+              a <- retry(
+                handleRequest[A](
+                  Http(s"${config.apiHost}/$apiVersion/$path")
+                    .params(params)
+                    .header("Authorization", s"Bearer $accessToken")
+                ).mapError(e => ZuoraFetchFailure(e.reason))
               )
             } yield a
 
-          private def post[A: Reader](path: String, body: String): ZIO[Any, Failure, A] =
+          private def post[A: Reader](path: String, body: String): ZIO[Any, ZuoraUpdateFailure, A] =
             for {
-              accessToken <- ZIO.fromEither(fetchedAccessToken)
+              accessToken <- ZIO.fromEither(fetchedAccessToken).mapError(e => ZuoraUpdateFailure(e.reason))
               a <- handleRequest[A](
                 Http(s"${config.apiHost}/$apiVersion/$path")
                   .header("Authorization", s"Bearer $accessToken")
                   .header("Content-Type", "application/json")
                   .postData(body)
-              )
+              ).mapError(e => ZuoraUpdateFailure(e.reason))
             } yield a
 
-          private def put[A: Reader](path: String, body: String): ZIO[Any, Failure, A] =
+          private def put[A: Reader](path: String, body: String): ZIO[Any, ZuoraUpdateFailure, A] =
             for {
-              accessToken <- ZIO.fromEither(fetchedAccessToken)
+              accessToken <- ZIO.fromEither(fetchedAccessToken).mapError(e => ZuoraUpdateFailure(e.reason))
               a <- handleRequest[A](
                 Http(s"${config.apiHost}/$apiVersion/$path")
                   .header("Authorization", s"Bearer $accessToken")
                   .header("Content-Type", "application/json")
                   .put(body)
-              )
+              ).mapError(e => ZuoraUpdateFailure(e.reason))
             } yield a
 
-          private def handleRequest[A: Reader](request: HttpRequest): ZIO[Any, Failure, A] = {
-            val response = request
-              .option(connTimeout)
-              .option(readTimeout)
-              .asString
-            val body = response.body
-            if (response.code == 200)
-              ZIO
-                .effect(read[A](body))
-                .orElse(ZIO.fail(ZuoraFetchFailure(failureMessage(request, response))))
-            else
-              ZIO.fail(ZuoraFetchFailure(failureMessage(request, response)))
-          }
+          private def handleRequest[A: Reader](request: HttpRequest): ZIO[Any, ZuoraFailure, A] =
+            for {
+              response <-
+                ZIO
+                  .effect(request.option(connTimeout).option(readTimeout).asString)
+                  .mapError(e => ZuoraFailure(failureMessage(request, e)))
+                  .filterOrElse(_.code == 200)(response => ZIO.fail(ZuoraFailure(failureMessage(request, response))))
+              a <-
+                ZIO
+                  .effect(read[A](response.body))
+                  .orElse(ZIO.fail(ZuoraFailure(failureMessage(request, response))))
+            } yield a
 
           private def failureMessage(request: HttpRequest, response: HttpResponse[String]) = {
             s"Request for ${request.method} ${request.url} returned status ${response.code} with body:${response.body}"
           }
+
+          private def failureMessage(request: HttpRequest, t: Throwable) =
+            s"Request for ${request.method} ${request.url} returned error ${t.toString}"
 
           def fetchSubscription(subscriptionNumber: String): ZIO[Any, ZuoraFetchFailure, ZuoraSubscription] =
             get[ZuoraSubscription](s"subscriptions/$subscriptionNumber")
@@ -128,17 +141,19 @@ object ZuoraLive {
               accountId: String,
               targetDate: LocalDate
           ): ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList] =
-            post[ZuoraInvoiceList](
-              path = "operations/billing-preview",
-              body = write(
-                InvoicePreviewRequest(
-                  accountId,
-                  targetDate,
-                  assumeRenewal = "Autorenew",
-                  chargeTypeToExclude = "OneTime"
+            retry(
+              post[ZuoraInvoiceList](
+                path = "operations/billing-preview",
+                body = write(
+                  InvoicePreviewRequest(
+                    accountId,
+                    targetDate,
+                    assumeRenewal = "Autorenew",
+                    chargeTypeToExclude = "OneTime"
+                  )
                 )
-              )
-            ).mapError(e => ZuoraFetchFailure(s"Invoice preview for account $accountId: ${e.reason}"))
+              ).mapError(e => ZuoraFetchFailure(s"Invoice preview for account $accountId: ${e.reason}"))
+            )
               .tapBoth(
                 e => logging.error(s"Failed to fetch invoice preview for account $accountId: $e"),
                 _ => logging.info(s"Fetched invoice preview for account $accountId")
@@ -166,9 +181,10 @@ object ZuoraLive {
               for {
                 curr <- fetchPage(pageIdx)
                 soFar = combine(acc, curr)
-                catalogue <- if (hasNextPage(curr)) {
-                  fetchCatalogue(soFar, pageIdx + 1)
-                } else ZIO.succeed(soFar)
+                catalogue <-
+                  if (hasNextPage(curr)) {
+                    fetchCatalogue(soFar, pageIdx + 1)
+                  } else ZIO.succeed(soFar)
               } yield catalogue
 
             fetchCatalogue(ZuoraProductCatalogue.empty, pageIdx = 1)
@@ -182,13 +198,12 @@ object ZuoraLive {
               path = s"subscriptions/${subscription.subscriptionNumber}",
               body = write(update)
             ).bimap(
-                e =>
-                  ZuoraUpdateFailure(
-                    s"Subscription ${subscription.subscriptionNumber} and update $update: ${e.reason}"
+              e =>
+                ZuoraUpdateFailure(
+                  s"Subscription ${subscription.subscriptionNumber} and update $update: ${e.reason}"
                 ),
-                response => response.subscriptionId
-              )
-              .tap(_ => logging.info(s"Updated subscription ${subscription.subscriptionNumber} with: $update"))
+              response => response.subscriptionId
+            ).tap(_ => logging.info(s"Updated subscription ${subscription.subscriptionNumber} with: $update"))
         }
       }
     }
