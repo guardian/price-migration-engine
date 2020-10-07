@@ -46,7 +46,7 @@ object S3Live {
       override def deleteObject(s3Location: S3Location): IO[S3Failure, Unit] =
         (for {
           listing <- IO.effect(s3.listObjects(s3Location.bucket, s3Location.key))
-          _ <- IO.foreach(listing.getObjectSummaries.asScala.toList)(summary =>
+          _ <- IO.foreach_(listing.getObjectSummaries.asScala)(summary =>
             IO.effect(s3.deleteObject(summary.getBucketName, summary.getKey))
               .tap(_ => logging.info(s"Deleted $summary"))
           )

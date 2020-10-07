@@ -16,9 +16,9 @@ object MigrationHandler extends zio.App with RequestHandler[Unit, Unit] {
       cohortSpecs <- CohortSpecTable.fetchAll
       activeSpecs <-
         ZIO
-          .filter(cohortSpecs.toList)(cohort => ZIO.succeed(CohortSpec.isActive(cohort)(today)))
+          .filter(cohortSpecs)(cohort => ZIO.succeed(CohortSpec.isActive(cohort)(today)))
           .tap(specs => Logging.info(s"Currently ${specs.size} active cohorts"))
-      _ <- ZIO.foreach(activeSpecs)(CohortStateMachine.startExecution)
+      _ <- ZIO.foreach_(activeSpecs)(CohortStateMachine.startExecution)
     } yield ()).tapError(e => Logging.error(s"Migration run failed: $e"))
 
   private val env: ZLayer[Logging, ConfigurationFailure, CohortSpecTable with CohortStateMachine with Logging] =
