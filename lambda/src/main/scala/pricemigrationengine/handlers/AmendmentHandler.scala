@@ -6,8 +6,7 @@ import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.{ZEnv, ZIO, ZLayer}
 
-/**
-  * Carries out price-rise amendments in Zuora.
+/** Carries out price-rise amendments in Zuora.
   */
 object AmendmentHandler extends CohortHandler {
 

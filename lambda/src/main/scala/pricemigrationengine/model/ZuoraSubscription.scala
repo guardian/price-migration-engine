@@ -58,8 +58,7 @@ case class ZuoraRatePlanCharge(
 object ZuoraRatePlanCharge {
   implicit val rw: ReadWriter[ZuoraRatePlanCharge] = macroRW
 
-  /**
-    * Rate plan charge that corresponds with the given invoice item.
+  /** Rate plan charge that corresponds with the given invoice item.
     */
   def matchingRatePlanCharge(
       subscription: ZuoraSubscription,

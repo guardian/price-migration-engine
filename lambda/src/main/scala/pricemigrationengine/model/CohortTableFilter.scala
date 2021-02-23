@@ -55,6 +55,6 @@ object CohortTableFilter {
     NotificationSendDateWrittenToSalesforce,
     NotificationSendProcessingOrError,
     ReadyForEstimation,
-    SalesforcePriceRiceCreationComplete,
+    SalesforcePriceRiceCreationComplete
   )
 }

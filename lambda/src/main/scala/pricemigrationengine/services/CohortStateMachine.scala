@@ -5,8 +5,7 @@ import pricemigrationengine.model.{CohortSpec, CohortStateMachineFailure}
 import zio.ZIO
 import zio.clock.Clock
 
-/**
-  * Kicks off the migration process for a particular cohort.
+/** Kicks off the migration process for a particular cohort.
   *
   * The specification of the cohort is used as the input to the state machine.
   */

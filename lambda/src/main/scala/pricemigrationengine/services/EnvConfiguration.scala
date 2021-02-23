@@ -8,8 +8,8 @@ import zio.{IO, ZIO, ZLayer}
 object EnvConfiguration {
   def env(name: String): IO[ConfigurationFailure, String] =
     optionalEnv(name)
-      .collect(ConfigurationFailure(s"No value for '$name' in environment")) {
-        case Some(value) => value
+      .collect(ConfigurationFailure(s"No value for '$name' in environment")) { case Some(value) =>
+        value
       }
 
   def optionalEnv(name: String): IO[ConfigurationFailure, Option[String]] =

@@ -2,8 +2,7 @@ package pricemigrationengine.model
 
 object Either {
 
-  /**
-    * Converts a Seq of Eithers to either a Left
+  /** Converts a Seq of Eithers to either a Left
     * containing the first Left value of the Seq if any of the Seq has a Left value,
     * or else to a Right that contains the Seq of all the Right values in the original Seq.
     */

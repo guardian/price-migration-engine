@@ -8,8 +8,7 @@ case class AmendmentData(startDate: LocalDate, priceData: PriceData)
 
 case class PriceData(currency: Currency, oldPrice: BigDecimal, newPrice: BigDecimal, billingPeriod: String)
 
-/**
-  * <p>Data used to estimate and report on price-rise amendments to subscriptions.</p>
+/** <p>Data used to estimate and report on price-rise amendments to subscriptions.</p>
   *
   * <p>The general approach here is to use a combination of Zuora invoice previews, subscriptions
   * and the product catalogue to determine billing dates, current charges and future charges.</p>
@@ -52,8 +51,7 @@ object AmendmentData {
       .headOption
       .toRight(AmendmentDataFailure(s"Cannot determine next billing date on or after $onOrAfter from $invoiceList"))
 
-  /**
-    * New prices can only be calculated from a combination of the subscription rate plan charge
+  /** New prices can only be calculated from a combination of the subscription rate plan charge
     * and its corresponding product rate plan charge.<br/>
     * This is because discounts are only reliable in the subscription rate plan charge,
     * and new prices have to come from the product rate plan charge.
@@ -63,8 +61,7 @@ object AmendmentData {
       chargeFromProduct: ZuoraProductRatePlanCharge
   )
 
-  /**
-    * General algorithm:
+  /** General algorithm:
     * <ol>
     * <li>For a given date, gather chargeNumber fields from invoice preview.</li>
     * <li>For each chargeNumber, match it with ratePlanCharge number on sub and get corresponding ratePlanCharge.</li>
@@ -140,8 +137,7 @@ object AmendmentData {
     } yield PriceData(currency, oldPrice, newPrice, billingPeriod)
   }
 
-  /**
-    * Total charge amount, including taxes and discounts, for the service period starting on the given service start date.
+  /** Total charge amount, including taxes and discounts, for the service period starting on the given service start date.
     */
   def totalChargeAmount(
       subscription: ZuoraSubscription,
@@ -170,8 +166,7 @@ object AmendmentData {
       }
   }
 
-  /**
-    * Either a left discount percentage or a right absolute amount.
+  /** Either a left discount percentage or a right absolute amount.
     */
   def individualChargeAmount(ratePlanCharge: ZuoraRatePlanCharge): Either[Double, BigDecimal] =
     ratePlanCharge.price match {
@@ -180,8 +175,7 @@ object AmendmentData {
       case Some(_)          => Right(0)
     }
 
-  /**
-    * Total charge amount, including taxes and discounts, for a given set of <code>RatePlanChargePairs</code>,
+  /** Total charge amount, including taxes and discounts, for a given set of <code>RatePlanChargePairs</code>,
     * using the product rate plan charge price as a basis.<br/>
     * Absolute prices will come from the product rate plan charge.<br/>
     * Percentage discount amounts will come from the subscription rate plan charge.<br/>
@@ -204,10 +198,9 @@ object AmendmentData {
             ratePlanChargePair.chargeFromProduct.billingPeriod
           ).map(Some(_))
             .left
-            .map(
-              e =>
-                AmendmentDataFailure(
-                  s"Failed to calculate amount of rate plan charge ${ratePlanChargePair.chargeFromSubscription.number}: $e"
+            .map(e =>
+              AmendmentDataFailure(
+                s"Failed to calculate amount of rate plan charge ${ratePlanChargePair.chargeFromSubscription.number}: $e"
               )
             )
       }
@@ -223,11 +216,10 @@ object AmendmentData {
     for {
       discountPercentage <- discountPercentageOrFailure
       _ <- prices.collectFirst { case Left(e) => e }.toLeft(())
-    } yield
-      applyDiscountAndThenSum(
-        discountPercentage,
-        beforeDiscount = prices.collect { case Right(price) => price }.flatten
-      )
+    } yield applyDiscountAndThenSum(
+      discountPercentage,
+      beforeDiscount = prices.collect { case Right(price) => price }.flatten
+    )
   }
 
   private def applyDiscountAndThenSum(discountPercentage: Option[Double], beforeDiscount: Seq[BigDecimal]): BigDecimal =
@@ -238,8 +230,7 @@ object AmendmentData {
 
   def roundDown(d: BigDecimal): BigDecimal = d.setScale(2, RoundingMode.DOWN)
 
-  /**
-    * In some cases, a product rate plan charge has a monthly billing period
+  /** In some cases, a product rate plan charge has a monthly billing period
     * but a subscription has overridden it with a rate plan charge with a different billing period.
     * In these cases, the price has to be multiplied
     * by the number of months in the subscription billing period.

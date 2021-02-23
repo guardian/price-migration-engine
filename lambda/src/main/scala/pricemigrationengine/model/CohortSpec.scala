@@ -7,8 +7,7 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import pricemigrationengine.model.dynamodb.Conversions._
 import upickle.default.{ReadWriter, macroRW}
 
-/**
-  * Specification of a cohort.
+/** Specification of a cohort.
   *
   * @param cohortName Name that uniquely identifies a cohort, eg. "Vouchers 2020"
   * @param brazeCampaignName Name of the Braze campaign for this cohort.<br />

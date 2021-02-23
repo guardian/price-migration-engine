@@ -6,8 +6,7 @@ import pricemigrationengine.services._
 import zio.clock.Clock
 import zio.{IO, ZEnv, ZIO, ZLayer}
 
-/**
-  * Updates Salesforce with evidence of the price-rise amendment that was applied in Zuora.
+/** Updates Salesforce with evidence of the price-rise amendment that was applied in Zuora.
   */
 object SalesforceAmendmentUpdateHandler extends CohortHandler {
 

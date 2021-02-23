@@ -8,8 +8,7 @@ import pricemigrationengine.services._
 import zio.random.Random
 import zio.{ZEnv, ZIO, ZLayer, random}
 
-/**
-  * Calculates start date and new price for a set of CohortItems.
+/** Calculates start date and new price for a set of CohortItems.
   *
   * Expected input is a CohortSpec in json format.
   *

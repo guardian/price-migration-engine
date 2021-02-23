@@ -73,9 +73,9 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
     )(stream => ZIO.effectTotal(stream.close()))
 
   def writeCsvToStream(
-    cohortItems: ZStream[Any, Failure, CohortItem],
-    outputStream: OutputStream,
-    cohortSpec: CohortSpec
+      cohortItems: ZStream[Any, Failure, CohortItem],
+      outputStream: OutputStream,
+      cohortSpec: CohortSpec
   ): IO[Failure, Long] = {
     managedCSVPrinter(
       outputStream,
