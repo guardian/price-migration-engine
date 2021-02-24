@@ -6,6 +6,8 @@ on:
 
 jobs:
   test:
+    name: Test of Scala Steward PR
+
     if: github.actor == 'scala-steward'
 
     runs-on: ubuntu-latest
