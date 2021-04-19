@@ -15,6 +15,6 @@ object Dependencies {
   lazy val upickle = "com.lihaoyi" %% "upickle" % "1.2.0"
   lazy val awsLambda = "com.amazonaws" % "aws-lambda-java-core" % "1.2.1"
   lazy val http = "org.scalaj" %% "scalaj-http" % "2.4.2"
-  lazy val munit = "org.scalameta" %% "munit" % "0.7.23"
+  lazy val munit = "org.scalameta" %% "munit" % "0.7.25"
   lazy val commonsCsv = "org.apache.commons" % "commons-csv" % "1.8"
 }
