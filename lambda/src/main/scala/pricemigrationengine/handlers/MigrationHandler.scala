@@ -5,8 +5,7 @@ import pricemigrationengine.model.{CohortSpec, ConfigurationFailure}
 import pricemigrationengine.services._
 import zio.{ExitCode, Runtime, ZEnv, ZIO, ZLayer}
 
-/**
-  * Executes price migration for active cohorts.
+/** Executes price migration for active cohorts.
   */
 object MigrationHandler extends zio.App with RequestHandler[Unit, Unit] {
 

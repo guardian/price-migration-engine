@@ -4,8 +4,7 @@ import pricemigrationengine.model.{CohortSpec, ConfigurationFailure, Failure, Ha
 import pricemigrationengine.services.{CohortTableDdl, Logging}
 import zio.{ZEnv, ZIO, ZLayer}
 
-/**
-  * Creates a new CohortTable if it doesn't already exist.
+/** Creates a new CohortTable if it doesn't already exist.
   */
 object CohortTableCreationHandler extends CohortHandler {
 

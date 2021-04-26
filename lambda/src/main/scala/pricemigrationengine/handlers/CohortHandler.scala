@@ -9,13 +9,11 @@ import ujson.Readable
 import upickle.default.{read, stream}
 import zio.{ExitCode, Runtime, ZEnv, ZIO}
 
-/**
-  * A CohortHandler can be run as the handler of an AWS lambda or as a standalone program.
+/** A CohortHandler can be run as the handler of an AWS lambda or as a standalone program.
   */
 trait CohortHandler extends zio.App with RequestStreamHandler {
 
-  /**
-    * Makes implementation available in lambda or console context.
+  /** Makes implementation available in lambda or console context.
     *
     * @param input CohortSpec with specification for the particular cohort that this handler is running over.
     * @return HandlerOutput if successful.

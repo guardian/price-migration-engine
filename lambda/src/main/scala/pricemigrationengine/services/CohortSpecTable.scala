@@ -3,8 +3,7 @@ package pricemigrationengine.services
 import pricemigrationengine.model.{CohortSpec, CohortSpecUpdateFailure, Failure}
 import zio.{IO, ZIO}
 
-/**
-  * For accessing the specifications of each cohort.
+/** For accessing the specifications of each cohort.
   */
 object CohortSpecTable {
 

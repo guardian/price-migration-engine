@@ -1,6 +1,11 @@
 package pricemigrationengine.service
 
-import pricemigrationengine.model.membershipworkflow.{EmailMessage, EmailPayload, EmailPayloadContactAttributes, EmailPayloadSubscriberAttributes}
+import pricemigrationengine.model.membershipworkflow.{
+  EmailMessage,
+  EmailPayload,
+  EmailPayloadContactAttributes,
+  EmailPayloadSubscriberAttributes
+}
 import pricemigrationengine.services.EmailSenderLive
 
 class EmailSenderLiveTest extends munit.FunSuite {

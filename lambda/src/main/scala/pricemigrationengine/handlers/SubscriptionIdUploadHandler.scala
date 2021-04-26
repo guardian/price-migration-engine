@@ -54,8 +54,8 @@ object SubscriptionIdUploadHandler extends CohortHandler {
       cohortSpec: CohortSpec
   ): ZIO[CohortTable with S3 with StageConfiguration with Logging, Failure, Unit] =
     for {
-      _ <- importCohort(cohortSpec).catchSome {
-        case e: S3Failure => Logging.info(s"No action.  Cohort already imported: ${e.reason}") zipRight ZIO.succeed(())
+      _ <- importCohort(cohortSpec).catchSome { case e: S3Failure =>
+        Logging.info(s"No action.  Cohort already imported: ${e.reason}") zipRight ZIO.succeed(())
       }
       src <- sourceLocation(cohortSpec)
       _ <- S3.deleteObject(src)
@@ -110,9 +110,8 @@ object SubscriptionIdUploadHandler extends CohortHandler {
         CohortTable
           .create(CohortItem(subscriptionId, ReadyForEstimation))
           .tap(_ => Logging.info(s"Imported subscription $subscriptionId"))
-          .catchSome {
-            case _: CohortItemAlreadyPresentFailure =>
-              Logging.info(s"Ignored $subscriptionId as already in table") zipRight ZIO.succeed(())
+          .catchSome { case _: CohortItemAlreadyPresentFailure =>
+            Logging.info(s"Ignored $subscriptionId as already in table") zipRight ZIO.succeed(())
           }
           .tapError(e => Logging.error(s"Subscription $subscriptionId failed: $e"))
       }

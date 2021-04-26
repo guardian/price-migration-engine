@@ -16,8 +16,7 @@ case class ZuoraSubscriptionUpdate(
 object ZuoraSubscriptionUpdate {
   implicit val rw: ReadWriter[ZuoraSubscriptionUpdate] = macroRW
 
-  /**
-    * Takes all non-discount rate plans participating in the invoice list on the given date,
+  /** Takes all non-discount rate plans participating in the invoice list on the given date,
     * and replaces them with their current equivalent.
     * This has the effect of updating their prices to the current ones in the product catalogue.
     *
@@ -106,8 +105,7 @@ object ChargeOverride {
     } yield fromRatePlanCharge(productRatePlanCharge, ratePlanCharge)).sequence
       .map(_.flatten)
 
-  /**
-    * <p>A <code>ChargeOverride</code> is defined iff the billing period of the given <code>ProductRatePlanCharge</code>
+  /** <p>A <code>ChargeOverride</code> is defined iff the billing period of the given <code>ProductRatePlanCharge</code>
     * is different to the billing period of the given <code>RatePlanCharge</code>.</p>
     *
     * <p>If there isn't enough information in the given <code>ProductRatePlanCharge</code> and
