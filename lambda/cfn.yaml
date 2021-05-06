@@ -31,6 +31,27 @@ Mappings:
 
 Resources:
 
+  ReadFromDistBucketPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: ReadFromDistBucketPolicy
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action: s3:GetObject
+            Resource:
+              - arn:aws:s3::*:membership-dist/*
+      Roles:
+        - Ref: PriceMigrationEngineTableCreateLambdaRole
+        - Ref: PriceMigrationEngineSubscriptionIdUploadLambdaRole
+        - Ref: PriceMigrationEngineEstimationLambdaRole
+        - Ref: PriceMigrationEngineSalesforcePriceCreationLambdaRole
+        - Ref: PriceMigrationEngineAmendmentLambdaRole
+        - Ref: PriceMigrationEngineNotificationLambdaRole
+        - Ref: PriceMigrationEngineSalesforceNotificationDateUpdateLambdaRole
+        - Ref: PriceMigrationEngineSalesforceAmendmentUpdateLambdaRole
+        - Ref: PriceMigrationEngineCohortTableDatalakeExportLambdaRole
+
   CohortTableAccessPolicy:
     Type: AWS::IAM::Policy
     Properties:
