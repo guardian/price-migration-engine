@@ -1,18 +1,17 @@
 package pricemigrationengine.handlers
 
-import java.io.{File, InputStream}
-import java.time._
-
-import com.amazonaws.services.s3.model.{CannedAccessControlList, PutObjectResult}
+import pricemigrationengine.TestLogging
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import pricemigrationengine.{StubClock, TestLogging}
+import software.amazon.awssdk.services.s3.model.{ObjectCannedACL, PutObjectResponse}
 import zio.Exit.Success
 import zio.Runtime.default
 import zio._
 import zio.stream.ZStream
 
+import java.io.{File, InputStream}
+import java.time._
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
 
@@ -45,12 +44,12 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
         override def putObject(
             s3Location: S3Location,
             file: File,
-            cannedAccessControlList: Option[CannedAccessControlList]
-        ): IO[S3Failure, PutObjectResult] =
+            cannedAccessControlList: Option[ObjectCannedACL]
+        ): IO[S3Failure, PutObjectResponse] =
           for {
             fileContents <- ZIO.effectTotal(Source.fromFile(file, "UTF-8").getLines().mkString("\n"))
             _ <- ZIO.effectTotal(filesWrittenToS3.addOne((s3Location, fileContents)))
-          } yield new PutObjectResult()
+          } yield PutObjectResponse.builder.build()
 
         def deleteObject(s3Location: S3Location): IO[S3Failure, Unit] = ???
       }

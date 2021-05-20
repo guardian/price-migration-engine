@@ -1,17 +1,16 @@
 package pricemigrationengine.handlers
 
-import java.io.{File, InputStream}
-import java.time.LocalDate
-
-import com.amazonaws.services.s3.model.{CannedAccessControlList, PutObjectResult}
-import pricemigrationengine.{StubClock, TestLogging}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
+import pricemigrationengine.{StubClock, TestLogging}
+import software.amazon.awssdk.services.s3.model.{ObjectCannedACL, PutObjectResponse}
 import zio.Exit.Success
 import zio.Runtime.default
 import zio._
 import zio.stream.ZStream
 
+import java.io.{File, InputStream}
+import java.time.LocalDate
 import scala.collection.mutable.ArrayBuffer
 
 class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
@@ -62,8 +61,8 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
         override def putObject(
             s3Location: S3Location,
             file: File,
-            cannedAccessControlList: Option[CannedAccessControlList]
-        ): IO[S3Failure, PutObjectResult] = ???
+            cannedAccessControlList: Option[ObjectCannedACL]
+        ): IO[S3Failure, PutObjectResponse] = ???
 
         override def deleteObject(s3Location: S3Location): IO[S3Failure, Unit] = ZIO.succeed(())
       }

@@ -6,10 +6,6 @@ case class ZuoraConfig(
     clientSecret: String
 )
 
-case class DynamoDBConfig(endpoint: Option[DynamoDBEndpointConfig])
-
-case class DynamoDBEndpointConfig(serviceEndpoint: String, signingRegion: String)
-
 case class CohortTableConfig(batchSize: Int = 100)
 
 case class StageConfig(stage: String)

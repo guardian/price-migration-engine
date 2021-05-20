@@ -46,7 +46,20 @@ lazy val lambda = (project in file("lambda"))
     riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
     riffRaffUploadManifestBucket := Option("riffraff-builds"),
     riffRaffManifestProjectName := "MemSub::Subscriptions::Lambda::PriceMigrationEngine",
-    riffRaffArtifactResources += ((project.base / "cfn.yaml", "cfn/cfn.yaml"))
+    riffRaffArtifactResources += ((project.base / "cfn.yaml", "cfn/cfn.yaml")),
+    assembly / assemblyMergeStrategy := {
+      /*
+       * AWS SDK v2 includes a codegen-resources directory in each jar, with conflicting names.
+       * This appears to be for generating clients from HTTP services.
+       * So it's redundant in a binary artefact.
+       */
+      case PathList("codegen-resources", _*)                    => MergeStrategy.discard
+      case PathList("module-info.class")                        => MergeStrategy.discard
+      case PathList("META-INF", "io.netty.versions.properties") => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (assembly / assemblyMergeStrategy).value
+        oldStrategy(x)
+    }
   )
 
 lazy val stateMachine = (project in file("stateMachine"))
