@@ -20,7 +20,7 @@ import scala.jdk.CollectionConverters._
 
 object S3Live {
   val impl: ZLayer[Logging, Nothing, S3] = ZLayer.fromService { logging =>
-    val s3 = S3Client.builder.region(EU_WEST_1).build()
+    val s3 = AwsClient.s3
 
     new S3.Service {
       override def getObject(s3Location: S3Location): ZManaged[Any, S3Failure, InputStream] = {

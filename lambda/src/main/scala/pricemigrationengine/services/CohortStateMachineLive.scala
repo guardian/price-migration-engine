@@ -2,8 +2,6 @@ package pricemigrationengine.services
 
 import pricemigrationengine.handlers.Time
 import pricemigrationengine.model._
-import software.amazon.awssdk.regions.Region.EU_WEST_1
-import software.amazon.awssdk.services.sfn.SfnClient
 import software.amazon.awssdk.services.sfn.model.{StartExecutionRequest, StartExecutionResponse}
 import upickle.default.{ReadWriter, macroRW, write}
 import zio.blocking.Blocking
@@ -22,7 +20,7 @@ object CohortStateMachineLive {
   val impl
       : ZLayer[CohortStateMachineConfiguration with Logging with Blocking, ConfigurationFailure, CohortStateMachine] = {
 
-    val stateMachine = SfnClient.builder.region(EU_WEST_1).build()
+    val stateMachine = AwsClient.sfn
 
     ZLayer.fromServicesM[
       CohortStateMachineConfiguration.Service,

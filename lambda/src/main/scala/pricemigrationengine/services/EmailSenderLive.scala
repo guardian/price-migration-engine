@@ -28,7 +28,7 @@ object EmailSenderLive {
             }
           sqsClient <- ZIO
             .effect {
-              SqsAsyncClient.create()
+              AwsClient.sqsAsync
             }
             .mapError { ex =>
               EmailSenderFailure(s"Failed to create sqs client: ${ex.getMessage}")
