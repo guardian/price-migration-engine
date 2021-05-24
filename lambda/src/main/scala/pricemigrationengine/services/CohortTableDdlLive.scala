@@ -1,10 +1,10 @@
 package pricemigrationengine.services
 
-import com.amazonaws.services.dynamodbv2.model.BillingMode.PAY_PER_REQUEST
-import com.amazonaws.services.dynamodbv2.model.KeyType.{HASH, RANGE}
-import com.amazonaws.services.dynamodbv2.model.ProjectionType.ALL
-import com.amazonaws.services.dynamodbv2.model._
 import pricemigrationengine.model.{CohortSpec, CohortTableCreateFailure, ConfigurationFailure}
+import software.amazon.awssdk.services.dynamodb.model.BillingMode.PAY_PER_REQUEST
+import software.amazon.awssdk.services.dynamodb.model.KeyType.{HASH, RANGE}
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.S
+import software.amazon.awssdk.services.dynamodb.model._
 import zio.Schedule.{exponential, recurs}
 import zio.clock.Clock
 import zio.duration._
@@ -20,36 +20,40 @@ object CohortTableDdlLive {
   private val stageAttribute = "processingStage"
   private val startDateAttribute = "startDate"
 
-  private val stringType = "S"
-
   val impl
       : ZLayer[DynamoDBClient with StageConfiguration with Clock with Logging, ConfigurationFailure, CohortTableDdl] =
     ZLayer.fromFunctionM { modules: DynamoDBClient with StageConfiguration with Clock with Logging =>
       StageConfiguration.stageConfig
         .map { stageConfig =>
-          def create(tableName: String): ZIO[DynamoDBClient, CohortTableCreateFailure, CreateTableResult] = {
-            val createRequest = new CreateTableRequest()
-              .withTableName(tableName)
-              .withKeySchema(new KeySchemaElement().withAttributeName(partitionKey).withKeyType(HASH))
-              .withAttributeDefinitions(
-                new AttributeDefinition().withAttributeName(partitionKey).withAttributeType(stringType),
-                new AttributeDefinition().withAttributeName(stageAttribute).withAttributeType(stringType),
-                new AttributeDefinition().withAttributeName(startDateAttribute).withAttributeType(stringType)
+          def create(tableName: String): ZIO[DynamoDBClient, CohortTableCreateFailure, CreateTableResponse] = {
+            val createRequest = CreateTableRequest.builder
+              .tableName(tableName)
+              .keySchema(KeySchemaElement.builder.attributeName(partitionKey).keyType(HASH).build())
+              .attributeDefinitions(
+                AttributeDefinition.builder.attributeName(partitionKey).attributeType(S).build(),
+                AttributeDefinition.builder.attributeName(stageAttribute).attributeType(S).build(),
+                AttributeDefinition.builder
+                  .attributeName(startDateAttribute)
+                  .attributeType(S)
+                  .build()
               )
-              .withGlobalSecondaryIndexes(
-                new GlobalSecondaryIndex()
-                  .withIndexName(stageIndex)
-                  .withKeySchema(new KeySchemaElement().withAttributeName(stageAttribute).withKeyType(HASH))
-                  .withProjection(new Projection().withProjectionType(ALL)),
-                new GlobalSecondaryIndex()
-                  .withIndexName(stageAndStartDateIndex)
-                  .withKeySchema(
-                    new KeySchemaElement().withAttributeName(stageAttribute).withKeyType(HASH),
-                    new KeySchemaElement().withAttributeName(startDateAttribute).withKeyType(RANGE)
+              .globalSecondaryIndexes(
+                GlobalSecondaryIndex.builder
+                  .indexName(stageIndex)
+                  .keySchema(KeySchemaElement.builder.attributeName(stageAttribute).keyType(HASH).build())
+                  .projection(Projection.builder.projectionType(ProjectionType.ALL).build())
+                  .build(),
+                GlobalSecondaryIndex.builder
+                  .indexName(stageAndStartDateIndex)
+                  .keySchema(
+                    KeySchemaElement.builder.attributeName(stageAttribute).keyType(HASH).build(),
+                    KeySchemaElement.builder.attributeName(startDateAttribute).keyType(RANGE).build()
                   )
-                  .withProjection(new Projection().withProjectionType(ALL))
+                  .projection(Projection.builder.projectionType(ProjectionType.ALL).build())
+                  .build()
               )
-              .withBillingMode(PAY_PER_REQUEST)
+              .billingMode(PAY_PER_REQUEST)
+              .build()
 
             DynamoDBClient.createTable(createRequest).mapError(e => CohortTableCreateFailure(e.toString))
           }
@@ -57,14 +61,14 @@ object CohortTableDdlLive {
           def enableContinuousBackups(tableName: String): ZIO[
             DynamoDBClient with Logging with Clock,
             CohortTableCreateFailure,
-            UpdateContinuousBackupsResult
+            UpdateContinuousBackupsResponse
           ] = {
-            val enableBackups =
-              new UpdateContinuousBackupsRequest()
-                .withTableName(tableName)
-                .withPointInTimeRecoverySpecification(
-                  new PointInTimeRecoverySpecification().withPointInTimeRecoveryEnabled(true)
-                )
+            val enableBackups = UpdateContinuousBackupsRequest.builder
+              .tableName(tableName)
+              .pointInTimeRecoverySpecification(
+                PointInTimeRecoverySpecification.builder.pointInTimeRecoveryEnabled(true).build()
+              )
+              .build()
 
             val result = DynamoDBClient
               .updateContinuousBackups(enableBackups)
@@ -76,9 +80,8 @@ object CohortTableDdlLive {
             result.mapError(e => CohortTableCreateFailure(e.toString))
           }
 
-          //noinspection ConvertExpressionToSAM
           new CohortTableDdl.Service {
-            def createTable(cohortSpec: CohortSpec): IO[CohortTableCreateFailure, Option[CreateTableResult]] = {
+            def createTable(cohortSpec: CohortSpec): IO[CohortTableCreateFailure, Option[CreateTableResponse]] = {
               val tableName = cohortSpec.tableName(stageConfig.stage)
               (for {
                 // if table can be described, it must already exist and therefore not need to be created

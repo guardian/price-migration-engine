@@ -1,9 +1,9 @@
 package pricemigrationengine.services
 
-import com.amazonaws.services.sqs.model.SendMessageRequest
-import com.amazonaws.services.sqs.{AmazonSQSAsync, AmazonSQSAsyncClientBuilder}
 import pricemigrationengine.model.EmailSenderFailure
 import pricemigrationengine.model.membershipworkflow.EmailMessage
+import software.amazon.awssdk.services.sqs.SqsAsyncClient
+import software.amazon.awssdk.services.sqs.model.{GetQueueUrlRequest, SendMessageRequest}
 import upickle.default.write
 import zio.{ZIO, ZLayer}
 
@@ -28,34 +28,33 @@ object EmailSenderLive {
             }
           sqsClient <- ZIO
             .effect {
-              AmazonSQSAsyncClientBuilder.standard().build()
+              AwsClient.sqsAsync
             }
             .mapError { ex =>
               EmailSenderFailure(s"Failed to create sqs client: ${ex.getMessage}")
             }
-          queueUrl <- ZIO
-            .effect {
-              sqsClient.getQueueUrl(config.sqsEmailQueueName).getQueueUrl
+          queueUrlResponse <- ZIO
+            .fromCompletableFuture {
+              sqsClient.getQueueUrl(GetQueueUrlRequest.builder.queueName(config.sqsEmailQueueName).build())
             }
-            .mapError { ex =>
-              EmailSenderFailure(s"Failed to get sqs queue url: ${ex.getMessage}")
-            }
+            .mapError { ex => EmailSenderFailure(s"Failed to get sqs queue url: ${ex.getMessage}") }
         } yield new EmailSender.Service {
           override def sendEmail(message: EmailMessage): ZIO[Any, EmailSenderFailure, Unit] = {
-            sendMessage(sqsClient, queueUrl, message)
+            sendMessage(sqsClient, queueUrlResponse.queueUrl, message)
           }.provide(dependencies)
         }
       ).provide(dependencies)
   }
 
-  private def sendMessage(sqsClient: AmazonSQSAsync, queueUrl: String, message: EmailMessage) = {
+  private def sendMessage(sqsClient: SqsAsyncClient, queueUrl: String, message: EmailMessage) = {
     for {
       result <- ZIO
-        .effect {
+        .fromCompletableFuture {
           sqsClient.sendMessage(
-            new SendMessageRequest()
-              .withQueueUrl(queueUrl)
-              .withMessageBody(serialiseMessage(message))
+            SendMessageRequest.builder
+              .queueUrl(queueUrl)
+              .messageBody(serialiseMessage(message))
+              .build()
           )
         }
         .mapError { ex =>
@@ -64,7 +63,7 @@ object EmailSenderLive {
           )
         }
       _ <- Logging.info(
-        s"Successfully sent email for sfContactId ${message.SfContactId} message id: ${result.getMessageId}"
+        s"Successfully sent email for sfContactId ${message.SfContactId} message id: ${result.messageId}"
       )
     } yield ()
   }

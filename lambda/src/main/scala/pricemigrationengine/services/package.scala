@@ -5,7 +5,6 @@ import zio.Has
 package object services {
 
   type ZuoraConfiguration = Has[ZuoraConfiguration.Service]
-  type DynamoDBConfiguration = Has[DynamoDBConfiguration.Service]
   type CohortTableConfiguration = Has[CohortTableConfiguration.Service]
   type SalesforceConfiguration = Has[SalesforceConfiguration.Service]
   type StageConfiguration = Has[StageConfiguration.Service]

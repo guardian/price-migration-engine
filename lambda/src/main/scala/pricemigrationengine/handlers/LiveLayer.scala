@@ -11,7 +11,7 @@ object LiveLayer {
   val logging: URLayer[Logging, Logging] = ZLayer.identity[Logging]
 
   private val dynamoDbClient: ZLayer[Logging, ConfigurationFailure, DynamoDBClient] =
-    EnvConfiguration.dynamoDbImpl and logging to DynamoDBClientLive.impl
+    logging to DynamoDBClientLive.impl
 
   def cohortTable(cohortSpec: CohortSpec): ZLayer[Logging, ConfigurationFailure, CohortTable] =
     dynamoDbClient and logging andTo

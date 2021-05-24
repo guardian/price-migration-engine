@@ -1,11 +1,10 @@
 package pricemigrationengine.services
 
-import java.util
-
-import com.amazonaws.services.dynamodbv2.model._
+import software.amazon.awssdk.services.dynamodb.model._
 import zio.stream.ZStream
 import zio.{IO, ZIO, ZLayer}
 
+import java.util
 import scala.jdk.CollectionConverters._
 
 object DynamoDBZIOLive {
@@ -18,7 +17,7 @@ object DynamoDBZIOLive {
           recursivelyExecuteQueryUntilAllResultsAreStreamed(query)
             .mapM(deserializer.deserialise)
 
-        private def recursivelyExecuteQueryUntilAllResultsAreStreamed[A](
+        private def recursivelyExecuteQueryUntilAllResultsAreStreamed(
             query: QueryRequest
         ): ZStream[Any, DynamoDBZIOError, util.Map[String, AttributeValue]] = {
           ZStream
@@ -26,17 +25,18 @@ object DynamoDBZIOLive {
               case Some(queryRequest) =>
                 for {
                   queryResult <- sendQueryRequest(queryRequest)
-                  _ <- Logging.info(s"Received query results for batch with ${queryResult.getCount} items")
-                  queryForNextBatch = Option(queryResult.getLastEvaluatedKey)
-                    .map(lastEvaluatedKey => queryRequest.clone().withExclusiveStartKey(lastEvaluatedKey))
-                } yield Some((queryResult.getItems().asScala, queryForNextBatch))
+                  _ <- Logging.info(s"Received query results for batch with ${queryResult.items.asScala.length} items")
+                  queryForNextBatch = Option(queryResult.lastEvaluatedKey)
+                    .filterNot(_.isEmpty)
+                    .map(lastEvaluatedKey => queryRequest.copy(x => x.exclusiveStartKey(lastEvaluatedKey)))
+                } yield Some((queryResult.items.asScala, queryForNextBatch))
               case None =>
                 ZIO.none
             }
             .flatMap(resultList => ZStream.fromIterable(resultList))
         }.provide(dependencies)
 
-        private def sendQueryRequest[A](queryRequest: QueryRequest): ZIO[Any, DynamoDBZIOError, QueryResult] = {
+        private def sendQueryRequest(queryRequest: QueryRequest): ZIO[Any, DynamoDBZIOError, QueryResponse] = {
           for {
             _ <- Logging.info(s"Starting query: $queryRequest")
             results <-
@@ -53,7 +53,7 @@ object DynamoDBZIOLive {
             .mapM(deserializer.deserialise)
         }
 
-        private def recursivelyExecuteScanUntilAllResultsAreStreamed[A](
+        private def recursivelyExecuteScanUntilAllResultsAreStreamed(
             query: ScanRequest
         ): ZStream[Any, DynamoDBZIOError, util.Map[String, AttributeValue]] = {
           ZStream
@@ -61,17 +61,18 @@ object DynamoDBZIOLive {
               case Some(queryRequest) =>
                 for {
                   scanResult <- sendScanRequest(queryRequest)
-                  _ <- Logging.info(s"Received query results for batch with ${scanResult.getCount} items")
-                  queryForNextBatch = Option(scanResult.getLastEvaluatedKey)
-                    .map(lastEvaluatedKey => queryRequest.clone().withExclusiveStartKey(lastEvaluatedKey))
-                } yield Some((scanResult.getItems().asScala, queryForNextBatch))
+                  _ <- Logging.info(s"Received query results for batch with ${scanResult.count} items")
+                  queryForNextBatch = Option(scanResult.lastEvaluatedKey)
+                    .filterNot(_.isEmpty)
+                    .map(lastEvaluatedKey => queryRequest.copy(x => x.exclusiveStartKey(lastEvaluatedKey)))
+                } yield Some((scanResult.items.asScala, queryForNextBatch))
               case None =>
                 ZIO.none
             }
             .flatMap(resultList => ZStream.fromIterable(resultList))
         }.provide(dependencies)
 
-        private def sendScanRequest[A](queryRequest: ScanRequest): ZIO[Any, DynamoDBZIOError, ScanResult] = {
+        private def sendScanRequest(queryRequest: ScanRequest): ZIO[Any, DynamoDBZIOError, ScanResponse] = {
           for {
             _ <- Logging.info(s"Starting scan: $queryRequest")
             results <-
@@ -87,11 +88,11 @@ object DynamoDBZIOLive {
         ): IO[DynamoDBZIOError, Unit] =
           DynamoDBClient
             .updateItem(
-              new UpdateItemRequest(
-                table,
-                keySerializer.serialise(key),
-                valueSerializer.serialise(value)
-              )
+              UpdateItemRequest.builder
+                .tableName(table)
+                .key(keySerializer.serialise(key))
+                .attributeUpdates(valueSerializer.serialise(value))
+                .build()
             )
             .bimap(
               ex => DynamoDBZIOError(s"Failed to write value '$value' to '$table': $ex"),
@@ -103,7 +104,7 @@ object DynamoDBZIOLive {
             valueSerializer: DynamoDBSerialiser[A]
         ): IO[DynamoDBZIOError, Unit] =
           DynamoDBClient
-            .createItem(new PutItemRequest(table, valueSerializer.serialise(value)), keyName)
+            .createItem(PutItemRequest.builder.tableName(table).item(valueSerializer.serialise(value)).build(), keyName)
             .mapError(ex => DynamoDBZIOError(s"Failed to write value '$value' to '$table': $ex", Some(ex)))
             .unit
             .provide(dependencies)

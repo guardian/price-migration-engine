@@ -2,12 +2,12 @@ import sbt._
 
 object Dependencies {
   private val zioVersion = "1.0.7"
-  private val awsSdkVersion = "1.11.979"
+  private val awsSdkVersion = "2.16.58"
 
-  lazy val awsDynamoDb = "com.amazonaws" % "aws-java-sdk-dynamodb" % awsSdkVersion
-  lazy val awsS3 = "com.amazonaws" % "aws-java-sdk-s3" % awsSdkVersion
-  lazy val awsSQS = "com.amazonaws" % "aws-java-sdk-sqs" % awsSdkVersion
-  lazy val awsStateMachine = "com.amazonaws" % "aws-java-sdk-stepfunctions" % awsSdkVersion
+  lazy val awsDynamoDb = "software.amazon.awssdk" % "dynamodb" % awsSdkVersion
+  lazy val awsS3 = "software.amazon.awssdk" % "s3" % awsSdkVersion
+  lazy val awsSQS = "software.amazon.awssdk" % "sqs" % awsSdkVersion
+  lazy val awsStateMachine = "software.amazon.awssdk" % "sfn" % awsSdkVersion
   lazy val zio = "dev.zio" %% "zio" % zioVersion
   lazy val zioStreams = "dev.zio" %% "zio-streams" % zioVersion
   lazy val zioTest = "dev.zio" %% "zio-test" % zioVersion

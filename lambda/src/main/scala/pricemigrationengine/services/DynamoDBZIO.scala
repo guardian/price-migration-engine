@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, AttributeValueUpdate, QueryRequest, ScanRequest}
+import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, AttributeValueUpdate, QueryRequest, ScanRequest}
 import zio.stream.ZStream
 import zio.{IO, URIO, ZIO}
 

@@ -1,11 +1,11 @@
 package pricemigrationengine.model
 
+import pricemigrationengine.model.dynamodb.Conversions._
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
+import upickle.default.{ReadWriter, macroRW}
+
 import java.time.LocalDate
 import java.util
-
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
-import pricemigrationengine.model.dynamodb.Conversions._
-import upickle.default.{ReadWriter, macroRW}
 
 /** Specification of a cohort.
   *
