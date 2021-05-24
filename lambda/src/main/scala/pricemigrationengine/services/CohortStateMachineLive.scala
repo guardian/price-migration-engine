@@ -1,17 +1,15 @@
 package pricemigrationengine.services
 
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-
-import com.amazonaws.regions.Regions.EU_WEST_1
-import com.amazonaws.services.stepfunctions.AWSStepFunctionsClientBuilder
-import com.amazonaws.services.stepfunctions.model.{StartExecutionRequest, StartExecutionResult}
 import pricemigrationengine.handlers.Time
 import pricemigrationengine.model._
+import software.amazon.awssdk.services.sfn.model.{StartExecutionRequest, StartExecutionResponse}
 import upickle.default.{ReadWriter, macroRW, write}
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.{ZIO, ZLayer}
+
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 object CohortStateMachineLive {
 
@@ -22,7 +20,7 @@ object CohortStateMachineLive {
   val impl
       : ZLayer[CohortStateMachineConfiguration with Logging with Blocking, ConfigurationFailure, CohortStateMachine] = {
 
-    val stateMachine = AWSStepFunctionsClientBuilder.standard.withRegion(EU_WEST_1).build
+    val stateMachine = AwsClient.sfn
 
     ZLayer.fromServicesM[
       CohortStateMachineConfiguration.Service,
@@ -36,7 +34,7 @@ object CohortStateMachineLive {
         //noinspection ConvertExpressionToSAM
         new CohortStateMachine.Service {
 
-          def startExecution(spec: CohortSpec): ZIO[Clock, CohortStateMachineFailure, StartExecutionResult] =
+          def startExecution(spec: CohortSpec): ZIO[Clock, CohortStateMachineFailure, StartExecutionResponse] =
             for {
               _ <- logging.info(s"Starting execution with input: ${spec.toString} ...")
               time <- Time.thisInstant.mapError(e => CohortStateMachineFailure(e.toString))
@@ -48,10 +46,11 @@ object CohortStateMachineLive {
                 blocking
                   .effectBlocking(
                     stateMachine.startExecution(
-                      new StartExecutionRequest()
-                        .withStateMachineArn(config.stateMachineArn)
-                        .withName(s"${spec.normalisedCohortName}-$timeStr")
-                        .withInput(write(StateMachineInput(spec)))
+                      StartExecutionRequest.builder
+                        .stateMachineArn(config.stateMachineArn)
+                        .name(s"${spec.normalisedCohortName}-$timeStr")
+                        .input(write(StateMachineInput(spec)))
+                        .build()
                     )
                   )
                   .mapError(e => CohortStateMachineFailure(s"Failed to start execution: $e"))

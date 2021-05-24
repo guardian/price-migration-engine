@@ -1,49 +1,47 @@
 package pricemigrationengine.model
 
-import java.util
-
-import com.amazonaws.services.dynamodbv2.model._
 import pricemigrationengine.TestLogging
 import pricemigrationengine.services._
+import software.amazon.awssdk.services.dynamodb.model.AttributeAction.PUT
+import software.amazon.awssdk.services.dynamodb.model._
 import zio.Exit.Success
 import zio.Runtime.default
 import zio.stream.Sink
 import zio.{Chunk, Task, ZIO, ZLayer}
 
+import java.util
 import scala.jdk.CollectionConverters._
 
 class DynamoDBZIOLiveTest extends munit.FunSuite {
   test("DynamoDBZIOLive should get all batches of query results and convert the batches to a stream") {
-    def item(id: String) = Map("id" -> new AttributeValue(id)).asJava
+    def item(id: String) = Map("id" -> AttributeValue.builder.s(id).build()).asJava
 
     implicit val itemDeserialiser = new DynamoDBDeserialiser[String] {
       def deserialise(value: java.util.Map[String, AttributeValue]) =
-        ZIO.fromOption(value.asScala.get("id").map(_.getS)).orElseFail(DynamoDBZIOError(""))
+        ZIO.fromOption(value.asScala.get("id").map(_.s)).orElseFail(DynamoDBZIOError(""))
     }
 
-    val queryRequest = new QueryRequest()
+    val queryRequest = QueryRequest.builder.build()
     val responseMap = Map(
-      queryRequest.clone() -> new QueryResult()
-        .withItems(item("id-1"), item("id-2"))
-        .withLastEvaluatedKey(item("id-2")),
-      queryRequest.clone().withExclusiveStartKey(item("id-2")) -> new QueryResult()
-        .withItems(item("id-3"))
+      queryRequest -> QueryResponse.builder.items(item("id-1"), item("id-2")).lastEvaluatedKey(item("id-2")).build(),
+      queryRequest.copy(x => x.exclusiveStartKey(item("id-2"))) -> QueryResponse.builder.items(item("id-3")).build()
     )
     val stubDynamoDBClient = ZLayer.succeed(
       new DynamoDBClient.Service {
-        def query(queryRequest: QueryRequest): Task[QueryResult] = Task.succeed(responseMap(queryRequest))
+        def query(queryRequest: QueryRequest): Task[QueryResponse] = Task.succeed(responseMap(queryRequest))
 
-        def scan(scanRequest: ScanRequest): Task[ScanResult] = ???
+        def scan(scanRequest: ScanRequest): Task[ScanResponse] = ???
 
-        def updateItem(updateRequest: UpdateItemRequest): Task[UpdateItemResult] = ???
+        def updateItem(updateRequest: UpdateItemRequest): Task[UpdateItemResponse] = ???
 
-        def createItem(createRequest: PutItemRequest, keyName: String): Task[PutItemResult] = ???
+        def createItem(createRequest: PutItemRequest, keyName: String): Task[PutItemResponse] = ???
 
-        def describeTable(tableName: String): Task[DescribeTableResult] = ???
+        def describeTable(tableName: String): Task[DescribeTableResponse] = ???
 
-        def createTable(request: CreateTableRequest): Task[CreateTableResult] = ???
+        def createTable(request: CreateTableRequest): Task[CreateTableResponse] = ???
 
-        def updateContinuousBackups(request: UpdateContinuousBackupsRequest): Task[UpdateContinuousBackupsResult] = ???
+        def updateContinuousBackups(request: UpdateContinuousBackupsRequest): Task[UpdateContinuousBackupsResponse] =
+          ???
       }
     )
 
@@ -65,35 +63,41 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
   test("DynamoDBZIOLive serialize key and values and update in dynamodb") {
     implicit val keySerialiser = new DynamoDBSerialiser[String] {
       override def serialise(key: String): util.Map[String, AttributeValue] =
-        Map("key" -> new AttributeValue().withS(key)).asJava
+        Map("key" -> AttributeValue.builder.s(key).build()).asJava
     }
 
     implicit val updateSerialiser = new DynamoDBUpdateSerialiser[String] {
       override def serialise(value: String): util.Map[String, AttributeValueUpdate] =
-        Map("value" -> new AttributeValueUpdate(new AttributeValue().withS(value), AttributeAction.PUT)).asJava
+        Map(
+          "value" -> AttributeValueUpdate.builder
+            .value(AttributeValue.builder.s(value).build())
+            .action(PUT)
+            .build()
+        ).asJava
     }
 
     var receivedUpdateItemRequest: Option[UpdateItemRequest] = None
 
     val stubDynamoDBClient = ZLayer.succeed(
       new DynamoDBClient.Service {
-        def query(queryRequest: QueryRequest): Task[QueryResult] = ???
+        def query(queryRequest: QueryRequest): Task[QueryResponse] = ???
 
-        def scan(scanRequest: ScanRequest): Task[ScanResult] = ???
+        def scan(scanRequest: ScanRequest): Task[ScanResponse] = ???
 
-        def updateItem(updateItemRequest: UpdateItemRequest): Task[UpdateItemResult] =
+        def updateItem(updateItemRequest: UpdateItemRequest): Task[UpdateItemResponse] =
           Task.succeed {
             receivedUpdateItemRequest = Some(updateItemRequest)
-            new UpdateItemResult()
+            UpdateItemResponse.builder.build()
           }
 
-        def createItem(createRequest: PutItemRequest, keyName: String): Task[PutItemResult] = ???
+        def createItem(createRequest: PutItemRequest, keyName: String): Task[PutItemResponse] = ???
 
-        def describeTable(tableName: String): Task[DescribeTableResult] = ???
+        def describeTable(tableName: String): Task[DescribeTableResponse] = ???
 
-        def createTable(request: CreateTableRequest): Task[CreateTableResult] = ???
+        def createTable(request: CreateTableRequest): Task[CreateTableResponse] = ???
 
-        def updateContinuousBackups(request: UpdateContinuousBackupsRequest): Task[UpdateContinuousBackupsResult] = ???
+        def updateContinuousBackups(request: UpdateContinuousBackupsRequest): Task[UpdateContinuousBackupsResponse] =
+          ???
       }
     )
 
@@ -109,14 +113,20 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
     assertEquals(
       receivedUpdateItemRequest,
       Some(
-        new UpdateItemRequest()
-          .withTableName("a-table")
-          .withKey(
-            Map("key" -> new AttributeValue().withS("key")).asJava
+        UpdateItemRequest.builder
+          .tableName("a-table")
+          .key(
+            Map("key" -> AttributeValue.builder.s("key").build()).asJava
           )
-          .withAttributeUpdates(
-            Map("value" -> new AttributeValueUpdate(new AttributeValue().withS("value"), AttributeAction.PUT)).asJava
+          .attributeUpdates(
+            Map(
+              "value" -> AttributeValueUpdate.builder
+                .value(AttributeValue.builder.s("value").build())
+                .action(PUT)
+                .build()
+            ).asJava
           )
+          .build()
       )
     )
   }

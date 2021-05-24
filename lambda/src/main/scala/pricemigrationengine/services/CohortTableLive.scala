@@ -1,13 +1,12 @@
 package pricemigrationengine.services
 
-import java.time.LocalDate
-
-import com.amazonaws.services.dynamodbv2.model.{AttributeValue, QueryRequest, ScanRequest}
 import pricemigrationengine.model._
 import pricemigrationengine.model.dynamodb.Conversions._
+import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, QueryRequest, ScanRequest}
 import zio.stream.ZStream
 import zio.{IO, ZIO, ZLayer}
 
+import java.time.LocalDate
 import scala.jdk.CollectionConverters._
 
 object CohortTableLive {
@@ -128,23 +127,26 @@ object CohortTableLive {
                 latestStartDateInclusive
                   .fold(ProcessingStageIndexName)(_ => ProcessingStageAndStartDateIndexName)
               val queryRequest =
-                new QueryRequest()
-                  .withTableName(tableName)
-                  .withIndexName(indexName)
-                  .withKeyConditionExpression(
+                QueryRequest.builder
+                  .tableName(tableName)
+                  .indexName(indexName)
+                  .keyConditionExpression(
                     "processingStage = :processingStage" + latestStartDateInclusive.fold("") { _ =>
                       " AND startDate <= :latestStartDateInclusive"
                     }
                   )
-                  .withExpressionAttributeValues(
+                  .expressionAttributeValues(
                     List(
-                      Some(":processingStage" -> new AttributeValue(filter.value)),
+                      Some(":processingStage" -> AttributeValue.builder.s(filter.value).build()),
                       latestStartDateInclusive.map { latestStartDateInclusive =>
-                        ":latestStartDateInclusive" -> new AttributeValue(latestStartDateInclusive.toString)
+                        ":latestStartDateInclusive" -> AttributeValue.builder
+                          .s(latestStartDateInclusive.toString)
+                          .build()
                       }
                     ).flatten.toMap.asJava
                   )
-                  .withLimit(cohortTableConfig.batchSize)
+                  .limit(cohortTableConfig.batchSize)
+                  .build()
               DynamoDBZIO.query(queryRequest).map(_.mapError(error => CohortFetchFailure(error.toString)))
             }.provide(dependencies)
 
@@ -176,9 +178,10 @@ object CohortTableLive {
                 stageConfig <-
                   StageConfiguration.stageConfig
                     .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
-                queryRequest = new ScanRequest()
-                  .withTableName(s"PriceMigrationEngine${stageConfig.stage}")
-                  .withLimit(cohortTableConfig.batchSize)
+                queryRequest = ScanRequest.builder
+                  .tableName(s"PriceMigrationEngine${stageConfig.stage}")
+                  .limit(cohortTableConfig.batchSize)
+                  .build()
                 queryResults <-
                   DynamoDBZIO
                     .scan(

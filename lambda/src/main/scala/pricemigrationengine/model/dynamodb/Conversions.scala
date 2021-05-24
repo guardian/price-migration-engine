@@ -1,37 +1,41 @@
 package pricemigrationengine.model.dynamodb
 
-import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDate, ZoneOffset}
-import java.util
-
-import com.amazonaws.services.dynamodbv2.model.{AttributeAction, AttributeValue, AttributeValueUpdate}
 import pricemigrationengine.model.CohortTableFilter
+import software.amazon.awssdk.services.dynamodb.model.AttributeAction.PUT
+import software.amazon.awssdk.services.dynamodb.model.{AttributeValue, AttributeValueUpdate}
 
+import java.time.ZoneOffset.UTC
+import java.time.format.DateTimeFormatter.{ISO_DATE_TIME, ISO_LOCAL_DATE}
+import java.time.{Instant, LocalDate}
+import java.util
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 object Conversions {
 
   def stringFieldUpdate(fieldName: String, stringValue: String): (String, AttributeValueUpdate) =
-    fieldName -> new AttributeValueUpdate(new AttributeValue().withS(stringValue), AttributeAction.PUT)
+    fieldName -> AttributeValueUpdate.builder.value(AttributeValue.builder.s(stringValue).build()).action(PUT).build()
 
   def dateFieldUpdate(fieldName: String, dateValue: LocalDate): (String, AttributeValueUpdate) =
-    fieldName -> new AttributeValueUpdate(
-      new AttributeValue().withS(dateValue.format(DateTimeFormatter.ISO_LOCAL_DATE)),
-      AttributeAction.PUT
-    )
+    fieldName -> AttributeValueUpdate.builder
+      .value(AttributeValue.builder.s(dateValue.format(ISO_LOCAL_DATE)).build())
+      .action(PUT)
+      .build()
 
   def instantFieldUpdate(fieldName: String, instant: Instant): (String, AttributeValueUpdate) =
-    fieldName -> new AttributeValueUpdate(
-      new AttributeValue().withS(DateTimeFormatter.ISO_DATE_TIME.format(instant.atZone(ZoneOffset.UTC))),
-      AttributeAction.PUT
-    )
+    fieldName -> AttributeValueUpdate.builder
+      .value(AttributeValue.builder.s(ISO_DATE_TIME.format(instant.atZone(UTC))).build())
+      .action(PUT)
+      .build()
 
   def bigDecimalFieldUpdate(fieldName: String, value: BigDecimal): (String, AttributeValueUpdate) =
-    fieldName -> new AttributeValueUpdate(new AttributeValue().withN(value.toString), AttributeAction.PUT)
+    fieldName -> AttributeValueUpdate.builder
+      .value(AttributeValue.builder.n(value.toString).build())
+      .action(PUT)
+      .build()
 
   def stringUpdate(fieldName: String, stringValue: String): (String, AttributeValue) =
-    fieldName -> new AttributeValue().withS(stringValue)
+    fieldName -> AttributeValue.builder.s(stringValue).build()
 
   def getStringFromResults(result: util.Map[String, AttributeValue], fieldName: String): Either[String, String] =
     for {
@@ -65,7 +69,7 @@ object Conversions {
     result.asScala
       .get(fieldName)
       .fold[Either[String, Option[String]]](Right(None)) { attributeValue =>
-        Option(attributeValue.getS)
+        Option(attributeValue.s)
           .map(Some.apply)
           .toRight(s"The '$fieldName' field was not a string in the record '$result'")
       }
@@ -77,7 +81,7 @@ object Conversions {
     result.asScala
       .get(fieldName)
       .fold[Either[String, Option[String]]](Right(None)) { attributeValue =>
-        Option(attributeValue.getN)
+        Option(attributeValue.n)
           .map(Some.apply)
           .toRight(s"The '$fieldName' field was not a number in the record '$result'")
       }

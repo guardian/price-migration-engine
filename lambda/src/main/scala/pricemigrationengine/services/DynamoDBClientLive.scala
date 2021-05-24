@@ -1,57 +1,47 @@
 package pricemigrationengine.services
 
-import com.amazonaws.client.builder.AwsClientBuilder
-import com.amazonaws.services.dynamodbv2.model._
-import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClient}
 import pricemigrationengine.model.ConfigurationFailure
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient
+import software.amazon.awssdk.services.dynamodb.model._
 import zio._
 
 object DynamoDBClientLive {
-  val impl: ZLayer[DynamoDBConfiguration with Logging, ConfigurationFailure, DynamoDBClient] = {
+  val impl: ZLayer[Logging, ConfigurationFailure, DynamoDBClient] = {
 
-    def acquireDynamoDb: ZIO[DynamoDBConfiguration with Logging, ConfigurationFailure, AmazonDynamoDB] =
-      for {
-        config <- DynamoDBConfiguration.dynamoDBConfig
-        client <-
-          ZIO
-            .effect(
-              config.endpoint
-                .foldLeft(AmazonDynamoDBClient.builder())((builder, endpoint) =>
-                  builder.withEndpointConfiguration(
-                    new AwsClientBuilder.EndpointConfiguration(endpoint.serviceEndpoint, endpoint.signingRegion)
-                  )
-                )
-                .build()
-            )
-            .mapError(ex => ConfigurationFailure(s"Failed to create the dynamoDb client: $ex"))
-      } yield client
-
-    def releaseDynamoDb(dynamoDb: AmazonDynamoDB): URIO[Logging, Unit] =
+    def acquireDynamoDb: ZIO[Logging, ConfigurationFailure, DynamoDbClient] =
       ZIO
-        .effect(dynamoDb.shutdown())
+        .effect(AwsClient.dynamoDb)
+        .mapError(ex => ConfigurationFailure(s"Failed to create the dynamoDb client: $ex"))
+
+    def releaseDynamoDb(dynamoDb: DynamoDbClient): URIO[Logging, Unit] =
+      ZIO
+        .effect(dynamoDb.close())
         .catchAll(ex => Logging.error(s"Failed to close dynamo db connection: $ex"))
 
-    val dynamoDbLayer: ZLayer[DynamoDBConfiguration with Logging, ConfigurationFailure, Has[AmazonDynamoDB]] =
+    val dynamoDbLayer: ZLayer[Logging, ConfigurationFailure, Has[DynamoDbClient]] =
       ZLayer.fromAcquireRelease(acquireDynamoDb)(releaseDynamoDb)
 
-    val serviceLayer: ZLayer[Has[AmazonDynamoDB], Nothing, DynamoDBClient] = ZLayer.fromService { dynamoDb =>
+    val serviceLayer: ZLayer[Has[DynamoDbClient], Nothing, DynamoDBClient] = ZLayer.fromService { dynamoDb =>
       new DynamoDBClient.Service {
-        def query(queryRequest: QueryRequest): Task[QueryResult] = Task.effect(dynamoDb.query(queryRequest))
+        def query(queryRequest: QueryRequest): Task[QueryResponse] = Task.effect(dynamoDb.query(queryRequest))
 
-        def scan(scanRequest: ScanRequest): Task[ScanResult] = Task.effect(dynamoDb.scan(scanRequest))
+        def scan(scanRequest: ScanRequest): Task[ScanResponse] = Task.effect(dynamoDb.scan(scanRequest))
 
-        def updateItem(updateRequest: UpdateItemRequest): Task[UpdateItemResult] =
+        def updateItem(updateRequest: UpdateItemRequest): Task[UpdateItemResponse] =
           Task.effect(dynamoDb.updateItem(updateRequest))
 
-        def createItem(createRequest: PutItemRequest, keyName: String): Task[PutItemResult] =
-          Task.effect(dynamoDb.putItem(createRequest.withConditionExpression(s"attribute_not_exists($keyName)")))
+        def createItem(createRequest: PutItemRequest, keyName: String): Task[PutItemResponse] =
+          Task.effect(
+            dynamoDb.putItem(createRequest.copy(x => x.conditionExpression(s"attribute_not_exists($keyName)")))
+          )
 
-        def describeTable(tableName: String): Task[DescribeTableResult] = Task.effect(dynamoDb.describeTable(tableName))
+        def describeTable(tableName: String): Task[DescribeTableResponse] =
+          Task.effect(dynamoDb.describeTable(DescribeTableRequest.builder.tableName(tableName).build()))
 
-        def createTable(request: CreateTableRequest): Task[CreateTableResult] =
+        def createTable(request: CreateTableRequest): Task[CreateTableResponse] =
           Task.effect(dynamoDb.createTable(request))
 
-        def updateContinuousBackups(request: UpdateContinuousBackupsRequest): Task[UpdateContinuousBackupsResult] =
+        def updateContinuousBackups(request: UpdateContinuousBackupsRequest): Task[UpdateContinuousBackupsResponse] =
           Task.effect(dynamoDb.updateContinuousBackups(request))
       }
     }

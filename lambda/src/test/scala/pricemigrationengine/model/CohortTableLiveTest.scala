@@ -1,21 +1,16 @@
 package pricemigrationengine.model
 
-import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDate, ZoneOffset}
-
-import com.amazonaws.services.dynamodbv2.model.{
-  AttributeAction,
-  AttributeValue,
-  AttributeValueUpdate,
-  QueryRequest,
-  ScanRequest
-}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.services._
+import software.amazon.awssdk.services.dynamodb.model.AttributeAction.PUT
+import software.amazon.awssdk.services.dynamodb.model._
 import zio.Exit.Success
 import zio.stream.{Sink, ZStream}
 import zio.{Chunk, IO, Runtime, ZIO, ZLayer}
 
+import java.time.ZoneOffset.UTC
+import java.time.format.DateTimeFormatter.ISO_DATE_TIME
+import java.time.{Instant, LocalDate}
 import scala.jdk.CollectionConverters._
 import scala.util.Random
 
@@ -107,34 +102,34 @@ class CohortTableLiveTest extends munit.FunSuite {
       Success(())
     )
 
-    assertEquals(receivedRequest.get.getTableName, expectedTableName)
-    assertEquals(receivedRequest.get.getIndexName, "ProcessingStageIndexV2")
-    assertEquals(receivedRequest.get.getKeyConditionExpression, "processingStage = :processingStage")
+    assertEquals(receivedRequest.get.tableName, expectedTableName)
+    assertEquals(receivedRequest.get.indexName, "ProcessingStageIndexV2")
+    assertEquals(receivedRequest.get.keyConditionExpression, "processingStage = :processingStage")
     assertEquals(
-      receivedRequest.get.getExpressionAttributeValues,
-      Map(":processingStage" -> new AttributeValue().withS("ReadyForEstimation")).asJava
+      receivedRequest.get.expressionAttributeValues,
+      Map(":processingStage" -> AttributeValue.builder.s("ReadyForEstimation").build()).asJava
     )
     assertEquals(
       Runtime.default.unsafeRunSync(
         receivedDeserialiser.get.deserialise(
           Map(
-            "subscriptionNumber" -> new AttributeValue().withS(expectedSubscriptionId),
-            "processingStage" -> new AttributeValue().withS(expectedProcessingStage.value),
-            "expectedStartDate" -> new AttributeValue().withS(expectedStartDate.toString),
-            "currency" -> new AttributeValue().withS(expectedCurrency),
-            "oldPrice" -> new AttributeValue().withN(expectedOldPrice.toString),
-            "estimatedNewPrice" -> new AttributeValue().withN(expectedEstimatedNewPrice.toString),
-            "billingPeriod" -> new AttributeValue().withS(expectedBillingPeriod),
-            "whenEstimationDone" -> new AttributeValue().withS(formatTimestamp(expectedWhenEstimationDone)),
-            "salesforcePriceRiseId" -> new AttributeValue().withS(expectedPriceRiseId),
-            "whenSfShowEstimate" -> new AttributeValue().withS(formatTimestamp(expectedSfShowEstimate)),
-            "startDate" -> new AttributeValue().withS(expectedStartDate.toString),
-            "newPrice" -> new AttributeValue().withN(expectedNewPrice.toString),
-            "newSubscriptionId" -> new AttributeValue().withS(expectedNewSubscriptionId),
-            "whenAmendmentDone" -> new AttributeValue().withS(formatTimestamp(expectedWhenAmendmentDone)),
-            "whenNotificationSent" -> new AttributeValue().withS(formatTimestamp(expectedWhenNotificationSent)),
+            "subscriptionNumber" -> AttributeValue.builder.s(expectedSubscriptionId).build(),
+            "processingStage" -> AttributeValue.builder.s(expectedProcessingStage.value).build(),
+            "expectedStartDate" -> AttributeValue.builder.s(expectedStartDate.toString).build(),
+            "currency" -> AttributeValue.builder.s(expectedCurrency).build(),
+            "oldPrice" -> AttributeValue.builder.n(expectedOldPrice.toString).build(),
+            "estimatedNewPrice" -> AttributeValue.builder.n(expectedEstimatedNewPrice.toString).build(),
+            "billingPeriod" -> AttributeValue.builder.s(expectedBillingPeriod).build(),
+            "whenEstimationDone" -> AttributeValue.builder.s(formatTimestamp(expectedWhenEstimationDone)).build(),
+            "salesforcePriceRiseId" -> AttributeValue.builder.s(expectedPriceRiseId).build(),
+            "whenSfShowEstimate" -> AttributeValue.builder.s(formatTimestamp(expectedSfShowEstimate)).build(),
+            "startDate" -> AttributeValue.builder.s(expectedStartDate.toString).build(),
+            "newPrice" -> AttributeValue.builder.n(expectedNewPrice.toString).build(),
+            "newSubscriptionId" -> AttributeValue.builder.s(expectedNewSubscriptionId).build(),
+            "whenAmendmentDone" -> AttributeValue.builder.s(formatTimestamp(expectedWhenAmendmentDone)).build(),
+            "whenNotificationSent" -> AttributeValue.builder.s(formatTimestamp(expectedWhenNotificationSent)).build(),
             "whenNotificationSentWrittenToSalesforce" ->
-              new AttributeValue().withS(formatTimestamp(expectedWhenNotificationSentWrittenToSalesforce))
+              AttributeValue.builder.s(formatTimestamp(expectedWhenNotificationSentWrittenToSalesforce)).build()
           ).asJava
         )
       ),
@@ -205,17 +200,17 @@ class CohortTableLiveTest extends munit.FunSuite {
       Success(())
     )
 
-    assertEquals(receivedRequest.get.getTableName, expectedTableName)
-    assertEquals(receivedRequest.get.getIndexName, "ProcessingStageStartDateIndexV1")
+    assertEquals(receivedRequest.get.tableName, expectedTableName)
+    assertEquals(receivedRequest.get.indexName, "ProcessingStageStartDateIndexV1")
     assertEquals(
-      receivedRequest.get.getKeyConditionExpression,
+      receivedRequest.get.keyConditionExpression,
       "processingStage = :processingStage AND startDate <= :latestStartDateInclusive"
     )
     assertEquals(
-      receivedRequest.get.getExpressionAttributeValues,
+      receivedRequest.get.expressionAttributeValues,
       Map(
-        ":processingStage" -> new AttributeValue().withS("ReadyForEstimation"),
-        ":latestStartDateInclusive" -> new AttributeValue().withS(expectedLatestDate.toString)
+        ":processingStage" -> AttributeValue.builder.s("ReadyForEstimation").build(),
+        ":latestStartDateInclusive" -> AttributeValue.builder.s(expectedLatestDate.toString).build()
       ).asJava
     )
   }
@@ -290,95 +285,122 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       receivedKeySerialiser.get.serialise(receivedKey.get),
       Map(
-        "subscriptionNumber" -> new AttributeValue().withS(expectedSubscriptionId)
+        "subscriptionNumber" -> AttributeValue.builder.s(expectedSubscriptionId).build()
       ).asJava
     )
     val update = receivedValueSerialiser.get.serialise(receivedUpdate.get)
     assertEquals(
       update.get("processingStage"),
-      new AttributeValueUpdate(new AttributeValue().withS(expectedProcessingStage.value), AttributeAction.PUT),
+      AttributeValueUpdate.builder
+        .value(AttributeValue.builder.s(expectedProcessingStage.value).build())
+        .action(PUT)
+        .build(),
       "processingStage"
     )
     assertEquals(
       update.get("currency"),
-      new AttributeValueUpdate(new AttributeValue().withS(expectedCurrency), AttributeAction.PUT),
+      AttributeValueUpdate.builder
+        .value(AttributeValue.builder.s(expectedCurrency).build())
+        .action(PUT)
+        .build(),
       "currency"
     )
     assertEquals(
       update.get("oldPrice"),
-      new AttributeValueUpdate(new AttributeValue().withN(expectedOldPrice.toString), AttributeAction.PUT),
+      AttributeValueUpdate.builder
+        .value(AttributeValue.builder.n(expectedOldPrice.toString).build())
+        .action(PUT)
+        .build(),
       "oldPrice"
     )
     assertEquals(
       update.get("newPrice"),
-      new AttributeValueUpdate(new AttributeValue().withN(expectedNewPrice.toString), AttributeAction.PUT),
+      AttributeValueUpdate.builder
+        .value(AttributeValue.builder.n(expectedNewPrice.toString).build())
+        .action(PUT)
+        .build(),
       "newPrice"
     )
     assertEquals(
       update.get("estimatedNewPrice"),
-      new AttributeValueUpdate(new AttributeValue().withN(expectedEstimatedNewPrice.toString), AttributeAction.PUT),
+      AttributeValueUpdate.builder
+        .value(AttributeValue.builder.n(expectedEstimatedNewPrice.toString).build())
+        .action(PUT)
+        .build(),
       "estimatedNewPrice"
     )
     assertEquals(
       update.get("billingPeriod"),
-      new AttributeValueUpdate(new AttributeValue().withS(expectedBillingPeriod), AttributeAction.PUT),
+      AttributeValueUpdate.builder
+        .value(AttributeValue.builder.s(expectedBillingPeriod).build())
+        .action(PUT)
+        .build(),
       "billingPeriod"
     )
     assertEquals(
       update.get("salesforcePriceRiseId"),
-      new AttributeValueUpdate(new AttributeValue().withS(expectedPriceRiseId), AttributeAction.PUT),
+      AttributeValueUpdate.builder
+        .value(AttributeValue.builder.s(expectedPriceRiseId).build())
+        .action(PUT)
+        .build(),
       "salesforcePriceRiseId"
     )
     assertEquals(
       update.get("whenSfShowEstimate"),
-      new AttributeValueUpdate(
-        new AttributeValue()
-          .withS(DateTimeFormatter.ISO_DATE_TIME.format(expectedSfShowEstimate.atZone(ZoneOffset.UTC))),
-        AttributeAction.PUT
-      ),
+      AttributeValueUpdate.builder
+        .value(
+          AttributeValue.builder
+            .s(ISO_DATE_TIME.format(expectedSfShowEstimate.atZone(UTC)))
+            .build()
+        )
+        .action(PUT)
+        .build(),
       "whenSfShowEstimate"
     )
     assertEquals(
       update.get("startDate"),
-      new AttributeValueUpdate(new AttributeValue().withS(expectedStartDate.toString), AttributeAction.PUT),
+      AttributeValueUpdate.builder
+        .value(AttributeValue.builder.s(expectedStartDate.toString).build())
+        .action(PUT)
+        .build(),
       "startDate"
     )
     assertEquals(
       update.get("newSubscriptionId"),
-      new AttributeValueUpdate(new AttributeValue().withS(expectedNewSubscriptionId), AttributeAction.PUT),
+      AttributeValueUpdate.builder
+        .value(AttributeValue.builder.s(expectedNewSubscriptionId).build())
+        .action(PUT)
+        .build(),
       "newSubscriptionId"
     )
     assertEquals(
       update.get("whenAmendmentDone"),
-      new AttributeValueUpdate(
-        new AttributeValue()
-          .withS(formatTimestamp(expectedWhenAmendmentDone)),
-        AttributeAction.PUT
-      ),
+      AttributeValueUpdate.builder
+        .value(AttributeValue.builder.s(formatTimestamp(expectedWhenAmendmentDone)).build())
+        .action(PUT)
+        .build(),
       "whenAmendmentDone"
     )
     assertEquals(
       update.get("whenNotificationSentWrittenToSalesforce"),
-      new AttributeValueUpdate(
-        new AttributeValue()
-          .withS(formatTimestamp(expectedWhenNotificationSentWrittenToSalesforce)),
-        AttributeAction.PUT
-      ),
+      AttributeValueUpdate.builder
+        .value(AttributeValue.builder.s(formatTimestamp(expectedWhenNotificationSentWrittenToSalesforce)).build())
+        .action(PUT)
+        .build(),
       "whenNotificationSentWrittenToSalesforce"
     )
     assertEquals(
       update.get("whenNotificationSent"),
-      new AttributeValueUpdate(
-        new AttributeValue()
-          .withS(formatTimestamp(expectedWhenNotificationSent)),
-        AttributeAction.PUT
-      ),
+      AttributeValueUpdate.builder
+        .value(AttributeValue.builder.s(formatTimestamp(expectedWhenNotificationSent)).build())
+        .action(PUT)
+        .build(),
       "whenNotificationSent"
     )
   }
 
   private def formatTimestamp(instant: Instant) = {
-    DateTimeFormatter.ISO_DATE_TIME.format(instant.atZone(ZoneOffset.UTC))
+    ISO_DATE_TIME.format(instant.atZone(UTC))
   }
 
   test("Update the PriceMigrationEngine table and serialise the CohortItem with missing optional values correctly") {
@@ -433,7 +455,12 @@ class CohortTableLiveTest extends munit.FunSuite {
     val update = receivedValueSerialiser.get.serialise(receivedUpdate.get).asScala
     assertEquals(
       update.get("processingStage"),
-      Some(new AttributeValueUpdate(new AttributeValue().withS(expectedProcessingStage.value), AttributeAction.PUT)),
+      Some(
+        AttributeValueUpdate.builder
+          .value(AttributeValue.builder.s(expectedProcessingStage.value).build())
+          .action(PUT)
+          .build()
+      ),
       "processingStage"
     )
     assertEquals(update.get("currency"), None, "currency")
@@ -495,7 +522,7 @@ class CohortTableLiveTest extends munit.FunSuite {
 
     assertEquals(tableUpdated.get, expectedTableName)
     val insert = receivedSerialiser.get.serialise(receivedInsert.get)
-    assertEquals(insert.get("subscriptionNumber"), new AttributeValue().withS("Subscription-id"))
-    assertEquals(insert.get("processingStage"), new AttributeValue().withS("ReadyForEstimation"))
+    assertEquals(insert.get("subscriptionNumber"), AttributeValue.builder.s("Subscription-id").build())
+    assertEquals(insert.get("processingStage"), AttributeValue.builder.s("ReadyForEstimation").build())
   }
 }

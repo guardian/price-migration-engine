@@ -12,15 +12,6 @@ object ZuoraConfiguration {
     ZIO.accessM(_.get.config)
 }
 
-object DynamoDBConfiguration {
-  trait Service {
-    val config: IO[ConfigurationFailure, DynamoDBConfig]
-  }
-
-  val dynamoDBConfig: ZIO[DynamoDBConfiguration, ConfigurationFailure, DynamoDBConfig] =
-    ZIO.accessM(_.get.config)
-}
-
 object CohortTableConfiguration {
   trait Service {
     val config: IO[ConfigurationFailure, CohortTableConfig]

@@ -1,16 +1,15 @@
 package pricemigrationengine.handlers
 
-import java.io.{File, OutputStream, OutputStreamWriter}
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path}
-
-import com.amazonaws.services.s3.model.CannedAccessControlList
 import org.apache.commons.csv.{CSVFormat, CSVPrinter, QuoteMode}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
+import software.amazon.awssdk.services.s3.model.ObjectCannedACL
 import zio._
 import zio.stream.ZStream
 
+import java.io.{File, OutputStream, OutputStreamWriter}
+import java.nio.charset.StandardCharsets
+import java.nio.file.{Files, Path}
 import scala.util.Try
 
 object CohortTableDatalakeExportHandler extends CohortHandler {
@@ -42,7 +41,7 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
         }
 
         putResult <-
-          S3.putObject(s3Location, filePath.toFile, Some(CannedAccessControlList.BucketOwnerRead))
+          S3.putObject(s3Location, filePath.toFile, Some(ObjectCannedACL.BUCKET_OWNER_READ))
             .mapError { failure =>
               CohortTableDatalakeExportFailure(s"Failed to write CohortItems to s3: ${failure.reason}")
             }
