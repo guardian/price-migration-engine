@@ -34,6 +34,7 @@ lazy val lambda = (project in file("lambda"))
       awsStateMachine,
       http,
       commonsCsv,
+      slf4jNop % Runtime,
       munit % Test,
       zioTest % Test,
       zioTestSbt % Test
@@ -54,7 +55,7 @@ lazy val lambda = (project in file("lambda"))
        * So it's redundant in a binary artefact.
        */
       case PathList("codegen-resources", _*)                    => MergeStrategy.discard
-      case PathList("module-info.class")                        => MergeStrategy.discard
+      case PathList(ps @ _*) if ps.last == "module-info.class"  => MergeStrategy.discard
       case PathList("META-INF", "io.netty.versions.properties") => MergeStrategy.discard
       case x =>
         val oldStrategy = (assembly / assemblyMergeStrategy).value
