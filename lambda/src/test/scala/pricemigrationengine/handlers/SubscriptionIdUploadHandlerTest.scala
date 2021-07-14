@@ -56,6 +56,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
               loadTestResource("/SubscriptionExclusions.csv")
             case S3Location("price-migration-engine-dev", "cohortName/salesforce-subscription-id-report.csv") =>
               loadTestResource("/SubscriptionIds.csv")
+            case _ => ZManaged.fail(S3Failure(s"Unexpected location: $s3Location"))
           }
 
         override def putObject(
