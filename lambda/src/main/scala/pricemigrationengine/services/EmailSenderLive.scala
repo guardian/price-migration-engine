@@ -14,8 +14,8 @@ import zio.{ZIO, ZLayer}
   *
   * In the case of the notifications sent by the price migration engine braze is configured to trigger a 'web-hook'.
   *
-  * The web hook is essentially an api call to Latcham our direct mail partner, who will use the information in the
-  * web hook to print a physical letter notifying the customer of the price rise and send it to the customer.
+  * The web hook is essentially an api call to Latcham our direct mail partner, who will use the information in the web
+  * hook to print a physical letter notifying the customer of the price rise and send it to the customer.
   */
 object EmailSenderLive {
   val impl: ZLayer[Logging with EmailSenderConfiguration, EmailSenderFailure, EmailSender] = ZLayer.fromFunctionM {
