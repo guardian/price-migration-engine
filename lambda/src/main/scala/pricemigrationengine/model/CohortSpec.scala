@@ -9,17 +9,22 @@ import java.util
 
 /** Specification of a cohort.
   *
-  * @param cohortName Name that uniquely identifies a cohort, eg. "Vouchers 2020"
-  * @param brazeCampaignName Name of the Braze campaign for this cohort.<br />
-  *                          Mapping to environment-specific Braze campaign ID is provided by membership-workflow:<br />
-  *                          See https://github.com/guardian/membership-workflow/blob/master/conf/PROD.public.conf#L39
-  * @param importStartDate Date on which to start importing data from the source S3 bucket.
-  * @param earliestPriceMigrationStartDate Earliest date on which any sub in the cohort can have price migrated.
-  *                                        The actual date for any sub will depend on its billing dates.
-  * @param migrationCompleteDate Date on which the final step in the price migration was complete for every sub in the cohort.
+  * @param cohortName
+  *   Name that uniquely identifies a cohort, eg. "Vouchers 2020"
+  * @param brazeCampaignName
+  *   Name of the Braze campaign for this cohort.<br /> Mapping to environment-specific Braze campaign ID is provided by
+  *   membership-workflow:<br /> See
+  *   https://github.com/guardian/membership-workflow/blob/master/conf/PROD.public.conf#L39
+  * @param importStartDate
+  *   Date on which to start importing data from the source S3 bucket.
+  * @param earliestPriceMigrationStartDate
+  *   Earliest date on which any sub in the cohort can have price migrated. The actual date for any sub will depend on
+  *   its billing dates.
+  * @param migrationCompleteDate
+  *   Date on which the final step in the price migration was complete for every sub in the cohort.
   *
-  * @param tmpTableName A temporary value for the special case where
-  *                     the table name can't be derived from the cohort name.
+  * @param tmpTableName
+  *   A temporary value for the special case where the table name can't be derived from the cohort name.
   */
 case class CohortSpec(
     cohortName: String,

@@ -10,20 +10,20 @@ case class PriceData(currency: Currency, oldPrice: BigDecimal, newPrice: BigDeci
 
 /** <p>Data used to estimate and report on price-rise amendments to subscriptions.</p>
   *
-  * <p>The general approach here is to use a combination of Zuora invoice previews, subscriptions
-  * and the product catalogue to determine billing dates, current charges and future charges.</p>
+  * <p>The general approach here is to use a combination of Zuora invoice previews, subscriptions and the product
+  * catalogue to determine billing dates, current charges and future charges.</p>
   *
-  * <p>We use invoice previews only to find future billing dates and the list of rate plan charge numbers
-  * that will apply on future billing dates.  The amounts given in the invoice preview are unreliable
-  * because they don't include tax or give any way to calculate tax.</p>
+  * <p>We use invoice previews only to find future billing dates and the list of rate plan charge numbers that will
+  * apply on future billing dates. The amounts given in the invoice preview are unreliable because they don't include
+  * tax or give any way to calculate tax.</p>
   *
-  * <p>To find the detail of the rate plan charge, we use the rate plan charge numbers from invoice previews
-  * to look up rate plan charges in subscriptions.  The price of a rate plan charge in a subscription
-  * is the only reliable way to get the price including tax.</p>
+  * <p>To find the detail of the rate plan charge, we use the rate plan charge numbers from invoice previews to look up
+  * rate plan charges in subscriptions. The price of a rate plan charge in a subscription is the only reliable way to
+  * get the price including tax.</p>
   *
-  * <p>The combination of a subscription rate plan charge and the corresponding product rate plan charge,
-  * found in the product catalogue, give us all the information we need to calculate future charges
-  * including taxes and discounts.</p>
+  * <p>The combination of a subscription rate plan charge and the corresponding product rate plan charge, found in the
+  * product catalogue, give us all the information we need to calculate future charges including taxes and
+  * discounts.</p>
   */
 object AmendmentData {
 
@@ -51,9 +51,8 @@ object AmendmentData {
       .headOption
       .toRight(AmendmentDataFailure(s"Cannot determine next billing date on or after $onOrAfter from $invoiceList"))
 
-  /** New prices can only be calculated from a combination of the subscription rate plan charge
-    * and its corresponding product rate plan charge.<br/>
-    * This is because discounts are only reliable in the subscription rate plan charge,
+  /** New prices can only be calculated from a combination of the subscription rate plan charge and its corresponding
+    * product rate plan charge.<br/> This is because discounts are only reliable in the subscription rate plan charge,
     * and new prices have to come from the product rate plan charge.
     */
   private case class RatePlanChargePair(
@@ -61,13 +60,11 @@ object AmendmentData {
       chargeFromProduct: ZuoraProductRatePlanCharge
   )
 
-  /** General algorithm:
-    * <ol>
-    * <li>For a given date, gather chargeNumber fields from invoice preview.</li>
-    * <li>For each chargeNumber, match it with ratePlanCharge number on sub and get corresponding ratePlanCharge.</li>
-    * <li>For each ratePlanCharge, match its productRatePlanChargeId with id in catalogue and get pricing currency, price and discount percentage.</li>
-    * <li>Get combined chargeAmount field for old price, and combined pricing price for new price, and currency.</li>
-    * </ol>
+  /** General algorithm: <ol> <li>For a given date, gather chargeNumber fields from invoice preview.</li> <li>For each
+    * chargeNumber, match it with ratePlanCharge number on sub and get corresponding ratePlanCharge.</li> <li>For each
+    * ratePlanCharge, match its productRatePlanChargeId with id in catalogue and get pricing currency, price and
+    * discount percentage.</li> <li>Get combined chargeAmount field for old price, and combined pricing price for new
+    * price, and currency.</li> </ol>
     */
   def priceData(
       pricingData: ZuoraPricingData,
@@ -137,7 +134,8 @@ object AmendmentData {
     } yield PriceData(currency, oldPrice, newPrice, billingPeriod)
   }
 
-  /** Total charge amount, including taxes and discounts, for the service period starting on the given service start date.
+  /** Total charge amount, including taxes and discounts, for the service period starting on the given service start
+    * date.
     */
   def totalChargeAmount(
       subscription: ZuoraSubscription,
@@ -175,11 +173,10 @@ object AmendmentData {
       case Some(_)          => Right(0)
     }
 
-  /** Total charge amount, including taxes and discounts, for a given set of <code>RatePlanChargePairs</code>,
-    * using the product rate plan charge price as a basis.<br/>
-    * Absolute prices will come from the product rate plan charge.<br/>
-    * Percentage discount amounts will come from the subscription rate plan charge.<br/>
-    * Absolute discount amounts will be ignored.
+  /** Total charge amount, including taxes and discounts, for a given set of <code>RatePlanChargePairs</code>, using the
+    * product rate plan charge price as a basis.<br/> Absolute prices will come from the product rate plan charge.<br/>
+    * Percentage discount amounts will come from the subscription rate plan charge.<br/> Absolute discount amounts will
+    * be ignored.
     */
   private def totalChargeAmount(
       ratePlanChargePairs: Seq[RatePlanChargePair]
@@ -230,10 +227,9 @@ object AmendmentData {
 
   def roundDown(d: BigDecimal): BigDecimal = d.setScale(2, RoundingMode.DOWN)
 
-  /** In some cases, a product rate plan charge has a monthly billing period
-    * but a subscription has overridden it with a rate plan charge with a different billing period.
-    * In these cases, the price has to be multiplied
-    * by the number of months in the subscription billing period.
+  /** In some cases, a product rate plan charge has a monthly billing period but a subscription has overridden it with a
+    * rate plan charge with a different billing period. In these cases, the price has to be multiplied by the number of
+    * months in the subscription billing period.
     */
   private[model] def adjustedForBillingPeriod(
       price: BigDecimal,

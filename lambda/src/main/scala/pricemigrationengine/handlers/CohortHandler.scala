@@ -15,8 +15,10 @@ trait CohortHandler extends zio.App with RequestStreamHandler {
 
   /** Makes implementation available in lambda or console context.
     *
-    * @param input CohortSpec with specification for the particular cohort that this handler is running over.
-    * @return HandlerOutput if successful.
+    * @param input
+    *   CohortSpec with specification for the particular cohort that this handler is running over.
+    * @return
+    *   HandlerOutput if successful.
     */
   def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput]
 
