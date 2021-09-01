@@ -12,8 +12,8 @@ object AwsClient {
 
   private val region = EU_WEST_1
 
-  /** By explicitly specifying which HTTP client to use, we save an expensive operation
-    * looking for a suitable HTTP client on the classpath.
+  /** By explicitly specifying which HTTP client to use, we save an expensive operation looking for a suitable HTTP
+    * client on the classpath.
     */
   private def httpSyncClientBuilder() = ApacheHttpClient.builder()
   private def httpAsyncClientBuilder() = NettyNioAsyncHttpClient.builder()
