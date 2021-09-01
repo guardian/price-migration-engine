@@ -16,13 +16,13 @@ case class ZuoraSubscriptionUpdate(
 object ZuoraSubscriptionUpdate {
   implicit val rw: ReadWriter[ZuoraSubscriptionUpdate] = macroRW
 
-  /** Takes all non-discount rate plans participating in the invoice list on the given date,
-    * and replaces them with their current equivalent.
-    * This has the effect of updating their prices to the current ones in the product catalogue.
+  /** Takes all non-discount rate plans participating in the invoice list on the given date, and replaces them with
+    * their current equivalent. This has the effect of updating their prices to the current ones in the product
+    * catalogue.
     *
-    * If the billing period of a rate plan charge is different to the billing period of
-    * the corresponding product rate plan charge, we have to add a charge override to the update
-    * to adjust the price of the charge to the length of its billing period.
+    * If the billing period of a rate plan charge is different to the billing period of the corresponding product rate
+    * plan charge, we have to add a charge override to the update to adjust the price of the charge to the length of its
+    * billing period.
     */
   def updateOfRatePlansToCurrent(
       pricingData: ZuoraPricingData,
@@ -109,8 +109,8 @@ object ChargeOverride {
     * is different to the billing period of the given <code>RatePlanCharge</code>.</p>
     *
     * <p>If there isn't enough information in the given <code>ProductRatePlanCharge</code> and
-    * <code>RatePlanCharge</code> to determine whether or not a <code>ChargeOverride</code> should be defined,
-    * the result will be an AmendmentDataFailure.</p>
+    * <code>RatePlanCharge</code> to determine whether or not a <code>ChargeOverride</code> should be defined, the
+    * result will be an AmendmentDataFailure.</p>
     */
   def fromRatePlanCharge(
       productRatePlanCharge: ZuoraProductRatePlanCharge,

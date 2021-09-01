@@ -6,13 +6,11 @@ import zio.{IO, ZIO}
 
 object CohortTableDdl {
 
-  /** Service to run DDL statements on CohortTables.
-    * Creation and dropping, etc.
+  /** Service to run DDL statements on CohortTables. Creation and dropping, etc.
     */
   trait Service {
 
-    /** Create a table for the given CohortSpec if it doesn't already exist.
-      * Otherwise do nothing.
+    /** Create a table for the given CohortSpec if it doesn't already exist. Otherwise do nothing.
       */
     def createTable(cohortSpec: CohortSpec): IO[CohortTableCreateFailure, Option[CreateTableResponse]]
   }
