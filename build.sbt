@@ -56,7 +56,7 @@ lazy val lambda = (project in file("lambda"))
        */
       case PathList("codegen-resources", _*)                        => MergeStrategy.discard
       case PathList(ps @ _*) if ps.last == "module-info.class"      => MergeStrategy.discard
-      case PathList(ps @ _*) if ps.last == "execution.interceptors" => MergeStrategy.discard
+      case PathList(ps @ _*) if ps.last == "execution.interceptors" => MergeStrategy.filterDistinctLines
       case PathList("META-INF", "io.netty.versions.properties")     => MergeStrategy.discard
       case x =>
         val oldStrategy = (assembly / assemblyMergeStrategy).value
