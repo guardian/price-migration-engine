@@ -54,9 +54,10 @@ lazy val lambda = (project in file("lambda"))
        * This appears to be for generating clients from HTTP services.
        * So it's redundant in a binary artefact.
        */
-      case PathList("codegen-resources", _*)                    => MergeStrategy.discard
-      case PathList(ps @ _*) if ps.last == "module-info.class"  => MergeStrategy.discard
-      case PathList("META-INF", "io.netty.versions.properties") => MergeStrategy.discard
+      case PathList("codegen-resources", _*)                        => MergeStrategy.discard
+      case PathList(ps @ _*) if ps.last == "module-info.class"      => MergeStrategy.discard
+      case PathList(ps @ _*) if ps.last == "execution.interceptors" => MergeStrategy.discard
+      case PathList("META-INF", "io.netty.versions.properties")     => MergeStrategy.discard
       case x =>
         val oldStrategy = (assembly / assemblyMergeStrategy).value
         oldStrategy(x)
