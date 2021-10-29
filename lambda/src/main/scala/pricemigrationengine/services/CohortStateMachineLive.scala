@@ -31,7 +31,7 @@ object CohortStateMachineLive {
       CohortStateMachine.Service
     ] { (configuration, logging, blocking) =>
       configuration.config map { config =>
-        //noinspection ConvertExpressionToSAM
+        // noinspection ConvertExpressionToSAM
         new CohortStateMachine.Service {
 
           def startExecution(spec: CohortSpec): ZIO[Clock, CohortStateMachineFailure, StartExecutionResponse] =
