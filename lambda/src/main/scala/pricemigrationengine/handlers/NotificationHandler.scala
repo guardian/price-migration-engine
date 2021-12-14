@@ -105,7 +105,7 @@ object NotificationHandler extends CohortHandler {
                 first_name = firstName,
                 last_name = lastName,
                 billing_address_1 = street,
-                billing_address_2 = None, //See 'Billing Address Format' section in the readme
+                billing_address_2 = None, // See 'Billing Address Format' section in the readme
                 billing_city = address.city,
                 billing_postal_code = postalCode,
                 billing_state = address.state,
