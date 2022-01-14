@@ -3,7 +3,7 @@ import sbt.Keys.{description, name}
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-ThisBuild / scalaVersion := "2.13.7"
+ThisBuild / scalaVersion := "2.13.8"
 
 lazy val root = (project in file("."))
   .aggregate(dynamoDb, lambda, stateMachine)
