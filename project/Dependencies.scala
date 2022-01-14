@@ -17,5 +17,5 @@ object Dependencies {
   lazy val http = "org.scalaj" %% "scalaj-http" % "2.4.2"
   lazy val munit = "org.scalameta" %% "munit" % "0.7.29"
   lazy val commonsCsv = "org.apache.commons" % "commons-csv" % "1.9.0"
-  lazy val slf4jNop = "org.slf4j" % "slf4j-nop" % "2.0.0-alpha5"
+  lazy val slf4jNop = "org.slf4j" % "slf4j-nop" % "2.0.0-alpha6"
 }
