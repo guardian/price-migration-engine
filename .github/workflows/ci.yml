@@ -10,7 +10,7 @@ env:
   isPrFromForkedRepo: ${{ github.event.pull_request.head.repo.owner.login != 'guardian' }}
 
 jobs:
-  CI:
+  Scala:
     runs-on: ubuntu-latest
 
     # Required by aws-actions/configure-aws-credentials
