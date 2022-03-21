@@ -187,6 +187,15 @@ class AmendmentDataTest extends munit.FunSuite {
     assertEquals(totalChargeAmount, Right(BigDecimal(54.99)))
   }
 
+  test("totalChargeAmount: is correct for a taxable product (delivery)") {
+    val fixtureSet = "Everyday+Delivery"
+    val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
+    val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
+    val serviceStartDate = LocalDate.of(2022, 2, 19)
+    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate)
+    assertEquals(totalChargeAmount, Right(BigDecimal(69.99)))
+  }
+
   test("totalChargeAmount: is correct for a discounted taxable product") {
     val fixtureSet = "Everyday+Discounted"
     val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
@@ -243,5 +252,103 @@ class AmendmentDataTest extends munit.FunSuite {
       ZuoraRatePlanCharge(productRatePlanChargeId = "id", number = "C1", currency = "GBP", price = Some(-3.42))
     )
     assertEquals(chargeAmount, Right(BigDecimal(0)))
+  }
+
+  test("priceData: is correct for a newspaper delivery (everyday+)") {
+    val fixtureSet = "Everyday+Delivery"
+    val priceData = AmendmentData.priceData(
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      startDate = LocalDate.of(2022, 2, 19)
+    )
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 69.99, newPrice = 71.99, billingPeriod = "Month"))
+    )
+  }
+
+  test("priceData: is correct for a newspaper delivery (everyday)") {
+    val fixtureSet = "EverydayDelivery"
+    val priceData = AmendmentData.priceData(
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      startDate = LocalDate.of(2022, 2, 11)
+    )
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 67.99, newPrice = 69.99, billingPeriod = "Month"))
+    )
+  }
+
+  test("priceData: is correct for a newspaper delivery (weekend)") {
+    val fixtureSet = "WeekendDelivery"
+    val priceData = AmendmentData.priceData(
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      startDate = LocalDate.of(2022, 2, 28)
+    )
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 26.99, newPrice = 27.99, billingPeriod = "Month"))
+    )
+  }
+
+  test("priceData: is correct for a newspaper delivery (sunday)") {
+    val fixtureSet = "SundayDelivery"
+    val priceData = AmendmentData.priceData(
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      startDate = LocalDate.of(2022, 2, 28)
+    )
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 16.99, newPrice = 17.99, billingPeriod = "Month"))
+    )
+  }
+
+  test("priceData: is correct for a newspaper delivery (sixday+)") {
+    val fixtureSet = "Sixday+Delivery"
+    val priceData = AmendmentData.priceData(
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      startDate = LocalDate.of(2022, 3, 15)
+    )
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 60.99, newPrice = 62.99, billingPeriod = "Month"))
+    )
+  }
+
+  test("priceData: is correct for a newspaper delivery (sixday)") {
+    val fixtureSet = "SixdayDelivery"
+    val priceData = AmendmentData.priceData(
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      startDate = LocalDate.of(2022, 2, 19)
+    )
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 57.99, newPrice = 59.99, billingPeriod = "Month"))
+    )
+  }
+
+  test("priceData: is correct for a newspaper delivery (saturday)") {
+    val fixtureSet = "SaturdayDelivery"
+    val priceData = AmendmentData.priceData(
+      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      startDate = LocalDate.of(2022, 2, 8)
+    )
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 16.99, newPrice = 17.99, billingPeriod = "Month"))
+    )
   }
 }
