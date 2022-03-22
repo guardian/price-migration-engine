@@ -118,7 +118,7 @@ object ZuoraLive {
               a <-
                 ZIO
                   .effect(read[A](response.body))
-                  .orElse(ZIO.fail(ZuoraFailure(failureMessage(request, response))))
+                  .orElseFail(ZuoraFailure(failureMessage(request, response)))
             } yield a
 
           private def failureMessage(request: HttpRequest, response: HttpResponse[String]) = {
@@ -193,17 +193,18 @@ object ZuoraLive {
           def updateSubscription(
               subscription: ZuoraSubscription,
               update: ZuoraSubscriptionUpdate
-          ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId] =
+          ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId] = {
             put[SubscriptionUpdateResponse](
               path = s"subscriptions/${subscription.subscriptionNumber}",
               body = write(update)
-            ).bimap(
+            ).mapBoth(
               e =>
                 ZuoraUpdateFailure(
                   s"Subscription ${subscription.subscriptionNumber} and update $update: ${e.reason}"
                 ),
               response => response.subscriptionId
-            ).tap(_ => logging.info(s"Updated subscription ${subscription.subscriptionNumber} with: $update"))
+            )
+          } <* logging.info(s"Updated subscription ${subscription.subscriptionNumber} with: $update")
         }
       }
     }
