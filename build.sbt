@@ -10,7 +10,7 @@ ThisBuild / scalacOptions ++= Seq(
   "-Xfatal-warnings"
 )
 
-lazy val root = (project in file("."))
+lazy val priceMigrationEngine = (project in file("."))
   .aggregate(dynamoDb, lambda, stateMachine)
 
 lazy val dynamoDb = (project in file("dynamoDb"))
