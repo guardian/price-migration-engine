@@ -1,6 +1,7 @@
 package pricemigrationengine.handlers
 
-import org.apache.commons.csv.{CSVFormat, CSVPrinter, QuoteMode}
+import org.apache.commons.csv.QuoteMode.ALL
+import org.apache.commons.csv.{CSVFormat, CSVPrinter}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL
@@ -13,7 +14,8 @@ import java.nio.file.{Files, Path}
 import scala.util.Try
 
 object CohortTableDatalakeExportHandler extends CohortHandler {
-  private val csvFormat = CSVFormat.DEFAULT.withHeader("").withQuoteMode(QuoteMode.ALL)
+
+  private val csvFormat = CSVFormat.Builder.create().setHeader("").setQuoteMode(ALL).build()
   private val TempFileDirectory = "/tmp/"
 
   def main(
@@ -136,7 +138,7 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
       .makeEffect(
         new CSVPrinter(
           new OutputStreamWriter(outputStream, StandardCharsets.UTF_8.name()),
-          csvFormat.withHeader(headers: _*)
+          CSVFormat.Builder.create(csvFormat).setHeader(headers: _*).build()
         )
       )(printer => printer.close(true))
       .mapError { ex =>

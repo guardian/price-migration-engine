@@ -33,7 +33,7 @@ trait CohortHandler extends zio.App with RequestStreamHandler {
       cohortSpec <-
         ZIO
           .effect(read[CohortSpec](input))
-          .bimap(e => InputFailure(s"Failed to parse json: $e"), Option(_))
+          .mapBoth(e => InputFailure(s"Failed to parse json: $e"), Option(_))
           .filterOrElse(_.exists(CohortSpec.isValid))(spec => ZIO.fail(InputFailure(s"Invalid cohort spec: $spec")))
       validSpec <- ZIO.fromOption(cohortSpec).orElseFail(InputFailure("No input"))
     } yield validSpec).tapBoth(

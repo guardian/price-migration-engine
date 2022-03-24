@@ -14,7 +14,7 @@ import scala.jdk.CollectionConverters._
 
 object SubscriptionIdUploadHandler extends CohortHandler {
 
-  private val csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader()
+  private val csvFormat = CSVFormat.Builder.create().setHeader().setSkipHeaderRecord(true).build()
 
   private def sourceLocation(cohortSpec: CohortSpec): ZIO[StageConfiguration, ConfigurationFailure, S3Location] =
     StageConfiguration.stageConfig map { stageConfig =>
@@ -43,8 +43,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
       today <- Time.today
       _ <-
         if (today.isBefore(cohortSpec.importStartDate))
-          Logging.info(s"No action.  Import start date ${cohortSpec.importStartDate} is in the future.") zipRight
-            ZIO.succeed(())
+          Logging.info(s"No action.  Import start date ${cohortSpec.importStartDate} is in the future.").unit
         else
           importCohortAndCleanUp(cohortSpec)
     } yield HandlerOutput(isComplete = true))
@@ -55,7 +54,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
   ): ZIO[CohortTable with S3 with StageConfiguration with Logging, Failure, Unit] =
     for {
       _ <- importCohort(cohortSpec).catchSome { case e: S3Failure =>
-        Logging.info(s"No action.  Cohort already imported: ${e.reason}") zipRight ZIO.succeed(())
+        Logging.info(s"No action.  Cohort already imported: ${e.reason}").unit
       }
       src <- sourceLocation(cohortSpec)
       _ <- S3.deleteObject(src)
@@ -95,23 +94,23 @@ object SubscriptionIdUploadHandler extends CohortHandler {
       .fromJavaIterator(
         new CSVParser(new InputStreamReader(inputStream, "UTF-8"), csvFormat).iterator()
       )
-      .bimap(
+      .mapBoth(
         ex => SubscriptionIdUploadFailure(s"Failed to read subscription csv stream: $ex"),
         csvRecord => csvRecord.get(0)
       )
       .filterM { subscriptionId =>
         if (exclusions.contains(subscriptionId)) {
-          Logging.info(s"Filtering subscription $subscriptionId as it is in the exclusion file") zipRight
-            ZIO.succeed(false)
+          Logging.info(s"Filtering subscription $subscriptionId as it is in the exclusion file").as(false)
         } else
           ZIO.succeed(true)
       }
       .mapM { subscriptionId =>
-        CohortTable
-          .create(CohortItem(subscriptionId, ReadyForEstimation))
-          .tap(_ => Logging.info(s"Imported subscription $subscriptionId"))
+        ({
+          CohortTable
+            .create(CohortItem(subscriptionId, ReadyForEstimation))
+        } <* Logging.info(s"Imported subscription $subscriptionId"))
           .catchSome { case _: CohortItemAlreadyPresentFailure =>
-            Logging.info(s"Ignored $subscriptionId as already in table") zipRight ZIO.succeed(())
+            Logging.info(s"Ignored $subscriptionId as already in table").unit
           }
           .tapError(e => Logging.error(s"Subscription $subscriptionId failed: $e"))
       }

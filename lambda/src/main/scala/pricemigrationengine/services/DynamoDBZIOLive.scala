@@ -94,7 +94,7 @@ object DynamoDBZIOLive {
                 .attributeUpdates(valueSerializer.serialise(value))
                 .build()
             )
-            .bimap(
+            .mapBoth(
               ex => DynamoDBZIOError(s"Failed to write value '$value' to '$table': $ex"),
               _ => ()
             )
