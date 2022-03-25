@@ -36,7 +36,7 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
     )
   }
 
-  def createStubS3(filesWrittenToS3: ArrayBuffer[(S3Location, String)]): Layer[Nothing, Has[S3.Service]] =
+  def createStubS3(filesWrittenToS3: ArrayBuffer[(S3Location, String)]): Layer[Nothing, S3.Service] =
     ZLayer.succeed(
       new S3.Service {
         override def getObject(s3Location: S3Location): ZManaged[Any, S3Failure, InputStream] = ???
@@ -47,8 +47,8 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
             cannedAccessControlList: Option[ObjectCannedACL]
         ): IO[S3Failure, PutObjectResponse] =
           for {
-            fileContents <- ZIO.effectTotal(Source.fromFile(file, "UTF-8").getLines().mkString("\n"))
-            _ <- ZIO.effectTotal(filesWrittenToS3.addOne((s3Location, fileContents)))
+            fileContents <- ZIO.succeed(Source.fromFile(file, "UTF-8").getLines().mkString("\n"))
+            _ <- ZIO.succeed(filesWrittenToS3.addOne((s3Location, fileContents)))
           } yield PutObjectResponse.builder.build()
 
         def deleteObject(s3Location: S3Location): IO[S3Failure, Unit] = ???

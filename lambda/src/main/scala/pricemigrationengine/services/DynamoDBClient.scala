@@ -28,23 +28,23 @@ object DynamoDBClient {
     def updateContinuousBackups(request: UpdateContinuousBackupsRequest): Task[UpdateContinuousBackupsResponse]
   }
 
-  def query(queryRequest: QueryRequest): RIO[DynamoDBClient, QueryResponse] = RIO.accessM(_.get.query(queryRequest))
+  def query(queryRequest: QueryRequest): RIO[DynamoDBClient, QueryResponse] = RIO.environmentWithZIO(_.get.query(queryRequest))
 
-  def scan(scanRequest: ScanRequest): RIO[DynamoDBClient, ScanResponse] = RIO.accessM(_.get.scan(scanRequest))
+  def scan(scanRequest: ScanRequest): RIO[DynamoDBClient, ScanResponse] = RIO.environmentWithZIO(_.get.scan(scanRequest))
 
   def updateItem(updateRequest: UpdateItemRequest): RIO[DynamoDBClient, UpdateItemResponse] =
-    RIO.accessM(_.get.updateItem(updateRequest))
+    RIO.environmentWithZIO(_.get.updateItem(updateRequest))
 
   def createItem(createRequest: PutItemRequest, keyName: String): RIO[DynamoDBClient, PutItemResponse] =
-    RIO.accessM(_.get.createItem(createRequest, keyName))
+    RIO.environmentWithZIO(_.get.createItem(createRequest, keyName))
 
   def describeTable(tableName: String): RIO[DynamoDBClient, DescribeTableResponse] =
-    RIO.accessM(_.get.describeTable(tableName))
+    RIO.environmentWithZIO(_.get.describeTable(tableName))
 
   def createTable(request: CreateTableRequest): RIO[DynamoDBClient, CreateTableResponse] =
-    RIO.accessM(_.get.createTable(request))
+    RIO.environmentWithZIO(_.get.createTable(request))
 
   def updateContinuousBackups(
       request: UpdateContinuousBackupsRequest
-  ): RIO[DynamoDBClient, UpdateContinuousBackupsResponse] = RIO.accessM(_.get.updateContinuousBackups(request))
+  ): RIO[DynamoDBClient, UpdateContinuousBackupsResponse] = RIO.environmentWithZIO(_.get.updateContinuousBackups(request))
 }

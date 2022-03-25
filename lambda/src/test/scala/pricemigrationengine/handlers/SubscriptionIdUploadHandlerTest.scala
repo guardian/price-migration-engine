@@ -33,18 +33,18 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
         override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
         override def create(cohortItem: CohortItem): ZIO[Any, Failure, Unit] =
-          IO.effect {
+          IO.attempt {
             subscriptionsWrittenToCohortTable.addOne(cohortItem)
             ()
           }.orElseFail(CohortUpdateFailure(""))
       }
     )
 
-    val stubS3: Layer[Nothing, Has[S3.Service]] = ZLayer.succeed(
+    val stubS3: Layer[Nothing, S3.Service] = ZLayer.succeed(
       new S3.Service {
         def loadTestResource(path: String) = {
           ZManaged
-            .makeEffect(getClass.getResourceAsStream(path)) { stream =>
+            .acquireReleaseAttemptWith(getClass.getResourceAsStream(path)) { stream =>
               stream.close()
             }
             .mapError(ex => S3Failure(s"Failed to load test resource: $ex"))

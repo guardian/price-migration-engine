@@ -67,7 +67,7 @@ class CohortTableLiveTest extends munit.FunSuite {
         )(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] = {
           receivedDeserialiser = Some(deserializer.asInstanceOf[DynamoDBDeserialiser[CohortItem]])
           receivedRequest = Some(query)
-          ZStream(item1, item2).mapM(item => IO.effect(item.asInstanceOf[A]).orElseFail(DynamoDBZIOError("")))
+          ZStream(item1, item2).mapZIO(item => IO.attempt(item.asInstanceOf[A]).orElseFail(DynamoDBZIOError("")))
         }
 
         override def update[A, B](table: String, key: A, value: B)(implicit
@@ -165,7 +165,7 @@ class CohortTableLiveTest extends munit.FunSuite {
             query: QueryRequest
         )(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] = {
           receivedRequest = Some(query)
-          ZStream(item1).mapM(item => IO.effect(item.asInstanceOf[A]).orElseFail(DynamoDBZIOError("")))
+          ZStream(item1).mapZIO(item => IO.attempt(item.asInstanceOf[A]).orElseFail(DynamoDBZIOError("")))
         }
 
         override def update[A, B](table: String, key: A, value: B)(implicit
@@ -237,7 +237,7 @@ class CohortTableLiveTest extends munit.FunSuite {
           receivedUpdate = Some(value.asInstanceOf[CohortItem])
           receivedKeySerialiser = Some(keySerializer.asInstanceOf[DynamoDBSerialiser[CohortTableKey]])
           receivedValueSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBUpdateSerialiser[CohortItem]])
-          ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
+          ZIO.attempt(()).orElseFail(DynamoDBZIOError(""))
         }
 
         override def create[A](table: String, keyName: String, value: A)(implicit
@@ -419,7 +419,7 @@ class CohortTableLiveTest extends munit.FunSuite {
         ): IO[DynamoDBZIOError, Unit] = {
           receivedValueSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBUpdateSerialiser[CohortItem]])
           receivedUpdate = Some(value.asInstanceOf[CohortItem])
-          ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
+          ZIO.attempt(()).orElseFail(DynamoDBZIOError(""))
         }
 
         override def create[A](table: String, keyName: String, value: A)(implicit
@@ -497,7 +497,7 @@ class CohortTableLiveTest extends munit.FunSuite {
           tableUpdated = Some(table)
           receivedInsert = Some(value.asInstanceOf[CohortItem])
           receivedSerialiser = Some(valueSerializer.asInstanceOf[DynamoDBSerialiser[CohortItem]])
-          ZIO.effect(()).orElseFail(DynamoDBZIOError(""))
+          ZIO.attempt(()).orElseFail(DynamoDBZIOError(""))
         }
 
         override def scan[A](query: ScanRequest)(implicit

@@ -20,15 +20,15 @@ object S3 {
   }
 
   def getObject(s3Location: S3Location): ZIO[S3, S3Failure, ZManaged[Any, S3Failure, InputStream]] =
-    ZIO.access(_.get.getObject(s3Location))
+    ZIO.environmentWith(_.get.getObject(s3Location))
 
   def putObject(
       s3Location: S3Location,
       localFile: File,
       cannedAcl: Option[ObjectCannedACL]
   ): ZIO[S3, S3Failure, PutObjectResponse] =
-    ZIO.accessM(_.get.putObject(s3Location, localFile, cannedAcl: Option[ObjectCannedACL]))
+    ZIO.environmentWithZIO(_.get.putObject(s3Location, localFile, cannedAcl: Option[ObjectCannedACL]))
 
   def deleteObject(s3Location: S3Location): ZIO[S3, S3Failure, Unit] =
-    ZIO.accessM(_.get.deleteObject(s3Location))
+    ZIO.environmentWithZIO(_.get.deleteObject(s3Location))
 }

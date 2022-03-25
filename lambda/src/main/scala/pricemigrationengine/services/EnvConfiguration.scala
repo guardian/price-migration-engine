@@ -14,7 +14,7 @@ object EnvConfiguration {
 
   def optionalEnv(name: String): IO[ConfigurationFailure, Option[String]] =
     ZIO
-      .effect(Option(getenv(name)))
+      .attempt(Option(getenv(name)))
       .mapError(e => ConfigurationFailure(e.getMessage))
 
   val zuoraImpl: ZLayer[Any, Nothing, ZuoraConfiguration] = ZLayer.succeed {
@@ -82,7 +82,7 @@ object EnvConfiguration {
     }
   }
 
-  val cohortStateMachineImpl: ZLayer[Any, ConfigurationFailure, CohortStateMachineConfiguration] = ZLayer.fromEffect {
+  val cohortStateMachineImpl: ZLayer[Any, ConfigurationFailure, CohortStateMachineConfiguration] = ZLayer.fromZIO {
     env("cohortStateMachineArn") map { arn =>
       new CohortStateMachineConfiguration.Service {
         val config: IO[ConfigurationFailure, CohortStateMachineConfig] =
@@ -91,7 +91,7 @@ object EnvConfiguration {
     }
   }
 
-  val exportConfigImpl: ZLayer[Any, ConfigurationFailure, ExportConfiguration] = ZLayer.fromEffect {
+  val exportConfigImpl: ZLayer[Any, ConfigurationFailure, ExportConfiguration] = ZLayer.fromZIO {
     env("exportBucketName") map { exportBucketName =>
       new ExportConfiguration.Service {
         val config: ExportConfig =

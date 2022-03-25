@@ -1,12 +1,11 @@
 package pricemigrationengine.handlers
 
-import java.time.{LocalDate, ZoneOffset}
-
 import pricemigrationengine.model.CohortTableFilter.{NotificationSendComplete, NotificationSendDateWrittenToSalesforce}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.clock.Clock
-import zio.{IO, ZEnv, ZIO, ZLayer}
+import zio.{Clock, IO, ZEnv, ZIO, ZLayer}
+
+import java.time.{LocalDate, ZoneOffset}
 
 object SalesforceNotificationDateUpdateHandler extends CohortHandler {
 

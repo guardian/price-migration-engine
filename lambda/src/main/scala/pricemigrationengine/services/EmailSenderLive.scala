@@ -18,35 +18,29 @@ import zio.{ZIO, ZLayer}
   * hook to print a physical letter notifying the customer of the price rise and send it to the customer.
   */
 object EmailSenderLive {
-  val impl: ZLayer[Logging with EmailSenderConfiguration, EmailSenderFailure, EmailSender] = ZLayer.fromFunctionM {
-    dependencies =>
-      (
-        for {
-          config <- EmailSenderConfiguration.emailSenderConfig
-            .mapError { error =>
-              EmailSenderFailure(s"Failed to get email sender configuration: $error")
-            }
-          sqsClient <- ZIO
-            .effect {
-              AwsClient.sqsAsync
-            }
-            .mapError { ex =>
-              EmailSenderFailure(s"Failed to create sqs client: ${ex.getMessage}")
-            }
-          queueUrlResponse <- ZIO
-            .fromCompletableFuture {
-              sqsClient.getQueueUrl(GetQueueUrlRequest.builder.queueName(config.sqsEmailQueueName).build())
-            }
-            .mapError { ex => EmailSenderFailure(s"Failed to get sqs queue url: ${ex.getMessage}") }
-        } yield new EmailSender.Service {
-          override def sendEmail(message: EmailMessage): ZIO[Any, EmailSenderFailure, Unit] = {
-            sendMessage(sqsClient, queueUrlResponse.queueUrl, message)
-          }.provide(dependencies)
-        }
-      ).provide(dependencies)
-  }
 
-  private def sendMessage(sqsClient: SqsAsyncClient, queueUrl: String, message: EmailMessage) = {
+  val impl: ZLayer[Logging with EmailSenderConfiguration, EmailSenderFailure, EmailSender] =
+    ZLayer.fromZIO(
+      for {
+        logging <- ZIO.service[Logging]
+        config <- EmailSenderConfiguration.emailSenderConfig.mapError { failure =>
+          EmailSenderFailure(s"Failed to get email sender configuration: $failure")
+        }
+        sqsClient <- ZIO.attempt(AwsClient.sqsAsync).mapError { ex =>
+          EmailSenderFailure(s"Failed to create sqs client: ${ex.getMessage}")
+        }
+        queueUrlResponse <- ZIO
+          .fromCompletableFuture(
+            sqsClient.getQueueUrl(GetQueueUrlRequest.builder.queueName(config.sqsEmailQueueName).build())
+          )
+          .mapError { ex => EmailSenderFailure(s"Failed to get sqs queue url: ${ex.getMessage}") }
+      } yield new EmailSender {
+        override def sendEmail(message: EmailMessage): ZIO[Any, EmailSenderFailure, Unit] =
+          sendMessage(sqsClient, queueUrlResponse.queueUrl, message, logging)
+      }
+    )
+
+  private def sendMessage(sqsClient: SqsAsyncClient, queueUrl: String, message: EmailMessage, logging: Logging) =
     for {
       result <- ZIO
         .fromCompletableFuture {
@@ -62,13 +56,12 @@ object EmailSenderLive {
             s"Failed to send sqs email message for sfContactId ${message.SfContactId}: ${ex.getMessage}"
           )
         }
-      _ <- Logging.info(
+      _ <- logging.info(
         s"Successfully sent email for sfContactId ${message.SfContactId} message id: ${result.messageId}"
       )
     } yield ()
-  }
 
-  def serialiseMessage(message: EmailMessage): String = {
+  private def serialiseMessage(message: EmailMessage): String = {
     write(message, indent = 2)
   }
 }

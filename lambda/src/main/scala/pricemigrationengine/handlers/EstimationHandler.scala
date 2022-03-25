@@ -1,12 +1,11 @@
 package pricemigrationengine.handlers
 
-import java.time.LocalDate
-
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.random.Random
-import zio.{ZEnv, ZIO, ZLayer, random}
+import zio.{Random, ZEnv, ZIO, ZLayer}
+
+import java.time.LocalDate
 
 /** Calculates start date and new price for a set of CohortItems.
   *
@@ -26,7 +25,7 @@ object EstimationHandler extends CohortHandler {
       count <-
         cohortItems
           .take(batchSize)
-          .mapM(item =>
+          .mapZIO(item =>
             estimate(newProductPricing, earliestStartDate)(item)
               .tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
           )
@@ -37,18 +36,18 @@ object EstimationHandler extends CohortHandler {
   private def estimate(newProductPricing: ZuoraPricingData, earliestStartDate: LocalDate)(
       item: CohortItem
   ): ZIO[CohortTable with Zuora with Random, Failure, EstimationResult] =
-    doEstimation(newProductPricing, item, earliestStartDate).foldM(
+    doEstimation(newProductPricing, item, earliestStartDate).foldZIO(
       failure = {
         case failure: AmendmentDataFailure =>
           val result = FailedEstimationResult(item.subscriptionName, failure.reason)
-          CohortTable.update(CohortItem.fromFailedEstimationResult(result)) zipRight ZIO.succeed(result)
+          CohortTable.update(CohortItem.fromFailedEstimationResult(result)).as(result)
         case _: CancelledSubscriptionFailure =>
           val result = CancelledEstimationResult(item.subscriptionName)
-          CohortTable.update(CohortItem.fromCancelledEstimationResult(result)) zipRight ZIO.succeed(result)
+          CohortTable.update(CohortItem.fromCancelledEstimationResult(result)).as(result)
         case e => ZIO.fail(e)
       },
       success = { result =>
-        CohortTable.update(CohortItem.fromSuccessfulEstimationResult(result)) zipRight ZIO.succeed(result)
+        CohortTable.update(CohortItem.fromSuccessfulEstimationResult(result)).as(result)
       }
     )
 
@@ -84,7 +83,7 @@ object EstimationHandler extends CohortHandler {
 
     lazy val earliestStartDateForAMonthlySub =
       for {
-        randomFactor <- random.nextIntBetween(0, 3)
+        randomFactor <- Random.nextIntBetween(0, 3)
         actualEarliestStartDate = earliestStartDate.plusMonths(randomFactor)
       } yield actualEarliestStartDate
 
