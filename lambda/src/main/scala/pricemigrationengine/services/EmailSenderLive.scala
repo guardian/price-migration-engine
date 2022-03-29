@@ -61,7 +61,7 @@ object EmailSenderLive {
       )
     } yield ()
 
-  private def serialiseMessage(message: EmailMessage): String = {
+  private[pricemigrationengine] def serialiseMessage(message: EmailMessage): String = {
     write(message, indent = 2)
   }
 }
