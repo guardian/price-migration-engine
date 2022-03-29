@@ -1,6 +1,5 @@
 package pricemigrationengine
 
-
 package object services {
 
   type ZuoraConfiguration = ZuoraConfiguration.Service

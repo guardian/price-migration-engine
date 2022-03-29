@@ -28,9 +28,11 @@ object DynamoDBClient {
     def updateContinuousBackups(request: UpdateContinuousBackupsRequest): Task[UpdateContinuousBackupsResponse]
   }
 
-  def query(queryRequest: QueryRequest): RIO[DynamoDBClient, QueryResponse] = RIO.environmentWithZIO(_.get.query(queryRequest))
+  def query(queryRequest: QueryRequest): RIO[DynamoDBClient, QueryResponse] =
+    RIO.environmentWithZIO(_.get.query(queryRequest))
 
-  def scan(scanRequest: ScanRequest): RIO[DynamoDBClient, ScanResponse] = RIO.environmentWithZIO(_.get.scan(scanRequest))
+  def scan(scanRequest: ScanRequest): RIO[DynamoDBClient, ScanResponse] =
+    RIO.environmentWithZIO(_.get.scan(scanRequest))
 
   def updateItem(updateRequest: UpdateItemRequest): RIO[DynamoDBClient, UpdateItemResponse] =
     RIO.environmentWithZIO(_.get.updateItem(updateRequest))
@@ -46,5 +48,6 @@ object DynamoDBClient {
 
   def updateContinuousBackups(
       request: UpdateContinuousBackupsRequest
-  ): RIO[DynamoDBClient, UpdateContinuousBackupsResponse] = RIO.environmentWithZIO(_.get.updateContinuousBackups(request))
+  ): RIO[DynamoDBClient, UpdateContinuousBackupsResponse] =
+    RIO.environmentWithZIO(_.get.updateContinuousBackups(request))
 }
