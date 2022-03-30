@@ -43,7 +43,11 @@ jobs:
 
       - name: Upload artefacts to Riffraff
         if: env.isPrFromForkedRepo == 'false'
+        env:
+          lastTeamCityBuild: 884
         run: >
+          export BUILD_NUMBER=$(( $GITHUB_RUN_NUMBER + $lastTeamCityBuild ))
+
           sbt
           scalafmtCheckAll
           scalafmtSbtCheck
