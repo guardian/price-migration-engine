@@ -13,10 +13,12 @@ object DynamoDBClientLive {
         .attempt(AwsClient.dynamoDb)
         .mapError(ex => ConfigurationFailure(s"Failed to create the dynamoDb client: $ex"))
 
-    def releaseDynamoDb(dynamoDb: DynamoDbClient): URIO[Logging, Unit] =
-      ZIO
-        .attempt(dynamoDb.close())
-        .catchAll(ex => Logging.error(s"Failed to close dynamo db connection: $ex"))
+    def releaseDynamoDb(dynamoDb: DynamoDbClient): URIO[Logging, Unit] = {
+      ZIO.unit
+//      ZIO
+//        .attempt(dynamoDb.close())
+//        .catchAll(ex => Logging.error(s"Failed to close dynamo db connection: $ex"))
+    }
 
     val dynamoDbLayer: ZLayer[Logging, ConfigurationFailure, DynamoDbClient] =
       ZLayer.fromAcquireRelease(acquireDynamoDb)(releaseDynamoDb)
