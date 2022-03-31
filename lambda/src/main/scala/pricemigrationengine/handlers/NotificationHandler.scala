@@ -14,7 +14,7 @@ import pricemigrationengine.model.membershipworkflow.{
   EmailPayloadSubscriberAttributes
 }
 import pricemigrationengine.services._
-import zio.clock.Clock
+import zio.Clock
 import zio.{ZEnv, ZIO, ZLayer}
 
 object NotificationHandler extends CohortHandler {
@@ -37,8 +37,8 @@ object NotificationHandler extends CohortHandler {
       )
       count <-
         subscriptions
-          .mapM(sendNotification(brazeCampaignName))
-          .fold(0) { (sum, count) => sum + count }
+          .mapZIO(sendNotification(brazeCampaignName))
+          .runFold(0) { (sum, count) => sum + count }
       _ <- Logging.info(s"Successfully sent $count price rise notifications")
     } yield HandlerOutput(isComplete = true)
   }
@@ -145,6 +145,7 @@ object NotificationHandler extends CohortHandler {
         s"Subscription ${cohortItem.subscriptionName} is for contact ${sfContact.Id} that has not email address"
       )
       .when(sfContact.Email.isEmpty)
+      .unit
   }
 
   val paymentFrequencyMapping = Map(

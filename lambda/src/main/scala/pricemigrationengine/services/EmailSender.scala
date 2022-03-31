@@ -10,6 +10,6 @@ object EmailSender {
   }
 
   def sendEmail(message: EmailMessage): ZIO[EmailSender, EmailSenderFailure, Unit] = {
-    ZIO.accessM(_.get.sendEmail(message))
+    ZIO.environmentWithZIO(_.get.sendEmail(message))
   }
 }

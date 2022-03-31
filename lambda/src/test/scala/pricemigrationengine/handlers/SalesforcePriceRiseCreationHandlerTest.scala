@@ -57,7 +57,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
         override def getSubscriptionByName(
             subscriptionName: String
         ): IO[SalesforceClientFailure, SalesforceSubscription] = {
-          IO.effect(
+          IO.attempt(
             SalesforceSubscription(
               s"SubscritionId-$subscriptionName",
               subscriptionName,

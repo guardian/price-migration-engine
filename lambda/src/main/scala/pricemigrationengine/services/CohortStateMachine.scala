@@ -2,8 +2,7 @@ package pricemigrationengine.services
 
 import pricemigrationengine.model.{CohortSpec, CohortStateMachineFailure}
 import software.amazon.awssdk.services.sfn.model.StartExecutionResponse
-import zio.ZIO
-import zio.clock.Clock
+import zio.{IO, ZIO}
 
 /** Kicks off the migration process for a particular cohort.
   *
@@ -12,11 +11,11 @@ import zio.clock.Clock
 object CohortStateMachine {
 
   trait Service {
-    def startExecution(spec: CohortSpec): ZIO[Clock, CohortStateMachineFailure, StartExecutionResponse]
+    def startExecution(spec: CohortSpec): IO[CohortStateMachineFailure, StartExecutionResponse]
   }
 
   def startExecution(
       spec: CohortSpec
-  ): ZIO[CohortStateMachine with Clock, CohortStateMachineFailure, StartExecutionResponse] =
-    ZIO.accessM(_.get.startExecution(spec))
+  ): ZIO[CohortStateMachine, CohortStateMachineFailure, StartExecutionResponse] =
+    ZIO.serviceWithZIO(_.startExecution(spec))
 }

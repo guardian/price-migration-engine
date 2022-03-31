@@ -6,7 +6,7 @@ import org.apache.commons.csv.{CSVFormat, CSVParser}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.clock.Clock
+import zio.Clock
 import zio.stream.ZStream
 import zio.{IO, ZEnv, ZIO, ZLayer}
 
@@ -76,7 +76,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
 
   def parseExclusions(inputStream: InputStream): IO[SubscriptionIdUploadFailure, Set[String]] = {
     ZIO
-      .effect(
+      .attempt(
         new CSVParser(new InputStreamReader(inputStream, "UTF-8"), csvFormat).getRecords.asScala
           .map(_.get(0))
           .toSet
@@ -98,13 +98,13 @@ object SubscriptionIdUploadHandler extends CohortHandler {
         ex => SubscriptionIdUploadFailure(s"Failed to read subscription csv stream: $ex"),
         csvRecord => csvRecord.get(0)
       )
-      .filterM { subscriptionId =>
+      .filterZIO { subscriptionId =>
         if (exclusions.contains(subscriptionId)) {
           Logging.info(s"Filtering subscription $subscriptionId as it is in the exclusion file").as(false)
         } else
           ZIO.succeed(true)
       }
-      .mapM { subscriptionId =>
+      .mapZIO { subscriptionId =>
         ({
           CohortTable
             .create(CohortItem(subscriptionId, ReadyForEstimation))

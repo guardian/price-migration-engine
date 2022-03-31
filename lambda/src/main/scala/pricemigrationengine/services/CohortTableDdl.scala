@@ -16,5 +16,5 @@ object CohortTableDdl {
   }
 
   def createTable(cohortSpec: CohortSpec): ZIO[CohortTableDdl, CohortTableCreateFailure, Option[CreateTableResponse]] =
-    ZIO.accessM(_.get.createTable(cohortSpec))
+    ZIO.environmentWithZIO(_.get.createTable(cohortSpec))
 }

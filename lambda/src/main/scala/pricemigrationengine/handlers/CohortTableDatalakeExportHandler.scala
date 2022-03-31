@@ -56,22 +56,22 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
     }
 
   def localTempFile(): ZManaged[Any, CohortTableDatalakeExportFailure, Path] =
-    ZManaged.make(
+    ZManaged.acquireReleaseWith(
       ZIO
-        .effect(Files.createTempFile(new File(TempFileDirectory).toPath, "CohortTableExport", "csv"))
+        .attempt(Files.createTempFile(new File(TempFileDirectory).toPath, "CohortTableExport", "csv"))
         .mapError { throwable =>
           CohortTableDatalakeExportFailure(s"Failed to create temp file in $TempFileDirectory: ${throwable.getMessage}")
         }
-    )(path => ZIO.effectTotal(Try(Files.delete(path))))
+    )(path => ZIO.succeed(Try(Files.delete(path))))
 
   def openOutputStream(path: Path): ZManaged[Any, CohortTableDatalakeExportFailure, OutputStream] =
-    ZManaged.make(
+    ZManaged.acquireReleaseWith(
       ZIO
-        .effect(Files.newOutputStream(path))
+        .attempt(Files.newOutputStream(path))
         .mapError { throwable =>
           CohortTableDatalakeExportFailure(s"Failed to write to temp files $path: ${throwable.getMessage}")
         }
-    )(stream => ZIO.effectTotal(stream.close()))
+    )(stream => ZIO.succeed(stream.close()))
 
   def writeCsvToStream(
       cohortItems: ZStream[Any, Failure, CohortItem],
@@ -100,9 +100,9 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
         "when_amendment_written_to_salesforce"
       )
     ).use { printer =>
-      cohortItems.mapM { cohortItem =>
+      cohortItems.mapZIO { cohortItem =>
         ZIO
-          .effect(
+          .attempt(
             printer.printRecord(
               cohortSpec.cohortName,
               cohortItem.subscriptionName,
@@ -135,7 +135,7 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
       headers: List[String]
   ): ZManaged[Any, CohortTableDatalakeExportFailure, CSVPrinter] = {
     ZManaged
-      .makeEffect(
+      .acquireReleaseAttemptWith(
         new CSVPrinter(
           new OutputStreamWriter(outputStream, StandardCharsets.UTF_8.name()),
           CSVFormat.Builder.create(csvFormat).setHeader(headers: _*).build()

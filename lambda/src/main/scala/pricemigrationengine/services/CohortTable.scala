@@ -17,23 +17,23 @@ object CohortTable {
 
     def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]]
 
-    def create(cohortItem: CohortItem): ZIO[Any, Failure, Unit]
+    def create(cohortItem: CohortItem): IO[Failure, Unit]
 
-    def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit]
+    def update(result: CohortItem): IO[CohortUpdateFailure, Unit]
   }
 
   def fetch(
       filter: CohortTableFilter,
       beforeDateInclusive: Option[LocalDate]
   ): ZIO[CohortTable, CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] =
-    ZIO.accessM(_.get.fetch(filter, beforeDateInclusive))
+    ZIO.environmentWithZIO(_.get.fetch(filter, beforeDateInclusive))
 
   def fetchAll(): ZIO[CohortTable, CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] =
-    ZIO.accessM(_.get.fetchAll())
+    ZIO.environmentWithZIO(_.get.fetchAll())
 
   def create(subscription: CohortItem): ZIO[CohortTable, Failure, Unit] =
-    ZIO.accessM(_.get.create(subscription))
+    ZIO.environmentWithZIO(_.get.create(subscription))
 
   def update(result: CohortItem): ZIO[CohortTable, CohortUpdateFailure, Unit] =
-    ZIO.accessM(_.get.update(result))
+    ZIO.environmentWithZIO(_.get.update(result))
 }
