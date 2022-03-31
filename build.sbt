@@ -5,7 +5,12 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / scalaVersion := "2.13.8"
 
-lazy val root = (project in file("."))
+ThisBuild / scalacOptions ++= Seq(
+  "-deprecation",
+  "-Xfatal-warnings"
+)
+
+lazy val priceMigrationEngine = (project in file("."))
   .aggregate(dynamoDb, lambda, stateMachine)
 
 lazy val dynamoDb = (project in file("dynamoDb"))
