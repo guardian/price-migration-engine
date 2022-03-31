@@ -21,7 +21,8 @@ class AmendmentDataTest extends munit.FunSuite {
   test("nextserviceStartDate: billing date is first after migration start date (Everyday+Delivery)") {
     val invoiceList = invoiceListFromJson("NewspaperDelivery/Everyday+/InvoicePreview.json")
     val subscription = subscriptionFromJson("NewspaperDelivery/Everyday+/Subscription.json")
-    val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
+    val serviceStartDate =
+      AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
     assertEquals(serviceStartDate, Right(LocalDate.of(2022, 4, 19)))
   }
 
@@ -38,7 +39,8 @@ class AmendmentDataTest extends munit.FunSuite {
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date (SundayDelivery)") {
     val invoiceList = invoiceListFromJson("NewspaperDelivery/Sunday/InvoicePreview.json")
     val subscription = subscriptionFromJson("NewspaperDelivery/Sunday/Subscription.json")
-    val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
+    val serviceStartDate =
+      AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
     assertEquals(
       serviceStartDate.left.map(_.reason.take(79)),
       Left("Cannot determine next billing date on or after 2022-04-18 from ZuoraInvoiceList")
@@ -48,7 +50,8 @@ class AmendmentDataTest extends munit.FunSuite {
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date (SixdayDelivery)") {
     val invoiceList = invoiceListFromJson("NewspaperDelivery/Sixday/InvoicePreview.json")
     val subscription = subscriptionFromJson("NewspaperDelivery/Sixday/Subscription.json")
-    val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
+    val serviceStartDate =
+      AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
     assertEquals(
       serviceStartDate.left.map(_.reason.take(79)),
       Left("Cannot determine next billing date on or after 2022-04-18 from ZuoraInvoiceList")
@@ -138,8 +141,6 @@ class AmendmentDataTest extends munit.FunSuite {
       Right(PriceData(currency = "GBP", oldPrice = 8.09, newPrice = 8.99, billingPeriod = "Month"))
     )
   }
-
-
 
   test("priceData: is correct for a quarterly voucher subscription") {
     val fixtureSet = "NewspaperVoucher/QuarterlyVoucher"
