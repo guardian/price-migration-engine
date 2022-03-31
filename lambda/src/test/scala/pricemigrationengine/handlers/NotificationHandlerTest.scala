@@ -20,7 +20,7 @@ class NotificationHandlerTest extends munit.FunSuite {
   val expectedStartDate = LocalDate.of(2020, 1, 1)
   val expectedCurrency = "GBP"
   val expectedBillingPeriod = "Month"
-  val expectedBillingPeriodInNotification = "Monthly"
+  val expectedBillingPeriodInNotification = "NewspaperVoucher/Monthly"
   val expectedOldPrice = BigDecimal(11.11)
   val expectedEstimatedNewPrice = BigDecimal(22.22)
   val expectedSFSubscriptionId = "1234"

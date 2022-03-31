@@ -45,7 +45,7 @@ class CohortTableLiveTest extends munit.FunSuite {
   val expectedOldPrice = Random.nextDouble()
   val expectedNewPrice = Random.nextDouble()
   val expectedEstimatedNewPrice = Random.nextDouble()
-  val expectedBillingPeriod = "Monthly"
+  val expectedBillingPeriod = "NewspaperVoucher/Monthly"
   val expectedWhenEstimationDone = Instant.ofEpochMilli(Random.nextLong())
   val expectedPriceRiseId = "price-rise-id"
   val expectedSfShowEstimate = Instant.ofEpochMilli(Random.nextLong())

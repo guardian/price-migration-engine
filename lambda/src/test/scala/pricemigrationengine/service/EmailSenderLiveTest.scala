@@ -28,7 +28,7 @@ class EmailSenderLiveTest extends munit.FunSuite {
                 "country",
                 "1.23",
                 "2020-01-01",
-                "Monthly",
+                "NewspaperVoucher/Monthly",
                 "Subscription-001"
               )
             )
@@ -85,7 +85,7 @@ class EmailSenderLiveTest extends munit.FunSuite {
                 "country",
                 "1.23",
                 "2020-01-01",
-                "Monthly",
+                "NewspaperVoucher/Monthly",
                 "Subscription-001"
               )
             )
