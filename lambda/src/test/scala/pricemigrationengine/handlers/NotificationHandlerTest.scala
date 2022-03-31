@@ -113,7 +113,7 @@ class NotificationHandlerTest extends munit.FunSuite {
       new EmailSender.Service {
         override def sendEmail(message: EmailMessage): ZIO[Any, EmailSenderFailure, Unit] =
           ZIO
-            .effect {
+            .attempt {
               sendMessages.addOne(message)
               ()
             }

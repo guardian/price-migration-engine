@@ -2,13 +2,13 @@ package pricemigrationengine.handlers
 
 import pricemigrationengine.model.{CohortSpec, ConfigurationFailure, EmailSenderFailure, SalesforceClientFailure}
 import pricemigrationengine.services._
-import zio.blocking.Blocking
-import zio.clock.Clock
+
+import zio.Clock
 import zio.{URLayer, ZLayer}
 
 object LiveLayer {
 
-  val logging: URLayer[Logging, Logging] = ZLayer.identity[Logging]
+  val logging: URLayer[Logging, Logging] = ZLayer.environment[Logging]
 
   private val dynamoDbClient: ZLayer[Logging, ConfigurationFailure, DynamoDBClient] =
     logging to DynamoDBClientLive.impl
@@ -25,7 +25,7 @@ object LiveLayer {
     dynamoDbClient and EnvConfiguration.stageImp and logging to CohortSpecTableLive.impl
 
   val cohortStateMachine: ZLayer[Logging, ConfigurationFailure, CohortStateMachine] =
-    Blocking.live and logging and EnvConfiguration.cohortStateMachineImpl to CohortStateMachineLive.impl
+    logging and Clock.live and EnvConfiguration.cohortStateMachineImpl to CohortStateMachineLive.impl
 
   val zuora: ZLayer[Logging, ConfigurationFailure, Zuora] =
     EnvConfiguration.zuoraImpl and Clock.live and logging to ZuoraLive.impl

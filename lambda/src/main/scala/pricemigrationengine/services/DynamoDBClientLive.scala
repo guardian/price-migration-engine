@@ -10,39 +10,41 @@ object DynamoDBClientLive {
 
     def acquireDynamoDb: ZIO[Logging, ConfigurationFailure, DynamoDbClient] =
       ZIO
-        .effect(AwsClient.dynamoDb)
+        .attempt(AwsClient.dynamoDb)
         .mapError(ex => ConfigurationFailure(s"Failed to create the dynamoDb client: $ex"))
 
     def releaseDynamoDb(dynamoDb: DynamoDbClient): URIO[Logging, Unit] =
       ZIO
-        .effect(dynamoDb.close())
+        .attempt(dynamoDb.close())
         .catchAll(ex => Logging.error(s"Failed to close dynamo db connection: $ex"))
 
-    val dynamoDbLayer: ZLayer[Logging, ConfigurationFailure, Has[DynamoDbClient]] =
+    val dynamoDbLayer: ZLayer[Logging, ConfigurationFailure, DynamoDbClient] =
       ZLayer.fromAcquireRelease(acquireDynamoDb)(releaseDynamoDb)
 
-    val serviceLayer: ZLayer[Has[DynamoDbClient], Nothing, DynamoDBClient] = ZLayer.fromService { dynamoDb =>
-      new DynamoDBClient.Service {
-        def query(queryRequest: QueryRequest): Task[QueryResponse] = Task.effect(dynamoDb.query(queryRequest))
+    val serviceLayer: ZLayer[DynamoDbClient, Nothing, DynamoDBClient] = ZLayer.fromZIO {
+      for {
+        dynamoDb <- ZIO.service[DynamoDbClient]
+      } yield new DynamoDBClient {
+        def query(queryRequest: QueryRequest): Task[QueryResponse] = Task.attempt(dynamoDb.query(queryRequest))
 
-        def scan(scanRequest: ScanRequest): Task[ScanResponse] = Task.effect(dynamoDb.scan(scanRequest))
+        def scan(scanRequest: ScanRequest): Task[ScanResponse] = Task.attempt(dynamoDb.scan(scanRequest))
 
         def updateItem(updateRequest: UpdateItemRequest): Task[UpdateItemResponse] =
-          Task.effect(dynamoDb.updateItem(updateRequest))
+          Task.attempt(dynamoDb.updateItem(updateRequest))
 
         def createItem(createRequest: PutItemRequest, keyName: String): Task[PutItemResponse] =
-          Task.effect(
+          Task.attempt(
             dynamoDb.putItem(createRequest.copy(x => x.conditionExpression(s"attribute_not_exists($keyName)")))
           )
 
         def describeTable(tableName: String): Task[DescribeTableResponse] =
-          Task.effect(dynamoDb.describeTable(DescribeTableRequest.builder.tableName(tableName).build()))
+          Task.attempt(dynamoDb.describeTable(DescribeTableRequest.builder.tableName(tableName).build()))
 
         def createTable(request: CreateTableRequest): Task[CreateTableResponse] =
-          Task.effect(dynamoDb.createTable(request))
+          Task.attempt(dynamoDb.createTable(request))
 
         def updateContinuousBackups(request: UpdateContinuousBackupsRequest): Task[UpdateContinuousBackupsResponse] =
-          Task.effect(dynamoDb.updateContinuousBackups(request))
+          Task.attempt(dynamoDb.updateContinuousBackups(request))
       }
     }
 

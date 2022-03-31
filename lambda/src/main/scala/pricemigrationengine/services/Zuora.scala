@@ -22,17 +22,17 @@ object Zuora {
   }
 
   def fetchSubscription(subscriptionNumber: String): ZIO[Zuora, Failure, ZuoraSubscription] =
-    ZIO.accessM(_.get.fetchSubscription(subscriptionNumber))
+    ZIO.environmentWithZIO(_.get.fetchSubscription(subscriptionNumber))
 
   def fetchInvoicePreview(accountId: String, targetDate: LocalDate): ZIO[Zuora, ZuoraFetchFailure, ZuoraInvoiceList] =
-    ZIO.accessM(_.get.fetchInvoicePreview(accountId, targetDate))
+    ZIO.environmentWithZIO(_.get.fetchInvoicePreview(accountId, targetDate))
 
   val fetchProductCatalogue: ZIO[Zuora, ZuoraFetchFailure, ZuoraProductCatalogue] =
-    ZIO.accessM(_.get.fetchProductCatalogue)
+    ZIO.environmentWithZIO(_.get.fetchProductCatalogue)
 
   def updateSubscription(
       subscription: ZuoraSubscription,
       update: ZuoraSubscriptionUpdate
   ): ZIO[Zuora, ZuoraUpdateFailure, ZuoraSubscriptionId] =
-    ZIO.accessM(_.get.updateSubscription(subscription, update))
+    ZIO.environmentWithZIO(_.get.updateSubscription(subscription, update))
 }

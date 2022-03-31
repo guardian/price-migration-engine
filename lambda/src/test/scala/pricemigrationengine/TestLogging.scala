@@ -1,8 +1,8 @@
 package pricemigrationengine
 
 import pricemigrationengine.services.ConsoleLogging
-import zio.console
+import zio.Console
 
 object TestLogging {
-  val logging = console.Console.live >>> ConsoleLogging.impl
+  val logging = Console.live >>> ConsoleLogging.impl
 }
