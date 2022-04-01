@@ -13,10 +13,14 @@ object DynamoDBClientLive {
         .attempt(AwsClient.dynamoDb)
         .mapError(ex => ConfigurationFailure(s"Failed to create the dynamoDb client: $ex"))
 
-    def releaseDynamoDb(dynamoDb: DynamoDbClient): URIO[Logging, Unit] =
-      ZIO
-        .attempt(dynamoDb.close())
-        .catchAll(ex => Logging.error(s"Failed to close dynamo db connection: $ex"))
+    def releaseDynamoDb(dynamoDb: DynamoDbClient): URIO[Logging, Unit] = {
+      /* In the interaction between DynamoDBZIOLive and DynamoDBClientLive the client is being released
+       * while still in use, leading to 'java.lang.IllegalStateException: Connection pool shut down' exceptions.
+       * Until this is sorted out, we'll avoid releasing the client, which is quite harmless.
+       * See https://stackoverflow.com/questions/41209043/dynamodb-is-there-a-need-to-call-shutdown
+       */
+      ZIO.unit
+    }
 
     val dynamoDbLayer: ZLayer[Logging, ConfigurationFailure, DynamoDbClient] =
       ZLayer.fromAcquireRelease(acquireDynamoDb)(releaseDynamoDb)
