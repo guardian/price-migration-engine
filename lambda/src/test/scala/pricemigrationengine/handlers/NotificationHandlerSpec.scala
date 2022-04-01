@@ -1,10 +1,9 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.{SalesforceAddress, SalesforceContact}
-import zio.test.Assertion.equalTo
+import pricemigrationengine.model.{NotificationHandlerFailure, SalesforceAddress, SalesforceContact}
 import zio.test._
 
-object NotificationHandlerSpec extends DefaultRunnableSpec {
+object NotificationHandlerSpec extends ZIOSpecDefault {
 
   private val billingAddress = SalesforceAddress(
     street = Some("21 High Street"),
@@ -22,8 +21,8 @@ object NotificationHandlerSpec extends DefaultRunnableSpec {
     country = Some("United Kingdom")
   )
 
-  def spec: ZSpec[Environment, Failure] = suite("targetAddress")(
-    testM("should use mailing address if billing address has no street") {
+  override def spec: Spec[Any, TestFailure[NotificationHandlerFailure], TestSuccess] = suite("targetAddress")(
+    test("should use mailing address if billing address has no street") {
       val contact = SalesforceContact(
         Id = "id",
         IdentityID__c = None,
@@ -35,10 +34,10 @@ object NotificationHandlerSpec extends DefaultRunnableSpec {
         MailingAddress = Some(mailingAddress)
       )
       NotificationHandler.targetAddress(contact) map { address =>
-        assert(address)(equalTo(mailingAddress))
+        assertTrue(address == mailingAddress)
       }
     },
-    testM("should use mailing address if billing address has no city") {
+    test("should use mailing address if billing address has no city") {
       val contact = SalesforceContact(
         Id = "id",
         IdentityID__c = None,
@@ -50,7 +49,7 @@ object NotificationHandlerSpec extends DefaultRunnableSpec {
         MailingAddress = Some(mailingAddress)
       )
       NotificationHandler.targetAddress(contact) map { address =>
-        assert(address)(equalTo(mailingAddress))
+        assertTrue(address == mailingAddress)
       }
     }
   )

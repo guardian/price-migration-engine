@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, AmendmentWrittenToSalesforce}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.clock.Clock
+import zio.Clock
 import zio.{IO, ZEnv, ZIO, ZLayer}
 
 /** Updates Salesforce with evidence of the price-rise amendment that was applied in Zuora.
@@ -19,7 +19,7 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
       count <-
         cohortItems
           .take(batchSize)
-          .mapM(item =>
+          .mapZIO(item =>
             updateSfWithNewSubscriptionId(item).tapBoth(
               e => Logging.error(s"Failed to update price rise record for ${item.subscriptionName}: $e"),
               _ => Logging.info(s"Amendment of ${item.subscriptionName} recorded in Salesforce")

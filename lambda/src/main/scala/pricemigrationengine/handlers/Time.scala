@@ -1,15 +1,14 @@
 package pricemigrationengine.handlers
 
-import java.time.{Instant, LocalDate, OffsetDateTime}
-
 import pricemigrationengine.model.TimeFailure
-import zio.clock.Clock
-import zio.{ZIO, clock}
+import zio._
+
+import java.time.{Instant, LocalDate, OffsetDateTime}
 
 object Time {
 
   private val nowHere: ZIO[Clock, TimeFailure, OffsetDateTime] =
-    clock.currentDateTime.mapError(e => TimeFailure(s"Extremely unlikely failure of time: $e"))
+    Clock.currentDateTime
 
   val today: ZIO[Clock, TimeFailure, LocalDate] =
     nowHere.map(_.toLocalDate)

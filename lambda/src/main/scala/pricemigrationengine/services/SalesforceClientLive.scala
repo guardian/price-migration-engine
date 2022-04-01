@@ -1,7 +1,6 @@
 package pricemigrationengine.services
 
 import java.time.LocalDate
-
 import pricemigrationengine.model.{
   SalesforceAddress,
   SalesforceClientFailure,
@@ -13,13 +12,16 @@ import pricemigrationengine.model.{
 import scalaj.http.{Http, HttpOptions, HttpRequest, HttpResponse}
 import upickle.default._
 import zio.{IO, ZIO, ZLayer}
-import pricemigrationengine.model.OptionReader //This import is required do not remove
-import pricemigrationengine.model.OptionWriter //This import is required do not remove
+import pricemigrationengine.model.OptionReader
+import pricemigrationengine.model.OptionWriter
+import pricemigrationengine.services
 
 import scala.concurrent.duration.{Duration, SECONDS}
 
 object SalesforceClientLive {
+
   private case class SalesforceAuthDetails(access_token: String, instance_url: String)
+
   implicit private val localDateRW: ReadWriter[LocalDate] =
     readwriter[String].bimap[LocalDate](_.toString, LocalDate.parse)
   implicit private val salesforceAuthDetailsRW: ReadWriter[SalesforceAuthDetails] = macroRW
@@ -33,44 +35,34 @@ object SalesforceClientLive {
   private val connTimeout = HttpOptions.connTimeout(timeout)
   private val readTimeout = HttpOptions.readTimeout(timeout)
 
+  private def requestAsMessage(request: HttpRequest) =
+    s"${request.method} ${request.url}"
+
+  private def failureMessage(request: HttpRequest, response: HttpResponse[String]) =
+    requestAsMessage(request) + s" returned status ${response.code} with body:${response.body}"
+
+  private def sendRequest(request: HttpRequest) =
+    for {
+      response <- IO
+        .attempt(request.option(connTimeout).option(readTimeout).asString)
+        .mapError(ex => SalesforceClientFailure(s"Request for ${requestAsMessage(request)} failed: $ex"))
+      valid200Response <-
+        if ((response.code / 100) == 2) { IO.succeed(response) }
+        else { IO.fail(SalesforceClientFailure(failureMessage(request, response))) }
+    } yield valid200Response
+
+  private def sendRequestAndParseResponse[A](request: HttpRequest)(implicit reader: Reader[A]) =
+    for {
+      valid200Response <- sendRequest(request)
+      parsedResponse <- IO
+        .attempt(read[A](valid200Response.body))
+        .mapError(ex => SalesforceClientFailure(s"${requestAsMessage(request)} failed to deserialise: $ex"))
+    } yield parsedResponse
+
   val impl: ZLayer[SalesforceConfiguration with Logging, SalesforceClientFailure, SalesforceClient] =
-    ZLayer.fromFunctionM { dependencies: SalesforceConfiguration with Logging =>
-      val logging = dependencies.get[Logging.Service]
-      val salesforceConfig = dependencies.get[SalesforceConfiguration.Service]
+    ZLayer.fromZIO {
 
-      def requestAsMessage(request: HttpRequest) = {
-        s"${request.method} ${request.url}"
-      }
-
-      def failureMessage(request: HttpRequest, response: HttpResponse[String]) = {
-        requestAsMessage(request) + s" returned status ${response.code} with body:${response.body}"
-      }
-
-      def sendRequestAndParseResponse[A](request: HttpRequest)(implicit
-          reader: Reader[A]
-      ): ZIO[Any, SalesforceClientFailure, A] =
-        for {
-          valid200Response <- sendRequest(request)
-          parsedResponse <-
-            IO
-              .effect(read[A](valid200Response.body))
-              .mapError(ex => SalesforceClientFailure(s"${requestAsMessage(request)} failed to deserialise: $ex"))
-        } yield parsedResponse
-
-      def sendRequest(request: HttpRequest): ZIO[Any, SalesforceClientFailure, HttpResponse[String]] =
-        for {
-          response <-
-            IO.effect(request.option(connTimeout).option(readTimeout).asString)
-              .mapError(ex => SalesforceClientFailure(s"Request for ${requestAsMessage(request)} failed: $ex"))
-          valid200Response <-
-            if ((response.code / 100) == 2) {
-              IO.succeed(response)
-            } else {
-              IO.fail(SalesforceClientFailure(failureMessage(request, response)))
-            }
-        } yield valid200Response
-
-      def auth(config: SalesforceConfig): IO[SalesforceClientFailure, SalesforceAuthDetails] = {
+      def auth(config: SalesforceConfig, logging: Logging) = {
         sendRequestAndParseResponse[SalesforceAuthDetails](
           Http(s"${config.authUrl}/services/oauth2/token")
             .postForm(
@@ -82,31 +74,27 @@ object SalesforceClientLive {
                 "password" -> s"${config.password}${config.token}"
               )
             )
-        ).tap { _ =>
-          logging.info(s"Authenticated with salesforce using user:${config.userName} and client: ${config.clientId}")
-        }
-      }
+        )
+      } <* logging.info(s"Authenticated with salesforce using user:${config.userName} and client: ${config.clientId}")
 
       for {
-        config <-
-          salesforceConfig.config
-            .mapError { error => SalesforceClientFailure(s"Failed to load salesforce config: ${error.reason}") }
-        auth <- auth(config)
-      } yield new SalesforceClient.Service {
+        config <- SalesforceConfiguration.salesforceConfig.mapError(failure => SalesforceClientFailure(failure.reason))
+        logging <- ZIO.service[Logging]
+        auth <- auth(config, logging)
+      } yield new services.SalesforceClient {
+
         override def getSubscriptionByName(
             subscriptionName: String
         ): IO[SalesforceClientFailure, SalesforceSubscription] =
           sendRequestAndParseResponse[SalesforceSubscription](
-            Http(s"${auth.instance_url}/services/data/v43.0/sobjects/SF_Subscription__c/Name/${subscriptionName}")
+            Http(s"${auth.instance_url}/services/data/v43.0/sobjects/SF_Subscription__c/Name/$subscriptionName")
               .header("Authorization", s"Bearer ${auth.access_token}")
               .method("GET")
           ).tap(subscription => logging.info(s"Successfully loaded: ${subscription.Name}"))
 
-        override def getContact(
-            contactId: String
-        ): IO[SalesforceClientFailure, SalesforceContact] =
+        override def getContact(contactId: String): IO[SalesforceClientFailure, SalesforceContact] =
           sendRequestAndParseResponse[SalesforceContact](
-            Http(s"${auth.instance_url}/services/data/v43.0/sobjects/Contact/${contactId}")
+            Http(s"${auth.instance_url}/services/data/v43.0/sobjects/Contact/$contactId")
               .header("Authorization", s"Bearer ${auth.access_token}")
               .method("GET")
           ).tap(contact => logging.info(s"Successfully loaded contact: ${contact.Id}"))
@@ -124,7 +112,7 @@ object SalesforceClientLive {
         override def updatePriceRise(
             priceRiseId: String,
             priceRise: SalesforcePriceRise
-        ): IO[SalesforceClientFailure, Unit] =
+        ): IO[SalesforceClientFailure, Unit] = {
           sendRequest(
             Http(s"${auth.instance_url}/services/data/v43.0/sobjects/Price_Rise__c/$priceRiseId")
               .postData(serialisePriceRise(priceRise))
@@ -132,12 +120,10 @@ object SalesforceClientLive {
               .header("Authorization", s"Bearer ${auth.access_token}")
               .header("Content-Type", "application/json")
           ).unit
-            .tap(_ => logging.info(s"Successfully updated Price_Rise__c object: ${priceRiseId}"))
-
+        } <* logging.info(s"Successfully updated Price_Rise__c object: $priceRiseId")
       }
     }
 
-  def serialisePriceRise(priceRise: SalesforcePriceRise) = {
+  private[pricemigrationengine] def serialisePriceRise(priceRise: SalesforcePriceRise) =
     write(priceRise, indent = 2)
-  }
 }
