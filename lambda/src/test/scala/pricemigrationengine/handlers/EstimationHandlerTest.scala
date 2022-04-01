@@ -67,8 +67,8 @@ class EstimationHandlerTest extends munit.FunSuite {
 
   test("spreadEarliestStartDate: gives default value for a quarterly subscription") {
     val earliestStartDateCalc = EstimationHandler.spreadEarliestStartDate(
-      subscription = Fixtures.subscriptionFromJson("QuarterlyVoucher/Subscription.json"),
-      invoicePreview = Fixtures.invoiceListFromJson("QuarterlyVoucher/InvoicePreview.json"),
+      subscription = Fixtures.subscriptionFromJson("NewspaperVoucher/QuarterlyVoucher/Subscription.json"),
+      invoicePreview = Fixtures.invoiceListFromJson("NewspaperVoucher/QuarterlyVoucher/InvoicePreview.json"),
       absoluteEarliestStartDate
     )
     val earliestStartDate = runtime.unsafeRun(earliestStartDateCalc.provideLayer(env))
@@ -77,8 +77,8 @@ class EstimationHandlerTest extends munit.FunSuite {
 
   test("spreadEarliestStartDate: gives randomised value for a monthly subscription") {
     val earliestStartDateCalc = EstimationHandler.spreadEarliestStartDate(
-      subscription = Fixtures.subscriptionFromJson("Monthly/Subscription.json"),
-      invoicePreview = Fixtures.invoiceListFromJson("Monthly/InvoicePreview.json"),
+      subscription = Fixtures.subscriptionFromJson("NewspaperVoucher/Monthly/Subscription.json"),
+      invoicePreview = Fixtures.invoiceListFromJson("NewspaperVoucher/Monthly/InvoicePreview.json"),
       absoluteEarliestStartDate
     )
     val earliestStartDate = runtime.unsafeRun(earliestStartDateCalc.provideLayer(env))
