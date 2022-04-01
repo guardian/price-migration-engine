@@ -10,6 +10,9 @@ ThisBuild / scalacOptions ++= Seq(
   "-Xfatal-warnings"
 )
 
+ThisBuild / riffRaffUploadArtifactBucket := Option("riffraff-artifact")
+ThisBuild / riffRaffUploadManifestBucket := Option("riffraff-builds")
+
 lazy val priceMigrationEngine = (project in file("."))
   .aggregate(dynamoDb, lambda, stateMachine)
 
@@ -19,9 +22,7 @@ lazy val dynamoDb = (project in file("dynamoDb"))
     name := "price-migration-engine-dynamo-db",
     description := "Cloudformation for price-migration-engine-dynamo-db",
     riffRaffPackageType := (baseDirectory.value / "cfn"),
-    riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
-    riffRaffUploadManifestBucket := Option("riffraff-builds"),
-    riffRaffManifestProjectName := "MemSub::Subscriptions::DynamoDb::PriceMigrationEngine"
+    riffRaffManifestProjectName := "Retention::PriceMigrationEngine::DynamoDb"
   )
 
 lazy val lambda = (project in file("lambda"))
@@ -49,9 +50,7 @@ lazy val lambda = (project in file("lambda"))
     description := "Lambda jar for the Price Migration Engine",
     assemblyJarName := "price-migration-engine-lambda.jar",
     riffRaffPackageType := assembly.value,
-    riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
-    riffRaffUploadManifestBucket := Option("riffraff-builds"),
-    riffRaffManifestProjectName := "MemSub::Subscriptions::Lambda::PriceMigrationEngine",
+    riffRaffManifestProjectName := "Retention::PriceMigrationEngine::Lambda",
     riffRaffArtifactResources += ((project.base / "cfn.yaml", "cfn/cfn.yaml")),
     assembly / assemblyMergeStrategy := {
       /*
@@ -75,7 +74,5 @@ lazy val stateMachine = (project in file("stateMachine"))
     name := "price-migration-engine-state-machine",
     description := "Cloudformation for price migration state machine.",
     riffRaffPackageType := (baseDirectory.value / "cfn"),
-    riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
-    riffRaffUploadManifestBucket := Option("riffraff-builds"),
-    riffRaffManifestProjectName := "MemSub::Subscriptions::StateMachine::PriceMigrationEngine"
+    riffRaffManifestProjectName := "Retention::PriceMigrationEngine::StateMachine"
   )
