@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.clock.Clock
+import zio.Clock
 import zio.{ZEnv, ZIO, ZLayer}
 
 /** Carries out price-rise amendments in Zuora.
@@ -20,7 +20,7 @@ object AmendmentHandler extends CohortHandler {
       count <-
         cohortItems
           .take(batchSize)
-          .mapM(item => amend(newProductPricing, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
+          .mapZIO(item => amend(newProductPricing, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
           .runCount
     } yield HandlerOutput(isComplete = count < batchSize)
 
@@ -28,17 +28,15 @@ object AmendmentHandler extends CohortHandler {
       newProductPricing: ZuoraPricingData,
       item: CohortItem
   ): ZIO[CohortTable with Zuora with Clock, Failure, AmendmentResult] =
-    doAmendment(newProductPricing, item).foldM(
+    doAmendment(newProductPricing, item).foldZIO(
       failure = {
         case _: CancelledSubscriptionFailure =>
           val result = CancelledAmendmentResult(item.subscriptionName)
-          CohortTable.update(CohortItem.fromCancelledAmendmentResult(result)) zipRight ZIO.succeed(result)
+          CohortTable.update(CohortItem.fromCancelledAmendmentResult(result)).as(result)
         case e => ZIO.fail(e)
       },
       success = { result =>
-        CohortTable.update(
-          CohortItem.fromSuccessfulAmendmentResult(result)
-        ) zipRight ZIO.succeed(result)
+        CohortTable.update(CohortItem.fromSuccessfulAmendmentResult(result)).as(result)
       }
     )
 

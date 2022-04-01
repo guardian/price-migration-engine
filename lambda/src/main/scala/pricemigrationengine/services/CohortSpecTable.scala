@@ -13,8 +13,8 @@ object CohortSpecTable {
   }
 
   val fetchAll: ZIO[CohortSpecTable, Failure, Set[CohortSpec]] =
-    ZIO.accessM(_.get.fetchAll)
+    ZIO.environmentWithZIO(_.get.fetchAll)
 
   def update(spec: CohortSpec): ZIO[CohortSpecTable, CohortSpecUpdateFailure, Unit] =
-    ZIO.accessM(_.get.update(spec))
+    ZIO.environmentWithZIO(_.get.update(spec))
 }

@@ -26,25 +26,25 @@ object DynamoDBZIO {
   def query[A](
       query: QueryRequest
   )(implicit deserializer: DynamoDBDeserialiser[A]): URIO[DynamoDBZIO, ZStream[Any, DynamoDBZIOError, A]] = {
-    ZIO.access(_.get.query(query))
+    ZIO.environmentWith(_.get.query(query))
   }
 
   def scan[A](
       query: ScanRequest
   )(implicit deserializer: DynamoDBDeserialiser[A]): URIO[DynamoDBZIO, ZStream[Any, DynamoDBZIOError, A]] = {
-    ZIO.access(_.get.scan(query))
+    ZIO.environmentWith(_.get.scan(query))
   }
 
   def update[A, B](table: String, key: A, value: B)(implicit
       keySerializer: DynamoDBSerialiser[A],
       valueSerializer: DynamoDBUpdateSerialiser[B]
   ): ZIO[DynamoDBZIO, DynamoDBZIOError, Unit] = {
-    ZIO.accessM(_.get.update(table, key, value))
+    ZIO.environmentWithZIO(_.get.update(table, key, value))
   }
 
   def create[A](table: String, keyName: String, value: A)(implicit
       keySerializer: DynamoDBSerialiser[A]
   ): ZIO[DynamoDBZIO, DynamoDBZIOError, Unit] = {
-    ZIO.accessM(_.get.create(table, keyName, value))
+    ZIO.environmentWithZIO(_.get.create(table, keyName, value))
   }
 }

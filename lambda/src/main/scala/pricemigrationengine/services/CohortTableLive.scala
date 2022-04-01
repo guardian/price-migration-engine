@@ -111,18 +111,20 @@ object CohortTableLive {
     ConfigurationFailure,
     CohortTable
   ] = {
-    ZLayer.fromFunctionM {
-      dependencies: DynamoDBZIO with StageConfiguration with CohortTableConfiguration with Logging =>
-        {
-          for {
-            config <- StageConfiguration.stageConfig
-            tableName = cohortSpec.tableName(config.stage)
-            cohortTableConfig <- CohortTableConfiguration.cohortTableConfig
-          } yield new CohortTable.Service {
-            override def fetch(
-                filter: CohortTableFilter,
-                latestStartDateInclusive: Option[LocalDate]
-            ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
+    ZLayer.fromZIO {
+      for {
+        dynamoDbZio <- ZIO.service[DynamoDBZIO]
+        config <- StageConfiguration.stageConfig
+        tableName = cohortSpec.tableName(config.stage)
+        cohortTableConfig <- CohortTableConfiguration.cohortTableConfig
+        logging <- ZIO.service[Logging]
+      } yield new CohortTable.Service {
+        override def fetch(
+            filter: CohortTableFilter,
+            latestStartDateInclusive: Option[LocalDate]
+        ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
+          ZIO
+            .from {
               val indexName =
                 latestStartDateInclusive
                   .fold(ProcessingStageIndexName)(_ => ProcessingStageAndStartDateIndexName)
@@ -147,51 +149,45 @@ object CohortTableLive {
                   )
                   .limit(cohortTableConfig.batchSize)
                   .build()
-              DynamoDBZIO.query(queryRequest).map(_.mapError(error => CohortFetchFailure(error.toString)))
-            }.provide(dependencies)
+              dynamoDbZio.query(queryRequest).mapError(error => CohortFetchFailure(error.toString))
+            }
+            .mapError(error => CohortFetchFailure(error.toString))
+        }
 
-            override def create(cohortItem: CohortItem): ZIO[Any, Failure, Unit] = {
-              DynamoDBZIO
-                .create(table = tableName, keyName = keyAttribName, value = cohortItem)
-                .mapError {
-                  case DynamoDBZIOError(reason, _: Some[_]) =>
-                    CohortItemAlreadyPresentFailure(reason)
-                  case error => CohortCreateFailure(error.toString)
-                }
-            }.provide(dependencies)
+        override def create(cohortItem: CohortItem): IO[Failure, Unit] = {
+          dynamoDbZio
+            .create(table = tableName, keyName = keyAttribName, value = cohortItem)
+            .mapError {
+              case DynamoDBZIOError(reason, _: Some[_]) =>
+                CohortItemAlreadyPresentFailure(reason)
+              case error => CohortCreateFailure(error.toString)
+            }
+        }
 
-            override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
-              DynamoDBZIO
-                .update(table = tableName, key = CohortTableKey(result.subscriptionName), value = result)
-                .mapError(error => CohortUpdateFailure(error.toString))
-                .tapBoth(
-                  e => Logging.error(s"Failed to update Cohort table: $e"),
-                  _ => Logging.info(s"Wrote $result to Cohort table")
-                )
-            }.provide(dependencies)
+        override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
+          dynamoDbZio
+            .update(table = tableName, key = CohortTableKey(result.subscriptionName), value = result)
+            .mapError(error => CohortUpdateFailure(error.toString))
+            .tapBoth(
+              e => logging.error(s"Failed to update Cohort table: $e"),
+              _ => logging.info(s"Wrote $result to Cohort table")
+            )
+        }
 
-            override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
+        override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
+          ZIO
+            .from {
+              val queryRequest = ScanRequest.builder
+                .tableName(s"PriceMigrationEngine${config.stage}")
+                .limit(cohortTableConfig.batchSize)
+                .build()
               for {
-                cohortTableConfig <-
-                  CohortTableConfiguration.cohortTableConfig
-                    .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
-                stageConfig <-
-                  StageConfiguration.stageConfig
-                    .mapError(error => CohortFetchFailure(s"Failed to get configuration:${error.reason}"))
-                queryRequest = ScanRequest.builder
-                  .tableName(s"PriceMigrationEngine${stageConfig.stage}")
-                  .limit(cohortTableConfig.batchSize)
-                  .build()
-                queryResults <-
-                  DynamoDBZIO
-                    .scan(
-                      queryRequest
-                    )
-                    .map(_.mapError(error => CohortFetchFailure(error.toString)))
+                queryResults <- dynamoDbZio.scan(queryRequest).mapError(error => CohortFetchFailure(error.toString))
               } yield queryResults
-            }.provide(dependencies)
-          }
-        }.provide(dependencies)
+            }
+            .mapError(error => CohortFetchFailure(error.toString))
+        }
+      }
     }
   }
 }

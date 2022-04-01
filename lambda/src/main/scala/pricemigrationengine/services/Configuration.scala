@@ -9,7 +9,7 @@ object ZuoraConfiguration {
   }
 
   val zuoraConfig: ZIO[ZuoraConfiguration, ConfigurationFailure, ZuoraConfig] =
-    ZIO.accessM(_.get.config)
+    ZIO.environmentWithZIO(_.get.config)
 }
 
 object CohortTableConfiguration {
@@ -18,7 +18,7 @@ object CohortTableConfiguration {
   }
 
   val cohortTableConfig: ZIO[CohortTableConfiguration, ConfigurationFailure, CohortTableConfig] =
-    ZIO.accessM(_.get.config)
+    ZIO.environmentWithZIO(_.get.config)
 }
 
 object SalesforceConfiguration {
@@ -27,7 +27,7 @@ object SalesforceConfiguration {
   }
 
   val salesforceConfig: ZIO[SalesforceConfiguration, ConfigurationFailure, SalesforceConfig] =
-    ZIO.accessM(_.get.config)
+    ZIO.environmentWithZIO(_.get.config)
 }
 
 object StageConfiguration {
@@ -36,7 +36,7 @@ object StageConfiguration {
   }
 
   val stageConfig: ZIO[StageConfiguration, ConfigurationFailure, StageConfig] =
-    ZIO.accessM(_.get.config)
+    ZIO.environmentWithZIO(_.get.config)
 }
 
 object EmailSenderConfiguration {
@@ -45,7 +45,7 @@ object EmailSenderConfiguration {
   }
 
   val emailSenderConfig: ZIO[EmailSenderConfiguration, ConfigurationFailure, EmailSenderConfig] =
-    ZIO.accessM(_.get.config)
+    ZIO.environmentWithZIO(_.get.config)
 }
 
 object CohortStateMachineConfiguration {
@@ -53,7 +53,7 @@ object CohortStateMachineConfiguration {
     val config: IO[ConfigurationFailure, CohortStateMachineConfig]
   }
   val cohortStateMachineConfig: ZIO[CohortStateMachineConfiguration, ConfigurationFailure, CohortStateMachineConfig] =
-    ZIO.accessM(_.get.config)
+    ZIO.environmentWithZIO(_.get.config)
 }
 
 object ExportConfiguration {
@@ -61,5 +61,5 @@ object ExportConfiguration {
     val config: ExportConfig
   }
   val exportConfig: ZIO[ExportConfiguration, ConfigurationFailure, ExportConfig] =
-    ZIO.access(_.get.config)
+    ZIO.environmentWith(_.get.config)
 }

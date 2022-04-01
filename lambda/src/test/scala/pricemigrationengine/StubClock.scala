@@ -1,21 +1,29 @@
 package pricemigrationengine
 
-import java.time.{DateTimeException, Instant, OffsetDateTime, ZoneOffset}
-import java.util.concurrent.TimeUnit
+import zio.{Clock, IO, Scheduler, UIO, ZLayer, ZTraceElement}
 
-import zio.{IO, UIO, ZLayer}
-import zio.clock.Clock
-import zio.duration.Duration
+import java.time.{Instant, LocalDateTime, OffsetDateTime, ZoneOffset}
+import java.util.concurrent.TimeUnit
 
 object StubClock {
   val expectedCurrentTime = Instant.parse("2020-05-21T15:16:37Z")
   val clock = ZLayer.succeed(
-    new Clock.Service {
-      override def currentTime(unit: TimeUnit): UIO[Long] = ???
-      override def currentDateTime: IO[DateTimeException, OffsetDateTime] =
+    new Clock {
+
+      override def currentTime(unit: => TimeUnit)(implicit trace: ZTraceElement): UIO[Long] = ???
+
+      override def currentDateTime(implicit trace: ZTraceElement): UIO[OffsetDateTime] =
         IO.succeed(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
-      override def nanoTime: UIO[Long] = ???
-      override def sleep(duration: Duration): UIO[Unit] = ???
+
+      override def instant(implicit trace: ZTraceElement): UIO[Instant] = ???
+
+      override def localDateTime(implicit trace: ZTraceElement): UIO[LocalDateTime] = ???
+
+      override def nanoTime(implicit trace: ZTraceElement): UIO[Long] = ???
+
+      override def scheduler(implicit trace: ZTraceElement): UIO[Scheduler] = ???
+
+      override def sleep(duration: => zio.Duration)(implicit trace: ZTraceElement): UIO[Unit] = ???
     }
   )
 }

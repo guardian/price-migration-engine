@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.clock.Clock
+import zio.Clock
 import zio.{IO, ZEnv, ZIO, ZLayer}
 
 object SalesforcePriceRiseCreationHandler extends CohortHandler {
@@ -14,7 +14,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
   private[handlers] val main: ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, HandlerOutput] =
     for {
       cohortItems <- CohortTable.fetch(EstimationComplete, None)
-      count <- cohortItems.take(batchSize).mapM(createSalesforcePriceRise).runCount
+      count <- cohortItems.take(batchSize).mapZIO(createSalesforcePriceRise).runCount
     } yield HandlerOutput(isComplete = count < batchSize)
 
   private def createSalesforcePriceRise(
