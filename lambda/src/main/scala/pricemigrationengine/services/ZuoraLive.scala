@@ -36,7 +36,7 @@ object ZuoraLive {
    * Possibly memoize the value at a higher level.
    * Will return to it.
    */
-  private def fetchedAccessToken(config: ZuoraConfig) = {
+  private def fetchedAccessToken(config: ZuoraConfig, logging: Logging) = {
     val request = Http(s"${config.apiHost}/oauth/token")
       .postForm(
         Seq(
@@ -47,10 +47,12 @@ object ZuoraLive {
       )
     val response = request.asString
     val body = response.body
-    if (response.code == 200)
-      Right(read[AccessToken](body).access_token)
+    if (response.code == 200) {
+      val accessToken = read[AccessToken](body).access_token
+      logging.info(s"Fetched Zuora access token: $accessToken")
+      Right(accessToken)
         .orElse(Left(ZuoraFetchFailure(failureMessage(request, response))))
-    else
+    } else
       Left(ZuoraFetchFailure(failureMessage(request, response)))
   }
 
@@ -67,6 +69,9 @@ object ZuoraLive {
         logging <- ZIO.service[Logging]
         config <- ZuoraConfiguration.zuoraConfig
         clock <- ZIO.service[Clock]
+        accessToken <- ZIO
+          .fromEither(fetchedAccessToken(config, logging))
+          .mapError(failure => ConfigurationFailure(failure.reason))
       } yield new Zuora {
 
         private def retry[E, A](effect: => ZIO[Any, E, A]) =
@@ -74,7 +79,6 @@ object ZuoraLive {
 
         private def get[A: Reader](path: String, params: Map[String, String] = Map.empty) = {
           for {
-            accessToken <- ZIO.fromEither(fetchedAccessToken(config))
             a <- retry(
               handleRequest[A](
                 Http(s"${config.apiHost}/$apiVersion/$path")
@@ -87,7 +91,6 @@ object ZuoraLive {
 
         private def post[A: Reader](path: String, body: String) =
           for {
-            accessToken <- ZIO.fromEither(fetchedAccessToken(config)).mapError(e => ZuoraUpdateFailure(e.reason))
             a <- handleRequest[A](
               Http(s"${config.apiHost}/$apiVersion/$path")
                 .header("Authorization", s"Bearer $accessToken")
@@ -98,7 +101,6 @@ object ZuoraLive {
 
         private def put[A: Reader](path: String, body: String) =
           for {
-            accessToken <- ZIO.fromEither(fetchedAccessToken(config)).mapError(e => ZuoraUpdateFailure(e.reason))
             a <- handleRequest[A](
               Http(s"${config.apiHost}/$apiVersion/$path")
                 .header("Authorization", s"Bearer $accessToken")
