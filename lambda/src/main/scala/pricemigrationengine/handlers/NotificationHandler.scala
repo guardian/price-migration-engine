@@ -75,6 +75,7 @@ object NotificationHandler extends CohortHandler {
     for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
+
       firstName <- requiredField(contact.FirstName, "Contact.FirstName").orElse(
         requiredField(contact.Salutation, "Contact.Salutation")
       )
@@ -86,6 +87,7 @@ object NotificationHandler extends CohortHandler {
       estimatedNewPrice <- requiredField(cohortItem.estimatedNewPrice.map(_.toString()), "CohortItem.estimatedNewPrice")
       startDate <- requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate")
       billingPeriod <- requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod")
+
       paymentFrequency <- paymentFrequency(billingPeriod)
 
       _ <- logMissingEmailAddress(cohortItem, contact)
@@ -113,7 +115,8 @@ object NotificationHandler extends CohortHandler {
                 payment_amount = estimatedNewPrice,
                 next_payment_date = startDate,
                 payment_frequency = paymentFrequency,
-                subscription_id = cohortItem.subscriptionName
+                subscription_id = cohortItem.subscriptionName,
+                product_name = sfSubscription.Product_Name__c
               )
             )
           ),

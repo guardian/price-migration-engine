@@ -37,6 +37,7 @@ class NotificationHandlerTest extends munit.FunSuite {
   val expectedDataExtensionName = "SV_VO_Pricerise_Q22020"
   val expectedSalutation = "Ms"
   val expectedSfStatus = "Active"
+  val expectedSfProductName = "Guardian Weekly - Domestic"
 
   val mailingAddressStreet = "buyer1MailStreet"
   val mailingAddressCity = "buyer1MailCity"
@@ -136,7 +137,8 @@ class NotificationHandlerTest extends munit.FunSuite {
       expectedSFSubscriptionId,
       expectedSubscriptionName,
       expectedBuyerId,
-      expectedSfStatus
+      expectedSfStatus,
+      expectedSfProductName
     )
 
   private val salesforceContact: SalesforceContact =

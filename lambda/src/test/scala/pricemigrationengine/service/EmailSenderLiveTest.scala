@@ -29,7 +29,8 @@ class EmailSenderLiveTest extends munit.FunSuite {
                 "1.23",
                 "2020-01-01",
                 "Monthly",
-                "Subscription-001"
+                "Subscription-001",
+                "Guardian Weekly - Domestic"
               )
             )
           ),
@@ -55,7 +56,8 @@ class EmailSenderLiveTest extends munit.FunSuite {
         |        "payment_amount": "1.23",
         |        "next_payment_date": "2020-01-01",
         |        "payment_frequency": "Monthly",
-        |        "subscription_id": "Subscription-001"
+        |        "subscription_id": "Subscription-001",
+        |        "product_name": "Guardian Weekly - Domestic"
         |      }
         |    }
         |  },
@@ -86,7 +88,8 @@ class EmailSenderLiveTest extends munit.FunSuite {
                 "1.23",
                 "2020-01-01",
                 "Monthly",
-                "Subscription-001"
+                "Subscription-001",
+                "Guardian Weekly - Domestic"
               )
             )
           ),
@@ -112,7 +115,8 @@ class EmailSenderLiveTest extends munit.FunSuite {
         |        "payment_amount": "1.23",
         |        "next_payment_date": "2020-01-01",
         |        "payment_frequency": "Monthly",
-        |        "subscription_id": "Subscription-001"
+        |        "subscription_id": "Subscription-001",
+        |        "product_name": "Guardian Weekly - Domestic"
         |      }
         |    }
         |  },

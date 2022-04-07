@@ -17,7 +17,8 @@ case class EmailPayloadSubscriberAttributes(
     payment_amount: String,
     next_payment_date: String,
     payment_frequency: String,
-    subscription_id: String
+    subscription_id: String,
+    product_name: String
 )
 
 object EmailPayloadSubscriberAttributes {
