@@ -113,7 +113,8 @@ object NotificationHandler extends CohortHandler {
                 payment_amount = estimatedNewPrice,
                 next_payment_date = startDate,
                 payment_frequency = paymentFrequency,
-                subscription_id = cohortItem.subscriptionName
+                subscription_id = cohortItem.subscriptionName,
+                product_type = sfSubscription.Product_Type__c.getOrElse("")
               )
             )
           ),
