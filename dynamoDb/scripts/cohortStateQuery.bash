@@ -5,6 +5,9 @@
 # that are in a given processing stage
 # and have a start date up to and including a given threshold.
 #
+# Example usage:
+#   cohortStateQuery.bash Cohort1 DEV SalesforcePriceRiseCreationComplete 2022-05-26
+#
 # Arg 1: Cohort name
 # Arg 2: Deployment stage: DEV, CODE or PROD
 # Arg 3: processingStage, eg. EstimationComplete
