@@ -4,6 +4,9 @@
 # Updates the cohort table processingStage attribute,
 # for a given list of subscriptions.
 #
+# Example usage:
+#   cohortItemsStatusUpdate.bash Cohort1 ../subs.txt
+#
 # Arg 1: Cohort name
 # Arg 2: path to a file containing line-separated subscription numbers
 # =====================================================================
@@ -22,8 +25,12 @@ function update() {
     --return-values UPDATED_OLD
 }
 
+# Update this value for different stages
+# (This isn't a program parameter to make it more difficult to make a mistake).
 stage=DEV
 
+# Update this value for different processing statuses
+# (This isn't a program parameter to make it more difficult to make a mistake).
 status=EstimationComplete
 
 while read -r line; do
