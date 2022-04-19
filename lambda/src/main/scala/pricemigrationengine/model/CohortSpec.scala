@@ -22,20 +22,16 @@ import java.util
   *   its billing dates.
   * @param migrationCompleteDate
   *   Date on which the final step in the price migration was complete for every sub in the cohort.
-  *
-  * @param tmpTableName
-  *   A temporary value for the special case where the table name can't be derived from the cohort name.
   */
 case class CohortSpec(
     cohortName: String,
     brazeCampaignName: String,
     importStartDate: LocalDate,
     earliestPriceMigrationStartDate: LocalDate,
-    migrationCompleteDate: Option[LocalDate] = None,
-    tmpTableName: Option[String] = None // TODO: remove when price migration 2020 complete
+    migrationCompleteDate: Option[LocalDate] = None
 ) {
   val normalisedCohortName: String = cohortName.replaceAll(" ", "")
-  def tableName(stage: String): String = tmpTableName getOrElse s"PriceMigration-$stage-$normalisedCohortName"
+  def tableName(stage: String): String = s"PriceMigration-$stage-$normalisedCohortName"
 }
 
 object CohortSpec {
@@ -49,7 +45,6 @@ object CohortSpec {
     def isValidStringValue(s: String) = s.trim == s && s.nonEmpty && s.matches("[A-Za-z0-9-_ ]+")
     isValidStringValue(spec.cohortName) &&
     isValidStringValue(spec.brazeCampaignName) &&
-    spec.tmpTableName.forall(isValidStringValue) &&
     spec.earliestPriceMigrationStartDate.isAfter(spec.importStartDate)
   }
 
@@ -60,13 +55,11 @@ object CohortSpec {
       importStartDate <- getDateFromResults(values, "importStartDate")
       earliestPriceMigrationStartDate <- getDateFromResults(values, "earliestPriceMigrationStartDate")
       migrationCompleteDate <- getOptionalDateFromResults(values, "migrationCompleteDate")
-      tmpTableName <- getOptionalStringFromResults(values, "tmpTableName")
     } yield CohortSpec(
       cohortName,
       brazeCampaignName,
       importStartDate,
       earliestPriceMigrationStartDate,
-      migrationCompleteDate,
-      tmpTableName
+      migrationCompleteDate
     )).left.map(e => CohortSpecFetchFailure(e))
 }
