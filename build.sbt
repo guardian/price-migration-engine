@@ -39,6 +39,8 @@ lazy val lambda = (project in file("lambda"))
       awsSQS,
       awsStateMachine,
       http,
+      circeGeneric,
+      circeParser,
       commonsCsv,
       slf4jNop % Runtime,
       munit % Test,

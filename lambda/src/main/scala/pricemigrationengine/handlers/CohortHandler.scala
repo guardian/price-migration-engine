@@ -50,13 +50,13 @@ trait CohortHandler extends ZIOAppDefault with RequestStreamHandler {
         .tapError(e => Logging.error(e.toString))
       _ <- go(input)
     } yield ())
-      .provideCustomLayer(ConsoleLogging.impl)
+      .provideCustomLayer(ConsoleLogging.impl("CohortHandler"))
       .exitCode
 
   override final def handleRequest(input: InputStream, output: OutputStream, context: Context): Unit =
     Runtime.default.unsafeRun {
       for {
-        handlerOutput <- go(input).provideCustomLayer(LambdaLogging.impl(context))
+        handlerOutput <- go(input).provideCustomLayer(LambdaLogging.impl(context, "CohortHandler"))
         writable <- ZIO.attempt(stream(handlerOutput))
         _ <- ZIO.attempt(writable.writeBytesTo(output))
       } yield ()

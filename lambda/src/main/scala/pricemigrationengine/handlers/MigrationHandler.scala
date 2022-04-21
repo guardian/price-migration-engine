@@ -26,12 +26,12 @@ object MigrationHandler extends ZIOAppDefault with RequestHandler[Unit, Unit] {
 
   override def run: ZIO[ZEnv with ZIOAppArgs, Any, Any] =
     migrateActiveCohorts
-      .provideCustomLayer(ConsoleLogging.impl to env)
+      .provideCustomLayer(ConsoleLogging.impl("MigrationHandler") to env)
       .exitCode
 
   override def handleRequest(unused: Unit, context: Context): Unit =
     Runtime.default.unsafeRun(
       migrateActiveCohorts
-        .provideCustomLayer(LambdaLogging.impl(context) to env)
+        .provideCustomLayer(LambdaLogging.impl(context, "MigrationHandler") to env)
     )
 }
