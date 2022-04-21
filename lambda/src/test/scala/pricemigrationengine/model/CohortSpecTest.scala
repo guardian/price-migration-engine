@@ -16,8 +16,7 @@ class CohortSpecTest extends munit.FunSuite {
     brazeCampaignName = "cmp123",
     importStartDate = LocalDate.of(2020, 1, 1),
     earliestPriceMigrationStartDate = LocalDate.of(2020, 1, 2),
-    migrationCompleteDate = None,
-    tmpTableName = None
+    migrationCompleteDate = None
   )
 
   private def assertTrue(obtained: Boolean): Unit = assertEquals(obtained, true)
@@ -58,14 +57,7 @@ class CohortSpecTest extends munit.FunSuite {
     assertTrue(isActive(importStartDate.plusDays(3), migrationComplete = None))
   }
 
-  test("tableName: should be tmpTableName field value when present") {
-    assertEquals(
-      cohortSpec.copy(tmpTableName = Some("givenName")).tableName(stage = "DEV"),
-      "givenName"
-    )
-  }
-
-  test("tableName: should be transformed cohort name when tmpTableName field value not present") {
+  test("tableName: should be transformed cohort name") {
     assertEquals(
       cohortSpec.tableName(stage = "PROD"),
       "PriceMigration-PROD-HomeDelivery2018"
@@ -77,12 +69,11 @@ class CohortSpecTest extends munit.FunSuite {
       "cohortName" -> AttributeValue.builder.s("Home Delivery 2018").build(),
       "brazeCampaignName" -> AttributeValue.builder.s("cmp123").build(),
       "importStartDate" -> AttributeValue.builder.s("2020-01-01").build(),
-      "earliestPriceMigrationStartDate" -> AttributeValue.builder.s("2020-01-02").build(),
-      "tmpTableName" -> AttributeValue.builder.s("tmpName").build()
+      "earliestPriceMigrationStartDate" -> AttributeValue.builder.s("2020-01-02").build()
     ).asJava
     assertEquals(
       CohortSpec.fromDynamoDbItem(item),
-      Right(cohortSpec.copy(tmpTableName = Some("tmpName")))
+      Right(cohortSpec)
     )
   }
 

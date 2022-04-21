@@ -17,6 +17,8 @@ deployments:
       bucket: membership-dist
       prefixStack: false
       functionNames:
+      - price-migration-lambda-
+      - price-migration-engine-table-create-lambda-
       - price-migration-engine-estimation-lambda-
       - price-migration-engine-salesforce-price-rise-lambda-
       - price-migration-engine-amendment-lambda-

@@ -62,7 +62,8 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
               s"SubscritionId-$subscriptionName",
               subscriptionName,
               s"Buyer-$subscriptionName",
-              "Active"
+              "Active",
+              Some("Newspaper - Digital Voucher")
             )
           ).orElseFail(SalesforceClientFailure(""))
         }
