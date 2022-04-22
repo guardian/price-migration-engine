@@ -1,16 +1,32 @@
 package pricemigrationengine.services
 
 import com.amazonaws.services.lambda.runtime.{Context, LambdaLogger}
+import pricemigrationengine.services.CohortStateMachineLive.StateMachineInput
 import zio.{UIO, ULayer, ZIO, ZLayer}
+import upickle.default.{ReadWriter, macroRW, write}
 
 object LambdaLogging {
+  private case class InfoMessage(
+      CohortName: String,
+      INFO: String
+  )
 
-  def impl(context: Context): ULayer[Logging] =
+  private case class ErrorMessage(
+      CohortName: String,
+      ERROR: String
+  )
+
+  private implicit val rwInfo: ReadWriter[InfoMessage] = macroRW
+  private implicit val rwError: ReadWriter[ErrorMessage] = macroRW
+
+  def impl(context: Context, cohortName: String): ULayer[Logging] =
     ZLayer.succeed(
       new Logging.Service {
         val logger: LambdaLogger = context.getLogger
-        def info(s: String): UIO[Unit] = ZIO.succeed(logger.log(s"INFO: $s"))
-        def error(s: String): UIO[Unit] = ZIO.succeed(logger.log(s"ERROR: $s"))
+        def info(s: String): UIO[Unit] =
+          ZIO.succeed(logger.log(write(InfoMessage(cohortName, s))))
+        def error(s: String): UIO[Unit] =
+          ZIO.succeed(logger.log(write(ErrorMessage(cohortName, s))))
       }
     )
 }
