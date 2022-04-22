@@ -2,7 +2,6 @@ import sbt._
 
 object Dependencies {
   private val zioVersion = "2.0.0-RC2"
-  private val circeVersion = "0.14.1"
   private val awsSdkVersion = "2.17.173"
 
   lazy val awsDynamoDb = "software.amazon.awssdk" % "dynamodb" % awsSdkVersion
@@ -19,6 +18,4 @@ object Dependencies {
   lazy val munit = "org.scalameta" %% "munit" % "0.7.29"
   lazy val commonsCsv = "org.apache.commons" % "commons-csv" % "1.9.0"
   lazy val slf4jNop = "org.slf4j" % "slf4j-nop" % "2.0.0-alpha7"
-  lazy val circeParser = "io.circe" %% "circe-parser" % circeVersion
-  lazy val circeGeneric = "io.circe" %% "circe-generic" % circeVersion
 }
