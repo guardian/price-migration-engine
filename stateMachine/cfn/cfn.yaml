@@ -141,7 +141,7 @@ Resources:
     Properties:
       Description: Trigger daily 7 am (UTC) kick-off of state machines for active cohorts.
       ScheduleExpression: "cron(0 7 ? * * *)"
-      State: DISABLED
+      State: ENABLED
       Targets:
         - Arn: !GetAtt PriceMigrationLambda.Arn
           Id: !Ref PriceMigrationLambda
