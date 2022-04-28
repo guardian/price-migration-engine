@@ -139,7 +139,7 @@ Resources:
       - PriceMigrationLambda
     Condition: IsProd
     Properties:
-      Description: Trigger daily 7 am kick-off of state machines for active cohorts.
+      Description: Trigger daily 7 am (UTC) kick-off of state machines for active cohorts.
       ScheduleExpression: "cron(0 7 ? * * *)"
       State: ENABLED
       Targets:
