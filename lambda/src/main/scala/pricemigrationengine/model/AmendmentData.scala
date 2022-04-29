@@ -122,9 +122,9 @@ object AmendmentData {
           chargedDays: Seq[ZuoraRatePlanCharge]
       ): Either[AmendmentDataFailure, Seq[RatePlanChargePair]] = {
         val catalogueRatePlans = productRatePlans(catalogue)
-        val catalogueCharges = catalogueRatePlans.find(_.name == ratePlanName).map(_.productRatePlanCharges)
+        val catalogueRatePlanCharges = catalogueRatePlans.find(_.name == ratePlanName).map(_.productRatePlanCharges)
 
-        catalogueCharges match {
+        catalogueRatePlanCharges match {
           case Some(x) =>
             Right(
               for ((planFromSub, cataloguePlan) <- chargedDays zip x)
