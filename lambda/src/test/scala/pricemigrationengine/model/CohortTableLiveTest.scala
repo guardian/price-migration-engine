@@ -92,7 +92,8 @@ class CohortTableLiveTest extends munit.FunSuite {
             CohortTable
               .fetch(ReadyForEstimation, None)
               .provideLayer(
-                stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
+                stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging
+                  .impl("TestCohort") >>>
                   CohortTableLive.impl(cohortSpec)
               )
           resultList <- result.run(Sink.collectAll[CohortItem])
@@ -190,7 +191,8 @@ class CohortTableLiveTest extends munit.FunSuite {
             CohortTable
               .fetch(ReadyForEstimation, Some(expectedLatestDate))
               .provideLayer(
-                stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
+                stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging
+                  .impl("TestCohort") >>>
                   CohortTableLive.impl(cohortSpec)
               )
           resultList <- result.run(Sink.collectAll[CohortItem])
@@ -273,7 +275,8 @@ class CohortTableLiveTest extends munit.FunSuite {
         CohortTable
           .update(cohortItem)
           .provideLayer(
-            stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
+            stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging
+              .impl("TestCohort") >>>
               CohortTableLive.impl(cohortSpec)
           )
       ),
@@ -288,6 +291,7 @@ class CohortTableLiveTest extends munit.FunSuite {
         "subscriptionNumber" -> AttributeValue.builder.s(expectedSubscriptionId).build()
       ).asJava
     )
+
     val update = receivedValueSerialiser.get.serialise(receivedUpdate.get)
     assertEquals(
       update.get("processingStage"),
@@ -445,7 +449,8 @@ class CohortTableLiveTest extends munit.FunSuite {
         CohortTable
           .update(cohortItem)
           .provideLayer(
-            stubStageConfiguration ++ stubCohortTableConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
+            stubStageConfiguration ++ stubCohortTableConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging
+              .impl("TestCohort") >>>
               CohortTableLive.impl(cohortSpec)
           )
       ),
@@ -513,7 +518,8 @@ class CohortTableLiveTest extends munit.FunSuite {
         CohortTable
           .create(cohortItem)
           .provideLayer(
-            stubStageConfiguration ++ stubCohortTableConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl >>>
+            stubStageConfiguration ++ stubCohortTableConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging
+              .impl("TestCohort") >>>
               CohortTableLive.impl(cohortSpec)
           )
       ),
