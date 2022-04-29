@@ -36,7 +36,7 @@ object ZuoraLive {
    * Possibly memoize the value at a higher level.
    * Will return to it.
    */
-  private def fetchedAccessToken(config: ZuoraConfig, logging: Logging) = {
+  private def fetchedAccessToken(config: ZuoraConfig) = {
     val request = Http(s"${config.apiHost}/oauth/token")
       .postForm(
         Seq(
@@ -68,7 +68,7 @@ object ZuoraLive {
         config <- ZuoraConfiguration.zuoraConfig
         clock <- ZIO.service[Clock]
         accessToken <- ZIO
-          .fromEither(fetchedAccessToken(config, logging))
+          .fromEither(fetchedAccessToken(config))
           .mapError(failure => ConfigurationFailure(failure.reason))
           .tap(token => logging.info(s"Fetched Zuora access token: $token"))
       } yield new Zuora {
