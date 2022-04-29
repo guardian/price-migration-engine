@@ -152,7 +152,7 @@ object AmendmentData {
             chargedDays.head.name match {
               case "Saturday" => getNewPlan("Saturday", chargedDays)
               case "Sunday"   => getNewPlan("Sunday", chargedDays)
-              // is this necessary or will it default to the case below at line 154 if there is no match??
+              // is this necessary or will it default to the case below at line 163 if there is no match??
               case _ =>
                 Left(
                   AmendmentDataFailure(
