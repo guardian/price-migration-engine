@@ -1,7 +1,8 @@
 package pricemigrationengine.model
 
-import java.time.LocalDate
+import pricemigrationengine.model.ZuoraProductCatalogue.{productPricingMap, productRatePlans}
 
+import java.time.LocalDate
 import scala.math.BigDecimal.RoundingMode
 
 case class AmendmentData(startDate: LocalDate, priceData: PriceData)
@@ -28,14 +29,14 @@ case class PriceData(currency: Currency, oldPrice: BigDecimal, newPrice: BigDeci
 object AmendmentData {
 
   def apply(
-      pricing: ZuoraPricingData,
+      catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       earliestStartDate: LocalDate
   ): Either[AmendmentDataFailure, AmendmentData] =
     for {
       startDate <- nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
-      price <- priceData(pricing, subscription, invoiceList, startDate)
+      price <- priceData(catalogue, subscription, invoiceList, startDate)
     } yield AmendmentData(startDate, priceData = price)
 
   def nextServiceStartDate(
@@ -67,7 +68,7 @@ object AmendmentData {
     * price, and currency.</li> </ol>
     */
   def priceData(
-      pricingData: ZuoraPricingData,
+      catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       startDate: LocalDate
@@ -92,6 +93,7 @@ object AmendmentData {
        * the same discount will appear against each product rate plan charge in the invoice preview.
        */
       val pairs = ratePlanCharges.distinctBy(_.productRatePlanChargeId).map(ratePlanChargePair)
+
       val failures = pairs.collect { case Left(failure) => failure }
       if (failures.isEmpty) Right(pairs.collect { case Right(pricing) => pricing })
       else
@@ -104,16 +106,77 @@ object AmendmentData {
 
     def ratePlanChargePair(
         ratePlanCharge: ZuoraRatePlanCharge
-    ): Either[ZuoraProductRatePlanChargeId, RatePlanChargePair] =
-      pricingData
+    ): Either[ZuoraProductRatePlanChargeId, RatePlanChargePair] = {
+      productPricingMap(catalogue)
         .get(ratePlanCharge.productRatePlanChargeId)
         .toRight(ratePlanCharge.productRatePlanChargeId)
         .map(productRatePlanCharge => RatePlanChargePair(ratePlanCharge, productRatePlanCharge))
+    }
+
+    def migrateFromEchoLegacy(
+        ratePlanCharges: Seq[ZuoraRatePlanCharge]
+    ): Either[AmendmentDataFailure, Seq[RatePlanChargePair]] = {
+
+      def getNewPlan(
+          ratePlanName: String,
+          chargedDays: Seq[ZuoraRatePlanCharge]
+      ): Either[AmendmentDataFailure, Seq[RatePlanChargePair]] = {
+        val catalogueRatePlans = productRatePlans(catalogue)
+        val catalogueCharges = catalogueRatePlans.find(_.name == ratePlanName).map(_.productRatePlanCharges)
+
+        catalogueCharges match {
+          case Some(x) =>
+            Right(
+              for ((planFromSub, cataloguePlan) <- chargedDays zip x)
+                yield RatePlanChargePair(planFromSub, cataloguePlan)
+            )
+          case None =>
+            Left(
+              AmendmentDataFailure(
+                s"Failed to find new rate plan for Echo-Legacy sub: $ratePlanName, ratePlanCharges: ${ratePlanCharges.mkString(", ")}"
+              )
+            )
+        }
+      }
+
+      val pairs = {
+        val chargedDays = ratePlanCharges.filter(_.price > Some(0.0))
+
+        chargedDays.length match {
+          case 7 => getNewPlan("Everyday", chargedDays)
+          case 6 if chargedDays.filter(_.name == "Sunday").isEmpty =>
+            getNewPlan("Sixday", chargedDays)
+          case 2 if chargedDays.filter(plan => plan.name == "Saturday" || plan.name == "Sunday").length == 2 =>
+            getNewPlan("Weekend", chargedDays)
+          case 1 =>
+            chargedDays.head.name match {
+              case "Saturday" => getNewPlan("Saturday", chargedDays)
+              case "Sunday"   => getNewPlan("Sunday", chargedDays)
+              // is this necessary or will it default to the case below at line 154 if there is no match??
+              case _ =>
+                Left(
+                  AmendmentDataFailure(
+                    s"Migration from Echo-Legacy plan failed for rate plan charges: ${ratePlanCharges.mkString(", ")}"
+                  )
+                )
+            }
+          case _ =>
+            Left(
+              AmendmentDataFailure(
+                s"Migration from Echo-Legacy plan failed for rate plan charges: ${ratePlanCharges.mkString(", ")}"
+              )
+            )
+        }
+      }
+
+      pairs
+    }
 
     val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, startDate)
 
     val ratePlanChargesOrFail: Either[AmendmentDataFailure, Seq[ZuoraRatePlanCharge]] = {
       val ratePlanCharges = invoiceItems.map(ratePlanCharge)
+
       val failures = ratePlanCharges.collect { case Left(failure) => failure }
       if (failures.isEmpty) Right(ratePlanCharges.collect { case Right(charge) => charge })
       else Left(AmendmentDataFailure(failures.map(_.reason).mkString(", ")))
@@ -121,14 +184,19 @@ object AmendmentData {
 
     for {
       ratePlanCharges <- ratePlanChargesOrFail
-      pairs <- ratePlanChargePairs(ratePlanCharges)
+      ratePlan = ZuoraRatePlan.ratePlan(subscription, ratePlanCharges.head).toSeq
+
+      isEchoLegacy = ratePlan.head.ratePlanName == "Echo-Legacy"
+
+      pairs <- if (isEchoLegacy) migrateFromEchoLegacy(ratePlanCharges) else ratePlanChargePairs(ratePlanCharges)
+
       currency <- pairs.headOption
         .map(p => Right(p.chargeFromSubscription.currency))
         .getOrElse(Left(AmendmentDataFailure(s"No invoice items for date: $startDate")))
       oldPrice <- totalChargeAmount(subscription, invoiceList, startDate)
       newPrice <- totalChargeAmount(pairs)
-      billingPeriod <- ratePlanCharges
-        .flatMap(_.billingPeriod)
+      billingPeriod <- pairs
+        .flatMap(_.chargeFromSubscription.billingPeriod)
         .headOption
         .toRight(AmendmentDataFailure("Unknown billing period"))
     } yield PriceData(currency, oldPrice, newPrice, billingPeriod)

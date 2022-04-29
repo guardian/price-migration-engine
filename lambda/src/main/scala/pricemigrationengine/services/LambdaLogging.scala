@@ -1,7 +1,6 @@
 package pricemigrationengine.services
 
 import com.amazonaws.services.lambda.runtime.{Context, LambdaLogger}
-import pricemigrationengine.services.CohortStateMachineLive.StateMachineInput
 import zio.{UIO, ULayer, ZIO, ZLayer}
 import upickle.default.{ReadWriter, macroRW, write}
 

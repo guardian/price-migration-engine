@@ -39,6 +39,7 @@ object ZuoraRatePlan {
 
 case class ZuoraRatePlanCharge(
     productRatePlanChargeId: ZuoraProductRatePlanChargeId,
+    name: String,
     number: String,
     currency: Currency,
     price: Option[BigDecimal] = None,
