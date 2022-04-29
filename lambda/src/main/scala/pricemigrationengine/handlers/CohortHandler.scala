@@ -26,13 +26,21 @@ trait CohortHandler extends ZIOAppDefault with RequestStreamHandler {
     (for {
       cohortSpec <- validSpec(input)
       output <- handle(cohortSpec).provideCustomLayer(ConsoleLogging.impl(cohortSpec.cohortName))
-    } yield output).tap(output => Logging.info(s"Output: $output"))
+    } yield output)
+      .tapBoth(
+        failure => Logging.error(failure.reason),
+        output => Logging.info(s"Output: $output")
+      )
 
   private def goLambda(input: Readable, context: Context): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
     (for {
       cohortSpec <- validSpec(input)
       output <- handle(cohortSpec).provideCustomLayer(LambdaLogging.impl(context, cohortSpec.cohortName))
-    } yield output).tap(output => Logging.info(s"Output: $output"))
+    } yield output)
+      .tapBoth(
+        failure => Logging.error(failure.reason),
+        output => Logging.info(s"Output: $output")
+      )
 
   private def validSpec(input: Readable): ZIO[Logging, Failure, CohortSpec] =
     (for {
