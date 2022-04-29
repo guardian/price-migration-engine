@@ -1,7 +1,6 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.model.CohortTableFilter._
-import pricemigrationengine.model.ZuoraProductCatalogue.{productPricingMap, productRatePlans}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.{Random, ZEnv, ZIO, ZLayer}
