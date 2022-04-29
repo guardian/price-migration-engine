@@ -178,7 +178,7 @@ object CohortTableLive {
           ZIO
             .from {
               val queryRequest = ScanRequest.builder
-                .tableName(s"PriceMigrationEngine${config.stage}")
+                .tableName(tableName)
                 .limit(cohortTableConfig.batchSize)
                 .build()
               for {
