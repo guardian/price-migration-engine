@@ -10,10 +10,10 @@ object ZuoraProductCatalogue {
 
   def empty: ZuoraProductCatalogue = ZuoraProductCatalogue(products = Set.empty)
 
-  def productRatePlans(catalogue: ZuoraProductCatalogue): Seq[ZuoraProductRatePlan] = {
+  def homeDeliveryRatePlans(catalogue: ZuoraProductCatalogue): Seq[ZuoraProductRatePlan] = {
     val prices = for {
-      product <- catalogue.products
-      productRatePlan <- product.productRatePlans.filter(x => x.status != "Expired" || x.name == "Echo-Legacy")
+      product <- catalogue.products.filter(_.name == "Newspaper Delivery")
+      productRatePlan <- product.productRatePlans.filter(_.status != "Expired")
     } yield productRatePlan
 
     prices.toSeq
@@ -31,6 +31,7 @@ object ZuoraProductCatalogue {
 }
 
 case class ZuoraProduct(
+    name: String,
     productRatePlans: Set[ZuoraProductRatePlan]
 )
 

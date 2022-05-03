@@ -1,6 +1,6 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.model.ZuoraProductCatalogue.{productPricingMap, productRatePlans}
+import pricemigrationengine.model.ZuoraProductCatalogue.{productPricingMap, homeDeliveryRatePlans}
 
 import java.time.LocalDate
 import scala.math.BigDecimal.RoundingMode
@@ -121,10 +121,13 @@ object AmendmentData {
           ratePlanName: String,
           chargedDays: Seq[ZuoraRatePlanCharge]
       ): Either[AmendmentDataFailure, Seq[RatePlanChargePair]] = {
-        val catalogueRatePlans = productRatePlans(catalogue)
-        val catalogueRatePlanCharges = catalogueRatePlans.find(_.name == ratePlanName).map(_.productRatePlanCharges)
+        val deliveryRatePlans = homeDeliveryRatePlans(catalogue)
+        val deliveryRatePlanCharges = deliveryRatePlans.find(_.name == ratePlanName).map(_.productRatePlanCharges)
 
-        catalogueRatePlanCharges match {
+        println(deliveryRatePlans)
+        println(deliveryRatePlanCharges)
+
+        deliveryRatePlanCharges match {
           case Some(x) =>
             Right(
               for ((planFromSub, cataloguePlan) <- chargedDays zip x)
@@ -141,6 +144,7 @@ object AmendmentData {
 
       val pairs = {
         val chargedDays = ratePlanCharges.filter(_.price > Some(0.0))
+        println(s"chargedDays: ${chargedDays}")
 
         chargedDays.length match {
           case 7 => getNewPlan("Everyday", chargedDays)
@@ -150,7 +154,7 @@ object AmendmentData {
             getNewPlan("Weekend", chargedDays)
           case 1 =>
             chargedDays.head.name match {
-              case "Saturday" => getNewPlan("Saturday", chargedDays)
+              case "Saturday" => getNewPlan("Saturday ", chargedDays)
               case "Sunday"   => getNewPlan("Sunday", chargedDays)
               // is this necessary or will it default to the case below at line 163 if there is no match??
               case _ =>
