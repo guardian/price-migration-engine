@@ -65,7 +65,6 @@ case class ZuoraPricing(currency: Currency, price: Option[BigDecimal])
 object ZuoraPricing {
   implicit val rw: ReadWriter[ZuoraPricing] = macroRW
 
-  def pricing(productRatePlanCharge: ZuoraProductRatePlanCharge, currency: Currency): Option[ZuoraPricing] = {
+  def pricing(productRatePlanCharge: ZuoraProductRatePlanCharge, currency: Currency): Option[ZuoraPricing] =
     productRatePlanCharge.pricing.find(_.currency == currency)
-  }
 }
