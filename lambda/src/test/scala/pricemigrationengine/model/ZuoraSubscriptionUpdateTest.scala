@@ -8,8 +8,6 @@ import pricemigrationengine.model.ZuoraProductCatalogue.productPricingMap
 
 class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
 
-
-
   test("updateOfRatePlansToCurrent: updates correct rate plans on a standard monthly voucher sub") {
     val fixtureSet = "NewspaperVoucher/Monthly"
     val date = LocalDate.of(2020, 5, 28)
@@ -264,7 +262,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
   test("updateOfRatePlansToCurrent: updates correct rate plans on an echo-legacy sub (weekend)") {
     val fixtureSet = "NewspaperDelivery/EchoLegacy/WeekendMonthly"
     val date = LocalDate.of(2022, 6, 7)
-    val update = ZuoraSubscriptionUpdate.migrateEchoLegacySub(
+    val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -294,7 +292,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
   test("updateOfRatePlansToCurrent: updates correct rate plans on an echo-legacy sub (everyday)") {
     val fixtureSet = "NewspaperDelivery/EchoLegacy/EverydayMonthly"
     val date = LocalDate.of(2022, 9, 28)
-    val update = ZuoraSubscriptionUpdate.migrateEchoLegacySub(
+    val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -324,7 +322,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
   test("updateOfRatePlansToCurrent: updates correct rate plans on an echo-legacy sub (Saturday Quarterly)") {
     val fixtureSet = "NewspaperDelivery/EchoLegacy/SaturdayQuarterly"
     val date = LocalDate.of(2022, 11, 30)
-    val update = ZuoraSubscriptionUpdate.migrateEchoLegacySub(
+    val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
