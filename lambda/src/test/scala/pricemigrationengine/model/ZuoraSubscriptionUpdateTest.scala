@@ -8,11 +8,13 @@ import pricemigrationengine.model.ZuoraProductCatalogue.productPricingMap
 
 class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
 
+
+
   test("updateOfRatePlansToCurrent: updates correct rate plans on a standard monthly voucher sub") {
     val fixtureSet = "NewspaperVoucher/Monthly"
     val date = LocalDate.of(2020, 5, 28)
     val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
-      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date
@@ -38,7 +40,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
     val fixtureSet = "NewspaperVoucher/MonthlyDiscounted"
     val date = LocalDate.of(2020, 6, 15)
     val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
-      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date
@@ -64,7 +66,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
     val fixtureSet = "NewspaperVoucher/QuarterlyVoucher"
     val date = LocalDate.of(2020, 7, 5)
     val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
-      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date
@@ -105,7 +107,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
     val fixtureSet = "QuarterlyGW"
     val date = LocalDate.of(2020, 7, 28)
     val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
-      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date
@@ -131,7 +133,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
     val fixtureSet = "NewspaperVoucher/SemiAnnualVoucher"
     val date = LocalDate.of(2020, 7, 13)
     val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
-      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date
@@ -192,7 +194,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
     val fixtureSet = "NewspaperVoucher/AnnualVoucher"
     val date = LocalDate.of(2020, 12, 7)
     val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
-      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date
@@ -233,7 +235,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
     val fixtureSet = "NewspaperVoucher/TermEndsEarly"
     val date = LocalDate.of(2020, 8, 5)
     val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
-      pricingData = productPricingMap(productCatalogueFromJson(s"$fixtureSet/Catalogue.json")),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date
@@ -254,6 +256,102 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
           remove = List(
             RemoveZuoraRatePlan(ratePlanId = "rp572", contractEffectiveDate = date)
           )
+        )
+      )
+    )
+  }
+
+  test("updateOfRatePlansToCurrent: updates correct rate plans on an echo-legacy sub (weekend)") {
+    val fixtureSet = "NewspaperDelivery/EchoLegacy/WeekendMonthly"
+    val date = LocalDate.of(2022, 6, 7)
+    val update = ZuoraSubscriptionUpdate.migrateEchoLegacySub(
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
+      subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      date
+    )
+    assertEquals(
+      update,
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(
+            AddZuoraRatePlan(
+              productRatePlanId = "2c92a0fd5614305c01561dc88f3275be",
+              contractEffectiveDate = date,
+              chargeOverrides = Nil
+            )
+          ),
+          remove = List(
+            RemoveZuoraRatePlan(ratePlanId = "echo-legacy", contractEffectiveDate = date)
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
+    )
+  }
+
+  test("updateOfRatePlansToCurrent: updates correct rate plans on an echo-legacy sub (everyday)") {
+    val fixtureSet = "NewspaperDelivery/EchoLegacy/EverydayMonthly"
+    val date = LocalDate.of(2022, 9, 28)
+    val update = ZuoraSubscriptionUpdate.migrateEchoLegacySub(
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
+      subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      date
+    )
+    assertEquals(
+      update,
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(
+            AddZuoraRatePlan(
+              productRatePlanId = "2c92a0fd560d13880156136b72e50f0c",
+              contractEffectiveDate = date,
+              chargeOverrides = Nil
+            )
+          ),
+          remove = List(
+            RemoveZuoraRatePlan(ratePlanId = "echo-legacy", contractEffectiveDate = date)
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
+    )
+  }
+
+  test("updateOfRatePlansToCurrent: updates correct rate plans on an echo-legacy sub (Saturday Quarterly)") {
+    val fixtureSet = "NewspaperDelivery/EchoLegacy/SaturdayQuarterly"
+    val date = LocalDate.of(2022, 11, 30)
+    val update = ZuoraSubscriptionUpdate.migrateEchoLegacySub(
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
+      subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      date
+    )
+    assertEquals(
+      update,
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(
+            AddZuoraRatePlan(
+              productRatePlanId = "2c92a0fd5e1dcf0d015e3cb39d0a7ddb",
+              contractEffectiveDate = date,
+              chargeOverrides = Seq(
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0fd5e1dcf0d015e3cb39d207ddf",
+                  billingPeriod = "Quarter",
+                  price = 53.97
+                )
+              )
+            )
+          ),
+          remove = List(
+            RemoveZuoraRatePlan(ratePlanId = "echo-legacy", contractEffectiveDate = date)
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
         )
       )
     )

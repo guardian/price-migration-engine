@@ -373,7 +373,7 @@
 "externallyManagedPlanId": null
 },
 {
-"id": "id",
+"id": "echo-legacy",
 "productId": "2c92a0ff55a0e4940155dfa589da2591",
 "productName": "Newspaper Delivery",
 "productSku": "ABC-00000013",

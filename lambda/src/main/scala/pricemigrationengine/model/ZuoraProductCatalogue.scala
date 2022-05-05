@@ -40,6 +40,7 @@ object ZuoraProduct {
 }
 
 case class ZuoraProductRatePlan(
+    id: String,
     name: String,
     status: String,
     productRatePlanCharges: Set[ZuoraProductRatePlanCharge]

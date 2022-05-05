@@ -56,7 +56,7 @@ object AmendmentData {
     * product rate plan charge.<br/> This is because discounts are only reliable in the subscription rate plan charge,
     * and new prices have to come from the product rate plan charge.
     */
-  private case class RatePlanChargePair(
+  case class RatePlanChargePair(
       chargeFromSubscription: ZuoraRatePlanCharge,
       chargeFromProduct: ZuoraProductRatePlanCharge
   )
@@ -112,70 +112,6 @@ object AmendmentData {
         .toRight(ratePlanCharge.productRatePlanChargeId)
         .map(productRatePlanCharge => RatePlanChargePair(ratePlanCharge, productRatePlanCharge))
     }
-
-    def migrateFromEchoLegacy(
-        ratePlanCharges: Seq[ZuoraRatePlanCharge]
-    ): Either[AmendmentDataFailure, Seq[RatePlanChargePair]] = {
-
-      def getNewPlan(
-          ratePlanName: String,
-          chargedDays: Seq[ZuoraRatePlanCharge]
-      ): Either[AmendmentDataFailure, Seq[RatePlanChargePair]] = {
-        val deliveryRatePlans = homeDeliveryRatePlans(catalogue)
-        val deliveryRatePlanCharges = deliveryRatePlans.find(_.name == ratePlanName).map(_.productRatePlanCharges)
-
-        println(deliveryRatePlans)
-        println(deliveryRatePlanCharges)
-
-        deliveryRatePlanCharges match {
-          case Some(x) =>
-            Right(
-              for ((planFromSub, cataloguePlan) <- chargedDays zip x)
-                yield RatePlanChargePair(planFromSub, cataloguePlan)
-            )
-          case None =>
-            Left(
-              AmendmentDataFailure(
-                s"Failed to find new rate plan for Echo-Legacy sub: $ratePlanName, ratePlanCharges: ${ratePlanCharges.mkString(", ")}"
-              )
-            )
-        }
-      }
-
-      val pairs = {
-        val chargedDays = ratePlanCharges.filter(_.price > Some(0.0))
-        println(s"chargedDays: ${chargedDays}")
-
-        chargedDays.length match {
-          case 7 => getNewPlan("Everyday", chargedDays)
-          case 6 if chargedDays.filter(_.name == "Sunday").isEmpty =>
-            getNewPlan("Sixday", chargedDays)
-          case 2 if chargedDays.filter(plan => plan.name == "Saturday" || plan.name == "Sunday").length == 2 =>
-            getNewPlan("Weekend", chargedDays)
-          case 1 =>
-            chargedDays.head.name match {
-              case "Saturday" => getNewPlan("Saturday ", chargedDays)
-              case "Sunday"   => getNewPlan("Sunday", chargedDays)
-              // is this necessary or will it default to the case below at line 163 if there is no match??
-              case _ =>
-                Left(
-                  AmendmentDataFailure(
-                    s"Migration from Echo-Legacy plan failed for rate plan charges: ${ratePlanCharges.mkString(", ")}"
-                  )
-                )
-            }
-          case _ =>
-            Left(
-              AmendmentDataFailure(
-                s"Migration from Echo-Legacy plan failed for rate plan charges: ${ratePlanCharges.mkString(", ")}"
-              )
-            )
-        }
-      }
-
-      pairs
-    }
-
     val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, startDate)
 
     val ratePlanChargesOrFail: Either[AmendmentDataFailure, Seq[ZuoraRatePlanCharge]] = {
@@ -188,11 +124,15 @@ object AmendmentData {
 
     for {
       ratePlanCharges <- ratePlanChargesOrFail
-      ratePlan = ZuoraRatePlan.ratePlan(subscription, ratePlanCharges.head).toSeq
+      ratePlan <- ZuoraRatePlan
+        .ratePlan(subscription, ratePlanCharges.head)
+        .toRight(AmendmentDataFailure(s"Failed to get RatePlan for charges: $ratePlanCharges"))
 
-      isEchoLegacy = ratePlan.head.ratePlanName == "Echo-Legacy"
+      isEchoLegacy = ratePlan.ratePlanName == "Echo-Legacy"
 
-      pairs <- if (isEchoLegacy) migrateFromEchoLegacy(ratePlanCharges) else ratePlanChargePairs(ratePlanCharges)
+      pairs <-
+        if (isEchoLegacy) EchoLegacy.getNewRatePlans(catalogue, ratePlanCharges).map(_.chargePairs)
+        else ratePlanChargePairs(ratePlanCharges)
 
       currency <- pairs.headOption
         .map(p => Right(p.chargeFromSubscription.currency))
