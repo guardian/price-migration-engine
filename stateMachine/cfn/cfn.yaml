@@ -337,7 +337,8 @@ Resources:
                     "ErrorEquals": [
                         "Lambda.ServiceException",
                         "Lambda.AWSLambdaException",
-                        "Lambda.SdkClientException"
+                        "Lambda.SdkClientException",
+                        "Lambda.Unknown"
                     ],
                     "IntervalSeconds": 2,
                     "MaxAttempts": 6,
