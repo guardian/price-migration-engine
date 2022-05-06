@@ -149,7 +149,7 @@
       "productName": "Newspaper Delivery",
       "productSku": "ABC-00000013",
       "productRatePlanId": "2c92a0fd5e1dcf0d015e3cb39d0a7ddb",
-      "ratePlanName": "Saturday ",
+      "ratePlanName": "Saturday",
       "ratePlanCharges": [
         {
           "id": "id",
