@@ -45,7 +45,7 @@ object EchoLegacy {
           getNewPlan("Weekend", chargedDays)
         case 1 =>
           chargedDays.head.name match {
-            case "Saturday" => getNewPlan("Saturday ", chargedDays)
+            case "Saturday" => getNewPlan("Saturday", chargedDays)
             case "Sunday"   => getNewPlan("Sunday", chargedDays)
           }
         case _ =>
