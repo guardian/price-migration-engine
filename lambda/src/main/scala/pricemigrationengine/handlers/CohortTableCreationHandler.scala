@@ -24,6 +24,6 @@ object CohortTableCreationHandler extends CohortHandler {
     (LiveLayer.cohortTableDdl and LiveLayer.logging)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
-  def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
-    main(input).provideSomeLayer[ZEnv with Logging](env)
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
+    main(input).provideSomeLayer[Logging](env)
 }

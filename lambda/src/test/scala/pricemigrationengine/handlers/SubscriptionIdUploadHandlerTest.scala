@@ -77,7 +77,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
             )
           )
           .provideLayer(
-            TestLogging.logging ++ stubConfiguration ++ stubCohortTable ++ stubS3 ++ StubClock.clock
+            TestLogging.logging ++ stubConfiguration ++ stubCohortTable ++ stubS3
           )
       ),
       Success(HandlerOutput(isComplete = true))

@@ -154,6 +154,6 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
     (LiveLayer.cohortTable(cohortSpec) and LiveLayer.s3 and LiveLayer.logging and LiveLayer.exportConfig)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
-  def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
-    main(input).provideSomeLayer[ZEnv with Logging](env(input))
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
+    main(input).provideSomeLayer[Logging](env(input))
 }

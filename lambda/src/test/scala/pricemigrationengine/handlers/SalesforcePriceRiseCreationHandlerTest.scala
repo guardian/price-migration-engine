@@ -1,7 +1,8 @@
 package pricemigrationengine.handlers
 
-import java.time.LocalDate
+import pricemigrationengine.StubClock.withStubClock
 
+import java.time.LocalDate
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -111,10 +112,12 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        SalesforcePriceRiseCreationHandler.main
-          .provideLayer(
-            TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ StubClock.clock
-          )
+        withStubClock(
+          SalesforcePriceRiseCreationHandler.main
+            .provideLayer(
+              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient
+            )
+        )
       ),
       Success(expectedHandlerOutput)
     )
@@ -170,10 +173,12 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        SalesforcePriceRiseCreationHandler.main
-          .provideLayer(
-            TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ StubClock.clock
-          )
+        withStubClock(
+          SalesforcePriceRiseCreationHandler.main
+            .provideLayer(
+              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient
+            )
+        )
       ),
       Success(expectedHandlerOutput)
     )

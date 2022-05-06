@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.{Random, ZEnv, ZIO, ZLayer}
+import zio.{IO, Random, ZIO, ZLayer}
 
 import java.time.LocalDate
 
@@ -18,7 +18,7 @@ object EstimationHandler extends CohortHandler {
   // TODO: move to config
   private val batchSize = 150
 
-  def main(earliestStartDate: LocalDate): ZIO[Logging with CohortTable with Zuora with Random, Failure, HandlerOutput] =
+  def main(earliestStartDate: LocalDate): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
       catalogue <- Zuora.fetchProductCatalogue
 
@@ -39,7 +39,7 @@ object EstimationHandler extends CohortHandler {
       earliestStartDate: LocalDate
   )(
       item: CohortItem
-  ): ZIO[CohortTable with Zuora with Random, Failure, EstimationResult] =
+  ): ZIO[CohortTable with Zuora, Failure, EstimationResult] =
     doEstimation(catalogue, item, earliestStartDate).foldZIO(
       failure = {
         case failure: AmendmentDataFailure =>
@@ -59,7 +59,7 @@ object EstimationHandler extends CohortHandler {
       catalogue: ZuoraProductCatalogue,
       item: CohortItem,
       earliestStartDate: LocalDate
-  ): ZIO[Zuora with Random, Failure, SuccessfulEstimationResult] =
+  ): ZIO[Zuora, Failure, SuccessfulEstimationResult] =
     for {
       subscription <-
         Zuora
@@ -83,7 +83,7 @@ object EstimationHandler extends CohortHandler {
       subscription: ZuoraSubscription,
       invoicePreview: ZuoraInvoiceList,
       earliestStartDate: LocalDate
-  ): ZIO[Random, ConfigurationFailure, LocalDate] = {
+  ): IO[ConfigurationFailure, LocalDate] = {
 
     lazy val earliestStartDateForAMonthlySub =
       for {
@@ -108,6 +108,6 @@ object EstimationHandler extends CohortHandler {
     (LiveLayer.cohortTable(cohortSpec) and LiveLayer.zuora and LiveLayer.logging)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
-  def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
-    main(input.earliestPriceMigrationStartDate).provideSomeLayer[ZEnv with Logging](env(input))
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
+    main(input.earliestPriceMigrationStartDate).provideSomeLayer[Logging](env(input))
 }

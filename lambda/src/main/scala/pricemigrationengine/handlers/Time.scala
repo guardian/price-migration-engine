@@ -7,12 +7,12 @@ import java.time.{Instant, LocalDate, OffsetDateTime}
 
 object Time {
 
-  private val nowHere: ZIO[Clock, TimeFailure, OffsetDateTime] =
+  private val nowHere: IO[TimeFailure, OffsetDateTime] =
     Clock.currentDateTime
 
-  val today: ZIO[Clock, TimeFailure, LocalDate] =
+  val today: IO[TimeFailure, LocalDate] =
     nowHere.map(_.toLocalDate)
 
-  val thisInstant: ZIO[Clock, TimeFailure, Instant] =
+  val thisInstant: IO[TimeFailure, Instant] =
     nowHere.map(_.toInstant)
 }

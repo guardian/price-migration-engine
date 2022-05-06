@@ -28,7 +28,7 @@ object NotificationHandler extends CohortHandler {
 
   def main(
       brazeCampaignName: String
-  ): ZIO[Logging with CohortTable with SalesforceClient with Clock with EmailSender, Failure, HandlerOutput] = {
+  ): ZIO[Logging with CohortTable with SalesforceClient with EmailSender, Failure, HandlerOutput] = {
     for {
       today <- Time.today
       subscriptions <- CohortTable.fetch(
@@ -45,7 +45,7 @@ object NotificationHandler extends CohortHandler {
 
   def sendNotification(brazeCampaignName: String)(
       cohortItem: CohortItem
-  ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock with Logging, Failure, Int] = {
+  ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging, Failure, Int] = {
     val result = for {
       sfSubscription <-
         SalesforceClient
@@ -71,7 +71,7 @@ object NotificationHandler extends CohortHandler {
       brazeCampaignName: String,
       cohortItem: CohortItem,
       sfSubscription: SalesforceSubscription
-  ): ZIO[EmailSender with SalesforceClient with CohortTable with Clock with Logging, Failure, Int] =
+  ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging, Failure, Int] =
     for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
@@ -198,6 +198,6 @@ object NotificationHandler extends CohortHandler {
     (LiveLayer.cohortTable(cohortSpec) and LiveLayer.salesforce and LiveLayer.emailSender and LiveLayer.logging)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
-  def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
-    main(input.brazeCampaignName).provideSomeLayer[ZEnv with Logging](env(input))
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
+    main(input.brazeCampaignName).provideSomeLayer[Logging](env(input))
 }

@@ -13,7 +13,7 @@ object AmendmentHandler extends CohortHandler {
   // TODO: move to config
   private val batchSize = 150
 
-  val main: ZIO[Logging with CohortTable with Zuora with Clock, Failure, HandlerOutput] =
+  val main: ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
       catalogue <- Zuora.fetchProductCatalogue
       cohortItems <- CohortTable.fetch(NotificationSendDateWrittenToSalesforce, None)
@@ -27,7 +27,7 @@ object AmendmentHandler extends CohortHandler {
   private def amend(
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
-  ): ZIO[CohortTable with Zuora with Clock, Failure, AmendmentResult] =
+  ): ZIO[CohortTable with Zuora, Failure, AmendmentResult] =
     doAmendment(catalogue, item).foldZIO(
       failure = {
         case _: CancelledSubscriptionFailure =>
@@ -43,7 +43,7 @@ object AmendmentHandler extends CohortHandler {
   private def doAmendment(
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
-  ): ZIO[Zuora with Clock, Failure, SuccessfulAmendmentResult] =
+  ): ZIO[Zuora, Failure, SuccessfulAmendmentResult] =
     for {
       startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
       oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(AmendmentDataFailure(s"No old price in $item"))
@@ -90,6 +90,6 @@ object AmendmentHandler extends CohortHandler {
     (LiveLayer.cohortTable(cohortSpec) and LiveLayer.zuora and LiveLayer.logging)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
-  def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
-    main.provideSomeLayer[ZEnv with Logging](env(input))
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
+    main.provideSomeLayer[Logging](env(input))
 }

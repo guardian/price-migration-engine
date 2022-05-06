@@ -16,18 +16,17 @@ object CohortStateMachineLive {
 
   private implicit val rw: ReadWriter[StateMachineInput] = macroRW
 
-  val impl: ZLayer[CohortStateMachineConfiguration with Logging with Clock, ConfigurationFailure, CohortStateMachine] =
+  val impl: ZLayer[CohortStateMachineConfiguration with Logging, ConfigurationFailure, CohortStateMachine] =
     ZLayer.fromZIO {
       val stateMachine = AwsClient.sfn
       for {
         logging <- ZIO.service[Logging]
         config <- CohortStateMachineConfiguration.cohortStateMachineConfig
-        clock <- ZIO.service[Clock]
       } yield new CohortStateMachine {
         override def startExecution(spec: CohortSpec): IO[CohortStateMachineFailure, StartExecutionResponse] =
           for {
             _ <- logging.info(s"Starting execution with input: ${spec.toString} ...")
-            time <- Time.thisInstant.mapError(e => CohortStateMachineFailure(e.toString)).provideService(clock)
+            time <- Time.thisInstant.mapError(e => CohortStateMachineFailure(e.toString))
             timeStr <- ZIO
               .attempt(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm").withZone(ZoneId.systemDefault).format(time))
               .mapError(e => CohortStateMachineFailure(e.toString))
