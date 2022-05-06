@@ -40,34 +40,30 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
       }
     )
 
-    val stubS3: Layer[Nothing, S3.Service] = ZLayer.succeed(
-      new S3.Service {
-        def loadTestResource(path: String) = {
-          ZManaged
-            .acquireReleaseAttemptWith(getClass.getResourceAsStream(path)) { stream =>
-              stream.close()
-            }
-            .mapError(ex => S3Failure(s"Failed to load test resource: $ex"))
+    val stubS3: Layer[Nothing, S3.Service] = ZLayer.succeed(new S3.Service {
+      def loadTestResource(path: String): ZIO[Scope, S3Failure, InputStream] = {
+        ZIO
+          .fromAutoCloseable(ZIO.attempt(getClass.getResourceAsStream(path)))
+          .mapError(ex => S3Failure(s"Failed to load test resource: $ex"))
+      }
+
+      override def getObject(s3Location: S3Location): ZIO[Scope, S3Failure, InputStream] =
+        s3Location match {
+          case S3Location("price-migration-engine-dev", "cohortName/excluded-subscription-ids.csv") =>
+            loadTestResource("/SubscriptionExclusions.csv")
+          case S3Location("price-migration-engine-dev", "cohortName/salesforce-subscription-id-report.csv") =>
+            loadTestResource("/SubscriptionIds.csv")
+          case _ => ZIO.fail(S3Failure(s"Unexpected location: $s3Location"))
         }
 
-        override def getObject(s3Location: S3Location): ZManaged[Any, S3Failure, InputStream] =
-          s3Location match {
-            case S3Location("price-migration-engine-dev", "cohortName/excluded-subscription-ids.csv") =>
-              loadTestResource("/SubscriptionExclusions.csv")
-            case S3Location("price-migration-engine-dev", "cohortName/salesforce-subscription-id-report.csv") =>
-              loadTestResource("/SubscriptionIds.csv")
-            case _ => ZManaged.fail(S3Failure(s"Unexpected location: $s3Location"))
-          }
+      override def putObject(
+          s3Location: S3Location,
+          file: File,
+          cannedAccessControlList: Option[ObjectCannedACL]
+      ): IO[S3Failure, PutObjectResponse] = ???
 
-        override def putObject(
-            s3Location: S3Location,
-            file: File,
-            cannedAccessControlList: Option[ObjectCannedACL]
-        ): IO[S3Failure, PutObjectResponse] = ???
-
-        override def deleteObject(s3Location: S3Location): IO[S3Failure, Unit] = ZIO.succeed(())
-      }
-    )
+      override def deleteObject(s3Location: S3Location): IO[S3Failure, Unit] = ZIO.succeed(())
+    })
 
     assertEquals(
       default.unsafeRunSync(

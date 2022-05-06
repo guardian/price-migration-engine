@@ -63,16 +63,18 @@ object SubscriptionIdUploadHandler extends CohortHandler {
   private def importCohort(
       cohortSpec: CohortSpec
   ): ZIO[CohortTable with Logging with S3 with StageConfiguration, Failure, Unit] =
-    for {
+    ZIO.scoped(for {
       exclusionsSrc <- exclusionSourceLocation(cohortSpec)
       exclusionsManagedStream <- S3.getObject(exclusionsSrc)
-      exclusions <- exclusionsManagedStream.use(parseExclusions)
+      exclusionStream <- exclusionsManagedStream
+      exclusions <- parseExclusions(exclusionStream)
       _ <- Logging.info(s"Loaded excluded subscriptions: $exclusions")
       importSrc <- importSourceLocation(cohortSpec)
       subscriptionIdsManagedStream <- S3.getObject(importSrc)
-      count <- subscriptionIdsManagedStream.use(stream => writeSubscriptionIdsToCohortTable(stream, exclusions))
+      inclusionStream <- subscriptionIdsManagedStream
+      count <- writeSubscriptionIdsToCohortTable(inclusionStream, exclusions)
       _ <- Logging.info(s"Wrote $count subscription ids to the cohort table")
-    } yield ()
+    } yield ())
 
   def parseExclusions(inputStream: InputStream): IO[SubscriptionIdUploadFailure, Set[String]] = {
     ZIO
