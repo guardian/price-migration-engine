@@ -63,14 +63,14 @@ class NotificationHandlerTest extends munit.FunSuite {
                 .from(StubClock.expectedCurrentTime.plus(37, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
             )
           )
-          IO.succeed(ZStream(cohortItem))
+          ZIO.succeed(ZStream(cohortItem))
         }
 
         override def create(cohortItem: CohortItem): ZIO[Any, Failure, Unit] = ???
 
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
           updatedResultsWrittenToCohortTable.addOne(result)
-          IO.succeed(())
+          ZIO.succeed(())
         }
 
         override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???

@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter.{NotificationSendComplete, NotificationSendDateWrittenToSalesforce}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.{Clock, IO, ZEnv, ZIO, ZLayer}
+import zio.{IO, ZIO, ZLayer}
 
 import java.time.{LocalDate, ZoneOffset}
 
@@ -41,7 +41,7 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
     for {
       priceRise <- buildPriceRise(cohortItem)
       salesforcePriceRiseId <-
-        IO
+        ZIO
           .fromOption(cohortItem.salesforcePriceRiseId)
           .orElseFail(
             SalesforcePriceRiseWriteFailure(

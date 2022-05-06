@@ -6,7 +6,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeAction.PUT
 import software.amazon.awssdk.services.dynamodb.model._
 import zio.Exit.Success
 import zio.Runtime.default
-import zio.stream.Sink
+import zio.stream.ZSink
 import zio.{Chunk, Task, ZIO, ZLayer}
 
 import java.util
@@ -28,7 +28,7 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
     )
     val stubDynamoDBClient = ZLayer.succeed(
       new DynamoDBClient.Service {
-        def query(queryRequest: QueryRequest): Task[QueryResponse] = Task.succeed(responseMap(queryRequest))
+        def query(queryRequest: QueryRequest): Task[QueryResponse] = ZIO.succeed(responseMap(queryRequest))
 
         def scan(scanRequest: ScanRequest): Task[ScanResponse] = ???
 
@@ -52,7 +52,7 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
     ) match {
       case Success(results) =>
         assertEquals(
-          default.unsafeRunSync(results.run(Sink.collectAll[String])),
+          default.unsafeRunSync(results.run(ZSink.collectAll[String])),
           Success(Chunk("id-1", "id-2", "id-3"))
         )
       case failure =>
@@ -85,7 +85,7 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
         def scan(scanRequest: ScanRequest): Task[ScanResponse] = ???
 
         def updateItem(updateItemRequest: UpdateItemRequest): Task[UpdateItemResponse] =
-          Task.succeed {
+          ZIO.succeed {
             receivedUpdateItemRequest = Some(updateItemRequest)
             UpdateItemResponse.builder.build()
           }

@@ -43,18 +43,18 @@ object SalesforceClientLive {
 
   private def sendRequest(request: HttpRequest) =
     for {
-      response <- IO
+      response <- ZIO
         .attempt(request.option(connTimeout).option(readTimeout).asString)
         .mapError(ex => SalesforceClientFailure(s"Request for ${requestAsMessage(request)} failed: $ex"))
       valid200Response <-
-        if ((response.code / 100) == 2) { IO.succeed(response) }
-        else { IO.fail(SalesforceClientFailure(failureMessage(request, response))) }
+        if ((response.code / 100) == 2) { ZIO.succeed(response) }
+        else { ZIO.fail(SalesforceClientFailure(failureMessage(request, response))) }
     } yield valid200Response
 
   private def sendRequestAndParseResponse[A](request: HttpRequest)(implicit reader: Reader[A]) =
     for {
       valid200Response <- sendRequest(request)
-      parsedResponse <- IO
+      parsedResponse <- ZIO
         .attempt(read[A](valid200Response.body))
         .mapError(ex => SalesforceClientFailure(s"${requestAsMessage(request)} failed to deserialise: $ex"))
     } yield parsedResponse

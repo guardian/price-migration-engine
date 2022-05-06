@@ -15,7 +15,7 @@ import software.amazon.awssdk.services.dynamodb.model.{
   UpdateItemRequest,
   UpdateItemResponse
 }
-import zio.{RIO, Task}
+import zio.{RIO, Task, ZIO}
 
 object DynamoDBClient {
   trait Service {
@@ -29,25 +29,25 @@ object DynamoDBClient {
   }
 
   def query(queryRequest: QueryRequest): RIO[DynamoDBClient, QueryResponse] =
-    RIO.environmentWithZIO(_.get.query(queryRequest))
+    ZIO.environmentWithZIO(_.get.query(queryRequest))
 
   def scan(scanRequest: ScanRequest): RIO[DynamoDBClient, ScanResponse] =
-    RIO.environmentWithZIO(_.get.scan(scanRequest))
+    ZIO.environmentWithZIO(_.get.scan(scanRequest))
 
   def updateItem(updateRequest: UpdateItemRequest): RIO[DynamoDBClient, UpdateItemResponse] =
-    RIO.environmentWithZIO(_.get.updateItem(updateRequest))
+    ZIO.environmentWithZIO(_.get.updateItem(updateRequest))
 
   def createItem(createRequest: PutItemRequest, keyName: String): RIO[DynamoDBClient, PutItemResponse] =
-    RIO.environmentWithZIO(_.get.createItem(createRequest, keyName))
+    ZIO.environmentWithZIO(_.get.createItem(createRequest, keyName))
 
   def describeTable(tableName: String): RIO[DynamoDBClient, DescribeTableResponse] =
-    RIO.environmentWithZIO(_.get.describeTable(tableName))
+    ZIO.environmentWithZIO(_.get.describeTable(tableName))
 
   def createTable(request: CreateTableRequest): RIO[DynamoDBClient, CreateTableResponse] =
-    RIO.environmentWithZIO(_.get.createTable(request))
+    ZIO.environmentWithZIO(_.get.createTable(request))
 
   def updateContinuousBackups(
       request: UpdateContinuousBackupsRequest
   ): RIO[DynamoDBClient, UpdateContinuousBackupsResponse] =
-    RIO.environmentWithZIO(_.get.updateContinuousBackups(request))
+    ZIO.environmentWithZIO(_.get.updateContinuousBackups(request))
 }

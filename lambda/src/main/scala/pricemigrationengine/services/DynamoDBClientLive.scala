@@ -29,26 +29,26 @@ object DynamoDBClientLive {
       for {
         dynamoDb <- ZIO.service[DynamoDbClient]
       } yield new DynamoDBClient {
-        def query(queryRequest: QueryRequest): Task[QueryResponse] = Task.attempt(dynamoDb.query(queryRequest))
+        def query(queryRequest: QueryRequest): Task[QueryResponse] = ZIO.attempt(dynamoDb.query(queryRequest))
 
-        def scan(scanRequest: ScanRequest): Task[ScanResponse] = Task.attempt(dynamoDb.scan(scanRequest))
+        def scan(scanRequest: ScanRequest): Task[ScanResponse] = ZIO.attempt(dynamoDb.scan(scanRequest))
 
         def updateItem(updateRequest: UpdateItemRequest): Task[UpdateItemResponse] =
-          Task.attempt(dynamoDb.updateItem(updateRequest))
+          ZIO.attempt(dynamoDb.updateItem(updateRequest))
 
         def createItem(createRequest: PutItemRequest, keyName: String): Task[PutItemResponse] =
-          Task.attempt(
+          ZIO.attempt(
             dynamoDb.putItem(createRequest.copy(x => x.conditionExpression(s"attribute_not_exists($keyName)")))
           )
 
         def describeTable(tableName: String): Task[DescribeTableResponse] =
-          Task.attempt(dynamoDb.describeTable(DescribeTableRequest.builder.tableName(tableName).build()))
+          ZIO.attempt(dynamoDb.describeTable(DescribeTableRequest.builder.tableName(tableName).build()))
 
         def createTable(request: CreateTableRequest): Task[CreateTableResponse] =
-          Task.attempt(dynamoDb.createTable(request))
+          ZIO.attempt(dynamoDb.createTable(request))
 
         def updateContinuousBackups(request: UpdateContinuousBackupsRequest): Task[UpdateContinuousBackupsResponse] =
-          Task.attempt(dynamoDb.updateContinuousBackups(request))
+          ZIO.attempt(dynamoDb.updateContinuousBackups(request))
       }
     }
 
