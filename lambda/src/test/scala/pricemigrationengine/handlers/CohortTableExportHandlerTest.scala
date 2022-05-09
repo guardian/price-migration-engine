@@ -39,17 +39,20 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
   def createStubS3(filesWrittenToS3: ArrayBuffer[(S3Location, String)]): Layer[Nothing, S3.Service] =
     ZLayer.succeed(
       new S3.Service {
-        override def getObject(s3Location: S3Location): ZManaged[Any, S3Failure, InputStream] = ???
+        override def getObject(s3Location: S3Location): ZIO[Scope, S3Failure, InputStream] = ???
 
         override def putObject(
             s3Location: S3Location,
             file: File,
             cannedAccessControlList: Option[ObjectCannedACL]
         ): IO[S3Failure, PutObjectResponse] =
-          for {
-            fileContents <- ZIO.succeed(Source.fromFile(file, "UTF-8").getLines().mkString("\n"))
+          ZIO.scoped(for {
+            src <- ZIO
+              .fromAutoCloseable(ZIO.attempt(Source.fromFile(file, "UTF-8")))
+              .mapError(ex => S3Failure(ex.getMessage))
+            fileContents <- ZIO.succeed(src.getLines().mkString("\n"))
             _ <- ZIO.succeed(filesWrittenToS3.addOne((s3Location, fileContents)))
-          } yield PutObjectResponse.builder.build()
+          } yield PutObjectResponse.builder.build())
 
         def deleteObject(s3Location: S3Location): IO[S3Failure, Unit] = ???
       }
@@ -102,7 +105,7 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
       Success(HandlerOutput(isComplete = true))
     )
 
-    assertEquals(1, uploadedFiles.size)
+    assertEquals(uploadedFiles.size, 1)
     assertEquals(expectedS3ExportBucketName, uploadedFiles(0)._1.bucket)
     val (actualS3Location, actualFileContents) = uploadedFiles(0)
     assertEquals(expectedS3ExportBucketName, actualS3Location.bucket)
