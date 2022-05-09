@@ -25,6 +25,14 @@ class AmendmentDataTest extends munit.FunSuite {
     assertEquals(serviceStartDate, Right(LocalDate.of(2022, 4, 19)))
   }
 
+  test("nextserviceStartDate: billing date is first after migration start date (Echo-Legacy Delivery)") {
+    val invoiceList = invoiceListFromJson("NewspaperDelivery/EchoLegacy/WeekendMonthly/InvoicePreview.json")
+    val subscription = subscriptionFromJson("NewspaperDelivery/EchoLegacy/WeekendMonthly/Subscription.json")
+    val serviceStartDate =
+      AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
+    assertEquals(serviceStartDate, Right(LocalDate.of(2022, 5, 7)))
+  }
+
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date") {
     val invoiceList = invoiceListFromJson("InvoicePreviewTermEndsBeforeMigration.json")
     val subscription = subscriptionFromJson("NewspaperVoucher/Monthly/Subscription.json")

@@ -3,6 +3,12 @@ package pricemigrationengine.model
 import pricemigrationengine.model.AmendmentData.RatePlanChargePair
 import pricemigrationengine.model.ZuoraProductCatalogue.homeDeliveryRatePlans
 
+/*
+  Echo Legacy rate plans have to be migrated to use newer rate plans such as Weekend, Everyday, Sixday, Saturday and Sunday.
+  Migrating these is not as easy as mapping the current rateplan Id with the new one in the catalogue, so we are taking a separate approach here.
+
+  We see how many days in the echo-legacy plan are currently being charged, i.e.: has a price over 0, then retrieve the corresponding rate plan for the number of days needed.
+ */
 case class EchoLegacy(productRatePlan: ZuoraProductRatePlan, chargePairs: Seq[RatePlanChargePair])
 object EchoLegacy {
 
