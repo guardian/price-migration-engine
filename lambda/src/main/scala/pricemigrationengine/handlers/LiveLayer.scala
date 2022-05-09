@@ -19,16 +19,16 @@ object LiveLayer {
       CohortTableLive.impl(cohortSpec)
 
   val cohortTableDdl: ZLayer[Logging, ConfigurationFailure, CohortTableDdl] =
-    Clock.live and dynamoDbClient and EnvConfiguration.stageImp and logging to CohortTableDdlLive.impl
+    dynamoDbClient and EnvConfiguration.stageImp and logging to CohortTableDdlLive.impl
 
   val cohortSpecTable: ZLayer[Logging, ConfigurationFailure, CohortSpecTable] =
     dynamoDbClient and EnvConfiguration.stageImp and logging to CohortSpecTableLive.impl
 
   val cohortStateMachine: ZLayer[Logging, ConfigurationFailure, CohortStateMachine] =
-    logging and Clock.live and EnvConfiguration.cohortStateMachineImpl to CohortStateMachineLive.impl
+    logging and EnvConfiguration.cohortStateMachineImpl to CohortStateMachineLive.impl
 
   val zuora: ZLayer[Logging, ConfigurationFailure, Zuora] =
-    EnvConfiguration.zuoraImpl and Clock.live and logging to ZuoraLive.impl
+    EnvConfiguration.zuoraImpl and logging to ZuoraLive.impl
 
   val salesforce: ZLayer[Logging, SalesforceClientFailure, SalesforceClient] =
     EnvConfiguration.salesforceImp and logging to SalesforceClientLive.impl

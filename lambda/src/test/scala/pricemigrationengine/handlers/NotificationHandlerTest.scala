@@ -1,8 +1,9 @@
 package pricemigrationengine.handlers
 
+import pricemigrationengine.StubClock.withStubClock
+
 import java.time._
 import java.time.temporal.ChronoUnit
-
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
@@ -189,11 +190,13 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        NotificationHandler
-          .main(brazeCampaignName)
-          .provideLayer(
-            TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
-          )
+        withStubClock(
+          NotificationHandler
+            .main(brazeCampaignName)
+            .provideLayer(
+              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+            )
+        )
       ),
       Success(HandlerOutput(isComplete = true))
     )
@@ -255,11 +258,13 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        NotificationHandler
-          .main(brazeCampaignName)
-          .provideLayer(
-            TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
-          )
+        withStubClock(
+          NotificationHandler
+            .main(brazeCampaignName)
+            .provideLayer(
+              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+            )
+        )
       ),
       Success(HandlerOutput(isComplete = true))
     )
@@ -288,11 +293,13 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        NotificationHandler
-          .main(brazeCampaignName)
-          .provideLayer(
-            TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
-          )
+        withStubClock(
+          NotificationHandler
+            .main(brazeCampaignName)
+            .provideLayer(
+              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+            )
+        )
       ),
       Success(HandlerOutput(isComplete = true))
     )
@@ -313,11 +320,13 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        NotificationHandler
-          .main(brazeCampaignName)
-          .provideLayer(
-            TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
-          )
+        withStubClock(
+          NotificationHandler
+            .main(brazeCampaignName)
+            .provideLayer(
+              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+            )
+        )
       ),
       Success(HandlerOutput(isComplete = true))
     )
@@ -334,11 +343,13 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        NotificationHandler
-          .main(brazeCampaignName)
-          .provideLayer(
-            TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ failingStubEmailSender
-          )
+        withStubClock(
+          NotificationHandler
+            .main(brazeCampaignName)
+            .provideLayer(
+              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ failingStubEmailSender
+            )
+        )
       ),
       Success(HandlerOutput(isComplete = true))
     )
@@ -364,11 +375,13 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        NotificationHandler
-          .main(brazeCampaignName)
-          .provideLayer(
-            TestLogging.logging ++ stubCohortTable ++ StubClock.clock ++ stubSalesforceClient ++ stubEmailSender
-          )
+        withStubClock(
+          NotificationHandler
+            .main(brazeCampaignName)
+            .provideLayer(
+              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+            )
+        )
       ),
       Success(HandlerOutput(isComplete = true))
     )

@@ -38,7 +38,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
 
   def main(
       cohortSpec: CohortSpec
-  ): ZIO[CohortTable with S3 with StageConfiguration with Clock with Logging, Failure, HandlerOutput] =
+  ): ZIO[CohortTable with S3 with StageConfiguration with Logging, Failure, HandlerOutput] =
     (for {
       today <- Time.today
       _ <-
@@ -125,6 +125,6 @@ object SubscriptionIdUploadHandler extends CohortHandler {
     (LiveLayer.cohortTable(cohortSpec) and LiveLayer.s3 and EnvConfiguration.stageImp and LiveLayer.logging)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
-  def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
-    main(input).provideSomeLayer[ZEnv with Logging](env(input))
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
+    main(input).provideSomeLayer[Logging](env(input))
 }

@@ -13,7 +13,7 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
   // TODO: move to config
   private val batchSize = 2000
 
-  private val main: ZIO[CohortTable with SalesforceClient with Clock with Logging, Failure, HandlerOutput] =
+  private val main: ZIO[CohortTable with SalesforceClient with Logging, Failure, HandlerOutput] =
     for {
       cohortItems <- CohortTable.fetch(AmendmentComplete, None)
       count <-
@@ -30,7 +30,7 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
 
   private def updateSfWithNewSubscriptionId(
       item: CohortItem
-  ): ZIO[CohortTable with SalesforceClient with Clock with Logging, Failure, Unit] =
+  ): ZIO[CohortTable with SalesforceClient with Logging, Failure, Unit] =
     for {
       priceRise <- ZIO.fromEither(buildPriceRise(item))
       salesforcePriceRiseId <-
@@ -61,6 +61,6 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
     (LiveLayer.cohortTable(cohortSpec) and LiveLayer.salesforce and LiveLayer.logging)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
-  def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
-    main.provideSomeLayer[ZEnv with Logging](env(input))
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
+    main.provideSomeLayer[Logging](env(input))
 }
