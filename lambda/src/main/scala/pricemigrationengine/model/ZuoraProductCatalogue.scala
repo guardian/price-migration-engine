@@ -10,17 +10,28 @@ object ZuoraProductCatalogue {
 
   def empty: ZuoraProductCatalogue = ZuoraProductCatalogue(products = Set.empty)
 
-  def productPricingMap(catalogue: ZuoraProductCatalogue): ZuoraPricingData = {
+  def homeDeliveryRatePlans(catalogue: ZuoraProductCatalogue): Seq[ZuoraProductRatePlan] = {
     val prices = for {
+      product <- catalogue.products.filter(_.name == "Newspaper Delivery")
+      productRatePlan <- product.productRatePlans.filter(_.status != "Expired")
+    } yield productRatePlan
+
+    prices.toSeq
+  }
+
+  def productPricingMap(catalogue: ZuoraProductCatalogue): ZuoraPricingData = {
+    val priceMapping = for {
       product <- catalogue.products
-      productRatePlan <- product.productRatePlans.filterNot(_.status == "Expired")
+      productRatePlan <- product.productRatePlans.filter(x => x.status != "Expired" || x.name == "Echo-Legacy")
       productRatePlanCharge <- productRatePlan.productRatePlanCharges
     } yield productRatePlanCharge.id -> productRatePlanCharge
-    prices.toMap
+
+    priceMapping.toMap
   }
 }
 
 case class ZuoraProduct(
+    name: String,
     productRatePlans: Set[ZuoraProductRatePlan]
 )
 
@@ -29,6 +40,8 @@ object ZuoraProduct {
 }
 
 case class ZuoraProductRatePlan(
+    id: String,
+    name: String,
     status: String,
     productRatePlanCharges: Set[ZuoraProductRatePlanCharge]
 )

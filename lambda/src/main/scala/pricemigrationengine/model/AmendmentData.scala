@@ -1,7 +1,8 @@
 package pricemigrationengine.model
 
-import java.time.LocalDate
+import pricemigrationengine.model.ZuoraProductCatalogue.{productPricingMap, homeDeliveryRatePlans}
 
+import java.time.LocalDate
 import scala.math.BigDecimal.RoundingMode
 
 case class AmendmentData(startDate: LocalDate, priceData: PriceData)
@@ -28,14 +29,14 @@ case class PriceData(currency: Currency, oldPrice: BigDecimal, newPrice: BigDeci
 object AmendmentData {
 
   def apply(
-      pricing: ZuoraPricingData,
+      catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       earliestStartDate: LocalDate
   ): Either[AmendmentDataFailure, AmendmentData] =
     for {
       startDate <- nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
-      price <- priceData(pricing, subscription, invoiceList, startDate)
+      price <- priceData(catalogue, subscription, invoiceList, startDate)
     } yield AmendmentData(startDate, priceData = price)
 
   def nextServiceStartDate(
@@ -55,7 +56,7 @@ object AmendmentData {
     * product rate plan charge.<br/> This is because discounts are only reliable in the subscription rate plan charge,
     * and new prices have to come from the product rate plan charge.
     */
-  private case class RatePlanChargePair(
+  case class RatePlanChargePair(
       chargeFromSubscription: ZuoraRatePlanCharge,
       chargeFromProduct: ZuoraProductRatePlanCharge
   )
@@ -67,7 +68,7 @@ object AmendmentData {
     * price, and currency.</li> </ol>
     */
   def priceData(
-      pricingData: ZuoraPricingData,
+      catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       startDate: LocalDate
@@ -92,6 +93,7 @@ object AmendmentData {
        * the same discount will appear against each product rate plan charge in the invoice preview.
        */
       val pairs = ratePlanCharges.distinctBy(_.productRatePlanChargeId).map(ratePlanChargePair)
+
       val failures = pairs.collect { case Left(failure) => failure }
       if (failures.isEmpty) Right(pairs.collect { case Right(pricing) => pricing })
       else
@@ -104,16 +106,17 @@ object AmendmentData {
 
     def ratePlanChargePair(
         ratePlanCharge: ZuoraRatePlanCharge
-    ): Either[ZuoraProductRatePlanChargeId, RatePlanChargePair] =
-      pricingData
+    ): Either[ZuoraProductRatePlanChargeId, RatePlanChargePair] = {
+      productPricingMap(catalogue)
         .get(ratePlanCharge.productRatePlanChargeId)
         .toRight(ratePlanCharge.productRatePlanChargeId)
         .map(productRatePlanCharge => RatePlanChargePair(ratePlanCharge, productRatePlanCharge))
-
+    }
     val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, startDate)
 
     val ratePlanChargesOrFail: Either[AmendmentDataFailure, Seq[ZuoraRatePlanCharge]] = {
       val ratePlanCharges = invoiceItems.map(ratePlanCharge)
+
       val failures = ratePlanCharges.collect { case Left(failure) => failure }
       if (failures.isEmpty) Right(ratePlanCharges.collect { case Right(charge) => charge })
       else Left(AmendmentDataFailure(failures.map(_.reason).mkString(", ")))
@@ -121,14 +124,23 @@ object AmendmentData {
 
     for {
       ratePlanCharges <- ratePlanChargesOrFail
-      pairs <- ratePlanChargePairs(ratePlanCharges)
+      ratePlan <- ZuoraRatePlan
+        .ratePlan(subscription, ratePlanCharges.head)
+        .toRight(AmendmentDataFailure(s"Failed to get RatePlan for charges: $ratePlanCharges"))
+
+      isEchoLegacy = ratePlan.ratePlanName == "Echo-Legacy"
+
+      pairs <-
+        if (isEchoLegacy) EchoLegacy.getNewRatePlans(catalogue, ratePlanCharges).map(_.chargePairs)
+        else ratePlanChargePairs(ratePlanCharges)
+
       currency <- pairs.headOption
         .map(p => Right(p.chargeFromSubscription.currency))
         .getOrElse(Left(AmendmentDataFailure(s"No invoice items for date: $startDate")))
       oldPrice <- totalChargeAmount(subscription, invoiceList, startDate)
       newPrice <- totalChargeAmount(pairs)
-      billingPeriod <- ratePlanCharges
-        .flatMap(_.billingPeriod)
+      billingPeriod <- pairs
+        .flatMap(_.chargeFromSubscription.billingPeriod)
         .headOption
         .toRight(AmendmentDataFailure("Unknown billing period"))
     } yield PriceData(currency, oldPrice, newPrice, billingPeriod)

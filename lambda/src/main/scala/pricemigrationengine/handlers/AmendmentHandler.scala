@@ -15,20 +15,20 @@ object AmendmentHandler extends CohortHandler {
 
   val main: ZIO[Logging with CohortTable with Zuora with Clock, Failure, HandlerOutput] =
     for {
-      newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
+      catalogue <- Zuora.fetchProductCatalogue
       cohortItems <- CohortTable.fetch(NotificationSendDateWrittenToSalesforce, None)
       count <-
         cohortItems
           .take(batchSize)
-          .mapZIO(item => amend(newProductPricing, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
+          .mapZIO(item => amend(catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
           .runCount
     } yield HandlerOutput(isComplete = count < batchSize)
 
   private def amend(
-      newProductPricing: ZuoraPricingData,
+      catalogue: ZuoraProductCatalogue,
       item: CohortItem
   ): ZIO[CohortTable with Zuora with Clock, Failure, AmendmentResult] =
-    doAmendment(newProductPricing, item).foldZIO(
+    doAmendment(catalogue, item).foldZIO(
       failure = {
         case _: CancelledSubscriptionFailure =>
           val result = CancelledAmendmentResult(item.subscriptionName)
@@ -41,7 +41,7 @@ object AmendmentHandler extends CohortHandler {
     )
 
   private def doAmendment(
-      newProductPricing: ZuoraPricingData,
+      catalogue: ZuoraProductCatalogue,
       item: CohortItem
   ): ZIO[Zuora with Clock, Failure, SuccessfulAmendmentResult] =
     for {
@@ -58,7 +58,7 @@ object AmendmentHandler extends CohortHandler {
       update <- ZIO.fromEither(
         ZuoraSubscriptionUpdate
           .updateOfRatePlansToCurrent(
-            newProductPricing,
+            catalogue,
             subscriptionBeforeUpdate,
             invoicePreviewBeforeUpdate,
             startDate

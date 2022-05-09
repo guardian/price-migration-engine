@@ -20,23 +20,27 @@ object EstimationHandler extends CohortHandler {
 
   def main(earliestStartDate: LocalDate): ZIO[Logging with CohortTable with Zuora with Random, Failure, HandlerOutput] =
     for {
-      newProductPricing <- Zuora.fetchProductCatalogue.map(ZuoraProductCatalogue.productPricingMap)
+      catalogue <- Zuora.fetchProductCatalogue
+
       cohortItems <- CohortTable.fetch(ReadyForEstimation, None)
       count <-
         cohortItems
           .take(batchSize)
           .mapZIO(item =>
-            estimate(newProductPricing, earliestStartDate)(item)
+            estimate(catalogue, earliestStartDate)(item)
               .tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
           )
           .runCount
           .tapError(e => Logging.error(e.toString))
     } yield HandlerOutput(isComplete = count < batchSize)
 
-  private def estimate(newProductPricing: ZuoraPricingData, earliestStartDate: LocalDate)(
+  private def estimate(
+      catalogue: ZuoraProductCatalogue,
+      earliestStartDate: LocalDate
+  )(
       item: CohortItem
   ): ZIO[CohortTable with Zuora with Random, Failure, EstimationResult] =
-    doEstimation(newProductPricing, item, earliestStartDate).foldZIO(
+    doEstimation(catalogue, item, earliestStartDate).foldZIO(
       failure = {
         case failure: AmendmentDataFailure =>
           val result = FailedEstimationResult(item.subscriptionName, failure.reason)
@@ -52,7 +56,7 @@ object EstimationHandler extends CohortHandler {
     )
 
   private def doEstimation(
-      newProductPricing: ZuoraPricingData,
+      catalogue: ZuoraProductCatalogue,
       item: CohortItem,
       earliestStartDate: LocalDate
   ): ZIO[Zuora with Random, Failure, SuccessfulEstimationResult] =
@@ -66,7 +70,7 @@ object EstimationHandler extends CohortHandler {
       earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, earliestStartDate)
       result <-
         ZIO
-          .fromEither(EstimationResult(newProductPricing, subscription, invoicePreview, earliestStartDate))
+          .fromEither(EstimationResult(catalogue, subscription, invoicePreview, earliestStartDate))
           .filterOrFail(result => result.estimatedNewPrice > result.oldPrice)(
             AmendmentDataFailure("No increase in price")
           )

@@ -1,9 +1,11 @@
 package pricemigrationengine.model
 
+import pricemigrationengine.model.ChargeOverride.fromRatePlanCharge
+
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit.DAYS
-
 import pricemigrationengine.model.Either._
+import pricemigrationengine.model.ZuoraProductCatalogue.{productPricingMap}
 import upickle.default.{ReadWriter, macroRW}
 
 case class ZuoraSubscriptionUpdate(
@@ -25,12 +27,11 @@ object ZuoraSubscriptionUpdate {
     * billing period.
     */
   def updateOfRatePlansToCurrent(
-      pricingData: ZuoraPricingData,
+      catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       effectiveDate: LocalDate
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
-
     val ratePlans = (for {
       invoiceItem <- ZuoraInvoiceItem.items(invoiceList, subscription, effectiveDate)
       ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toSeq
@@ -44,18 +45,27 @@ object ZuoraSubscriptionUpdate {
     else if (ratePlans.size > 1)
       Left(AmendmentDataFailure(s"Multiple rate plans to update: ${ratePlans.map(_.id)}"))
     else {
-      ratePlans.map(AddZuoraRatePlan.fromRatePlan(pricingData, effectiveDate)).sequence.map { add =>
-        val isTermTooShort = subscription.termEndDate.isBefore(effectiveDate)
-        ZuoraSubscriptionUpdate(
-          add,
-          remove = ratePlans.map(ratePlan => RemoveZuoraRatePlan(ratePlan.id, effectiveDate)),
-          currentTerm =
-            if (isTermTooShort)
-              Some(subscription.termStartDate.until(effectiveDate, DAYS).toInt)
-            else None,
-          currentTermPeriodType = if (isTermTooShort) Some("Day") else None
+      val isEchoLegacy = ratePlans.head.ratePlanName == "Echo-Legacy"
+      val pricingData = productPricingMap(catalogue)
+
+      ratePlans
+        .map(
+          if (isEchoLegacy) AddZuoraRatePlan.fromRatePlanEchoLegacy(catalogue, effectiveDate)
+          else AddZuoraRatePlan.fromRatePlan(pricingData, effectiveDate)
         )
-      }
+        .sequence
+        .map { add =>
+          val isTermTooShort = subscription.termEndDate.isBefore(effectiveDate)
+          ZuoraSubscriptionUpdate(
+            add,
+            remove = ratePlans.map(ratePlan => RemoveZuoraRatePlan(ratePlan.id, effectiveDate)),
+            currentTerm =
+              if (isTermTooShort)
+                Some(subscription.termStartDate.until(effectiveDate, DAYS).toInt)
+              else None,
+            currentTermPeriodType = if (isTermTooShort) Some("Day") else None
+          )
+        }
     }
   }
 }
@@ -74,7 +84,30 @@ object AddZuoraRatePlan {
   ): Either[AmendmentDataFailure, AddZuoraRatePlan] =
     for {
       chargeOverrides <- ChargeOverride.fromRatePlan(pricingData, ratePlan)
-    } yield AddZuoraRatePlan(productRatePlanId = ratePlan.productRatePlanId, contractEffectiveDate, chargeOverrides)
+    } yield AddZuoraRatePlan(
+      productRatePlanId = ratePlan.productRatePlanId,
+      contractEffectiveDate,
+      chargeOverrides
+    )
+
+  def fromRatePlanEchoLegacy(
+      catalogue: ZuoraProductCatalogue,
+      contractEffectiveDate: LocalDate
+  )(
+      ratePlan: ZuoraRatePlan
+  ): Either[AmendmentDataFailure, AddZuoraRatePlan] = {
+    for {
+      echoLegacy <- EchoLegacy.getNewRatePlans(catalogue, ratePlan.ratePlanCharges)
+      chargeOverrides <- echoLegacy.chargePairs
+        .map(x => fromRatePlanCharge(x.chargeFromProduct, x.chargeFromSubscription))
+        .sequence
+        .map(_.flatten)
+    } yield AddZuoraRatePlan(
+      productRatePlanId = echoLegacy.productRatePlan.id,
+      contractEffectiveDate,
+      chargeOverrides
+    )
+  }
 }
 
 case class RemoveZuoraRatePlan(
