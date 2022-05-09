@@ -23,7 +23,7 @@ object DynamoDBClientLive {
     }
 
     val dynamoDbLayer: ZLayer[Logging, ConfigurationFailure, DynamoDbClient] =
-      ZLayer.fromAcquireRelease(acquireDynamoDb)(releaseDynamoDb)
+      ZLayer.scoped(ZIO.acquireRelease(acquireDynamoDb)(releaseDynamoDb))
 
     val serviceLayer: ZLayer[DynamoDbClient, Nothing, DynamoDBClient] = ZLayer.fromZIO {
       for {
