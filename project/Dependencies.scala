@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  private val zioVersion = "2.0.0-RC6"
+  private val zioVersion = "2.0.0-RC2"
   private val awsSdkVersion = "2.17.182"
 
   lazy val awsDynamoDb = "software.amazon.awssdk" % "dynamodb" % awsSdkVersion
