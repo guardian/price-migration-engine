@@ -11,7 +11,7 @@ import software.amazon.awssdk.services.s3.model.{
   PutObjectResponse,
   S3Object
 }
-import zio.{IO, ZIO, ZLayer, ZManaged}
+import zio.{IO, Scope, ZIO, ZLayer}
 
 import java.io.{File, InputStream}
 import scala.jdk.CollectionConverters._
@@ -25,10 +25,10 @@ object S3Live {
       val s3 = AwsClient.s3
       new S3 {
 
-        override def getObject(s3Location: S3Location): ZManaged[Any, S3Failure, InputStream] = {
+        override def getObject(s3Location: S3Location): ZIO[Scope, S3Failure, InputStream] = {
           val getObjectRequest = GetObjectRequest.builder.bucket(s3Location.bucket).key(s3Location.key).build()
-          ZManaged
-            .acquireReleaseAttemptWith(s3.getObject(getObjectRequest))(_.close())
+          ZIO
+            .fromAutoCloseable(ZIO.attempt(s3.getObject(getObjectRequest)))
             .mapError(ex => S3Failure(s"Failed to get $s3Location: $ex"))
         }
 
