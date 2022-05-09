@@ -61,12 +61,11 @@ object ZuoraLive {
   private def failureMessage(request: HttpRequest, t: Throwable) =
     s"Request for ${request.method} ${request.url} returned error ${t.toString}"
 
-  val impl: ZLayer[ZuoraConfiguration with Clock with Logging, ConfigurationFailure, Zuora] =
+  val impl: ZLayer[ZuoraConfiguration with Logging, ConfigurationFailure, Zuora] =
     ZLayer.fromZIO(
       for {
         logging <- ZIO.service[Logging]
         config <- ZuoraConfiguration.zuoraConfig
-        clock <- ZIO.service[Clock]
         accessToken <- ZIO
           .fromEither(fetchedAccessToken(config))
           .mapError(failure => ConfigurationFailure(failure.reason))
@@ -74,7 +73,7 @@ object ZuoraLive {
       } yield new Zuora {
 
         private def retry[E, A](effect: => ZIO[Any, E, A]) =
-          effect.retry(exponential(1.second) && recurs(5)).provideService(clock)
+          effect.retry(exponential(1.second) && recurs(5))
 
         private def get[A: Reader](path: String, params: Map[String, String] = Map.empty) = {
           for {

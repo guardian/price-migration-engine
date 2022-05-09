@@ -9,7 +9,7 @@ import java.time.{LocalDate, ZoneOffset}
 
 object SalesforceNotificationDateUpdateHandler extends CohortHandler {
 
-  val main: ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, HandlerOutput] =
+  val main: ZIO[Logging with CohortTable with SalesforceClient, Failure, HandlerOutput] =
     for {
       cohortItems <- CohortTable.fetch(NotificationSendComplete, None)
       _ <- cohortItems.foreach(updateDateLetterSentInSF)
@@ -17,7 +17,7 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
 
   private def updateDateLetterSentInSF(
       item: CohortItem
-  ): ZIO[Logging with CohortTable with SalesforceClient with Clock, Failure, Unit] =
+  ): ZIO[Logging with CohortTable with SalesforceClient, Failure, Unit] =
     for {
       _ <- updateSalesforce(item)
         .tapBoth(
@@ -72,6 +72,6 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
     (LiveLayer.cohortTable(cohortSpec) and LiveLayer.salesforce and LiveLayer.logging)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
-  def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
-    main.provideSomeLayer[ZEnv with Logging](env(input))
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
+    main.provideSomeLayer[Logging](env(input))
 }

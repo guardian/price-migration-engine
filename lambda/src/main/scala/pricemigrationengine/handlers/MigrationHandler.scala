@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import pricemigrationengine.model.{CohortSpec, ConfigurationFailure}
 import pricemigrationengine.services._
-import zio.{Runtime, ZEnv, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer}
+import zio.{Runtime, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer}
 
 /** Executes price migration for active cohorts.
   */
@@ -24,14 +24,14 @@ object MigrationHandler extends ZIOAppDefault with RequestHandler[Unit, Unit] {
     (LiveLayer.cohortSpecTable and LiveLayer.cohortStateMachine and LiveLayer.logging)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
-  override def run: ZIO[ZEnv with ZIOAppArgs, Any, Any] =
+  override def run: ZIO[ZIOAppArgs, Any, Any] =
     migrateActiveCohorts
-      .provideCustomLayer(ConsoleLogging.impl("MigrationHandler") to env)
+      .provideLayer(ConsoleLogging.impl("MigrationHandler") to env)
       .exitCode
 
   override def handleRequest(unused: Unit, context: Context): Unit =
     Runtime.default.unsafeRun(
       migrateActiveCohorts
-        .provideCustomLayer(LambdaLogging.impl(context, "MigrationHandler") to env)
+        .provideLayer(LambdaLogging.impl(context, "MigrationHandler") to env)
     )
 }

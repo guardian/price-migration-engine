@@ -20,22 +20,22 @@ trait CohortHandler extends ZIOAppDefault with RequestStreamHandler {
     * @return
     *   HandlerOutput if successful.
     */
-  def handle(input: CohortSpec): ZIO[ZEnv with Logging, Failure, HandlerOutput]
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput]
 
-  private def goConsole(input: Readable): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
+  private def goConsole(input: Readable): ZIO[Logging, Failure, HandlerOutput] =
     (for {
       cohortSpec <- validSpec(input)
-      output <- handle(cohortSpec).provideCustomLayer(ConsoleLogging.impl(cohortSpec.cohortName))
+      output <- handle(cohortSpec).provideLayer(ConsoleLogging.impl(cohortSpec.cohortName))
     } yield output)
       .tapBoth(
         failure => Logging.error(failure.reason),
         output => Logging.info(s"Output: $output")
       )
 
-  private def goLambda(input: Readable, context: Context): ZIO[ZEnv with Logging, Failure, HandlerOutput] =
+  private def goLambda(input: Readable, context: Context): ZIO[Logging, Failure, HandlerOutput] =
     (for {
       cohortSpec <- validSpec(input)
-      output <- handle(cohortSpec).provideCustomLayer(LambdaLogging.impl(context, cohortSpec.cohortName))
+      output <- handle(cohortSpec).provideLayer(LambdaLogging.impl(context, cohortSpec.cohortName))
     } yield output)
       .tapBoth(
         failure => Logging.error(failure.reason),
@@ -55,7 +55,7 @@ trait CohortHandler extends ZIOAppDefault with RequestStreamHandler {
       spec => Logging.info(s"Input: $spec")
     )
 
-  override final def run: ZIO[ZEnv with ZIOAppArgs, Any, Any] =
+  override final def run: ZIO[ZIOAppArgs, Any, Any] =
     (for {
       inputFromEnv <- zio.System.env("input")
       input <- ZIO
@@ -64,13 +64,13 @@ trait CohortHandler extends ZIOAppDefault with RequestStreamHandler {
         .tapError(e => Logging.error(e.toString))
       _ <- goConsole(input)
     } yield ())
-      .provideCustomLayer(ConsoleLogging.impl("ParsingEnvInput"))
+      .provideLayer(ConsoleLogging.impl("ParsingEnvInput"))
       .exitCode
 
   override final def handleRequest(input: InputStream, output: OutputStream, context: Context): Unit =
     Runtime.default.unsafeRun {
       for {
-        handlerOutput <- goLambda(input, context).provideCustomLayer(LambdaLogging.impl(context, "ParsingCohortInfo"))
+        handlerOutput <- goLambda(input, context).provideLayer(LambdaLogging.impl(context, "ParsingCohortInfo"))
         writable <- ZIO.attempt(stream(handlerOutput))
         _ <- ZIO.attempt(writable.writeBytesTo(output))
       } yield ()

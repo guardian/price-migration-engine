@@ -1,7 +1,8 @@
 package pricemigrationengine.handlers
 
-import java.time.{LocalDate, ZoneOffset}
+import pricemigrationengine.StubClock.withStubClock
 
+import java.time.{LocalDate, ZoneOffset}
 import pricemigrationengine.model.CohortTableFilter.{NotificationSendComplete, NotificationSendDateWrittenToSalesforce}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -85,10 +86,12 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        SalesforceNotificationDateUpdateHandler.main
-          .provideLayer(
-            TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ StubClock.clock
-          )
+        withStubClock(
+          SalesforceNotificationDateUpdateHandler.main
+            .provideLayer(
+              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient
+            )
+        )
       ),
       Success(HandlerOutput(isComplete = true))
     )

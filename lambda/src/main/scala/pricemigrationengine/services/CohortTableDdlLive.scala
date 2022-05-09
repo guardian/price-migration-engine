@@ -18,11 +18,9 @@ object CohortTableDdlLive {
   private val stageAttribute = "processingStage"
   private val startDateAttribute = "startDate"
 
-  val impl
-      : ZLayer[DynamoDBClient with StageConfiguration with Clock with Logging, ConfigurationFailure, CohortTableDdl] =
+  val impl: ZLayer[DynamoDBClient with StageConfiguration with Logging, ConfigurationFailure, CohortTableDdl] =
     ZLayer.fromZIO(
       for {
-        clock <- ZIO.service[Clock]
         logging <- ZIO.service[Logging]
         stageConfig <- StageConfiguration.stageConfig
         dynamoDbClient <- ZIO.service[DynamoDBClient]
@@ -75,7 +73,6 @@ object CohortTableDdlLive {
             .retry(
               exponential(1.second) && recurs(8)
             )
-            .provideService(clock) // have to wait for table to be created before enabling backups
 
           result.mapError(e => CohortTableCreateFailure(e.toString))
         }
