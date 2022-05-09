@@ -1,16 +1,16 @@
 package pricemigrationengine.handlers
 
-import java.time.LocalDate
 import pricemigrationengine.Fixtures
-import zio.{BuildFrom, Chunk, Random, Runtime, UIO, ULayer, ZLayer, ZTraceElement}
+import zio.{Chunk, Random, Runtime, UIO, ZEnv, ZIO, ZTraceElement}
 
+import java.time.LocalDate
 import java.util.UUID
 
 class EstimationHandlerTest extends munit.FunSuite {
 
   private val absoluteEarliestStartDate = LocalDate.of(2020, 6, 2)
 
-  private val random: ULayer[Random] = ZLayer.succeed(
+  private val random =
     new Random {
 
       override def nextBoolean(implicit trace: ZTraceElement): UIO[Boolean] = ???
@@ -59,29 +59,33 @@ class EstimationHandlerTest extends munit.FunSuite {
           trace: ZTraceElement
       ): UIO[Collection[A]] = ???
     }
-  )
 
-  private val env = random
+  private def withStubRandom[R, E, A](zio: ZIO[R, E, A]): ZIO[R, E, A] =
+    ZEnv.services.locallyWith(_.add(random))(zio)
 
   private val runtime = Runtime.default
 
   test("spreadEarliestStartDate: gives default value for a quarterly subscription") {
-    val earliestStartDateCalc = EstimationHandler.spreadEarliestStartDate(
-      subscription = Fixtures.subscriptionFromJson("NewspaperVoucher/QuarterlyVoucher/Subscription.json"),
-      invoicePreview = Fixtures.invoiceListFromJson("NewspaperVoucher/QuarterlyVoucher/InvoicePreview.json"),
-      absoluteEarliestStartDate
+    val earliestStartDateCalc = withStubRandom(
+      EstimationHandler.spreadEarliestStartDate(
+        subscription = Fixtures.subscriptionFromJson("NewspaperVoucher/QuarterlyVoucher/Subscription.json"),
+        invoicePreview = Fixtures.invoiceListFromJson("NewspaperVoucher/QuarterlyVoucher/InvoicePreview.json"),
+        absoluteEarliestStartDate
+      )
     )
-    val earliestStartDate = runtime.unsafeRun(earliestStartDateCalc.provideLayer(env))
+    val earliestStartDate = runtime.unsafeRun(earliestStartDateCalc)
     assertEquals(earliestStartDate, LocalDate.of(2020, 6, 2))
   }
 
   test("spreadEarliestStartDate: gives randomised value for a monthly subscription") {
-    val earliestStartDateCalc = EstimationHandler.spreadEarliestStartDate(
-      subscription = Fixtures.subscriptionFromJson("NewspaperVoucher/Monthly/Subscription.json"),
-      invoicePreview = Fixtures.invoiceListFromJson("NewspaperVoucher/Monthly/InvoicePreview.json"),
-      absoluteEarliestStartDate
+    val earliestStartDateCalc = withStubRandom(
+      EstimationHandler.spreadEarliestStartDate(
+        subscription = Fixtures.subscriptionFromJson("NewspaperVoucher/Monthly/Subscription.json"),
+        invoicePreview = Fixtures.invoiceListFromJson("NewspaperVoucher/Monthly/InvoicePreview.json"),
+        absoluteEarliestStartDate
+      )
     )
-    val earliestStartDate = runtime.unsafeRun(earliestStartDateCalc.provideLayer(env))
+    val earliestStartDate = runtime.unsafeRun(earliestStartDateCalc)
     assertEquals(earliestStartDate, LocalDate.of(2020, 7, 2))
   }
 }
