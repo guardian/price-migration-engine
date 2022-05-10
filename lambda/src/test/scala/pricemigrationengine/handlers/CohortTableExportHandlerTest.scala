@@ -30,7 +30,7 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
 
         override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
-          IO.succeed(ZStream.fromIterable(cohortItems))
+          ZIO.succeed(ZStream.fromIterable(cohortItems))
         }
       }
     )

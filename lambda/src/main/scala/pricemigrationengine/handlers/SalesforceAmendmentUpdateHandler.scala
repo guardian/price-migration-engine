@@ -34,7 +34,7 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
     for {
       priceRise <- ZIO.fromEither(buildPriceRise(item))
       salesforcePriceRiseId <-
-        IO
+        ZIO
           .fromOption(item.salesforcePriceRiseId)
           .orElseFail(SalesforcePriceRiseWriteFailure("salesforcePriceRiseId is required to update Salesforce"))
       _ <- SalesforceClient.updatePriceRise(salesforcePriceRiseId, priceRise)

@@ -17,42 +17,44 @@ object CohortTableLive {
   private val ProcessingStageAndStartDateIndexName = "ProcessingStageStartDateIndexV1"
 
   private implicit val cohortItemDeserialiser: DynamoDBDeserialiser[CohortItem] = { cohortItem =>
-    IO.fromEither(
-      for {
-        subscriptionNumber <- getStringFromResults(cohortItem, keyAttribName)
-        processingStage <- getCohortTableFilter(cohortItem, "processingStage")
-        startDate <- getOptionalDateFromResults(cohortItem, "startDate")
-        currency <- getOptionalStringFromResults(cohortItem, "currency")
-        oldPrice <- getOptionalBigDecimalFromResults(cohortItem, "oldPrice")
-        estimatedNewPrice <- getOptionalBigDecimalFromResults(cohortItem, "estimatedNewPrice")
-        billingPeriod <- getOptionalStringFromResults(cohortItem, "billingPeriod")
-        whenEstimationDone <- getOptionalInstantFromResults(cohortItem, "whenEstimationDone")
-        salesforcePriceRiseId <- getOptionalStringFromResults(cohortItem, "salesforcePriceRiseId")
-        whenSfShowEstimate <- getOptionalInstantFromResults(cohortItem, "whenSfShowEstimate")
-        newPrice <- getOptionalBigDecimalFromResults(cohortItem, "newPrice")
-        newSubscriptionId <- getOptionalStringFromResults(cohortItem, "newSubscriptionId")
-        whenAmendmentDone <- getOptionalInstantFromResults(cohortItem, "whenAmendmentDone")
-        whenNotificationSent <- getOptionalInstantFromResults(cohortItem, "whenNotificationSent")
-        whenNotificationSentWrittenToSalesforce <-
-          getOptionalInstantFromResults(cohortItem, "whenNotificationSentWrittenToSalesforce")
-      } yield CohortItem(
-        subscriptionName = subscriptionNumber,
-        processingStage = processingStage,
-        startDate = startDate,
-        currency = currency,
-        oldPrice = oldPrice,
-        estimatedNewPrice = estimatedNewPrice,
-        billingPeriod = billingPeriod,
-        whenEstimationDone = whenEstimationDone,
-        salesforcePriceRiseId = salesforcePriceRiseId,
-        whenSfShowEstimate = whenSfShowEstimate,
-        newPrice = newPrice,
-        newSubscriptionId = newSubscriptionId,
-        whenAmendmentDone = whenAmendmentDone,
-        whenNotificationSent = whenNotificationSent,
-        whenNotificationSentWrittenToSalesforce = whenNotificationSentWrittenToSalesforce
+    ZIO
+      .fromEither(
+        for {
+          subscriptionNumber <- getStringFromResults(cohortItem, keyAttribName)
+          processingStage <- getCohortTableFilter(cohortItem, "processingStage")
+          startDate <- getOptionalDateFromResults(cohortItem, "startDate")
+          currency <- getOptionalStringFromResults(cohortItem, "currency")
+          oldPrice <- getOptionalBigDecimalFromResults(cohortItem, "oldPrice")
+          estimatedNewPrice <- getOptionalBigDecimalFromResults(cohortItem, "estimatedNewPrice")
+          billingPeriod <- getOptionalStringFromResults(cohortItem, "billingPeriod")
+          whenEstimationDone <- getOptionalInstantFromResults(cohortItem, "whenEstimationDone")
+          salesforcePriceRiseId <- getOptionalStringFromResults(cohortItem, "salesforcePriceRiseId")
+          whenSfShowEstimate <- getOptionalInstantFromResults(cohortItem, "whenSfShowEstimate")
+          newPrice <- getOptionalBigDecimalFromResults(cohortItem, "newPrice")
+          newSubscriptionId <- getOptionalStringFromResults(cohortItem, "newSubscriptionId")
+          whenAmendmentDone <- getOptionalInstantFromResults(cohortItem, "whenAmendmentDone")
+          whenNotificationSent <- getOptionalInstantFromResults(cohortItem, "whenNotificationSent")
+          whenNotificationSentWrittenToSalesforce <-
+            getOptionalInstantFromResults(cohortItem, "whenNotificationSentWrittenToSalesforce")
+        } yield CohortItem(
+          subscriptionName = subscriptionNumber,
+          processingStage = processingStage,
+          startDate = startDate,
+          currency = currency,
+          oldPrice = oldPrice,
+          estimatedNewPrice = estimatedNewPrice,
+          billingPeriod = billingPeriod,
+          whenEstimationDone = whenEstimationDone,
+          salesforcePriceRiseId = salesforcePriceRiseId,
+          whenSfShowEstimate = whenSfShowEstimate,
+          newPrice = newPrice,
+          newSubscriptionId = newSubscriptionId,
+          whenAmendmentDone = whenAmendmentDone,
+          whenNotificationSent = whenNotificationSent,
+          whenNotificationSentWrittenToSalesforce = whenNotificationSentWrittenToSalesforce
+        )
       )
-    ).mapError(e => DynamoDBZIOError(e))
+      .mapError(e => DynamoDBZIOError(e))
   }
 
   private implicit val cohortItemUpdateSerialiser: DynamoDBUpdateSerialiser[CohortItem] =

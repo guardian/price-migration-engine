@@ -1,7 +1,7 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.Fixtures
-import zio.{Chunk, Random, Runtime, UIO, ZEnv, ZIO, ZTraceElement}
+import zio.{Chunk, Random, Runtime, Trace, UIO, ZEnv, ZIO}
 
 import java.time.LocalDate
 import java.util.UUID
@@ -13,51 +13,50 @@ class EstimationHandlerTest extends munit.FunSuite {
   private val random =
     new Random {
 
-      override def nextBoolean(implicit trace: ZTraceElement): UIO[Boolean] = ???
+      override def nextBoolean(implicit trace: Trace): UIO[Boolean] = ???
 
-      override def nextBytes(length: => Int)(implicit trace: ZTraceElement): UIO[Chunk[Byte]] = ???
+      override def nextBytes(length: => Int)(implicit trace: Trace): UIO[Chunk[Byte]] = ???
 
-      override def nextDouble(implicit trace: ZTraceElement): UIO[Double] = ???
+      override def nextDouble(implicit trace: Trace): UIO[Double] = ???
 
       override def nextDoubleBetween(minInclusive: => Double, maxExclusive: => Double)(implicit
-          trace: ZTraceElement
+          trace: Trace
       ): UIO[Double] = ???
 
-      override def nextFloat(implicit trace: ZTraceElement): UIO[Float] = ???
+      override def nextFloat(implicit trace: Trace): UIO[Float] = ???
 
       override def nextFloatBetween(minInclusive: => Float, maxExclusive: => Float)(implicit
-          trace: ZTraceElement
+          trace: Trace
       ): UIO[Float] = ???
 
-      override def nextGaussian(implicit trace: ZTraceElement): UIO[Double] = ???
+      override def nextGaussian(implicit trace: Trace): UIO[Double] = ???
 
-      override def nextInt(implicit trace: ZTraceElement): UIO[Int] = ???
+      override def nextInt(implicit trace: Trace): UIO[Int] = ???
 
-      override def nextIntBetween(minInclusive: => Int, maxExclusive: => Int)(implicit trace: ZTraceElement): UIO[Int] =
-        UIO.succeed(1)
+      override def nextIntBetween(minInclusive: => Int, maxExclusive: => Int)(implicit trace: Trace): UIO[Int] =
+        ZIO.succeed(1)
 
-      override def nextIntBounded(n: => Int)(implicit trace: ZTraceElement): UIO[Int] = ???
+      override def nextIntBounded(n: => Int)(implicit trace: Trace): UIO[Int] = ???
 
-      override def nextLong(implicit trace: ZTraceElement): UIO[Long] = ???
+      override def nextLong(implicit trace: Trace): UIO[Long] = ???
 
       override def nextLongBetween(minInclusive: => Long, maxExclusive: => Long)(implicit
-          trace: ZTraceElement
+          trace: Trace
       ): UIO[Long] = ???
 
-      override def nextLongBounded(n: => Long)(implicit trace: ZTraceElement): UIO[Long] = ???
+      override def nextLongBounded(n: => Long)(implicit trace: Trace): UIO[Long] = ???
 
-      override def nextPrintableChar(implicit trace: ZTraceElement): UIO[Char] = ???
+      override def nextPrintableChar(implicit trace: Trace): UIO[Char] = ???
 
-      override def nextString(length: => Int)(implicit trace: ZTraceElement): UIO[String] = ???
+      override def nextString(length: => Int)(implicit trace: Trace): UIO[String] = ???
 
-      override def nextUUID(implicit trace: ZTraceElement): UIO[UUID] = ???
+      override def nextUUID(implicit trace: Trace): UIO[UUID] = ???
 
-      override def setSeed(seed: => Long)(implicit trace: ZTraceElement): UIO[Unit] = ???
+      override def setSeed(seed: => Long)(implicit trace: Trace): UIO[Unit] = ???
 
-      override def shuffle[A, Collection[+Element] <: Iterable[Element]](collection: => Collection[A])(implicit
-          bf: zio.BuildFrom[Collection[A], A, Collection[A]],
-          trace: ZTraceElement
-      ): UIO[Collection[A]] = ???
+      override def shuffle[A, Collection[+Element] <: Iterable[Element]](
+          collection: => Collection[A]
+      )(implicit bf: zio.BuildFrom[Collection[A], A, Collection[A]], trace: Trace): UIO[Collection[A]] = ???
     }
 
   private def withStubRandom[R, E, A](zio: ZIO[R, E, A]): ZIO[R, E, A] =

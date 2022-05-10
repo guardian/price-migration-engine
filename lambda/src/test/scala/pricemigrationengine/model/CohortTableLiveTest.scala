@@ -5,7 +5,7 @@ import pricemigrationengine.services._
 import software.amazon.awssdk.services.dynamodb.model.AttributeAction.PUT
 import software.amazon.awssdk.services.dynamodb.model._
 import zio.Exit.Success
-import zio.stream.{Sink, ZStream}
+import zio.stream.{ZSink, ZStream}
 import zio.{Chunk, IO, Runtime, ZIO, ZLayer}
 
 import java.time.ZoneOffset.UTC
@@ -26,14 +26,14 @@ class CohortTableLiveTest extends munit.FunSuite {
   val stubCohortTableConfiguration = ZLayer.succeed(
     new CohortTableConfiguration.Service {
       override val config: IO[ConfigurationFailure, CohortTableConfig] =
-        IO.succeed(CohortTableConfig(10))
+        ZIO.succeed(CohortTableConfig(10))
     }
   )
 
   val stubStageConfiguration = ZLayer.succeed(
     new StageConfiguration.Service {
       override val config: IO[ConfigurationFailure, StageConfig] =
-        IO.succeed(StageConfig("DEV"))
+        ZIO.succeed(StageConfig("DEV"))
     }
   )
 
@@ -67,7 +67,7 @@ class CohortTableLiveTest extends munit.FunSuite {
         )(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] = {
           receivedDeserialiser = Some(deserializer.asInstanceOf[DynamoDBDeserialiser[CohortItem]])
           receivedRequest = Some(query)
-          ZStream(item1, item2).mapZIO(item => IO.attempt(item.asInstanceOf[A]).orElseFail(DynamoDBZIOError("")))
+          ZStream(item1, item2).mapZIO(item => ZIO.attempt(item.asInstanceOf[A]).orElseFail(DynamoDBZIOError("")))
         }
 
         override def update[A, B](table: String, key: A, value: B)(implicit
@@ -96,7 +96,7 @@ class CohortTableLiveTest extends munit.FunSuite {
                   .impl("TestCohort") >>>
                   CohortTableLive.impl(cohortSpec)
               )
-          resultList <- result.run(Sink.collectAll[CohortItem])
+          resultList <- result.run(ZSink.collectAll[CohortItem])
           _ = assertEquals(resultList, Chunk(item1, item2))
         } yield ()
       ),
@@ -166,7 +166,7 @@ class CohortTableLiveTest extends munit.FunSuite {
             query: QueryRequest
         )(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] = {
           receivedRequest = Some(query)
-          ZStream(item1).mapZIO(item => IO.attempt(item.asInstanceOf[A]).orElseFail(DynamoDBZIOError("")))
+          ZStream(item1).mapZIO(item => ZIO.attempt(item.asInstanceOf[A]).orElseFail(DynamoDBZIOError("")))
         }
 
         override def update[A, B](table: String, key: A, value: B)(implicit
@@ -195,7 +195,7 @@ class CohortTableLiveTest extends munit.FunSuite {
                   .impl("TestCohort") >>>
                   CohortTableLive.impl(cohortSpec)
               )
-          resultList <- result.run(Sink.collectAll[CohortItem])
+          resultList <- result.run(ZSink.collectAll[CohortItem])
           _ = assertEquals(resultList, Chunk(item1))
         } yield ()
       ),

@@ -1,8 +1,8 @@
 package pricemigrationengine.handlers
 
+import pricemigrationengine.TestLogging
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import pricemigrationengine.{StubClock, TestLogging}
 import software.amazon.awssdk.services.s3.model.{ObjectCannedACL, PutObjectResponse}
 import zio.Exit.Success
 import zio.Runtime.default
@@ -18,7 +18,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
     val stubConfiguration = ZLayer.succeed(
       new StageConfiguration.Service {
         override val config: IO[ConfigurationFailure, StageConfig] =
-          IO.succeed(StageConfig("DEV"))
+          ZIO.succeed(StageConfig("DEV"))
       }
     )
 
@@ -33,10 +33,12 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
         override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
         override def create(cohortItem: CohortItem): ZIO[Any, Failure, Unit] =
-          IO.attempt {
-            subscriptionsWrittenToCohortTable.addOne(cohortItem)
-            ()
-          }.orElseFail(CohortUpdateFailure(""))
+          ZIO
+            .attempt {
+              subscriptionsWrittenToCohortTable.addOne(cohortItem)
+              ()
+            }
+            .orElseFail(CohortUpdateFailure(""))
       }
     )
 

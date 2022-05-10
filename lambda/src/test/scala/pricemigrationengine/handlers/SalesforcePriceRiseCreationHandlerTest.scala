@@ -34,7 +34,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
             beforeDateInclusive: Option[LocalDate]
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
           assertEquals(filter, EstimationComplete)
-          IO.succeed(ZStream(cohortItem))
+          ZIO.succeed(ZStream(cohortItem))
         }
 
         override def create(cohortItem: CohortItem): ZIO[Any, Failure, Unit] = ???
@@ -43,7 +43,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
           updatedResultsWrittenToCohortTable.addOne(result)
-          IO.succeed(())
+          ZIO.succeed(())
         }
       }
     )
@@ -58,15 +58,17 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
         override def getSubscriptionByName(
             subscriptionName: String
         ): IO[SalesforceClientFailure, SalesforceSubscription] = {
-          IO.attempt(
-            SalesforceSubscription(
-              s"SubscritionId-$subscriptionName",
-              subscriptionName,
-              s"Buyer-$subscriptionName",
-              "Active",
-              Some("Newspaper - Digital Voucher")
+          ZIO
+            .attempt(
+              SalesforceSubscription(
+                s"SubscritionId-$subscriptionName",
+                subscriptionName,
+                s"Buyer-$subscriptionName",
+                "Active",
+                Some("Newspaper - Digital Voucher")
+              )
             )
-          ).orElseFail(SalesforceClientFailure(""))
+            .orElseFail(SalesforceClientFailure(""))
         }
 
         override def createPriceRise(

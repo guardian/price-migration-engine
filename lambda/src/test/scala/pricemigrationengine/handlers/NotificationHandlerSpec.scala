@@ -21,7 +21,7 @@ object NotificationHandlerSpec extends ZIOSpecDefault {
     country = Some("United Kingdom")
   )
 
-  override def spec: Spec[Any, TestFailure[NotificationHandlerFailure], TestSuccess] = suite("targetAddress")(
+  override def spec: Spec[Any, NotificationHandlerFailure] = suite("targetAddress")(
     test("should use mailing address if billing address has no street") {
       val contact = SalesforceContact(
         Id = "id",
