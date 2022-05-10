@@ -29,9 +29,10 @@ price rise, which will typically be the result of a Salesforce report. More info
 * **excluded-subscription-ids.csv**: A file holding line-separated subscription numbers to be **excluded** from the price 
 rise.
 
-## 3. Run the state machine
+## 3. Run the state machine or lambda
 
-Navigate to `price-migration-engine-cohort-steps-PROD` from the Step Functions dashboard. Click on Start Execution and configure the input JSON. Look at previous executions for examples of what the input JSON should look like. E.g.: `{"cohortSpec":{"cohortName":"HomeDelivery2022","brazeCampaignName":"SV_PrintPriceRise_2022","importStartDate":"2022-04-28","earliestPriceMigrationStartDate":"2022-06-29"}}`
+Navigate to the `price-migration-lambda-PROD` and enter the cohort spec to kick off the price-rise process. To see examples of previous executions and cohort Spec's, navigate to `price-migration-engine-cohort-steps-PROD` from the Step Functions dashboard.
+Example cohort spec: `{"cohortSpec":{"cohortName":"HomeDelivery2022","brazeCampaignName":"SV_PrintPriceRise_2022","importStartDate":"2022-04-28","earliestPriceMigrationStartDate":"2022-06-29"}}`
 
 A new cohort table will be created. The name of the table contains the stage and the Cohort name specified in the CohortSpec table. 
 
