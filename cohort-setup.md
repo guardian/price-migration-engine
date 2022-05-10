@@ -1,6 +1,6 @@
 # How to set up a new cohort
 
-Previously, cohorts have been separated by product type, i.e.: Newspaper Vouchers and Newspaper Delivery.
+Previously, cohorts have been separated by product type, i.e.: Newspaper Vouchers and Newspaper Delivery.  The cohort names reflected this, eg. 'Vouchers2022'.  This was because the engine was being developed to support new product types while it was in use.  But cohorts don't need to be product-specific and the whole lot could be put in a single cohort.  How the cohorts are broken down depends on which subscriptions are ready for migration, either for business or technical reasons.
 
 The following are the steps required to set up a new cohort of subscriptions due to have their price increased.
 
