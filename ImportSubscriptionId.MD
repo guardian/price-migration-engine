@@ -11,6 +11,9 @@ The process for uploading the subscription ids is as follows.
 
 ## Download subscription ids from salesforce
 
+See [salesforce-subscription-id-report.csv](./lambda/src/test/resources/salesforce-subscription-id-report.csv) for required format of the CSV file.
+**Note:** Although the salesforce report may contain many fields for each subscription, only the ID is required, and it is required as the first column of the CSV file, see the writeSubscriptionIdsToCohortTable function in SubscriptionIdUploadHandler.scala file for how it reads the CSV and creates a cohort item out of it.
+
 This report contains the subscriptions that will be included in the price migration process.
 
 - Go to the salesforce report containing the subscrptions:
