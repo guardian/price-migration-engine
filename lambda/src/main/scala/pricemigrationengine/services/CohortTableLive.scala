@@ -118,7 +118,8 @@ object CohortTableLive {
         tableName = cohortSpec.tableName(stageConfig.stage)
         cohortTableConfig <- ZIO.service[CohortTableConfig]
         logging <- ZIO.service[Logging]
-      } yield new CohortTable.Service {
+      } yield new CohortTable {
+
         override def fetch(
             filter: CohortTableFilter,
             latestStartDateInclusive: Option[LocalDate]

@@ -27,7 +27,7 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
       queryRequest.copy(x => x.exclusiveStartKey(item("id-2"))) -> QueryResponse.builder.items(item("id-3")).build()
     )
     val stubDynamoDBClient = ZLayer.succeed(
-      new DynamoDBClient.Service {
+      new DynamoDBClient {
         def query(queryRequest: QueryRequest): Task[QueryResponse] = ZIO.succeed(responseMap(queryRequest))
 
         def scan(scanRequest: ScanRequest): Task[ScanResponse] = ???
@@ -79,24 +79,27 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
     var receivedUpdateItemRequest: Option[UpdateItemRequest] = None
 
     val stubDynamoDBClient = ZLayer.succeed(
-      new DynamoDBClient.Service {
-        def query(queryRequest: QueryRequest): Task[QueryResponse] = ???
+      new DynamoDBClient {
 
-        def scan(scanRequest: ScanRequest): Task[ScanResponse] = ???
+        override def query(queryRequest: QueryRequest): Task[QueryResponse] = ???
 
-        def updateItem(updateItemRequest: UpdateItemRequest): Task[UpdateItemResponse] =
+        override def scan(scanRequest: ScanRequest): Task[ScanResponse] = ???
+
+        override def updateItem(updateItemRequest: UpdateItemRequest): Task[UpdateItemResponse] =
           ZIO.succeed {
             receivedUpdateItemRequest = Some(updateItemRequest)
             UpdateItemResponse.builder.build()
           }
 
-        def createItem(createRequest: PutItemRequest, keyName: String): Task[PutItemResponse] = ???
+        override def createItem(createRequest: PutItemRequest, keyName: String): Task[PutItemResponse] = ???
 
-        def describeTable(tableName: String): Task[DescribeTableResponse] = ???
+        override def describeTable(tableName: String): Task[DescribeTableResponse] = ???
 
-        def createTable(request: CreateTableRequest): Task[CreateTableResponse] = ???
+        override def createTable(request: CreateTableRequest): Task[CreateTableResponse] = ???
 
-        def updateContinuousBackups(request: UpdateContinuousBackupsRequest): Task[UpdateContinuousBackupsResponse] =
+        override def updateContinuousBackups(
+            request: UpdateContinuousBackupsRequest
+        ): Task[UpdateContinuousBackupsResponse] =
           ???
       }
     )

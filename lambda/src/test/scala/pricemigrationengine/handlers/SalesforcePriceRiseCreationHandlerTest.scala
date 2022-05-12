@@ -28,7 +28,8 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
   def createStubCohortTable(updatedResultsWrittenToCohortTable: ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
-      new CohortTable.Service {
+      new CohortTable {
+
         override def fetch(
             filter: CohortTableFilter,
             beforeDateInclusive: Option[LocalDate]
@@ -54,7 +55,8 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
       updatedPriceRises: ArrayBuffer[SalesforcePriceRise]
   ) = {
     ZLayer.succeed(
-      new SalesforceClient.Service {
+      new SalesforceClient {
+
         override def getSubscriptionByName(
             subscriptionName: String
         ): IO[SalesforceClientFailure, SalesforceSubscription] = {

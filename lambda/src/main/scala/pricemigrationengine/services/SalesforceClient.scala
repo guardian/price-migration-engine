@@ -10,15 +10,16 @@ import zio.{IO, ZIO}
 
 case class SalesforcePriceRiseCreationResponse(id: String)
 
+trait SalesforceClient {
+  def getSubscriptionByName(subscrptionName: String): IO[SalesforceClientFailure, SalesforceSubscription]
+  def getContact(contactId: String): IO[SalesforceClientFailure, SalesforceContact]
+  def createPriceRise(
+      priceRise: SalesforcePriceRise
+  ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse]
+  def updatePriceRise(priceRiseId: String, priceRise: SalesforcePriceRise): IO[SalesforceClientFailure, Unit]
+}
+
 object SalesforceClient {
-  trait Service {
-    def getSubscriptionByName(subscrptionName: String): IO[SalesforceClientFailure, SalesforceSubscription]
-    def getContact(contactId: String): IO[SalesforceClientFailure, SalesforceContact]
-    def createPriceRise(
-        priceRise: SalesforcePriceRise
-    ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse]
-    def updatePriceRise(priceRiseId: String, priceRise: SalesforcePriceRise): IO[SalesforceClientFailure, Unit]
-  }
 
   def getSubscriptionByName(
       subscrptionName: String
