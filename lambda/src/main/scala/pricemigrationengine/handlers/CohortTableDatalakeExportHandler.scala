@@ -20,9 +20,9 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
 
   def main(
       cohortSpec: CohortSpec
-  ): ZIO[Logging with CohortTable with S3 with ExportConfiguration, Failure, HandlerOutput] =
+  ): ZIO[Logging with CohortTable with S3 with ExportConfig, Failure, HandlerOutput] =
     for {
-      config <- ExportConfiguration.exportConfig
+      config <- ZIO.service[ExportConfig]
       records <- CohortTable.fetchAll()
       s3Location = S3Location(
         config.exportBucketName,
@@ -150,7 +150,7 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
 
   private def env(
       cohortSpec: CohortSpec
-  ): ZLayer[Logging, Failure, CohortTable with S3 with Logging with ExportConfiguration] =
+  ): ZLayer[Logging, Failure, CohortTable with S3 with Logging with ExportConfig] =
     (LiveLayer.cohortTable(cohortSpec) and LiveLayer.s3 and LiveLayer.logging and LiveLayer.exportConfig)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 

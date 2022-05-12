@@ -23,19 +23,8 @@ class CohortTableLiveTest extends munit.FunSuite {
     earliestPriceMigrationStartDate = LocalDate.of(2020, 1, 1)
   )
 
-  val stubCohortTableConfiguration = ZLayer.succeed(
-    new CohortTableConfiguration.Service {
-      override val config: IO[ConfigurationFailure, CohortTableConfig] =
-        ZIO.succeed(CohortTableConfig(10))
-    }
-  )
-
-  val stubStageConfiguration = ZLayer.succeed(
-    new StageConfiguration.Service {
-      override val config: IO[ConfigurationFailure, StageConfig] =
-        ZIO.succeed(StageConfig("DEV"))
-    }
-  )
+  val stubCohortTableConfiguration = ZLayer.succeed(CohortTableConfig(10))
+  val stubStageConfiguration = ZLayer.succeed(StageConfig("DEV"))
 
   val expectedTableName = "PriceMigration-DEV-name"
   val expectedSubscriptionId = "subscription-id"

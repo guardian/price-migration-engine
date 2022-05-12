@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{CohortSpec, CohortTableCreateFailure, ConfigurationFailure}
+import pricemigrationengine.model.{CohortSpec, CohortTableCreateFailure, ConfigFailure, StageConfig}
 import software.amazon.awssdk.services.dynamodb.model.BillingMode.PAY_PER_REQUEST
 import software.amazon.awssdk.services.dynamodb.model.KeyType.{HASH, RANGE}
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.S
@@ -18,11 +18,11 @@ object CohortTableDdlLive {
   private val stageAttribute = "processingStage"
   private val startDateAttribute = "startDate"
 
-  val impl: ZLayer[DynamoDBClient with StageConfiguration with Logging, ConfigurationFailure, CohortTableDdl] =
+  val impl: ZLayer[DynamoDBClient with StageConfig with Logging, ConfigFailure, CohortTableDdl] =
     ZLayer.fromZIO(
       for {
         logging <- ZIO.service[Logging]
-        stageConfig <- StageConfiguration.stageConfig
+        stageConfig <- ZIO.service[StageConfig]
         dynamoDbClient <- ZIO.service[DynamoDBClient]
       } yield new CohortTableDdl {
 

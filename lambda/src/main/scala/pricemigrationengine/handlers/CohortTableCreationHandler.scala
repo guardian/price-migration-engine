@@ -1,8 +1,8 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.{CohortSpec, ConfigurationFailure, Failure, HandlerOutput}
+import pricemigrationengine.model.{CohortSpec, ConfigFailure, Failure, HandlerOutput}
 import pricemigrationengine.services.{CohortTableDdl, Logging}
-import zio.{ZEnv, ZIO, ZLayer}
+import zio.{ZIO, ZLayer}
 
 /** Creates a new CohortTable if it doesn't already exist.
   */
@@ -20,7 +20,7 @@ object CohortTableCreationHandler extends CohortHandler {
       )
       .as(HandlerOutput(isComplete = true))
 
-  private val env: ZLayer[Logging, ConfigurationFailure, CohortTableDdl with Logging] =
+  private val env: ZLayer[Logging, ConfigFailure, CohortTableDdl with Logging] =
     (LiveLayer.cohortTableDdl and LiveLayer.logging)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 

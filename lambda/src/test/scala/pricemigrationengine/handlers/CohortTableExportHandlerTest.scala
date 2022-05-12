@@ -60,12 +60,7 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
 
   val expectedS3ExportBucketName = "export-s3-bucket-name"
 
-  val stubConfig = ZLayer.succeed(
-    new ExportConfiguration.Service {
-      override val config: ExportConfig =
-        ExportConfig(expectedS3ExportBucketName)
-    }
-  )
+  val stubConfig = ZLayer.succeed(ExportConfig(expectedS3ExportBucketName))
 
   test("CohortTableExportHandler should write cohort items to s3 as CSV") {
     val expectedCohortName = "expected cohort name"

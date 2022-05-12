@@ -15,12 +15,7 @@ import scala.collection.mutable.ArrayBuffer
 
 class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
   test("SubscriptionIdUploadHandler should get subscriptions from s3 and write to cohort table") {
-    val stubConfiguration = ZLayer.succeed(
-      new StageConfiguration.Service {
-        override val config: IO[ConfigurationFailure, StageConfig] =
-          ZIO.succeed(StageConfig("DEV"))
-      }
-    )
+    val stubConfiguration = ZLayer.succeed(StageConfig("DEV"))
 
     val subscriptionsWrittenToCohortTable = ArrayBuffer[CohortItem]()
 

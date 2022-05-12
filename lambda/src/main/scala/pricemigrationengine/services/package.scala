@@ -1,15 +1,6 @@
 package pricemigrationengine
 
 package object services {
-
-  type ZuoraConfiguration = ZuoraConfiguration.Service
-  type CohortTableConfiguration = CohortTableConfiguration.Service
-  type SalesforceConfiguration = SalesforceConfiguration.Service
-  type StageConfiguration = StageConfiguration.Service
-  type EmailSenderConfiguration = EmailSenderConfiguration.Service
-  type CohortStateMachineConfiguration = CohortStateMachineConfiguration.Service
-  type ExportConfiguration = ExportConfiguration.Service
-
   type CohortStateMachine = CohortStateMachine.Service
   type CohortSpecTable = CohortSpecTable.Service
   type CohortTable = CohortTable.Service

@@ -83,7 +83,7 @@ object EstimationHandler extends CohortHandler {
       subscription: ZuoraSubscription,
       invoicePreview: ZuoraInvoiceList,
       earliestStartDate: LocalDate
-  ): IO[ConfigurationFailure, LocalDate] = {
+  ): IO[ConfigFailure, LocalDate] = {
 
     lazy val earliestStartDateForAMonthlySub =
       for {
@@ -104,7 +104,7 @@ object EstimationHandler extends CohortHandler {
       ZIO.succeed(earliestStartDate)
   }
 
-  private def env(cohortSpec: CohortSpec): ZLayer[Logging, ConfigurationFailure, CohortTable with Zuora with Logging] =
+  private def env(cohortSpec: CohortSpec): ZLayer[Logging, ConfigFailure, CohortTable with Zuora with Logging] =
     (LiveLayer.cohortTable(cohortSpec) and LiveLayer.zuora and LiveLayer.logging)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 

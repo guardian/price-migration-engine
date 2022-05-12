@@ -15,12 +15,12 @@ object CohortStateMachineLive {
 
   private implicit val rw: ReadWriter[StateMachineInput] = macroRW
 
-  val impl: ZLayer[CohortStateMachineConfiguration with Logging, ConfigurationFailure, CohortStateMachine] =
+  val impl: ZLayer[CohortStateMachineConfig with Logging, ConfigFailure, CohortStateMachine] =
     ZLayer.fromZIO {
       val stateMachine = AwsClient.sfn
       for {
         logging <- ZIO.service[Logging]
-        config <- CohortStateMachineConfiguration.cohortStateMachineConfig
+        config <- ZIO.service[CohortStateMachineConfig]
       } yield new CohortStateMachine {
         override def startExecution(spec: CohortSpec): IO[CohortStateMachineFailure, StartExecutionResponse] =
           for {

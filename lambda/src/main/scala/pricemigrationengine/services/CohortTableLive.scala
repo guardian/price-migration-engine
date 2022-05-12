@@ -108,17 +108,15 @@ object CohortTableLive {
         stringUpdate("processingStage", cohortItem.processingStage.value)
       ).asJava
 
-  def impl(cohortSpec: CohortSpec): ZLayer[
-    DynamoDBZIO with StageConfiguration with CohortTableConfiguration with Logging,
-    ConfigurationFailure,
-    CohortTable
-  ] = {
+  def impl(
+      cohortSpec: CohortSpec
+  ): ZLayer[DynamoDBZIO with StageConfig with CohortTableConfig with Logging, ConfigFailure, CohortTable] = {
     ZLayer.fromZIO {
       for {
         dynamoDbZio <- ZIO.service[DynamoDBZIO]
-        config <- StageConfiguration.stageConfig
-        tableName = cohortSpec.tableName(config.stage)
-        cohortTableConfig <- CohortTableConfiguration.cohortTableConfig
+        stageConfig <- ZIO.service[StageConfig]
+        tableName = cohortSpec.tableName(stageConfig.stage)
+        cohortTableConfig <- ZIO.service[CohortTableConfig]
         logging <- ZIO.service[Logging]
       } yield new CohortTable.Service {
         override def fetch(
