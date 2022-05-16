@@ -31,7 +31,12 @@ jobs:
 
       - name: Test PR from forked repo
         if: env.isPrFromForkedRepo == 'true'
-        run: sbt test assembly
+        run: >
+          sbt 
+          scalafmtCheckAll
+          scalafmtSbtCheck
+          test 
+          assembly
 
         # Required by SBT riffRaffUpload
       - name: Assume AWS role
