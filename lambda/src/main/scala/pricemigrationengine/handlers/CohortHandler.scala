@@ -5,7 +5,7 @@ import pricemigrationengine.model._
 import pricemigrationengine.services._
 import ujson.Readable
 import upickle.default.{read, stream}
-import zio.{Runtime, ZEnv, ZIO, ZIOAppArgs, ZIOAppDefault}
+import zio.{Runtime, ZIO, ZIOAppArgs, ZIOAppDefault}
 
 import java.io.{InputStream, OutputStream}
 
@@ -55,16 +55,19 @@ trait CohortHandler extends ZIOAppDefault with RequestStreamHandler {
       spec => Logging.info(s"Input: $spec")
     )
 
+  /** First, and only expected, program argument is a Json string representing the input to the lambda.<br /> Eg.<br />
+    * <code>"{ \"cohortName\": \"Testing123\", \"importStartDate\": \"2022-01-01\", \"earliestPriceMigrationStartDate\":\"2022-02-01\", \"brazeCampaignName\": \"cmp1\" }"</code>
+    */
   override final def run: ZIO[ZIOAppArgs, Any, Any] =
     (for {
-      inputFromEnv <- zio.System.env("input")
+      args <- ZIOAppArgs.getArgs
       input <- ZIO
-        .fromOption(inputFromEnv)
+        .fromOption(args.headOption)
         .orElseFail(InputFailure("No input"))
         .tapError(e => Logging.error(e.toString))
       _ <- goConsole(input)
     } yield ())
-      .provideLayer(ConsoleLogging.impl("ParsingEnvInput"))
+      .provideSomeLayer[ZIOAppArgs](ConsoleLogging.impl("ParsingEnvInput"))
       .exitCode
 
   override final def handleRequest(input: InputStream, output: OutputStream, context: Context): Unit =
