@@ -56,8 +56,7 @@ trait CohortHandler extends ZIOAppDefault with RequestStreamHandler {
     )
 
   /** First, and only expected, program argument is a Json string representing the input to the lambda.<br /> Eg.<br />
-    * <code>"{ \"cohortName\": \"Testing123\", \"importStartDate\": \"2022-01-01\", \"earliestPriceMigrationStartDate\":
-    * \"2022-02-01\", \"brazeCampaignName\": \"cmp1\" }"</code>
+    * <code>"{ \"cohortName\": \"Testing123\", \"importStartDate\": \"2022-01-01\", \"earliestPriceMigrationStartDate\":\"2022-02-01\", \"brazeCampaignName\": \"cmp1\" }"</code>
     */
   override final def run: ZIO[ZIOAppArgs, Any, Any] =
     (for {
