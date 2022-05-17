@@ -34,7 +34,7 @@ object EstimationHandler extends CohortHandler {
           .tapError(e => Logging.error(e.toString))
     } yield HandlerOutput(isComplete = count < batchSize)
 
-  private def estimate(
+  private[handlers] def estimate(
       catalogue: ZuoraProductCatalogue,
       earliestStartDate: LocalDate
   )(
@@ -51,7 +51,10 @@ object EstimationHandler extends CohortHandler {
         case e => ZIO.fail(e)
       },
       success = { result =>
-        CohortTable.update(CohortItem.fromSuccessfulEstimationResult(result)).as(result)
+        for {
+          cohortItem <- CohortItem.fromSuccessfulEstimationResult(result)
+          _ <- CohortTable.update(cohortItem)
+        } yield result
       }
     )
 
