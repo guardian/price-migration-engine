@@ -51,8 +51,12 @@ object EstimationHandler extends CohortHandler {
         case e => ZIO.fail(e)
       },
       success = { result =>
+        val cohortItemToWrite =
+          if (result.estimatedNewPrice <= result.oldPrice)
+            CohortItem.fromNoPriceIncreaseEstimationResult(result)
+          else CohortItem.fromSuccessfulEstimationResult(result)
         for {
-          cohortItem <- CohortItem.fromSuccessfulEstimationResult(result)
+          cohortItem <- cohortItemToWrite
           _ <- CohortTable.update(cohortItem)
         } yield result
       }
@@ -71,12 +75,7 @@ object EstimationHandler extends CohortHandler {
       invoicePreviewTargetDate = earliestStartDate.plusMonths(13)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
       earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, earliestStartDate)
-      result <-
-        ZIO
-          .fromEither(EstimationResult(catalogue, subscription, invoicePreview, earliestStartDate))
-          .filterOrFail(result => result.estimatedNewPrice > result.oldPrice)(
-            AmendmentDataFailure("No increase in price")
-          )
+      result <- ZIO.fromEither(EstimationResult(catalogue, subscription, invoicePreview, earliestStartDate))
     } yield result
 
   /*
