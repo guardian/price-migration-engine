@@ -5,7 +5,7 @@ sealed trait Failure {
 }
 
 case class InputFailure(reason: String) extends Failure
-case class ConfigurationFailure(reason: String) extends Failure
+case class ConfigFailure(reason: String) extends Failure
 
 case class CohortStateMachineFailure(reason: String) extends Failure
 

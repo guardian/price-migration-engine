@@ -59,7 +59,7 @@ object SalesforceClientLive {
         .mapError(ex => SalesforceClientFailure(s"${requestAsMessage(request)} failed to deserialise: $ex"))
     } yield parsedResponse
 
-  val impl: ZLayer[SalesforceConfiguration with Logging, SalesforceClientFailure, SalesforceClient] =
+  val impl: ZLayer[SalesforceConfig with Logging, SalesforceClientFailure, SalesforceClient] =
     ZLayer.fromZIO {
 
       def auth(config: SalesforceConfig, logging: Logging) = {
@@ -78,7 +78,7 @@ object SalesforceClientLive {
       } <* logging.info(s"Authenticated with salesforce using user:${config.userName} and client: ${config.clientId}")
 
       for {
-        config <- SalesforceConfiguration.salesforceConfig.mapError(failure => SalesforceClientFailure(failure.reason))
+        config <- ZIO.service[SalesforceConfig]
         logging <- ZIO.service[Logging]
         auth <- auth(config, logging)
       } yield new services.SalesforceClient {

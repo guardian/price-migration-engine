@@ -1,23 +1,21 @@
 package pricemigrationengine.handlers
 
-import java.io.{InputStream, InputStreamReader}
-
 import org.apache.commons.csv.{CSVFormat, CSVParser}
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.Clock
 import zio.stream.ZStream
-import zio.{IO, ZEnv, ZIO, ZLayer}
+import zio.{IO, ZIO, ZLayer}
 
+import java.io.{InputStream, InputStreamReader}
 import scala.jdk.CollectionConverters._
 
 object SubscriptionIdUploadHandler extends CohortHandler {
 
   private val csvFormat = CSVFormat.Builder.create().setHeader().setSkipHeaderRecord(true).build()
 
-  private def sourceLocation(cohortSpec: CohortSpec): ZIO[StageConfiguration, ConfigurationFailure, S3Location] =
-    StageConfiguration.stageConfig map { stageConfig =>
+  private def sourceLocation(cohortSpec: CohortSpec): ZIO[StageConfig, ConfigFailure, S3Location] =
+    ZIO.service[StageConfig] map { stageConfig =>
       S3Location(
         s"price-migration-engine-${stageConfig.stage.toLowerCase}",
         s"${cohortSpec.normalisedCohortName}"
@@ -27,7 +25,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
   private def sourceSublocation(
       cohortSpec: CohortSpec,
       sublocation: String
-  ): ZIO[StageConfiguration, ConfigurationFailure, S3Location] =
+  ): ZIO[StageConfig, ConfigFailure, S3Location] =
     sourceLocation(cohortSpec).map(loc => loc.copy(key = s"${loc.key}/$sublocation"))
 
   private def importSourceLocation(cohortSpec: CohortSpec) =
@@ -38,7 +36,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
 
   def main(
       cohortSpec: CohortSpec
-  ): ZIO[CohortTable with S3 with StageConfiguration with Logging, Failure, HandlerOutput] =
+  ): ZIO[CohortTable with S3 with StageConfig with Logging, Failure, HandlerOutput] =
     (for {
       today <- Time.today
       _ <-
@@ -51,7 +49,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
 
   def importCohortAndCleanUp(
       cohortSpec: CohortSpec
-  ): ZIO[CohortTable with S3 with StageConfiguration with Logging, Failure, Unit] =
+  ): ZIO[CohortTable with S3 with StageConfig with Logging, Failure, Unit] =
     for {
       _ <- importCohort(cohortSpec).catchSome { case e: S3Failure =>
         Logging.info(s"No action.  Cohort already imported: ${e.reason}").unit
@@ -62,7 +60,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
 
   private def importCohort(
       cohortSpec: CohortSpec
-  ): ZIO[CohortTable with Logging with S3 with StageConfiguration, Failure, Unit] =
+  ): ZIO[CohortTable with Logging with S3 with StageConfig, Failure, Unit] =
     ZIO.scoped(for {
       exclusionsSrc <- exclusionSourceLocation(cohortSpec)
       exclusionsManagedStream <- S3.getObject(exclusionsSrc)
@@ -121,8 +119,8 @@ object SubscriptionIdUploadHandler extends CohortHandler {
 
   private def env(
       cohortSpec: CohortSpec
-  ): ZLayer[Logging, Failure, CohortTable with S3 with StageConfiguration with Logging] =
-    (LiveLayer.cohortTable(cohortSpec) and LiveLayer.s3 and EnvConfiguration.stageImp and LiveLayer.logging)
+  ): ZLayer[Logging, Failure, CohortTable with S3 with StageConfig with Logging] =
+    (LiveLayer.cohortTable(cohortSpec) and LiveLayer.s3 and EnvConfig.stage.layer and LiveLayer.logging)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =

@@ -61,14 +61,14 @@ object ZuoraLive {
   private def failureMessage(request: HttpRequest, t: Throwable) =
     s"Request for ${request.method} ${request.url} returned error ${t.toString}"
 
-  val impl: ZLayer[ZuoraConfiguration with Logging, ConfigurationFailure, Zuora] =
+  val impl: ZLayer[ZuoraConfig with Logging, ConfigFailure, Zuora] =
     ZLayer.fromZIO(
       for {
         logging <- ZIO.service[Logging]
-        config <- ZuoraConfiguration.zuoraConfig
+        config <- ZIO.service[ZuoraConfig]
         accessToken <- ZIO
           .fromEither(fetchedAccessToken(config))
-          .mapError(failure => ConfigurationFailure(failure.reason))
+          .mapError(failure => ConfigFailure(failure.reason))
           .tap(token => logging.info(s"Fetched Zuora access token: $token"))
       } yield new Zuora {
 

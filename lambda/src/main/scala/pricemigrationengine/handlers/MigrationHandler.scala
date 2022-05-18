@@ -1,7 +1,7 @@
 package pricemigrationengine.handlers
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import pricemigrationengine.model.{CohortSpec, ConfigurationFailure}
+import pricemigrationengine.model.{CohortSpec, ConfigFailure}
 import pricemigrationengine.services._
 import zio.{Runtime, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer}
 
@@ -20,7 +20,7 @@ object MigrationHandler extends ZIOAppDefault with RequestHandler[Unit, Unit] {
       _ <- ZIO.foreachDiscard(activeSpecs)(CohortStateMachine.startExecution)
     } yield ()).tapError(e => Logging.error(s"Migration run failed: $e"))
 
-  private val env: ZLayer[Logging, ConfigurationFailure, CohortSpecTable with CohortStateMachine with Logging] =
+  private val env: ZLayer[Logging, ConfigFailure, CohortSpecTable with CohortStateMachine with Logging] =
     (LiveLayer.cohortSpecTable and LiveLayer.cohortStateMachine and LiveLayer.logging)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 

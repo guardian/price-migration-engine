@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.EmailSenderFailure
+import pricemigrationengine.model.{EmailSenderConfig, EmailSenderFailure}
 import pricemigrationengine.model.membershipworkflow.EmailMessage
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import software.amazon.awssdk.services.sqs.model.{GetQueueUrlRequest, SendMessageRequest}
@@ -19,13 +19,11 @@ import zio.{ZIO, ZLayer}
   */
 object EmailSenderLive {
 
-  val impl: ZLayer[Logging with EmailSenderConfiguration, EmailSenderFailure, EmailSender] =
+  val impl: ZLayer[Logging with EmailSenderConfig, EmailSenderFailure, EmailSender] =
     ZLayer.fromZIO(
       for {
         logging <- ZIO.service[Logging]
-        config <- EmailSenderConfiguration.emailSenderConfig.mapError { failure =>
-          EmailSenderFailure(s"Failed to get email sender configuration: $failure")
-        }
+        config <- ZIO.service[EmailSenderConfig]
         sqsClient <- ZIO.attempt(AwsClient.sqsAsync).mapError { ex =>
           EmailSenderFailure(s"Failed to create sqs client: ${ex.getMessage}")
         }

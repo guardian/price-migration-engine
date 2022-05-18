@@ -3,8 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.Clock
-import zio.{ZEnv, ZIO, ZLayer}
+import zio.{ZIO, ZLayer}
 
 /** Carries out price-rise amendments in Zuora.
   */
@@ -86,7 +85,7 @@ object AmendmentHandler extends CohortHandler {
       .fetchSubscription(item.subscriptionName)
       .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
 
-  private def env(cohortSpec: CohortSpec): ZLayer[Logging, ConfigurationFailure, CohortTable with Zuora with Logging] =
+  private def env(cohortSpec: CohortSpec): ZLayer[Logging, ConfigFailure, CohortTable with Zuora with Logging] =
     (LiveLayer.cohortTable(cohortSpec) and LiveLayer.zuora and LiveLayer.logging)
       .tapError(e => Logging.error(s"Failed to create service environment: $e"))
 

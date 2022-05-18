@@ -1,17 +1,17 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.ConfigurationFailure
+import pricemigrationengine.model.ConfigFailure
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model._
 import zio._
 
 object DynamoDBClientLive {
-  val impl: ZLayer[Logging, ConfigurationFailure, DynamoDBClient] = {
+  val impl: ZLayer[Logging, ConfigFailure, DynamoDBClient] = {
 
-    def acquireDynamoDb: ZIO[Logging, ConfigurationFailure, DynamoDbClient] =
+    def acquireDynamoDb: ZIO[Logging, ConfigFailure, DynamoDbClient] =
       ZIO
         .attempt(AwsClient.dynamoDb)
-        .mapError(ex => ConfigurationFailure(s"Failed to create the dynamoDb client: $ex"))
+        .mapError(ex => ConfigFailure(s"Failed to create the dynamoDb client: $ex"))
 
     def releaseDynamoDb(dynamoDb: DynamoDbClient): URIO[Logging, Unit] = {
       /* In the interaction between DynamoDBZIOLive and DynamoDBClientLive the client is being released
@@ -22,7 +22,7 @@ object DynamoDBClientLive {
       ZIO.unit
     }
 
-    val dynamoDbLayer: ZLayer[Logging, ConfigurationFailure, DynamoDbClient] =
+    val dynamoDbLayer: ZLayer[Logging, ConfigFailure, DynamoDbClient] =
       ZLayer.scoped(ZIO.acquireRelease(acquireDynamoDb)(releaseDynamoDb))
 
     val serviceLayer: ZLayer[DynamoDbClient, Nothing, DynamoDBClient] = ZLayer.fromZIO {
