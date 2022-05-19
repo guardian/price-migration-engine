@@ -544,16 +544,16 @@ class AmendmentDataTest extends munit.FunSuite {
 
   test("priceData: is correct for an echo-legacy saturday quarterly subscription") {
     val fixtureSet = "NewspaperDelivery/EchoLegacy/SaturdayQuarterly"
-    val priceData = AmendmentData.priceData(
+    val priceData = AmendmentData(
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      startDate = LocalDate.of(2022, 11, 30)
+      earliestStartDate = migrationStartDate
     )
     assertEquals(
       priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 40.29, newPrice = 53.97, billingPeriod = "Quarter"))
-    )
+      Right(AmendmentData(LocalDate.of(2022, 5, 30), PriceData(currency = "GBP", oldPrice = 40.29, newPrice = 53.97, billingPeriod = "Quarter"))
+    ))
   }
 
   test("priceData: is correct for an echo-legacy saturday quarterly subscription (2)") {
