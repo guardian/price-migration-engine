@@ -33,11 +33,14 @@ object AmendmentData {
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       earliestStartDate: LocalDate
-  ): Either[AmendmentDataFailure, AmendmentData] =
+  ): Either[AmendmentDataFailure, AmendmentData] = {
+    val isEchoLegacy = subscription.ratePlans.filter(_.ratePlanName == "Echo-Legacy").length >= 1
+
     for {
-      startDate <- nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
+      startDate <- if (isEchoLegacy) nextServiceStartDateEchoLegacy(invoiceList, subscription, onOrAfter = earliestStartDate) else nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
       price <- priceData(catalogue, subscription, invoiceList, startDate)
     } yield AmendmentData(startDate, priceData = price)
+  }
 
   def nextServiceStartDate(
       invoiceList: ZuoraInvoiceList,
@@ -46,6 +49,26 @@ object AmendmentData {
   ): Either[AmendmentDataFailure, LocalDate] =
     ZuoraInvoiceItem
       .itemsForSubscription(invoiceList, subscription)
+      .map(_.serviceStartDate)
+      .sortBy(_.toEpochDay)
+      .dropWhile(_.isBefore(onOrAfter))
+      .headOption
+      .toRight(AmendmentDataFailure(s"Cannot determine next billing date on or after $onOrAfter from $invoiceList"))
+
+  def nextServiceStartDateEchoLegacy(
+                            invoiceList: ZuoraInvoiceList,
+                            subscription: ZuoraSubscription,
+                            onOrAfter: LocalDate
+                          ): Either[AmendmentDataFailure, LocalDate] =
+    ZuoraInvoiceItem
+      .itemsForSubscription(invoiceList, subscription)
+      .filter(_.productName == "Newspaper Delivery")
+      .groupBy(_.serviceStartDate)
+      .collect {
+        case (_, chargedDays) if chargedDays.length == 7 => chargedDays
+      }
+      .flatten
+      .toSeq
       .map(_.serviceStartDate)
       .sortBy(_.toEpochDay)
       .dropWhile(_.isBefore(onOrAfter))
@@ -118,6 +141,7 @@ object AmendmentData {
       val ratePlanCharges = invoiceItems.map(ratePlanCharge)
 
       val failures = ratePlanCharges.collect { case Left(failure) => failure }
+
       if (failures.isEmpty) Right(ratePlanCharges.collect { case Right(charge) => charge })
       else Left(AmendmentDataFailure(failures.map(_.reason).mkString(", ")))
     }

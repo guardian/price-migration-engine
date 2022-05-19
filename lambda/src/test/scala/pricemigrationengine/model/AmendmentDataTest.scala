@@ -33,6 +33,14 @@ class AmendmentDataTest extends munit.FunSuite {
     assertEquals(serviceStartDate, Right(LocalDate.of(2022, 5, 7)))
   }
 
+  test("nextserviceStartDate: billing date is correct for an echo-legacy quarterly subscription") {
+    val invoiceList = invoiceListFromJson("NewspaperDelivery/EchoLegacy/Quarterly2/InvoicePreview.json")
+    val subscription = subscriptionFromJson("NewspaperDelivery/EchoLegacy/Quarterly2/Subscription.json")
+    val serviceStartDate =
+      AmendmentData.nextServiceStartDateEchoLegacy(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
+    assertEquals(serviceStartDate, Right(LocalDate.of(2022, 7, 9)))
+  }
+
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date") {
     val invoiceList = invoiceListFromJson("InvoicePreviewTermEndsBeforeMigration.json")
     val subscription = subscriptionFromJson("NewspaperVoucher/Monthly/Subscription.json")
@@ -546,5 +554,23 @@ class AmendmentDataTest extends munit.FunSuite {
       priceData,
       Right(PriceData(currency = "GBP", oldPrice = 40.29, newPrice = 53.97, billingPeriod = "Quarter"))
     )
+  }
+
+  test("priceData: is correct for an echo-legacy saturday quarterly subscription (2)") {
+    val fixtureSet = "NewspaperDelivery/EchoLegacy/Quarterly2"
+    val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
+    val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
+
+    val amendmentData = AmendmentData(
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
+      subscription = subscription,
+      invoiceList = invoiceList,
+      earliestStartDate = migrationStartDate
+    )
+
+    assertEquals(
+      amendmentData,
+      Right(AmendmentData(LocalDate.of(2022,7,9), PriceData(currency = "GBP", oldPrice = 40.29, newPrice = 53.97, billingPeriod = "Quarter"))
+    ))
   }
 }
