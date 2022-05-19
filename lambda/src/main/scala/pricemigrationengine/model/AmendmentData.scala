@@ -34,7 +34,7 @@ object AmendmentData {
       invoiceList: ZuoraInvoiceList,
       earliestStartDate: LocalDate
   ): Either[AmendmentDataFailure, AmendmentData] = {
-    val isEchoLegacy = subscription.ratePlans.filter(_.ratePlanName == "Echo-Legacy").length >= 1
+    val isEchoLegacy = subscription.ratePlans.filter(_.ratePlanName == "Echo-Legacy").nonEmpty
 
     for {
       startDate <-
