@@ -37,7 +37,9 @@ object AmendmentData {
     val isEchoLegacy = subscription.ratePlans.filter(_.ratePlanName == "Echo-Legacy").length >= 1
 
     for {
-      startDate <- if (isEchoLegacy) nextServiceStartDateEchoLegacy(invoiceList, subscription, onOrAfter = earliestStartDate) else nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
+      startDate <-
+        if (isEchoLegacy) nextServiceStartDateEchoLegacy(invoiceList, subscription, onOrAfter = earliestStartDate)
+        else nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
       price <- priceData(catalogue, subscription, invoiceList, startDate)
     } yield AmendmentData(startDate, priceData = price)
   }
@@ -56,10 +58,10 @@ object AmendmentData {
       .toRight(AmendmentDataFailure(s"Cannot determine next billing date on or after $onOrAfter from $invoiceList"))
 
   def nextServiceStartDateEchoLegacy(
-                            invoiceList: ZuoraInvoiceList,
-                            subscription: ZuoraSubscription,
-                            onOrAfter: LocalDate
-                          ): Either[AmendmentDataFailure, LocalDate] =
+      invoiceList: ZuoraInvoiceList,
+      subscription: ZuoraSubscription,
+      onOrAfter: LocalDate
+  ): Either[AmendmentDataFailure, LocalDate] =
     ZuoraInvoiceItem
       .itemsForSubscription(invoiceList, subscription)
       .filter(_.productName == "Newspaper Delivery")

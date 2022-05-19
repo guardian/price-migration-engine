@@ -552,8 +552,13 @@ class AmendmentDataTest extends munit.FunSuite {
     )
     assertEquals(
       priceData,
-      Right(AmendmentData(LocalDate.of(2022, 5, 30), PriceData(currency = "GBP", oldPrice = 40.29, newPrice = 53.97, billingPeriod = "Quarter"))
-    ))
+      Right(
+        AmendmentData(
+          LocalDate.of(2022, 5, 30),
+          PriceData(currency = "GBP", oldPrice = 40.29, newPrice = 53.97, billingPeriod = "Quarter")
+        )
+      )
+    )
   }
 
   test("priceData: is correct for an echo-legacy saturday quarterly subscription (2)") {
@@ -570,7 +575,12 @@ class AmendmentDataTest extends munit.FunSuite {
 
     assertEquals(
       amendmentData,
-      Right(AmendmentData(LocalDate.of(2022,7,9), PriceData(currency = "GBP", oldPrice = 40.29, newPrice = 53.97, billingPeriod = "Quarter"))
-    ))
+      Right(
+        AmendmentData(
+          LocalDate.of(2022, 7, 9),
+          PriceData(currency = "GBP", oldPrice = 40.29, newPrice = 53.97, billingPeriod = "Quarter")
+        )
+      )
+    )
   }
 }
