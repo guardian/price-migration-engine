@@ -15,7 +15,8 @@ object StubClock {
     override def currentDateTime(implicit trace: Trace): UIO[OffsetDateTime] =
       ZIO.succeed(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
 
-    override def instant(implicit trace: Trace): UIO[Instant] = ???
+    override def instant(implicit trace: Trace): UIO[Instant] =
+      ZIO.succeed(expectedCurrentTime)
 
     override def localDateTime(implicit trace: Trace): UIO[LocalDateTime] = ???
 
