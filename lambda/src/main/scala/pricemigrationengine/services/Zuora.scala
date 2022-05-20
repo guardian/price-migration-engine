@@ -5,21 +5,21 @@ import java.time.LocalDate
 import pricemigrationengine.model._
 import zio.ZIO
 
+trait Zuora {
+
+  def fetchSubscription(subscriptionNumber: String): ZIO[Any, ZuoraFetchFailure, ZuoraSubscription]
+
+  def fetchInvoicePreview(accountId: String, targetDate: LocalDate): ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList]
+
+  val fetchProductCatalogue: ZIO[Any, ZuoraFetchFailure, ZuoraProductCatalogue]
+
+  def updateSubscription(
+      subscription: ZuoraSubscription,
+      update: ZuoraSubscriptionUpdate
+  ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId]
+}
+
 object Zuora {
-
-  trait Service {
-
-    def fetchSubscription(subscriptionNumber: String): ZIO[Any, ZuoraFetchFailure, ZuoraSubscription]
-
-    def fetchInvoicePreview(accountId: String, targetDate: LocalDate): ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList]
-
-    val fetchProductCatalogue: ZIO[Any, ZuoraFetchFailure, ZuoraProductCatalogue]
-
-    def updateSubscription(
-        subscription: ZuoraSubscription,
-        update: ZuoraSubscriptionUpdate
-    ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId]
-  }
 
   def fetchSubscription(subscriptionNumber: String): ZIO[Zuora, Failure, ZuoraSubscription] =
     ZIO.environmentWithZIO(_.get.fetchSubscription(subscriptionNumber))

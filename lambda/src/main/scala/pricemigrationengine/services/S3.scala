@@ -8,16 +8,17 @@ import java.io.{File, InputStream}
 
 case class S3Location(bucket: String, key: String)
 
+trait S3 {
+  def getObject(s3Location: S3Location): ZIO[Scope, S3Failure, InputStream]
+  def putObject(
+      s3Location: S3Location,
+      localFile: File,
+      cannedAcl: Option[ObjectCannedACL]
+  ): IO[S3Failure, PutObjectResponse]
+  def deleteObject(s3Location: S3Location): IO[S3Failure, Unit]
+}
+
 object S3 {
-  trait Service {
-    def getObject(s3Location: S3Location): ZIO[Scope, S3Failure, InputStream]
-    def putObject(
-        s3Location: S3Location,
-        localFile: File,
-        cannedAcl: Option[ObjectCannedACL]
-    ): IO[S3Failure, PutObjectResponse]
-    def deleteObject(s3Location: S3Location): IO[S3Failure, Unit]
-  }
 
   def getObject(s3Location: S3Location): ZIO[S3, S3Failure, ZIO[Scope, S3Failure, InputStream]] =
     ZIO.environmentWith(_.get.getObject(s3Location))

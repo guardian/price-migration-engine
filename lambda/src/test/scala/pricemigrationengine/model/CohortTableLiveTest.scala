@@ -50,7 +50,8 @@ class CohortTableLiveTest extends munit.FunSuite {
     var receivedDeserialiser: Option[DynamoDBDeserialiser[CohortItem]] = None
 
     val stubDynamoDBZIO = ZLayer.succeed(
-      new DynamoDBZIO.Service {
+      new DynamoDBZIO {
+
         override def query[A](
             query: QueryRequest
         )(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] = {
@@ -150,7 +151,8 @@ class CohortTableLiveTest extends munit.FunSuite {
     val expectedLatestDate = LocalDate.now()
 
     val stubDynamoDBZIO = ZLayer.succeed(
-      new DynamoDBZIO.Service {
+      new DynamoDBZIO {
+
         override def query[A](
             query: QueryRequest
         )(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] = {
@@ -214,7 +216,8 @@ class CohortTableLiveTest extends munit.FunSuite {
     var receivedValueSerialiser: Option[DynamoDBUpdateSerialiser[CohortItem]] = None
 
     val stubDynamoDBZIO = ZLayer.succeed(
-      new DynamoDBZIO.Service {
+      new DynamoDBZIO {
+
         override def query[A](query: QueryRequest)(implicit
             deserializer: DynamoDBDeserialiser[A]
         ): ZStream[Any, DynamoDBZIOError, A] = ???
@@ -401,7 +404,8 @@ class CohortTableLiveTest extends munit.FunSuite {
     var receivedValueSerialiser: Option[DynamoDBUpdateSerialiser[CohortItem]] = None
 
     val stubDynamoDBZIO = ZLayer.succeed(
-      new DynamoDBZIO.Service {
+      new DynamoDBZIO {
+
         override def query[A](query: QueryRequest)(implicit
             deserializer: DynamoDBDeserialiser[A]
         ): ZStream[Any, DynamoDBZIOError, A] = ???
@@ -475,7 +479,8 @@ class CohortTableLiveTest extends munit.FunSuite {
     var receivedSerialiser: Option[DynamoDBSerialiser[CohortItem]] = None
 
     val stubDynamoDBZIO = ZLayer.succeed(
-      new DynamoDBZIO.Service {
+      new DynamoDBZIO {
+
         override def query[A](query: QueryRequest)(implicit
             deserializer: DynamoDBDeserialiser[A]
         ): ZStream[Any, DynamoDBZIOError, A] = ???

@@ -17,16 +17,17 @@ import software.amazon.awssdk.services.dynamodb.model.{
 }
 import zio.{RIO, Task, ZIO}
 
+trait DynamoDBClient {
+  def query(queryRequest: QueryRequest): Task[QueryResponse]
+  def scan(scanRequest: ScanRequest): Task[ScanResponse]
+  def updateItem(updateRequest: UpdateItemRequest): Task[UpdateItemResponse]
+  def createItem(createRequest: PutItemRequest, keyName: String): Task[PutItemResponse]
+  def describeTable(tableName: String): Task[DescribeTableResponse]
+  def createTable(request: CreateTableRequest): Task[CreateTableResponse]
+  def updateContinuousBackups(request: UpdateContinuousBackupsRequest): Task[UpdateContinuousBackupsResponse]
+}
+
 object DynamoDBClient {
-  trait Service {
-    def query(queryRequest: QueryRequest): Task[QueryResponse]
-    def scan(scanRequest: ScanRequest): Task[ScanResponse]
-    def updateItem(updateRequest: UpdateItemRequest): Task[UpdateItemResponse]
-    def createItem(createRequest: PutItemRequest, keyName: String): Task[PutItemResponse]
-    def describeTable(tableName: String): Task[DescribeTableResponse]
-    def createTable(request: CreateTableRequest): Task[CreateTableResponse]
-    def updateContinuousBackups(request: UpdateContinuousBackupsRequest): Task[UpdateContinuousBackupsResponse]
-  }
 
   def query(queryRequest: QueryRequest): RIO[DynamoDBClient, QueryResponse] =
     ZIO.environmentWithZIO(_.get.query(queryRequest))
