@@ -1,8 +1,9 @@
 package pricemigrationengine.model
 
-import java.time.{Instant, LocalDate}
-
 import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, Cancelled, EstimationComplete, EstimationFailed}
+import zio.{Clock, UIO}
+
+import java.time._
 
 case class CohortItem(
     subscriptionName: String,
@@ -25,8 +26,10 @@ case class CohortItem(
 
 object CohortItem {
 
-  def fromSuccessfulEstimationResult(result: SuccessfulEstimationResult): CohortItem =
-    CohortItem(
+  def fromSuccessfulEstimationResult(result: SuccessfulEstimationResult): UIO[CohortItem] =
+    for {
+      thisInstant <- Clock.instant
+    } yield CohortItem(
       result.subscriptionName,
       processingStage = EstimationComplete,
       oldPrice = Some(result.oldPrice),
@@ -34,7 +37,7 @@ object CohortItem {
       currency = Some(result.currency),
       startDate = Some(result.startDate),
       billingPeriod = Some(result.billingPeriod),
-      whenEstimationDone = Some(Instant.now())
+      whenEstimationDone = Some(thisInstant)
     )
 
   def fromFailedEstimationResult(result: FailedEstimationResult): CohortItem =
