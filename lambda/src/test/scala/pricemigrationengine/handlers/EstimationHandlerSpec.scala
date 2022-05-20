@@ -71,17 +71,20 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       ZuoraInvoiceItem(
         subscriptionNumber = "S1",
         serviceStartDate = LocalDate.of(2022, 5, 1),
-        chargeNumber = "C1"
+        chargeNumber = "C1",
+        productName = "P1"
       ),
       ZuoraInvoiceItem(
         subscriptionNumber = "S1",
         serviceStartDate = LocalDate.of(2022, 6, 1),
-        chargeNumber = "C2"
+        chargeNumber = "C2",
+        productName = "P1"
       ),
       ZuoraInvoiceItem(
         subscriptionNumber = "S1",
         serviceStartDate = LocalDate.of(2022, 7, 1),
-        chargeNumber = "C3"
+        chargeNumber = "C3",
+        productName = "P1"
       )
     )
   )
