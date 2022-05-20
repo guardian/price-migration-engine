@@ -1,10 +1,9 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.handlers.Time
 import pricemigrationengine.model._
 import software.amazon.awssdk.services.sfn.model.{StartExecutionRequest, StartExecutionResponse}
 import upickle.default.{ReadWriter, macroRW, write}
-import zio.{IO, ZIO, ZLayer}
+import zio.{Clock, IO, ZIO, ZLayer}
 
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -25,7 +24,7 @@ object CohortStateMachineLive {
         override def startExecution(spec: CohortSpec): IO[CohortStateMachineFailure, StartExecutionResponse] =
           for {
             _ <- logging.info(s"Starting execution with input: ${spec.toString} ...")
-            time <- Time.thisInstant
+            time <- Clock.instant
             timeStr <- ZIO
               .attempt(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm").withZone(ZoneId.systemDefault).format(time))
               .mapError(e => CohortStateMachineFailure(e.toString))

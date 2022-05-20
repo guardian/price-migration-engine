@@ -3,8 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.Clock
-import zio.{IO, ZEnv, ZIO, ZLayer}
+import zio.{Clock, IO, ZIO, ZLayer}
 
 object SalesforcePriceRiseCreationHandler extends CohortHandler {
 
@@ -26,7 +25,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
           e => Logging.error(s"Failed to write create Price_Rise in salesforce: $e"),
           result => Logging.info(s"SalesforcePriceRise result: $result")
         )
-      now <- Time.thisInstant
+      now <- Clock.instant
       salesforcePriceRiseCreationDetails = CohortItem(
         subscriptionName = item.subscriptionName,
         processingStage = SalesforcePriceRiceCreationComplete,

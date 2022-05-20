@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import pricemigrationengine.model.{CohortSpec, ConfigFailure}
 import pricemigrationengine.services._
-import zio.{Runtime, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer}
+import zio.{Clock, Runtime, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer}
 
 /** Executes price migration for active cohorts.
   */
@@ -11,7 +11,7 @@ object MigrationHandler extends ZIOAppDefault with RequestHandler[Unit, Unit] {
 
   private val migrateActiveCohorts =
     (for {
-      today <- Time.today
+      today <- Clock.currentDateTime.map(_.toLocalDate)
       cohortSpecs <- CohortSpecTable.fetchAll
       activeSpecs <-
         ZIO

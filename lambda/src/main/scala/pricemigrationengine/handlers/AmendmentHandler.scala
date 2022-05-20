@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.{ZIO, ZLayer}
+import zio.{Clock, ZIO, ZLayer}
 
 /** Carries out price-rise amendments in Zuora.
   */
@@ -69,7 +69,7 @@ object AmendmentHandler extends CohortHandler {
         Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)
       newPrice <-
         ZIO.fromEither(AmendmentData.totalChargeAmount(subscriptionAfterUpdate, invoicePreviewAfterUpdate, startDate))
-      whenDone <- Time.thisInstant
+      whenDone <- Clock.instant
     } yield SuccessfulAmendmentResult(
       item.subscriptionName,
       startDate,
