@@ -50,7 +50,8 @@ class NotificationHandlerTest extends munit.FunSuite {
 
   def createStubCohortTable(updatedResultsWrittenToCohortTable: ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
     ZLayer.succeed(
-      new CohortTable.Service {
+      new CohortTable {
+
         override def fetch(
             filter: CohortTableFilter,
             beforeDateInclusive: Option[LocalDate]
@@ -83,7 +84,8 @@ class NotificationHandlerTest extends munit.FunSuite {
       contacts: List[SalesforceContact]
   ) = {
     ZLayer.succeed(
-      new SalesforceClient.Service {
+      new SalesforceClient {
+
         override def getSubscriptionByName(
             subscriptionName: String
         ): IO[SalesforceClientFailure, SalesforceSubscription] =
@@ -112,7 +114,7 @@ class NotificationHandlerTest extends munit.FunSuite {
 
   private def createStubEmailSender(sendMessages: ArrayBuffer[EmailMessage]) = {
     ZLayer.succeed(
-      new EmailSender.Service {
+      new EmailSender {
         override def sendEmail(message: EmailMessage): ZIO[Any, EmailSenderFailure, Unit] =
           ZIO
             .attempt {
@@ -126,7 +128,7 @@ class NotificationHandlerTest extends munit.FunSuite {
 
   private def createFailingStubEmailSender() = {
     ZLayer.succeed(
-      new EmailSender.Service {
+      new EmailSender {
         override def sendEmail(message: EmailMessage): ZIO[Any, EmailSenderFailure, Unit] =
           ZIO.fail(EmailSenderFailure("Bang!!"))
       }

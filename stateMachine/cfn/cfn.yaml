@@ -469,7 +469,7 @@ Resources:
       Statistic: Sum
       TreatMissingData: ignore
       AlarmActions:
-        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:retention-dev
 
   CohortStateMachineAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -493,4 +493,4 @@ Resources:
       Statistic: Sum
       TreatMissingData: ignore
       AlarmActions:
-        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:retention-dev

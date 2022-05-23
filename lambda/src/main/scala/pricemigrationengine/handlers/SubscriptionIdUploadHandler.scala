@@ -5,7 +5,7 @@ import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.stream.ZStream
-import zio.{IO, ZIO, ZLayer}
+import zio.{Clock, IO, ZIO, ZLayer}
 
 import java.io.{InputStream, InputStreamReader}
 import scala.jdk.CollectionConverters._
@@ -38,7 +38,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
       cohortSpec: CohortSpec
   ): ZIO[CohortTable with S3 with StageConfig with Logging, Failure, HandlerOutput] =
     (for {
-      today <- Time.today
+      today <- Clock.currentDateTime.map(_.toLocalDate)
       _ <-
         if (today.isBefore(cohortSpec.importStartDate))
           Logging.info(s"No action.  Import start date ${cohortSpec.importStartDate} is in the future.").unit

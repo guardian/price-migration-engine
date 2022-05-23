@@ -3,8 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter.{AmendmentComplete, AmendmentWrittenToSalesforce}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.Clock
-import zio.{IO, ZEnv, ZIO, ZLayer}
+import zio.{Clock, ZIO, ZLayer}
 
 /** Updates Salesforce with evidence of the price-rise amendment that was applied in Zuora.
   */
@@ -38,7 +37,7 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
           .fromOption(item.salesforcePriceRiseId)
           .orElseFail(SalesforcePriceRiseWriteFailure("salesforcePriceRiseId is required to update Salesforce"))
       _ <- SalesforceClient.updatePriceRise(salesforcePriceRiseId, priceRise)
-      now <- Time.thisInstant
+      now <- Clock.instant
       _ <-
         CohortTable
           .update(

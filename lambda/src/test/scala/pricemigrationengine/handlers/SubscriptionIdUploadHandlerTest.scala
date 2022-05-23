@@ -20,7 +20,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
     val subscriptionsWrittenToCohortTable = ArrayBuffer[CohortItem]()
 
     val stubCohortTable = ZLayer.succeed(
-      new CohortTable.Service {
+      new CohortTable {
         override def fetch(
             filter: CohortTableFilter,
             beforeDateInclusive: Option[LocalDate]
@@ -37,7 +37,8 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
       }
     )
 
-    val stubS3: Layer[Nothing, S3.Service] = ZLayer.succeed(new S3.Service {
+    val stubS3: Layer[Nothing, S3] = ZLayer.succeed(new S3 {
+
       def loadTestResource(path: String): ZIO[Scope, S3Failure, InputStream] = {
         ZIO
           .fromAutoCloseable(ZIO.attempt(getClass.getResourceAsStream(path)))
