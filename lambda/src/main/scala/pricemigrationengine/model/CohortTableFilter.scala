@@ -2,6 +2,7 @@ package pricemigrationengine.model
 
 sealed trait CohortTableFilter { val value: String }
 
+// When adding a state, remember to update 'all'.
 object CohortTableFilter {
 
   // ++++++++++ Normal states ++++++++++
@@ -50,13 +51,15 @@ object CohortTableFilter {
 
   case object AmendmentFailed extends CohortTableFilter { override val value: String = "AmendmentFailed" }
 
-  val all = Set(
+  // Set of all states.  Remember to update when adding a state.
+  val all: Set[CohortTableFilter] = Set(
     AmendmentComplete,
     AmendmentFailed,
     AmendmentWrittenToSalesforce,
     Cancelled,
     EstimationComplete,
     EstimationFailed,
+    NoPriceIncrease,
     NotificationSendComplete,
     NotificationSendDateWrittenToSalesforce,
     NotificationSendProcessingOrError,
