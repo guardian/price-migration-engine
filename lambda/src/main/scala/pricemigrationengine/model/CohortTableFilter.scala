@@ -28,13 +28,19 @@ object CohortTableFilter {
     override val value: String = "AmendmentWrittenToSalesforce"
   }
 
-  // ++++++++++ Exceptional states ++++++++++
-
   /*
    * Status of a sub that has been cancelled since the price migration process began,
    * so is ineligible for further processing.
    */
   case object Cancelled extends CohortTableFilter { override val value: String = "Cancelled" }
+
+  /*
+   * Status of a sub where the estimation indicates that its price will not increase,
+   * so is ineligible for further processing.
+   */
+  case object NoPriceIncrease extends CohortTableFilter { override val value: String = "NoPriceIncrease" }
+
+  // ++++++++++ Exceptional states ++++++++++
 
   case object EstimationFailed extends CohortTableFilter { override val value: String = "EstimationFailed" }
 
