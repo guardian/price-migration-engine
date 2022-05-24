@@ -14,8 +14,7 @@ import pricemigrationengine.model.membershipworkflow.{
   EmailPayloadSubscriberAttributes
 }
 import pricemigrationengine.services._
-import zio.Clock
-import zio.{ZEnv, ZIO, ZLayer}
+import zio.{Clock, ZIO, ZLayer}
 
 object NotificationHandler extends CohortHandler {
 
@@ -30,7 +29,7 @@ object NotificationHandler extends CohortHandler {
       brazeCampaignName: String
   ): ZIO[Logging with CohortTable with SalesforceClient with EmailSender, Failure, HandlerOutput] = {
     for {
-      today <- Time.today
+      today <- Clock.currentDateTime.map(_.toLocalDate)
       subscriptions <- CohortTable.fetch(
         SalesforcePriceRiceCreationComplete,
         Some(today.plusDays(NotificationLeadTimeDays))
@@ -163,7 +162,7 @@ object NotificationHandler extends CohortHandler {
 
   private def updateCohortItemStatus(subscriptionNumber: String, processingStage: CohortTableFilter) = {
     for {
-      now <- Time.thisInstant
+      now <- Clock.instant
       _ <-
         CohortTable
           .update(

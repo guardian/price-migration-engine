@@ -20,11 +20,11 @@ object LambdaLogging {
 
   def impl(context: Context, cohortName: String): ULayer[Logging] =
     ZLayer.succeed(
-      new Logging.Service {
+      new Logging {
         val logger: LambdaLogger = context.getLogger
-        def info(s: String): UIO[Unit] =
+        override def info(s: String): UIO[Unit] =
           ZIO.succeed(logger.log(write(InfoMessage(cohortName, s))))
-        def error(s: String): UIO[Unit] =
+        override def error(s: String): UIO[Unit] =
           ZIO.succeed(logger.log(write(ErrorMessage(cohortName, s))))
       }
     )

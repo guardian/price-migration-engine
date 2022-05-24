@@ -10,18 +10,19 @@ trait DynamoDBSerialiser[A] { def serialise(value: A): java.util.Map[String, Att
 trait DynamoDBUpdateSerialiser[A] { def serialise(value: A): java.util.Map[String, AttributeValueUpdate] }
 trait DynamoDBDeserialiser[A] { def deserialise(value: java.util.Map[String, AttributeValue]): IO[DynamoDBZIOError, A] }
 
+trait DynamoDBZIO {
+  def query[A](query: QueryRequest)(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A]
+  def scan[A](query: ScanRequest)(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A]
+  def update[A, B](table: String, key: A, value: B)(implicit
+      keySerializer: DynamoDBSerialiser[A],
+      valueSerializer: DynamoDBUpdateSerialiser[B]
+  ): IO[DynamoDBZIOError, Unit]
+  def create[A](table: String, keyName: String, value: A)(implicit
+      valueSerializer: DynamoDBSerialiser[A]
+  ): IO[DynamoDBZIOError, Unit]
+}
+
 object DynamoDBZIO {
-  trait Service {
-    def query[A](query: QueryRequest)(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A]
-    def scan[A](query: ScanRequest)(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A]
-    def update[A, B](table: String, key: A, value: B)(implicit
-        keySerializer: DynamoDBSerialiser[A],
-        valueSerializer: DynamoDBUpdateSerialiser[B]
-    ): IO[DynamoDBZIOError, Unit]
-    def create[A](table: String, keyName: String, value: A)(implicit
-        valueSerializer: DynamoDBSerialiser[A]
-    ): IO[DynamoDBZIOError, Unit]
-  }
 
   def query[A](
       query: QueryRequest

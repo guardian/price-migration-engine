@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter.{NotificationSendComplete, NotificationSendDateWrittenToSalesforce}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.{IO, ZIO, ZLayer}
+import zio.{Clock, IO, ZIO, ZLayer}
 
 import java.time.{LocalDate, ZoneOffset}
 
@@ -24,7 +24,7 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
           e => Logging.error(s"Failed to write create Price_Rise in salesforce: $e"),
           result => Logging.info(s"SalesforcePriceRise result: $result")
         )
-      now <- Time.thisInstant
+      now <- Clock.instant
       salesforcePriceRiseDetails = CohortItem(
         subscriptionName = item.subscriptionName,
         processingStage = NotificationSendDateWrittenToSalesforce,

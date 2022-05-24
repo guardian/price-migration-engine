@@ -5,12 +5,12 @@ import zio.{IO, ZIO}
 
 /** For accessing the specifications of each cohort.
   */
-object CohortSpecTable {
+trait CohortSpecTable {
+  val fetchAll: IO[Failure, Set[CohortSpec]]
+  def update(spec: CohortSpec): ZIO[Any, CohortSpecUpdateFailure, Unit]
+}
 
-  trait Service {
-    val fetchAll: IO[Failure, Set[CohortSpec]]
-    def update(spec: CohortSpec): ZIO[Any, CohortSpecUpdateFailure, Unit]
-  }
+object CohortSpecTable {
 
   val fetchAll: ZIO[CohortSpecTable, Failure, Set[CohortSpec]] =
     ZIO.environmentWithZIO(_.get.fetchAll)

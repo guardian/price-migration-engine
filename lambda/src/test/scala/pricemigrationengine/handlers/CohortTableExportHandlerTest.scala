@@ -19,7 +19,8 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
 
   def createStubCohortTable(cohortItems: List[CohortItem]) = {
     ZLayer.succeed(
-      new CohortTable.Service {
+      new CohortTable {
+
         override def fetch(
             filter: CohortTableFilter,
             beforeDateInclusive: Option[LocalDate]
@@ -36,9 +37,10 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
     )
   }
 
-  def createStubS3(filesWrittenToS3: ArrayBuffer[(S3Location, String)]): Layer[Nothing, S3.Service] =
+  def createStubS3(filesWrittenToS3: ArrayBuffer[(S3Location, String)]): Layer[Nothing, S3] =
     ZLayer.succeed(
-      new S3.Service {
+      new S3 {
+
         override def getObject(s3Location: S3Location): ZIO[Scope, S3Failure, InputStream] = ???
 
         override def putObject(

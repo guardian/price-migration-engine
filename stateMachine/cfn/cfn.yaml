@@ -467,9 +467,9 @@ Resources:
       Period: 60
       EvaluationPeriods: 1
       Statistic: Sum
-      TreatMissingData: missing
+      TreatMissingData: ignore
       AlarmActions:
-        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:retention-dev
 
   CohortStateMachineAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -491,6 +491,6 @@ Resources:
       Period: 60
       EvaluationPeriods: 1
       Statistic: Sum
-      TreatMissingData: missing
+      TreatMissingData: ignore
       AlarmActions:
-        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:fulfilment-dev
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:retention-dev

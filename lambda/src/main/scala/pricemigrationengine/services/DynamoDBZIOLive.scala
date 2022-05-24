@@ -13,7 +13,8 @@ object DynamoDBZIOLive {
       for {
         dynamoDbClient <- ZIO.service[DynamoDBClient]
         logging <- ZIO.service[Logging]
-      } yield new DynamoDBZIO.Service {
+      } yield new DynamoDBZIO {
+
         override def query[A](
             query: QueryRequest
         )(implicit deserializer: DynamoDBDeserialiser[A]): ZStream[Any, DynamoDBZIOError, A] =
@@ -89,7 +90,7 @@ object DynamoDBZIOLive {
           } yield results
         }
 
-        def update[A, B](table: String, key: A, value: B)(implicit
+        override def update[A, B](table: String, key: A, value: B)(implicit
             keySerializer: DynamoDBSerialiser[A],
             valueSerializer: DynamoDBUpdateSerialiser[B]
         ): IO[DynamoDBZIOError, Unit] =
@@ -106,7 +107,7 @@ object DynamoDBZIOLive {
               _ => ()
             )
 
-        def create[A](table: String, keyName: String, value: A)(implicit
+        override def create[A](table: String, keyName: String, value: A)(implicit
             valueSerializer: DynamoDBSerialiser[A]
         ): IO[DynamoDBZIOError, Unit] =
           dynamoDbClient
