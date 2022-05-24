@@ -24,15 +24,14 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
         override def fetch(
             filter: CohortTableFilter,
             beforeDateInclusive: Option[LocalDate]
-        ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
+        ): ZStream[Any, CohortFetchFailure, CohortItem] = ???
 
         override def create(cohortItem: CohortItem): ZIO[Any, Failure, Unit] = ???
 
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
 
-        override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
-          ZIO.succeed(ZStream.fromIterable(cohortItems))
-        }
+        override def fetchAll(): ZStream[Any, CohortFetchFailure, CohortItem] =
+          ZStream.fromIterable(cohortItems)
       }
     )
   }
@@ -108,9 +107,9 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
     assertEquals(expectedS3ExportBucketName, actualS3Location.bucket)
     assertEquals(s"data/${expectedCohortName}.csv", actualS3Location.key)
     assertEquals(
+      actualFileContents,
       """"cohort_name","subscription_name","processing_stage","start_date","currency","old_price","estimated_new_price","billing_period","when_estimation_done","salesforce_price_rise_id","when_sf_show_estimate","new_price","new_subscription_id","when_amendment_done","when_notification_sent","when_notification_sent_written_to_salesforce","when_amendment_written_to_salesforce"
-        |"expected cohort name","subscription 1","NotificationSendComplete","2020-01-01","USD","1.0","2.0","quarter","2020-01-01T01:01:01Z","salesForcePriceRiseId1","2020-01-02T01:01:01Z","3.0","zuoraSubId1","2020-01-03T01:01:01Z","2020-01-04T01:01:01Z","2020-01-05T01:01:01Z","2020-01-06T01:01:01Z"""".stripMargin,
-      actualFileContents
+        |"expected cohort name","subscription 1","NotificationSendComplete","2020-01-01","USD","1.0","2.0","quarter","2020-01-01T01:01:01Z","salesForcePriceRiseId1","2020-01-02T01:01:01Z","3.0","zuoraSubId1","2020-01-03T01:01:01Z","2020-01-04T01:01:01Z","2020-01-05T01:01:01Z","2020-01-06T01:01:01Z"""".stripMargin
     )
   }
   test("CohortTableExportHandler should write cohort items with missing optional values to s3 as CSV") {
@@ -143,9 +142,9 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
     assertEquals(expectedS3ExportBucketName, actualS3Location.bucket)
     assertEquals(s"data/${expectedCohortName}.csv", actualS3Location.key)
     assertEquals(
+      actualFileContents,
       """"cohort_name","subscription_name","processing_stage","start_date","currency","old_price","estimated_new_price","billing_period","when_estimation_done","salesforce_price_rise_id","when_sf_show_estimate","new_price","new_subscription_id","when_amendment_done","when_notification_sent","when_notification_sent_written_to_salesforce","when_amendment_written_to_salesforce"
-        |"expected cohort name","subscription 2","ReadyForEstimation","","","","","","","","","","","","","",""""".stripMargin,
-      actualFileContents
+        |"expected cohort name","subscription 2","ReadyForEstimation","","","","","","","","","","","","","",""""".stripMargin
     )
   }
 }

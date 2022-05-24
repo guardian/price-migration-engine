@@ -6,7 +6,6 @@ import pricemigrationengine.model._
 import pricemigrationengine.services._
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL
 import zio._
-import zio.stream.ZStream
 
 import java.io.{File, OutputStream, OutputStreamWriter}
 import java.nio.charset.StandardCharsets
@@ -18,42 +17,27 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
   private val csvFormat = CSVFormat.Builder.create().setHeader("").setQuoteMode(ALL).build()
   private val TempFileDirectory = "/tmp/"
 
-  def main(
-      cohortSpec: CohortSpec
-  ): ZIO[Logging with CohortTable with S3 with ExportConfig, Failure, HandlerOutput] =
-    for {
-      config <- ZIO.service[ExportConfig]
-      records <- CohortTable.fetchAll()
-      s3Location = S3Location(
-        config.exportBucketName,
-        s"data/${cohortSpec.cohortName}.csv"
-      )
-      _ <- writeCsvToS3(records, s3Location, cohortSpec)
-    } yield HandlerOutput(isComplete = true)
-
-  def writeCsvToS3(
-      cohortItems: ZStream[Any, CohortFetchFailure, CohortItem],
-      s3Location: S3Location,
-      cohortSpec: CohortSpec
-  ): ZIO[S3 with Logging, Failure, Unit] =
+  private[handlers] def main(cohortSpec: CohortSpec) =
     ZIO.scoped(for {
+      config <- ZIO.service[ExportConfig]
+      cohortItems = CohortTable.fetchAll()
       filePath <- localTempFile()
       tempFileOutputStream <- openOutputStream(filePath)
-      recordsWritten <- writeCsvToStream(cohortItems, tempFileOutputStream, cohortSpec)
-
+      printer <- buildPrinter(tempFileOutputStream)
+      recordsWritten <- cohortItems.mapZIO(printRecord(printer, cohortSpec)).runCount
+      s3Location = S3Location(config.exportBucketName, s"data/${cohortSpec.cohortName}.csv")
       putResult <-
         S3.putObject(s3Location, filePath.toFile, Some(ObjectCannedACL.BUCKET_OWNER_READ))
           .mapError { failure =>
             CohortTableDatalakeExportFailure(s"Failed to write CohortItems to s3: ${failure.reason}")
           }
-
       _ <- Logging.info(
         s"Successfully wrote cohort '${cohortSpec.cohortName}' containing $recordsWritten items " +
           s"to $s3Location: $putResult"
       )
-    } yield ())
+    } yield HandlerOutput(isComplete = true))
 
-  def localTempFile(): ZIO[Scope, CohortTableDatalakeExportFailure, Path] =
+  private def localTempFile() =
     ZIO.acquireRelease(
       ZIO
         .attempt(Files.createTempFile(new File(TempFileDirectory).toPath, "CohortTableExport", "csv"))
@@ -62,78 +46,67 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
         }
     )(path => ZIO.succeed(Try(Files.delete(path))))
 
-  def openOutputStream(path: Path): ZIO[Scope, CohortTableDatalakeExportFailure, OutputStream] =
-    ZIO.acquireRelease(
+  private def openOutputStream(path: Path) =
+    ZIO.fromAutoCloseable(
       ZIO
         .attempt(Files.newOutputStream(path))
         .mapError { throwable =>
           CohortTableDatalakeExportFailure(s"Failed to write to temp files $path: ${throwable.getMessage}")
         }
-    )(stream => ZIO.succeed(stream.close()))
-
-  def writeCsvToStream(
-      cohortItems: ZStream[Any, Failure, CohortItem],
-      outputStream: OutputStream,
-      cohortSpec: CohortSpec
-  ): IO[Failure, Long] = {
-    ZIO.scoped(
-      managedCSVPrinter(
-        outputStream,
-        List(
-          "cohort_name",
-          "subscription_name",
-          "processing_stage",
-          "start_date",
-          "currency",
-          "old_price",
-          "estimated_new_price",
-          "billing_period",
-          "when_estimation_done",
-          "salesforce_price_rise_id",
-          "when_sf_show_estimate",
-          "new_price",
-          "new_subscription_id",
-          "when_amendment_done",
-          "when_notification_sent",
-          "when_notification_sent_written_to_salesforce",
-          "when_amendment_written_to_salesforce"
-        )
-      ).flatMap { printer =>
-        cohortItems.mapZIO { cohortItem =>
-          ZIO
-            .attempt(
-              printer.printRecord(
-                cohortSpec.cohortName,
-                cohortItem.subscriptionName,
-                cohortItem.processingStage.value,
-                cohortItem.startDate.getOrElse(""),
-                cohortItem.currency.getOrElse(""),
-                cohortItem.oldPrice.getOrElse(""),
-                cohortItem.estimatedNewPrice.getOrElse(""),
-                cohortItem.billingPeriod.getOrElse(""),
-                cohortItem.whenEstimationDone.getOrElse(""),
-                cohortItem.salesforcePriceRiseId.getOrElse(""),
-                cohortItem.whenSfShowEstimate.getOrElse(""),
-                cohortItem.newPrice.getOrElse(""),
-                cohortItem.newSubscriptionId.getOrElse(""),
-                cohortItem.whenAmendmentDone.getOrElse(""),
-                cohortItem.whenNotificationSent.getOrElse(""),
-                cohortItem.whenNotificationSentWrittenToSalesforce.getOrElse(""),
-                cohortItem.whenAmendmentWrittenToSalesforce.getOrElse("")
-              )
-            )
-            .mapError { ex =>
-              CohortTableDatalakeExportFailure(s"Failed to write CohortItem as CSV to s3: ${ex.getMessage}")
-            }
-        }.runCount
-      }
     )
-  }
 
-  private def managedCSVPrinter(
-      outputStream: OutputStream,
-      headers: List[String]
-  ): ZIO[Scope, CohortTableDatalakeExportFailure, CSVPrinter] = {
+  private def buildPrinter(outputStream: OutputStream) =
+    managedCSVPrinter(
+      outputStream,
+      List(
+        "cohort_name",
+        "subscription_name",
+        "processing_stage",
+        "start_date",
+        "currency",
+        "old_price",
+        "estimated_new_price",
+        "billing_period",
+        "when_estimation_done",
+        "salesforce_price_rise_id",
+        "when_sf_show_estimate",
+        "new_price",
+        "new_subscription_id",
+        "when_amendment_done",
+        "when_notification_sent",
+        "when_notification_sent_written_to_salesforce",
+        "when_amendment_written_to_salesforce"
+      )
+    )
+
+  private def printRecord(printer: CSVPrinter, cohortSpec: CohortSpec)(cohortItem: CohortItem) =
+    ZIO
+      .attempt(
+        printer.printRecord(
+          cohortSpec.cohortName,
+          cohortItem.subscriptionName,
+          cohortItem.processingStage.value,
+          cohortItem.startDate.getOrElse(""),
+          cohortItem.currency.getOrElse(""),
+          cohortItem.oldPrice.getOrElse(""),
+          cohortItem.estimatedNewPrice.getOrElse(""),
+          cohortItem.billingPeriod.getOrElse(""),
+          cohortItem.whenEstimationDone.getOrElse(""),
+          cohortItem.salesforcePriceRiseId.getOrElse(""),
+          cohortItem.whenSfShowEstimate.getOrElse(""),
+          cohortItem.newPrice.getOrElse(""),
+          cohortItem.newSubscriptionId.getOrElse(""),
+          cohortItem.whenAmendmentDone.getOrElse(""),
+          cohortItem.whenNotificationSent.getOrElse(""),
+          cohortItem.whenNotificationSentWrittenToSalesforce.getOrElse(""),
+          cohortItem.whenAmendmentWrittenToSalesforce.getOrElse("")
+        )
+      )
+      .mapError { ex =>
+        CohortTableDatalakeExportFailure(s"Failed to write CohortItem as CSV to s3: ${ex.getMessage}")
+      }
+
+  private def managedCSVPrinter(outputStream: OutputStream, headers: List[String]) =
     ZIO
       .acquireRelease(
         ZIO.attempt(
@@ -146,7 +119,6 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
       .mapError { ex =>
         CohortTableDatalakeExportFailure(s"Failed to write CohortItems as CSV to s3: ${ex.getMessage}")
       }
-  }
 
   private def env(
       cohortSpec: CohortSpec

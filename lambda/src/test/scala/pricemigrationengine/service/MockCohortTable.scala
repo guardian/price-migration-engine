@@ -10,31 +10,32 @@ import java.time.LocalDate
 
 object MockCohortTable extends Mock[CohortTable] {
 
-  object Fetch
-      extends Effect[
-        (CohortTableFilter, Option[LocalDate]),
-        CohortFetchFailure,
-        ZStream[Any, CohortFetchFailure, CohortItem]
-      ]
-  object FetchAll extends Effect[Unit, CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]]
+  object Fetch extends Stream[(CohortTableFilter, Option[LocalDate]), CohortFetchFailure, CohortItem]
+  object FetchAll extends Stream[Any, CohortFetchFailure, CohortItem]
   object Create extends Effect[CohortItem, Failure, Unit]
   object Update extends Effect[CohortItem, CohortUpdateFailure, Unit]
 
-  val compose: URLayer[Proxy, CohortTable] = ZLayer.fromZIO(ZIO.service[Proxy].map { proxy =>
-    new CohortTable {
+  val compose: URLayer[Proxy, CohortTable] = ZLayer.fromZIO(
+    ZIO.serviceWithZIO[Proxy](proxy =>
+      ZIO
+        .runtime[Any]
+        .map(runtime =>
+          new CohortTable {
 
-      override def fetch(filter: CohortTableFilter, beforeDateInclusive: Option[LocalDate])
-          : IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] =
-        proxy(Fetch, filter, beforeDateInclusive)
+            override def fetch(filter: CohortTableFilter, beforeDateInclusive: Option[LocalDate])
+                : ZStream[Any, CohortFetchFailure, CohortItem] =
+              runtime.unsafeRun(proxy(Fetch, filter, beforeDateInclusive))
 
-      override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] =
-        proxy(FetchAll, ())
+            override def fetchAll(): ZStream[Any, CohortFetchFailure, CohortItem] =
+              runtime.unsafeRun(proxy(FetchAll, ()))
 
-      override def create(cohortItem: CohortItem): IO[Failure, Unit] =
-        proxy(Create, cohortItem)
+            override def create(cohortItem: CohortItem): IO[Failure, Unit] =
+              proxy(Create, cohortItem)
 
-      override def update(result: CohortItem): IO[CohortUpdateFailure, Unit] =
-        proxy(Update, result)
-    }
-  })
+            override def update(result: CohortItem): IO[CohortUpdateFailure, Unit] =
+              proxy(Update, result)
+          }
+        )
+    )
+  )
 }

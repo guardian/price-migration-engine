@@ -11,8 +11,7 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
 
   val main: ZIO[Logging with CohortTable with SalesforceClient, Failure, HandlerOutput] =
     for {
-      cohortItems <- CohortTable.fetch(NotificationSendComplete, None)
-      _ <- cohortItems.foreach(updateDateLetterSentInSF)
+      _ <- CohortTable.fetch(NotificationSendComplete, None).foreach(updateDateLetterSentInSF)
     } yield HandlerOutput(isComplete = true)
 
   private def updateDateLetterSentInSF(
