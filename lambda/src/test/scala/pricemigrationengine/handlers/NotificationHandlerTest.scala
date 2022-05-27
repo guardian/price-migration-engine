@@ -55,7 +55,7 @@ class NotificationHandlerTest extends munit.FunSuite {
         override def fetch(
             filter: CohortTableFilter,
             beforeDateInclusive: Option[LocalDate]
-        ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
+        ): ZStream[Any, CohortFetchFailure, CohortItem] = {
           assertEquals(filter, SalesforcePriceRiceCreationComplete)
           assertEquals(
             beforeDateInclusive,
@@ -64,7 +64,7 @@ class NotificationHandlerTest extends munit.FunSuite {
                 .from(StubClock.expectedCurrentTime.plus(37, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
             )
           )
-          ZIO.succeed(ZStream(cohortItem))
+          ZStream(cohortItem)
         }
 
         override def create(cohortItem: CohortItem): ZIO[Any, Failure, Unit] = ???
