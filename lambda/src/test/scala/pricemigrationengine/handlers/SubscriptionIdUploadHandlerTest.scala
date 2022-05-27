@@ -26,7 +26,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
             beforeDateInclusive: Option[LocalDate]
         ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = ???
-        override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
+        override def fetchAll(): ZStream[Any, CohortFetchFailure, CohortItem] = ???
         override def create(cohortItem: CohortItem): ZIO[Any, Failure, Unit] =
           ZIO
             .attempt {

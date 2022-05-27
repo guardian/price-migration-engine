@@ -38,7 +38,7 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
           ZIO.succeed(())
         }
 
-        override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
+        override def fetchAll(): ZStream[Any, CohortFetchFailure, CohortItem] = ???
       }
     )
   }

@@ -14,7 +14,7 @@ trait CohortTable {
       beforeDateInclusive: Option[LocalDate]
   ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]]
 
-  def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]]
+  def fetchAll(): ZStream[Any, CohortFetchFailure, CohortItem]
 
   def create(cohortItem: CohortItem): IO[Failure, Unit]
 
@@ -29,8 +29,8 @@ object CohortTable {
   ): ZIO[CohortTable, CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] =
     ZIO.environmentWithZIO(_.get.fetch(filter, beforeDateInclusive))
 
-  def fetchAll(): ZIO[CohortTable, CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] =
-    ZIO.environmentWithZIO(_.get.fetchAll())
+  def fetchAll(): ZStream[CohortTable, CohortFetchFailure, CohortItem] =
+    ZStream.serviceWithStream(_.fetchAll())
 
   def create(subscription: CohortItem): ZIO[CohortTable, Failure, Unit] =
     ZIO.environmentWithZIO(_.get.create(subscription))
