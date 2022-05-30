@@ -1,6 +1,7 @@
 package pricemigrationengine.handlers
 
 import org.apache.commons.csv.{CSVFormat, CSVParser}
+import pricemigrationengine.handlers.LiveLayer.dynamoDbClient
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -117,12 +118,13 @@ object SubscriptionIdUploadHandler extends CohortHandler {
       .runCount
   }
 
-  private def env(
-      cohortSpec: CohortSpec
-  ): ZLayer[Logging, Failure, CohortTable with S3 with StageConfig with Logging] =
-    (LiveLayer.cohortTable(cohortSpec) and LiveLayer.s3 and EnvConfig.stage.layer and LiveLayer.logging)
-      .tapError(e => Logging.error(s"Failed to create service environment: $e"))
-
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    main(input).provideSomeLayer[Logging](env(input))
+    main(input).provideSome[Logging](
+      EnvConfig.cohortTable.layer,
+      EnvConfig.stage.layer,
+      DynamoDBClientLive.impl,
+      DynamoDBZIOLive.impl,
+      CohortTableLive.impl(input),
+      S3Live.impl
+    )
 }
