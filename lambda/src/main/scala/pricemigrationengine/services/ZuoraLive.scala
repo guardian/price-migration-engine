@@ -185,18 +185,17 @@ object ZuoraLive {
         override def updateSubscription(
             subscription: ZuoraSubscription,
             update: ZuoraSubscriptionUpdate
-        ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId] = {
-          put[SubscriptionUpdateResponse](
-            path = s"subscriptions/${subscription.subscriptionNumber}",
-            body = write(update)
-          ).mapBoth(
-            e =>
-              ZuoraUpdateFailure(
-                s"Subscription ${subscription.subscriptionNumber} and update $update: ${e.reason}"
-              ),
-            response => response.subscriptionId
-          )
-        } <* logging.info(s"Updated subscription ${subscription.subscriptionNumber} with: $update")
+        ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId] =
+          retry(
+            put[SubscriptionUpdateResponse](
+              path = s"subscriptions/${subscription.subscriptionNumber}",
+              body = write(update)
+            ).mapBoth(
+              e =>
+                ZuoraUpdateFailure(s"Subscription ${subscription.subscriptionNumber} and update $update: ${e.reason}"),
+              response => response.subscriptionId
+            )
+          ) <* logging.info(s"Updated subscription ${subscription.subscriptionNumber} with: $update")
       }
     )
 }
