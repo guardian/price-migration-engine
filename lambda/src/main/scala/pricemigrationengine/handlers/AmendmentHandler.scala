@@ -15,12 +15,11 @@ object AmendmentHandler extends CohortHandler {
   val main: ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
       catalogue <- Zuora.fetchProductCatalogue
-      cohortItems <- CohortTable.fetch(NotificationSendDateWrittenToSalesforce, None)
-      count <-
-        cohortItems
-          .take(batchSize)
-          .mapZIO(item => amend(catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
-          .runCount
+      count <- CohortTable
+        .fetch(NotificationSendDateWrittenToSalesforce, None)
+        .take(batchSize)
+        .mapZIO(item => amend(catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
+        .runCount
     } yield HandlerOutput(isComplete = count < batchSize)
 
   private def amend(

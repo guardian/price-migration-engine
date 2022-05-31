@@ -12,8 +12,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
 
   private[handlers] val main: ZIO[Logging with CohortTable with SalesforceClient, Failure, HandlerOutput] =
     for {
-      cohortItems <- CohortTable.fetch(EstimationComplete, None)
-      count <- cohortItems.take(batchSize).mapZIO(createSalesforcePriceRise).runCount
+      count <- CohortTable.fetch(EstimationComplete, None).take(batchSize).mapZIO(createSalesforcePriceRise).runCount
     } yield HandlerOutput(isComplete = count < batchSize)
 
   private def createSalesforcePriceRise(

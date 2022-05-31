@@ -30,14 +30,10 @@ object NotificationHandler extends CohortHandler {
   ): ZIO[Logging with CohortTable with SalesforceClient with EmailSender, Failure, HandlerOutput] = {
     for {
       today <- Clock.currentDateTime.map(_.toLocalDate)
-      subscriptions <- CohortTable.fetch(
-        SalesforcePriceRiceCreationComplete,
-        Some(today.plusDays(NotificationLeadTimeDays))
-      )
-      count <-
-        subscriptions
-          .mapZIO(sendNotification(brazeCampaignName))
-          .runFold(0) { (sum, count) => sum + count }
+      count <- CohortTable
+        .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(NotificationLeadTimeDays)))
+        .mapZIO(sendNotification(brazeCampaignName))
+        .runFold(0) { (sum, count) => sum + count }
       _ <- Logging.info(s"Successfully sent $count price rise notifications")
     } yield HandlerOutput(isComplete = true)
   }
