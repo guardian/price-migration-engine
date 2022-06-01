@@ -9,10 +9,11 @@ import zio.{IO, ZIO}
 case class CohortTableKey(subscriptionNumber: String)
 
 trait CohortTable {
+
   def fetch(
       filter: CohortTableFilter,
       beforeDateInclusive: Option[LocalDate]
-  ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]]
+  ): ZStream[Any, CohortFetchFailure, CohortItem]
 
   def fetchAll(): ZStream[Any, CohortFetchFailure, CohortItem]
 
@@ -26,8 +27,8 @@ object CohortTable {
   def fetch(
       filter: CohortTableFilter,
       beforeDateInclusive: Option[LocalDate]
-  ): ZIO[CohortTable, CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] =
-    ZIO.environmentWithZIO(_.get.fetch(filter, beforeDateInclusive))
+  ): ZStream[CohortTable, CohortFetchFailure, CohortItem] =
+    ZStream.serviceWithStream(_.fetch(filter, beforeDateInclusive))
 
   def fetchAll(): ZStream[CohortTable, CohortFetchFailure, CohortItem] =
     ZStream.serviceWithStream(_.fetchAll())

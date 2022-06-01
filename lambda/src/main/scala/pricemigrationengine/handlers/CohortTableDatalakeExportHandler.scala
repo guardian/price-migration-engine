@@ -2,6 +2,7 @@ package pricemigrationengine.handlers
 
 import org.apache.commons.csv.QuoteMode.ALL
 import org.apache.commons.csv.{CSVFormat, CSVPrinter}
+import pricemigrationengine.handlers.LiveLayer.dynamoDbClient
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL
@@ -125,12 +126,14 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
         CohortTableDatalakeExportFailure(s"Failed to write CohortItems as CSV to s3: ${ex.getMessage}")
       }
 
-  private def env(
-      cohortSpec: CohortSpec
-  ): ZLayer[Logging, Failure, CohortTable with S3 with Logging with ExportConfig] =
-    (LiveLayer.cohortTable(cohortSpec) and LiveLayer.s3 and LiveLayer.logging and LiveLayer.exportConfig)
-      .tapError(e => Logging.error(s"Failed to create service environment: $e"))
-
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    main(input).provideSomeLayer[Logging](env(input))
+    main(input).provideSome[Logging](
+      EnvConfig.cohortTable.layer,
+      EnvConfig.stage.layer,
+      EnvConfig.export.layer,
+      DynamoDBClientLive.impl,
+      DynamoDBZIOLive.impl,
+      CohortTableLive.impl(input),
+      S3Live.impl
+    )
 }

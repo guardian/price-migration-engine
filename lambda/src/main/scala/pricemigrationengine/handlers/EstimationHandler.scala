@@ -21,17 +21,14 @@ object EstimationHandler extends CohortHandler {
   def main(earliestStartDate: LocalDate): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
       catalogue <- Zuora.fetchProductCatalogue
-
-      cohortItems <- CohortTable.fetch(ReadyForEstimation, None)
-      count <-
-        cohortItems
-          .take(batchSize)
-          .mapZIO(item =>
-            estimate(catalogue, earliestStartDate)(item)
-              .tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
-          )
-          .runCount
-          .tapError(e => Logging.error(e.toString))
+      count <- CohortTable
+        .fetch(ReadyForEstimation, None)
+        .take(batchSize)
+        .mapZIO(item =>
+          estimate(catalogue, earliestStartDate)(item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
+        )
+        .runCount
+        .tapError(e => Logging.error(e.toString))
     } yield HandlerOutput(isComplete = count < batchSize)
 
   private[handlers] def estimate(
