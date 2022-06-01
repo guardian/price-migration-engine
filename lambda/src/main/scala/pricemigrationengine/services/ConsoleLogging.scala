@@ -1,12 +1,17 @@
 package pricemigrationengine.services
 
+import build.BuildInfo.buildNumber
 import zio.{Console, UIO, ULayer, ZLayer}
 
 object ConsoleLogging {
 
   def impl(cohortName: String): ULayer[Logging] =
     ZLayer.succeed(new Logging {
-      override def info(s: String): UIO[Unit] = Console.printLine(s"cohortName: $cohortName, INFO: $s").orDie
-      override def error(s: String): UIO[Unit] = Console.printLine(s"cohortName: $cohortName, ERROR: $s").orDie
+
+      private val logPrefix = s"CohortName: $cohortName, BuildNumber: $buildNumber"
+
+      override def info(s: String): UIO[Unit] = Console.printLine(s"$logPrefix, INFO: $s").orDie
+
+      override def error(s: String): UIO[Unit] = Console.printLine(s"$logPrefix, ERROR: $s").orDie
     })
 }

@@ -1,17 +1,20 @@
 package pricemigrationengine.services
 
+import build.BuildInfo.buildNumber
 import com.amazonaws.services.lambda.runtime.{Context, LambdaLogger}
-import zio.{UIO, ULayer, ZIO, ZLayer}
 import upickle.default.{ReadWriter, macroRW, write}
+import zio.{UIO, ULayer, ZIO, ZLayer}
 
 object LambdaLogging {
   private case class InfoMessage(
       CohortName: String,
+      BuildNumber: String,
       INFO: String
   )
 
   private case class ErrorMessage(
       CohortName: String,
+      BuildNumber: String,
       ERROR: String
   )
 
@@ -23,9 +26,9 @@ object LambdaLogging {
       new Logging {
         val logger: LambdaLogger = context.getLogger
         override def info(s: String): UIO[Unit] =
-          ZIO.succeed(logger.log(write(InfoMessage(cohortName, s))))
+          ZIO.succeed(logger.log(write(InfoMessage(cohortName, buildNumber, s))))
         override def error(s: String): UIO[Unit] =
-          ZIO.succeed(logger.log(write(ErrorMessage(cohortName, s))))
+          ZIO.succeed(logger.log(write(ErrorMessage(cohortName, buildNumber, s))))
       }
     )
 }
