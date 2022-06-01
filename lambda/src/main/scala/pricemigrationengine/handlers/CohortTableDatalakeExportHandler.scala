@@ -2,7 +2,6 @@ package pricemigrationengine.handlers
 
 import org.apache.commons.csv.QuoteMode.ALL
 import org.apache.commons.csv.{CSVFormat, CSVPrinter}
-import pricemigrationengine.handlers.LiveLayer.dynamoDbClient
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL

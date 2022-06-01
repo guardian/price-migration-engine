@@ -1,21 +1,10 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.handlers.LiveLayer.dynamoDbClient
-import pricemigrationengine.model.CohortTableFilter.{
-  Cancelled,
-  NotificationSendComplete,
-  NotificationSendProcessingOrError,
-  SalesforcePriceRiceCreationComplete
-}
+import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
-import pricemigrationengine.model.membershipworkflow.{
-  EmailMessage,
-  EmailPayload,
-  EmailPayloadContactAttributes,
-  EmailPayloadSubscriberAttributes
-}
-import pricemigrationengine.services.{EnvConfig, _}
-import zio.{Clock, ZIO, ZLayer}
+import pricemigrationengine.model.membershipworkflow._
+import pricemigrationengine.services._
+import zio.{Clock, ZIO}
 
 object NotificationHandler extends CohortHandler {
 
