@@ -40,7 +40,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
         override def create(cohortItem: CohortItem): ZIO[Any, Failure, Unit] = ???
 
-        override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = ???
+        override def fetchAll(): ZStream[Any, CohortFetchFailure, CohortItem] = ???
 
         override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
           updatedResultsWrittenToCohortTable.addOne(result)

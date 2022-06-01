@@ -171,19 +171,15 @@ object CohortTableLive {
             )
         }
 
-        override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
-          ZIO
-            .from {
-              val queryRequest = ScanRequest.builder
-                .tableName(tableName)
-                .limit(cohortTableConfig.batchSize)
-                .build()
-              for {
-                queryResults <- dynamoDbZio.scan(queryRequest).mapError(error => CohortFetchFailure(error.toString))
-              } yield queryResults
-            }
-            .mapError(error => CohortFetchFailure(error.toString))
-        }
+        override def fetchAll(): ZStream[Any, CohortFetchFailure, CohortItem] = {
+          val queryRequest = ScanRequest.builder
+            .tableName(tableName)
+            .limit(cohortTableConfig.batchSize)
+            .build()
+          for {
+            queryResults <- dynamoDbZio.scan(queryRequest).mapError(error => CohortFetchFailure(error.toString))
+          } yield queryResults
+        }.mapError(error => CohortFetchFailure(error.toString))
       }
     }
   }

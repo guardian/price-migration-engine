@@ -11,7 +11,7 @@ import java.time.LocalDate
 object MockCohortTable extends Mock[CohortTable] {
 
   object Fetch extends Stream[(CohortTableFilter, Option[LocalDate]), CohortFetchFailure, CohortItem]
-  object FetchAll extends Effect[Unit, CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]]
+  object FetchAll extends Stream[Unit, CohortFetchFailure, CohortItem]
   object Create extends Effect[CohortItem, Failure, Unit]
   object Update extends Effect[CohortItem, CohortUpdateFailure, Unit]
 
@@ -26,8 +26,8 @@ object MockCohortTable extends Mock[CohortTable] {
                 : ZStream[Any, CohortFetchFailure, CohortItem] =
               runtime.unsafeRun(proxy(Fetch, filter, beforeDateInclusive))
 
-            override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] =
-              proxy(FetchAll, ())
+            override def fetchAll(): ZStream[Any, CohortFetchFailure, CohortItem] =
+              runtime.unsafeRun(proxy(FetchAll, ()))
 
             override def create(cohortItem: CohortItem): IO[Failure, Unit] =
               proxy(Create, cohortItem)
