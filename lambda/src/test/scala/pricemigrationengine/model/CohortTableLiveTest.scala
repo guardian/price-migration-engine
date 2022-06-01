@@ -78,15 +78,14 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       Runtime.default.unsafeRunSync(
         for {
-          result <-
-            CohortTable
-              .fetch(ReadyForEstimation, None)
-              .provideLayer(
-                stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging
-                  .impl("TestCohort") >>>
-                  CohortTableLive.impl(cohortSpec)
-              )
-          resultList <- result.run(ZSink.collectAll[CohortItem])
+          resultList <- CohortTable
+            .fetch(ReadyForEstimation, None)
+            .provideLayer(
+              stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl(
+                "TestCohort"
+              ) >>> CohortTableLive.impl(cohortSpec)
+            )
+            .run(ZSink.collectAll[CohortItem])
           _ = assertEquals(resultList, Chunk(item1, item2))
         } yield ()
       ),
@@ -178,15 +177,14 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       Runtime.default.unsafeRunSync(
         for {
-          result <-
-            CohortTable
-              .fetch(ReadyForEstimation, Some(expectedLatestDate))
-              .provideLayer(
-                stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging
-                  .impl("TestCohort") >>>
-                  CohortTableLive.impl(cohortSpec)
-              )
-          resultList <- result.run(ZSink.collectAll[CohortItem])
+          resultList <- CohortTable
+            .fetch(ReadyForEstimation, Some(expectedLatestDate))
+            .provideLayer(
+              stubCohortTableConfiguration ++ stubStageConfiguration ++ stubDynamoDBZIO ++ ConsoleLogging.impl(
+                "TestCohort"
+              ) >>> CohortTableLive.impl(cohortSpec)
+            )
+            .run(ZSink.collectAll[CohortItem])
           _ = assertEquals(resultList, Chunk(item1))
         } yield ()
       ),
