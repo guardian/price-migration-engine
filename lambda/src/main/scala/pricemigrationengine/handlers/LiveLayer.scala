@@ -33,7 +33,4 @@ object LiveLayer {
 
   val emailSender: ZLayer[Logging, Failure, EmailSender] =
     EnvConfig.emailSender.layer and logging to EmailSenderLive.impl
-
-  val s3: ZLayer[Logging, ConfigFailure, S3] =
-    logging to S3Live.impl
 }
