@@ -1,5 +1,6 @@
 package pricemigrationengine.handlers
 
+import pricemigrationengine.handlers.LiveLayer.dynamoDbClient
 import pricemigrationengine.model.CohortTableFilter.{
   Cancelled,
   NotificationSendComplete,
@@ -13,7 +14,7 @@ import pricemigrationengine.model.membershipworkflow.{
   EmailPayloadContactAttributes,
   EmailPayloadSubscriberAttributes
 }
-import pricemigrationengine.services._
+import pricemigrationengine.services.{EnvConfig, _}
 import zio.{Clock, ZIO, ZLayer}
 
 object NotificationHandler extends CohortHandler {
@@ -187,12 +188,16 @@ object NotificationHandler extends CohortHandler {
       _ <- Logging.error(s"Subscription $subscriptionName has been cancelled, price rise notification not sent")
     } yield 0
 
-  private def env(
-      cohortSpec: CohortSpec
-  ): ZLayer[Logging, Failure, CohortTable with SalesforceClient with EmailSender with Logging] =
-    (LiveLayer.cohortTable(cohortSpec) and LiveLayer.salesforce and LiveLayer.emailSender and LiveLayer.logging)
-      .tapError(e => Logging.error(s"Failed to create service environment: $e"))
-
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    main(input.brazeCampaignName).provideSomeLayer[Logging](env(input))
+    main(input.brazeCampaignName).provideSome[Logging](
+      EnvConfig.salesforce.layer,
+      EnvConfig.cohortTable.layer,
+      EnvConfig.emailSender.layer,
+      EnvConfig.stage.layer,
+      DynamoDBClientLive.impl,
+      DynamoDBZIOLive.impl,
+      CohortTableLive.impl(input),
+      SalesforceClientLive.impl,
+      EmailSenderLive.impl
+    )
 }
