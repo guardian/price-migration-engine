@@ -7,14 +7,14 @@ import zio.{UIO, ULayer, ZIO, ZLayer}
 
 object LambdaLogging {
   private case class InfoMessage(
+      Build: String,
       CohortName: String,
-      BuildNumber: String,
       INFO: String
   )
 
   private case class ErrorMessage(
+      Build: String,
       CohortName: String,
-      BuildNumber: String,
       ERROR: String
   )
 
@@ -26,9 +26,9 @@ object LambdaLogging {
       new Logging {
         val logger: LambdaLogger = context.getLogger
         override def info(s: String): UIO[Unit] =
-          ZIO.succeed(logger.log(write(InfoMessage(cohortName, buildNumber, s))))
+          ZIO.succeed(logger.log(write(InfoMessage(buildNumber, cohortName, s))))
         override def error(s: String): UIO[Unit] =
-          ZIO.succeed(logger.log(write(ErrorMessage(cohortName, buildNumber, s))))
+          ZIO.succeed(logger.log(write(ErrorMessage(buildNumber, cohortName, s))))
       }
     )
 }
