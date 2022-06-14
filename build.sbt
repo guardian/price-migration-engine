@@ -1,4 +1,5 @@
 import Dependencies._
+import com.gu.riffraff.artifact.BuildInfo
 import sbt.Keys.{description, name}
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
@@ -13,20 +14,31 @@ ThisBuild / scalacOptions ++= Seq(
 ThisBuild / riffRaffUploadArtifactBucket := Option("riffraff-artifact")
 ThisBuild / riffRaffUploadManifestBucket := Option("riffraff-builds")
 
+val buildInfo = Seq(
+  buildInfoPackage := "build",
+  buildInfoKeys ++= {
+    val buildInfo = BuildInfo(baseDirectory.value)
+    Seq[BuildInfoKey](
+      "buildNumber" -> buildInfo.buildIdentifier
+    )
+  }
+)
+
 lazy val priceMigrationEngine = (project in file("."))
   .aggregate(dynamoDb, lambda, stateMachine)
 
 lazy val dynamoDb = (project in file("dynamoDb"))
-  .enablePlugins(RiffRaffArtifact)
+  .enablePlugins(RiffRaffArtifact, BuildInfoPlugin)
   .settings(
     name := "price-migration-engine-dynamo-db",
     description := "Cloudformation for price-migration-engine-dynamo-db",
     riffRaffPackageType := (baseDirectory.value / "cfn"),
-    riffRaffManifestProjectName := "Retention::PriceMigrationEngine::DynamoDb"
+    riffRaffManifestProjectName := "Retention::PriceMigrationEngine::DynamoDb",
+    buildInfo,
   )
 
 lazy val lambda = (project in file("lambda"))
-  .enablePlugins(RiffRaffArtifact)
+  .enablePlugins(RiffRaffArtifact, BuildInfoPlugin)
   .settings(
     name := "price-migration-engine-lambda",
     libraryDependencies ++= Seq(
@@ -53,6 +65,7 @@ lazy val lambda = (project in file("lambda"))
     riffRaffPackageType := assembly.value,
     riffRaffManifestProjectName := "Retention::PriceMigrationEngine::Lambda",
     riffRaffArtifactResources += ((project.base / "cfn.yaml", "cfn/cfn.yaml")),
+    buildInfo,
     assembly / assemblyMergeStrategy := {
       /*
        * AWS SDK v2 includes a codegen-resources directory in each jar, with conflicting names.
@@ -70,10 +83,11 @@ lazy val lambda = (project in file("lambda"))
   )
 
 lazy val stateMachine = (project in file("stateMachine"))
-  .enablePlugins(RiffRaffArtifact)
+  .enablePlugins(RiffRaffArtifact, BuildInfoPlugin)
   .settings(
     name := "price-migration-engine-state-machine",
     description := "Cloudformation for price migration state machine.",
     riffRaffPackageType := (baseDirectory.value / "cfn"),
-    riffRaffManifestProjectName := "Retention::PriceMigrationEngine::StateMachine"
+    riffRaffManifestProjectName := "Retention::PriceMigrationEngine::StateMachine",
+    buildInfo,
   )
