@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.{CohortSpec, ConfigFailure, ExportConfig, Failure}
+import pricemigrationengine.model.{CohortSpec, ConfigFailure, Failure}
 import pricemigrationengine.services._
 import zio.{URLayer, ZLayer}
 
@@ -30,10 +30,4 @@ object LiveLayer {
 
   val salesforce: ZLayer[Logging, Failure, SalesforceClient] =
     EnvConfig.salesforce.layer and logging to SalesforceClientLive.impl
-
-  val emailSender: ZLayer[Logging, Failure, EmailSender] =
-    EnvConfig.emailSender.layer and logging to EmailSenderLive.impl
-
-  val s3: ZLayer[Logging, ConfigFailure, S3] =
-    logging to S3Live.impl
 }
