@@ -1,8 +1,8 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.{CohortSpec, ConfigFailure, Failure, HandlerOutput}
-import pricemigrationengine.services.{CohortTableDdl, Logging}
-import zio.{ZIO, ZLayer}
+import pricemigrationengine.model.{CohortSpec, Failure, HandlerOutput}
+import pricemigrationengine.services._
+import zio.ZIO
 
 /** Creates a new CohortTable if it doesn't already exist.
   */
@@ -20,10 +20,10 @@ object CohortTableCreationHandler extends CohortHandler {
       )
       .as(HandlerOutput(isComplete = true))
 
-  private val env: ZLayer[Logging, ConfigFailure, CohortTableDdl with Logging] =
-    (LiveLayer.cohortTableDdl and LiveLayer.logging)
-      .tapError(e => Logging.error(s"Failed to create service environment: $e"))
-
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    main(input).provideSomeLayer[Logging](env)
+    main(input).provideSome[Logging](
+      EnvConfig.stage.layer,
+      DynamoDBClientLive.impl,
+      CohortTableDdlLive.impl
+    )
 }

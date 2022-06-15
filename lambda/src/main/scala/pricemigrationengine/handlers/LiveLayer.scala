@@ -16,9 +16,6 @@ object LiveLayer {
       DynamoDBZIOLive.impl and EnvConfig.cohortTable.layer and EnvConfig.stage.layer to
       CohortTableLive.impl(cohortSpec)
 
-  val cohortTableDdl: ZLayer[Logging, ConfigFailure, CohortTableDdl] =
-    dynamoDbClient and EnvConfig.stage.layer and logging to CohortTableDdlLive.impl
-
   val zuora: ZLayer[Logging, ConfigFailure, Zuora] =
     EnvConfig.zuora.layer and logging to ZuoraLive.impl
 
