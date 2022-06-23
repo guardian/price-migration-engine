@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.{Clock, IO, ZIO, ZLayer}
+import zio.{Clock, IO, ZIO}
 
 object SalesforcePriceRiseCreationHandler extends CohortHandler {
 
@@ -81,10 +81,14 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
     )
   }
 
-  private def env(cohortSpec: CohortSpec): ZLayer[Logging, Failure, CohortTable with SalesforceClient with Logging] =
-    (LiveLayer.cohortTable(cohortSpec) and LiveLayer.salesforce and LiveLayer.logging)
-      .tapError(e => Logging.error(s"Failed to create service environment: $e"))
-
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    main.provideSomeLayer[Logging](env(input))
+    main.provideSome[Logging](
+      EnvConfig.cohortTable.layer,
+      EnvConfig.salesforce.layer,
+      EnvConfig.stage.layer,
+      DynamoDBZIOLive.impl,
+      DynamoDBClientLive.impl,
+      CohortTableLive.impl(input),
+      SalesforceClientLive.impl
+    )
 }

@@ -1,12 +1,11 @@
 package pricemigrationengine.handlers
 
 import org.apache.commons.csv.{CSVFormat, CSVParser}
-import pricemigrationengine.handlers.LiveLayer.dynamoDbClient
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.stream.ZStream
-import zio.{Clock, IO, ZIO, ZLayer}
+import zio.{Clock, IO, ZIO}
 
 import java.io.{InputStream, InputStreamReader}
 import scala.jdk.CollectionConverters._
