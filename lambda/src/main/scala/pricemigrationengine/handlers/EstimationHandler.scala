@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.{IO, Random, ZIO, ZLayer}
+import zio.{IO, Random, ZIO}
 
 import java.time.LocalDate
 
@@ -21,17 +21,14 @@ object EstimationHandler extends CohortHandler {
   def main(earliestStartDate: LocalDate): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
       catalogue <- Zuora.fetchProductCatalogue
-
-      cohortItems <- CohortTable.fetch(ReadyForEstimation, None)
-      count <-
-        cohortItems
-          .take(batchSize)
-          .mapZIO(item =>
-            estimate(catalogue, earliestStartDate)(item)
-              .tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
-          )
-          .runCount
-          .tapError(e => Logging.error(e.toString))
+      count <- CohortTable
+        .fetch(ReadyForEstimation, None)
+        .take(batchSize)
+        .mapZIO(item =>
+          estimate(catalogue, earliestStartDate)(item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
+        )
+        .runCount
+        .tapError(e => Logging.error(e.toString))
     } yield HandlerOutput(isComplete = count < batchSize)
 
   private[handlers] def estimate(
@@ -106,10 +103,14 @@ object EstimationHandler extends CohortHandler {
       ZIO.succeed(earliestStartDate)
   }
 
-  private def env(cohortSpec: CohortSpec): ZLayer[Logging, ConfigFailure, CohortTable with Zuora with Logging] =
-    (LiveLayer.cohortTable(cohortSpec) and LiveLayer.zuora and LiveLayer.logging)
-      .tapError(e => Logging.error(s"Failed to create service environment: $e"))
-
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    main(input.earliestPriceMigrationStartDate).provideSomeLayer[Logging](env(input))
+    main(input.earliestPriceMigrationStartDate).provideSome[Logging](
+      EnvConfig.cohortTable.layer,
+      EnvConfig.zuora.layer,
+      EnvConfig.stage.layer,
+      DynamoDBZIOLive.impl,
+      DynamoDBClientLive.impl,
+      CohortTableLive.impl(input),
+      ZuoraLive.impl
+    )
 }

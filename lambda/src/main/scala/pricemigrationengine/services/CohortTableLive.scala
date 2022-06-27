@@ -123,36 +123,32 @@ object CohortTableLive {
         override def fetch(
             filter: CohortTableFilter,
             latestStartDateInclusive: Option[LocalDate]
-        ): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
-          ZIO
-            .from {
-              val indexName =
-                latestStartDateInclusive
-                  .fold(ProcessingStageIndexName)(_ => ProcessingStageAndStartDateIndexName)
-              val queryRequest =
-                QueryRequest.builder
-                  .tableName(tableName)
-                  .indexName(indexName)
-                  .keyConditionExpression(
-                    "processingStage = :processingStage" + latestStartDateInclusive.fold("") { _ =>
-                      " AND startDate <= :latestStartDateInclusive"
-                    }
-                  )
-                  .expressionAttributeValues(
-                    List(
-                      Some(":processingStage" -> AttributeValue.builder.s(filter.value).build()),
-                      latestStartDateInclusive.map { latestStartDateInclusive =>
-                        ":latestStartDateInclusive" -> AttributeValue.builder
-                          .s(latestStartDateInclusive.toString)
-                          .build()
-                      }
-                    ).flatten.toMap.asJava
-                  )
-                  .limit(cohortTableConfig.batchSize)
-                  .build()
-              dynamoDbZio.query(queryRequest).mapError(error => CohortFetchFailure(error.toString))
-            }
-            .mapError(error => CohortFetchFailure(error.toString))
+        ): ZStream[Any, CohortFetchFailure, CohortItem] = {
+          val indexName =
+            latestStartDateInclusive
+              .fold(ProcessingStageIndexName)(_ => ProcessingStageAndStartDateIndexName)
+          val queryRequest =
+            QueryRequest.builder
+              .tableName(tableName)
+              .indexName(indexName)
+              .keyConditionExpression(
+                "processingStage = :processingStage" + latestStartDateInclusive.fold("") { _ =>
+                  " AND startDate <= :latestStartDateInclusive"
+                }
+              )
+              .expressionAttributeValues(
+                List(
+                  Some(":processingStage" -> AttributeValue.builder.s(filter.value).build()),
+                  latestStartDateInclusive.map { latestStartDateInclusive =>
+                    ":latestStartDateInclusive" -> AttributeValue.builder
+                      .s(latestStartDateInclusive.toString)
+                      .build()
+                  }
+                ).flatten.toMap.asJava
+              )
+              .limit(cohortTableConfig.batchSize)
+              .build()
+          dynamoDbZio.query(queryRequest).mapError(error => CohortFetchFailure(error.toString))
         }
 
         override def create(cohortItem: CohortItem): IO[Failure, Unit] = {
@@ -175,19 +171,15 @@ object CohortTableLive {
             )
         }
 
-        override def fetchAll(): IO[CohortFetchFailure, ZStream[Any, CohortFetchFailure, CohortItem]] = {
-          ZIO
-            .from {
-              val queryRequest = ScanRequest.builder
-                .tableName(tableName)
-                .limit(cohortTableConfig.batchSize)
-                .build()
-              for {
-                queryResults <- dynamoDbZio.scan(queryRequest).mapError(error => CohortFetchFailure(error.toString))
-              } yield queryResults
-            }
-            .mapError(error => CohortFetchFailure(error.toString))
-        }
+        override def fetchAll(): ZStream[Any, CohortFetchFailure, CohortItem] = {
+          val queryRequest = ScanRequest.builder
+            .tableName(tableName)
+            .limit(cohortTableConfig.batchSize)
+            .build()
+          for {
+            queryResults <- dynamoDbZio.scan(queryRequest).mapError(error => CohortFetchFailure(error.toString))
+          } yield queryResults
+        }.mapError(error => CohortFetchFailure(error.toString))
       }
     }
   }

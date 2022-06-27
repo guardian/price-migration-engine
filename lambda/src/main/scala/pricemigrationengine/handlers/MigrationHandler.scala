@@ -1,9 +1,9 @@
 package pricemigrationengine.handlers
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
-import pricemigrationengine.model.{CohortSpec, ConfigFailure}
+import pricemigrationengine.model.CohortSpec
 import pricemigrationengine.services._
-import zio.{Clock, Runtime, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer}
+import zio.{Clock, Runtime, ZIO, ZIOAppArgs, ZIOAppDefault}
 
 /** Executes price migration for active cohorts.
   */
@@ -20,18 +20,27 @@ object MigrationHandler extends ZIOAppDefault with RequestHandler[Unit, Unit] {
       _ <- ZIO.foreachDiscard(activeSpecs)(CohortStateMachine.startExecution)
     } yield ()).tapError(e => Logging.error(s"Migration run failed: $e"))
 
-  private val env: ZLayer[Logging, ConfigFailure, CohortSpecTable with CohortStateMachine with Logging] =
-    (LiveLayer.cohortSpecTable and LiveLayer.cohortStateMachine and LiveLayer.logging)
-      .tapError(e => Logging.error(s"Failed to create service environment: $e"))
-
   override def run: ZIO[ZIOAppArgs, Any, Any] =
     migrateActiveCohorts
-      .provideLayer(ConsoleLogging.impl("MigrationHandler") to env)
-      .exitCode
+      .provide(
+        ConsoleLogging.impl("MigrationHandler"),
+        EnvConfig.cohortStateMachine.layer,
+        EnvConfig.stage.layer,
+        DynamoDBClientLive.impl,
+        CohortSpecTableLive.impl,
+        CohortStateMachineLive.impl
+      )
 
   override def handleRequest(unused: Unit, context: Context): Unit =
     Runtime.default.unsafeRun(
       migrateActiveCohorts
-        .provideLayer(LambdaLogging.impl(context, "MigrationHandler") to env)
+        .provide(
+          LambdaLogging.impl(context, "MigrationHandler"),
+          EnvConfig.cohortStateMachine.layer,
+          EnvConfig.stage.layer,
+          DynamoDBClientLive.impl,
+          CohortSpecTableLive.impl,
+          CohortStateMachineLive.impl
+        )
     )
 }

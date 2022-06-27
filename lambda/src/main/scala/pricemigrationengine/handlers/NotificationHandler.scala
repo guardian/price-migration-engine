@@ -1,20 +1,10 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.CohortTableFilter.{
-  Cancelled,
-  NotificationSendComplete,
-  NotificationSendProcessingOrError,
-  SalesforcePriceRiceCreationComplete
-}
+import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
-import pricemigrationengine.model.membershipworkflow.{
-  EmailMessage,
-  EmailPayload,
-  EmailPayloadContactAttributes,
-  EmailPayloadSubscriberAttributes
-}
+import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
-import zio.{Clock, ZIO, ZLayer}
+import zio.{Clock, ZIO}
 
 object NotificationHandler extends CohortHandler {
 
@@ -30,14 +20,10 @@ object NotificationHandler extends CohortHandler {
   ): ZIO[Logging with CohortTable with SalesforceClient with EmailSender, Failure, HandlerOutput] = {
     for {
       today <- Clock.currentDateTime.map(_.toLocalDate)
-      subscriptions <- CohortTable.fetch(
-        SalesforcePriceRiceCreationComplete,
-        Some(today.plusDays(NotificationLeadTimeDays))
-      )
-      count <-
-        subscriptions
-          .mapZIO(sendNotification(brazeCampaignName))
-          .runFold(0) { (sum, count) => sum + count }
+      count <- CohortTable
+        .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(NotificationLeadTimeDays)))
+        .mapZIO(sendNotification(brazeCampaignName))
+        .runFold(0) { (sum, count) => sum + count }
       _ <- Logging.info(s"Successfully sent $count price rise notifications")
     } yield HandlerOutput(isComplete = true)
   }
@@ -191,12 +177,16 @@ object NotificationHandler extends CohortHandler {
       _ <- Logging.error(s"Subscription $subscriptionName has been cancelled, price rise notification not sent")
     } yield 0
 
-  private def env(
-      cohortSpec: CohortSpec
-  ): ZLayer[Logging, Failure, CohortTable with SalesforceClient with EmailSender with Logging] =
-    (LiveLayer.cohortTable(cohortSpec) and LiveLayer.salesforce and LiveLayer.emailSender and LiveLayer.logging)
-      .tapError(e => Logging.error(s"Failed to create service environment: $e"))
-
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    main(input.brazeCampaignName).provideSomeLayer[Logging](env(input))
+    main(input.brazeCampaignName).provideSome[Logging](
+      EnvConfig.salesforce.layer,
+      EnvConfig.cohortTable.layer,
+      EnvConfig.emailSender.layer,
+      EnvConfig.stage.layer,
+      DynamoDBClientLive.impl,
+      DynamoDBZIOLive.impl,
+      CohortTableLive.impl(input),
+      SalesforceClientLive.impl,
+      EmailSenderLive.impl
+    )
 }
