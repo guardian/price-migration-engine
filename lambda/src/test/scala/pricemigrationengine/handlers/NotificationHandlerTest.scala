@@ -1,54 +1,57 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.StubClock.withStubClock
-
-import java.time._
-import java.time.temporal.ChronoUnit
+import pricemigrationengine.TestLogging
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
 import pricemigrationengine.services._
-import pricemigrationengine.{StubClock, TestLogging}
 import zio.Exit.Success
 import zio.Runtime.default
 import zio._
 import zio.stream.ZStream
+import zio.test.{TestClock, testEnvironment}
 
+import java.time.{Instant, LocalDate, ZoneOffset}
+import java.time.temporal.ChronoUnit
 import scala.collection.mutable.ArrayBuffer
 
 class NotificationHandlerTest extends munit.FunSuite {
-  val expectedSubscriptionName = "Sub-0001"
-  val expectedStartDate = LocalDate.of(2020, 1, 1)
-  val expectedCurrency = "GBP"
-  val expectedBillingPeriod = "Month"
-  val expectedBillingPeriodInNotification = "Monthly"
-  val expectedOldPrice = BigDecimal(11.11)
-  val expectedEstimatedNewPrice = BigDecimal(22.22)
-  val expectedSFSubscriptionId = "1234"
-  val expectedBuyerId = "buyer-1"
-  val expectedIdentityId = "buyer1-identity-id"
-  val expectedEmailAddress = "buyer@email.address"
-  val expectedFirstName = "buyer1FirstName"
-  val expectedLastName = "buyer1LastName"
-  val expectedStreet = "buyer1Street"
-  val expectedCity = "buyer1City"
-  val expectedState = "buyer1State"
-  val expectedPostalCode = "buyer1PostalCode"
-  val expectedCountry = "buyer1Country"
-  val expectedDataExtensionName = "SV_VO_Pricerise_Q22020"
-  val expectedSalutation = "Ms"
-  val expectedSfStatus = "Active"
-  val expectedProductType = "Newspaper - Digital Voucher"
+  private val expectedSubscriptionName = "Sub-0001"
+  private val expectedStartDate = LocalDate.of(2020, 1, 1)
+  private val expectedCurrency = "GBP"
+  private val expectedBillingPeriod = "Month"
+  private val expectedBillingPeriodInNotification = "Monthly"
+  private val expectedOldPrice = BigDecimal(11.11)
+  private val expectedEstimatedNewPrice = BigDecimal(22.22)
+  private val expectedSFSubscriptionId = "1234"
+  private val expectedBuyerId = "buyer-1"
+  private val expectedIdentityId = "buyer1-identity-id"
+  private val expectedEmailAddress = "buyer@email.address"
+  private val expectedFirstName = "buyer1FirstName"
+  private val expectedLastName = "buyer1LastName"
+  private val expectedStreet = "buyer1Street"
+  private val expectedCity = "buyer1City"
+  private val expectedState = "buyer1State"
+  private val expectedPostalCode = "buyer1PostalCode"
+  private val expectedCountry = "buyer1Country"
+  private val expectedDataExtensionName = "SV_VO_Pricerise_Q22020"
+  private val expectedSalutation = "Ms"
+  private val expectedSfStatus = "Active"
+  private val expectedProductType = "Newspaper - Digital Voucher"
+  private val expectedCurrentTime = Instant.parse("2020-05-21T15:16:37Z")
 
-  val mailingAddressStreet = "buyer1MailStreet"
-  val mailingAddressCity = "buyer1MailCity"
-  val mailingAddressState = "buyer1MailState"
-  val mailingAddressPostalCode = "buyer1MailPostalCode"
-  val mailingAddressCountry = "buyer1MailCountry"
+  private val mailingAddressStreet = "buyer1MailStreet"
+  private val mailingAddressCity = "buyer1MailCity"
+  private val mailingAddressState = "buyer1MailState"
+  private val mailingAddressPostalCode = "buyer1MailPostalCode"
+  private val mailingAddressCountry = "buyer1MailCountry"
 
-  val brazeCampaignName = "SV_VO_Pricerise_Q22020"
+  private val brazeCampaignName = "SV_VO_Pricerise_Q22020"
 
-  def createStubCohortTable(updatedResultsWrittenToCohortTable: ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
+  private def createStubCohortTable(
+      updatedResultsWrittenToCohortTable: ArrayBuffer[CohortItem],
+      cohortItem: CohortItem
+  ) = {
     ZLayer.succeed(
       new CohortTable {
 
@@ -61,7 +64,7 @@ class NotificationHandlerTest extends munit.FunSuite {
             beforeDateInclusive,
             Some(
               LocalDate
-                .from(StubClock.expectedCurrentTime.plus(37, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
+                .from(expectedCurrentTime.plus(37, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
             )
           )
           ZStream(cohortItem)
@@ -192,12 +195,11 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        withStubClock(
-          NotificationHandler
-            .main(brazeCampaignName)
-            .provideLayer(
-              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
-            )
+        (for {
+          _ <- TestClock.setDateTime(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
+          program <- NotificationHandler.main(brazeCampaignName)
+        } yield program).provideLayer(
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
         )
       ),
       Success(HandlerOutput(isComplete = true))
@@ -223,7 +225,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date,
-      expectedStartDate.toString()
+      expectedStartDate.toString
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_frequency,
@@ -237,7 +239,7 @@ class NotificationHandlerTest extends munit.FunSuite {
       CohortItem(
         subscriptionName = expectedSubscriptionName,
         processingStage = NotificationSendProcessingOrError,
-        whenNotificationSent = Some(StubClock.expectedCurrentTime)
+        whenNotificationSent = Some(expectedCurrentTime)
       )
     )
     assertEquals(
@@ -245,7 +247,7 @@ class NotificationHandlerTest extends munit.FunSuite {
       CohortItem(
         subscriptionName = expectedSubscriptionName,
         processingStage = NotificationSendComplete,
-        whenNotificationSent = Some(StubClock.expectedCurrentTime)
+        whenNotificationSent = Some(expectedCurrentTime)
       )
     )
   }
@@ -260,12 +262,11 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        withStubClock(
-          NotificationHandler
-            .main(brazeCampaignName)
-            .provideLayer(
-              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
-            )
+        (for {
+          _ <- TestClock.setDateTime(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
+          program <- NotificationHandler.main(brazeCampaignName)
+        } yield program).provideLayer(
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
         )
       ),
       Success(HandlerOutput(isComplete = true))
@@ -295,12 +296,11 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        withStubClock(
-          NotificationHandler
-            .main(brazeCampaignName)
-            .provideLayer(
-              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
-            )
+        (for {
+          _ <- TestClock.setDateTime(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
+          program <- NotificationHandler.main(brazeCampaignName)
+        } yield program).provideLayer(
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
         )
       ),
       Success(HandlerOutput(isComplete = true))
@@ -322,12 +322,11 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        withStubClock(
-          NotificationHandler
-            .main(brazeCampaignName)
-            .provideLayer(
-              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
-            )
+        (for {
+          _ <- TestClock.setDateTime(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
+          program <- NotificationHandler.main(brazeCampaignName)
+        } yield program).provideLayer(
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
         )
       ),
       Success(HandlerOutput(isComplete = true))
@@ -345,12 +344,11 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        withStubClock(
-          NotificationHandler
-            .main(brazeCampaignName)
-            .provideLayer(
-              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ failingStubEmailSender
-            )
+        (for {
+          _ <- TestClock.setDateTime(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
+          program <- NotificationHandler.main(brazeCampaignName)
+        } yield program).provideLayer(
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ failingStubEmailSender
         )
       ),
       Success(HandlerOutput(isComplete = true))
@@ -362,7 +360,7 @@ class NotificationHandlerTest extends munit.FunSuite {
       CohortItem(
         subscriptionName = expectedSubscriptionName,
         processingStage = NotificationSendProcessingOrError,
-        whenNotificationSent = Some(StubClock.expectedCurrentTime)
+        whenNotificationSent = Some(expectedCurrentTime)
       )
     )
   }
@@ -377,12 +375,11 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        withStubClock(
-          NotificationHandler
-            .main(brazeCampaignName)
-            .provideLayer(
-              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
-            )
+        (for {
+          _ <- TestClock.setDateTime(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
+          program <- NotificationHandler.main(brazeCampaignName)
+        } yield program).provideLayer(
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
         )
       ),
       Success(HandlerOutput(isComplete = true))

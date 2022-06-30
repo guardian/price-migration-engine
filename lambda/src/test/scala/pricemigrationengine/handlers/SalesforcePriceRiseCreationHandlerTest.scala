@@ -1,32 +1,31 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.StubClock.withStubClock
-
-import java.time.LocalDate
+import pricemigrationengine.TestLogging
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import pricemigrationengine.{StubClock, TestLogging}
 import zio.Exit.Success
 import zio.Runtime.default
 import zio.stream.ZStream
+import zio.test.{TestClock, testEnvironment}
 import zio.{IO, ZIO, ZLayer}
 
+import java.time.{Instant, LocalDate, ZoneOffset}
 import scala.collection.mutable.ArrayBuffer
 
 class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
-  val expectedSubscriptionName = "Sub-0001"
-  val expectedStartDate = LocalDate.of(2020, 1, 1)
-  val expectedCurrency = "GBP"
-  val expectedOldPrice = BigDecimal(11.11)
-  val expectedEstimatedNewPrice = BigDecimal(22.22)
+  private val expectedSubscriptionName = "Sub-0001"
+  private val expectedStartDate = LocalDate.of(2020, 1, 1)
+  private val expectedCurrency = "GBP"
+  private val expectedOldPrice = BigDecimal(11.11)
+  private val expectedEstimatedNewPrice = BigDecimal(22.22)
+  private val expectedCurrentTime = Instant.parse("2020-05-21T15:16:37Z")
 
-  private val expectedHandlerOutput = HandlerOutput(
-    isComplete = true
-  )
-
-  def createStubCohortTable(updatedResultsWrittenToCohortTable: ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
+  private def createStubCohortTable(
+      updatedResultsWrittenToCohortTable: ArrayBuffer[CohortItem],
+      cohortItem: CohortItem
+  ) = {
     ZLayer.succeed(
       new CohortTable {
 
@@ -116,14 +115,14 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        withStubClock(
-          SalesforcePriceRiseCreationHandler.main
-            .provideLayer(
-              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient
-            )
+        (for {
+          _ <- TestClock.setDateTime(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
+          program <- SalesforcePriceRiseCreationHandler.main
+        } yield program).provideLayer(
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient
         )
       ),
-      Success(expectedHandlerOutput)
+      Success(HandlerOutput(isComplete = true))
     )
 
     assertEquals(createdPriceRises.size, 1)
@@ -149,7 +148,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).whenSfShowEstimate,
-      Some(StubClock.expectedCurrentTime)
+      Some(expectedCurrentTime)
     )
   }
 
@@ -177,14 +176,14 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
     assertEquals(
       default.unsafeRunSync(
-        withStubClock(
-          SalesforcePriceRiseCreationHandler.main
-            .provideLayer(
-              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient
-            )
+        (for {
+          _ <- TestClock.setDateTime(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
+          program <- SalesforcePriceRiseCreationHandler.main
+        } yield program).provideLayer(
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient
         )
       ),
-      Success(expectedHandlerOutput)
+      Success(HandlerOutput(isComplete = true))
     )
 
     assertEquals(updatedPriceRises.size, 1)
@@ -209,7 +208,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).whenSfShowEstimate,
-      Some(StubClock.expectedCurrentTime)
+      Some(expectedCurrentTime)
     )
   }
 }
