@@ -3,6 +3,7 @@ package pricemigrationengine.handlers
 import com.amazonaws.services.lambda.runtime.{Context, RequestStreamHandler}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
+import pricemigrationengine.util.Runner.unsafeRun
 import ujson.Readable
 import upickle.default.{read, stream}
 import zio.{Runtime, ZIO, ZIOAppArgs, ZIOAppDefault}
@@ -71,11 +72,11 @@ trait CohortHandler extends ZIOAppDefault with RequestStreamHandler {
       .exitCode
 
   override final def handleRequest(input: InputStream, output: OutputStream, context: Context): Unit =
-    Runtime.default.unsafeRun {
+    unsafeRun(Runtime.default)(
       for {
         handlerOutput <- goLambda(input, context).provideLayer(LambdaLogging.impl(context, "ParsingCohortInfo"))
         writable <- ZIO.attempt(stream(handlerOutput))
         _ <- ZIO.attempt(writable.writeBytesTo(output))
       } yield ()
-    }
+    )
 }
