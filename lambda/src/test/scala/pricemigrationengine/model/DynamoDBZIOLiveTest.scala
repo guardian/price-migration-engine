@@ -2,6 +2,7 @@ package pricemigrationengine.model
 
 import pricemigrationengine.TestLogging
 import pricemigrationengine.services._
+import pricemigrationengine.util.Runner.unsafeRunSync
 import software.amazon.awssdk.services.dynamodb.model.AttributeAction.PUT
 import software.amazon.awssdk.services.dynamodb.model._
 import zio.Exit.Success
@@ -45,14 +46,14 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
       }
     )
 
-    default.unsafeRunSync(
+    unsafeRunSync(default)(
       DynamoDBZIO
         .query(queryRequest)
         .provideLayer((stubDynamoDBClient ++ TestLogging.logging) >>> DynamoDBZIOLive.impl)
     ) match {
       case Success(results) =>
         assertEquals(
-          default.unsafeRunSync(results.run(ZSink.collectAll[String])),
+          unsafeRunSync(default)(results.run(ZSink.collectAll[String])),
           Success(Chunk("id-1", "id-2", "id-3"))
         )
       case failure =>
@@ -105,7 +106,7 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
     )
 
     assertEquals(
-      default.unsafeRunSync(
+      unsafeRunSync(default)(
         DynamoDBZIO
           .update("a-table", "key", "value")
           .provideLayer((stubDynamoDBClient ++ TestLogging.logging) >>> DynamoDBZIOLive.impl)

@@ -3,6 +3,7 @@ package pricemigrationengine.handlers
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import pricemigrationengine.model.CohortSpec
 import pricemigrationengine.services._
+import pricemigrationengine.util.Runner.unsafeRun
 import zio.{Clock, Runtime, ZIO, ZIOAppArgs, ZIOAppDefault}
 
 /** Executes price migration for active cohorts.
@@ -32,7 +33,7 @@ object MigrationHandler extends ZIOAppDefault with RequestHandler[Unit, Unit] {
       )
 
   override def handleRequest(unused: Unit, context: Context): Unit =
-    Runtime.default.unsafeRun(
+    unsafeRun(Runtime.default)(
       migrateActiveCohorts
         .provide(
           LambdaLogging.impl(context, "MigrationHandler"),
