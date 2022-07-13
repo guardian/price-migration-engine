@@ -12,7 +12,7 @@ import java.time._
 
 object EstimationHandlerSpec extends ZIOSpecDefault {
 
-  private val time = OffsetDateTime.of(LocalDateTime.of(2022, 5, 16, 10, 2), ZoneOffset.ofHours(0))
+  private val time = OffsetDateTime.of(LocalDateTime.of(2022, 5, 16, 10, 2), ZoneOffset.ofHours(0)).toInstant
 
   private val subscription = ZuoraSubscription(
     subscriptionNumber = "S1",
@@ -101,7 +101,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         oldPrice = Some(1.23),
         estimatedNewPrice = Some(2.45),
         billingPeriod = Some("Month"),
-        whenEstimationDone = Some(Instant.from(time))
+        whenEstimationDone = Some(time)
       )
       val expectedSubscriptionFetch = MockZuora.FetchSubscription(
         assertion = equalTo("S1"),
@@ -117,7 +117,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         result = unit
       )
       for {
-        _ <- TestClock.setDateTime(time)
+        _ <- TestClock.setTime(time)
         _ <- EstimationHandler
           .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1))(cohortItemRead)
           .provide(expectedZuoraUse, expectedCohortTableUpdate)
@@ -166,14 +166,14 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         oldPrice = Some(1.23),
         estimatedNewPrice = Some(1.15),
         billingPeriod = Some("Month"),
-        whenEstimationDone = Some(Instant.from(time))
+        whenEstimationDone = Some(time)
       )
       val expectedCohortTableUpdate = MockCohortTable.Update(
         assertion = equalTo(cohortItemExpectedToWrite),
         result = unit
       )
       for {
-        _ <- TestClock.setDateTime(time)
+        _ <- TestClock.setTime(time)
         _ <- EstimationHandler
           .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1))(cohortItemRead)
           .provide(expectedZuoraUse, expectedCohortTableUpdate)

@@ -1,25 +1,29 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.StubClock.withStubClock
-
-import java.time.{LocalDate, ZoneOffset}
+import pricemigrationengine.TestLogging
 import pricemigrationengine.model.CohortTableFilter.{NotificationSendComplete, NotificationSendDateWrittenToSalesforce}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import pricemigrationengine.{StubClock, TestLogging}
+import pricemigrationengine.util.Runner.unsafeRunSync
 import zio.Exit.Success
 import zio.Runtime.default
 import zio.stream.ZStream
+import zio.test.{TestClock, testEnvironment}
 import zio.{IO, ZIO, ZLayer}
 
+import java.time.{Instant, LocalDate, ZoneOffset}
 import scala.collection.mutable.ArrayBuffer
 
 class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
-  val expectedSubscriptionName = "Sub-0001"
-  val expectedWhenEmailSentDate = LocalDate.of(2020, 3, 23)
-  val expectedPriceRiseId = "price-rise-id"
+  private val expectedSubscriptionName = "Sub-0001"
+  private val expectedWhenEmailSentDate = LocalDate.of(2020, 3, 23)
+  private val expectedPriceRiseId = "price-rise-id"
+  private val expectedCurrentTime = Instant.parse("2020-05-21T15:16:37Z")
 
-  def createStubCohortTable(updatedResultsWrittenToCohortTable: ArrayBuffer[CohortItem], cohortItem: CohortItem) = {
+  private def createStubCohortTable(
+      updatedResultsWrittenToCohortTable: ArrayBuffer[CohortItem],
+      cohortItem: CohortItem
+  ) = {
     ZLayer.succeed(
       new CohortTable {
 
@@ -87,12 +91,12 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
     val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
 
     assertEquals(
-      default.unsafeRunSync(
-        withStubClock(
-          SalesforceNotificationDateUpdateHandler.main
-            .provideLayer(
-              TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient
-            )
+      unsafeRunSync(default)(
+        (for {
+          _ <- TestClock.setTime(expectedCurrentTime)
+          program <- SalesforceNotificationDateUpdateHandler.main
+        } yield program).provideLayer(
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient
         )
       ),
       Success(HandlerOutput(isComplete = true))
@@ -118,7 +122,7 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).whenNotificationSentWrittenToSalesforce,
-      Some(StubClock.expectedCurrentTime)
+      Some(expectedCurrentTime)
     )
   }
 }
