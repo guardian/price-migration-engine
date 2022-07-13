@@ -3,6 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.TestLogging
 import pricemigrationengine.model._
 import pricemigrationengine.services._
+import pricemigrationengine.util.Runner.unsafeRunSync
 import software.amazon.awssdk.services.s3.model.{ObjectCannedACL, PutObjectResponse}
 import zio.Exit.Success
 import zio.Runtime.default
@@ -64,7 +65,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
     })
 
     assertEquals(
-      default.unsafeRunSync(
+      unsafeRunSync(default)(
         SubscriptionIdUploadHandler
           .main(
             CohortSpec(

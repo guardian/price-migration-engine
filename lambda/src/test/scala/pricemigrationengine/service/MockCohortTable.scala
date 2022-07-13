@@ -2,6 +2,7 @@ package pricemigrationengine.service
 
 import pricemigrationengine.model.{CohortFetchFailure, CohortItem, CohortTableFilter, CohortUpdateFailure, Failure}
 import pricemigrationengine.services.CohortTable
+import pricemigrationengine.util.Runner.unsafeRun
 import zio.mock.{Mock, Proxy}
 import zio.stream.ZStream
 import zio.{IO, URLayer, ZIO, ZLayer}
@@ -24,10 +25,10 @@ object MockCohortTable extends Mock[CohortTable] {
 
             override def fetch(filter: CohortTableFilter, beforeDateInclusive: Option[LocalDate])
                 : ZStream[Any, CohortFetchFailure, CohortItem] =
-              runtime.unsafeRun(proxy(Fetch, filter, beforeDateInclusive))
+              unsafeRun(runtime)(proxy(Fetch, filter, beforeDateInclusive))
 
             override def fetchAll(): ZStream[Any, CohortFetchFailure, CohortItem] =
-              runtime.unsafeRun(proxy(FetchAll, ()))
+              unsafeRun(runtime)(proxy(FetchAll, ()))
 
             override def create(cohortItem: CohortItem): IO[Failure, Unit] =
               proxy(Create, cohortItem)

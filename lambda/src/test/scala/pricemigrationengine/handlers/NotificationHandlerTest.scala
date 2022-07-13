@@ -5,14 +5,15 @@ import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
 import pricemigrationengine.services._
+import pricemigrationengine.util.Runner.unsafeRunSync
 import zio.Exit.Success
 import zio.Runtime.default
 import zio._
 import zio.stream.ZStream
 import zio.test.{TestClock, testEnvironment}
 
-import java.time.{Instant, LocalDate, ZoneOffset}
 import java.time.temporal.ChronoUnit
+import java.time.{Instant, LocalDate, ZoneOffset}
 import scala.collection.mutable.ArrayBuffer
 
 class NotificationHandlerTest extends munit.FunSuite {
@@ -194,9 +195,9 @@ class NotificationHandlerTest extends munit.FunSuite {
     val stubEmailSender = createStubEmailSender(sentMessages)
 
     assertEquals(
-      default.unsafeRunSync(
+      unsafeRunSync(default)(
         (for {
-          _ <- TestClock.setDateTime(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
+          _ <- TestClock.setTime(expectedCurrentTime)
           program <- NotificationHandler.main(brazeCampaignName)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
@@ -261,9 +262,9 @@ class NotificationHandlerTest extends munit.FunSuite {
     val stubEmailSender = createStubEmailSender(sentMessages)
 
     assertEquals(
-      default.unsafeRunSync(
+      unsafeRunSync(default)(
         (for {
-          _ <- TestClock.setDateTime(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
+          _ <- TestClock.setTime(expectedCurrentTime)
           program <- NotificationHandler.main(brazeCampaignName)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
@@ -295,9 +296,9 @@ class NotificationHandlerTest extends munit.FunSuite {
     val stubEmailSender = createStubEmailSender(sentMessages)
 
     assertEquals(
-      default.unsafeRunSync(
+      unsafeRunSync(default)(
         (for {
-          _ <- TestClock.setDateTime(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
+          _ <- TestClock.setTime(expectedCurrentTime)
           program <- NotificationHandler.main(brazeCampaignName)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
@@ -321,9 +322,9 @@ class NotificationHandlerTest extends munit.FunSuite {
     val stubEmailSender = createStubEmailSender(sentMessages)
 
     assertEquals(
-      default.unsafeRunSync(
+      unsafeRunSync(default)(
         (for {
-          _ <- TestClock.setDateTime(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
+          _ <- TestClock.setTime(expectedCurrentTime)
           program <- NotificationHandler.main(brazeCampaignName)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
@@ -343,9 +344,9 @@ class NotificationHandlerTest extends munit.FunSuite {
     val failingStubEmailSender = createFailingStubEmailSender()
 
     assertEquals(
-      default.unsafeRunSync(
+      unsafeRunSync(default)(
         (for {
-          _ <- TestClock.setDateTime(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
+          _ <- TestClock.setTime(expectedCurrentTime)
           program <- NotificationHandler.main(brazeCampaignName)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ failingStubEmailSender
@@ -374,9 +375,9 @@ class NotificationHandlerTest extends munit.FunSuite {
     val stubEmailSender = createStubEmailSender(sentMessages)
 
     assertEquals(
-      default.unsafeRunSync(
+      unsafeRunSync(default)(
         (for {
-          _ <- TestClock.setDateTime(expectedCurrentTime.atOffset(ZoneOffset.of("-08:00")))
+          _ <- TestClock.setTime(expectedCurrentTime)
           program <- NotificationHandler.main(brazeCampaignName)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
