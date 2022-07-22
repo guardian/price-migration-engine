@@ -8,7 +8,6 @@ class AmendmentDataTest extends munit.FunSuite {
 
   private def migrationStartDate = LocalDate.of(2020, 12, 25)
 
-
   test("nextserviceStartDate: billing date is first after migration start date") {
     val invoiceList = invoiceListFromJson("InvoicePreview.json")
     val subscription = subscriptionFromJson("NewspaperVoucher/Monthly/Subscription.json")
