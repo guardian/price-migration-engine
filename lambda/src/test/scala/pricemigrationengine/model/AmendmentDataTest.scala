@@ -8,6 +8,7 @@ class AmendmentDataTest extends munit.FunSuite {
 
   private def migrationStartDate = LocalDate.of(2020, 12, 25)
 
+
   test("nextserviceStartDate: billing date is first after migration start date") {
     val invoiceList = invoiceListFromJson("InvoicePreview.json")
     val subscription = subscriptionFromJson("NewspaperVoucher/Monthly/Subscription.json")
@@ -581,6 +582,20 @@ class AmendmentDataTest extends munit.FunSuite {
           PriceData(currency = "GBP", oldPrice = 40.29, newPrice = 53.97, billingPeriod = "Quarter")
         )
       )
+    )
+  }
+
+  test("priceData: is correct for a Guardian Weekly Quarterly subscription") {
+    val fixtureSet = "GuardianWeekly/QuarterlyDomestic"
+    val priceData = AmendmentData.priceData(
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      startDate = LocalDate.of(2022, 12, 3)
+    )
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 37.50, newPrice = 41.25, billingPeriod = "Quarter"))
     )
   }
 }
