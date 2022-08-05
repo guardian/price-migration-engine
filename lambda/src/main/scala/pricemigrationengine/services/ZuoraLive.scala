@@ -128,6 +128,14 @@ object ZuoraLive {
               _ => logging.info(s"Fetched subscription $subscriptionNumber")
             )
 
+        override def fetchAccount(accountNumber: String, subscriptionNumber: String): ZIO[Any, ZuoraFetchFailure, ZuoraAccount] =
+          get[ZuoraAccount](s"accounts/$accountNumber")
+            .mapError(e => ZuoraFetchFailure(s"Subscription $subscriptionNumber: ${e.reason}"))
+            .tapBoth(
+              e => logging.error(s"Failed to fetch subscription $subscriptionNumber: $e"),
+              _ => logging.info(s"Fetched subscription $subscriptionNumber")
+            )
+
         // See https://www.zuora.com/developer/api-reference/#operation/POST_BillingPreviewRun
         override def fetchInvoicePreview(
             accountId: String,

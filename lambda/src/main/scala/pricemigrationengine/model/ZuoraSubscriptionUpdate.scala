@@ -16,6 +16,8 @@ case class ZuoraSubscriptionUpdate(
 )
 
 object ZuoraSubscriptionUpdate {
+  private val zoneABCPlanNames = List("Guardian Weekly Zone A", "Guardian Weekly Zone B", "Guardian Weekly Zone C")
+
   implicit val rw: ReadWriter[ZuoraSubscriptionUpdate] = macroRW
 
   /** Takes all non-discount rate plans participating in the invoice list on the given date, and replaces them with
@@ -27,6 +29,7 @@ object ZuoraSubscriptionUpdate {
     * billing period.
     */
   def updateOfRatePlansToCurrent(
+      account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
@@ -45,12 +48,13 @@ object ZuoraSubscriptionUpdate {
     else if (ratePlans.size > 1)
       Left(AmendmentDataFailure(s"Multiple rate plans to update: ${ratePlans.map(_.id)}"))
     else {
-      val isEchoLegacy = ratePlans.head.ratePlanName == "Echo-Legacy"
+      val isZoneABC = subscription.ratePlans.filter(zoneABCPlanNames contains _.productName)
+      // val isZoneABC = ratePlans.head.ratePlanName == "Echo-Legacy"
       val pricingData = productPricingMap(catalogue)
 
       ratePlans
         .map(
-          if (isEchoLegacy) AddZuoraRatePlan.fromRatePlanEchoLegacy(catalogue, effectiveDate)
+          if (isZoneABC.nonEmpty) AddZuoraRatePlan.fromRatePlanGuardianWeekly(account, catalogue, effectiveDate)
           else AddZuoraRatePlan.fromRatePlan(pricingData, effectiveDate)
         )
         .sequence
@@ -104,6 +108,26 @@ object AddZuoraRatePlan {
         .map(_.flatten)
     } yield AddZuoraRatePlan(
       productRatePlanId = echoLegacy.productRatePlan.id,
+      contractEffectiveDate,
+      chargeOverrides
+    )
+  }
+
+  def fromRatePlanGuardianWeekly(
+                              account: ZuoraAccount,
+                              catalogue: ZuoraProductCatalogue,
+                              contractEffectiveDate: LocalDate
+                            )(
+                              ratePlan: ZuoraRatePlan
+                            ): Either[AmendmentDataFailure, AddZuoraRatePlan] = {
+    for {
+      guardianWeekly <- GuardianWeekly.getNewRatePlanCharges(account, catalogue, ratePlan.ratePlanCharges)
+      chargeOverrides <- guardianWeekly.chargePairs
+        .map(chargePair => fromRatePlanCharge(chargePair.chargeFromProduct, chargePair.chargeFromSubscription))
+        .sequence
+        .map(_.flatten)
+    } yield AddZuoraRatePlan(
+      productRatePlanId = guardianWeekly.productRatePlan.id,
       contractEffectiveDate,
       chargeOverrides
     )

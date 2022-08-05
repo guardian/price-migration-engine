@@ -15,9 +15,96 @@ class AmendmentDataTest extends munit.FunSuite {
     assertEquals(serviceStartDate, Right(LocalDate.of(2021, 1, 8)))
   }
 
+  test("nextserviceStartDate: billing date is first after migration start date for a GW Zone A plan") {
+    val invoiceList = invoiceListFromJson("GuardianWeekly/ZoneABC/ZoneA_USD_Domestic/InvoicePreview.json")
+    val subscription = subscriptionFromJson("GuardianWeekly/ZoneABC/ZoneA_USD_Domestic/Subscription.json")
+    val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = migrationStartDate)
+    assertEquals(serviceStartDate, Right(LocalDate.of(2022, 10, 14)))
+  }
+
   private def deliveryMigrationStartDate = LocalDate.of(2022, 4, 18)
 
-  test("nextserviceStartDate: billing date is first after migration start date (Everyday+Delivery)") {
+  test("priceData: is correct migrating a quarterly GW Zone A plan (billed in USD) to GW Domestic plan") {
+    val fixtureSet = "GuardianWeekly/ZoneABC/ZoneA_USD_Domestic"
+    val priceData = AmendmentData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      earliestStartDate = migrationStartDate
+    )
+    assertEquals(
+      priceData,
+      Right(
+        AmendmentData(
+          LocalDate.of(2022, 10, 14),
+          PriceData(currency = "USD", oldPrice = 60.00, newPrice = 82.50, billingPeriod = "Quarter")
+        )
+      )
+    )
+  }
+
+  test("priceData: is correct migrating an annual GW Zone B plan (billed in USD) to GW Rest Of World plan") {
+    val fixtureSet = "GuardianWeekly/ZoneABC/ZoneB_USD_Annual"
+    val priceData = AmendmentData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      earliestStartDate = migrationStartDate
+    )
+    assertEquals(
+      priceData,
+      Right(
+        AmendmentData(
+          LocalDate.of(2023, 5, 26),
+          PriceData(currency = "USD", oldPrice = 240.0, newPrice = 360.0, billingPeriod = "Annual")
+        )
+      )
+    )
+  }
+
+  test("priceData: is correct migrating a quarterly GW Zone C plan (billed in USD) to GW Rest Of World plan") {
+    val fixtureSet = "GuardianWeekly/ZoneABC/ZoneC_USD"
+    val priceData = AmendmentData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      earliestStartDate = migrationStartDate
+    )
+    assertEquals(
+      priceData,
+      Right(
+        AmendmentData(
+          LocalDate.of(2022, 10, 13),
+          PriceData(currency = "USD", oldPrice = 65.0, newPrice = 90.0, billingPeriod = "Quarter")
+        )
+      )
+    )
+  }
+
+  test("priceData: is correct migrating a quarterly GW Zone C plan to GW Domestic plan") {
+    val fixtureSet = "GuardianWeekly/ZoneABC/ZoneC_GBP"
+    val priceData = AmendmentData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      earliestStartDate = migrationStartDate
+    )
+    assertEquals(
+      priceData,
+      Right(
+        AmendmentData(
+          LocalDate.of(2022, 11, 17),
+          PriceData(currency = "GBP", oldPrice = 48.00, newPrice = 74.40, billingPeriod = "Quarter")
+        )
+      )
+    )
+  }
+
+    test("nextserviceStartDate: billing date is first after migration start date (Everyday+Delivery)") {
     val invoiceList = invoiceListFromJson("NewspaperDelivery/Everyday+/InvoicePreview.json")
     val subscription = subscriptionFromJson("NewspaperDelivery/Everyday+/Subscription.json")
     val serviceStartDate =
@@ -76,6 +163,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for a monthly voucher subscription") {
     val fixtureSet = "NewspaperVoucher/Monthly"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -90,6 +178,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for a monthly discounted voucher subscription") {
     val fixtureSet = "NewspaperVoucher/MonthlyDiscounted"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -104,6 +193,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for a non-taxable 25% discounted voucher subscription") {
     val fixtureSet = "NewspaperVoucher/Discount25%"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -118,6 +208,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: ignores holiday-stop credits") {
     val fixtureSet = "NewspaperVoucher/HolidayCredited"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -132,6 +223,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for a 25% discounted Everyday voucher subscription") {
     val fixtureSet = "NewspaperVoucher/EverydayDiscount25%"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -146,6 +238,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for a manually-set percentage discounted voucher subscription") {
     val fixtureSet = "NewspaperVoucher/PercentageDiscount"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -160,6 +253,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for a quarterly voucher subscription") {
     val fixtureSet = "NewspaperVoucher/QuarterlyVoucher"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -174,6 +268,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for a quarterly GW subscription") {
     val fixtureSet = "QuarterlyGW"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -188,6 +283,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for a semi-annual voucher subscription") {
     val fixtureSet = "NewspaperVoucher/SemiAnnualVoucher"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -202,6 +298,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for an annual voucher subscription") {
     val fixtureSet = "NewspaperVoucher/AnnualVoucher"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -335,6 +432,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for a newspaper delivery (everyday+)") {
     val fixtureSet = "NewspaperDelivery/Everyday+"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -349,6 +447,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for a newspaper delivery (everyday)") {
     val fixtureSet = "NewspaperDelivery/Everyday"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -363,6 +462,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for a newspaper delivery (weekend)") {
     val fixtureSet = "NewspaperDelivery/Weekend"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -377,6 +477,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for a newspaper delivery (sunday)") {
     val fixtureSet = "NewspaperDelivery/Sunday"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -391,6 +492,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for a newspaper delivery (sixday+)") {
     val fixtureSet = "NewspaperDelivery/Sixday+"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -405,6 +507,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for a newspaper delivery (sixday)") {
     val fixtureSet = "NewspaperDelivery/Sixday"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -419,6 +522,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for a newspaper delivery (saturday)") {
     val fixtureSet = "NewspaperDelivery/Saturday"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -433,6 +537,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for pre-2020 sixday newspaper delivery subscription (with past discounts)") {
     val fixtureSet = "NewspaperDelivery/Pre2020SixDay"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -447,6 +552,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for pre-2020 sixday newspaper delivery (with past discounts) 2") {
     val fixtureSet = "NewspaperDelivery/Pre2020Sixday2"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -461,6 +567,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for pre-2020 everyday newspaper delivery subscription") {
     val fixtureSet = "NewspaperDelivery/Pre2020Everyday"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -475,6 +582,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for a new (purchased after price rise) discounted newspaper delivery subscription") {
     val fixtureSet = "NewspaperDelivery/Waitrose25%Discount"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -489,6 +597,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for an echo-legacy weekend subscription") {
     val fixtureSet = "NewspaperDelivery/EchoLegacy/WeekendMonthly"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -503,6 +612,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for an echo-legacy everyday subscription") {
     val fixtureSet = "NewspaperDelivery/EchoLegacy/EverydayMonthly"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -517,6 +627,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for an echo-legacy sixday subscription") {
     val fixtureSet = "NewspaperDelivery/EchoLegacy/SixdayMonthly"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -531,6 +642,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for an echo-legacy sunday subscription") {
     val fixtureSet = "NewspaperDelivery/EchoLegacy/SundayMonthly"
     val priceData = AmendmentData.priceData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -545,6 +657,7 @@ class AmendmentDataTest extends munit.FunSuite {
   test("priceData: is correct for an echo-legacy saturday quarterly subscription") {
     val fixtureSet = "NewspaperDelivery/EchoLegacy/SaturdayQuarterly"
     val priceData = AmendmentData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
@@ -567,6 +680,7 @@ class AmendmentDataTest extends munit.FunSuite {
     val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
 
     val amendmentData = AmendmentData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscription,
       invoiceList = invoiceList,

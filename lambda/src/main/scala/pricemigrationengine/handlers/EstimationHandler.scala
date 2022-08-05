@@ -49,8 +49,8 @@ object EstimationHandler extends CohortHandler {
       },
       success = { result =>
         val cohortItemToWrite =
-          if (result.estimatedNewPrice <= result.oldPrice)
-            CohortItem.fromNoPriceIncreaseEstimationResult(result)
+          if (result.estimatedNewPrice <= result.oldPrice) CohortItem.fromNoPriceIncreaseEstimationResult(result)
+          // else if ((result.estimatedNewPrice - result.oldPrice) / result.oldPrice >= 0.2) CohortItem.fromNoPriceIncreaseEstimationResult(result)
           else CohortItem.fromSuccessfulEstimationResult(result)
         for {
           cohortItem <- cohortItemToWrite
@@ -69,10 +69,11 @@ object EstimationHandler extends CohortHandler {
         Zuora
           .fetchSubscription(item.subscriptionName)
           .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
+      account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
       invoicePreviewTargetDate = earliestStartDate.plusMonths(13)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
       earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, earliestStartDate)
-      result <- ZIO.fromEither(EstimationResult(catalogue, subscription, invoicePreview, earliestStartDate))
+      result <- ZIO.fromEither(EstimationResult(account, catalogue, subscription, invoicePreview, earliestStartDate))
     } yield result
 
   /*
