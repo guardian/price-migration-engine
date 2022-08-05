@@ -31,7 +31,7 @@ class AmendmentDataTest extends munit.FunSuite {
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      earliestStartDate = migrationStartDate
+      earliestStartDate = migrationStartDate2022
     )
     assertEquals(
       priceData,
@@ -44,6 +44,8 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
+  private def migrationStartDate2022 = LocalDate.of(2022, 10, 10)
+
   test("priceData: is correct migrating an annual GW Zone B plan (billed in USD) to GW Rest Of World plan") {
     val fixtureSet = "GuardianWeekly/ZoneABC/ZoneB_USD_Annual"
     val priceData = AmendmentData(
@@ -51,14 +53,14 @@ class AmendmentDataTest extends munit.FunSuite {
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      earliestStartDate = migrationStartDate
+      earliestStartDate = migrationStartDate2022
     )
     assertEquals(
       priceData,
       Right(
         AmendmentData(
           LocalDate.of(2023, 5, 26),
-          PriceData(currency = "USD", oldPrice = 240.0, newPrice = 360.0, billingPeriod = "Annual")
+          PriceData(currency = "USD", oldPrice = 240.00, newPrice = 360.00, billingPeriod = "Annual")
         )
       )
     )
@@ -71,7 +73,7 @@ class AmendmentDataTest extends munit.FunSuite {
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      earliestStartDate = migrationStartDate
+      earliestStartDate = migrationStartDate2022
     )
     assertEquals(
       priceData,
@@ -91,14 +93,14 @@ class AmendmentDataTest extends munit.FunSuite {
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      earliestStartDate = migrationStartDate
+      earliestStartDate = migrationStartDate2022
     )
     assertEquals(
       priceData,
       Right(
         AmendmentData(
           LocalDate.of(2022, 11, 17),
-          PriceData(currency = "GBP", oldPrice = 48.00, newPrice = 74.40, billingPeriod = "Quarter")
+          PriceData(currency = "GBP", oldPrice = 48.00, newPrice = 41.25, billingPeriod = "Quarter")
         )
       )
     )
