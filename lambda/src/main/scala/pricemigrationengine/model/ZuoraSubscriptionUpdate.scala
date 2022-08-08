@@ -45,14 +45,10 @@ object ZuoraSubscriptionUpdate {
     else if (ratePlans.size > 1)
       Left(AmendmentDataFailure(s"Multiple rate plans to update: ${ratePlans.map(_.id)}"))
     else {
-      val isEchoLegacy = ratePlans.head.ratePlanName == "Echo-Legacy"
       val pricingData = productPricingMap(catalogue)
 
       ratePlans
-        .map(
-          if (isEchoLegacy) AddZuoraRatePlan.fromRatePlanEchoLegacy(catalogue, effectiveDate)
-          else AddZuoraRatePlan.fromRatePlan(pricingData, effectiveDate)
-        )
+        .map(AddZuoraRatePlan.fromRatePlan(pricingData, effectiveDate))
         .sequence
         .map { add =>
           val isTermTooShort = subscription.termEndDate.isBefore(effectiveDate)
@@ -89,25 +85,6 @@ object AddZuoraRatePlan {
       contractEffectiveDate,
       chargeOverrides
     )
-
-  def fromRatePlanEchoLegacy(
-      catalogue: ZuoraProductCatalogue,
-      contractEffectiveDate: LocalDate
-  )(
-      ratePlan: ZuoraRatePlan
-  ): Either[AmendmentDataFailure, AddZuoraRatePlan] = {
-    for {
-      echoLegacy <- EchoLegacy.getNewRatePlans(catalogue, ratePlan.ratePlanCharges)
-      chargeOverrides <- echoLegacy.chargePairs
-        .map(x => fromRatePlanCharge(x.chargeFromProduct, x.chargeFromSubscription))
-        .sequence
-        .map(_.flatten)
-    } yield AddZuoraRatePlan(
-      productRatePlanId = echoLegacy.productRatePlan.id,
-      contractEffectiveDate,
-      chargeOverrides
-    )
-  }
 }
 
 case class RemoveZuoraRatePlan(

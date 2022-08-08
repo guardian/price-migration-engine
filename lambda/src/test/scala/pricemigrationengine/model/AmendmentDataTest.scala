@@ -25,22 +25,6 @@ class AmendmentDataTest extends munit.FunSuite {
     assertEquals(serviceStartDate, Right(LocalDate.of(2022, 4, 19)))
   }
 
-  test("nextserviceStartDate: billing date is first after migration start date (Echo-Legacy Delivery)") {
-    val invoiceList = invoiceListFromJson("NewspaperDelivery/EchoLegacy/WeekendMonthly/InvoicePreview.json")
-    val subscription = subscriptionFromJson("NewspaperDelivery/EchoLegacy/WeekendMonthly/Subscription.json")
-    val serviceStartDate =
-      AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
-    assertEquals(serviceStartDate, Right(LocalDate.of(2022, 5, 7)))
-  }
-
-  test("nextserviceStartDate: billing date is correct for an echo-legacy quarterly subscription") {
-    val invoiceList = invoiceListFromJson("NewspaperDelivery/EchoLegacy/Quarterly2/InvoicePreview.json")
-    val subscription = subscriptionFromJson("NewspaperDelivery/EchoLegacy/Quarterly2/Subscription.json")
-    val serviceStartDate =
-      AmendmentData.nextServiceStartDateEchoLegacy(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
-    assertEquals(serviceStartDate, Right(LocalDate.of(2022, 7, 9)))
-  }
-
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date") {
     val invoiceList = invoiceListFromJson("InvoicePreviewTermEndsBeforeMigration.json")
     val subscription = subscriptionFromJson("NewspaperVoucher/Monthly/Subscription.json")
@@ -483,104 +467,6 @@ class AmendmentDataTest extends munit.FunSuite {
     assertEquals(
       priceData,
       Right(PriceData(currency = "GBP", oldPrice = 20.99, newPrice = 20.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for an echo-legacy weekend subscription") {
-    val fixtureSet = "NewspaperDelivery/EchoLegacy/WeekendMonthly"
-    val priceData = AmendmentData.priceData(
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      startDate = LocalDate.of(2022, 4, 7)
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 25.09, newPrice = 27.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for an echo-legacy everyday subscription") {
-    val fixtureSet = "NewspaperDelivery/EchoLegacy/EverydayMonthly"
-    val priceData = AmendmentData.priceData(
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      startDate = LocalDate.of(2023, 1, 28)
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 58.45, newPrice = 69.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for an echo-legacy sixday subscription") {
-    val fixtureSet = "NewspaperDelivery/EchoLegacy/SixdayMonthly"
-    val priceData = AmendmentData.priceData(
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      startDate = LocalDate.of(2022, 12, 21)
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 49.79, newPrice = 59.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for an echo-legacy sunday subscription") {
-    val fixtureSet = "NewspaperDelivery/EchoLegacy/SundayMonthly"
-    val priceData = AmendmentData.priceData(
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      startDate = LocalDate.of(2023, 1, 30)
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 14.30, newPrice = 17.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for an echo-legacy saturday quarterly subscription") {
-    val fixtureSet = "NewspaperDelivery/EchoLegacy/SaturdayQuarterly"
-    val priceData = AmendmentData(
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      earliestStartDate = migrationStartDate
-    )
-    assertEquals(
-      priceData,
-      Right(
-        AmendmentData(
-          LocalDate.of(2022, 5, 30),
-          PriceData(currency = "GBP", oldPrice = 40.29, newPrice = 53.97, billingPeriod = "Quarter")
-        )
-      )
-    )
-  }
-
-  test("priceData: is correct for an echo-legacy saturday quarterly subscription (2)") {
-    val fixtureSet = "NewspaperDelivery/EchoLegacy/Quarterly2"
-    val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
-    val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
-
-    val amendmentData = AmendmentData(
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscription,
-      invoiceList = invoiceList,
-      earliestStartDate = migrationStartDate
-    )
-
-    assertEquals(
-      amendmentData,
-      Right(
-        AmendmentData(
-          LocalDate.of(2022, 7, 9),
-          PriceData(currency = "GBP", oldPrice = 40.29, newPrice = 53.97, billingPeriod = "Quarter")
-        )
-      )
     )
   }
 }
