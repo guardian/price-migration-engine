@@ -7,7 +7,9 @@ import pricemigrationengine.Fixtures
 
 class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
 
-  test("updateOfRatePlansToCurrent: migrates GW Zone C Quarterly plan to Rest Of World Quarterly plan (billed in USD)") {
+  test(
+    "updateOfRatePlansToCurrent: migrates GW Zone C Quarterly plan to Rest Of World Quarterly plan (billed in USD)"
+  ) {
     val fixtureSet = "GuardianWeekly/ZoneABC/ZoneC_USD"
     val date = LocalDate.of(2022, 10, 13)
     val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
@@ -295,8 +297,6 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       )
     )
   }
-
-
 
   test("updateOfRatePlansToCurrent: updates correct rate plans on an echo-legacy sub (weekend)") {
     val fixtureSet = "NewspaperDelivery/EchoLegacy/WeekendMonthly"

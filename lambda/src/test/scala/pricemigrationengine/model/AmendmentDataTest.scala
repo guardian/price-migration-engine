@@ -106,7 +106,7 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
-    test("nextserviceStartDate: billing date is first after migration start date (Everyday+Delivery)") {
+  test("nextserviceStartDate: billing date is first after migration start date (Everyday+Delivery)") {
     val invoiceList = invoiceListFromJson("NewspaperDelivery/Everyday+/InvoicePreview.json")
     val subscription = subscriptionFromJson("NewspaperDelivery/Everyday+/Subscription.json")
     val serviceStartDate =

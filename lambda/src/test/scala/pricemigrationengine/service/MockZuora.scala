@@ -22,7 +22,8 @@ object MockZuora extends Mock[Zuora] {
       override def fetchSubscription(subscriptionNumber: String): ZIO[Any, ZuoraFetchFailure, ZuoraSubscription] =
         proxy(FetchSubscription, subscriptionNumber)
 
-      override def fetchAccount(accountNumber: String, subscriptionNumber: String): ZIO[Any, ZuoraFetchFailure, ZuoraAccount] =
+      override def fetchAccount(accountNumber: String, subscriptionNumber: String)
+          : ZIO[Any, ZuoraFetchFailure, ZuoraAccount] =
         proxy(FetchAccount, accountNumber, subscriptionNumber)
 
       override def fetchInvoicePreview(accountId: String, targetDate: LocalDate)
