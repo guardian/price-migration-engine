@@ -16,6 +16,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
 
   private val subscription = ZuoraSubscription(
     subscriptionNumber = "S1",
+    accountNumber = "A9107",
     customerAcceptanceDate = LocalDate.of(2022, 1, 1),
     contractEffectiveDate = LocalDate.of(2022, 1, 1),
     ratePlans = List(
@@ -36,11 +37,45 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         )
       )
     ),
-    accountNumber = "A1",
     accountId = "A11",
     status = "Active",
     termStartDate = LocalDate.of(2022, 1, 1),
     termEndDate = LocalDate.of(2023, 1, 1)
+  )
+
+  private val subscription2 = ZuoraSubscription(
+    subscriptionNumber = "S1",
+    accountNumber = "A9107",
+    customerAcceptanceDate = LocalDate.of(2022, 1, 1),
+    contractEffectiveDate = LocalDate.of(2022, 1, 1),
+    ratePlans = List(
+      ZuoraRatePlan(
+        id = "R1",
+        productName = "P2",
+        productRatePlanId = "PRP1",
+        ratePlanName = "RP1",
+        ratePlanCharges = List(
+          ZuoraRatePlanCharge(
+            productRatePlanChargeId = "PRPC1",
+            name = "N2",
+            number = "C3",
+            currency = "GBP",
+            price = Some(BigDecimal("1.23")),
+            billingPeriod = Some("Month")
+          )
+        )
+      )
+    ),
+    accountId = "A11",
+    status = "Active",
+    termStartDate = LocalDate.of(2022, 1, 1),
+    termEndDate = LocalDate.of(2023, 1, 1)
+  )
+
+  private val account = ZuoraAccount(
+    soldToContact = SoldToContact(
+      country = "United States"
+    )
   )
 
   private val invoicePreview = ZuoraInvoiceList(
@@ -71,7 +106,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       val productCatalogue = ZuoraProductCatalogue(products =
         Set(
           ZuoraProduct(
-            "P1",
+            "P2",
             Set(
               ZuoraProductRatePlan(
                 id = "PRP1",
@@ -81,7 +116,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
                   ZuoraProductRatePlanCharge(
                     id = "PRPC1",
                     billingPeriod = Some("Month"),
-                    pricing = Set(ZuoraPricing(currency = "GBP", price = Some(BigDecimal("2.45"))))
+                    pricing = Set(ZuoraPricing(currency = "GBP", price = Some(BigDecimal("1.30"))))
                   )
                 )
               )
@@ -99,19 +134,24 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         startDate = Some(LocalDate.of(2022, 7, 1)),
         currency = Some("GBP"),
         oldPrice = Some(1.23),
-        estimatedNewPrice = Some(2.45),
+        estimatedNewPrice = Some(1.30),
         billingPeriod = Some("Month"),
         whenEstimationDone = Some(time)
       )
       val expectedSubscriptionFetch = MockZuora.FetchSubscription(
         assertion = equalTo("S1"),
-        result = value(subscription)
+        result = value(subscription2)
+      )
+
+      val expectedAccountToFetch = MockZuora.FetchAccount(
+        assertion = equalTo(("A9107", "S1")),
+        result = value(account)
       )
       val expectedInvoiceFetch = MockZuora.FetchInvoicePreview(
         assertion = equalTo("A11", LocalDate.of(2023, 6, 1)),
         result = value(invoicePreview)
       )
-      val expectedZuoraUse = expectedSubscriptionFetch and expectedInvoiceFetch
+      val expectedZuoraUse = expectedSubscriptionFetch and expectedInvoiceFetch and expectedAccountToFetch
       val expectedCohortTableUpdate = MockCohortTable.Update(
         assertion = equalTo(cohortItemExpectedToWrite),
         result = unit
@@ -153,11 +193,75 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         assertion = equalTo("S1"),
         result = value(subscription)
       )
+      val expectedAccountToFetch = MockZuora.FetchAccount(
+        assertion = equalTo(("A9107", "S1")),
+        result = value(account)
+      )
       val expectedInvoiceFetch = MockZuora.FetchInvoicePreview(
         assertion = equalTo("A11", LocalDate.of(2023, 6, 1)),
         result = value(invoicePreview)
       )
-      val expectedZuoraUse = expectedSubscriptionFetch and expectedInvoiceFetch
+      val expectedZuoraUse = expectedSubscriptionFetch and expectedInvoiceFetch and expectedAccountToFetch
+      val cohortItemExpectedToWrite = CohortItem(
+        subscriptionName = "S1",
+        processingStage = NoPriceIncrease,
+        startDate = Some(LocalDate.of(2022, 7, 1)),
+        currency = Some("GBP"),
+        oldPrice = Some(1.23),
+        estimatedNewPrice = Some(1.15),
+        billingPeriod = Some("Month"),
+        whenEstimationDone = Some(time)
+      )
+      val expectedCohortTableUpdate = MockCohortTable.Update(
+        assertion = equalTo(cohortItemExpectedToWrite),
+        result = unit
+      )
+      for {
+        _ <- TestClock.setTime(time)
+        _ <- EstimationHandler
+          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1))(cohortItemRead)
+          .provide(expectedZuoraUse, expectedCohortTableUpdate)
+      } yield assertTrue(true)
+    },
+    test("updates cohort table with CappedPriceIncrease when estimated new price is 20% or more above the old price") {
+      val productCatalogue = ZuoraProductCatalogue(products =
+        Set(
+          ZuoraProduct(
+            "P1",
+            Set(
+              ZuoraProductRatePlan(
+                id = "PRP1",
+                name = "RP1",
+                status = "Active",
+                productRatePlanCharges = Set(
+                  ZuoraProductRatePlanCharge(
+                    id = "PRPC1",
+                    billingPeriod = Some("Month"),
+                    pricing = Set(ZuoraPricing(currency = "GBP", price = Some(BigDecimal("1.15"))))
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+      val cohortItemRead = CohortItem(
+        subscriptionName = "S1",
+        processingStage = ReadyForEstimation
+      )
+      val expectedSubscriptionFetch = MockZuora.FetchSubscription(
+        assertion = equalTo("S1"),
+        result = value(subscription)
+      )
+      val expectedAccountToFetch = MockZuora.FetchAccount(
+        assertion = equalTo(("A9107", "S1")),
+        result = value(account)
+      )
+      val expectedInvoiceFetch = MockZuora.FetchInvoicePreview(
+        assertion = equalTo("A11", LocalDate.of(2023, 6, 1)),
+        result = value(invoicePreview)
+      )
+      val expectedZuoraUse = expectedSubscriptionFetch and expectedInvoiceFetch and expectedAccountToFetch
       val cohortItemExpectedToWrite = CohortItem(
         subscriptionName = "S1",
         processingStage = NoPriceIncrease,
