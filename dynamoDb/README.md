@@ -1,5 +1,5 @@
 
-#Running DynamoDB Locally
+# Running DynamoDB Locally
 
 Install and run dynamoDB on you local machine using the following instructions:
 - [https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html)
@@ -38,7 +38,7 @@ aws dynamodb delete-table \
     --table-name PriceMigrationEngineDEV \
 ```
 
-#Example DynamoDB queries
+# Example DynamoDB queries
 
 Get the contents of the cohort table with a particular processing stage:
 ```$bash
@@ -100,7 +100,7 @@ aws dynamodb scan \
     --select "COUNT"
 ```
 
-##Modifying Global Secondary Indexes
+## Modifying Global Secondary Indexes
 
 Once created Global seconday indexes such as ProcessingStageIndexVxx cannot be modified. If you need to change the 
 configuration of an index you can create a new one and delete the existing one. 
