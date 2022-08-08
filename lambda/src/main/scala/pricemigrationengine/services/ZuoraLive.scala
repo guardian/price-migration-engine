@@ -128,7 +128,10 @@ object ZuoraLive {
               _ => logging.info(s"Fetched subscription $subscriptionNumber")
             )
 
-        override def fetchAccount(accountNumber: String, subscriptionNumber: String): ZIO[Any, ZuoraFetchFailure, ZuoraAccount] =
+        override def fetchAccount(
+            accountNumber: String,
+            subscriptionNumber: String
+        ): ZIO[Any, ZuoraFetchFailure, ZuoraAccount] =
           get[ZuoraAccount](s"accounts/$accountNumber")
             .mapError(e => ZuoraFetchFailure(s"Subscription $subscriptionNumber: ${e.reason}"))
             .tapBoth(

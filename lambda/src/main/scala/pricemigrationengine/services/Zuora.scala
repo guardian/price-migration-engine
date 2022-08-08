@@ -26,7 +26,8 @@ object Zuora {
   def fetchSubscription(subscriptionNumber: String): ZIO[Zuora, Failure, ZuoraSubscription] =
     ZIO.environmentWithZIO(_.get.fetchSubscription(subscriptionNumber))
 
-  def fetchAccount(accountNumber: String, subscriptionNumber: String): ZIO[Zuora, ZuoraFetchFailure, ZuoraAccount] = ZIO.environmentWithZIO(_.get.fetchAccount(accountNumber, subscriptionNumber))
+  def fetchAccount(accountNumber: String, subscriptionNumber: String): ZIO[Zuora, ZuoraFetchFailure, ZuoraAccount] =
+    ZIO.environmentWithZIO(_.get.fetchAccount(accountNumber, subscriptionNumber))
 
   def fetchInvoicePreview(accountId: String, targetDate: LocalDate): ZIO[Zuora, ZuoraFetchFailure, ZuoraInvoiceList] =
     ZIO.environmentWithZIO(_.get.fetchInvoicePreview(accountId, targetDate))

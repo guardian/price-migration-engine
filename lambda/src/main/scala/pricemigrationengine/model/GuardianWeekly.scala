@@ -44,8 +44,13 @@ object GuardianWeekly {
       newGuardianWeeklyRatePlans(catalogue)
     val deliveryCountry = account.soldToContact.country
 
-    def fetchPlan(currentCharges: Seq[ZuoraRatePlanCharge], ratePlanName: String): Either[AmendmentDataFailure, GuardianWeekly] = {
-      val newRatePlan = guardianWeeklyRatePlans.find(_.name == ratePlanName).find(_.productRatePlanCharges.head.billingPeriod == currentCharges.head.billingPeriod)
+    def fetchPlan(
+        currentCharges: Seq[ZuoraRatePlanCharge],
+        ratePlanName: String
+    ): Either[AmendmentDataFailure, GuardianWeekly] = {
+      val newRatePlan = guardianWeeklyRatePlans
+        .find(_.name == ratePlanName)
+        .find(_.productRatePlanCharges.head.billingPeriod == currentCharges.head.billingPeriod)
 
       newRatePlan match {
         case Some(plan) =>
@@ -71,7 +76,10 @@ object GuardianWeekly {
       }
      */
 
-    def aaaa(currency: Currency, ratePlanCharges: Seq[ZuoraRatePlanCharge]): Either[AmendmentDataFailure, GuardianWeekly] = {
+    def aaaa(
+        currency: Currency,
+        ratePlanCharges: Seq[ZuoraRatePlanCharge]
+    ): Either[AmendmentDataFailure, GuardianWeekly] = {
       if (ratePlanCharges.head.currency == "USD") {
         for {
           ratePlan <-

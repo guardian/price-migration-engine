@@ -50,7 +50,8 @@ object EstimationHandler extends CohortHandler {
       success = { result =>
         val cohortItemToWrite =
           if (result.estimatedNewPrice <= result.oldPrice) CohortItem.fromNoPriceIncreaseEstimationResult(result)
-          else if ((result.estimatedNewPrice - result.oldPrice) / result.oldPrice >= 0.2) CohortItem.fromCappedPriceIncreaseEstimationResult(result)
+          else if ((result.estimatedNewPrice - result.oldPrice) / result.oldPrice >= 0.2)
+            CohortItem.fromCappedPriceIncreaseEstimationResult(result)
           else CohortItem.fromSuccessfulEstimationResult(result)
         for {
           cohortItem <- cohortItemToWrite

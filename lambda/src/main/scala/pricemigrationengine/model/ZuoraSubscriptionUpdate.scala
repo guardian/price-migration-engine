@@ -114,12 +114,12 @@ object AddZuoraRatePlan {
   }
 
   def fromRatePlanGuardianWeekly(
-                              account: ZuoraAccount,
-                              catalogue: ZuoraProductCatalogue,
-                              contractEffectiveDate: LocalDate
-                            )(
-                              ratePlan: ZuoraRatePlan
-                            ): Either[AmendmentDataFailure, AddZuoraRatePlan] = {
+      account: ZuoraAccount,
+      catalogue: ZuoraProductCatalogue,
+      contractEffectiveDate: LocalDate
+  )(
+      ratePlan: ZuoraRatePlan
+  ): Either[AmendmentDataFailure, AddZuoraRatePlan] = {
     for {
       guardianWeekly <- GuardianWeekly.getNewRatePlanCharges(account, catalogue, ratePlan.ratePlanCharges)
       chargeOverrides <- guardianWeekly.chargePairs
