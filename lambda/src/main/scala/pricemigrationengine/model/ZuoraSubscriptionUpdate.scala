@@ -49,12 +49,13 @@ object ZuoraSubscriptionUpdate {
       Left(AmendmentDataFailure(s"Multiple rate plans to update: ${ratePlans.map(_.id)}"))
     else {
       val isZoneABC = subscription.ratePlans.filter(zoneABCPlanNames contains _.productName)
-      // val isZoneABC = ratePlans.head.ratePlanName == "Echo-Legacy"
+      val isEchoLegacy = ratePlans.head.ratePlanName == "Echo-Legacy"
       val pricingData = productPricingMap(catalogue)
 
       ratePlans
         .map(
           if (isZoneABC.nonEmpty) AddZuoraRatePlan.fromRatePlanGuardianWeekly(account, catalogue, effectiveDate)
+          else if (isEchoLegacy) AddZuoraRatePlan.fromRatePlanEchoLegacy(catalogue, effectiveDate)
           else AddZuoraRatePlan.fromRatePlan(pricingData, effectiveDate)
         )
         .sequence
