@@ -66,6 +66,7 @@ object CohortTableFilter {
     AmendmentWrittenToSalesforce,
     Cancelled,
     EstimationComplete,
+    CappedPriceIncrease,
     EstimationFailed,
     NoPriceIncrease,
     NotificationSendComplete,
