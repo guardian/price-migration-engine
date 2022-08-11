@@ -29,6 +29,7 @@ case class PriceData(currency: Currency, oldPrice: BigDecimal, newPrice: BigDeci
 object AmendmentData {
 
   def apply(
+      account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
@@ -40,7 +41,7 @@ object AmendmentData {
       startDate <-
         if (isEchoLegacy) nextServiceStartDateEchoLegacy(invoiceList, subscription, onOrAfter = earliestStartDate)
         else nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
-      price <- priceData(catalogue, subscription, invoiceList, startDate)
+      price <- priceData(account, catalogue, subscription, invoiceList, startDate)
     } yield AmendmentData(startDate, priceData = price)
   }
 
@@ -93,6 +94,7 @@ object AmendmentData {
     * price, and currency.</li> </ol>
     */
   def priceData(
+      account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
@@ -148,16 +150,19 @@ object AmendmentData {
       else Left(AmendmentDataFailure(failures.map(_.reason).mkString(", ")))
     }
 
+    val zoneABCPlanNames = List("Guardian Weekly Zone A", "Guardian Weekly Zone B", "Guardian Weekly Zone C")
+
     for {
       ratePlanCharges <- ratePlanChargesOrFail
       ratePlan <- ZuoraRatePlan
         .ratePlan(subscription, ratePlanCharges.head)
         .toRight(AmendmentDataFailure(s"Failed to get RatePlan for charges: $ratePlanCharges"))
 
-      isEchoLegacy = ratePlan.ratePlanName == "Echo-Legacy"
+      isZoneABC = zoneABCPlanNames contains ratePlan.productName
+      // check the Zone ABC rateplan is the currently active one -> effectiveEndDate property on the subscription, are we filtering out inactive Zone ABC rateplans in the bigquery query?? does the engine filter out inactive rateplans??
 
       pairs <-
-        if (isEchoLegacy) EchoLegacy.getNewRatePlans(catalogue, ratePlanCharges).map(_.chargePairs)
+        if (isZoneABC) GuardianWeekly.getNewRatePlanCharges(account, catalogue, ratePlanCharges).map(_.chargePairs)
         else ratePlanChargePairs(ratePlanCharges)
 
       currency <- pairs.headOption

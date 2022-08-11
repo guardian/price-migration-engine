@@ -65,7 +65,7 @@ class NotificationHandlerTest extends munit.FunSuite {
             beforeDateInclusive,
             Some(
               LocalDate
-                .from(expectedCurrentTime.plus(37, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
+                .from(expectedCurrentTime.plus(49, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
             )
           )
           ZStream(cohortItem)

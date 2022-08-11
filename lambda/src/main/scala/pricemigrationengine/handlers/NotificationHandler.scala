@@ -13,7 +13,7 @@ object NotificationHandler extends CohortHandler {
 
   val Cancelled_Status = "Cancelled"
 
-  private val NotificationLeadTimeDays = 37
+  private val NotificationLeadTimeDays = 49
 
   def main(
       brazeCampaignName: String
