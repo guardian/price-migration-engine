@@ -24,6 +24,26 @@ class AmendmentDataTest extends munit.FunSuite {
 
   private def deliveryMigrationStartDate = LocalDate.of(2022, 4, 18)
 
+  test("priceData: is correct for a quarterly GW Domestic plan") {
+    val fixtureSet = "GuardianWeekly/QuarterlyDomestic"
+    val priceData = AmendmentData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      earliestStartDate = migrationStartDate2022
+    )
+    assertEquals(
+      priceData,
+      Right(
+        AmendmentData(
+          LocalDate.of(2022, 11, 12),
+          PriceData(currency = "GBP", oldPrice = 37.50, newPrice = 41.25, billingPeriod = "Quarter")
+        )
+      )
+    )
+  }
+
   test("priceData: is correct migrating a quarterly GW Zone A plan (billed in USD) to GW Domestic plan") {
     val fixtureSet = "GuardianWeekly/ZoneABC/ZoneA_USD_Domestic"
     val priceData = AmendmentData(
