@@ -17,8 +17,6 @@ object BillingPeriod extends Enumeration {
  */
 case class GuardianWeekly(productRatePlan: ZuoraProductRatePlan, chargePairs: Seq[RatePlanChargePair])
 object GuardianWeekly {
-  private val restOfWorldCountries = List("United States")
-
   // we need to know:
   // billingPeriod - monthly, quarterly, annually
   // Whether it should change to Domestic or ROW
@@ -35,6 +33,7 @@ object GuardianWeekly {
           case "Quarter" => "Quarterly"
           case "Month"   => "Monthly"
           case "Annual"  => "Annual"
+          case default => Left(AmendmentDataFailure(s"billingPeriod is $default for ratePlan"))
         }
 
       case None => Left(AmendmentDataFailure("billingPeriod is null for ratePlan"))
