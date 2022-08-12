@@ -33,7 +33,7 @@ object GuardianWeekly {
           case "Quarter" => "Quarterly"
           case "Month"   => "Monthly"
           case "Annual"  => "Annual"
-          case default => Left(AmendmentDataFailure(s"billingPeriod is $default for ratePlan"))
+          case default   => Left(AmendmentDataFailure(s"billingPeriod is $default for ratePlan"))
         }
 
       case None => Left(AmendmentDataFailure("billingPeriod is null for ratePlan"))
