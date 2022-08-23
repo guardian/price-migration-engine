@@ -81,6 +81,16 @@ Set up a run configuration for the lambda, using the following environment varia
 
 and also the specific environment variables for the lambda you are running.
 
+### Environment variables
+
+The environment variables set in the lambdas are provided by [Secrets Manager](https://eu-west-1.console.aws.amazon.com/secretsmanager/secret?name=price-migration-engine-lambda-PROD&region=eu-west-1) and can also be changed manually in the AWS console by navigating to the lambda (e.g.: price-migration-engine-estimation-lambda-CODE) > Configuration > Environment variables
+
+_Note:_ The DEV and CODE environments both currently point to `apisandbox.zuora.com`. 
+
+We have a copy of our production Zuora environment, the "centralsandbox" (which we access via `test.zuora.com`). However, as we do not have an equivalent salesforce environment set up, we cannot run the step function from start to finish with this environment. 
+
+Individual lambdas like the `EstimationLambda` and the `AmendmentLambda` can be run against this Zuora environment if we want to test on subscriptions in production. See how to [run the lambdas locally](#to-run-lambdas-locally-in-intellij) (see above) with the necessary environment variables.
+
 #### Specific environment variables per lambda
 
 ##### EstimationHandler and Amendment Handler
