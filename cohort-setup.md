@@ -4,6 +4,12 @@ Previously, cohorts have been separated by product type, i.e.: Newspaper Voucher
 
 The following are the steps required to set up a new cohort of subscriptions due to have their price increased.
 
+# IMPORTANT: BEFORE RUNNING A COHORT
+
+If using a new Braze Campaign, the campaign name, and it's ID must be added to the [configuration file](https://github.com/guardian/membership-workflow/blob/main/conf/PROD.public.conf#L119-L123) in the `membership-workflow` repo, under `directMailCampaigns`.
+
+ This will map the campaign name from the DynamoDB table to it's correct ID in `membership-workflow`. We can do [future work](https://trello.com/c/5VWs9qNV/480-do-not-require-the-braze-campaign-id-to-be-added-to-membership-workflow-rather-provide-it-through-dynamodb) to prevent having to do this, and rather provide the campaign ID directly in the DynamoDB table.
+
 ## 1. Cohort specification
 
 From the DynamoDB Dashboard, click on `Explore items` in the navigation menu. Create an item in the `price-migration-engine-cohort-spec-PROD` DynamoDB table.  
