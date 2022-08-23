@@ -74,7 +74,9 @@ The stages are as follows
 
 #### Generating the start date, i.e.: the day the new rate plan/price-rise comes into effect for a subscription 
 
-1. We spread the start dates out randomly for each subscription [over 3 months](./src/main/scala/pricemigrationengine/handlers/EstimationHandler.scala#L78-L80). 
+The cohort as a whole has a start date, which is set in the cohort spec. So for any individual sub, the price rise will take effect on that date or later. For any sub the price rise date will be the next service period start date on or later than that overall start date.
+
+1. We spread the start dates out randomly for each **monthly** subscription [over 3 months](./src/main/scala/pricemigrationengine/handlers/EstimationHandler.scala#L78-L80). 
 
 We spread the dates out to reduce impact on our CSR's, because quite a few people cancel because of the price-rise, so if we spread it out we can reduce traffic of people calling our CSR's to cancel their subscription (you can't cancel subscriptions through manage.theguardian.com so customers are forced to phone in)
 
