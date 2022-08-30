@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.TestLogging
+import pricemigrationengine.{TestLogging, handlers}
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
@@ -19,6 +19,7 @@ import scala.collection.mutable.ArrayBuffer
 class NotificationHandlerTest extends munit.FunSuite {
   private val expectedSubscriptionName = "Sub-0001"
   private val expectedStartDate = LocalDate.of(2020, 1, 1)
+  private val expectedStartDateUserFriendlyFormat = "1 January 2020"
   private val expectedCurrency = "GBP"
   private val expectedBillingPeriod = "Month"
   private val expectedBillingPeriodInNotification = "Monthly"
@@ -227,7 +228,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date,
-      expectedStartDate.toString
+      expectedStartDateUserFriendlyFormat
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_frequency,
