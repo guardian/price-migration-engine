@@ -7,6 +7,9 @@ import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 object NotificationHandler extends CohortHandler {
 
   val Successful = 1
@@ -57,6 +60,18 @@ object NotificationHandler extends CohortHandler {
     ZIO.succeed(i18n.Currency.fromString(iso: String).map(_.identifier).getOrElse(""))
   }
 
+  def dateStrToLocalDate(startDate: String): LocalDate = {
+    LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+  }
+
+  def emailUserFriendlyDateFormatter(startDate: LocalDate): String = {
+    startDate.format(DateTimeFormatter.ofPattern("d MMMM uuuu"));
+  }
+
+  def startDateConversion(startDate: String): String = {
+    emailUserFriendlyDateFormatter(dateStrToLocalDate(startDate: String))
+  }
+
   def sendNotification(
       brazeCampaignName: String,
       cohortItem: CohortItem,
@@ -104,7 +119,7 @@ object NotificationHandler extends CohortHandler {
                 billing_state = address.state,
                 billing_country = country,
                 payment_amount = estimatedNewPriceWithCurrencySymbol,
-                next_payment_date = startDate,
+                next_payment_date = startDateConversion(startDate),
                 payment_frequency = paymentFrequency,
                 subscription_id = cohortItem.subscriptionName,
                 product_type = sfSubscription.Product_Type__c.getOrElse("")
