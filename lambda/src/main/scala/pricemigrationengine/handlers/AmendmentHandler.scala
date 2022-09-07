@@ -51,11 +51,15 @@ object AmendmentHandler extends CohortHandler {
           .orElseFail(AmendmentDataFailure(s"No estimated new price in $item"))
       invoicePreviewTargetDate = startDate.plusMonths(13)
       subscriptionBeforeUpdate <- fetchSubscription(item)
+
+      account <- Zuora.fetchAccount(subscriptionBeforeUpdate.accountNumber, subscriptionBeforeUpdate.subscriptionNumber)
+
       invoicePreviewBeforeUpdate <-
         Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
       update <- ZIO.fromEither(
         ZuoraSubscriptionUpdate
           .updateOfRatePlansToCurrent(
+            account,
             catalogue,
             subscriptionBeforeUpdate,
             invoicePreviewBeforeUpdate,

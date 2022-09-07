@@ -16,12 +16,13 @@ case class SuccessfulEstimationResult(
 object EstimationResult {
 
   def apply(
+      account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       earliestStartDate: LocalDate
   ): Either[AmendmentDataFailure, SuccessfulEstimationResult] =
-    AmendmentData(catalogue, subscription, invoiceList, earliestStartDate) map { amendmentData =>
+    AmendmentData(account, catalogue, subscription, invoiceList, earliestStartDate) map { amendmentData =>
       SuccessfulEstimationResult(
         subscription.subscriptionNumber,
         amendmentData.startDate,

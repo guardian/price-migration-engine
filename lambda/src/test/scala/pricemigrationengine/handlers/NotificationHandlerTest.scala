@@ -24,6 +24,7 @@ class NotificationHandlerTest extends munit.FunSuite {
   private val expectedBillingPeriodInNotification = "Monthly"
   private val expectedOldPrice = BigDecimal(11.11)
   private val expectedEstimatedNewPrice = BigDecimal(22.22)
+  private val expectedEstimatedNewPriceWithCurrencySymbolPrefix = "£22.22"
   private val expectedSFSubscriptionId = "1234"
   private val expectedBuyerId = "buyer-1"
   private val expectedIdentityId = "buyer1-identity-id"
@@ -65,7 +66,7 @@ class NotificationHandlerTest extends munit.FunSuite {
             beforeDateInclusive,
             Some(
               LocalDate
-                .from(expectedCurrentTime.plus(37, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
+                .from(expectedCurrentTime.plus(49, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
             )
           )
           ZStream(cohortItem)
@@ -222,7 +223,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, expectedLastName)
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount,
-      expectedEstimatedNewPrice.toString()
+      expectedEstimatedNewPriceWithCurrencySymbolPrefix
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date,

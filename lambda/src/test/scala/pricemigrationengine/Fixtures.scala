@@ -1,6 +1,6 @@
 package pricemigrationengine
 
-import pricemigrationengine.model.{ZuoraInvoiceList, ZuoraProductCatalogue, ZuoraSubscription}
+import pricemigrationengine.model.{ZuoraAccount, ZuoraInvoiceList, ZuoraProductCatalogue, ZuoraSubscription}
 import upickle.default._
 
 import scala.io.Source
@@ -20,4 +20,7 @@ object Fixtures {
 
   def invoiceListFromJson(resource: String): ZuoraInvoiceList =
     instanceFromJson[ZuoraInvoiceList](resource)
+
+  def accountFromJson(resource: String): ZuoraAccount =
+    instanceFromJson[ZuoraAccount](resource)
 }
