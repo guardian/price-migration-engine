@@ -1,11 +1,12 @@
 package pricemigrationengine.handlers
 
+import com.gu.i18n
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
-import zio.{Clock, ZIO}
-import com.gu.i18n
+import zio.Schedule.spaced
+import zio._
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -19,6 +20,9 @@ object NotificationHandler extends CohortHandler {
 
   private val NotificationLeadTimeDays = 49
 
+  private val batchSize = 50
+  private val intervalBetweenBatches = 30.seconds
+
   def main(
       brazeCampaignName: String
   ): ZIO[Logging with CohortTable with SalesforceClient with EmailSender, Failure, HandlerOutput] = {
@@ -27,7 +31,9 @@ object NotificationHandler extends CohortHandler {
       count <- CohortTable
         .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(NotificationLeadTimeDays)))
         .mapZIO(sendNotification(brazeCampaignName))
-        .runFold(0) { (sum, count) => sum + count }
+        .grouped(batchSize)
+        .schedule(spaced(intervalBetweenBatches))
+        .runFold(0) { (sum, count) => sum + count.sum }
       _ <- Logging.info(s"Successfully sent $count price rise notifications")
     } yield HandlerOutput(isComplete = true)
   }
