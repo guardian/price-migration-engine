@@ -88,7 +88,7 @@ object EstimationHandler extends CohortHandler {
 
     lazy val earliestStartDateForAMonthlySub =
       for {
-        randomFactor <- Random.nextIntBetween(0, 3)
+        randomFactor <- Random.nextIntBetween(12, 15)
         actualEarliestStartDate = earliestStartDate.plusMonths(randomFactor)
       } yield actualEarliestStartDate
 
