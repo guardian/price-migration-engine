@@ -90,7 +90,7 @@ object EstimationHandler extends CohortHandler {
       for {
         yearAgo <- Clock.localDateTime.map(_.toLocalDate.minusYears(1))
         randomFactor <-
-          if (subscription.termStartDate.isBefore(yearAgo)) Random.nextIntBetween(0, 3)
+          if (subscription.customerAcceptanceDate.isBefore(yearAgo)) Random.nextIntBetween(0, 3)
           else Random.nextIntBetween(12, 15)
         actualEarliestStartDate = earliestStartDate.plusMonths(randomFactor)
       } yield actualEarliestStartDate
