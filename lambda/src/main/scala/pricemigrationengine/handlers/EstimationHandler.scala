@@ -71,7 +71,7 @@ object EstimationHandler extends CohortHandler {
           .fetchSubscription(item.subscriptionName)
           .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
       account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
-      invoicePreviewTargetDate = earliestStartDate.plusMonths(13)
+      invoicePreviewTargetDate = earliestStartDate.plusMonths(16)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
       earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, earliestStartDate)
       result <- ZIO.fromEither(EstimationResult(account, catalogue, subscription, invoicePreview, earliestStartDate))
