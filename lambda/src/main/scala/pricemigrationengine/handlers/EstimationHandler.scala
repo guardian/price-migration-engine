@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.{IO, Random, ZIO}
+import zio.{Clock, IO, Random, ZIO}
 
 import java.time.LocalDate
 
@@ -88,7 +88,10 @@ object EstimationHandler extends CohortHandler {
 
     lazy val earliestStartDateForAMonthlySub =
       for {
-        randomFactor <- Random.nextIntBetween(0, 3)
+        yearAgo <- Clock.localDateTime.map(_.toLocalDate.minusYears(1))
+        randomFactor <-
+          if (subscription.termStartDate.isBefore(yearAgo)) Random.nextIntBetween(0, 3)
+          else Random.nextIntBetween(12, 15)
         actualEarliestStartDate = earliestStartDate.plusMonths(randomFactor)
       } yield actualEarliestStartDate
 
