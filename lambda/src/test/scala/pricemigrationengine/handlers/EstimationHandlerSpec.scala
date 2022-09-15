@@ -134,6 +134,18 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         serviceStartDate = LocalDate.of(2023, 7, 1),
         chargeNumber = "C4",
         productName = "P1"
+      ),
+      ZuoraInvoiceItem(
+        subscriptionNumber = "S1",
+        serviceStartDate = LocalDate.of(2023, 8, 1),
+        chargeNumber = "C2",
+        productName = "P1"
+      ),
+      ZuoraInvoiceItem(
+        subscriptionNumber = "S1",
+        serviceStartDate = LocalDate.of(2023, 9, 1),
+        chargeNumber = "C1",
+        productName = "P1"
       )
     )
   )
@@ -190,7 +202,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         result = value(account)
       )
       val expectedInvoiceFetch = MockZuora.FetchInvoicePreview(
-        assertion = equalTo("A11", LocalDate.of(2023, 6, 1)),
+        assertion = equalTo("A11", LocalDate.of(2023, 9, 1)),
         result = value(invoicePreview)
       )
       val expectedZuoraUse = expectedSubscriptionFetch and expectedInvoiceFetch and expectedAccountToFetch
@@ -245,7 +257,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         result = value(account)
       )
       val expectedInvoiceFetch = MockZuora.FetchInvoicePreview(
-        assertion = equalTo("A11", LocalDate.of(2023, 6, 1)),
+        assertion = equalTo("A11", LocalDate.of(2023, 9, 1)),
         result = value(invoicePreview)
       )
       val expectedZuoraUse = expectedSubscriptionFetch and expectedInvoiceFetch and expectedAccountToFetch
@@ -310,7 +322,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         result = value(account)
       )
       val expectedInvoiceFetch = MockZuora.FetchInvoicePreview(
-        assertion = equalTo("A11", LocalDate.of(2023, 6, 1)),
+        assertion = equalTo("A11", LocalDate.of(2023, 9, 1)),
         result = value(invoicePreview)
       )
       val expectedZuoraUse = expectedSubscriptionFetch and expectedInvoiceFetch and expectedAccountToFetch
