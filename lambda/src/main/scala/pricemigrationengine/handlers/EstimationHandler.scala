@@ -95,7 +95,12 @@ object EstimationHandler extends CohortHandler {
         yearAgo <- Clock.localDateTime.map(_.toLocalDate.minusYears(1))
         randomFactor <-
           if (subscription.customerAcceptanceDate.isBefore(yearAgo)) Random.nextIntBetween(0, 3)
-          else ZIO.succeed(relu(ChronoUnit.MONTHS.between(earliestStartDate, subscription.customerAcceptanceDate.plusMonths(13)).toInt))
+          else
+            ZIO.succeed(
+              relu(
+                ChronoUnit.MONTHS.between(earliestStartDate, subscription.customerAcceptanceDate.plusMonths(13)).toInt
+              )
+            )
         actualEarliestStartDate = earliestStartDate.plusMonths(randomFactor)
       } yield actualEarliestStartDate
 

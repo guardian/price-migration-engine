@@ -2,7 +2,12 @@ package pricemigrationengine.handlers
 
 import pricemigrationengine.Fixtures.{invoiceListFromJson, subscriptionFromJson}
 import pricemigrationengine.handlers.EstimationHandler.spreadEarliestStartDate
-import pricemigrationengine.model.CohortTableFilter.{CappedPriceIncrease, EstimationComplete, NoPriceIncrease, ReadyForEstimation}
+import pricemigrationengine.model.CohortTableFilter.{
+  CappedPriceIncrease,
+  EstimationComplete,
+  NoPriceIncrease,
+  ReadyForEstimation
+}
 import pricemigrationengine.model._
 import pricemigrationengine.service.{MockCohortTable, MockZuora}
 import zio._
@@ -150,9 +155,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
   private val migrationStartDate2022 = LocalDate.of(2022, 11, 14)
   private val testTime1 = OffsetDateTime.of(LocalDateTime.of(2022, 7, 10, 10, 2), ZoneOffset.ofHours(0)).toInstant
 
-
   override def spec: Spec[TestEnvironment with Scope, Any] = suite("estimate")(
-
     test("Start date is correct for subscription less than one year old (1)") {
       val invoiceList = invoiceListFromJson("NewspaperDelivery/Sixday+/InvoicePreview.json")
       val subscription = subscriptionFromJson("NewspaperDelivery/Sixday+/Subscription.json")
@@ -163,7 +166,6 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         startDate <- spreadEarliestStartDate(subscription, invoiceList, migrationStartDate2022)
       } yield assert(startDate)(equalTo(expectedStartDate))
     },
-
     test("Start date is correct for subscription less than one year old (2)") {
       val invoiceList = invoiceListFromJson("NewspaperDelivery/Waitrose25%Discount/InvoicePreview.json")
       val subscription = subscriptionFromJson("NewspaperDelivery/Waitrose25%Discount/Subscription.json")
@@ -174,7 +176,6 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         startDate <- spreadEarliestStartDate(subscription, invoiceList, migrationStartDate2022)
       } yield assert(startDate)(equalTo(expectedStartDate))
     },
-
     test("Start date is correct for subscription less than one year old (3)") {
       val invoiceList = invoiceListFromJson("NewspaperDelivery/Everyday/InvoicePreview.json")
       val subscription = subscriptionFromJson("NewspaperDelivery/Everyday/Subscription.json")
@@ -185,7 +186,6 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         startDate <- spreadEarliestStartDate(subscription, invoiceList, migrationStartDate2022)
       } yield assert(startDate)(equalTo(expectedStartDate))
     },
-
     test("updates cohort table with EstimationComplete when data is complete") {
       val productCatalogue = ZuoraProductCatalogue(products =
         Set(
