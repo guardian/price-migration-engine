@@ -6,6 +6,7 @@ import pricemigrationengine.services._
 import zio.{Clock, IO, Random, ZIO}
 
 import java.time.LocalDate
+import java.time.temporal._
 
 /** Calculates start date and new price for a set of CohortItems.
   *
@@ -80,18 +81,21 @@ object EstimationHandler extends CohortHandler {
   /*
    * Earliest start date spread out over 3 months.
    */
-  private[handlers] def spreadEarliestStartDate(
+  def spreadEarliestStartDate(
       subscription: ZuoraSubscription,
       invoicePreview: ZuoraInvoiceList,
       earliestStartDate: LocalDate
   ): IO[ConfigFailure, LocalDate] = {
+
+    def relu(number: Int): Int =
+      if (number < 0) 0 else number
 
     lazy val earliestStartDateForAMonthlySub =
       for {
         yearAgo <- Clock.localDateTime.map(_.toLocalDate.minusYears(1))
         randomFactor <-
           if (subscription.customerAcceptanceDate.isBefore(yearAgo)) Random.nextIntBetween(0, 3)
-          else Random.nextIntBetween(12, 15)
+          else ZIO.succeed(relu(ChronoUnit.MONTHS.between(earliestStartDate, subscription.customerAcceptanceDate.plusMonths(13)).toInt))
         actualEarliestStartDate = earliestStartDate.plusMonths(randomFactor)
       } yield actualEarliestStartDate
 
