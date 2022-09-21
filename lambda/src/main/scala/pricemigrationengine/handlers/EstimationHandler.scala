@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import zio.{Clock, IO, Random, ZIO}
+import zio.{Clock, UIO, IO, Random, ZIO}
 
 import java.time.LocalDate
 import java.time.temporal._
@@ -90,17 +90,24 @@ object EstimationHandler extends CohortHandler {
     def relu(number: Int): Int =
       if (number < 0) 0 else number
 
+    /*
+      Any subscription less than one year old (i.e.: purchased within the last year), should only be risen at least one year after purchase, hence we raise them on the thirteenth month.
+     */
+    def startOnThirteenthMonth: UIO[Int] = {
+      ZIO.succeed(
+        relu(
+          ChronoUnit.MONTHS.between(earliestStartDate, subscription.customerAcceptanceDate.plusMonths(13)).toInt
+        )
+      )
+    }
+
     lazy val earliestStartDateForAMonthlySub =
       for {
         yearAgo <- Clock.localDateTime.map(_.toLocalDate.minusYears(1))
         randomFactor <-
           if (subscription.customerAcceptanceDate.isBefore(yearAgo)) Random.nextIntBetween(0, 3)
           else
-            ZIO.succeed(
-              relu(
-                ChronoUnit.MONTHS.between(earliestStartDate, subscription.customerAcceptanceDate.plusMonths(13)).toInt
-              )
-            )
+            startOnThirteenthMonth
         actualEarliestStartDate = earliestStartDate.plusMonths(randomFactor)
       } yield actualEarliestStartDate
 
