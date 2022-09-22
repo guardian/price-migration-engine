@@ -4,7 +4,7 @@ import sbt.Keys.{description, name}
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-ThisBuild / scalaVersion := "2.13.8"
+ThisBuild / scalaVersion := "2.13.9"
 
 ThisBuild / scalacOptions ++= Seq(
   "-deprecation",
