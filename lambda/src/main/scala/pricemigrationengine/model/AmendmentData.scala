@@ -33,7 +33,8 @@ object AmendmentData {
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-      earliestStartDate: LocalDate
+      earliestStartDate: LocalDate,
+      newPriceOverride: NewPriceOverride.NewPriceOverrider
   ): Either[AmendmentDataFailure, AmendmentData] = {
     val isEchoLegacy = subscription.ratePlans.filter(_.ratePlanName == "Echo-Legacy").nonEmpty
 
@@ -41,7 +42,7 @@ object AmendmentData {
       startDate <-
         if (isEchoLegacy) nextServiceStartDateEchoLegacy(invoiceList, subscription, onOrAfter = earliestStartDate)
         else nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
-      price <- priceData(account, catalogue, subscription, invoiceList, startDate)
+      price <- priceData(account, catalogue, subscription, invoiceList, startDate, newPriceOverride)
     } yield AmendmentData(startDate, priceData = price)
   }
 
@@ -98,7 +99,8 @@ object AmendmentData {
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-      startDate: LocalDate
+      startDate: LocalDate,
+      newPriceOverride: NewPriceOverride.NewPriceOverrider
   ): Either[AmendmentDataFailure, PriceData] = {
 
     def hasNotPriceAndDiscount(ratePlanCharge: ZuoraRatePlanCharge) =
@@ -162,14 +164,16 @@ object AmendmentData {
       // check the Zone ABC rateplan is the currently active one -> effectiveEndDate property on the subscription, are we filtering out inactive Zone ABC rateplans in the bigquery query?? does the engine filter out inactive rateplans??
 
       pairs <-
-        if (isZoneABC) GuardianWeekly.getNewRatePlanCharges(account, catalogue, ratePlanCharges).map(_.chargePairs)
+        if (isZoneABC)
+          GuardianWeekly.getNewRatePlanCharges(account, catalogue, ratePlanCharges).map(_.chargePairs)
         else ratePlanChargePairs(ratePlanCharges)
 
       currency <- pairs.headOption
         .map(p => Right(p.chargeFromSubscription.currency))
         .getOrElse(Left(AmendmentDataFailure(s"No invoice items for date: $startDate")))
       oldPrice <- totalChargeAmount(subscription, invoiceList, startDate)
-      newPrice <- totalChargeAmount(pairs)
+      newPriceBeforeOverride <- totalChargeAmount(pairs)
+      newPrice = newPriceOverride(oldPrice, newPriceBeforeOverride)
       billingPeriod <- pairs
         .flatMap(_.chargeFromSubscription.billingPeriod)
         .headOption

@@ -33,8 +33,9 @@ object MockCohortTable extends Mock[CohortTable] {
             override def create(cohortItem: CohortItem): IO[Failure, Unit] =
               proxy(Create, cohortItem)
 
-            override def update(result: CohortItem): IO[CohortUpdateFailure, Unit] =
+            override def update(result: CohortItem): IO[CohortUpdateFailure, Unit] = {
               proxy(Update, result)
+            }
           }
         )
     )

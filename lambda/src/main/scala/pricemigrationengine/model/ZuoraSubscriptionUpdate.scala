@@ -33,8 +33,10 @@ object ZuoraSubscriptionUpdate {
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-      effectiveDate: LocalDate
+      effectiveDate: LocalDate,
+      newPriceOverride: Option[BigDecimal]
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+
     val ratePlans = (for {
       invoiceItem <- ZuoraInvoiceItem.items(invoiceList, subscription, effectiveDate)
       ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toSeq
@@ -54,9 +56,10 @@ object ZuoraSubscriptionUpdate {
 
       ratePlans
         .map(
-          if (isZoneABC.nonEmpty) AddZuoraRatePlan.fromRatePlanGuardianWeekly(account, catalogue, effectiveDate)
+          if (isZoneABC.nonEmpty)
+            AddZuoraRatePlan.fromRatePlanGuardianWeekly(account, catalogue, effectiveDate, newPriceOverride)
           else if (isEchoLegacy) AddZuoraRatePlan.fromRatePlanEchoLegacy(catalogue, effectiveDate)
-          else AddZuoraRatePlan.fromRatePlan(pricingData, effectiveDate)
+          else AddZuoraRatePlan.fromRatePlan(pricingData, effectiveDate, newPriceOverride)
         )
         .sequence
         .map { add =>
@@ -84,16 +87,42 @@ case class AddZuoraRatePlan(
 object AddZuoraRatePlan {
   implicit val rw: ReadWriter[AddZuoraRatePlan] = macroRW
 
-  def fromRatePlan(pricingData: ZuoraPricingData, contractEffectiveDate: LocalDate)(
+  def alterZuoraPricings(set: Set[ZuoraPricing], newPrice: BigDecimal): Set[ZuoraPricing] =
+    set.map(zp => ZuoraPricing(zp.currency, zp.price.map(x => List(x, newPrice).min)))
+
+  def alterZuoraProductRatePlanCharge(
+      rpc: ZuoraProductRatePlanCharge,
+      newPriceOverride: Option[BigDecimal]
+  ): ZuoraProductRatePlanCharge = {
+    newPriceOverride match {
+      case None => rpc
+      case Some(newPrice) =>
+        ZuoraProductRatePlanCharge(rpc.id, rpc.billingPeriod, alterZuoraPricings(rpc.pricing, newPrice))
+    }
+  }
+
+  def fromRatePlan(
+      pricingData: ZuoraPricingData,
+      contractEffectiveDate: LocalDate,
+      newPriceOverride: Option[BigDecimal]
+  )(
       ratePlan: ZuoraRatePlan
-  ): Either[AmendmentDataFailure, AddZuoraRatePlan] =
+  ): Either[AmendmentDataFailure, AddZuoraRatePlan] = {
+
+    def alterPricingData(zuoraPricingData: ZuoraPricingData, newPrice: Option[BigDecimal]): ZuoraPricingData = {
+      zuoraPricingData.toSeq
+        .map(x => (x._1, alterZuoraProductRatePlanCharge(x._2, newPriceOverride)))
+        .toMap
+    }
+
     for {
-      chargeOverrides <- ChargeOverride.fromRatePlan(pricingData, ratePlan)
+      chargeOverrides <- ChargeOverride.fromRatePlan(alterPricingData(pricingData, newPriceOverride), ratePlan)
     } yield AddZuoraRatePlan(
       productRatePlanId = ratePlan.productRatePlanId,
       contractEffectiveDate,
       chargeOverrides
     )
+  }
 
   def fromRatePlanEchoLegacy(
       catalogue: ZuoraProductCatalogue,
@@ -117,14 +146,24 @@ object AddZuoraRatePlan {
   def fromRatePlanGuardianWeekly(
       account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
-      contractEffectiveDate: LocalDate
+      contractEffectiveDate: LocalDate,
+      newPriceOverride: Option[BigDecimal]
   )(
       ratePlan: ZuoraRatePlan
-  ): Either[AmendmentDataFailure, AddZuoraRatePlan] = {
+  ): Either[AmendmentDataFailure, AddZuoraRatePlan] =
     for {
-      guardianWeekly <- GuardianWeekly.getNewRatePlanCharges(account, catalogue, ratePlan.ratePlanCharges)
+      guardianWeekly <- GuardianWeekly.getNewRatePlanCharges(
+        account,
+        catalogue,
+        ratePlan.ratePlanCharges
+      )
       chargeOverrides <- guardianWeekly.chargePairs
-        .map(chargePair => fromRatePlanCharge(chargePair.chargeFromProduct, chargePair.chargeFromSubscription))
+        .map(chargePair =>
+          fromRatePlanCharge(
+            alterZuoraProductRatePlanCharge(chargePair.chargeFromProduct, newPriceOverride),
+            chargePair.chargeFromSubscription
+          )
+        )
         .sequence
         .map(_.flatten)
     } yield AddZuoraRatePlan(
@@ -132,7 +171,6 @@ object AddZuoraRatePlan {
       contractEffectiveDate,
       chargeOverrides
     )
-  }
 }
 
 case class RemoveZuoraRatePlan(
@@ -197,4 +235,11 @@ object ChargeOverride {
     } yield
       if (billingPeriod == productRatePlanChargeBillingPeriod) None
       else Some(ChargeOverride(productRatePlanCharge.id, billingPeriod, price))
+}
+
+object NewPriceOverride {
+  type NewPriceOverrider = (BigDecimal, BigDecimal) => BigDecimal
+  def newPriceIdentity: NewPriceOverrider = (oldPrice: BigDecimal, newPrice: BigDecimal) => newPrice
+  def newPriceCappedByMultiplier(multiplier: Double): NewPriceOverrider =
+    (oldPrice: BigDecimal, newPrice: BigDecimal) => List(newPrice, oldPrice * multiplier).min
 }

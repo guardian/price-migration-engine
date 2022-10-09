@@ -18,6 +18,7 @@ object EstimationHandler extends CohortHandler {
 
   // TODO: move to config
   private val batchSize = 150
+  private val priceCappingMultiplier = 1.2
 
   def main(earliestStartDate: LocalDate): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
@@ -26,7 +27,9 @@ object EstimationHandler extends CohortHandler {
         .fetch(ReadyForEstimation, None)
         .take(batchSize)
         .mapZIO(item =>
-          estimate(catalogue, earliestStartDate)(item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
+          estimate(catalogue, earliestStartDate, NewPriceOverride.newPriceCappedByMultiplier(priceCappingMultiplier))(
+            item
+          ).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
         )
         .runCount
         .tapError(e => Logging.error(e.toString))
@@ -34,11 +37,12 @@ object EstimationHandler extends CohortHandler {
 
   private[handlers] def estimate(
       catalogue: ZuoraProductCatalogue,
-      earliestStartDate: LocalDate
+      earliestStartDate: LocalDate,
+      newPriceOverride: NewPriceOverride.NewPriceOverrider
   )(
       item: CohortItem
   ): ZIO[CohortTable with Zuora, Failure, EstimationResult] =
-    doEstimation(catalogue, item, earliestStartDate).foldZIO(
+    doEstimation(catalogue, item, earliestStartDate, newPriceOverride).foldZIO(
       failure = {
         case failure: AmendmentDataFailure =>
           val result = FailedEstimationResult(item.subscriptionName, failure.reason)
@@ -51,8 +55,6 @@ object EstimationHandler extends CohortHandler {
       success = { result =>
         val cohortItemToWrite =
           if (result.estimatedNewPrice <= result.oldPrice) CohortItem.fromNoPriceIncreaseEstimationResult(result)
-          else if ((result.estimatedNewPrice - result.oldPrice) / result.oldPrice >= 0.2)
-            CohortItem.fromCappedPriceIncreaseEstimationResult(result)
           else CohortItem.fromSuccessfulEstimationResult(result)
         for {
           cohortItem <- cohortItemToWrite
@@ -64,8 +66,9 @@ object EstimationHandler extends CohortHandler {
   private def doEstimation(
       catalogue: ZuoraProductCatalogue,
       item: CohortItem,
-      earliestStartDate: LocalDate
-  ): ZIO[Zuora, Failure, SuccessfulEstimationResult] =
+      earliestStartDate: LocalDate,
+      newPriceOverride: NewPriceOverride.NewPriceOverrider
+  ): ZIO[Zuora, Failure, SuccessfulEstimationResult] = {
     for {
       subscription <-
         Zuora
@@ -75,8 +78,11 @@ object EstimationHandler extends CohortHandler {
       invoicePreviewTargetDate = earliestStartDate.plusMonths(16)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
       earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, earliestStartDate)
-      result <- ZIO.fromEither(EstimationResult(account, catalogue, subscription, invoicePreview, earliestStartDate))
+      result <- ZIO.fromEither(
+        EstimationResult(account, catalogue, subscription, invoicePreview, earliestStartDate, newPriceOverride)
+      )
     } yield result
+  }
 
   /*
    * Earliest start date spread out over 3 months.

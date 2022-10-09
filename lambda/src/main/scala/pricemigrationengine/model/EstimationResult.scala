@@ -20,17 +20,19 @@ object EstimationResult {
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-      earliestStartDate: LocalDate
+      earliestStartDate: LocalDate,
+      newPriceOverride: NewPriceOverride.NewPriceOverrider
   ): Either[AmendmentDataFailure, SuccessfulEstimationResult] =
-    AmendmentData(account, catalogue, subscription, invoiceList, earliestStartDate) map { amendmentData =>
-      SuccessfulEstimationResult(
-        subscription.subscriptionNumber,
-        amendmentData.startDate,
-        amendmentData.priceData.currency,
-        amendmentData.priceData.oldPrice,
-        amendmentData.priceData.newPrice,
-        amendmentData.priceData.billingPeriod
-      )
+    AmendmentData(account, catalogue, subscription, invoiceList, earliestStartDate, newPriceOverride) map {
+      amendmentData =>
+        SuccessfulEstimationResult(
+          subscription.subscriptionNumber,
+          amendmentData.startDate,
+          amendmentData.priceData.currency,
+          amendmentData.priceData.oldPrice,
+          amendmentData.priceData.newPrice,
+          amendmentData.priceData.billingPeriod
+        )
     }
 }
 
