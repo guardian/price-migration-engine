@@ -388,7 +388,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
           .estimate(
             productCatalogue,
             earliestStartDate = LocalDate.of(2022, 5, 1),
-            ChargeOverrider.newPriceCappedByMultiplier(cappingMultiplier)
+            ChargeOverrider.newChargeCap(cappingMultiplier)
           )(cohortItemRead)
           .provide(expectedZuoraUse, expectedCohortTableUpdate)
       } yield assertTrue(true)

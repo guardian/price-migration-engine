@@ -252,6 +252,6 @@ object ChargeOverrider {
     The ChargeOverrideFunc type provide the general shape for the class of functions that compute a price increase
     as a function of the old price and the rate plan price
    */
-  def newPriceCappedByMultiplier(multiplier: Double): ChargeOverrideFunc =
+  def newChargeCap(multiplier: Double): ChargeOverrideFunc =
     (oldPrice: BigDecimal, ratePlanPrice: BigDecimal) => List(oldPrice * multiplier, ratePlanPrice).min
 }

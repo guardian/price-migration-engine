@@ -27,7 +27,7 @@ object EstimationHandler extends CohortHandler {
         .fetch(ReadyForEstimation, None)
         .take(batchSize)
         .mapZIO(item =>
-          estimate(catalogue, earliestStartDate, ChargeOverrider.newPriceCappedByMultiplier(priceCappingMultiplier))(
+          estimate(catalogue, earliestStartDate, ChargeOverrider.newChargeCap(priceCappingMultiplier))(
             item
           ).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
         )
