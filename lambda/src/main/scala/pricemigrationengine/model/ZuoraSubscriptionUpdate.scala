@@ -111,7 +111,7 @@ object AddZuoraRatePlan {
 
     def alterPricingData(zuoraPricingData: ZuoraPricingData, newPrice: Option[BigDecimal]): ZuoraPricingData = {
       zuoraPricingData.toSeq
-        .map(x => (x._1, alterZuoraProductRatePlanCharge(x._2, newPriceOverride)))
+        .map(x => (x._1, alterZuoraProductRatePlanCharge(x._2, newPrice)))
         .toMap
     }
 
