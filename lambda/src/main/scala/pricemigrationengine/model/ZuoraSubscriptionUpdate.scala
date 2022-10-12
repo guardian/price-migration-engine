@@ -87,8 +87,8 @@ case class AddZuoraRatePlan(
 object AddZuoraRatePlan {
   implicit val rw: ReadWriter[AddZuoraRatePlan] = macroRW
 
-  def alterZuoraPricings(set: Set[ZuoraPricing], newPrice: BigDecimal): Set[ZuoraPricing] =
-    set.map(zp => ZuoraPricing(zp.currency, zp.price.map(x => List(x, newPrice).min)))
+  def alterZuoraPricings(pricings: Set[ZuoraPricing], newPrice: BigDecimal): Set[ZuoraPricing] =
+    pricings.map(pricing => ZuoraPricing(pricing.currency, pricing.price.map(price => List(price, newPrice).min)))
 
   def alterZuoraProductRatePlanCharge(
       rpc: ZuoraProductRatePlanCharge,
@@ -110,9 +110,9 @@ object AddZuoraRatePlan {
   ): Either[AmendmentDataFailure, AddZuoraRatePlan] = {
 
     def alterPricingData(zuoraPricingData: ZuoraPricingData, newPrice: Option[BigDecimal]): ZuoraPricingData = {
-      zuoraPricingData.toSeq
-        .map(x => (x._1, alterZuoraProductRatePlanCharge(x._2, newPrice)))
-        .toMap
+      zuoraPricingData.toSeq.map { case (chargeId, charge) =>
+        (chargeId, alterZuoraProductRatePlanCharge(charge, newPrice))
+      }.toMap
     }
 
     for {
