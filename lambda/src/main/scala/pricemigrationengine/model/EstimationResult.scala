@@ -21,7 +21,7 @@ object EstimationResult {
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       earliestStartDate: LocalDate,
-      newPriceOverride: NewPriceOverride.NewPriceOverrider
+      newPriceOverride: ChargeOverrider.ChargeOverrideFunc
   ): Either[AmendmentDataFailure, SuccessfulEstimationResult] =
     AmendmentData(account, catalogue, subscription, invoiceList, earliestStartDate, newPriceOverride) map {
       amendmentData =>

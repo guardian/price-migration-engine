@@ -237,8 +237,8 @@ object ChargeOverride {
       else Some(ChargeOverride(productRatePlanCharge.id, billingPeriod, price))
 }
 
-object NewPriceOverride {
-  type NewPriceOverrider = (BigDecimal, BigDecimal) => BigDecimal
-  def newPriceCappedByMultiplier(multiplier: Double): NewPriceOverrider =
+object ChargeOverrider {
+  type ChargeOverrideFunc = (BigDecimal, BigDecimal) => BigDecimal
+  def newPriceCappedByMultiplier(multiplier: Double): ChargeOverrideFunc =
     (oldPrice: BigDecimal, newPrice: BigDecimal) => List(newPrice, oldPrice * multiplier).min
 }

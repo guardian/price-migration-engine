@@ -342,7 +342,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
         subscription,
         invoiceList,
         earliestStartDate,
-        NewPriceOverride.newPriceCappedByMultiplier(1.2)
+        ChargeOverrider.newPriceCappedByMultiplier(1.2)
       )
 
     assertEquals(

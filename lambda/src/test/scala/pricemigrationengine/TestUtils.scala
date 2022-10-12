@@ -1,7 +1,7 @@
 package pricemigrationengine
 
-import pricemigrationengine.model.NewPriceOverride.NewPriceOverrider
+import pricemigrationengine.model.ChargeOverrider.ChargeOverrideFunc
 
 object TestUtils {
-  def newPriceIdentity: NewPriceOverrider = (oldPrice: BigDecimal, newPrice: BigDecimal) => newPrice
+  def newPriceIdentity: ChargeOverrideFunc = (oldPrice: BigDecimal, newPrice: BigDecimal) => newPrice
 }

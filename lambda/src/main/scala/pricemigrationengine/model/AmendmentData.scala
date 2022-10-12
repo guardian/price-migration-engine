@@ -34,7 +34,7 @@ object AmendmentData {
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       earliestStartDate: LocalDate,
-      newPriceOverride: NewPriceOverride.NewPriceOverrider
+      newPriceOverride: ChargeOverrider.ChargeOverrideFunc
   ): Either[AmendmentDataFailure, AmendmentData] = {
     val isEchoLegacy = subscription.ratePlans.filter(_.ratePlanName == "Echo-Legacy").nonEmpty
 
@@ -100,7 +100,7 @@ object AmendmentData {
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       startDate: LocalDate,
-      newPriceOverride: NewPriceOverride.NewPriceOverrider
+      newPriceOverride: ChargeOverrider.ChargeOverrideFunc
   ): Either[AmendmentDataFailure, PriceData] = {
 
     def hasNotPriceAndDiscount(ratePlanCharge: ZuoraRatePlanCharge) =

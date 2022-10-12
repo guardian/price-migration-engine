@@ -27,7 +27,7 @@ object EstimationHandler extends CohortHandler {
         .fetch(ReadyForEstimation, None)
         .take(batchSize)
         .mapZIO(item =>
-          estimate(catalogue, earliestStartDate, NewPriceOverride.newPriceCappedByMultiplier(priceCappingMultiplier))(
+          estimate(catalogue, earliestStartDate, ChargeOverrider.newPriceCappedByMultiplier(priceCappingMultiplier))(
             item
           ).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
         )
@@ -38,7 +38,7 @@ object EstimationHandler extends CohortHandler {
   private[handlers] def estimate(
       catalogue: ZuoraProductCatalogue,
       earliestStartDate: LocalDate,
-      newPriceOverride: NewPriceOverride.NewPriceOverrider
+      newPriceOverride: ChargeOverrider.ChargeOverrideFunc
   )(
       item: CohortItem
   ): ZIO[CohortTable with Zuora, Failure, EstimationResult] =
@@ -67,7 +67,7 @@ object EstimationHandler extends CohortHandler {
       catalogue: ZuoraProductCatalogue,
       item: CohortItem,
       earliestStartDate: LocalDate,
-      newPriceOverride: NewPriceOverride.NewPriceOverrider
+      newPriceOverride: ChargeOverrider.ChargeOverrideFunc
   ): ZIO[Zuora, Failure, SuccessfulEstimationResult] = {
     for {
       subscription <-
