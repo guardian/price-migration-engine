@@ -1,9 +1,8 @@
 package pricemigrationengine.model
 
 import java.time.LocalDate
-
 import pricemigrationengine.Fixtures._
-import pricemigrationengine.Fixtures
+import pricemigrationengine.{Fixtures, TestUtils}
 
 class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
 
@@ -320,7 +319,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
         subscription,
         invoiceList,
         earliestStartDate,
-        NewPriceOverride.newPriceIdentity
+        TestUtils.newPriceIdentity
       )
 
     assertEquals(

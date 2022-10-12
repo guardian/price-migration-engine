@@ -1,6 +1,7 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.Fixtures.{invoiceListFromJson, subscriptionFromJson}
+import pricemigrationengine.TestUtils
 import pricemigrationengine.handlers.EstimationHandler.spreadEarliestStartDate
 import pricemigrationengine.model.CohortTableFilter.{
   CappedPriceIncrease,
@@ -248,7 +249,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       for {
         _ <- TestClock.setTime(time)
         _ <- EstimationHandler
-          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1), NewPriceOverride.newPriceIdentity)(
+          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1), TestUtils.newPriceIdentity)(
             cohortItemRead
           )
           .provide(expectedZuoraUse, expectedCohortTableUpdate)
@@ -315,7 +316,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       for {
         _ <- TestClock.setTime(time)
         _ <- EstimationHandler
-          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1), NewPriceOverride.newPriceIdentity)(
+          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1), TestUtils.newPriceIdentity)(
             cohortItemRead
           )
           .provide(expectedZuoraUse, expectedCohortTableUpdate)

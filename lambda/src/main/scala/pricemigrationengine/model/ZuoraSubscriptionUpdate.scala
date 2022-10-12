@@ -239,7 +239,6 @@ object ChargeOverride {
 
 object NewPriceOverride {
   type NewPriceOverrider = (BigDecimal, BigDecimal) => BigDecimal
-  def newPriceIdentity: NewPriceOverrider = (oldPrice: BigDecimal, newPrice: BigDecimal) => newPrice
   def newPriceCappedByMultiplier(multiplier: Double): NewPriceOverrider =
     (oldPrice: BigDecimal, newPrice: BigDecimal) => List(newPrice, oldPrice * multiplier).min
 }
