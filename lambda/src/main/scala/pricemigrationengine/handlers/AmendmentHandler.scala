@@ -44,7 +44,7 @@ object AmendmentHandler extends CohortHandler {
       item: CohortItem
   ): ZIO[Zuora, Failure, SuccessfulAmendmentResult] = {
 
-    def subscriptionUpdatePriceOverride(oldPrice: BigDecimal, newPrice: BigDecimal): Option[BigDecimal] = {
+    def subscriptionUpdateChargeOverride(oldPrice: BigDecimal, newPrice: BigDecimal): Option[BigDecimal] = {
       // The price read from the cohort, the newPrice, could have been capped.
       // We test to know if it was *probably* capped.
       // If the test returns true we return the price, to mean that we want this to be the max price.
@@ -76,7 +76,7 @@ object AmendmentHandler extends CohortHandler {
             subscriptionBeforeUpdate,
             invoicePreviewBeforeUpdate,
             startDate,
-            subscriptionUpdatePriceOverride(oldPrice, estimatedNewPrice)
+            subscriptionUpdateChargeOverride(oldPrice, estimatedNewPrice)
           )
       )
       newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
