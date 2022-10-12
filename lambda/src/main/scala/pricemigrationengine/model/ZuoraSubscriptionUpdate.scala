@@ -239,6 +239,19 @@ object ChargeOverride {
 
 object ChargeOverrider {
   type ChargeOverrideFunc = (BigDecimal, BigDecimal) => BigDecimal
+
+  /*
+    Out of consideration for our users, we have the overall policy to not increase subscriptions charges
+    by more than a certain amount relatively to the old price. At the time these lines are written we cap it to
+    20% increase. This means that if the current/old price is 100 and the new price computed after applying a ew rate plan
+    if 130, then we limit to 120.
+
+    Rather than hardcoding 20% in the code, we provide a function that compares the capped price (using a multiplier)
+    with the new rate plan price and select the min.
+
+    The ChargeOverrideFunc type provide the general shape for the class of functions that compute a price increase
+    as a function of the old price and the rate plan price
+   */
   def newPriceCappedByMultiplier(multiplier: Double): ChargeOverrideFunc =
-    (oldPrice: BigDecimal, newPrice: BigDecimal) => List(newPrice, oldPrice * multiplier).min
+    (oldPrice: BigDecimal, ratePlanPrice: BigDecimal) => List(oldPrice * multiplier, ratePlanPrice).min
 }
