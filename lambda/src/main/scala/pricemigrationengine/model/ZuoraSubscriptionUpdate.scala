@@ -15,6 +15,36 @@ case class ZuoraSubscriptionUpdate(
     currentTermPeriodType: Option[String]
 )
 
+/*
+  Out of consideration for our users, we have the overall policy to not increase subscriptions charges
+  by more than a certain amount relatively to the old price. At the time these lines are written, we cap it to
+  20% increase. This means that if the current/old price is 100 and the new price computed after applying a ew rate plan
+  if 130, then we limit to 120.
+
+  To encode this cap, we introduce ChargeCap, which essentially carries a capped price. This object is passed, optionally,
+  to any function that would need to know about it.
+
+  Note that the Amendment Handler does indeed pass a ChargeCap down, this is mostly to check that the price calculated
+  after rate plan update is within parameters. That price is the cohort item estimated price.
+
+  The estimation handler is slightly more subtle. we do not at first know the old price (which will need to be computed as part of the estimation)
+  In this case, we pass down a ChargeCap.builderFromMultiplier which is going to compute the relevant PriceCharge at first opportunity
+  and will use it to compute the estimated price.
+ */
+
+case class ChargeCap(item: Option[CohortItem], priceCap: BigDecimal)
+
+object ChargeCap {
+
+  def fromOldPriceAndMultiplier(item: Option[CohortItem], oldPrice: BigDecimal, multiplier: Double): ChargeCap =
+    ChargeCap(item, oldPrice * multiplier)
+
+  type ChargeCapBuilderFromMultiplier = (BigDecimal) => ChargeCap
+
+  def builderFromMultiplier(multiplier: Double): ChargeCapBuilderFromMultiplier = (oldPrice: BigDecimal) =>
+    fromOldPriceAndMultiplier(None, oldPrice, multiplier)
+}
+
 object ZuoraSubscriptionUpdate {
   private val zoneABCPlanNames = List("Guardian Weekly Zone A", "Guardian Weekly Zone B", "Guardian Weekly Zone C")
 
@@ -34,7 +64,7 @@ object ZuoraSubscriptionUpdate {
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       effectiveDate: LocalDate,
-      newPriceOverride: Option[BigDecimal]
+      cargeCap: Option[ChargeCap]
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
 
     val ratePlans = (for {
@@ -57,9 +87,9 @@ object ZuoraSubscriptionUpdate {
       ratePlans
         .map(
           if (isZoneABC.nonEmpty)
-            AddZuoraRatePlan.fromRatePlanGuardianWeekly(account, catalogue, effectiveDate, newPriceOverride)
+            AddZuoraRatePlan.fromRatePlanGuardianWeekly(account, catalogue, effectiveDate, cargeCap)
           else if (isEchoLegacy) AddZuoraRatePlan.fromRatePlanEchoLegacy(catalogue, effectiveDate)
-          else AddZuoraRatePlan.fromRatePlan(pricingData, effectiveDate, newPriceOverride)
+          else AddZuoraRatePlan.fromRatePlan(pricingData, effectiveDate, cargeCap)
         )
         .sequence
         .map { add =>
@@ -92,31 +122,31 @@ object AddZuoraRatePlan {
 
   def alterZuoraProductRatePlanCharge(
       rpc: ZuoraProductRatePlanCharge,
-      newPriceOverride: Option[BigDecimal]
+      chargeCapOpt: Option[ChargeCap]
   ): ZuoraProductRatePlanCharge = {
-    newPriceOverride match {
+    chargeCapOpt match {
       case None => rpc
-      case Some(newPrice) =>
-        ZuoraProductRatePlanCharge(rpc.id, rpc.billingPeriod, alterZuoraPricings(rpc.pricing, newPrice))
+      case Some(chargeCap) =>
+        ZuoraProductRatePlanCharge(rpc.id, rpc.billingPeriod, alterZuoraPricings(rpc.pricing, chargeCap.priceCap))
     }
   }
 
   def fromRatePlan(
       pricingData: ZuoraPricingData,
       contractEffectiveDate: LocalDate,
-      newPriceOverride: Option[BigDecimal]
+      chargeCap: Option[ChargeCap]
   )(
       ratePlan: ZuoraRatePlan
   ): Either[AmendmentDataFailure, AddZuoraRatePlan] = {
 
-    def alterPricingData(zuoraPricingData: ZuoraPricingData, newPrice: Option[BigDecimal]): ZuoraPricingData = {
+    def alterPricingData(zuoraPricingData: ZuoraPricingData, chargeCap: Option[ChargeCap]): ZuoraPricingData = {
       zuoraPricingData.toSeq.map { case (chargeId, charge) =>
-        (chargeId, alterZuoraProductRatePlanCharge(charge, newPrice))
+        (chargeId, alterZuoraProductRatePlanCharge(charge, chargeCap))
       }.toMap
     }
 
     for {
-      chargeOverrides <- ChargeOverride.fromRatePlan(alterPricingData(pricingData, newPriceOverride), ratePlan)
+      chargeOverrides <- ChargeOverride.fromRatePlan(alterPricingData(pricingData, chargeCap), ratePlan)
     } yield AddZuoraRatePlan(
       productRatePlanId = ratePlan.productRatePlanId,
       contractEffectiveDate,
@@ -147,7 +177,7 @@ object AddZuoraRatePlan {
       account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
       contractEffectiveDate: LocalDate,
-      newPriceOverride: Option[BigDecimal]
+      chargeCap: Option[ChargeCap]
   )(
       ratePlan: ZuoraRatePlan
   ): Either[AmendmentDataFailure, AddZuoraRatePlan] =
@@ -160,7 +190,7 @@ object AddZuoraRatePlan {
       chargeOverrides <- guardianWeekly.chargePairs
         .map(chargePair =>
           fromRatePlanCharge(
-            alterZuoraProductRatePlanCharge(chargePair.chargeFromProduct, newPriceOverride),
+            alterZuoraProductRatePlanCharge(chargePair.chargeFromProduct, chargeCap),
             chargePair.chargeFromSubscription
           )
         )
@@ -235,23 +265,4 @@ object ChargeOverride {
     } yield
       if (billingPeriod == productRatePlanChargeBillingPeriod) None
       else Some(ChargeOverride(productRatePlanCharge.id, billingPeriod, price))
-}
-
-object ChargeOverrider {
-  type ChargeOverrideFunc = (BigDecimal, BigDecimal) => BigDecimal
-
-  /*
-    Out of consideration for our users, we have the overall policy to not increase subscriptions charges
-    by more than a certain amount relatively to the old price. At the time these lines are written we cap it to
-    20% increase. This means that if the current/old price is 100 and the new price computed after applying a ew rate plan
-    if 130, then we limit to 120.
-
-    Rather than hardcoding 20% in the code, we provide a function that compares the capped price (using a multiplier)
-    with the new rate plan price and select the min.
-
-    The ChargeOverrideFunc type provide the general shape for the class of functions that compute a price increase
-    as a function of the old price and the rate plan price
-   */
-  def newChargeCap(multiplier: Double): ChargeOverrideFunc =
-    (oldPrice: BigDecimal, ratePlanPrice: BigDecimal) => List(oldPrice * multiplier, ratePlanPrice).min
 }

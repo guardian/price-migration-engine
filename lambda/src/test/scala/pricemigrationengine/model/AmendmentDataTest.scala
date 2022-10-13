@@ -2,7 +2,6 @@ package pricemigrationengine.model
 
 import java.time.LocalDate
 import pricemigrationengine.Fixtures._
-import pricemigrationengine.TestUtils
 
 class AmendmentDataTest extends munit.FunSuite {
 
@@ -32,7 +31,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       earliestStartDate = migrationStartDate2022,
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -53,7 +52,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       earliestStartDate = migrationStartDate2022,
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -76,7 +75,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       earliestStartDate = migrationStartDate2022,
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -97,7 +96,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       earliestStartDate = migrationStartDate2022,
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -118,7 +117,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       earliestStartDate = migrationStartDate2022,
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -195,7 +194,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2020, 5, 28),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -211,7 +210,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2020, 6, 15),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -227,7 +226,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2020, 7, 16),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -243,7 +242,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2020, 6, 4),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -259,7 +258,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2020, 6, 4),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -275,7 +274,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2020, 8, 8),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -291,7 +290,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2020, 7, 5),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -307,7 +306,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2020, 7, 28),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -323,7 +322,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2021, 1, 13),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -339,7 +338,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2020, 12, 7),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -364,7 +363,7 @@ class AmendmentDataTest extends munit.FunSuite {
     val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
     val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
     val serviceStartDate = LocalDate.of(2020, 6, 4)
-    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate)
+    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate, None)
     assertEquals(totalChargeAmount, Right(BigDecimal(54.99)))
   }
 
@@ -373,7 +372,7 @@ class AmendmentDataTest extends munit.FunSuite {
     val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
     val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
     val serviceStartDate = LocalDate.of(2022, 2, 19)
-    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate)
+    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate, None)
     assertEquals(totalChargeAmount, Right(BigDecimal(69.99)))
   }
 
@@ -382,7 +381,7 @@ class AmendmentDataTest extends munit.FunSuite {
     val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
     val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
     val serviceStartDate = LocalDate.of(2020, 6, 9)
-    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate)
+    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate, None)
     assertEquals(totalChargeAmount, Right(BigDecimal(25.95)))
   }
 
@@ -391,7 +390,7 @@ class AmendmentDataTest extends munit.FunSuite {
     val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
     val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
     val serviceStartDate = LocalDate.of(2020, 7, 16)
-    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate)
+    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate, None)
     assertEquals(totalChargeAmount, Right(BigDecimal(15.57)))
   }
 
@@ -400,7 +399,7 @@ class AmendmentDataTest extends munit.FunSuite {
     val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
     val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
     val serviceStartDate = LocalDate.of(2022, 6, 26)
-    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate)
+    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate, None)
     assertEquals(totalChargeAmount, Right(BigDecimal(20.99)))
   }
 
@@ -409,7 +408,7 @@ class AmendmentDataTest extends munit.FunSuite {
     val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
     val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
     val serviceStartDate = LocalDate.of(2022, 4, 18)
-    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate)
+    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate, None)
     assertEquals(totalChargeAmount, Right(BigDecimal(54.12)))
   }
 
@@ -418,7 +417,8 @@ class AmendmentDataTest extends munit.FunSuite {
     val totalChargeAmount = AmendmentData.totalChargeAmount(
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      serviceStartDate = LocalDate.of(2020, 8, 4)
+      serviceStartDate = LocalDate.of(2020, 8, 4),
+      None
     )
     assertEquals(
       totalChargeAmount,
@@ -474,7 +474,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2022, 2, 19),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -490,7 +490,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2022, 2, 11),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -506,7 +506,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2022, 2, 28),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -522,7 +522,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2022, 2, 28),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -538,7 +538,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2022, 3, 15),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -554,7 +554,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2022, 2, 19),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -570,7 +570,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2022, 2, 8),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -586,7 +586,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2022, 4, 18),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -602,7 +602,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2022, 4, 5),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -618,7 +618,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2022, 6, 19),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,
@@ -634,7 +634,7 @@ class AmendmentDataTest extends munit.FunSuite {
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       startDate = LocalDate.of(2023, 1, 26),
-      TestUtils.newPriceIdentity
+      None
     )
     assertEquals(
       priceData,

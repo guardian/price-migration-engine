@@ -1,7 +1,6 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.Fixtures.{invoiceListFromJson, subscriptionFromJson}
-import pricemigrationengine.TestUtils
 import pricemigrationengine.handlers.EstimationHandler.spreadEarliestStartDate
 import pricemigrationengine.model.CohortTableFilter.{
   CappedPriceIncrease,
@@ -249,7 +248,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       for {
         _ <- TestClock.setTime(time)
         _ <- EstimationHandler
-          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1), TestUtils.newPriceIdentity)(
+          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1), None)(
             cohortItemRead
           )
           .provide(expectedZuoraUse, expectedCohortTableUpdate)
@@ -316,7 +315,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       for {
         _ <- TestClock.setTime(time)
         _ <- EstimationHandler
-          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1), TestUtils.newPriceIdentity)(
+          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1), None)(
             cohortItemRead
           )
           .provide(expectedZuoraUse, expectedCohortTableUpdate)
@@ -388,7 +387,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
           .estimate(
             productCatalogue,
             earliestStartDate = LocalDate.of(2022, 5, 1),
-            ChargeOverrider.newChargeCap(cappingMultiplier)
+            Some(ChargeCap.builderFromMultiplier(cappingMultiplier))
           )(cohortItemRead)
           .provide(expectedZuoraUse, expectedCohortTableUpdate)
       } yield assertTrue(true)
