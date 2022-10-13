@@ -27,8 +27,8 @@ case class ZuoraSubscriptionUpdate(
   Note that the Amendment Handler does indeed pass a ChargeCap down, this is mostly to check that the price calculated
   after rate plan update is within parameters. That price is the cohort item estimated price.
 
-  The estimation handler is slightly more subtle. we do not at first know the old price (which will need to be computed as part of the estimation)
-  In this case, we pass down a ChargeCap.builderFromMultiplier which is going to compute the relevant PriceCharge at first opportunity
+  The Estimation Handler is slightly more subtle. we do not at first know the old price (which will need to be computed as part of the estimation)
+  In this case, we pass down a ChargeCap.builderFromMultiplier which is going to compute the relevant ChargeCap when the old price is known
   and will use it to compute the estimated price.
  */
 
