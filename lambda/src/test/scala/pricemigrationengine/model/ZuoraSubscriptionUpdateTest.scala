@@ -1,7 +1,6 @@
 package pricemigrationengine.model
 
 import java.time.LocalDate
-
 import pricemigrationengine.Fixtures._
 import pricemigrationengine.Fixtures
 
@@ -17,7 +16,8 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      date
+      date,
+      None
     )
     assertEquals(
       update,
@@ -48,7 +48,8 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      date
+      date,
+      None
     )
     assertEquals(
       update,
@@ -75,7 +76,8 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      date
+      date,
+      None
     )
     assertEquals(
       update,
@@ -102,7 +104,8 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      date
+      date,
+      None
     )
     assertEquals(
       update,
@@ -144,7 +147,8 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      date
+      date,
+      None
     )
     assertEquals(
       update,
@@ -171,7 +175,8 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      date
+      date,
+      None
     )
     assertEquals(
       update,
@@ -233,7 +238,8 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      date
+      date,
+      None
     )
     assertEquals(
       update,
@@ -275,7 +281,8 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      date
+      date,
+      None
     )
     assertEquals(
       update,
@@ -295,6 +302,52 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
           )
         )
       )
+    )
+  }
+  test("CappedPriceIncrease: The standard uncapped price rise is invariant") {
+
+    val fixtureSet = "GuardianWeekly/CappedPriceIncrease"
+    val catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json")
+    val account = Fixtures.accountFromJson(s"$fixtureSet/Account.json")
+    val earliestStartDate = LocalDate.of(2022, 10, 10)
+    val invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
+    val estimationResult =
+      EstimationResult(
+        account,
+        catalogue,
+        subscription,
+        invoiceList,
+        earliestStartDate,
+        None
+      )
+
+    assertEquals(
+      estimationResult,
+      Right(SuccessfulEstimationResult("subNum", LocalDate.of(2022, 11, 12), "GBP", 30.00, 41.25, "Quarter"))
+    )
+  }
+  test("CappedPriceIncrease: Capped price rise is correct") {
+
+    val fixtureSet = "GuardianWeekly/CappedPriceIncrease"
+    val catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json")
+    val account = Fixtures.accountFromJson(s"$fixtureSet/Account.json")
+    val earliestStartDate = LocalDate.of(2022, 10, 10)
+    val invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
+    val estimationResult =
+      EstimationResult(
+        account,
+        catalogue,
+        subscription,
+        invoiceList,
+        earliestStartDate,
+        Some(ChargeCap.builderFromMultiplier(1.2))
+      )
+
+    assertEquals(
+      estimationResult,
+      Right(SuccessfulEstimationResult("subNum", LocalDate.of(2022, 11, 12), "GBP", 30.00, 36, "Quarter"))
     )
   }
 }
