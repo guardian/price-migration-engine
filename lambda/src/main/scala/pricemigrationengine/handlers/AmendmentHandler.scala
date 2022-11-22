@@ -58,6 +58,7 @@ object AmendmentHandler extends CohortHandler {
 
       invoicePreviewBeforeUpdate <-
         Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
+
       update <- ZIO.fromEither(
         ZuoraSubscriptionUpdate
           .updateOfRatePlansToCurrent(

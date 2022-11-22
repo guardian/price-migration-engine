@@ -117,8 +117,14 @@ case class AddZuoraRatePlan(
 object AddZuoraRatePlan {
   implicit val rw: ReadWriter[AddZuoraRatePlan] = macroRW
 
-  def alterZuoraPricings(pricings: Set[ZuoraPricing], newPrice: BigDecimal): Set[ZuoraPricing] =
-    pricings.map(pricing => ZuoraPricing(pricing.currency, pricing.price.map(price => List(price, newPrice).min)))
+  def alterZuoraPricings(pricings: Set[ZuoraPricing], cappedPrice: BigDecimal): Set[ZuoraPricing] =
+    pricings.map(pricing =>
+      ZuoraPricing(
+        pricing.currency,
+        pricing.price.map(price => List(price, cappedPrice).min),
+        pricing.price.map(price => price > cappedPrice).getOrElse(false)
+      )
+    )
 
   def alterZuoraProductRatePlanCharge(
       rpc: ZuoraProductRatePlanCharge,
@@ -249,6 +255,12 @@ object ChargeOverride {
       productRatePlanChargeBillingPeriod <- productRatePlanCharge.billingPeriod.toRight(
         AmendmentDataFailure(s"Product rate plan charge ${ratePlanCharge.number} has no billing period")
       )
+
+      hasBeenPriceCapped = ZuoraPricing
+        .pricing(productRatePlanCharge, ratePlanCharge.currency)
+        .map(x => x.hasBeenPriceCapped)
+        .getOrElse(false)
+
       productRatePlanChargePrice <- ZuoraPricing
         .pricing(productRatePlanCharge, ratePlanCharge.currency)
         .flatMap(_.price)
@@ -257,12 +269,15 @@ object ChargeOverride {
             s"Product rate plan charge ${productRatePlanCharge.id} has no price for currency ${ratePlanCharge.currency}"
           )
         )
+
       price <- AmendmentData.adjustedForBillingPeriod(
         productRatePlanChargePrice,
         Some(billingPeriod),
         Some(productRatePlanChargeBillingPeriod)
       )
-    } yield
-      if (billingPeriod == productRatePlanChargeBillingPeriod) None
+    } yield {
+      if (hasBeenPriceCapped) Some(ChargeOverride(productRatePlanCharge.id, billingPeriod, price))
+      else if (billingPeriod == productRatePlanChargeBillingPeriod) None
       else Some(ChargeOverride(productRatePlanCharge.id, billingPeriod, price))
+    }
 }

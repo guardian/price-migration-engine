@@ -6,6 +6,52 @@ import pricemigrationengine.Fixtures
 
 class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
 
+  test("Zuora amendment correctly creates a charge override from the capped price") {
+    val fixtureSet = "GuardianWeekly/CappedPriceIncrease2"
+    val date = LocalDate.of(2022, 12, 30)
+    val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
+      subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      date,
+      Some(
+        ChargeCap(
+          None,
+          78 * 1.2
+        ) // ChargeCap here is used to apply the correct rate plan charges
+      )
+    )
+    assertEquals(
+      update,
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(
+            AddZuoraRatePlan(
+              productRatePlanId = "2c92a0fe6619b4b301661aa494392ee2",
+              contractEffectiveDate = LocalDate.of(2022, 12, 30),
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0fe6619b4b601661aa8b74e623f",
+                  billingPeriod = "Quarter",
+                  price = 93.6
+                )
+              )
+            )
+          ),
+          remove = List(
+            RemoveZuoraRatePlan(
+              ratePlanId = "id",
+              contractEffectiveDate = LocalDate.of(2022, 12, 30)
+            )
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
+    )
+  }
+
   test(
     "updateOfRatePlansToCurrent: migrates GW Zone C Quarterly plan to Rest Of World Quarterly plan (billed in USD)"
   ) {
@@ -321,7 +367,6 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
         earliestStartDate,
         None
       )
-
     assertEquals(
       estimationResult,
       Right(SuccessfulEstimationResult("subNum", LocalDate.of(2022, 11, 12), "GBP", 30.00, 41.25, "Quarter"))
@@ -344,7 +389,6 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
         earliestStartDate,
         Some(ChargeCap.builderFromMultiplier(1.2))
       )
-
     assertEquals(
       estimationResult,
       Right(SuccessfulEstimationResult("subNum", LocalDate.of(2022, 11, 12), "GBP", 30.00, 36, "Quarter"))
