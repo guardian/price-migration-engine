@@ -251,8 +251,6 @@ object ChargeOverride {
         AmendmentDataFailure(s"Product rate plan charge ${ratePlanCharge.number} has no billing period")
       )
 
-      temp = ZuoraPricing.pricing(productRatePlanCharge, ratePlanCharge.currency)
-
       hasBeenPriceCapped = ZuoraPricing.pricing(productRatePlanCharge, ratePlanCharge.currency).map(x => x.hasBeenPriceCapped).getOrElse(false)
 
       productRatePlanChargePrice <- ZuoraPricing
