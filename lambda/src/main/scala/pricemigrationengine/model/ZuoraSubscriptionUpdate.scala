@@ -146,7 +146,8 @@ object AddZuoraRatePlan {
     }
 
     for {
-      chargeOverrides <- ChargeOverride.fromRatePlan(alterPricingData(pricingData, chargeCap), ratePlan)
+      // chargeOverrides <- ChargeOverride.fromRatePlan(alterPricingData(pricingData, chargeCap), ratePlan)
+      chargeOverrides <- ChargeOverride.fromRatePlan(pricingData, ratePlan, chargeCap)
     } yield AddZuoraRatePlan(
       productRatePlanId = ratePlan.productRatePlanId,
       contractEffectiveDate,
@@ -163,7 +164,7 @@ object AddZuoraRatePlan {
     for {
       echoLegacy <- EchoLegacy.getNewRatePlans(catalogue, ratePlan.ratePlanCharges)
       chargeOverrides <- echoLegacy.chargePairs
-        .map(x => fromRatePlanCharge(x.chargeFromProduct, x.chargeFromSubscription))
+        .map(x => fromRatePlanCharge(x.chargeFromProduct, x.chargeFromSubscription, chargeCap = None))
         .sequence
         .map(_.flatten)
     } yield AddZuoraRatePlan(
@@ -190,8 +191,9 @@ object AddZuoraRatePlan {
       chargeOverrides <- guardianWeekly.chargePairs
         .map(chargePair =>
           fromRatePlanCharge(
-            alterZuoraProductRatePlanCharge(chargePair.chargeFromProduct, chargeCap),
-            chargePair.chargeFromSubscription
+            chargePair.chargeFromProduct,
+            chargePair.chargeFromSubscription,
+            chargeCap
           )
         )
         .sequence
@@ -223,12 +225,13 @@ object ChargeOverride {
 
   def fromRatePlan(
       pricingData: ZuoraPricingData,
-      ratePlan: ZuoraRatePlan
+      ratePlan: ZuoraRatePlan,
+      chargeCap: Option[ChargeCap]
   ): Either[AmendmentDataFailure, Seq[ChargeOverride]] =
     (for {
       ratePlanCharge <- ratePlan.ratePlanCharges
       productRatePlanCharge <- pricingData.get(ratePlanCharge.productRatePlanChargeId).toSeq
-    } yield fromRatePlanCharge(productRatePlanCharge, ratePlanCharge)).sequence
+    } yield fromRatePlanCharge(productRatePlanCharge, ratePlanCharge, chargeCap)).sequence
       .map(_.flatten)
 
   /** <p>A <code>ChargeOverride</code> is defined iff the billing period of the given <code>ProductRatePlanCharge</code>
@@ -240,7 +243,8 @@ object ChargeOverride {
     */
   def fromRatePlanCharge(
       productRatePlanCharge: ZuoraProductRatePlanCharge,
-      ratePlanCharge: ZuoraRatePlanCharge
+      ratePlanCharge: ZuoraRatePlanCharge,
+      chargeCap: Option[ChargeCap]
   ): Either[AmendmentDataFailure, Option[ChargeOverride]] =
     for {
       billingPeriod <- ratePlanCharge.billingPeriod.toRight(
@@ -249,20 +253,21 @@ object ChargeOverride {
       productRatePlanChargeBillingPeriod <- productRatePlanCharge.billingPeriod.toRight(
         AmendmentDataFailure(s"Product rate plan charge ${ratePlanCharge.number} has no billing period")
       )
-      productRatePlanChargePrice <- ZuoraPricing
-        .pricing(productRatePlanCharge, ratePlanCharge.currency)
-        .flatMap(_.price)
-        .toRight(
-          AmendmentDataFailure(
-            s"Product rate plan charge ${productRatePlanCharge.id} has no price for currency ${ratePlanCharge.currency}"
+
+      productRatePlanChargePric = ZuoraPricing.pricing(productRatePlanCharge, ratePlanCharge.currency).flatMap(_.price)
+      productRatePlanChargePrice <- productRatePlanChargePric.flatMap(price => Option(List(price, chargeCap.get.priceCap).min))
+          .toRight(
+            AmendmentDataFailure(
+              s"Product rate plan charge ${productRatePlanCharge.id} has no price for currency ${ratePlanCharge.currency}"
+            )
           )
-        )
+
       price <- AmendmentData.adjustedForBillingPeriod(
         productRatePlanChargePrice,
         Some(billingPeriod),
         Some(productRatePlanChargeBillingPeriod)
       )
     } yield
-      if (billingPeriod == productRatePlanChargeBillingPeriod) None
-      else Some(ChargeOverride(productRatePlanCharge.id, billingPeriod, price))
+      // if (billingPeriod == productRatePlanChargeBillingPeriod) None
+      Some(ChargeOverride(productRatePlanCharge.id, billingPeriod, price))
 }

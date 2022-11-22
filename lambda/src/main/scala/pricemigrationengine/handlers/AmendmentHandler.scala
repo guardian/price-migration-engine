@@ -58,6 +58,9 @@ object AmendmentHandler extends CohortHandler {
 
       invoicePreviewBeforeUpdate <-
         Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
+
+      // priceCap = if estimatedNewPrice is 20% larger than old price then get capped price
+
       update <- ZIO.fromEither(
         ZuoraSubscriptionUpdate
           .updateOfRatePlansToCurrent(
