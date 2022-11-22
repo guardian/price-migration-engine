@@ -7,7 +7,7 @@ import pricemigrationengine.Fixtures
 class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
 
   test("Zuora amendment correctly creates a charge override from the capped price") {
-    val fixtureSet = "temp"
+    val fixtureSet = "GuardianWeekly/CappedPriceIncrease2"
     val date = LocalDate.of(2022, 12, 30)
     val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
       account = accountFromJson(s"$fixtureSet/Account.json"),
