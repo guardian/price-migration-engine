@@ -367,7 +367,6 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
         earliestStartDate,
         None
       )
-
     assertEquals(
       estimationResult,
       Right(SuccessfulEstimationResult("subNum", LocalDate.of(2022, 11, 12), "GBP", 30.00, 41.25, "Quarter"))
@@ -390,12 +389,9 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
         earliestStartDate,
         Some(ChargeCap.builderFromMultiplier(1.2))
       )
-
     assertEquals(
       estimationResult,
       Right(SuccessfulEstimationResult("subNum", LocalDate.of(2022, 11, 12), "GBP", 30.00, 36, "Quarter"))
     )
   }
-
-
 }
