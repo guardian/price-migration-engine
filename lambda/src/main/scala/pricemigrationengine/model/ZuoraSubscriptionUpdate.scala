@@ -258,10 +258,10 @@ object ChargeOverride {
       productRatePlanChargePrice <- ZuoraPricing
         .pricing(productRatePlanCharge, ratePlanCharge.currency)
         .flatMap(_.price).toRight(
-          AmendmentDataFailure(
-            s"Product rate plan charge ${productRatePlanCharge.id} has no price for currency ${ratePlanCharge.currency}"
-          )
+        AmendmentDataFailure(
+          s"Product rate plan charge ${productRatePlanCharge.id} has no price for currency ${ratePlanCharge.currency}"
         )
+      )
 
       price <- AmendmentData.adjustedForBillingPeriod(
         productRatePlanChargePrice,
@@ -269,8 +269,8 @@ object ChargeOverride {
         Some(productRatePlanChargeBillingPeriod)
       )
     } yield {
-      if (hasBeenPriceCapped) Some (ChargeOverride (productRatePlanCharge.id, billingPeriod, price) )
+      if (hasBeenPriceCapped) Some(ChargeOverride(productRatePlanCharge.id, billingPeriod, price))
       else if (billingPeriod == productRatePlanChargeBillingPeriod) None
-      else Some (ChargeOverride (productRatePlanCharge.id, billingPeriod, price) )
+      else Some(ChargeOverride(productRatePlanCharge.id, billingPeriod, price))
     }
 }
