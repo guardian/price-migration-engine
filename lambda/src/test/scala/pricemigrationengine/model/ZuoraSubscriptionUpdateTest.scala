@@ -6,7 +6,7 @@ import pricemigrationengine.Fixtures
 
 class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
 
-  test("asdfasdf") {
+  test("Zuora amendment correctly creates a charge override from the capped price") {
     val fixtureSet = "temp"
     val date = LocalDate.of(2022, 12, 30)
     val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
@@ -27,10 +27,23 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       Right(
         ZuoraSubscriptionUpdate(
           add = List(
-            AddZuoraRatePlan(productRatePlanId = "2c92a0fd56fe270b0157040dd79b35da", contractEffectiveDate = date)
+            AddZuoraRatePlan(
+              productRatePlanId = "2c92a0fe6619b4b301661aa494392ee2",
+              contractEffectiveDate = LocalDate.of(2022, 12, 30),
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0fe6619b4b601661aa8b74e623f",
+                  billingPeriod = "Quarter",
+                  price = 93.6
+                )
+              )
+            )
           ),
           remove = List(
-            RemoveZuoraRatePlan(ratePlanId = "rp2", contractEffectiveDate = date)
+            RemoveZuoraRatePlan(
+              ratePlanId = "id",
+              contractEffectiveDate = LocalDate.of(2022, 12, 30)
+            )
           ),
           currentTerm = None,
           currentTermPeriodType = None

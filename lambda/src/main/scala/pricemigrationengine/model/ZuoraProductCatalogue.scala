@@ -71,7 +71,7 @@ object ZuoraProductRatePlanCharge {
  * Don't use discount percentage from product catalogue,
  * because it can be overridden so the default value is unreliable.
  */
-case class ZuoraPricing(currency: Currency, price: Option[BigDecimal])
+case class ZuoraPricing(currency: Currency, price: Option[BigDecimal], hasBeenPriceCapped: Boolean = false)
 
 object ZuoraPricing {
   implicit val rw: ReadWriter[ZuoraPricing] = macroRW
