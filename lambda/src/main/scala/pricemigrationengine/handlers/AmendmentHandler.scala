@@ -3,7 +3,10 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 import pricemigrationengine.model._
 import pricemigrationengine.services._
+import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import zio.{Clock, ZIO}
+
+import java.time.{Instant, LocalDate}
 
 /** Carries out price-rise amendments in Zuora.
   */
@@ -12,6 +15,7 @@ object AmendmentHandler extends CohortHandler {
   // TODO: move to config
   private val batchSize = 150
   private val priceCappingMultiplier = 1.2
+  private val startDateShiftInCaseOfShortLeadTime = 50
 
   val main: ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
@@ -29,9 +33,23 @@ object AmendmentHandler extends CohortHandler {
   ): ZIO[CohortTable with Zuora, Failure, AmendmentResult] =
     doAmendment(catalogue, item).foldZIO(
       failure = {
-        case _: CancelledSubscriptionFailure =>
+        case _: CancelledSubscriptionFailure => {
+          // `CancelledSubscriptionFailure` happens when the subscription was cancelled in Zuora
+          // in which case we simply update the processing state for this item in the database
+          // Although it was given to us as a failure of `doAmendement`, the only effect if the database update, it
+          // is not recorded as a failure of `amend` to allow the processing to continue.
           val result = CancelledAmendmentResult(item.subscriptionName)
           CohortTable.update(CohortItem.fromCancelledAmendmentResult(result)).as(result)
+        }
+        case _: StartDateNeedsToBeUpdatedFailure => {
+          // `StartDateNeedsToBeUpdatedFailure` is returned when we detect that the start date of an item is too close
+          // to the current date. This happens when, for instance, too long has passed between the creation of the
+          // cohort item and the actual Amendment. The side effect here is to update the item start date and to send
+          // it back to state `ReadyForEstimation`
+          val startDateNew = item.startDate.getOrElse(LocalDate.now()).plusDays(startDateShiftInCaseOfShortLeadTime)
+          val itemNew = CohortItem(item.subscriptionName, ReadyForEstimation, startDate = Some(startDateNew))
+          CohortTable.update(itemNew).as(StartDateUpdatedResult(item.subscriptionName))
+        }
         case e => ZIO.fail(e)
       },
       success = { result =>
@@ -44,8 +62,16 @@ object AmendmentHandler extends CohortHandler {
       item: CohortItem
   ): ZIO[Zuora, Failure, SuccessfulAmendmentResult] = {
 
+    def checkStartDate(startDate: LocalDate, subscriptionName: String): ZIO[Any, Failure, Unit] = {
+      if (LocalDate.now().plusDays(45).isAfter(startDate)) ZIO.succeed(())
+      else ZIO.fail(StartDateNeedsToBeUpdatedFailure(subscriptionName))
+    }
+
     for {
       startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
+
+      _ <- checkStartDate(startDate: LocalDate, item.subscriptionName)
+
       oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(AmendmentDataFailure(s"No old price in $item"))
       estimatedNewPrice <-
         ZIO

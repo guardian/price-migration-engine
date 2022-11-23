@@ -17,3 +17,7 @@ case class SuccessfulAmendmentResult(
 case class CancelledAmendmentResult(
     subscriptionNumber: String
 ) extends AmendmentResult
+
+case class StartDateUpdatedResult(
+    subscriptionNumber: String
+) extends AmendmentResult
