@@ -162,7 +162,6 @@ object AmendmentData {
         .toRight(AmendmentDataFailure(s"Failed to get RatePlan for charges: $ratePlanCharges"))
 
       isZoneABC = zoneABCPlanNames contains ratePlan.productName
-      // check the Zone ABC rateplan is the currently active one -> effectiveEndDate property on the subscription, are we filtering out inactive Zone ABC rateplans in the bigquery query?? does the engine filter out inactive rateplans??
 
       pairs <-
         if (isZoneABC)
