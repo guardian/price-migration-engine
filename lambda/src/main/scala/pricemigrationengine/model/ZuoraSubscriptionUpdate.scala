@@ -76,7 +76,7 @@ object ZuoraSubscriptionUpdate {
     } yield ratePlan).distinct
 
     if (ratePlans.isEmpty)
-      Left(AmendmentDataFailure("No rate plans to update"))
+      Left(AmendmentDataFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
     else if (ratePlans.size > 1)
       Left(AmendmentDataFailure(s"Multiple rate plans to update: ${ratePlans.map(_.id)}"))
     else {
