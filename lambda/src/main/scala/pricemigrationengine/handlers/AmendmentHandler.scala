@@ -16,6 +16,7 @@ object AmendmentHandler extends CohortHandler {
   private val batchSize = 150
   private val priceCappingMultiplier = 1.2
   private val startDateShiftInCaseOfShortLeadTime = 50
+  private val startDateLeadTimeRequirement = 45
 
   val main: ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
@@ -63,7 +64,7 @@ object AmendmentHandler extends CohortHandler {
   ): ZIO[Zuora, Failure, SuccessfulAmendmentResult] = {
 
     def checkStartDate(startDate: LocalDate, subscriptionName: String): ZIO[Any, Failure, Unit] = {
-      if (LocalDate.now().plusDays(45).isAfter(startDate)) ZIO.succeed(())
+      if (LocalDate.now().plusDays(startDateLeadTimeRequirement).isAfter(startDate)) ZIO.succeed(())
       else ZIO.fail(StartDateNeedsToBeUpdatedFailure(subscriptionName))
     }
 
