@@ -70,6 +70,18 @@ The stages are as follows
 | SalesforcePriceRiceCreationComplete | NotificationHandler | Sends prices rise notification direct notification to customer via braze | NotificationSendProcessing (on failure)/NotificationSendComplete (on success) |
 | NotificationSendComplete | AmendmentHandler | Applies the prices rise amendment to Zuora | AmendmentComplete/Cancelled (if cancellation detected) |
 
+### EstimationHandler
+
+#### Generating the start date, i.e.: the day the new rate plan/price-rise comes into effect for a subscription 
+
+The cohort as a whole has a start date, which is set in the cohort spec. So for any individual sub, the price rise (i.e.: the date the new Zuora ratePlan becomes active) will take effect on that date or later. For any sub the price rise date will be the next service period start date on or later than that overall start date.
+
+1. We spread the start dates out randomly for each **monthly** subscription [over 3 months](./src/main/scala/pricemigrationengine/handlers/EstimationHandler.scala#L78-L80). 
+
+We spread the dates out to reduce impact on our CSR's, because quite a few people cancel because of the price-rise, so if we spread it out we can reduce traffic of people calling our CSR's to cancel their subscription (you can't cancel subscriptions through manage.theguardian.com so customers are forced to phone in)
+
+2. We make sure the startDate of the new rate plan matches the start date of a future invoice. E.g.: [here is a test that generates the new startDate for a subscription:](./src/test/scala/pricemigrationengine/model/AmendmentDataTest.scala#L20-L26), it ensures the startDate is equal to the [serviceStartDate property on this invoice object:](./src/test/resources/NewspaperDelivery/Everyday+/InvoicePreview.json#L46-L66)
+
 ### To run lambdas locally in Intellij
 
 You can run or debug any of the lambdas in any deployment environment from Intellij.  
@@ -80,6 +92,16 @@ Set up a run configuration for the lambda, using the following environment varia
 * stage=`DEV|CODE|PROD`
 
 and also the specific environment variables for the lambda you are running.
+
+### Environment variables
+
+The environment variables set in the lambdas are provided by [Secrets Manager](https://eu-west-1.console.aws.amazon.com/secretsmanager/secret?name=price-migration-engine-lambda-PROD&region=eu-west-1) and can also be changed manually in the AWS console by navigating to the lambda (e.g.: price-migration-engine-estimation-lambda-CODE) > Configuration > Environment variables
+
+_Note:_ The DEV and CODE environments both currently point to `apisandbox.zuora.com`. 
+
+We have a copy of our production Zuora environment, the "centralsandbox" (which we access via `test.zuora.com`). However, as we do not have an equivalent salesforce environment set up, we cannot run the step function from start to finish with this environment. 
+
+Individual lambdas like the `EstimationLambda` and the `AmendmentLambda` can be run against this Zuora environment if we want to test on subscriptions in production. See how to [run the lambdas locally](#to-run-lambdas-locally-in-intellij) (see above) with the necessary environment variables.
 
 #### Specific environment variables per lambda
 

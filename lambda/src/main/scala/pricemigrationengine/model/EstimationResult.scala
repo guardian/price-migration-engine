@@ -1,5 +1,7 @@
 package pricemigrationengine.model
 
+import pricemigrationengine.model.ChargeCap.ChargeCapBuilderFromMultiplier
+
 import java.time.LocalDate
 
 trait EstimationResult
@@ -16,20 +18,23 @@ case class SuccessfulEstimationResult(
 object EstimationResult {
 
   def apply(
+      account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-      earliestStartDate: LocalDate
+      earliestStartDate: LocalDate,
+      chargeCapBuilderOpt: Option[ChargeCapBuilderFromMultiplier]
   ): Either[AmendmentDataFailure, SuccessfulEstimationResult] =
-    AmendmentData(catalogue, subscription, invoiceList, earliestStartDate) map { amendmentData =>
-      SuccessfulEstimationResult(
-        subscription.subscriptionNumber,
-        amendmentData.startDate,
-        amendmentData.priceData.currency,
-        amendmentData.priceData.oldPrice,
-        amendmentData.priceData.newPrice,
-        amendmentData.priceData.billingPeriod
-      )
+    AmendmentData(account, catalogue, subscription, invoiceList, earliestStartDate, chargeCapBuilderOpt) map {
+      amendmentData =>
+        SuccessfulEstimationResult(
+          subscription.subscriptionNumber,
+          amendmentData.startDate,
+          amendmentData.priceData.currency,
+          amendmentData.priceData.oldPrice,
+          amendmentData.priceData.newPrice,
+          amendmentData.priceData.billingPeriod
+        )
     }
 }
 

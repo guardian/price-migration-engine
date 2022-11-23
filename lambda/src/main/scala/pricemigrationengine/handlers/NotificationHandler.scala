@@ -5,6 +5,10 @@ import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
+import com.gu.i18n
+
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 object NotificationHandler extends CohortHandler {
 
@@ -13,7 +17,7 @@ object NotificationHandler extends CohortHandler {
 
   val Cancelled_Status = "Cancelled"
 
-  private val NotificationLeadTimeDays = 37
+  private val NotificationLeadTimeDays = 49
 
   def main(
       brazeCampaignName: String
@@ -52,6 +56,22 @@ object NotificationHandler extends CohortHandler {
     }
   }
 
+  def currencyISOtoSymbol(iso: String): ZIO[Any, Nothing, String] = {
+    ZIO.succeed(i18n.Currency.fromString(iso: String).map(_.identifier).getOrElse(""))
+  }
+
+  def dateStrToLocalDate(startDate: String): LocalDate = {
+    LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+  }
+
+  def emailUserFriendlyDateFormatter(startDate: LocalDate): String = {
+    startDate.format(DateTimeFormatter.ofPattern("d MMMM uuuu"));
+  }
+
+  def startDateConversion(startDate: String): String = {
+    emailUserFriendlyDateFormatter(dateStrToLocalDate(startDate: String))
+  }
+
   def sendNotification(
       brazeCampaignName: String,
       cohortItem: CohortItem,
@@ -72,6 +92,9 @@ object NotificationHandler extends CohortHandler {
       startDate <- requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate")
       billingPeriod <- requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod")
       paymentFrequency <- paymentFrequency(billingPeriod)
+      currencyISOCode <- requiredField(cohortItem.currency, "CohortItem.currency")
+      currencySymbol <- currencyISOtoSymbol(currencyISOCode)
+      estimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${estimatedNewPrice}"
 
       _ <- logMissingEmailAddress(cohortItem, contact)
 
@@ -95,8 +118,8 @@ object NotificationHandler extends CohortHandler {
                 billing_postal_code = postalCode,
                 billing_state = address.state,
                 billing_country = country,
-                payment_amount = estimatedNewPrice,
-                next_payment_date = startDate,
+                payment_amount = estimatedNewPriceWithCurrencySymbol,
+                next_payment_date = startDateConversion(startDate),
                 payment_frequency = paymentFrequency,
                 subscription_id = cohortItem.subscriptionName,
                 product_type = sfSubscription.Product_Type__c.getOrElse("")

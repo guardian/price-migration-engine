@@ -72,3 +72,19 @@ object ZuoraRatePlanCharge {
     } yield ratePlanCharge).headOption
       .toRight(AmendmentDataFailure(s"No matching rate plan charge for invoice item '${invoiceItem.chargeNumber}'"))
 }
+
+case class ZuoraAccount(
+    soldToContact: SoldToContact
+)
+
+object ZuoraAccount {
+  implicit val rwSubscription: ReadWriter[ZuoraAccount] = macroRW
+}
+
+case class SoldToContact(
+    country: String
+)
+
+object SoldToContact {
+  implicit val rwSubscription: ReadWriter[SoldToContact] = macroRW
+}

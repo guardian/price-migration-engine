@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.TestLogging
+import pricemigrationengine.{TestLogging, handlers}
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
@@ -19,11 +19,13 @@ import scala.collection.mutable.ArrayBuffer
 class NotificationHandlerTest extends munit.FunSuite {
   private val expectedSubscriptionName = "Sub-0001"
   private val expectedStartDate = LocalDate.of(2020, 1, 1)
+  private val expectedStartDateUserFriendlyFormat = "1 January 2020"
   private val expectedCurrency = "GBP"
   private val expectedBillingPeriod = "Month"
   private val expectedBillingPeriodInNotification = "Monthly"
   private val expectedOldPrice = BigDecimal(11.11)
   private val expectedEstimatedNewPrice = BigDecimal(22.22)
+  private val expectedEstimatedNewPriceWithCurrencySymbolPrefix = "£22.22"
   private val expectedSFSubscriptionId = "1234"
   private val expectedBuyerId = "buyer-1"
   private val expectedIdentityId = "buyer1-identity-id"
@@ -65,7 +67,7 @@ class NotificationHandlerTest extends munit.FunSuite {
             beforeDateInclusive,
             Some(
               LocalDate
-                .from(expectedCurrentTime.plus(37, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
+                .from(expectedCurrentTime.plus(49, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
             )
           )
           ZStream(cohortItem)
@@ -222,11 +224,11 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, expectedLastName)
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount,
-      expectedEstimatedNewPrice.toString()
+      expectedEstimatedNewPriceWithCurrencySymbolPrefix
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date,
-      expectedStartDate.toString
+      expectedStartDateUserFriendlyFormat
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_frequency,

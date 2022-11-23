@@ -1,6 +1,7 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.model.ZuoraProductCatalogue.{productPricingMap, homeDeliveryRatePlans}
+import pricemigrationengine.model.ChargeCap.ChargeCapBuilderFromMultiplier
+import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, productPricingMap}
 
 import java.time.LocalDate
 import scala.math.BigDecimal.RoundingMode
@@ -29,14 +30,16 @@ case class PriceData(currency: Currency, oldPrice: BigDecimal, newPrice: BigDeci
 object AmendmentData {
 
   def apply(
+      account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-      earliestStartDate: LocalDate
+      earliestStartDate: LocalDate,
+      chargeCapBuilderOpt: Option[ChargeCapBuilderFromMultiplier]
   ): Either[AmendmentDataFailure, AmendmentData] = {
     for {
       startDate <- nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
-      price <- priceData(catalogue, subscription, invoiceList, startDate)
+      price <- priceData(account, catalogue, subscription, invoiceList, startDate, chargeCapBuilderOpt)
     } yield AmendmentData(startDate, priceData = price)
   }
 
@@ -69,10 +72,12 @@ object AmendmentData {
     * price, and currency.</li> </ol>
     */
   def priceData(
+      account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-      startDate: LocalDate
+      startDate: LocalDate,
+      chargeCapBuilderOpt: Option[ChargeCapBuilderFromMultiplier]
   ): Either[AmendmentDataFailure, PriceData] = {
 
     def hasNotPriceAndDiscount(ratePlanCharge: ZuoraRatePlanCharge) =
@@ -124,24 +129,35 @@ object AmendmentData {
       else Left(AmendmentDataFailure(failures.map(_.reason).mkString(", ")))
     }
 
+    val zoneABCPlanNames = List("Guardian Weekly Zone A", "Guardian Weekly Zone B", "Guardian Weekly Zone C")
+
     for {
       ratePlanCharges <- ratePlanChargesOrFail
       ratePlan <- ZuoraRatePlan
         .ratePlan(subscription, ratePlanCharges.head)
         .toRight(AmendmentDataFailure(s"Failed to get RatePlan for charges: $ratePlanCharges"))
 
-      pairs <- ratePlanChargePairs(ratePlanCharges)
+      isZoneABC = zoneABCPlanNames contains ratePlan.productName
+
+      pairs <-
+        if (isZoneABC)
+          GuardianWeekly.getNewRatePlanCharges(account, catalogue, ratePlanCharges).map(_.chargePairs)
+        else ratePlanChargePairs(ratePlanCharges)
 
       currency <- pairs.headOption
         .map(p => Right(p.chargeFromSubscription.currency))
         .getOrElse(Left(AmendmentDataFailure(s"No invoice items for date: $startDate")))
-      oldPrice <- totalChargeAmount(subscription, invoiceList, startDate)
-      newPrice <- totalChargeAmount(pairs)
+      oldPrice <- totalChargeAmount(subscription, invoiceList, startDate, None)
+      newPriceWithoutCapping <- totalChargeAmount(pairs)
+      newPriceWithCapping = chargeCapBuilderOpt match {
+        case None                   => newPriceWithoutCapping
+        case Some(chargeCapBuilder) => List(newPriceWithoutCapping, chargeCapBuilder(oldPrice).priceCap).min
+      }
       billingPeriod <- pairs
         .flatMap(_.chargeFromSubscription.billingPeriod)
         .headOption
         .toRight(AmendmentDataFailure("Unknown billing period"))
-    } yield PriceData(currency, oldPrice, newPrice, billingPeriod)
+    } yield PriceData(currency, oldPrice, newPriceWithCapping, billingPeriod)
   }
 
   /** Total charge amount, including taxes and discounts, for the service period starting on the given service start
@@ -150,7 +166,8 @@ object AmendmentData {
   def totalChargeAmount(
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-      serviceStartDate: LocalDate
+      serviceStartDate: LocalDate,
+      chargeUpdateCheckOpt: Option[ChargeCap]
   ): Either[AmendmentDataFailure, BigDecimal] = {
     /*
      * As charge amounts on Zuora invoice previews don't include tax,
@@ -165,13 +182,27 @@ object AmendmentData {
     val discounts = amounts.collect { case Left(percentageDiscount) => percentageDiscount }
 
     if (discounts.length > 1) Left(AmendmentDataFailure(s"Multiple discounts applied: ${discounts.mkString(", ")}"))
-    else
-      Right {
-        applyDiscountAndThenSum(
-          discountPercentage = discounts.headOption,
-          beforeDiscount = amounts.collect { case Right(amount) => amount }
-        )
+    else {
+      val newPrice = applyDiscountAndThenSum(
+        discountPercentage = discounts.headOption,
+        beforeDiscount = amounts.collect { case Right(amount) => amount }
+      )
+      chargeUpdateCheckOpt match {
+        case Some(chargeUpdateCheck) => {
+          if (newPrice <= chargeUpdateCheck.priceCap) {
+            Right(newPrice)
+          } else {
+            Left(
+              AmendmentDataFailure(
+                s"The new price ${newPrice} for cohort item: ${chargeUpdateCheck.item} (after amendment) was higher than the estimatedNewPrice (${chargeUpdateCheck.priceCap})"
+              )
+            )
+          }
+        }
+        case None => Right(newPrice)
       }
+
+    }
   }
 
   /** Either a left discount percentage or a right absolute amount.

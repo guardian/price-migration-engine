@@ -10,10 +10,21 @@ object ZuoraProductCatalogue {
 
   def empty: ZuoraProductCatalogue = ZuoraProductCatalogue(products = Set.empty)
 
+  private val gwRatePlanNames = List("Guardian Weekly - Domestic", "Guardian Weekly - ROW")
+
   def homeDeliveryRatePlans(catalogue: ZuoraProductCatalogue): Seq[ZuoraProductRatePlan] = {
     val prices = for {
       product <- catalogue.products.filter(_.name == "Newspaper Delivery")
       productRatePlan <- product.productRatePlans.filter(_.status != "Expired")
+    } yield productRatePlan
+
+    prices.toSeq
+  }
+
+  def newGuardianWeeklyRatePlans(catalogue: ZuoraProductCatalogue): Seq[ZuoraProductRatePlan] = {
+    val prices = for {
+      product <- catalogue.products.filter(gwRatePlanNames contains _.name)
+      productRatePlan <- product.productRatePlans
     } yield productRatePlan
 
     prices.toSeq
@@ -60,7 +71,7 @@ object ZuoraProductRatePlanCharge {
  * Don't use discount percentage from product catalogue,
  * because it can be overridden so the default value is unreliable.
  */
-case class ZuoraPricing(currency: Currency, price: Option[BigDecimal])
+case class ZuoraPricing(currency: Currency, price: Option[BigDecimal], hasBeenPriceCapped: Boolean = false)
 
 object ZuoraPricing {
   implicit val rw: ReadWriter[ZuoraPricing] = macroRW
