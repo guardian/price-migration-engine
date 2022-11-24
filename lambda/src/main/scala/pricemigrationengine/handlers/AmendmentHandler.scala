@@ -42,15 +42,6 @@ object AmendmentHandler extends CohortHandler {
           val result = CancelledAmendmentResult(item.subscriptionName)
           CohortTable.update(CohortItem.fromCancelledAmendmentResult(result)).as(result)
         }
-        case _: StartDateNeedsToBeUpdatedFailure => {
-          // `StartDateNeedsToBeUpdatedFailure` is returned when we detect that the start date of an item is too close
-          // to the current date. This happens when, for instance, too long has passed between the creation of the
-          // cohort item and the actual Amendment. The side effect here is to update the item start date and to send
-          // it back to state `ReadyForEstimation`
-          val startDateNew = item.startDate.getOrElse(LocalDate.now()).plusDays(startDateShiftInCaseOfShortLeadTime)
-          val itemNew = CohortItem(item.subscriptionName, ReadyForEstimation, startDate = Some(startDateNew))
-          CohortTable.update(itemNew).as(StartDateUpdatedResult(item.subscriptionName))
-        }
         case e => ZIO.fail(e)
       },
       success = { result =>
@@ -63,15 +54,8 @@ object AmendmentHandler extends CohortHandler {
       item: CohortItem
   ): ZIO[Zuora, Failure, SuccessfulAmendmentResult] = {
 
-    def checkStartDate(startDate: LocalDate, subscriptionName: String): ZIO[Any, Failure, Unit] = {
-      if (LocalDate.now().plusDays(startDateLeadTimeRequirement).isAfter(startDate)) ZIO.succeed(())
-      else ZIO.fail(StartDateNeedsToBeUpdatedFailure(subscriptionName))
-    }
-
     for {
       startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
-
-      _ <- checkStartDate(startDate: LocalDate, item.subscriptionName)
 
       oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(AmendmentDataFailure(s"No old price in $item"))
       estimatedNewPrice <-
