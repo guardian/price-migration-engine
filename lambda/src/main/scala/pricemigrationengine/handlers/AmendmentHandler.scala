@@ -32,8 +32,8 @@ object AmendmentHandler extends CohortHandler {
         case _: CancelledSubscriptionFailure => {
           // `CancelledSubscriptionFailure` happens when the subscription was cancelled in Zuora
           // in which case we simply update the processing state for this item in the database
-          // Although it was given to us as a failure of `doAmendement`, the only effect if the database update, it
-          // is not recorded as a failure of `amend` to allow the processing to continue.
+          // Although it was given to us as a failure of `doAmendment`, the only effect of the database update, if it
+          // is not recorded as a failure of `amend`, is to allow the processing to continue.
           val result = CancelledAmendmentResult(item.subscriptionName)
           CohortTable.update(CohortItem.fromCancelledAmendmentResult(result)).as(result)
         }
