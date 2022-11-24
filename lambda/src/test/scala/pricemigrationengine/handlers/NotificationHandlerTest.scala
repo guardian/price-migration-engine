@@ -1,5 +1,10 @@
 package pricemigrationengine.handlers
 
+import pricemigrationengine.handlers.NotificationHandler.{
+  NotificationPaddingTimeDays,
+  itemHasEnoughNotificationPadding,
+  sendNotification
+}
 import pricemigrationengine.{TestLogging, handlers}
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
@@ -8,9 +13,9 @@ import pricemigrationengine.services._
 import pricemigrationengine.util.Runner.unsafeRunSync
 import zio.Exit.Success
 import zio.Runtime.default
-import zio._
 import zio.stream.ZStream
 import zio.test.{TestClock, testEnvironment}
+import zio.{IO, Unsafe, ZIO, ZLayer}
 
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate, ZoneOffset}
@@ -398,4 +403,14 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
     assertEquals(sentMessages.size, 0)
   }
+
+  test("checkStartDate behaves correctly") {
+    val itemStartDate = LocalDate.of(2023, 1, 1) // item start date
+    val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
+    val date2 = LocalDate.of(2022, 11, 1)
+    val date3 = LocalDate.of(2022, 12, 1) // "today"
+    assertEquals(itemHasEnoughNotificationPadding(date2, cohortItem), true)
+    assertEquals(itemHasEnoughNotificationPadding(date3, cohortItem), false)
+  }
+
 }
