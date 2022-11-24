@@ -1,11 +1,7 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.handlers.NotificationHandler.{
-  NotificationPaddingTimeDays,
-  itemHasEnoughNotificationPadding,
-  sendNotification
-}
-import pricemigrationengine.{TestLogging, handlers}
+import pricemigrationengine.handlers.NotificationHandler.itemHasEnoughNotificationPadding
+import pricemigrationengine.{TestLogging}
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
@@ -15,7 +11,7 @@ import zio.Exit.Success
 import zio.Runtime.default
 import zio.stream.ZStream
 import zio.test.{TestClock, testEnvironment}
-import zio.{IO, Unsafe, ZIO, ZLayer}
+import zio.{IO, ZIO, ZLayer}
 
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate, ZoneOffset}
