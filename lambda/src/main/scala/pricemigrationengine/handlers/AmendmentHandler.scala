@@ -3,10 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import zio.{Clock, ZIO}
-
-import java.time.{Instant, LocalDate}
 
 /** Carries out price-rise amendments in Zuora.
   */
@@ -15,8 +12,6 @@ object AmendmentHandler extends CohortHandler {
   // TODO: move to config
   private val batchSize = 150
   private val priceCappingMultiplier = 1.2
-  private val startDateShiftInCaseOfShortLeadTime = 50
-  private val startDateLeadTimeRequirement = 45
 
   val main: ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
