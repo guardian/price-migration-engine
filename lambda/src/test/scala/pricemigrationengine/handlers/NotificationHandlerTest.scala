@@ -401,10 +401,12 @@ class NotificationHandlerTest extends munit.FunSuite {
   }
 
   test("itemHasEnoughNotificationPadding behaves correctly") {
-    val itemStartDate = LocalDate.of(2023, 1, 1) // item start date
+    val itemStartDate = LocalDate.of(2023, 4, 1) // item start date
     val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
-    val date2 = LocalDate.of(2022, 11, 1)
-    val date3 = LocalDate.of(2022, 12, 1) // "today"
+
+    // The two following dates are chosen to be after 1st Dec 2022, to hit the non trivial case of the check
+    val date2 = LocalDate.of(2023, 2, 1)
+    val date3 = LocalDate.of(2023, 3, 1)
     assertEquals(itemHasEnoughNotificationPadding(date2, cohortItem), true)
     assertEquals(itemHasEnoughNotificationPadding(date3, cohortItem), false)
   }
