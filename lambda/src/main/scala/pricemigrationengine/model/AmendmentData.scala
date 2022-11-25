@@ -37,12 +37,8 @@ object AmendmentData {
       earliestStartDate: LocalDate,
       chargeCapBuilderOpt: Option[ChargeCapBuilderFromMultiplier]
   ): Either[AmendmentDataFailure, AmendmentData] = {
-    val isEchoLegacy = subscription.ratePlans.filter(_.ratePlanName == "Echo-Legacy").nonEmpty
-
     for {
-      startDate <-
-        if (isEchoLegacy) nextServiceStartDateEchoLegacy(invoiceList, subscription, onOrAfter = earliestStartDate)
-        else nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
+      startDate <- nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
       price <- priceData(account, catalogue, subscription, invoiceList, startDate, chargeCapBuilderOpt)
     } yield AmendmentData(startDate, priceData = price)
   }
@@ -54,26 +50,6 @@ object AmendmentData {
   ): Either[AmendmentDataFailure, LocalDate] =
     ZuoraInvoiceItem
       .itemsForSubscription(invoiceList, subscription)
-      .map(_.serviceStartDate)
-      .sortBy(_.toEpochDay)
-      .dropWhile(_.isBefore(onOrAfter))
-      .headOption
-      .toRight(AmendmentDataFailure(s"Cannot determine next billing date on or after $onOrAfter from $invoiceList"))
-
-  def nextServiceStartDateEchoLegacy(
-      invoiceList: ZuoraInvoiceList,
-      subscription: ZuoraSubscription,
-      onOrAfter: LocalDate
-  ): Either[AmendmentDataFailure, LocalDate] =
-    ZuoraInvoiceItem
-      .itemsForSubscription(invoiceList, subscription)
-      .filter(_.productName == "Newspaper Delivery")
-      .groupBy(_.serviceStartDate)
-      .collect {
-        case (_, chargedDays) if chargedDays.length == 7 => chargedDays
-      }
-      .flatten
-      .toSeq
       .map(_.serviceStartDate)
       .sortBy(_.toEpochDay)
       .dropWhile(_.isBefore(onOrAfter))
