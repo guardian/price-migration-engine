@@ -83,7 +83,6 @@ object ZuoraSubscriptionUpdate {
       val pricingData = productPricingMap(catalogue)
 
       val isZoneABC = subscription.ratePlans.filter(zoneABCPlanNames contains _.productName)
-      val isEchoLegacy = ratePlans.head.ratePlanName == "Echo-Legacy"
 
       ratePlans
         .map(
