@@ -44,6 +44,27 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
+  test("priceData: is correct for a GW ROW subscription with a past Zone ABC rate plan") {
+    val fixtureSet = "GuardianWeekly/CappedPriceIncrease4"
+    val priceData = AmendmentData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      earliestStartDate = migrationStartDate2022,
+      Some(ChargeCap.builderFromMultiplier(1.2))
+    )
+    assertEquals(
+      priceData,
+      Right(
+        AmendmentData(
+          LocalDate.of(2023, 2, 11),
+          PriceData(currency = "GBP", oldPrice = 60.00, newPrice = 72.00, billingPeriod = "Quarter")
+        )
+      )
+    )
+  }
+
   test("priceData: is correct migrating a quarterly GW Zone A plan (billed in USD) to GW Domestic plan") {
     val fixtureSet = "GuardianWeekly/ZoneABC/ZoneA_USD_Domestic"
     val priceData = AmendmentData(

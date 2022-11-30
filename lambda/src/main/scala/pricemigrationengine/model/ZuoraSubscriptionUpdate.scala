@@ -67,7 +67,7 @@ object ZuoraSubscriptionUpdate {
       cargeCap: Option[ChargeCap]
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
 
-    val ratePlans = (for {
+    val activeRatePlans = (for {
       invoiceItem <- ZuoraInvoiceItem.items(invoiceList, subscription, effectiveDate)
       ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toSeq
       price <- ratePlanCharge.price.toSeq
@@ -75,16 +75,15 @@ object ZuoraSubscriptionUpdate {
       ratePlan <- ZuoraRatePlan.ratePlan(subscription, ratePlanCharge).toSeq
     } yield ratePlan).distinct
 
-    if (ratePlans.isEmpty)
+    if (activeRatePlans.isEmpty)
       Left(AmendmentDataFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
-    else if (ratePlans.size > 1)
-      Left(AmendmentDataFailure(s"Multiple rate plans to update: ${ratePlans.map(_.id)}"))
+    else if (activeRatePlans.size > 1)
+      Left(AmendmentDataFailure(s"Multiple rate plans to update: ${activeRatePlans.map(_.id)}"))
     else {
+      val isZoneABC = activeRatePlans.filter(zoneABCPlanNames contains _.productName)
       val pricingData = productPricingMap(catalogue)
 
-      val isZoneABC = subscription.ratePlans.filter(zoneABCPlanNames contains _.productName)
-
-      ratePlans
+      activeRatePlans
         .map(
           if (isZoneABC.nonEmpty)
             AddZuoraRatePlan.fromRatePlanGuardianWeekly(account, catalogue, effectiveDate, cargeCap)
@@ -95,7 +94,7 @@ object ZuoraSubscriptionUpdate {
           val isTermTooShort = subscription.termEndDate.isBefore(effectiveDate)
           ZuoraSubscriptionUpdate(
             add,
-            remove = ratePlans.map(ratePlan => RemoveZuoraRatePlan(ratePlan.id, effectiveDate)),
+            remove = activeRatePlans.map(ratePlan => RemoveZuoraRatePlan(ratePlan.id, effectiveDate)),
             currentTerm =
               if (isTermTooShort)
                 Some(subscription.termStartDate.until(effectiveDate, DAYS).toInt)

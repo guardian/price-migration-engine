@@ -52,6 +52,98 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
     )
   }
 
+  test("Zuora amendment correctly creates a charge override from the capped price 2") {
+    val fixtureSet = "GuardianWeekly/CappedPriceIncrease3"
+    val date = LocalDate.of(2022, 12, 19)
+    val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
+      subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      date,
+      Some(
+        ChargeCap(
+          None,
+          60 * 1.2
+        ) // ChargeCap here is used to apply the correct rate plan charges
+      )
+    )
+    assertEquals(
+      update,
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(
+            AddZuoraRatePlan(
+              productRatePlanId = "2c92a0086619bf8901661ab02752722f",
+              contractEffectiveDate = LocalDate.of(2022, 12, 19),
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0ff6619bf8b01661ab2d0396eb2",
+                  billingPeriod = "Quarter",
+                  price = 72
+                )
+              )
+            )
+          ),
+          remove = List(
+            RemoveZuoraRatePlan(
+              ratePlanId = "id",
+              contractEffectiveDate = LocalDate.of(2022, 12, 19)
+            )
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
+    )
+  }
+
+  test("updateOfRatePlansToCurrent: is correct for a GW ROW subscription with a past Zone ABC rate plan") {
+    val fixtureSet = "GuardianWeekly/CappedPriceIncrease4"
+    val date = LocalDate.of(2023, 2, 11)
+    val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
+      subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      date,
+      Some(
+        ChargeCap(
+          None,
+          60 * 1.2
+        ) // ChargeCap here is used to apply the correct rate plan charges
+      )
+    )
+    assertEquals(
+      update,
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(
+            AddZuoraRatePlan(
+              productRatePlanId = "2c92a0086619bf8901661ab02752722f",
+              contractEffectiveDate = LocalDate.of(2023, 2, 11),
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0ff6619bf8b01661ab2d0396eb2",
+                  billingPeriod = "Quarter",
+                  price = 72.0
+                )
+              )
+            )
+          ),
+          remove = List(
+            RemoveZuoraRatePlan(
+              ratePlanId = "id",
+              contractEffectiveDate = LocalDate.of(2023, 2, 11)
+            )
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
+    )
+  }
+
   test(
     "updateOfRatePlansToCurrent: migrates GW Zone C Quarterly plan to Rest Of World Quarterly plan (billed in USD)"
   ) {
