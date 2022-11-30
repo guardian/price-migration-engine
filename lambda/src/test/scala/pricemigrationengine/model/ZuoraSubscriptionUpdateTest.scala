@@ -350,6 +350,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       )
     )
   }
+
   test("CappedPriceIncrease: The standard uncapped price rise is invariant") {
 
     val fixtureSet = "GuardianWeekly/CappedPriceIncrease"
@@ -372,6 +373,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       Right(SuccessfulEstimationResult("subNum", LocalDate.of(2022, 11, 12), "GBP", 30.00, 41.25, "Quarter"))
     )
   }
+
   test("CappedPriceIncrease: Capped price rise is correct") {
 
     val fixtureSet = "GuardianWeekly/CappedPriceIncrease"
