@@ -81,7 +81,7 @@ object NotificationHandler extends CohortHandler {
     } else {
       ZIO.fail(
         NotificationNotEnoughLeadTimeFailure(
-          s"The start date of item ${cohortItem.subscriptionName} (startDate: ${cohortItem.startDate}) is too close to today ${LocalDate.now()}"
+          s"The start date of item ${cohortItem.subscriptionName} (startDate: ${cohortItem.startDate}) is too close to today ${today}"
         )
       )
     }
