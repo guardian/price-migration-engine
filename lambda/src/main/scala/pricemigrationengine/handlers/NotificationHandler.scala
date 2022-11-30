@@ -31,13 +31,13 @@ object NotificationHandler extends CohortHandler {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       count <- CohortTable
         .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(StandardNotificationLeadTime)))
-        .mapZIO(sendNotification(brazeCampaignName))
+        .mapZIO(item => sendNotification(brazeCampaignName)(item, today))
         .runFold(0) { (sum, count) => sum + count }
       _ <- Logging.info(s"Successfully sent $count price rise notifications")
     } yield HandlerOutput(isComplete = true)
   }
 
-  def itemHasEnoughNotificationPadding(today: LocalDate, cohortItem: CohortItem): Boolean = {
+  def thereIsEnoughNotificationLeadTime(today: LocalDate, cohortItem: CohortItem): Boolean = {
     // To help with backward compatibility with existing tests, we apply this condition from 1st Dec 2022.
     if (today.isBefore(LocalDate.of(2022, 12, 1))) {
       true
@@ -50,7 +50,8 @@ object NotificationHandler extends CohortHandler {
   }
 
   def sendNotification(brazeCampaignName: String)(
-      cohortItem: CohortItem
+      cohortItem: CohortItem,
+      today: LocalDate
   ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging, Failure, Int] = {
 
     // We are starting with a simple check. That the item's startDate is at least MinNotificationLeadTime days away
@@ -58,8 +59,7 @@ object NotificationHandler extends CohortHandler {
     // previously computed start dats, and will detect any such problem when they happen and that
     // before the letters are sent.
 
-    if (itemHasEnoughNotificationPadding(LocalDate.now(), cohortItem)) {
-
+    if (thereIsEnoughNotificationLeadTime(today, cohortItem)) {
       val result = for {
         sfSubscription <-
           SalesforceClient
@@ -71,7 +71,6 @@ object NotificationHandler extends CohortHandler {
             putSubIntoCancelledStatus(cohortItem.subscriptionName)
           }
       } yield count
-
       result.catchAll { failure =>
         for {
           _ <- Logging.error(
@@ -79,15 +78,12 @@ object NotificationHandler extends CohortHandler {
           )
         } yield Unsuccessful
       }
-
     } else {
-
       ZIO.fail(
         NotificationNotEnoughLeadTimeFailure(
           s"The start date of item ${cohortItem.subscriptionName} (startDate: ${cohortItem.startDate}) is too close to today ${LocalDate.now()}"
         )
       )
-
     }
   }
 
