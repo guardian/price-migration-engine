@@ -16,13 +16,13 @@ object NotificationHandler extends CohortHandler {
   val Unsuccessful = 0
   val Cancelled_Status = "Cancelled"
 
-  // We are starting the notification process for any item whose start date is less than 49 (NotificationLeadTimeDays)
+  // We are starting the notification process for any item whose start date is less than 49 (StandardNotificationLeadTime)
   // days away, but because it can happen, we also need to react to items which for *any* reason have
   // not been processed on time (meaning early enough) and for which the previously computed startDate is
-  // too close (less than NotificationPaddingTimeDays away) from now and would not give enough time to the letters.
+  // too close (less than MinNotificationLeadTime away) from now and would not give enough time to the letters.
 
-  private val NotificationLeadTimeDays = 49
-  private val NotificationPaddingTimeDays = 35
+  private val StandardNotificationLeadTime = 49
+  private val MinNotificationLeadTime = 35
 
   def main(
       brazeCampaignName: String
@@ -30,7 +30,7 @@ object NotificationHandler extends CohortHandler {
     for {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       count <- CohortTable
-        .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(NotificationLeadTimeDays)))
+        .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(StandardNotificationLeadTime)))
         .mapZIO(sendNotification(brazeCampaignName))
         .runFold(0) { (sum, count) => sum + count }
       _ <- Logging.info(s"Successfully sent $count price rise notifications")
@@ -43,7 +43,7 @@ object NotificationHandler extends CohortHandler {
       true
     } else {
       cohortItem.startDate match {
-        case Some(sd) => today.plusDays(NotificationPaddingTimeDays).isBefore(sd)
+        case Some(sd) => today.plusDays(MinNotificationLeadTime).isBefore(sd)
         case _        => false
       }
     }
@@ -53,7 +53,7 @@ object NotificationHandler extends CohortHandler {
       cohortItem: CohortItem
   ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging, Failure, Int] = {
 
-    // We are starting with a simple check. That the item's startDate is at least NotificationPaddingTimeDays days away
+    // We are starting with a simple check. That the item's startDate is at least MinNotificationLeadTime days away
     // from the current day. This will avoid headaches caused by letters not being sent early enough relatively to
     // previously computed start dats, and will detect any such problem when they happen and that
     // before the letters are sent.
