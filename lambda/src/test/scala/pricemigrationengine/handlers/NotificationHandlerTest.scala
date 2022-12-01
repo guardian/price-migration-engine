@@ -1,6 +1,7 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.{TestLogging, handlers}
+import pricemigrationengine.handlers.NotificationHandler.thereIsEnoughNotificationLeadTime
+import pricemigrationengine.{TestLogging}
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
@@ -8,9 +9,9 @@ import pricemigrationengine.services._
 import pricemigrationengine.util.Runner.unsafeRunSync
 import zio.Exit.Success
 import zio.Runtime.default
-import zio._
 import zio.stream.ZStream
 import zio.test.{TestClock, testEnvironment}
+import zio.{IO, ZIO, ZLayer}
 
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate, ZoneOffset}
@@ -398,4 +399,16 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
     assertEquals(sentMessages.size, 0)
   }
+
+  test("thereIsEnoughNotificationLeadTime behaves correctly") {
+    val itemStartDate = LocalDate.of(2023, 4, 1) // item start date
+    val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
+
+    // The two following dates are chosen to be after 1st Dec 2022, to hit the non trivial case of the check
+    val date2 = LocalDate.of(2023, 2, 1)
+    val date3 = LocalDate.of(2023, 3, 1)
+    assertEquals(thereIsEnoughNotificationLeadTime(date2, cohortItem), true)
+    assertEquals(thereIsEnoughNotificationLeadTime(date3, cohortItem), false)
+  }
+
 }

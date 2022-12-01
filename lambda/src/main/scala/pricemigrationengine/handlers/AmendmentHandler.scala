@@ -29,9 +29,14 @@ object AmendmentHandler extends CohortHandler {
   ): ZIO[CohortTable with Zuora, Failure, AmendmentResult] =
     doAmendment(catalogue, item).foldZIO(
       failure = {
-        case _: CancelledSubscriptionFailure =>
+        case _: CancelledSubscriptionFailure => {
+          // `CancelledSubscriptionFailure` happens when the subscription was cancelled in Zuora
+          // in which case we simply update the processing state for this item in the database
+          // Although it was given to us as a failure of `doAmendment`, the only effect of the database update, if it
+          // is not recorded as a failure of `amend`, is to allow the processing to continue.
           val result = CancelledAmendmentResult(item.subscriptionName)
           CohortTable.update(CohortItem.fromCancelledAmendmentResult(result)).as(result)
+        }
         case e => ZIO.fail(e)
       },
       success = { result =>
@@ -46,6 +51,7 @@ object AmendmentHandler extends CohortHandler {
 
     for {
       startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
+
       oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(AmendmentDataFailure(s"No old price in $item"))
       estimatedNewPrice <-
         ZIO
