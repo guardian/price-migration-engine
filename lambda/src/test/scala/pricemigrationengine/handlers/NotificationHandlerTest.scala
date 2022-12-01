@@ -400,7 +400,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages.size, 0)
   }
 
-  test("itemHasEnoughNotificationPadding behaves correctly") {
+  test("thereIsEnoughNotificationLeadTime behaves correctly") {
     val itemStartDate = LocalDate.of(2023, 4, 1) // item start date
     val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
 
