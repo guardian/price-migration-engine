@@ -11,6 +11,7 @@ object AmendmentHandler extends CohortHandler {
 
   // TODO: move to config
   private val batchSize = 150
+  private val priceCappingMultiplier = 1.2
 
   val main: ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
@@ -28,9 +29,14 @@ object AmendmentHandler extends CohortHandler {
   ): ZIO[CohortTable with Zuora, Failure, AmendmentResult] =
     doAmendment(catalogue, item).foldZIO(
       failure = {
-        case _: CancelledSubscriptionFailure =>
+        case _: CancelledSubscriptionFailure => {
+          // `CancelledSubscriptionFailure` happens when the subscription was cancelled in Zuora
+          // in which case we simply update the processing state for this item in the database
+          // Although it was given to us as a failure of `doAmendment`, the only effect of the database update, if it
+          // is not recorded as a failure of `amend`, is to allow the processing to continue.
           val result = CancelledAmendmentResult(item.subscriptionName)
           CohortTable.update(CohortItem.fromCancelledAmendmentResult(result)).as(result)
+        }
         case e => ZIO.fail(e)
       },
       success = { result =>
@@ -41,9 +47,11 @@ object AmendmentHandler extends CohortHandler {
   private def doAmendment(
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
-  ): ZIO[Zuora, Failure, SuccessfulAmendmentResult] =
+  ): ZIO[Zuora, Failure, SuccessfulAmendmentResult] = {
+
     for {
       startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
+
       oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(AmendmentDataFailure(s"No old price in $item"))
       estimatedNewPrice <-
         ZIO
@@ -56,6 +64,7 @@ object AmendmentHandler extends CohortHandler {
 
       invoicePreviewBeforeUpdate <-
         Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
+
       update <- ZIO.fromEither(
         ZuoraSubscriptionUpdate
           .updateOfRatePlansToCurrent(
@@ -63,7 +72,13 @@ object AmendmentHandler extends CohortHandler {
             catalogue,
             subscriptionBeforeUpdate,
             invoicePreviewBeforeUpdate,
-            startDate
+            startDate,
+            Some(
+              ChargeCap(
+                Some(item),
+                oldPrice * priceCappingMultiplier
+              ) // ChargeCap here is used to apply the correct rate plan charges
+            )
           )
       )
       newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
@@ -71,7 +86,19 @@ object AmendmentHandler extends CohortHandler {
       invoicePreviewAfterUpdate <-
         Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)
       newPrice <-
-        ZIO.fromEither(AmendmentData.totalChargeAmount(subscriptionAfterUpdate, invoicePreviewAfterUpdate, startDate))
+        ZIO.fromEither(
+          AmendmentData.totalChargeAmount(
+            subscriptionAfterUpdate,
+            invoicePreviewAfterUpdate,
+            startDate,
+            Some(
+              ChargeCap(
+                Some(item),
+                oldPrice * priceCappingMultiplier
+              ) // ChargeCap here is used to check that the price computed after amendment is within parameters
+            )
+          )
+        )
       whenDone <- Clock.instant
     } yield SuccessfulAmendmentResult(
       item.subscriptionName,
@@ -82,6 +109,7 @@ object AmendmentHandler extends CohortHandler {
       newSubscriptionId,
       whenDone
     )
+  }
 
   private def fetchSubscription(item: CohortItem): ZIO[Zuora, Failure, ZuoraSubscription] =
     Zuora

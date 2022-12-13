@@ -1,6 +1,7 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.TestLogging
+import pricemigrationengine.handlers.NotificationHandler.thereIsEnoughNotificationLeadTime
+import pricemigrationengine.{TestLogging}
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
@@ -8,9 +9,9 @@ import pricemigrationengine.services._
 import pricemigrationengine.util.Runner.unsafeRunSync
 import zio.Exit.Success
 import zio.Runtime.default
-import zio._
 import zio.stream.ZStream
 import zio.test.{TestClock, testEnvironment}
+import zio.{IO, ZIO, ZLayer}
 
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate, ZoneOffset}
@@ -19,11 +20,13 @@ import scala.collection.mutable.ArrayBuffer
 class NotificationHandlerTest extends munit.FunSuite {
   private val expectedSubscriptionName = "Sub-0001"
   private val expectedStartDate = LocalDate.of(2020, 1, 1)
+  private val expectedStartDateUserFriendlyFormat = "1 January 2020"
   private val expectedCurrency = "GBP"
   private val expectedBillingPeriod = "Month"
   private val expectedBillingPeriodInNotification = "Monthly"
   private val expectedOldPrice = BigDecimal(11.11)
   private val expectedEstimatedNewPrice = BigDecimal(22.22)
+  private val expectedEstimatedNewPriceWithCurrencySymbolPrefix = "£22.22"
   private val expectedSFSubscriptionId = "1234"
   private val expectedBuyerId = "buyer-1"
   private val expectedIdentityId = "buyer1-identity-id"
@@ -222,11 +225,11 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, expectedLastName)
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount,
-      expectedEstimatedNewPrice.toString()
+      expectedEstimatedNewPriceWithCurrencySymbolPrefix
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date,
-      expectedStartDate.toString
+      expectedStartDateUserFriendlyFormat
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_frequency,
@@ -396,4 +399,16 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
     assertEquals(sentMessages.size, 0)
   }
+
+  test("thereIsEnoughNotificationLeadTime behaves correctly") {
+    val itemStartDate = LocalDate.of(2023, 4, 1) // item start date
+    val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
+
+    // The two following dates are chosen to be after 1st Dec 2022, to hit the non trivial case of the check
+    val date2 = LocalDate.of(2023, 2, 1)
+    val date3 = LocalDate.of(2023, 3, 1)
+    assertEquals(thereIsEnoughNotificationLeadTime(date2, cohortItem), true)
+    assertEquals(thereIsEnoughNotificationLeadTime(date3, cohortItem), false)
+  }
+
 }
