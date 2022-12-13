@@ -248,7 +248,9 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       for {
         _ <- TestClock.setTime(time)
         _ <- EstimationHandler
-          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1))(cohortItemRead)
+          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1), None)(
+            cohortItemRead
+          )
           .provide(expectedZuoraUse, expectedCohortTableUpdate)
       } yield assertTrue(true)
     },
@@ -313,7 +315,9 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       for {
         _ <- TestClock.setTime(time)
         _ <- EstimationHandler
-          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1))(cohortItemRead)
+          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1), None)(
+            cohortItemRead
+          )
           .provide(expectedZuoraUse, expectedCohortTableUpdate)
       } yield assertTrue(true)
     },
@@ -361,13 +365,14 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         result = value(invoicePreview)
       )
       val expectedZuoraUse = expectedSubscriptionFetch and expectedInvoiceFetch and expectedAccountToFetch
+      val cappingMultiplier = 1.2
       val cohortItemExpectedToWrite = CohortItem(
         subscriptionName = "S1",
-        processingStage = CappedPriceIncrease,
+        processingStage = EstimationComplete,
         startDate = Some(LocalDate.of(2023, 7, 1)),
         currency = Some("GBP"),
         oldPrice = Some(1.24),
-        estimatedNewPrice = Some(21.17),
+        estimatedNewPrice = Some(1.24 * cappingMultiplier),
         billingPeriod = Some("Month"),
         whenEstimationDone = Some(time)
       )
@@ -375,10 +380,15 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         assertion = equalTo(cohortItemExpectedToWrite),
         result = unit
       )
+
       for {
         _ <- TestClock.setTime(time)
         _ <- EstimationHandler
-          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1))(cohortItemRead)
+          .estimate(
+            productCatalogue,
+            earliestStartDate = LocalDate.of(2022, 5, 1),
+            Some(ChargeCap.builderFromMultiplier(cappingMultiplier))
+          )(cohortItemRead)
           .provide(expectedZuoraUse, expectedCohortTableUpdate)
       } yield assertTrue(true)
     }
