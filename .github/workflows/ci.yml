@@ -26,8 +26,9 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v3.9.0
         with:
+          distribution: corretto
           java-version: 11
-          distribution: adopt
+          cache: sbt
 
       - name: Test PR from forked repo
         if: env.isPrFromForkedRepo == 'true'
