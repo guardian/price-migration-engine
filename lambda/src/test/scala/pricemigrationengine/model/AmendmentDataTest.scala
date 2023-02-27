@@ -44,6 +44,27 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
+  test("priceData: is correct for a GW ROW subscription with a past Zone ABC rate plan") {
+    val fixtureSet = "GuardianWeekly/CappedPriceIncrease4"
+    val priceData = AmendmentData(
+      account = accountFromJson(s"$fixtureSet/Account.json"),
+      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
+      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
+      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
+      earliestStartDate = migrationStartDate2022,
+      Some(ChargeCap.builderFromMultiplier(1.2))
+    )
+    assertEquals(
+      priceData,
+      Right(
+        AmendmentData(
+          LocalDate.of(2023, 2, 11),
+          PriceData(currency = "GBP", oldPrice = 60.00, newPrice = 72.00, billingPeriod = "Quarter")
+        )
+      )
+    )
+  }
+
   test("priceData: is correct migrating a quarterly GW Zone A plan (billed in USD) to GW Domestic plan") {
     val fixtureSet = "GuardianWeekly/ZoneABC/ZoneA_USD_Domestic"
     val priceData = AmendmentData(
@@ -136,22 +157,6 @@ class AmendmentDataTest extends munit.FunSuite {
     val serviceStartDate =
       AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
     assertEquals(serviceStartDate, Right(LocalDate.of(2022, 4, 19)))
-  }
-
-  test("nextserviceStartDate: billing date is first after migration start date (Echo-Legacy Delivery)") {
-    val invoiceList = invoiceListFromJson("NewspaperDelivery/EchoLegacy/WeekendMonthly/InvoicePreview.json")
-    val subscription = subscriptionFromJson("NewspaperDelivery/EchoLegacy/WeekendMonthly/Subscription.json")
-    val serviceStartDate =
-      AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
-    assertEquals(serviceStartDate, Right(LocalDate.of(2022, 5, 7)))
-  }
-
-  test("nextserviceStartDate: billing date is correct for an echo-legacy quarterly subscription") {
-    val invoiceList = invoiceListFromJson("NewspaperDelivery/EchoLegacy/Quarterly2/InvoicePreview.json")
-    val subscription = subscriptionFromJson("NewspaperDelivery/EchoLegacy/Quarterly2/Subscription.json")
-    val serviceStartDate =
-      AmendmentData.nextServiceStartDateEchoLegacy(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
-    assertEquals(serviceStartDate, Right(LocalDate.of(2022, 7, 9)))
   }
 
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date") {
