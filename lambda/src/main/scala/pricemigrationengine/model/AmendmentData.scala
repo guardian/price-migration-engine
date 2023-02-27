@@ -37,12 +37,8 @@ object AmendmentData {
       earliestStartDate: LocalDate,
       chargeCapBuilderOpt: Option[ChargeCapBuilderFromMultiplier]
   ): Either[AmendmentDataFailure, AmendmentData] = {
-    val isEchoLegacy = subscription.ratePlans.filter(_.ratePlanName == "Echo-Legacy").nonEmpty
-
     for {
-      startDate <-
-        if (isEchoLegacy) nextServiceStartDateEchoLegacy(invoiceList, subscription, onOrAfter = earliestStartDate)
-        else nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
+      startDate <- nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
       price <- priceData(account, catalogue, subscription, invoiceList, startDate, chargeCapBuilderOpt)
     } yield AmendmentData(startDate, priceData = price)
   }
@@ -54,26 +50,6 @@ object AmendmentData {
   ): Either[AmendmentDataFailure, LocalDate] =
     ZuoraInvoiceItem
       .itemsForSubscription(invoiceList, subscription)
-      .map(_.serviceStartDate)
-      .sortBy(_.toEpochDay)
-      .dropWhile(_.isBefore(onOrAfter))
-      .headOption
-      .toRight(AmendmentDataFailure(s"Cannot determine next billing date on or after $onOrAfter from $invoiceList"))
-
-  def nextServiceStartDateEchoLegacy(
-      invoiceList: ZuoraInvoiceList,
-      subscription: ZuoraSubscription,
-      onOrAfter: LocalDate
-  ): Either[AmendmentDataFailure, LocalDate] =
-    ZuoraInvoiceItem
-      .itemsForSubscription(invoiceList, subscription)
-      .filter(_.productName == "Newspaper Delivery")
-      .groupBy(_.serviceStartDate)
-      .collect {
-        case (_, chargedDays) if chargedDays.length == 7 => chargedDays
-      }
-      .flatten
-      .toSeq
       .map(_.serviceStartDate)
       .sortBy(_.toEpochDay)
       .dropWhile(_.isBefore(onOrAfter))
@@ -162,7 +138,6 @@ object AmendmentData {
         .toRight(AmendmentDataFailure(s"Failed to get RatePlan for charges: $ratePlanCharges"))
 
       isZoneABC = zoneABCPlanNames contains ratePlan.productName
-      // check the Zone ABC rateplan is the currently active one -> effectiveEndDate property on the subscription, are we filtering out inactive Zone ABC rateplans in the bigquery query?? does the engine filter out inactive rateplans??
 
       pairs <-
         if (isZoneABC)
@@ -214,7 +189,20 @@ object AmendmentData {
       )
       chargeUpdateCheckOpt match {
         case Some(chargeUpdateCheck) => {
-          if (newPrice <= chargeUpdateCheck.priceCap) {
+
+          // The check we are performing here fundamentally writes as
+          // ```
+          // newPrice <= chargeUpdateCheck.priceCap
+          // ```
+          // that is because we simply want to make sure that the new price is not higher than the price cap
+          // policy which, at the time these lines are written, is +20%.
+          // For instance, an old price of 539.88 would result in a price cap of 539.88 * 1.2 = 647.856.
+          // With that said, there can be rounding errors and the new price can be computed to be 647.88.
+          // (These numbers were taken from a real example)
+          // This rounding error did cause an AmendmentDataFailure, which was not the intention of the check.
+          // To accommodate those rounding errors we allow for an additional 1%, hence the 1.01 factor.
+
+          if (newPrice <= chargeUpdateCheck.priceCap * 1.01) {
             Right(newPrice)
           } else {
             Left(
