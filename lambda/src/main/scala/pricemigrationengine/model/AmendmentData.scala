@@ -189,7 +189,20 @@ object AmendmentData {
       )
       chargeUpdateCheckOpt match {
         case Some(chargeUpdateCheck) => {
-          if (newPrice <= chargeUpdateCheck.priceCap) {
+
+          // The check we are performing here fundamentally writes as
+          // ```
+          // newPrice <= chargeUpdateCheck.priceCap
+          // ```
+          // that is because we simply want to make sure that the new price is not higher than the price cap
+          // policy which, at the time these lines are written, is +20%.
+          // For instance, an old price of 539.88 would result in a price cap of 539.88 * 1.2 = 647.856.
+          // With that said, there can be rounding errors and the new price can be computed to be 647.88.
+          // (These numbers were taken from a real example)
+          // This rounding error did cause an AmendmentDataFailure, which was not the intention of the check.
+          // To accommodate those rounding errors we allow for an additional 1%, hence the 1.01 factor.
+
+          if (newPrice <= chargeUpdateCheck.priceCap * 1.01) {
             Right(newPrice)
           } else {
             Left(
