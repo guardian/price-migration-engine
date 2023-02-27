@@ -117,7 +117,7 @@ object NotificationHandler extends CohortHandler {
       lastName <- requiredField(contact.LastName, "Contact.LastName")
       address <- targetAddress(contact)
       street <- requiredField(address.street, "Contact.OtherAddress.street")
-      postalCode <- requiredField(address.postalCode, "Contact.OtherAddress.postalCode")
+      postalCode = address.postalCode.getOrElse("")
       country <- requiredField(address.country, "Contact.OtherAddress.country")
       estimatedNewPrice <- requiredField(cohortItem.estimatedNewPrice.map(_.toString()), "CohortItem.estimatedNewPrice")
       startDate <- requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate")
