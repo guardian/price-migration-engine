@@ -30,13 +30,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
             AddZuoraRatePlan(
               productRatePlanId = "2c92a0fe6619b4b301661aa494392ee2",
               contractEffectiveDate = LocalDate.of(2022, 12, 30),
-              chargeOverrides = List(
-                ChargeOverride(
-                  productRatePlanChargeId = "2c92a0fe6619b4b601661aa8b74e623f",
-                  billingPeriod = "Quarter",
-                  price = 93.6
-                )
-              )
+              chargeOverrides = Nil
             )
           ),
           remove = List(
@@ -76,13 +70,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
             AddZuoraRatePlan(
               productRatePlanId = "2c92a0086619bf8901661ab02752722f",
               contractEffectiveDate = LocalDate.of(2022, 12, 19),
-              chargeOverrides = List(
-                ChargeOverride(
-                  productRatePlanChargeId = "2c92a0ff6619bf8b01661ab2d0396eb2",
-                  billingPeriod = "Quarter",
-                  price = 72
-                )
-              )
+              chargeOverrides = Nil
             )
           ),
           remove = List(
@@ -122,13 +110,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
             AddZuoraRatePlan(
               productRatePlanId = "2c92a0086619bf8901661ab02752722f",
               contractEffectiveDate = LocalDate.of(2023, 2, 11),
-              chargeOverrides = List(
-                ChargeOverride(
-                  productRatePlanChargeId = "2c92a0ff6619bf8b01661ab2d0396eb2",
-                  billingPeriod = "Quarter",
-                  price = 72.0
-                )
-              )
+              chargeOverrides = Nil
             )
           ),
           remove = List(

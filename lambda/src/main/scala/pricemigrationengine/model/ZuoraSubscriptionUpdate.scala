@@ -115,23 +115,24 @@ case class AddZuoraRatePlan(
 object AddZuoraRatePlan {
   implicit val rw: ReadWriter[AddZuoraRatePlan] = macroRW
 
-  def alterZuoraPricings(pricings: Set[ZuoraPricing], cappedPrice: BigDecimal): Set[ZuoraPricing] =
-    pricings.map(pricing =>
-      ZuoraPricing(
-        pricing.currency,
-        pricing.price.map(price => List(price, cappedPrice).min),
-        pricing.price.map(price => price > cappedPrice).getOrElse(false)
-      )
-    )
+  def toTwoDecimals(number: BigDecimal): BigDecimal = {
+    BigDecimal((number * 100).toInt.toDouble / 100)
+  }
 
-  def alterZuoraProductRatePlanCharge(
-      rpc: ZuoraProductRatePlanCharge,
-      chargeCapOpt: Option[ChargeCap]
-  ): ZuoraProductRatePlanCharge = {
-    chargeCapOpt match {
-      case None => rpc
-      case Some(chargeCap) =>
-        ZuoraProductRatePlanCharge(rpc.id, rpc.billingPeriod, alterZuoraPricings(rpc.pricing, chargeCap.priceCap))
+  def capChargeOverrides(chargeOverrides: Seq[ChargeOverride], chargeCap: Option[ChargeCap]): Seq[ChargeOverride] = {
+    chargeCap match {
+      case None => chargeOverrides
+      case Some(cap) => {
+        val total = chargeOverrides.map(_.price).foldLeft(BigDecimal(0))(_ + _)
+        if (total <= cap.priceCap) {
+          chargeOverrides
+        } else {
+          val correctionFactor = cap.priceCap / total
+          chargeOverrides.map(co =>
+            ChargeOverride(co.productRatePlanChargeId, co.billingPeriod, toTwoDecimals(correctionFactor * co.price))
+          )
+        }
+      }
     }
   }
 
@@ -143,18 +144,12 @@ object AddZuoraRatePlan {
       ratePlan: ZuoraRatePlan
   ): Either[AmendmentDataFailure, AddZuoraRatePlan] = {
 
-    def alterPricingData(zuoraPricingData: ZuoraPricingData, chargeCap: Option[ChargeCap]): ZuoraPricingData = {
-      zuoraPricingData.toSeq.map { case (chargeId, charge) =>
-        (chargeId, alterZuoraProductRatePlanCharge(charge, chargeCap))
-      }.toMap
-    }
-
     for {
-      chargeOverrides <- ChargeOverride.fromRatePlan(alterPricingData(pricingData, chargeCap), ratePlan)
+      chargeOverrides <- ChargeOverride.fromRatePlan(pricingData, ratePlan)
     } yield AddZuoraRatePlan(
       productRatePlanId = ratePlan.productRatePlanId,
       contractEffectiveDate,
-      chargeOverrides
+      capChargeOverrides(chargeOverrides, chargeCap)
     )
   }
 
@@ -175,7 +170,7 @@ object AddZuoraRatePlan {
       chargeOverrides <- guardianWeekly.chargePairs
         .map(chargePair =>
           fromRatePlanCharge(
-            alterZuoraProductRatePlanCharge(chargePair.chargeFromProduct, chargeCap),
+            chargePair.chargeFromProduct,
             chargePair.chargeFromSubscription
           )
         )
@@ -184,7 +179,7 @@ object AddZuoraRatePlan {
     } yield AddZuoraRatePlan(
       productRatePlanId = guardianWeekly.productRatePlan.id,
       contractEffectiveDate,
-      chargeOverrides
+      capChargeOverrides(chargeOverrides, chargeCap)
     )
 }
 
