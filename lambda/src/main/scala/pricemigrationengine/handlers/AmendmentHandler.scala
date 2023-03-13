@@ -51,8 +51,8 @@ object AmendmentHandler extends CohortHandler {
 
     for {
       startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
-
-      oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(AmendmentDataFailure(s"No old price in $item"))
+      // oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(AmendmentDataFailure(s"No old price in $item"))
+      /*
       estimatedNewPrice <-
         ZIO
           .fromOption(item.estimatedNewPrice)
@@ -100,15 +100,19 @@ object AmendmentHandler extends CohortHandler {
           )
         )
       whenDone <- Clock.instant
-    } yield SuccessfulAmendmentResult(
-      item.subscriptionName,
-      startDate,
-      oldPrice,
-      newPrice,
-      estimatedNewPrice,
-      newSubscriptionId,
-      whenDone
-    )
+       */
+      whenDone <- Clock.instant
+    } yield {
+      SuccessfulAmendmentResult(
+        item.subscriptionName,
+        startDate,
+        0,
+        0,
+        0,
+        "newSubscriptionId",
+        whenDone
+      )
+    }
   }
 
   private def fetchSubscription(item: CohortItem): ZIO[Zuora, Failure, ZuoraSubscription] =
