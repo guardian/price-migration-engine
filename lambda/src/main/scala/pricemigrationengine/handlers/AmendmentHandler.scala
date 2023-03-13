@@ -51,12 +51,13 @@ object AmendmentHandler extends CohortHandler {
 
     for {
       startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
-      // oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(AmendmentDataFailure(s"No old price in $item"))
-      /*
+      oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(AmendmentDataFailure(s"No old price in $item"))
+
       estimatedNewPrice <-
         ZIO
           .fromOption(item.estimatedNewPrice)
           .orElseFail(AmendmentDataFailure(s"No estimated new price in $item"))
+
       invoicePreviewTargetDate = startDate.plusMonths(13)
       subscriptionBeforeUpdate <- fetchSubscription(item)
 
@@ -81,6 +82,8 @@ object AmendmentHandler extends CohortHandler {
             )
           )
       )
+      /*
+
       newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
       subscriptionAfterUpdate <- fetchSubscription(item)
       invoicePreviewAfterUpdate <-
@@ -103,12 +106,13 @@ object AmendmentHandler extends CohortHandler {
        */
       whenDone <- Clock.instant
     } yield {
+      println(s"update: ${update}")
       SuccessfulAmendmentResult(
         item.subscriptionName,
         startDate,
-        0,
-        0,
-        0,
+        oldPrice,
+        oldPrice,
+        estimatedNewPrice,
         "newSubscriptionId",
         whenDone
       )
