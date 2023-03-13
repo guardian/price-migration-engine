@@ -44,6 +44,29 @@ object AmendmentHandler extends CohortHandler {
       }
     )
 
+  private def determinePriceCorrectionFactor(oldPrice: BigDecimal, estimatedNewPrice: BigDecimal): BigDecimal = {
+    if (estimatedNewPrice < oldPrice * 1.2) {
+      1
+    } else {
+      (oldPrice * 1.2) / estimatedNewPrice
+    }
+  }
+
+  private def checkNewPrice(
+      item: CohortItem,
+      oldPrice: BigDecimal,
+      newPrice: BigDecimal
+  ): ZIO[Any, AmendmentDataFailure, Unit] = {
+    if (newPrice > (oldPrice * 1.2)) {
+      ZIO.succeed(())
+    } else
+      ZIO.fail(
+        AmendmentDataFailure(
+          s"Cohort item: ${item.subscriptionName}. The new price ${newPrice} after amendment is higher than the old price ${oldPrice} + 20%"
+        )
+      )
+  }
+
   private def doAmendment(
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
@@ -53,11 +76,16 @@ object AmendmentHandler extends CohortHandler {
       startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
 
       oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(AmendmentDataFailure(s"No old price in $item"))
+
       estimatedNewPrice <-
         ZIO
           .fromOption(item.estimatedNewPrice)
           .orElseFail(AmendmentDataFailure(s"No estimated new price in $item"))
+
+      priceCorrectionFactor = determinePriceCorrectionFactor(oldPrice, estimatedNewPrice)
+
       invoicePreviewTargetDate = startDate.plusMonths(13)
+
       subscriptionBeforeUpdate <- fetchSubscription(item)
 
       account <- Zuora.fetchAccount(subscriptionBeforeUpdate.accountNumber, subscriptionBeforeUpdate.subscriptionNumber)
@@ -73,32 +101,28 @@ object AmendmentHandler extends CohortHandler {
             subscriptionBeforeUpdate,
             invoicePreviewBeforeUpdate,
             startDate,
-            Some(
-              ChargeCap(
-                Some(item),
-                oldPrice * priceCappingMultiplier
-              ) // ChargeCap here is used to apply the correct rate plan charges
-            )
+            priceCorrectionFactor
           )
       )
+
       newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
+
       subscriptionAfterUpdate <- fetchSubscription(item)
+
       invoicePreviewAfterUpdate <-
         Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)
+
       newPrice <-
         ZIO.fromEither(
           AmendmentData.totalChargeAmount(
             subscriptionAfterUpdate,
             invoicePreviewAfterUpdate,
-            startDate,
-            Some(
-              ChargeCap(
-                Some(item),
-                oldPrice * priceCappingMultiplier
-              ) // ChargeCap here is used to check that the price computed after amendment is within parameters
-            )
+            startDate
           )
         )
+
+      _ <- checkNewPrice(item, oldPrice, newPrice)
+
       whenDone <- Clock.instant
     } yield SuccessfulAmendmentResult(
       item.subscriptionName,

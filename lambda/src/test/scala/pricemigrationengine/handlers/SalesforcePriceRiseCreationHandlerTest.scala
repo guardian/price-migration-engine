@@ -19,8 +19,8 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
   private val expectedSubscriptionName = "Sub-0001"
   private val expectedStartDate = LocalDate.of(2020, 1, 1)
   private val expectedCurrency = "GBP"
-  private val expectedOldPrice = BigDecimal(11.11)
-  private val expectedEstimatedNewPrice = BigDecimal(22.22)
+  private val expectedOldPrice = BigDecimal(10.00)
+  private val expectedEstimatedNewPrice = BigDecimal(15.00)
   private val expectedCurrentTime = Instant.parse("2020-05-21T15:16:37Z")
 
   private def createStubCohortTable(
@@ -131,7 +131,10 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     assertEquals(createdPriceRises(0).SF_Subscription__c, Some(s"SubscritionId-$expectedSubscriptionName"))
     assertEquals(createdPriceRises(0).Buyer__c, Some(s"Buyer-$expectedSubscriptionName"))
     assertEquals(createdPriceRises(0).Current_Price_Today__c, Some(expectedOldPrice))
-    assertEquals(createdPriceRises(0).Guardian_Weekly_New_Price__c, Some(expectedEstimatedNewPrice))
+    assertEquals(
+      createdPriceRises(0).Guardian_Weekly_New_Price__c,
+      Some(List(expectedOldPrice * 1.2, expectedEstimatedNewPrice).min)
+    )
     assertEquals(createdPriceRises(0).Price_Rise_Date__c, Some(expectedStartDate))
 
     assertEquals(updatedResultsWrittenToCohortTable.size, 1)
@@ -191,7 +194,10 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     assertEquals(updatedPriceRises(0).SF_Subscription__c, Some(s"SubscritionId-$expectedSubscriptionName"))
     assertEquals(updatedPriceRises(0).Buyer__c, Some(s"Buyer-$expectedSubscriptionName"))
     assertEquals(updatedPriceRises(0).Current_Price_Today__c, Some(expectedOldPrice))
-    assertEquals(updatedPriceRises(0).Guardian_Weekly_New_Price__c, Some(expectedEstimatedNewPrice))
+    assertEquals(
+      updatedPriceRises(0).Guardian_Weekly_New_Price__c,
+      Some(List(expectedOldPrice * 1.2, expectedEstimatedNewPrice).min)
+    )
     assertEquals(updatedPriceRises(0).Price_Rise_Date__c, Some(expectedStartDate))
 
     assertEquals(updatedResultsWrittenToCohortTable.size, 1)

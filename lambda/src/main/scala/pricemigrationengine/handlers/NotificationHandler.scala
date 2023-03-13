@@ -103,6 +103,10 @@ object NotificationHandler extends CohortHandler {
     emailUserFriendlyDateFormatter(dateStrToLocalDate(startDate: String))
   }
 
+  def cappedNewPrice(oldPrice: BigDecimal, newPrice: BigDecimal): BigDecimal = {
+    List(oldPrice * 1.2, newPrice).min
+  }
+
   def sendNotification(
       brazeCampaignName: String,
       cohortItem: CohortItem,
@@ -119,13 +123,14 @@ object NotificationHandler extends CohortHandler {
       street <- requiredField(address.street, "Contact.OtherAddress.street")
       postalCode = address.postalCode.getOrElse("")
       country <- requiredField(address.country, "Contact.OtherAddress.country")
-      estimatedNewPrice <- requiredField(cohortItem.estimatedNewPrice.map(_.toString()), "CohortItem.estimatedNewPrice")
+      oldPrice <- requiredField(cohortItem.oldPrice, "CohortItem.oldPrice")
+      estimatedNewPrice <- requiredField(cohortItem.estimatedNewPrice, "CohortItem.estimatedNewPrice")
       startDate <- requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate")
       billingPeriod <- requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod")
       paymentFrequency <- paymentFrequency(billingPeriod)
       currencyISOCode <- requiredField(cohortItem.currency, "CohortItem.currency")
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
-      estimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${estimatedNewPrice}"
+      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${cappedNewPrice(oldPrice, estimatedNewPrice)}"
 
       _ <- logMissingEmailAddress(cohortItem, contact)
 
@@ -149,7 +154,7 @@ object NotificationHandler extends CohortHandler {
                 billing_postal_code = postalCode,
                 billing_state = address.state,
                 billing_country = country,
-                payment_amount = estimatedNewPriceWithCurrencySymbol,
+                payment_amount = cappedEstimatedNewPriceWithCurrencySymbol,
                 next_payment_date = startDateConversion(startDate),
                 payment_frequency = paymentFrequency,
                 subscription_id = cohortItem.subscriptionName,

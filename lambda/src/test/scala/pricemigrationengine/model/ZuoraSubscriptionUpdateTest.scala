@@ -6,7 +6,7 @@ import pricemigrationengine.Fixtures
 
 class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
 
-  test("Zuora amendment correctly creates a charge override from the capped price") {
+  test("Zuora amendment correctly creates a charge") {
     val fixtureSet = "GuardianWeekly/CappedPriceIncrease2"
     val date = LocalDate.of(2022, 12, 30)
     val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
@@ -15,12 +15,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      Some(
-        ChargeCap(
-          None,
-          78 * 1.2
-        ) // ChargeCap here is used to apply the correct rate plan charges
-      )
+      1
     )
     assertEquals(
       update,
@@ -34,7 +29,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
                 ChargeOverride(
                   productRatePlanChargeId = "2c92a0fe6619b4b601661aa8b74e623f",
                   billingPeriod = "Quarter",
-                  price = 93.6
+                  price = 108.0
                 )
               )
             )
@@ -52,7 +47,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
     )
   }
 
-  test("Zuora amendment correctly creates a charge override from the capped price 2") {
+  test("Zuora amendment correctly creates a charge override from a non trivial price correction factor") {
     val fixtureSet = "GuardianWeekly/CappedPriceIncrease3"
     val date = LocalDate.of(2022, 12, 19)
     val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
@@ -61,12 +56,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      Some(
-        ChargeCap(
-          None,
-          60 * 1.2
-        ) // ChargeCap here is used to apply the correct rate plan charges
-      )
+      0.5
     )
     assertEquals(
       update,
@@ -80,7 +70,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
                 ChargeOverride(
                   productRatePlanChargeId = "2c92a0ff6619bf8b01661ab2d0396eb2",
                   billingPeriod = "Quarter",
-                  price = 72
+                  price = 37.20
                 )
               )
             )
@@ -107,12 +97,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      Some(
-        ChargeCap(
-          None,
-          60 * 1.2
-        ) // ChargeCap here is used to apply the correct rate plan charges
-      )
+      1
     )
     assertEquals(
       update,
@@ -126,7 +111,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
                 ChargeOverride(
                   productRatePlanChargeId = "2c92a0ff6619bf8b01661ab2d0396eb2",
                   billingPeriod = "Quarter",
-                  price = 72.0
+                  price = 74.4
                 )
               )
             )
@@ -155,7 +140,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      None
+      1
     )
     assertEquals(
       update,
@@ -165,7 +150,13 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
             AddZuoraRatePlan(
               productRatePlanId = "2c92a0086619bf8901661ab02752722f",
               contractEffectiveDate = date,
-              chargeOverrides = Nil
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0ff6619bf8b01661ab2d0396eb2",
+                  billingPeriod = "Quarter",
+                  price = 90.0
+                )
+              )
             )
           ),
           remove = List(
@@ -187,14 +178,54 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      None
+      1
     )
     assertEquals(
       update,
       Right(
         ZuoraSubscriptionUpdate(
           add = List(
-            AddZuoraRatePlan(productRatePlanId = "2c92a0fd56fe270b0157040dd79b35da", contractEffectiveDate = date)
+            AddZuoraRatePlan(
+              productRatePlanId = "2c92a0fd56fe270b0157040dd79b35da",
+              contractEffectiveDate = date,
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0ff56fe33f0015709c182cb7c82",
+                  billingPeriod = "Month",
+                  price = 6.7
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0fd56fe26b6015709c0613b44a6",
+                  billingPeriod = "Month",
+                  price = 6.7
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0ff56fe33f0015709c215527db4",
+                  billingPeriod = "Month",
+                  price = 6.7
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0fd56fe270b015709c320ee0595",
+                  billingPeriod = "Month",
+                  price = 9.75
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0fd56fe26b601570431a5bc5a34",
+                  billingPeriod = "Month",
+                  price = 6.7
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0ff56fe33f5015709c39719783e",
+                  billingPeriod = "Month",
+                  price = 9.74
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0ff56fe33f3015709c110a71630",
+                  billingPeriod = "Month",
+                  price = 6.7
+                )
+              )
+            )
           ),
           remove = List(
             RemoveZuoraRatePlan(ratePlanId = "rp2", contractEffectiveDate = date)
@@ -215,14 +246,29 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      None
+      1
     )
     assertEquals(
       update,
       Right(
         ZuoraSubscriptionUpdate(
           add = List(
-            AddZuoraRatePlan(productRatePlanId = "2c92a0ff56fe33f00157040f9a537f4b", contractEffectiveDate = date)
+            AddZuoraRatePlan(
+              productRatePlanId = "2c92a0ff56fe33f00157040f9a537f4b",
+              contractEffectiveDate = date,
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0ff56fe33f00157041713362b51",
+                  billingPeriod = "Month",
+                  price = 10.99
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0fc56fe26ba01570417df6d1b54",
+                  billingPeriod = "Month",
+                  price = 11.0
+                )
+              )
+            )
           ),
           remove = List(
             RemoveZuoraRatePlan(ratePlanId = "rp2", contractEffectiveDate = date)
@@ -243,7 +289,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      None
+      1
     )
     assertEquals(
       update,
@@ -286,14 +332,24 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      None
+      1
     )
     assertEquals(
       update,
       Right(
         ZuoraSubscriptionUpdate(
           add = List(
-            AddZuoraRatePlan(productRatePlanId = "2c92a0fe6619b4b301661aa494392ee2", contractEffectiveDate = date)
+            AddZuoraRatePlan(
+              productRatePlanId = "2c92a0fe6619b4b301661aa494392ee2",
+              contractEffectiveDate = date,
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0fe6619b4b601661aa8b74e623f",
+                  billingPeriod = "Quarter",
+                  price = 42.4
+                )
+              )
+            )
           ),
           remove = List(
             RemoveZuoraRatePlan(ratePlanId = "rp123", contractEffectiveDate = date)
@@ -314,7 +370,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      None
+      1
     )
     assertEquals(
       update,
@@ -377,7 +433,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      None
+      1
     )
     assertEquals(
       update,
@@ -420,7 +476,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      None
+      1
     )
     assertEquals(
       update,
@@ -432,7 +488,13 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
             AddZuoraRatePlan(
               productRatePlanId = "2c92a0fe5af9a6b9015b0fe1ecc0116c",
               contractEffectiveDate = date,
-              chargeOverrides = Nil
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0fe5af9a6b9015b0fe1ed121177",
+                  billingPeriod = "Month",
+                  price = 11.99
+                )
+              )
             )
           ),
           remove = List(
@@ -443,7 +505,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
     )
   }
 
-  test("CappedPriceIncrease: The standard uncapped price rise is invariant") {
+  test("Estimated price is computed correctly") {
 
     val fixtureSet = "GuardianWeekly/CappedPriceIncrease"
     val catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json")
@@ -458,34 +520,10 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
         subscription,
         invoiceList,
         earliestStartDate,
-        None
       )
     assertEquals(
       estimationResult,
       Right(SuccessfulEstimationResult("subNum", LocalDate.of(2022, 11, 12), "GBP", 30.00, 41.25, "Quarter"))
-    )
-  }
-
-  test("CappedPriceIncrease: Capped price rise is correct") {
-
-    val fixtureSet = "GuardianWeekly/CappedPriceIncrease"
-    val catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json")
-    val account = Fixtures.accountFromJson(s"$fixtureSet/Account.json")
-    val earliestStartDate = LocalDate.of(2022, 10, 10)
-    val invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
-    val estimationResult =
-      EstimationResult(
-        account,
-        catalogue,
-        subscription,
-        invoiceList,
-        earliestStartDate,
-        Some(ChargeCap.builderFromMultiplier(1.2))
-      )
-    assertEquals(
-      estimationResult,
-      Right(SuccessfulEstimationResult("subNum", LocalDate.of(2022, 11, 12), "GBP", 30.00, 36, "Quarter"))
     )
   }
 }

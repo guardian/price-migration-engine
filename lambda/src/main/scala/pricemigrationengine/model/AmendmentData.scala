@@ -1,6 +1,5 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.model.ChargeCap.ChargeCapBuilderFromMultiplier
 import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, productPricingMap}
 
 import java.time.LocalDate
@@ -35,11 +34,10 @@ object AmendmentData {
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       earliestStartDate: LocalDate,
-      chargeCapBuilderOpt: Option[ChargeCapBuilderFromMultiplier]
   ): Either[AmendmentDataFailure, AmendmentData] = {
     for {
       startDate <- nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
-      price <- priceData(account, catalogue, subscription, invoiceList, startDate, chargeCapBuilderOpt)
+      price <- priceData(account, catalogue, subscription, invoiceList, startDate)
     } yield AmendmentData(startDate, priceData = price)
   }
 
@@ -76,8 +74,7 @@ object AmendmentData {
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-      startDate: LocalDate,
-      chargeCapBuilderOpt: Option[ChargeCapBuilderFromMultiplier]
+      startDate: LocalDate
   ): Either[AmendmentDataFailure, PriceData] = {
 
     def hasNotPriceAndDiscount(ratePlanCharge: ZuoraRatePlanCharge) =
@@ -147,17 +144,13 @@ object AmendmentData {
       currency <- pairs.headOption
         .map(p => Right(p.chargeFromSubscription.currency))
         .getOrElse(Left(AmendmentDataFailure(s"No invoice items for date: $startDate")))
-      oldPrice <- totalChargeAmount(subscription, invoiceList, startDate, None)
-      newPriceWithoutCapping <- totalChargeAmount(pairs)
-      newPriceWithCapping = chargeCapBuilderOpt match {
-        case None                   => newPriceWithoutCapping
-        case Some(chargeCapBuilder) => List(newPriceWithoutCapping, chargeCapBuilder(oldPrice).priceCap).min
-      }
+      oldPrice <- totalChargeAmount(subscription, invoiceList, startDate)
+      newPrice <- totalChargeAmount(pairs)
       billingPeriod <- pairs
         .flatMap(_.chargeFromSubscription.billingPeriod)
         .headOption
         .toRight(AmendmentDataFailure("Unknown billing period"))
-    } yield PriceData(currency, oldPrice, newPriceWithCapping, billingPeriod)
+    } yield PriceData(currency, oldPrice, newPrice, billingPeriod)
   }
 
   /** Total charge amount, including taxes and discounts, for the service period starting on the given service start
@@ -166,8 +159,7 @@ object AmendmentData {
   def totalChargeAmount(
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-      serviceStartDate: LocalDate,
-      chargeUpdateCheckOpt: Option[ChargeCap]
+      serviceStartDate: LocalDate
   ): Either[AmendmentDataFailure, BigDecimal] = {
     /*
      * As charge amounts on Zuora invoice previews don't include tax,
@@ -187,34 +179,7 @@ object AmendmentData {
         discountPercentage = discounts.headOption,
         beforeDiscount = amounts.collect { case Right(amount) => amount }
       )
-      chargeUpdateCheckOpt match {
-        case Some(chargeUpdateCheck) => {
-
-          // The check we are performing here fundamentally writes as
-          // ```
-          // newPrice <= chargeUpdateCheck.priceCap
-          // ```
-          // that is because we simply want to make sure that the new price is not higher than the price cap
-          // policy which, at the time these lines are written, is +20%.
-          // For instance, an old price of 539.88 would result in a price cap of 539.88 * 1.2 = 647.856.
-          // With that said, there can be rounding errors and the new price can be computed to be 647.88.
-          // (These numbers were taken from a real example)
-          // This rounding error did cause an AmendmentDataFailure, which was not the intention of the check.
-          // To accommodate those rounding errors we allow for an additional 1%, hence the 1.01 factor.
-
-          if (newPrice <= chargeUpdateCheck.priceCap * 1.01) {
-            Right(newPrice)
-          } else {
-            Left(
-              AmendmentDataFailure(
-                s"The new price ${newPrice} for cohort item: ${chargeUpdateCheck.item} (after amendment) was higher than the estimatedNewPrice (${chargeUpdateCheck.priceCap})"
-              )
-            )
-          }
-        }
-        case None => Right(newPrice)
-      }
-
+      Right(newPrice)
     }
   }
 
