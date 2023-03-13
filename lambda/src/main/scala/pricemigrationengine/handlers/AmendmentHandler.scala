@@ -82,12 +82,14 @@ object AmendmentHandler extends CohortHandler {
             )
           )
       )
-      /*
 
       newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
+
       subscriptionAfterUpdate <- fetchSubscription(item)
+
       invoicePreviewAfterUpdate <-
         Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)
+
       newPrice <-
         ZIO.fromEither(
           AmendmentData.totalChargeAmount(
@@ -102,8 +104,7 @@ object AmendmentHandler extends CohortHandler {
             )
           )
         )
-      whenDone <- Clock.instant
-       */
+
       whenDone <- Clock.instant
     } yield {
       println(s"update: ${update}")
@@ -111,9 +112,9 @@ object AmendmentHandler extends CohortHandler {
         item.subscriptionName,
         startDate,
         oldPrice,
-        oldPrice,
+        newPrice,
         estimatedNewPrice,
-        "newSubscriptionId",
+        newSubscriptionId,
         whenDone
       )
     }
