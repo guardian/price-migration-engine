@@ -103,10 +103,6 @@ object NotificationHandler extends CohortHandler {
     emailUserFriendlyDateFormatter(dateStrToLocalDate(startDate: String))
   }
 
-  def cappedNewPrice(oldPrice: BigDecimal, newPrice: BigDecimal): BigDecimal = {
-    List(oldPrice * 1.2, newPrice).min
-  }
-
   def sendNotification(
       brazeCampaignName: String,
       cohortItem: CohortItem,
@@ -130,7 +126,7 @@ object NotificationHandler extends CohortHandler {
       paymentFrequency <- paymentFrequency(billingPeriod)
       currencyISOCode <- requiredField(cohortItem.currency, "CohortItem.currency")
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
-      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${cappedNewPrice(oldPrice, estimatedNewPrice)}"
+      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCapper.cappedPrice(oldPrice, estimatedNewPrice)}"
 
       _ <- logMissingEmailAddress(cohortItem, contact)
 

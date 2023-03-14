@@ -18,7 +18,6 @@ object EstimationHandler extends CohortHandler {
 
   // TODO: move to config
   private val batchSize = 150
-  private val priceCappingMultiplier = 1.2
 
   def main(earliestStartDate: LocalDate): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {

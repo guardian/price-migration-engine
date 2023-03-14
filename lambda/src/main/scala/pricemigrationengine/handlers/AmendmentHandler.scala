@@ -11,7 +11,6 @@ object AmendmentHandler extends CohortHandler {
 
   // TODO: move to config
   private val batchSize = 150
-  private val priceCappingMultiplier = 1.2
 
   val main: ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
@@ -44,20 +43,12 @@ object AmendmentHandler extends CohortHandler {
       }
     )
 
-  private def determinePriceCorrectionFactor(oldPrice: BigDecimal, estimatedNewPrice: BigDecimal): BigDecimal = {
-    if (estimatedNewPrice < oldPrice * 1.2) {
-      1
-    } else {
-      (oldPrice * 1.2) / estimatedNewPrice
-    }
-  }
-
   private def checkNewPrice(
       item: CohortItem,
       oldPrice: BigDecimal,
       newPrice: BigDecimal
   ): ZIO[Any, AmendmentDataFailure, Unit] = {
-    if (newPrice > (oldPrice * 1.2)) {
+    if (newPrice > PriceCapper.cappedPrice(oldPrice, newPrice)) {
       ZIO.succeed(())
     } else
       ZIO.fail(
@@ -82,8 +73,6 @@ object AmendmentHandler extends CohortHandler {
           .fromOption(item.estimatedNewPrice)
           .orElseFail(AmendmentDataFailure(s"No estimated new price in $item"))
 
-      priceCorrectionFactor = determinePriceCorrectionFactor(oldPrice, estimatedNewPrice)
-
       invoicePreviewTargetDate = startDate.plusMonths(13)
 
       subscriptionBeforeUpdate <- fetchSubscription(item)
@@ -101,7 +90,7 @@ object AmendmentHandler extends CohortHandler {
             subscriptionBeforeUpdate,
             invoicePreviewBeforeUpdate,
             startDate,
-            priceCorrectionFactor
+            PriceCapper.priceCorrectionFactor(oldPrice, estimatedNewPrice)
           )
       )
 

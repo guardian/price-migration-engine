@@ -133,7 +133,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     assertEquals(createdPriceRises(0).Current_Price_Today__c, Some(expectedOldPrice))
     assertEquals(
       createdPriceRises(0).Guardian_Weekly_New_Price__c,
-      Some(List(expectedOldPrice * 1.2, expectedEstimatedNewPrice).min)
+      Some(PriceCapper.cappedPrice(expectedOldPrice, expectedEstimatedNewPrice))
     )
     assertEquals(createdPriceRises(0).Price_Rise_Date__c, Some(expectedStartDate))
 
@@ -196,7 +196,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     assertEquals(updatedPriceRises(0).Current_Price_Today__c, Some(expectedOldPrice))
     assertEquals(
       updatedPriceRises(0).Guardian_Weekly_New_Price__c,
-      Some(List(expectedOldPrice * 1.2, expectedEstimatedNewPrice).min)
+      Some(PriceCapper.cappedPrice(expectedOldPrice, expectedEstimatedNewPrice))
     )
     assertEquals(updatedPriceRises(0).Price_Rise_Date__c, Some(expectedStartDate))
 
