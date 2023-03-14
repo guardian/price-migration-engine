@@ -6,9 +6,7 @@ The following are the steps required to set up a new cohort of subscriptions due
 
 # IMPORTANT: BEFORE RUNNING A COHORT
 
-If using a new Braze Campaign, the campaign name, and it's ID must be added to the [configuration file](https://github.com/guardian/membership-workflow/blob/main/conf/PROD.public.conf#L119-L123) in the `membership-workflow` repo, under `directMailCampaigns`.
-
-This will map the campaign name from the DynamoDB table to it's correct ID in `membership-workflow`. We can do [future work](https://trello.com/c/5VWs9qNV/480-do-not-require-the-braze-campaign-id-to-be-added-to-membership-workflow-rather-provide-it-through-dynamodb) to prevent having to do this, and rather provide the campaign ID directly in the DynamoDB table.
+If using a new Braze Campaign, the campaign name, and it's ID must be added to the [configuration file](https://github.com/guardian/membership-workflow/blob/main/conf/PROD.public.conf#L119-L123) in the `membership-workflow` repo, under `directMailCampaigns`. This will map the campaign name from the DynamoDB table to it's correct ID in `membership-workflow`.
 
 ## 1. Cohort specification
 
@@ -38,7 +36,8 @@ rise.
 ## 3. Run the state machine or lambda
 
 Navigate to the `price-migration-lambda-PROD` and enter the cohort spec to kick off the price-rise process. To see examples of previous executions and cohort Spec's, navigate to `price-migration-engine-cohort-steps-PROD` from the Step Functions dashboard.
-Example cohort spec: 
+
+Example cohort spec:
 
 ```
 {
