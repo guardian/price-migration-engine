@@ -41,16 +41,16 @@ Example cohort spec:
 
 ```
 {
-    "cohortSpec": {
-        "cohortName": "HomeDelivery2022",
-        "brazeCampaignName": "SV_PrintPriceRise_2022",
-        "importStartDate": "2022-04-28",
-        "earliestPriceMigrationStartDate": "2022-06-29"
-    }
+    "cohortName": "HomeDelivery2022",
+    "brazeCampaignName": "SV_PrintPriceRise_2022",
+    "importStartDate": "2022-04-28",
+    "earliestPriceMigrationStartDate": "2022-06-29"
 }
 ```
 
-A new cohort table will be created. The name of the table contains the stage and the Cohort name specified in the CohortSpec table. 
+Note that it is required that the `earliestPriceMigrationStartDate` must be after `importStartDate`, otherwise the engine will reject the cohort spec object as being incorrect.
+
+A new cohort table will be created. The name of the table contains the stage and the Cohort name specified in the CohortSpec table.
 
 ## Running a test cohort
 
