@@ -293,7 +293,7 @@ object PriceCapper {
     List(estimatedNewPrice, oldPrice * priceCappingMultiplier).min
 
   def priceCorrectionFactor(oldPrice: BigDecimal, estimatedNewPrice: BigDecimal): BigDecimal = {
-    if (estimatedNewPrice == 0 || estimatedNewPrice < oldPrice * priceCappingMultiplier) {
+    if (estimatedNewPrice == 0 || estimatedNewPrice.compareTo(oldPrice * priceCappingMultiplier) <= 0) {
       1
     } else {
       (oldPrice * priceCappingMultiplier) / estimatedNewPrice
