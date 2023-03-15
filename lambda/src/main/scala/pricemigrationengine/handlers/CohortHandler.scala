@@ -56,8 +56,16 @@ trait CohortHandler extends ZIOAppDefault with RequestStreamHandler {
       spec => Logging.info(s"Input: $spec")
     )
 
-  /** First, and only expected, program argument is a Json string representing the input to the lambda.<br /> Eg.<br />
-    * <code>"{ \"cohortName\": \"Testing123\", \"importStartDate\": \"2022-01-01\", \"earliestPriceMigrationStartDate\":\"2022-02-01\", \"brazeCampaignName\": \"cmp1\" }"</code>
+  /** First, and only expected, program argument is a Json string representing the input to the lambda.
+    * Eg:
+    * {
+    *     "cohortSpec":{
+    *         "cohortName":"M2023",
+    *         "brazeCampaignName":"SV_MB_M2023",
+    *         "importStartDate":"2023-01-01",
+    *         "earliestPriceMigrationStartDate":"2023-01-02"
+    *     }
+    * }
     */
   override final def run: ZIO[ZIOAppArgs, Any, Any] =
     (for {
