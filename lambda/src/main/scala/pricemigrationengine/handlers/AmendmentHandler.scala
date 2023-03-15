@@ -47,15 +47,15 @@ object AmendmentHandler extends CohortHandler {
       item: CohortItem,
       oldPrice: BigDecimal,
       newPrice: BigDecimal
-  ): Either[AmendmentDataFailure, Unit] = 
-    if (newPrice > PriceCapper.cappedPrice(oldPrice, newPrice)) {
+  ): Either[AmendmentDataFailure, Unit] =
+    if (newPrice <= PriceCapper.cappedPrice(oldPrice, newPrice)) {
       Right(())
     } else
       Left(
         AmendmentDataFailure(
           s"Cohort item: ${item.subscriptionName}. The new price ${newPrice} after amendment is higher than the old price ${oldPrice} + 20%"
         )
-      )  
+      )
 
   private def doAmendment(
       catalogue: ZuoraProductCatalogue,
