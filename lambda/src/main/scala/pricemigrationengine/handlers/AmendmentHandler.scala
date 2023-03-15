@@ -109,7 +109,7 @@ object AmendmentHandler extends CohortHandler {
           )
         )
 
-      _ <- checkNewPrice(item, oldPrice, newPrice)
+      _ <- ZIO.fromEither(checkNewPrice(item, oldPrice, newPrice))
 
       whenDone <- Clock.instant
     } yield SuccessfulAmendmentResult(
