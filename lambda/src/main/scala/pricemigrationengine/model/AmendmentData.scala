@@ -288,7 +288,7 @@ object PriceCapper {
     therefore what our customers pay, by more then 20% during a single price rise.
    */
 
-  private val priceCappingMultiplier = 1.2 // old price + 25%
+  private val priceCappingMultiplier = 1.2 // old price + 20%
   def cappedPrice(oldPrice: BigDecimal, estimatedNewPrice: BigDecimal): BigDecimal =
     List(estimatedNewPrice, oldPrice * priceCappingMultiplier).min
 
