@@ -88,6 +88,25 @@ object AmendmentData {
           AmendmentDataFailure(s"Rate plan charge '${invoiceItem.chargeNumber}' has price and discount")
         )
 
+    def ratePlanChargesOrFail(
+        invoiceItems: Seq[ZuoraInvoiceItem]
+    ): Either[AmendmentDataFailure, Seq[ZuoraRatePlanCharge]] = {
+      val ratePlanCharges = invoiceItems.map(ratePlanCharge)
+      val failures = ratePlanCharges.collect { case Left(failure) => failure }
+
+      if (failures.isEmpty) Right(ratePlanCharges.collect { case Right(charge) => charge })
+      else Left(AmendmentDataFailure(failures.map(_.reason).mkString(", ")))
+    }
+
+    def ratePlanChargePair(
+        ratePlanCharge: ZuoraRatePlanCharge
+    ): Either[ZuoraProductRatePlanChargeId, RatePlanChargePair] = {
+      productPricingMap(catalogue)
+        .get(ratePlanCharge.productRatePlanChargeId)
+        .toRight(ratePlanCharge.productRatePlanChargeId)
+        .map(productRatePlanCharge => RatePlanChargePair(ratePlanCharge, productRatePlanCharge))
+    }
+
     def ratePlanChargePairs(
         ratePlanCharges: Seq[ZuoraRatePlanCharge]
     ): Either[AmendmentDataFailure, Seq[RatePlanChargePair]] = {
@@ -107,29 +126,12 @@ object AmendmentData {
         )
     }
 
-    def ratePlanChargePair(
-        ratePlanCharge: ZuoraRatePlanCharge
-    ): Either[ZuoraProductRatePlanChargeId, RatePlanChargePair] = {
-      productPricingMap(catalogue)
-        .get(ratePlanCharge.productRatePlanChargeId)
-        .toRight(ratePlanCharge.productRatePlanChargeId)
-        .map(productRatePlanCharge => RatePlanChargePair(ratePlanCharge, productRatePlanCharge))
-    }
     val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, startDate)
-
-    val ratePlanChargesOrFail: Either[AmendmentDataFailure, Seq[ZuoraRatePlanCharge]] = {
-      val ratePlanCharges = invoiceItems.map(ratePlanCharge)
-
-      val failures = ratePlanCharges.collect { case Left(failure) => failure }
-
-      if (failures.isEmpty) Right(ratePlanCharges.collect { case Right(charge) => charge })
-      else Left(AmendmentDataFailure(failures.map(_.reason).mkString(", ")))
-    }
 
     val zoneABCPlanNames = List("Guardian Weekly Zone A", "Guardian Weekly Zone B", "Guardian Weekly Zone C")
 
     for {
-      ratePlanCharges <- ratePlanChargesOrFail
+      ratePlanCharges <- ratePlanChargesOrFail(invoiceItems)
       ratePlan <- ZuoraRatePlan
         .ratePlan(subscription, ratePlanCharges.head)
         .toRight(AmendmentDataFailure(s"Failed to get RatePlan for charges: $ratePlanCharges"))
