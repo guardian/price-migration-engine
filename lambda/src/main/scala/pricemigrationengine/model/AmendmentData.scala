@@ -99,6 +99,7 @@ object AmendmentData {
     }
 
     def ratePlanChargePair(
+        catalogue: ZuoraProductCatalogue,
         ratePlanCharge: ZuoraRatePlanCharge
     ): Either[ZuoraProductRatePlanChargeId, RatePlanChargePair] = {
       productPricingMap(catalogue)
@@ -108,13 +109,14 @@ object AmendmentData {
     }
 
     def ratePlanChargePairs(
+        catalogue: ZuoraProductCatalogue,
         ratePlanCharges: Seq[ZuoraRatePlanCharge]
     ): Either[AmendmentDataFailure, Seq[RatePlanChargePair]] = {
       /*
        * distinct because where a sub has a discount rate plan,
        * the same discount will appear against each product rate plan charge in the invoice preview.
        */
-      val pairs = ratePlanCharges.distinctBy(_.productRatePlanChargeId).map(ratePlanChargePair)
+      val pairs = ratePlanCharges.distinctBy(_.productRatePlanChargeId).map(rp => ratePlanChargePair(catalogue, rp))
 
       val failures = pairs.collect { case Left(failure) => failure }
       if (failures.isEmpty) Right(pairs.collect { case Right(pricing) => pricing })
@@ -141,7 +143,7 @@ object AmendmentData {
       pairs <-
         if (isZoneABC)
           GuardianWeekly.getNewRatePlanCharges(account, catalogue, ratePlanCharges).map(_.chargePairs)
-        else ratePlanChargePairs(ratePlanCharges)
+        else ratePlanChargePairs(catalogue, ratePlanCharges)
 
       currency <- pairs.headOption
         .map(p => Right(p.chargeFromSubscription.currency))
