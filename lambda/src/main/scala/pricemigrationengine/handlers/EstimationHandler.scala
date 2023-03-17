@@ -1,6 +1,5 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.ChargeCap.ChargeCapBuilderFromMultiplier
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -19,7 +18,6 @@ object EstimationHandler extends CohortHandler {
 
   // TODO: move to config
   private val batchSize = 150
-  private val priceCappingMultiplier = 1.2
 
   def main(earliestStartDate: LocalDate): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
@@ -28,7 +26,7 @@ object EstimationHandler extends CohortHandler {
         .fetch(ReadyForEstimation, None)
         .take(batchSize)
         .mapZIO(item =>
-          estimate(catalogue, earliestStartDate, Some(ChargeCap.builderFromMultiplier(priceCappingMultiplier)))(
+          estimate(catalogue, earliestStartDate)(
             item
           ).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
         )
@@ -38,12 +36,11 @@ object EstimationHandler extends CohortHandler {
 
   private[handlers] def estimate(
       catalogue: ZuoraProductCatalogue,
-      earliestStartDate: LocalDate,
-      chargeCapBuilderOpt: Option[ChargeCapBuilderFromMultiplier]
+      earliestStartDate: LocalDate
   )(
       item: CohortItem
   ): ZIO[CohortTable with Zuora, Failure, EstimationResult] =
-    doEstimation(catalogue, item, earliestStartDate, chargeCapBuilderOpt).foldZIO(
+    doEstimation(catalogue, item, earliestStartDate).foldZIO(
       failure = {
         case failure: AmendmentDataFailure =>
           val result = FailedEstimationResult(item.subscriptionName, failure.reason)
@@ -67,8 +64,7 @@ object EstimationHandler extends CohortHandler {
   private def doEstimation(
       catalogue: ZuoraProductCatalogue,
       item: CohortItem,
-      earliestStartDate: LocalDate,
-      chargeCapBuilderOpt: Option[ChargeCapBuilderFromMultiplier]
+      earliestStartDate: LocalDate
   ): ZIO[Zuora, Failure, SuccessfulEstimationResult] = {
     for {
       subscription <-
@@ -80,7 +76,7 @@ object EstimationHandler extends CohortHandler {
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
       earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, earliestStartDate)
       result <- ZIO.fromEither(
-        EstimationResult(account, catalogue, subscription, invoicePreview, earliestStartDate, chargeCapBuilderOpt)
+        EstimationResult(account, catalogue, subscription, invoicePreview, earliestStartDate)
       )
     } yield result
   }

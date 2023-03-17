@@ -248,7 +248,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       for {
         _ <- TestClock.setTime(time)
         _ <- EstimationHandler
-          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1), None)(
+          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1))(
             cohortItemRead
           )
           .provide(expectedZuoraUse, expectedCohortTableUpdate)
@@ -315,80 +315,9 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       for {
         _ <- TestClock.setTime(time)
         _ <- EstimationHandler
-          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1), None)(
+          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1))(
             cohortItemRead
           )
-          .provide(expectedZuoraUse, expectedCohortTableUpdate)
-      } yield assertTrue(true)
-    },
-    test("updates cohort table with CappedPriceIncrease when estimated new price is 20% or more above the old price") {
-      val productCatalogue = ZuoraProductCatalogue(products =
-        Set(
-          ZuoraProduct(
-            "P1",
-            Set(
-              ZuoraProductRatePlan(
-                id = "PRP1",
-                name = "RP1",
-                status = "Active",
-                productRatePlanCharges = Set(
-                  ZuoraProductRatePlanCharge(
-                    id = "PRPC1",
-                    billingPeriod = Some("Month"),
-                    pricing = Set(ZuoraPricing(currency = "GBP", price = Some(BigDecimal("1.15"))))
-                  ),
-                  ZuoraProductRatePlanCharge(
-                    id = "PRPC4",
-                    billingPeriod = Some("Month"),
-                    pricing = Set(ZuoraPricing(currency = "GBP", price = Some(BigDecimal("21.17"))))
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
-      val cohortItemRead = CohortItem(
-        subscriptionName = "S1",
-        processingStage = ReadyForEstimation
-      )
-      val expectedSubscriptionFetch = MockZuora.FetchSubscription(
-        assertion = equalTo("S1"),
-        result = value(subscription)
-      )
-      val expectedAccountToFetch = MockZuora.FetchAccount(
-        assertion = equalTo(("A9107", "S1")),
-        result = value(account)
-      )
-      val expectedInvoiceFetch = MockZuora.FetchInvoicePreview(
-        assertion = equalTo("A11", LocalDate.of(2023, 9, 1)),
-        result = value(invoicePreview)
-      )
-      val expectedZuoraUse = expectedSubscriptionFetch and expectedInvoiceFetch and expectedAccountToFetch
-      val cappingMultiplier = 1.2
-      val cohortItemExpectedToWrite = CohortItem(
-        subscriptionName = "S1",
-        processingStage = EstimationComplete,
-        startDate = Some(LocalDate.of(2023, 7, 1)),
-        currency = Some("GBP"),
-        oldPrice = Some(1.24),
-        estimatedNewPrice = Some(1.24 * cappingMultiplier),
-        billingPeriod = Some("Month"),
-        whenEstimationDone = Some(time)
-      )
-      val expectedCohortTableUpdate = MockCohortTable.Update(
-        assertion = equalTo(cohortItemExpectedToWrite),
-        result = unit
-      )
-
-      for {
-        _ <- TestClock.setTime(time)
-        _ <- EstimationHandler
-          .estimate(
-            productCatalogue,
-            earliestStartDate = LocalDate.of(2022, 5, 1),
-            Some(ChargeCap.builderFromMultiplier(cappingMultiplier))
-          )(cohortItemRead)
           .provide(expectedZuoraUse, expectedCohortTableUpdate)
       } yield assertTrue(true)
     }

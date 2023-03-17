@@ -24,9 +24,14 @@ class NotificationHandlerTest extends munit.FunSuite {
   private val expectedCurrency = "GBP"
   private val expectedBillingPeriod = "Month"
   private val expectedBillingPeriodInNotification = "Monthly"
-  private val expectedOldPrice = BigDecimal(11.11)
-  private val expectedEstimatedNewPrice = BigDecimal(22.22)
-  private val expectedEstimatedNewPriceWithCurrencySymbolPrefix = "£22.22"
+  private val expectedOldPrice = BigDecimal(10.00)
+
+  // The estimated new price is the price without cap
+  private val expectedEstimatedNewPrice = BigDecimal(15.00)
+
+  // The price that is displayed to the customer is capped using the old price as base
+  private val expectedCappedEstimatedNewPriceWithCurrencySymbolPrefix = "£12.00"
+
   private val expectedSFSubscriptionId = "1234"
   private val expectedBuyerId = "buyer-1"
   private val expectedIdentityId = "buyer1-identity-id"
@@ -225,7 +230,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, expectedLastName)
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount,
-      expectedEstimatedNewPriceWithCurrencySymbolPrefix
+      expectedCappedEstimatedNewPriceWithCurrencySymbolPrefix
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date,

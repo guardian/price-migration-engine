@@ -59,11 +59,11 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
       subscription: SalesforceSubscription
   ): IO[SalesforcePriceRiseWriteFailure, SalesforcePriceRise] = {
     for {
-      currentPrice <-
+      oldPrice <-
         ZIO
           .fromOption(cohortItem.oldPrice)
           .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have an oldPrice"))
-      newPrice <-
+      estimatedNewPrice <-
         ZIO
           .fromOption(cohortItem.estimatedNewPrice)
           .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have an estimatedNewPrice"))
@@ -74,8 +74,8 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
     } yield SalesforcePriceRise(
       Some(subscription.Name),
       Some(subscription.Buyer__c),
-      Some(currentPrice),
-      Some(newPrice),
+      Some(oldPrice),
+      Some(PriceCapper.cappedPrice(oldPrice, estimatedNewPrice)),
       Some(priceRiseDate),
       Some(subscription.Id)
     )

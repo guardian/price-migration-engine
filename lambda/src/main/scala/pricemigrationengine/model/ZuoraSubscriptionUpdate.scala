@@ -15,36 +15,6 @@ case class ZuoraSubscriptionUpdate(
     currentTermPeriodType: Option[String]
 )
 
-/*
-  Out of consideration for our users, we have the overall policy to not increase subscriptions charges
-  by more than a certain amount relatively to the old price. At the time these lines are written, we cap it to
-  20% increase. This means that if the current/old price is 100 and the new price computed after applying a ew rate plan
-  if 130, then we limit to 120.
-
-  To encode this cap, we introduce ChargeCap, which essentially carries a capped price. This object is passed, optionally,
-  to any function that would need to know about it.
-
-  Note that the Amendment Handler does indeed pass a ChargeCap down, this is mostly to check that the price calculated
-  after rate plan update is within parameters. That price is the cohort item estimated price.
-
-  The Estimation Handler is slightly more subtle. we do not at first know the old price (which will need to be computed as part of the estimation)
-  In this case, we pass down a ChargeCap.builderFromMultiplier which is going to compute the relevant ChargeCap when the old price is known
-  and will use it to compute the estimated price.
- */
-
-case class ChargeCap(item: Option[CohortItem], priceCap: BigDecimal)
-
-object ChargeCap {
-
-  def fromOldPriceAndMultiplier(item: Option[CohortItem], oldPrice: BigDecimal, multiplier: Double): ChargeCap =
-    ChargeCap(item, oldPrice * multiplier)
-
-  type ChargeCapBuilderFromMultiplier = (BigDecimal) => ChargeCap
-
-  def builderFromMultiplier(multiplier: Double): ChargeCapBuilderFromMultiplier = (oldPrice: BigDecimal) =>
-    fromOldPriceAndMultiplier(None, oldPrice, multiplier)
-}
-
 object ZuoraSubscriptionUpdate {
   private val zoneABCPlanNames = List("Guardian Weekly Zone A", "Guardian Weekly Zone B", "Guardian Weekly Zone C")
 
@@ -64,7 +34,7 @@ object ZuoraSubscriptionUpdate {
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       effectiveDate: LocalDate,
-      cargeCap: Option[ChargeCap]
+      priceCorrectionFactor: BigDecimal
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
 
     val activeRatePlans = (for {
@@ -86,8 +56,8 @@ object ZuoraSubscriptionUpdate {
       activeRatePlans
         .map(
           if (isZoneABC.nonEmpty)
-            AddZuoraRatePlan.fromRatePlanGuardianWeekly(account, catalogue, effectiveDate, cargeCap)
-          else AddZuoraRatePlan.fromRatePlan(pricingData, effectiveDate, cargeCap)
+            AddZuoraRatePlan.fromRatePlanGuardianWeekly(account, catalogue, effectiveDate, priceCorrectionFactor)
+          else AddZuoraRatePlan.fromRatePlan(pricingData, effectiveDate, priceCorrectionFactor)
         )
         .sequence
         .map { add =>
@@ -115,42 +85,15 @@ case class AddZuoraRatePlan(
 object AddZuoraRatePlan {
   implicit val rw: ReadWriter[AddZuoraRatePlan] = macroRW
 
-  def alterZuoraPricings(pricings: Set[ZuoraPricing], cappedPrice: BigDecimal): Set[ZuoraPricing] =
-    pricings.map(pricing =>
-      ZuoraPricing(
-        pricing.currency,
-        pricing.price.map(price => List(price, cappedPrice).min),
-        pricing.price.map(price => price > cappedPrice).getOrElse(false)
-      )
-    )
-
-  def alterZuoraProductRatePlanCharge(
-      rpc: ZuoraProductRatePlanCharge,
-      chargeCapOpt: Option[ChargeCap]
-  ): ZuoraProductRatePlanCharge = {
-    chargeCapOpt match {
-      case None => rpc
-      case Some(chargeCap) =>
-        ZuoraProductRatePlanCharge(rpc.id, rpc.billingPeriod, alterZuoraPricings(rpc.pricing, chargeCap.priceCap))
-    }
-  }
-
   def fromRatePlan(
       pricingData: ZuoraPricingData,
       contractEffectiveDate: LocalDate,
-      chargeCap: Option[ChargeCap]
+      priceCorrectionFactor: BigDecimal
   )(
       ratePlan: ZuoraRatePlan
   ): Either[AmendmentDataFailure, AddZuoraRatePlan] = {
-
-    def alterPricingData(zuoraPricingData: ZuoraPricingData, chargeCap: Option[ChargeCap]): ZuoraPricingData = {
-      zuoraPricingData.toSeq.map { case (chargeId, charge) =>
-        (chargeId, alterZuoraProductRatePlanCharge(charge, chargeCap))
-      }.toMap
-    }
-
     for {
-      chargeOverrides <- ChargeOverride.fromRatePlan(alterPricingData(pricingData, chargeCap), ratePlan)
+      chargeOverrides <- ChargeOverride.fromRatePlan(pricingData, ratePlan, priceCorrectionFactor)
     } yield AddZuoraRatePlan(
       productRatePlanId = ratePlan.productRatePlanId,
       contractEffectiveDate,
@@ -162,7 +105,7 @@ object AddZuoraRatePlan {
       account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
       contractEffectiveDate: LocalDate,
-      chargeCap: Option[ChargeCap]
+      priceCorrectionFactor: BigDecimal
   )(
       ratePlan: ZuoraRatePlan
   ): Either[AmendmentDataFailure, AddZuoraRatePlan] =
@@ -175,8 +118,9 @@ object AddZuoraRatePlan {
       chargeOverrides <- guardianWeekly.chargePairs
         .map(chargePair =>
           fromRatePlanCharge(
-            alterZuoraProductRatePlanCharge(chargePair.chargeFromProduct, chargeCap),
-            chargePair.chargeFromSubscription
+            chargePair.chargeFromProduct,
+            chargePair.chargeFromSubscription,
+            priceCorrectionFactor
           )
         )
         .sequence
@@ -208,24 +152,19 @@ object ChargeOverride {
 
   def fromRatePlan(
       pricingData: ZuoraPricingData,
-      ratePlan: ZuoraRatePlan
+      ratePlan: ZuoraRatePlan,
+      priceCorrectionFactor: BigDecimal
   ): Either[AmendmentDataFailure, Seq[ChargeOverride]] =
     (for {
       ratePlanCharge <- ratePlan.ratePlanCharges
       productRatePlanCharge <- pricingData.get(ratePlanCharge.productRatePlanChargeId).toSeq
-    } yield fromRatePlanCharge(productRatePlanCharge, ratePlanCharge)).sequence
+    } yield fromRatePlanCharge(productRatePlanCharge, ratePlanCharge, priceCorrectionFactor)).sequence
       .map(_.flatten)
 
-  /** <p>A <code>ChargeOverride</code> is defined iff the billing period of the given <code>ProductRatePlanCharge</code>
-    * is different to the billing period of the given <code>RatePlanCharge</code>.</p>
-    *
-    * <p>If there isn't enough information in the given <code>ProductRatePlanCharge</code> and
-    * <code>RatePlanCharge</code> to determine whether or not a <code>ChargeOverride</code> should be defined, the
-    * result will be an AmendmentDataFailure.</p>
-    */
   def fromRatePlanCharge(
       productRatePlanCharge: ZuoraProductRatePlanCharge,
-      ratePlanCharge: ZuoraRatePlanCharge
+      ratePlanCharge: ZuoraRatePlanCharge,
+      priceCorrectionFactor: BigDecimal
   ): Either[AmendmentDataFailure, Option[ChargeOverride]] =
     for {
       billingPeriod <- ratePlanCharge.billingPeriod.toRight(
@@ -250,13 +189,7 @@ object ChargeOverride {
         Some(productRatePlanChargeBillingPeriod)
       )
 
-      hasBeenPriceCapped = ZuoraPricing
-        .pricing(productRatePlanCharge, ratePlanCharge.currency)
-        .fold(false)(_.hasBeenPriceCapped)
-
     } yield {
-      if (hasBeenPriceCapped) Some(ChargeOverride(productRatePlanCharge.id, billingPeriod, price))
-      else if (billingPeriod == productRatePlanChargeBillingPeriod) None
-      else Some(ChargeOverride(productRatePlanCharge.id, billingPeriod, price))
+      Some(ChargeOverride(productRatePlanCharge.id, billingPeriod, price * priceCorrectionFactor))
     }
 }
