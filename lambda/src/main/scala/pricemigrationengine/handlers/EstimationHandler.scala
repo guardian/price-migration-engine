@@ -96,23 +96,13 @@ object EstimationHandler extends CohortHandler {
     /*
       Any subscription less than one year old (i.e.: purchased within the last year), should only be risen at least one year after purchase, hence we raise them on the thirteenth month.
      */
-    def startOnThirteenthMonth: UIO[Int] = {
+    def startOnThirteenthMonth(earliestStartDate: LocalDate, subscription: ZuoraSubscription): UIO[Int] = {
       ZIO.succeed(
         relu(
           ChronoUnit.MONTHS.between(earliestStartDate, subscription.customerAcceptanceDate.plusMonths(13)).toInt
         )
       )
     }
-
-    lazy val earliestStartDateForAMonthlySub =
-      for {
-        yearAgo <- Clock.localDateTime.map(_.toLocalDate.minusYears(1))
-        randomFactor <-
-          if (subscription.customerAcceptanceDate.isBefore(yearAgo)) Random.nextIntBetween(0, 3)
-          else
-            startOnThirteenthMonth
-        actualEarliestStartDate = earliestStartDate.plusMonths(randomFactor)
-      } yield actualEarliestStartDate
 
     val isMonthlySubscription =
       invoicePreview.invoiceItems
@@ -121,9 +111,14 @@ object EstimationHandler extends CohortHandler {
         .headOption
         .contains("Month")
 
-    if (isMonthlySubscription)
-      earliestStartDateForAMonthlySub
-    else
+    if (isMonthlySubscription) {
+      for {
+        yearAgo <- Clock.localDateTime.map(_.toLocalDate.minusYears(1))
+        randomFactor <-
+          if (subscription.customerAcceptanceDate.isBefore(yearAgo)) Random.nextIntBetween(0, 3)
+          else startOnThirteenthMonth(earliestStartDate, subscription)
+      } yield earliestStartDate.plusMonths(randomFactor)
+    } else
       ZIO.succeed(earliestStartDate)
   }
 
