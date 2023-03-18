@@ -75,7 +75,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
       Some(subscription.Name),
       Some(subscription.Buyer__c),
       Some(oldPrice),
-      Some(PriceCapper.cappedPrice(oldPrice, estimatedNewPrice)),
+      Some(PriceCap.cappedPrice(oldPrice, estimatedNewPrice)),
       Some(priceRiseDate),
       Some(subscription.Id)
     )
