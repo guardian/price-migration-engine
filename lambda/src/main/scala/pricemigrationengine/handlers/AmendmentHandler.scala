@@ -48,7 +48,7 @@ object AmendmentHandler extends CohortHandler {
       oldPrice: BigDecimal,
       newPrice: BigDecimal
   ): Either[AmendmentDataFailure, Unit] =
-    if (newPrice <= PriceCapper.cappedPrice(oldPrice, newPrice)) {
+    if (newPrice <= PriceCap.cappedPrice(oldPrice, newPrice)) {
       Right(())
     } else
       Left(
@@ -89,7 +89,7 @@ object AmendmentHandler extends CohortHandler {
             subscriptionBeforeUpdate,
             invoicePreviewBeforeUpdate,
             startDate,
-            PriceCapper.priceCorrectionFactor(oldPrice, estimatedNewPrice)
+            PriceCap.priceCorrectionFactor(oldPrice, estimatedNewPrice)
           )
       )
 

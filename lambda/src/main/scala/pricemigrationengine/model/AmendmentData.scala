@@ -285,7 +285,7 @@ object AmendmentData {
   )
 }
 
-object PriceCapper {
+object PriceCap {
 
   /*
     This object implements the policy of not increasing subscription prices, and

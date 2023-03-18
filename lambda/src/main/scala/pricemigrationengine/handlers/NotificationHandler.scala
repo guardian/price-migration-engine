@@ -126,7 +126,7 @@ object NotificationHandler extends CohortHandler {
       paymentFrequency <- paymentFrequency(billingPeriod)
       currencyISOCode <- requiredField(cohortItem.currency, "CohortItem.currency")
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
-      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCapper.cappedPrice(oldPrice, estimatedNewPrice)}"
+      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice)}"
 
       _ <- logMissingEmailAddress(cohortItem, contact)
 
