@@ -520,7 +520,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
         catalogue,
         subscription,
         invoiceList,
-        cohortSpec.earliestPriceMigrationStartDate,
+        earliestStartDate,
         cohortSpec,
       )
     assertEquals(
