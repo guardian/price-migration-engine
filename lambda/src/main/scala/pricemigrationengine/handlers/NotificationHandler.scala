@@ -25,13 +25,13 @@ object NotificationHandler extends CohortHandler {
   private val MinNotificationLeadTime = 35
 
   def main(
-      brazeCampaignName: String
+      cohortSpec: CohortSpec
   ): ZIO[Logging with CohortTable with SalesforceClient with EmailSender, Failure, HandlerOutput] = {
     for {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       count <- CohortTable
         .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(StandardNotificationLeadTime)))
-        .mapZIO(item => sendNotification(brazeCampaignName)(item, today))
+        .mapZIO(item => sendNotification(cohortSpec)(item, today))
         .runFold(0) { (sum, count) => sum + count }
       _ <- Logging.info(s"Successfully sent $count price rise notifications")
     } yield HandlerOutput(isComplete = true)
@@ -49,7 +49,7 @@ object NotificationHandler extends CohortHandler {
     }
   }
 
-  def sendNotification(brazeCampaignName: String)(
+  def sendNotification(cohortSpec: CohortSpec)(
       cohortItem: CohortItem,
       today: LocalDate
   ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging, Failure, Int] = {
@@ -66,7 +66,7 @@ object NotificationHandler extends CohortHandler {
             .getSubscriptionByName(cohortItem.subscriptionName)
         count <-
           if (sfSubscription.Status__c != Cancelled_Status) {
-            sendNotification(brazeCampaignName, cohortItem, sfSubscription)
+            sendNotification(cohortSpec, cohortItem, sfSubscription)
           } else {
             putSubIntoCancelledStatus(cohortItem.subscriptionName)
           }
@@ -104,7 +104,7 @@ object NotificationHandler extends CohortHandler {
   }
 
   def sendNotification(
-      brazeCampaignName: String,
+      cohortSpec: CohortSpec,
       cohortItem: CohortItem,
       sfSubscription: SalesforceSubscription
   ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging, Failure, Int] =
@@ -126,7 +126,9 @@ object NotificationHandler extends CohortHandler {
       paymentFrequency <- paymentFrequency(billingPeriod)
       currencyISOCode <- requiredField(cohortItem.currency, "CohortItem.currency")
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
-      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice)}"
+
+      // In the case of membership price rise, we need to not cap the price
+      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, CohortSpec.isMembershipPriceRiseBatch1(cohortSpec))}"
 
       _ <- logMissingEmailAddress(cohortItem, contact)
 
@@ -158,7 +160,7 @@ object NotificationHandler extends CohortHandler {
               )
             )
           ),
-          brazeCampaignName,
+          cohortSpec.brazeCampaignName,
           contact.Id,
           contact.IdentityID__c
         )
@@ -233,7 +235,7 @@ object NotificationHandler extends CohortHandler {
     } yield 0
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    main(input.brazeCampaignName).provideSome[Logging](
+    main(input).provideSome[Logging](
       EnvConfig.salesforce.layer,
       EnvConfig.cohortTable.layer,
       EnvConfig.emailSender.layer,

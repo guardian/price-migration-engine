@@ -1,5 +1,6 @@
 package pricemigrationengine.handlers
 
+import pricemigrationengine.model.CohortSpec.isMembershipPriceRiseBatch1
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -12,21 +13,22 @@ object AmendmentHandler extends CohortHandler {
   // TODO: move to config
   private val batchSize = 150
 
-  val main: ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
+  private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
       catalogue <- Zuora.fetchProductCatalogue
       count <- CohortTable
         .fetch(NotificationSendDateWrittenToSalesforce, None)
         .take(batchSize)
-        .mapZIO(item => amend(catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
+        .mapZIO(item => amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
         .runCount
     } yield HandlerOutput(isComplete = count < batchSize)
 
   private def amend(
+      cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
   ): ZIO[CohortTable with Zuora, Failure, AmendmentResult] =
-    doAmendment(catalogue, item).foldZIO(
+    doAmendment(cohortSpec, catalogue, item).foldZIO(
       failure = {
         case _: CancelledSubscriptionFailure => {
           // `CancelledSubscriptionFailure` happens when the subscription was cancelled in Zuora
@@ -46,9 +48,10 @@ object AmendmentHandler extends CohortHandler {
   private def checkNewPrice(
       item: CohortItem,
       oldPrice: BigDecimal,
-      newPrice: BigDecimal
+      newPrice: BigDecimal,
+      forceEstimated: Boolean
   ): Either[AmendmentDataFailure, Unit] =
-    if (newPrice <= PriceCap.cappedPrice(oldPrice, newPrice)) {
+    if (forceEstimated || newPrice <= PriceCap.cappedPrice(oldPrice, newPrice)) {
       Right(())
     } else
       Left(
@@ -58,6 +61,7 @@ object AmendmentHandler extends CohortHandler {
       )
 
   private def doAmendment(
+      cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
   ): ZIO[Zuora, Failure, SuccessfulAmendmentResult] = {
@@ -109,7 +113,7 @@ object AmendmentHandler extends CohortHandler {
           )
         )
 
-      _ <- ZIO.fromEither(checkNewPrice(item, oldPrice, newPrice))
+      _ <- ZIO.fromEither(checkNewPrice(item, oldPrice, newPrice, CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)))
 
       whenDone <- Clock.instant
     } yield SuccessfulAmendmentResult(
@@ -129,7 +133,7 @@ object AmendmentHandler extends CohortHandler {
       .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    main.provideSome[Logging](
+    main(input).provideSome[Logging](
       EnvConfig.cohortTable.layer,
       EnvConfig.zuora.layer,
       EnvConfig.stage.layer,
