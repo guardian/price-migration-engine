@@ -88,14 +88,35 @@ object AmendmentData {
           AmendmentDataFailure(s"Rate plan charge '${invoiceItem.chargeNumber}' has price and discount")
         )
 
+    def ratePlanChargesOrFail(
+        invoiceItems: Seq[ZuoraInvoiceItem]
+    ): Either[AmendmentDataFailure, Seq[ZuoraRatePlanCharge]] = {
+      val ratePlanCharges = invoiceItems.map(ratePlanCharge)
+      val failures = ratePlanCharges.collect { case Left(failure) => failure }
+
+      if (failures.isEmpty) Right(ratePlanCharges.collect { case Right(charge) => charge })
+      else Left(AmendmentDataFailure(failures.map(_.reason).mkString(", ")))
+    }
+
+    def ratePlanChargePair(
+        catalogue: ZuoraProductCatalogue,
+        ratePlanCharge: ZuoraRatePlanCharge
+    ): Either[ZuoraProductRatePlanChargeId, RatePlanChargePair] = {
+      productPricingMap(catalogue)
+        .get(ratePlanCharge.productRatePlanChargeId)
+        .toRight(ratePlanCharge.productRatePlanChargeId)
+        .map(productRatePlanCharge => RatePlanChargePair(ratePlanCharge, productRatePlanCharge))
+    }
+
     def ratePlanChargePairs(
+        catalogue: ZuoraProductCatalogue,
         ratePlanCharges: Seq[ZuoraRatePlanCharge]
     ): Either[AmendmentDataFailure, Seq[RatePlanChargePair]] = {
       /*
        * distinct because where a sub has a discount rate plan,
        * the same discount will appear against each product rate plan charge in the invoice preview.
        */
-      val pairs = ratePlanCharges.distinctBy(_.productRatePlanChargeId).map(ratePlanChargePair)
+      val pairs = ratePlanCharges.distinctBy(_.productRatePlanChargeId).map(rp => ratePlanChargePair(catalogue, rp))
 
       val failures = pairs.collect { case Left(failure) => failure }
       if (failures.isEmpty) Right(pairs.collect { case Right(pricing) => pricing })
@@ -107,29 +128,12 @@ object AmendmentData {
         )
     }
 
-    def ratePlanChargePair(
-        ratePlanCharge: ZuoraRatePlanCharge
-    ): Either[ZuoraProductRatePlanChargeId, RatePlanChargePair] = {
-      productPricingMap(catalogue)
-        .get(ratePlanCharge.productRatePlanChargeId)
-        .toRight(ratePlanCharge.productRatePlanChargeId)
-        .map(productRatePlanCharge => RatePlanChargePair(ratePlanCharge, productRatePlanCharge))
-    }
     val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, startDate)
-
-    val ratePlanChargesOrFail: Either[AmendmentDataFailure, Seq[ZuoraRatePlanCharge]] = {
-      val ratePlanCharges = invoiceItems.map(ratePlanCharge)
-
-      val failures = ratePlanCharges.collect { case Left(failure) => failure }
-
-      if (failures.isEmpty) Right(ratePlanCharges.collect { case Right(charge) => charge })
-      else Left(AmendmentDataFailure(failures.map(_.reason).mkString(", ")))
-    }
 
     val zoneABCPlanNames = List("Guardian Weekly Zone A", "Guardian Weekly Zone B", "Guardian Weekly Zone C")
 
     for {
-      ratePlanCharges <- ratePlanChargesOrFail
+      ratePlanCharges <- ratePlanChargesOrFail(invoiceItems)
       ratePlan <- ZuoraRatePlan
         .ratePlan(subscription, ratePlanCharges.head)
         .toRight(AmendmentDataFailure(s"Failed to get RatePlan for charges: $ratePlanCharges"))
@@ -139,7 +143,7 @@ object AmendmentData {
       pairs <-
         if (isZoneABC)
           GuardianWeekly.getNewRatePlanCharges(account, catalogue, ratePlanCharges).map(_.chargePairs)
-        else ratePlanChargePairs(ratePlanCharges)
+        else ratePlanChargePairs(catalogue, ratePlanCharges)
 
       currency <- pairs.headOption
         .map(p => Right(p.chargeFromSubscription.currency))
@@ -279,24 +283,4 @@ object AmendmentData {
     "Semi_Annual" -> 6,
     "Annual" -> 12
   )
-}
-
-object PriceCapper {
-
-  /*
-    This object implements the policy of not increasing subscription prices, and
-    therefore what our customers pay, by more then 20% during a single price rise.
-   */
-
-  private val priceCappingMultiplier = 1.2 // old price + 20%
-  def cappedPrice(oldPrice: BigDecimal, estimatedNewPrice: BigDecimal): BigDecimal =
-    List(estimatedNewPrice, oldPrice * priceCappingMultiplier).min
-
-  def priceCorrectionFactor(oldPrice: BigDecimal, estimatedNewPrice: BigDecimal): BigDecimal = {
-    if (estimatedNewPrice == 0 || estimatedNewPrice.compareTo(oldPrice * priceCappingMultiplier) <= 0) {
-      1
-    } else {
-      (oldPrice * priceCappingMultiplier) / estimatedNewPrice
-    }
-  }
 }
