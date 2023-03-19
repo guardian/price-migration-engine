@@ -654,10 +654,10 @@ class AmendmentDataTest extends munit.FunSuite {
     val cohortSpec =
       CohortSpec("Membership2023_Batch1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
 
-    val account = Fixtures.accountFromJson("Membership2023/Batch1/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch1/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch1/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch1/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Membership2023/Batch1/GBP/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch1/GBP/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch1/GBP/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch1/GBP/invoice-preview.json")
 
     val priceData =
       AmendmentData.priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2023, 1, 26), cohortSpec)

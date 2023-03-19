@@ -44,10 +44,10 @@ object EstimationHandlerTest extends ZIOSpecDefault {
           CohortSpec("Membership2023_Batch1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
         val startDate = cohortSpec.earliestPriceMigrationStartDate
 
-        val account = Fixtures.accountFromJson("Membership2023/Batch1/account.json")
-        val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch1/catalogue.json")
-        val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch1/subscription.json")
-        val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch1/invoice-preview.json")
+        val account = Fixtures.accountFromJson("Membership2023/Batch1/GBP/account.json")
+        val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch1/GBP/catalogue.json")
+        val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch1/GBP/subscription.json")
+        val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch1/GBP/invoice-preview.json")
 
         // In the test, the actual startDate and the cohort's cohortSpec earliestPriceMigrationStartDate are same (which is fine)
         val estimationResult = EstimationResult(account, catalogue, subscription, invoicePreview, startDate, cohortSpec)
