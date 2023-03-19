@@ -650,7 +650,7 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
-  test("priceData: is correct in the case of membership subscriptions") {
+  test("priceData: is correct in the case of membership subscriptions [GBP]") {
     val cohortSpec =
       CohortSpec("Membership2023_Batch1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
 
@@ -665,6 +665,24 @@ class AmendmentDataTest extends munit.FunSuite {
     assertEquals(
       priceData,
       Right(PriceData(currency = "GBP", oldPrice = 5, newPrice = 7, billingPeriod = "Month"))
+    )
+  }
+
+  test("priceData: is correct in the case of membership subscriptions [AUD]") {
+    val cohortSpec =
+      CohortSpec("Membership2023_Batch1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
+
+    val account = Fixtures.accountFromJson("Membership2023/Batch1/AUD/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch1/AUD/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch1/AUD/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch1/AUD/invoice-preview.json")
+
+    val priceData =
+      AmendmentData.priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2023, 1, 26), cohortSpec)
+
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "AUD", oldPrice = 10, newPrice = 14, billingPeriod = "Month"))
     )
   }
 

@@ -1,0 +1,29 @@
+{
+  "basicInfo" : {
+    "id" : "ACCOUNT-ID",
+    "name" : "ACCOUNT-NAME",
+    "accountNumber" : "ACCOUNT-NUMBER",
+    "notes" : null,
+    "status" : "Active",
+    "crmId" : "ACCOUNT-NAME",
+    "batch" : "Batch1",
+    "invoiceTemplateId" : "2c92a0fd5ecce80c015ee71028643020",
+    "communicationProfileId" : null,
+    "purchaseOrderNumber" : null,
+    "IdentityId__c" : "IdentityId",
+    "SFContactId__c" : "SFContactId",
+    "CCURN__c" : null,
+    "SpecialDeliveryInstructions__c" : null,
+    "NonStandardDataReason__c" : null,
+    "ProcessingAdvice__c" : null,
+    "CreatedRequestId__c" : null,
+    "RetryStatus__c" : null,
+    "salesRep" : null,
+    "sequenceSetId" : null
+  },
+  "soldToContact" : {
+    "country" : "Australia"
+  },
+  "taxInfo" : null,
+  "success" : true
+}
