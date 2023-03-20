@@ -3,6 +3,14 @@ import java.time.LocalDate
 
 object Membership2023 {
 
+  /*
+    Date: 20th March 2023
+    Author: Pascal
+
+    This object is currently written to support the first two batches (monthly) of the membership migration.
+    Support for the third (annual) will be added shortly.
+   */
+
   val priceMap: Map[Currency, BigDecimal] = Map(
     "GBP" -> BigDecimal(7),
     "AUD" -> BigDecimal(14),
