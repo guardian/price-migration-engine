@@ -114,7 +114,7 @@ object AmendmentData {
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-      nextServiceDate: LocalDate,
+      nextServiceStartDate: LocalDate,
   ): Either[AmendmentDataFailure, PriceData] = {
 
     def hasNotPriceAndDiscount(ratePlanCharge: ZuoraRatePlanCharge) =
@@ -167,7 +167,7 @@ object AmendmentData {
         )
     }
 
-    val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, nextServiceDate)
+    val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, nextServiceStartDate)
 
     val zoneABCPlanNames = List("Guardian Weekly Zone A", "Guardian Weekly Zone B", "Guardian Weekly Zone C")
 
@@ -186,8 +186,8 @@ object AmendmentData {
 
       currency <- pairs.headOption
         .map(p => Right(p.chargeFromSubscription.currency))
-        .getOrElse(Left(AmendmentDataFailure(s"No invoice items for date: $nextServiceDate")))
-      oldPrice <- totalChargeAmount(subscription, invoiceList, nextServiceDate)
+        .getOrElse(Left(AmendmentDataFailure(s"No invoice items for date: $nextServiceStartDate")))
+      oldPrice <- totalChargeAmount(subscription, invoiceList, nextServiceStartDate)
       newPrice <- totalChargeAmount(pairs)
       billingPeriod <- pairs
         .flatMap(_.chargeFromSubscription.billingPeriod)
