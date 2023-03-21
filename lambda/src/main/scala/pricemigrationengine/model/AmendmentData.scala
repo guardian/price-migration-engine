@@ -88,7 +88,7 @@ object AmendmentData {
       a simplified way that we are going to apply to membership.
 
       This split came from the fact that at the time these lines are written, it is not possible to find matching
-      product rate plan charges for for the subscription rate plan charges because the previous, pre migration,
+      product rate plan charges for the subscription rate plan charges because the previous, pre migration,
       rate plan for the membership subscriptions have already been decommissioned, there by breaking the existing
       algorithm.
 
