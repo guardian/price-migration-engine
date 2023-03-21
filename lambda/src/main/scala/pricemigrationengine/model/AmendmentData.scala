@@ -84,7 +84,7 @@ object AmendmentData {
       Author: Pascal
 
       With the introduction of the Membership price migration there is now two ways to compute PriceData: The old way,
-      implemented in priceDataWithRatePlanMatching, which was used for the ore complex print subscriptions, and
+      implemented in priceDataWithRatePlanMatching, which was used for the more complex print subscriptions, and
       a simplified way that we are going to apply to membership.
 
       This split came from the fact that at the time these lines are written, it is not possible to find matching
