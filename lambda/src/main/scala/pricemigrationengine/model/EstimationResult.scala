@@ -20,8 +20,11 @@ object EstimationResult {
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       earliestStartDate: LocalDate,
-  ): Either[AmendmentDataFailure, SuccessfulEstimationResult] =
-    AmendmentData(account, catalogue, subscription, invoiceList, earliestStartDate) map { amendmentData =>
+      cohortSpec: CohortSpec,
+  ): Either[AmendmentDataFailure, SuccessfulEstimationResult] = {
+    // Note: Here we are given the earliestStartDate and the cohortSpec. The earliestStartDate comes from
+    // `spreadEarliestStartDate` and now overrides the cohort's earliestPriceMigrationStartDate
+    AmendmentData(account, catalogue, subscription, invoiceList, earliestStartDate, cohortSpec) map { amendmentData =>
       SuccessfulEstimationResult(
         subscription.subscriptionNumber,
         amendmentData.startDate,
@@ -31,6 +34,7 @@ object EstimationResult {
         amendmentData.priceData.billingPeriod
       )
     }
+  }
 }
 
 case class FailedEstimationResult(subscriptionNumber: String, reason: String) extends EstimationResult

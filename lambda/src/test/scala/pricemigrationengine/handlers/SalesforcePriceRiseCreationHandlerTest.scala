@@ -20,7 +20,13 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
   private val expectedStartDate = LocalDate.of(2020, 1, 1)
   private val expectedCurrency = "GBP"
   private val expectedOldPrice = BigDecimal(10.00)
+
+  // To make the membership price rise test meaningful, this should actually be higher than the capped price.
   private val expectedEstimatedNewPrice = BigDecimal(15.00)
+  test("For membership test, we need the expectedEstimatedNewPrice to be higher than the capped price") {
+    assert(PriceCap.cappedPrice(expectedOldPrice, expectedEstimatedNewPrice) < expectedEstimatedNewPrice)
+  }
+
   private val expectedCurrentTime = Instant.parse("2020-05-21T15:16:37Z")
 
   private def createStubCohortTable(
@@ -114,11 +120,13 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
     val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
 
+    val cohortSpec = CohortSpec("Name", "Campaign1", LocalDate.of(2000, 1, 1), expectedStartDate)
+
     assertEquals(
       unsafeRunSync(default)(
         (for {
           _ <- TestClock.setTime(expectedCurrentTime)
-          program <- SalesforcePriceRiseCreationHandler.main
+          program <- SalesforcePriceRiseCreationHandler.main(cohortSpec)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient
         )
@@ -134,6 +142,71 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     assertEquals(
       createdPriceRises(0).Guardian_Weekly_New_Price__c,
       Some(PriceCap.cappedPrice(expectedOldPrice, expectedEstimatedNewPrice))
+    )
+    assertEquals(createdPriceRises(0).Price_Rise_Date__c, Some(expectedStartDate))
+
+    assertEquals(updatedResultsWrittenToCohortTable.size, 1)
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0).subscriptionName,
+      s"Sub-0001"
+    )
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0).processingStage,
+      SalesforcePriceRiceCreationComplete
+    )
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0).salesforcePriceRiseId,
+      Some(s"SubscritionId-$expectedSubscriptionName-price-rise-id")
+    )
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0).whenSfShowEstimate,
+      Some(expectedCurrentTime)
+    )
+  }
+
+  test(
+    "SalesforcePriceRiseCreateHandler should get estimate from cohort table and create sf price rise (in the case of a non capped price rise)"
+  ) {
+    // In this case
+    val createdPriceRises = ArrayBuffer[SalesforcePriceRise]()
+    val updatedPriceRises = ArrayBuffer[SalesforcePriceRise]()
+    val stubSalesforceClient = stubSFClient(createdPriceRises, updatedPriceRises)
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
+
+    val cohortItem = CohortItem(
+      subscriptionName = expectedSubscriptionName,
+      processingStage = EstimationComplete,
+      startDate = Some(expectedStartDate),
+      currency = Some(expectedCurrency),
+      oldPrice = Some(expectedOldPrice),
+      estimatedNewPrice = Some(expectedEstimatedNewPrice)
+    )
+
+    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
+
+    // In this case the name of the cohort will trigger a non price cap
+    val cohortSpec = CohortSpec("Membership2023_Batch1", "Campaign1", LocalDate.of(2000, 1, 1), expectedStartDate)
+
+    assertEquals(
+      unsafeRunSync(default)(
+        (for {
+          _ <- TestClock.setTime(expectedCurrentTime)
+          program <- SalesforcePriceRiseCreationHandler.main(cohortSpec)
+        } yield program).provideLayer(
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient
+        )
+      ),
+      Success(HandlerOutput(isComplete = true))
+    )
+
+    assertEquals(createdPriceRises.size, 1)
+    assertEquals(createdPriceRises(0).Name, Some(expectedSubscriptionName))
+    assertEquals(createdPriceRises(0).SF_Subscription__c, Some(s"SubscritionId-$expectedSubscriptionName"))
+    assertEquals(createdPriceRises(0).Buyer__c, Some(s"Buyer-$expectedSubscriptionName"))
+    assertEquals(createdPriceRises(0).Current_Price_Today__c, Some(expectedOldPrice))
+    assertEquals(
+      createdPriceRises(0).Guardian_Weekly_New_Price__c,
+      Some(expectedEstimatedNewPrice) // expecting a non capped estimated price in this case
     )
     assertEquals(createdPriceRises(0).Price_Rise_Date__c, Some(expectedStartDate))
 
@@ -178,11 +251,13 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
         )
       )
 
+    val cohortSpec = CohortSpec("Name", "Campaign1", LocalDate.of(2000, 1, 1), expectedStartDate)
+
     assertEquals(
       unsafeRunSync(default)(
         (for {
           _ <- TestClock.setTime(expectedCurrentTime)
-          program <- SalesforcePriceRiseCreationHandler.main
+          program <- SalesforcePriceRiseCreationHandler.main(cohortSpec)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient
         )

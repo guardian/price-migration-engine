@@ -1,5 +1,6 @@
 package pricemigrationengine.handlers
 
+import pricemigrationengine.model.CohortSpec.isMembershipPriceRiseBatch1
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -19,14 +20,14 @@ object EstimationHandler extends CohortHandler {
   // TODO: move to config
   private val batchSize = 150
 
-  def main(earliestStartDate: LocalDate): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
+  def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
       catalogue <- Zuora.fetchProductCatalogue
       count <- CohortTable
         .fetch(ReadyForEstimation, None)
         .take(batchSize)
         .mapZIO(item =>
-          estimate(catalogue, earliestStartDate)(
+          estimate(catalogue, cohortSpec)(
             item
           ).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
         )
@@ -36,11 +37,11 @@ object EstimationHandler extends CohortHandler {
 
   private[handlers] def estimate(
       catalogue: ZuoraProductCatalogue,
-      earliestStartDate: LocalDate
+      cohortSpec: CohortSpec
   )(
       item: CohortItem
   ): ZIO[CohortTable with Zuora, Failure, EstimationResult] =
-    doEstimation(catalogue, item, earliestStartDate).foldZIO(
+    doEstimation(catalogue, item, cohortSpec).foldZIO(
       failure = {
         case failure: AmendmentDataFailure =>
           val result = FailedEstimationResult(item.subscriptionName, failure.reason)
@@ -64,19 +65,20 @@ object EstimationHandler extends CohortHandler {
   private def doEstimation(
       catalogue: ZuoraProductCatalogue,
       item: CohortItem,
-      earliestStartDate: LocalDate
+      cohortSpec: CohortSpec
   ): ZIO[Zuora, Failure, SuccessfulEstimationResult] = {
+
     for {
       subscription <-
         Zuora
           .fetchSubscription(item.subscriptionName)
           .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
       account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
-      invoicePreviewTargetDate = earliestStartDate.plusMonths(16)
+      invoicePreviewTargetDate = cohortSpec.earliestPriceMigrationStartDate.plusMonths(16)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
-      earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, earliestStartDate)
+      earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, cohortSpec)
       result <- ZIO.fromEither(
-        EstimationResult(account, catalogue, subscription, invoicePreview, earliestStartDate)
+        EstimationResult(account, catalogue, subscription, invoicePreview, earliestStartDate, cohortSpec)
       )
     } yield result
   }
@@ -87,8 +89,10 @@ object EstimationHandler extends CohortHandler {
   def spreadEarliestStartDate(
       subscription: ZuoraSubscription,
       invoicePreview: ZuoraInvoiceList,
-      earliestStartDate: LocalDate
+      cohortSpec: CohortSpec
   ): IO[ConfigFailure, LocalDate] = {
+
+    val earliestStartDate = cohortSpec.earliestPriceMigrationStartDate
 
     def relu(number: Int): Int =
       if (number < 0) 0 else number
@@ -111,11 +115,14 @@ object EstimationHandler extends CohortHandler {
         .headOption
         .contains("Month")
 
+    // We usually spread the start date over 3 months, but in the case of membership price rise batch 1, we want all to do through within a month
+    val spreadPeriod = if (CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)) 1 else 3
+
     if (isMonthlySubscription) {
       for {
         yearAgo <- Clock.localDateTime.map(_.toLocalDate.minusYears(1))
         randomFactor <-
-          if (subscription.customerAcceptanceDate.isBefore(yearAgo)) Random.nextIntBetween(0, 3)
+          if (subscription.customerAcceptanceDate.isBefore(yearAgo)) Random.nextIntBetween(0, spreadPeriod)
           else startOnThirteenthMonth(earliestStartDate, subscription)
       } yield earliestStartDate.plusMonths(randomFactor)
     } else
@@ -123,7 +130,7 @@ object EstimationHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    main(input.earliestPriceMigrationStartDate).provideSome[Logging](
+    main(input).provideSome[Logging](
       EnvConfig.cohortTable.layer,
       EnvConfig.zuora.layer,
       EnvConfig.stage.layer,

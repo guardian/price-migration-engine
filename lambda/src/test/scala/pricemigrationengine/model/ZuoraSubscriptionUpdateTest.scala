@@ -513,6 +513,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson(s"$fixtureSet/Account.json")
     val earliestStartDate = LocalDate.of(2022, 10, 10)
     val invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
+    val cohortSpec = CohortSpec("Cohort1", "Campaign1", LocalDate.of(2023, 4, 1), earliestStartDate)
     val estimationResult =
       EstimationResult(
         account,
@@ -520,6 +521,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
         subscription,
         invoiceList,
         earliestStartDate,
+        cohortSpec,
       )
     assertEquals(
       estimationResult,

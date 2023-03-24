@@ -18,6 +18,7 @@ import java.time.{Instant, LocalDate, ZoneOffset}
 import scala.collection.mutable.ArrayBuffer
 
 class NotificationHandlerTest extends munit.FunSuite {
+
   private val expectedSubscriptionName = "Sub-0001"
   private val expectedStartDate = LocalDate.of(2020, 1, 1)
   private val expectedStartDateUserFriendlyFormat = "1 January 2020"
@@ -28,9 +29,16 @@ class NotificationHandlerTest extends munit.FunSuite {
 
   // The estimated new price is the price without cap
   private val expectedEstimatedNewPrice = BigDecimal(15.00)
+  test("For membership test, we need the expectedEstimatedNewPrice to be higher than the capped price") {
+    assert(PriceCap.cappedPrice(expectedOldPrice, expectedEstimatedNewPrice) < expectedEstimatedNewPrice)
+  }
 
   // The price that is displayed to the customer is capped using the old price as base
   private val expectedCappedEstimatedNewPriceWithCurrencySymbolPrefix = "£12.00"
+
+  // Membership variation
+  // Also, for some reasons we only have one "0" here
+  private val expectedUnCappedEstimatedNewPriceWithCurrencySymbolPrefix = "£15.0"
 
   private val expectedSFSubscriptionId = "1234"
   private val expectedBuyerId = "buyer-1"
@@ -202,11 +210,14 @@ class NotificationHandlerTest extends munit.FunSuite {
     val sentMessages = ArrayBuffer[EmailMessage]()
     val stubEmailSender = createStubEmailSender(sentMessages)
 
+    // Building the cohort spec with the correct campaign name
+    val cohortSpec = CohortSpec("Name", brazeCampaignName, LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
+
     assertEquals(
       unsafeRunSync(default)(
         (for {
           _ <- TestClock.setTime(expectedCurrentTime)
-          program <- NotificationHandler.main(brazeCampaignName)
+          program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
         )
@@ -261,6 +272,79 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
   }
 
+  test(
+    "NotificationHandler should get records from cohort table and SF and send Email with the data (membership variation)"
+  ) {
+    val stubSalesforceClient = stubSFClient(List(salesforceSubscription), List(salesforceContact))
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
+    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
+    val sentMessages = ArrayBuffer[EmailMessage]()
+    val stubEmailSender = createStubEmailSender(sentMessages)
+
+    // Building the cohort spec with the correct campaign name (as during the previous test)
+    // This time we also need to set the correct campaign name to trigger the membership price cap override
+    val cohortSpec =
+      CohortSpec("Membership2023_Batch1", brazeCampaignName, LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
+
+    assertEquals(
+      unsafeRunSync(default)(
+        (for {
+          _ <- TestClock.setTime(expectedCurrentTime)
+          program <- NotificationHandler.main(cohortSpec)
+        } yield program).provideLayer(
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+        )
+      ),
+      Success(HandlerOutput(isComplete = true))
+    )
+
+    assertEquals(sentMessages.size, 1)
+    assertEquals(sentMessages(0).DataExtensionName, expectedDataExtensionName)
+    assertEquals(sentMessages(0).SfContactId, expectedBuyerId)
+    assertEquals(sentMessages(0).IdentityUserId, Some(expectedIdentityId))
+    assertEquals(sentMessages(0).To.Address, Some(expectedEmailAddress))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_1, expectedStreet)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_2, None)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_city, Some(expectedCity))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_state, Some(expectedState))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_postal_code, expectedPostalCode)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_country, expectedCountry)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, Some(expectedSalutation))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, expectedFirstName)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, expectedLastName)
+    assertEquals(
+      sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount,
+      expectedUnCappedEstimatedNewPriceWithCurrencySymbolPrefix
+    )
+    assertEquals(
+      sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date,
+      expectedStartDateUserFriendlyFormat
+    )
+    assertEquals(
+      sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_frequency,
+      expectedBillingPeriodInNotification
+    )
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.subscription_id, expectedSubscriptionName)
+
+    assertEquals(updatedResultsWrittenToCohortTable.size, 2)
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0),
+      CohortItem(
+        subscriptionName = expectedSubscriptionName,
+        processingStage = NotificationSendProcessingOrError,
+        whenNotificationSent = Some(expectedCurrentTime)
+      )
+    )
+    assertEquals(
+      updatedResultsWrittenToCohortTable(1),
+      CohortItem(
+        subscriptionName = expectedSubscriptionName,
+        processingStage = NotificationSendComplete,
+        whenNotificationSent = Some(expectedCurrentTime)
+      )
+    )
+  }
+
   test("NotificationHandler should fallback to using contact mailing address if no billing address") {
     val stubSalesforceClient =
       stubSFClient(List(salesforceSubscription), List(salesforceContact.copy(OtherAddress = None)))
@@ -269,11 +353,14 @@ class NotificationHandlerTest extends munit.FunSuite {
     val sentMessages = ArrayBuffer[EmailMessage]()
     val stubEmailSender = createStubEmailSender(sentMessages)
 
+    // Building the cohort spec with the correct campaign name
+    val cohortSpec = CohortSpec("Name", brazeCampaignName, LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
+
     assertEquals(
       unsafeRunSync(default)(
         (for {
           _ <- TestClock.setTime(expectedCurrentTime)
-          program <- NotificationHandler.main(brazeCampaignName)
+          program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
         )
@@ -303,11 +390,14 @@ class NotificationHandlerTest extends munit.FunSuite {
     val sentMessages = ArrayBuffer[EmailMessage]()
     val stubEmailSender = createStubEmailSender(sentMessages)
 
+    // Building the cohort spec with the correct campaign name
+    val cohortSpec = CohortSpec("Name", brazeCampaignName, LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
+
     assertEquals(
       unsafeRunSync(default)(
         (for {
           _ <- TestClock.setTime(expectedCurrentTime)
-          program <- NotificationHandler.main(brazeCampaignName)
+          program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
         )
@@ -329,11 +419,14 @@ class NotificationHandlerTest extends munit.FunSuite {
     val sentMessages = ArrayBuffer[EmailMessage]()
     val stubEmailSender = createStubEmailSender(sentMessages)
 
+    // Building the cohort spec with the correct campaign name
+    val cohortSpec = CohortSpec("Name", brazeCampaignName, LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
+
     assertEquals(
       unsafeRunSync(default)(
         (for {
           _ <- TestClock.setTime(expectedCurrentTime)
-          program <- NotificationHandler.main(brazeCampaignName)
+          program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
         )
@@ -351,11 +444,14 @@ class NotificationHandlerTest extends munit.FunSuite {
     val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
     val failingStubEmailSender = createFailingStubEmailSender()
 
+    // Building the cohort spec with the correct campaign name
+    val cohortSpec = CohortSpec("Name", brazeCampaignName, LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
+
     assertEquals(
       unsafeRunSync(default)(
         (for {
           _ <- TestClock.setTime(expectedCurrentTime)
-          program <- NotificationHandler.main(brazeCampaignName)
+          program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ failingStubEmailSender
         )
@@ -382,11 +478,14 @@ class NotificationHandlerTest extends munit.FunSuite {
     val sentMessages = ArrayBuffer[EmailMessage]()
     val stubEmailSender = createStubEmailSender(sentMessages)
 
+    // Building the cohort spec with the correct campaign name
+    val cohortSpec = CohortSpec("Name", brazeCampaignName, LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
+
     assertEquals(
       unsafeRunSync(default)(
         (for {
           _ <- TestClock.setTime(expectedCurrentTime)
-          program <- NotificationHandler.main(brazeCampaignName)
+          program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
         )

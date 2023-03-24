@@ -1,5 +1,6 @@
 package pricemigrationengine.handlers
 
+import pricemigrationengine.model.CohortSpec.isMembershipPriceRiseBatch1
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -10,16 +11,23 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
   // TODO: move to config
   private val batchSize = 1000
 
-  private[handlers] val main: ZIO[Logging with CohortTable with SalesforceClient, Failure, HandlerOutput] =
+  private[handlers] def main(
+      cohortSpec: CohortSpec
+  ): ZIO[Logging with CohortTable with SalesforceClient, Failure, HandlerOutput] =
     for {
-      count <- CohortTable.fetch(EstimationComplete, None).take(batchSize).mapZIO(createSalesforcePriceRise).runCount
+      count <- CohortTable
+        .fetch(EstimationComplete, None)
+        .take(batchSize)
+        .mapZIO(i => createSalesforcePriceRise(cohortSpec, i))
+        .runCount
     } yield HandlerOutput(isComplete = count < batchSize)
 
   private def createSalesforcePriceRise(
+      cohortSpec: CohortSpec,
       item: CohortItem
   ): ZIO[Logging with CohortTable with SalesforceClient, Failure, Unit] =
     for {
-      optionalNewPriceRiseId <- updateSalesforce(item)
+      optionalNewPriceRiseId <- updateSalesforce(cohortSpec, item)
         .tapBoth(
           e => Logging.error(s"Failed to write create Price_Rise in salesforce: $e"),
           result => Logging.info(s"SalesforcePriceRise result: $result")
@@ -35,11 +43,12 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
     } yield ()
 
   private def updateSalesforce(
+      cohortSpec: CohortSpec,
       cohortItem: CohortItem
   ): ZIO[SalesforceClient, Failure, Option[String]] = {
     for {
       subscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
-      priceRise <- buildPriceRise(cohortItem, subscription)
+      priceRise <- buildPriceRise(cohortSpec, cohortItem, subscription)
       result <-
         cohortItem.salesforcePriceRiseId
           .fold(
@@ -55,6 +64,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
   }
 
   def buildPriceRise(
+      cohortSpec: CohortSpec,
       cohortItem: CohortItem,
       subscription: SalesforceSubscription
   ): IO[SalesforcePriceRiseWriteFailure, SalesforcePriceRise] = {
@@ -75,14 +85,16 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
       Some(subscription.Name),
       Some(subscription.Buyer__c),
       Some(oldPrice),
-      Some(PriceCap.cappedPrice(oldPrice, estimatedNewPrice)),
+      Some(
+        PriceCap.cappedPrice(oldPrice, estimatedNewPrice, CohortSpec.isMembershipPriceRiseBatch1(cohortSpec))
+      ), // In case of membership price rise, we override the capping
       Some(priceRiseDate),
       Some(subscription.Id)
     )
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    main.provideSome[Logging](
+    main(input).provideSome[Logging](
       EnvConfig.cohortTable.layer,
       EnvConfig.salesforce.layer,
       EnvConfig.stage.layer,

@@ -1,0 +1,27 @@
+{
+  "basicInfo" : {
+    "id" : "ID",
+    "name" : "ACCOUNT-NAME",
+    "accountNumber" : "ACCOUNT-NUMBER",
+    "notes" : null,
+    "status" : "Active",
+    "crmId" : "ACCOUNT-NAME",
+    "batch" : "Batch1",
+    "invoiceTemplateId" : "INVOICE-TEMPLATE-ID",
+    "communicationProfileId" : null,
+    "purchaseOrderNumber" : null,
+    "IdentityId__c" : "IdentityId__c",
+    "sfContactId__c" : "sfContactId__c",
+    "CCURN__c" : null,
+    "SpecialDeliveryInstructions__c" : null,
+    "NonStandardDataReason__c" : null,
+    "ProcessingAdvice__c" : null,
+    "CreatedRequestId__c" : null,
+    "RetryStatus__c" : null,
+    "salesRep" : null,
+    "sequenceSetId" : null
+  },
+  "soldToContact" : {
+    "country" : "United Kingdom"
+  }
+}
