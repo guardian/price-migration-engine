@@ -84,11 +84,11 @@ object AmendmentData {
       Author: Pascal
 
       With the introduction of the Membership price migration there is now two ways to compute PriceData: The old way,
-      implemented in priceDataWithRatePlanMatching, which was used for the ore complex print subscriptions, and
+      implemented in priceDataWithRatePlanMatching, which was used for the more complex print subscriptions, and
       a simplified way that we are going to apply to membership.
 
       This split came from the fact that at the time these lines are written, it is not possible to find matching
-      product rate plan charges for for the subscription rate plan charges because the previous, pre migration,
+      product rate plan charges for the subscription rate plan charges because the previous, pre migration,
       rate plan for the membership subscriptions have already been decommissioned, there by breaking the existing
       algorithm.
 
@@ -114,7 +114,7 @@ object AmendmentData {
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-      nextServiceDate: LocalDate,
+      nextServiceStartDate: LocalDate,
   ): Either[AmendmentDataFailure, PriceData] = {
 
     def hasNotPriceAndDiscount(ratePlanCharge: ZuoraRatePlanCharge) =
@@ -167,7 +167,7 @@ object AmendmentData {
         )
     }
 
-    val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, nextServiceDate)
+    val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, nextServiceStartDate)
 
     val zoneABCPlanNames = List("Guardian Weekly Zone A", "Guardian Weekly Zone B", "Guardian Weekly Zone C")
 
@@ -186,8 +186,8 @@ object AmendmentData {
 
       currency <- pairs.headOption
         .map(p => Right(p.chargeFromSubscription.currency))
-        .getOrElse(Left(AmendmentDataFailure(s"No invoice items for date: $nextServiceDate")))
-      oldPrice <- totalChargeAmount(subscription, invoiceList, nextServiceDate)
+        .getOrElse(Left(AmendmentDataFailure(s"No invoice items for date: $nextServiceStartDate")))
+      oldPrice <- totalChargeAmount(subscription, invoiceList, nextServiceStartDate)
       newPrice <- totalChargeAmount(pairs)
       billingPeriod <- pairs
         .flatMap(_.chargeFromSubscription.billingPeriod)
