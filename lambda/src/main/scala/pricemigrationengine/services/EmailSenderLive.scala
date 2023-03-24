@@ -7,16 +7,21 @@ import software.amazon.awssdk.services.sqs.model.{GetQueueUrlRequest, SendMessag
 import upickle.default.write
 import zio.{ZIO, ZLayer}
 
-/** The email sender takes the information in the supplied EmailMessage object and sends it to the membership-workflow
-  * app via the contribution-thanks sqs queue.
-  *
-  * Membership workflow will then trigger the braze campaign associated with the DataExtensionName in the sqs message.
-  *
-  * In the case of the notifications sent by the price migration engine braze is configured to trigger a 'web-hook'.
-  *
-  * The web hook is essentially an api call to Latcham our direct mail partner, who will use the information in the web
-  * hook to print a physical letter notifying the customer of the price rise and send it to the customer.
-  */
+/*
+  The email sender takes the information in the supplied EmailMessage object
+  and sends it to the membership-workflow app via the contribution-thanks sqs queue.
+
+  Membership workflow will then trigger the braze campaign associated with the DataExtensionName
+  in the sqs message.
+
+  If the notification is meant to result in a letter being sent, then braze will be configured to
+  trigger a 'web-hook'. The web hook is essentially an api call to Latcham our direct mail partner,
+  who will use the information in the web hook to print a physical letter notifying the customer
+  of the price rise and send it to the customer.
+
+  In other migrations, for instance the membership migration, an email is sent to the customer.
+ */
+
 object EmailSenderLive {
 
   val impl: ZLayer[Logging with EmailSenderConfig, EmailSenderFailure, EmailSender] =
