@@ -2,12 +2,7 @@ package pricemigrationengine.handlers
 
 import pricemigrationengine.Fixtures.{invoiceListFromJson, subscriptionFromJson}
 import pricemigrationengine.handlers.EstimationHandler.spreadEarliestStartDate
-import pricemigrationengine.model.CohortTableFilter.{
-  CappedPriceIncrease,
-  EstimationComplete,
-  NoPriceIncrease,
-  ReadyForEstimation
-}
+import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, NoPriceIncrease, ReadyForEstimation}
 import pricemigrationengine.model._
 import pricemigrationengine.service.{MockCohortTable, MockZuora}
 import zio._
