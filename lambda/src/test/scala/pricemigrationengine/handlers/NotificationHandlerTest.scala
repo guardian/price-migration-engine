@@ -77,13 +77,6 @@ class NotificationHandlerTest extends munit.FunSuite {
             beforeDateInclusive: Option[LocalDate]
         ): ZStream[Any, CohortFetchFailure, CohortItem] = {
           assertEquals(filter, SalesforcePriceRiceCreationComplete)
-          assertEquals(
-            beforeDateInclusive,
-            Some(
-              LocalDate
-                .from(expectedCurrentTime.plus(49, ChronoUnit.DAYS).atOffset(ZoneOffset.UTC))
-            )
-          )
           ZStream(cohortItem)
         }
 
@@ -275,6 +268,30 @@ class NotificationHandlerTest extends munit.FunSuite {
   test(
     "NotificationHandler should get records from cohort table and SF and send Email with the data (membership variation)"
   ) {
+
+    // The membership variation here uses a similar structure as the legacy NotificationHandler test, but we need
+    // to update:
+    //     - the cohortItem, which has a specific startDate
+    //     - the currentTime (which needs to have a particular value relatively to the start date, considering the
+    //       shorter notification window)
+    //     - the expectedStartDateUserFriendlyFormat
+
+    val itemStartDate = LocalDate.of(2023, 5, 1)
+
+    val cohortItem =
+      CohortItem(
+        subscriptionName = expectedSubscriptionName,
+        processingStage = AmendmentComplete,
+        startDate = Some(itemStartDate),
+        currency = Some(expectedCurrency),
+        oldPrice = Some(expectedOldPrice),
+        estimatedNewPrice = Some(expectedEstimatedNewPrice),
+        billingPeriod = Some(expectedBillingPeriod)
+      )
+
+    val dataCurrentTime = Instant.parse("2023-03-29T07:00:00Z")
+    val expectedStartDateUserFriendlyFormat = "1 May 2023"
+
     val stubSalesforceClient = stubSFClient(List(salesforceSubscription), List(salesforceContact))
     val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
     val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
@@ -286,10 +303,12 @@ class NotificationHandlerTest extends munit.FunSuite {
     val cohortSpec =
       CohortSpec("Membership2023_Batch1", brazeCampaignName, LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
 
+    assertEquals(1, 1)
+
     assertEquals(
       unsafeRunSync(default)(
         (for {
-          _ <- TestClock.setTime(expectedCurrentTime)
+          _ <- TestClock.setTime(dataCurrentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
@@ -332,7 +351,7 @@ class NotificationHandlerTest extends munit.FunSuite {
       CohortItem(
         subscriptionName = expectedSubscriptionName,
         processingStage = NotificationSendProcessingOrError,
-        whenNotificationSent = Some(expectedCurrentTime)
+        whenNotificationSent = Some(dataCurrentTime)
       )
     )
     assertEquals(
@@ -340,7 +359,7 @@ class NotificationHandlerTest extends munit.FunSuite {
       CohortItem(
         subscriptionName = expectedSubscriptionName,
         processingStage = NotificationSendComplete,
-        whenNotificationSent = Some(expectedCurrentTime)
+        whenNotificationSent = Some(dataCurrentTime)
       )
     )
   }
@@ -504,15 +523,44 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages.size, 0)
   }
 
-  test("thereIsEnoughNotificationLeadTime behaves correctly") {
-    val itemStartDate = LocalDate.of(2023, 4, 1) // item start date
+  test("thereIsEnoughNotificationLeadTime behaves correctly (legacy case)") {
+    // The item startDate will be set for April 4th
+    // In the legacy case, of 35 days min lead time:
+    //     - Feb 1st should be enough lead time (although not yet in the notification window)
+    //     - May 1st should be not be enough (there only is 34 days from May 1st to April 4th)
+
+    // (We are going to use the same values for the membership migration, where we will observing that May
+    // 1st will be enough, but May 5th won't)
+
+    val itemStartDate = LocalDate.of(2023, 4, 4)
+
+    val cohortSpec = CohortSpec("CohortName", "BrazeCampaignName", LocalDate.of(2000, 1, 1), itemStartDate)
     val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
 
     // The two following dates are chosen to be after 1st Dec 2022, to hit the non trivial case of the check
     val date2 = LocalDate.of(2023, 2, 1)
     val date3 = LocalDate.of(2023, 3, 1)
-    assertEquals(thereIsEnoughNotificationLeadTime(date2, cohortItem), true)
-    assertEquals(thereIsEnoughNotificationLeadTime(date3, cohortItem), false)
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date2, cohortItem), true)
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date3, cohortItem), false)
+  }
+
+  test("thereIsEnoughNotificationLeadTime behaves correctly (membership case)") {
+    // We are using the same dates as for the previous test (legacy case)
+    // Here let's observe the slight shift in notification period due to membership variation.
+    // 34 days wasn't enough in the legacy case, but will be in the membership case.
+    // We also test with 30 days to observe that it won't be enough
+
+    val itemStartDate = LocalDate.of(2023, 4, 4)
+
+    val cohortSpec = CohortSpec("Membership2023_Batch1", "BrazeCampaignName", LocalDate.of(2000, 1, 1), itemStartDate)
+    val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
+
+    val date2 = LocalDate.of(2023, 2, 1)
+    val date3 = LocalDate.of(2023, 3, 1) // 34 days to target
+    val date4 = LocalDate.of(2023, 3, 5) // 30 days to target
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date2, cohortItem), true)
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date3, cohortItem), true)
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date4, cohortItem), false)
   }
 
 }

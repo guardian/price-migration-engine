@@ -16,13 +16,65 @@ object NotificationHandler extends CohortHandler {
   val Unsuccessful = 0
   val Cancelled_Status = "Cancelled"
 
-  // We are starting the notification process for any item whose start date is less than 49 (StandardNotificationLeadTime)
-  // days away, but because it can happen, we also need to react to items which for *any* reason have
-  // not been processed on time (meaning early enough) and for which the previously computed startDate is
-  // too close (less than MinNotificationLeadTime away) from now and would not give enough time to the letters.
+  // --------------------------------------
+  // Notification Period 101
 
-  private val StandardNotificationLeadTime = 49
-  private val MinNotificationLeadTime = 35
+  // The NotificationHandler acts on any item for which today is within the notification period for this item
+
+  private val guLettersNotificationLeadTime = 49
+  private val engineLettersMinNotificationLeadTime = 35
+
+  // Historically, for print subscriptions, we have used guLettersNotificationLeadTime and
+  // engineLettersMinNotificationLeadTime to define the notification window. For instance,
+  // considering a cohortItem with startDate set to May 3rd, the beginning of the notification period is
+  // { May 3rd - 49 days, guLettersNotificationLeadTime } and the end of the notification period
+  // is { May 3rd - 35 days, engineLettersMinNotificationLeadTime }
+
+  // Note that technically, meaning legally, the end of the notification period is { May 3rd - 30 days }
+  // There is a 5 days period between the engineLettersMinNotificationLeadTime and what is legally required.
+
+  // When the membership subscription was defined, the requirement was to send letters exactly 33 days before
+  // the price rise date (the cohortItem startDate). The idea was to send on March 29th, the emails corresponding
+  // to price rise scheduled for May 1st, and keep the same exact lead time.
+  // To achieve this let's introduce...
+
+  private val membershipPriceRiseNotificationLeadTime = 33
+  private val membershipMinNotificationLeadTime = 31
+
+  // This is a very short notification period (just two days), and notably if we get to the end of it, we will
+  // have to repair the problem within a day, otherwise the price rise for the corresponding item will have to
+  // be postponed.
+
+  // to manage those different values for the max and min lead time, which define notification period, we introduce
+  def maxLeadTime(cohortSpec: CohortSpec): Int = {
+    if (CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)) {
+      membershipPriceRiseNotificationLeadTime
+    } else {
+      guLettersNotificationLeadTime
+    }
+  }
+
+  def minLeadTime(cohortSpec: CohortSpec): Int = {
+    if (CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)) {
+      membershipMinNotificationLeadTime
+    } else {
+      engineLettersMinNotificationLeadTime
+    }
+  }
+
+  // --------------------------------------
+
+  def thereIsEnoughNotificationLeadTime(cohortSpec: CohortSpec, today: LocalDate, cohortItem: CohortItem): Boolean = {
+    // To help with backward compatibility with existing tests, we apply this condition from 1st Dec 2022.
+    if (today.isBefore(LocalDate.of(2020, 12, 1))) {
+      true
+    } else {
+      cohortItem.startDate match {
+        case Some(sd) => today.plusDays(minLeadTime(cohortSpec)).isBefore(sd)
+        case _        => false
+      }
+    }
+  }
 
   def main(
       cohortSpec: CohortSpec
@@ -30,23 +82,11 @@ object NotificationHandler extends CohortHandler {
     for {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       count <- CohortTable
-        .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(StandardNotificationLeadTime)))
+        .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
         .mapZIO(item => sendNotification(cohortSpec)(item, today))
         .runFold(0) { (sum, count) => sum + count }
       _ <- Logging.info(s"Successfully sent $count price rise notifications")
     } yield HandlerOutput(isComplete = true)
-  }
-
-  def thereIsEnoughNotificationLeadTime(today: LocalDate, cohortItem: CohortItem): Boolean = {
-    // To help with backward compatibility with existing tests, we apply this condition from 1st Dec 2022.
-    if (today.isBefore(LocalDate.of(2020, 12, 1))) {
-      true
-    } else {
-      cohortItem.startDate match {
-        case Some(sd) => today.plusDays(MinNotificationLeadTime).isBefore(sd)
-        case _        => false
-      }
-    }
   }
 
   def sendNotification(cohortSpec: CohortSpec)(
@@ -54,12 +94,11 @@ object NotificationHandler extends CohortHandler {
       today: LocalDate
   ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging, Failure, Int] = {
 
-    // We are starting with a simple check. That the item's startDate is at least MinNotificationLeadTime days away
+    // We are starting with a simple check. That the item's startDate is at least minLeadTime(cohortSpec) days away
     // from the current day. This will avoid headaches caused by letters not being sent early enough relatively to
-    // previously computed start dats, and will detect any such problem when they happen and that
-    // before the letters are sent.
+    // previously computed start dates, which can happen if, for argument sake, the engine is down for a few days.
 
-    if (thereIsEnoughNotificationLeadTime(today, cohortItem)) {
+    if (thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem)) {
       val result = for {
         sfSubscription <-
           SalesforceClient
