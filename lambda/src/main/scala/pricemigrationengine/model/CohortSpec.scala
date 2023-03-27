@@ -62,4 +62,6 @@ object CohortSpec {
       earliestPriceMigrationStartDate,
       migrationCompleteDate
     )).left.map(e => CohortSpecFetchFailure(e))
+
+  def isMembershipPriceRiseBatch1(cohortSpec: CohortSpec): Boolean = cohortSpec.cohortName == "Membership2023_Batch1"
 }

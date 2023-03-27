@@ -1,5 +1,6 @@
 package pricemigrationengine.model
 
+import pricemigrationengine.model.CohortSpec.isMembershipPriceRiseBatch1
 import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, productPricingMap}
 
 import java.time.LocalDate
@@ -34,10 +35,13 @@ object AmendmentData {
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       earliestStartDate: LocalDate,
+      cohortSpec: CohortSpec,
   ): Either[AmendmentDataFailure, AmendmentData] = {
+    // Note: Here we are given the earliestStartDate and the cohortSpec. The earliestStartDate comes from
+    // `spreadEarliestStartDate` and now overrides the cohort's earliestPriceMigrationStartDate
     for {
-      startDate <- nextServiceStartDate(invoiceList, subscription, onOrAfter = earliestStartDate)
-      price <- priceData(account, catalogue, subscription, invoiceList, startDate)
+      startDate <- nextServiceStartDate(invoiceList, subscription, earliestStartDate)
+      price <- priceData(account, catalogue, subscription, invoiceList, startDate, cohortSpec)
     } yield AmendmentData(startDate, priceData = price)
   }
 
@@ -63,18 +67,54 @@ object AmendmentData {
       chargeFromProduct: ZuoraProductRatePlanCharge
   )
 
+  def priceData(
+      account: ZuoraAccount,
+      catalogue: ZuoraProductCatalogue,
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      nextServiceStartDate: LocalDate,
+      cohortSpec: CohortSpec,
+  ): Either[AmendmentDataFailure, PriceData] = {
+
+    // Note: The nextServiceDate has gone through:
+    // cohortSpec.earliestPriceMigrationStartDate >> `spreadEarliestStartDate` >> `nextServiceStartDate`
+
+    /*
+      Date: March 2023
+      Author: Pascal
+
+      With the introduction of the Membership price migration there is now two ways to compute PriceData: The old way,
+      implemented in priceDataWithRatePlanMatching, which was used for the more complex print subscriptions, and
+      a simplified way that we are going to apply to membership.
+
+      This split came from the fact that at the time these lines are written, it is not possible to find matching
+      product rate plan charges for the subscription rate plan charges because the previous, pre migration,
+      rate plan for the membership subscriptions have already been decommissioned, there by breaking the existing
+      algorithm.
+
+      Depending on what the future migrations do, there might be an opportunity for refactoring this file, but for the
+      moment, just a difference between regular price rises and membership (batch 1) will do.
+     */
+
+    if (CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)) {
+      Membership2023.priceData(account, catalogue, subscription, invoiceList, nextServiceStartDate)
+    } else {
+      priceDataWithRatePlanMatching(account, catalogue, subscription, invoiceList, nextServiceStartDate)
+    }
+  }
+
   /** General algorithm: <ol> <li>For a given date, gather chargeNumber fields from invoice preview.</li> <li>For each
     * chargeNumber, match it with ratePlanCharge number on sub and get corresponding ratePlanCharge.</li> <li>For each
     * ratePlanCharge, match its productRatePlanChargeId with id in catalogue and get pricing currency, price and
     * discount percentage.</li> <li>Get combined chargeAmount field for old price, and combined pricing price for new
     * price, and currency.</li> </ol>
     */
-  def priceData(
+  def priceDataWithRatePlanMatching(
       account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-      startDate: LocalDate
+      nextServiceStartDate: LocalDate,
   ): Either[AmendmentDataFailure, PriceData] = {
 
     def hasNotPriceAndDiscount(ratePlanCharge: ZuoraRatePlanCharge) =
@@ -117,7 +157,6 @@ object AmendmentData {
        * the same discount will appear against each product rate plan charge in the invoice preview.
        */
       val pairs = ratePlanCharges.distinctBy(_.productRatePlanChargeId).map(rp => ratePlanChargePair(catalogue, rp))
-
       val failures = pairs.collect { case Left(failure) => failure }
       if (failures.isEmpty) Right(pairs.collect { case Right(pricing) => pricing })
       else
@@ -128,7 +167,7 @@ object AmendmentData {
         )
     }
 
-    val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, startDate)
+    val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, nextServiceStartDate)
 
     val zoneABCPlanNames = List("Guardian Weekly Zone A", "Guardian Weekly Zone B", "Guardian Weekly Zone C")
 
@@ -147,8 +186,8 @@ object AmendmentData {
 
       currency <- pairs.headOption
         .map(p => Right(p.chargeFromSubscription.currency))
-        .getOrElse(Left(AmendmentDataFailure(s"No invoice items for date: $startDate")))
-      oldPrice <- totalChargeAmount(subscription, invoiceList, startDate)
+        .getOrElse(Left(AmendmentDataFailure(s"No invoice items for date: $nextServiceStartDate")))
+      oldPrice <- totalChargeAmount(subscription, invoiceList, nextServiceStartDate)
       newPrice <- totalChargeAmount(pairs)
       billingPeriod <- pairs
         .flatMap(_.chargeFromSubscription.billingPeriod)

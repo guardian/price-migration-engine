@@ -153,6 +153,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
   )
 
   private val migrationStartDate2022 = LocalDate.of(2022, 11, 14)
+  val cohortSpec = CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), migrationStartDate2022)
   private val testTime1 = OffsetDateTime.of(LocalDateTime.of(2022, 7, 10, 10, 2), ZoneOffset.ofHours(0)).toInstant
 
   override def spec: Spec[TestEnvironment with Scope, Any] = suite("estimate")(
@@ -163,7 +164,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate <- spreadEarliestStartDate(subscription, invoiceList, migrationStartDate2022)
+        startDate <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec)
       } yield assert(startDate)(equalTo(expectedStartDate))
     },
     test("Start date is correct for subscription less than one year old (2)") {
@@ -173,7 +174,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate <- spreadEarliestStartDate(subscription, invoiceList, migrationStartDate2022)
+        startDate <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec)
       } yield assert(startDate)(equalTo(expectedStartDate))
     },
     test("Start date is correct for subscription less than one year old (3)") {
@@ -183,7 +184,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate <- spreadEarliestStartDate(subscription, invoiceList, migrationStartDate2022)
+        startDate <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec)
       } yield assert(startDate)(equalTo(expectedStartDate))
     },
     test("updates cohort table with EstimationComplete when data is complete") {
@@ -245,10 +246,11 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         assertion = equalTo(cohortItemExpectedToWrite),
         result = unit
       )
+      val cohortSpec = CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
       for {
         _ <- TestClock.setTime(time)
         _ <- EstimationHandler
-          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1))(
+          .estimate(productCatalogue, cohortSpec)(
             cohortItemRead
           )
           .provide(expectedZuoraUse, expectedCohortTableUpdate)
@@ -312,10 +314,11 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         assertion = equalTo(cohortItemExpectedToWrite),
         result = unit
       )
+      val cohortSpec = CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
       for {
         _ <- TestClock.setTime(time)
         _ <- EstimationHandler
-          .estimate(productCatalogue, earliestStartDate = LocalDate.of(2022, 5, 1))(
+          .estimate(productCatalogue, cohortSpec)(
             cohortItemRead
           )
           .provide(expectedZuoraUse, expectedCohortTableUpdate)
