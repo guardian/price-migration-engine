@@ -33,7 +33,7 @@ object NotificationHandler extends CohortHandler {
   // Note that technically, meaning legally, the end of the notification period is { May 3rd - 30 days }
   // There is a 5 days period between the engineLettersMinNotificationLeadTime and what is legally required.
 
-  // When the membership subscription was defined, the requirement was to send letters exactly 33 days before
+  // When the membership migration was defined, the requirement was to send letters exactly 33 days before
   // the price rise date (the cohortItem startDate). The idea was to send on March 29th, the emails corresponding
   // to price rise scheduled for May 1st, and keep the same exact lead time.
   // To achieve this let's introduce...
