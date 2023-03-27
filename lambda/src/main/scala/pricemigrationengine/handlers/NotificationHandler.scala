@@ -38,8 +38,8 @@ object NotificationHandler extends CohortHandler {
   // to price rise scheduled for May 1st, and keep the same exact lead time.
   // To achieve this let's introduce...
 
-  private val membershipPriceRiseNotificationLeadTime = 33
-  private val membershipMinNotificationLeadTime = 31
+  private val membershipPriceRiseNotificationLeadTime = 40
+  private val membershipMinNotificationLeadTime = 20
 
   // This is a very short notification period (just two days), and notably if we get to the end of it, we will
   // have to repair the problem within a day, otherwise the price rise for the corresponding item will have to
@@ -83,6 +83,7 @@ object NotificationHandler extends CohortHandler {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       count <- CohortTable
         .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+        .take(1)
         .mapZIO(item => sendNotification(cohortSpec)(item, today))
         .runFold(0) { (sum, count) => sum + count }
       _ <- Logging.info(s"Successfully sent $count price rise notifications")
@@ -274,20 +275,16 @@ object NotificationHandler extends CohortHandler {
     } yield 0
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    if (CohortSpec.isMembershipPriceRiseBatch1(input)) {
-      ZIO.succeed(HandlerOutput(isComplete = true))
-    } else {
-      main(input).provideSome[Logging](
-        EnvConfig.salesforce.layer,
-        EnvConfig.cohortTable.layer,
-        EnvConfig.emailSender.layer,
-        EnvConfig.stage.layer,
-        DynamoDBClientLive.impl,
-        DynamoDBZIOLive.impl,
-        CohortTableLive.impl(input),
-        SalesforceClientLive.impl,
-        EmailSenderLive.impl
-      )
-    }
+    main(input).provideSome[Logging](
+      EnvConfig.salesforce.layer,
+      EnvConfig.cohortTable.layer,
+      EnvConfig.emailSender.layer,
+      EnvConfig.stage.layer,
+      DynamoDBClientLive.impl,
+      DynamoDBZIOLive.impl,
+      CohortTableLive.impl(input),
+      SalesforceClientLive.impl,
+      EmailSenderLive.impl
+    )
   }
 }
