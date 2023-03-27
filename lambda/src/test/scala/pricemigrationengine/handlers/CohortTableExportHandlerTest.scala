@@ -60,9 +60,9 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
       }
     )
 
-  val expectedS3ExportBucketName = "export-s3-bucket-name"
+  val s3ExportBucketName = "export-s3-bucket-name"
 
-  val stubConfig = ZLayer.succeed(ExportConfig(expectedS3ExportBucketName))
+  val stubConfig = ZLayer.succeed(ExportConfig(s3ExportBucketName))
 
   test("CohortTableExportHandler should write cohort items to s3 as CSV") {
     val expectedCohortName = "expected cohort name"
@@ -103,9 +103,9 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
     )
 
     assertEquals(uploadedFiles.size, 1)
-    assertEquals(expectedS3ExportBucketName, uploadedFiles(0)._1.bucket)
+    assertEquals(s3ExportBucketName, uploadedFiles(0)._1.bucket)
     val (actualS3Location, actualFileContents) = uploadedFiles(0)
-    assertEquals(expectedS3ExportBucketName, actualS3Location.bucket)
+    assertEquals(s3ExportBucketName, actualS3Location.bucket)
     assertEquals(s"data/${expectedCohortName}.csv", actualS3Location.key)
     assertEquals(
       """"cohort_name","subscription_name","processing_stage","start_date","currency","old_price","estimated_new_price","billing_period","when_estimation_done","salesforce_price_rise_id","when_sf_show_estimate","new_price","new_subscription_id","when_amendment_done","when_notification_sent","when_notification_sent_written_to_salesforce","when_amendment_written_to_salesforce"
@@ -138,9 +138,9 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
     )
 
     assertEquals(1, uploadedFiles.size)
-    assertEquals(expectedS3ExportBucketName, uploadedFiles(0)._1.bucket)
+    assertEquals(s3ExportBucketName, uploadedFiles(0)._1.bucket)
     val (actualS3Location, actualFileContents) = uploadedFiles(0)
-    assertEquals(expectedS3ExportBucketName, actualS3Location.bucket)
+    assertEquals(s3ExportBucketName, actualS3Location.bucket)
     assertEquals(s"data/${expectedCohortName}.csv", actualS3Location.key)
     assertEquals(
       """"cohort_name","subscription_name","processing_stage","start_date","currency","old_price","estimated_new_price","billing_period","when_estimation_done","salesforce_price_rise_id","when_sf_show_estimate","new_price","new_subscription_id","when_amendment_done","when_notification_sent","when_notification_sent_written_to_salesforce","when_amendment_written_to_salesforce"

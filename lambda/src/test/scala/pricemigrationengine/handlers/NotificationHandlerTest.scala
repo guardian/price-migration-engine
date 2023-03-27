@@ -19,43 +19,43 @@ import scala.collection.mutable.ArrayBuffer
 
 class NotificationHandlerTest extends munit.FunSuite {
 
-  private val expectedSubscriptionName = "Sub-0001"
-  private val expectedStartDate = LocalDate.of(2020, 1, 1)
-  private val expectedStartDateUserFriendlyFormat = "1 January 2020"
-  private val expectedCurrency = "GBP"
-  private val expectedBillingPeriod = "Month"
-  private val expectedBillingPeriodInNotification = "Monthly"
-  private val expectedOldPrice = BigDecimal(10.00)
+  private val subscriptionName = "Sub-0001"
+  private val startDate = LocalDate.of(2020, 1, 1)
+  private val startDateUserFriendlyFormat = "1 January 2020"
+  private val currency = "GBP"
+  private val billingPeriod = "Month"
+  private val billingPeriodInNotification = "Monthly"
+  private val oldPrice = BigDecimal(10.00)
 
   // The estimated new price is the price without cap
-  private val expectedEstimatedNewPrice = BigDecimal(15.00)
-  test("For membership test, we need the expectedEstimatedNewPrice to be higher than the capped price") {
-    assert(PriceCap.cappedPrice(expectedOldPrice, expectedEstimatedNewPrice) < expectedEstimatedNewPrice)
+  private val estimatedNewPrice = BigDecimal(15.00)
+  test("For membership test, we need the estimatedNewPrice to be higher than the capped price") {
+    assert(PriceCap.cappedPrice(oldPrice, estimatedNewPrice) < estimatedNewPrice)
   }
 
   // The price that is displayed to the customer is capped using the old price as base
-  private val expectedCappedEstimatedNewPriceWithCurrencySymbolPrefix = "£12.00"
+  private val cappedEstimatedNewPriceWithCurrencySymbolPrefix = "£12.00"
 
   // Membership variation
   // Also, for some reasons we only have one "0" here
-  private val expectedUnCappedEstimatedNewPriceWithCurrencySymbolPrefix = "£15.0"
+  private val unCappedEstimatedNewPriceWithCurrencySymbolPrefix = "£15.0"
 
-  private val expectedSFSubscriptionId = "1234"
-  private val expectedBuyerId = "buyer-1"
-  private val expectedIdentityId = "buyer1-identity-id"
-  private val expectedEmailAddress = "buyer@email.address"
-  private val expectedFirstName = "buyer1FirstName"
-  private val expectedLastName = "buyer1LastName"
-  private val expectedStreet = "buyer1Street"
-  private val expectedCity = "buyer1City"
-  private val expectedState = "buyer1State"
-  private val expectedPostalCode = "buyer1PostalCode"
-  private val expectedCountry = "buyer1Country"
-  private val expectedDataExtensionName = "SV_VO_Pricerise_Q22020"
-  private val expectedSalutation = "Ms"
-  private val expectedSfStatus = "Active"
-  private val expectedProductType = "Newspaper - Digital Voucher"
-  private val expectedCurrentTime = Instant.parse("2020-05-21T15:16:37Z")
+  private val sfSubscriptionId = "1234"
+  private val buyerId = "buyer-1"
+  private val identityId = "buyer1-identity-id"
+  private val emailAddress = "buyer@email.address"
+  private val firstName = "buyer1FirstName"
+  private val lastName = "buyer1LastName"
+  private val street = "buyer1Street"
+  private val city = "buyer1City"
+  private val state = "buyer1State"
+  private val postalCode = "buyer1PostalCode"
+  private val country = "buyer1Country"
+  private val dataExtensionName = "SV_VO_Pricerise_Q22020"
+  private val salutation = "Ms"
+  private val sfStatus = "Active"
+  private val productType = "Newspaper - Digital Voucher"
+  private val currentTime = Instant.parse("2020-05-21T15:16:37Z")
 
   private val mailingAddressStreet = "buyer1MailStreet"
   private val mailingAddressCity = "buyer1MailCity"
@@ -150,28 +150,28 @@ class NotificationHandlerTest extends munit.FunSuite {
 
   private val salesforceSubscription: SalesforceSubscription =
     SalesforceSubscription(
-      expectedSFSubscriptionId,
-      expectedSubscriptionName,
-      expectedBuyerId,
-      expectedSfStatus,
-      Some(expectedProductType)
+      sfSubscriptionId,
+      subscriptionName,
+      buyerId,
+      sfStatus,
+      Some(productType)
     )
 
   private val salesforceContact: SalesforceContact =
     SalesforceContact(
-      Id = expectedBuyerId,
-      IdentityID__c = Some(expectedIdentityId),
-      Email = Some(expectedEmailAddress),
-      Salutation = Some(expectedSalutation),
-      FirstName = Some(expectedFirstName),
-      LastName = Some(expectedLastName),
+      Id = buyerId,
+      IdentityID__c = Some(identityId),
+      Email = Some(emailAddress),
+      Salutation = Some(salutation),
+      FirstName = Some(firstName),
+      LastName = Some(lastName),
       OtherAddress = Some(
         SalesforceAddress(
-          street = Some(expectedStreet),
-          city = Some(expectedCity),
-          state = Some(expectedState),
-          postalCode = Some(expectedPostalCode),
-          country = Some(expectedCountry)
+          street = Some(street),
+          city = Some(city),
+          state = Some(state),
+          postalCode = Some(postalCode),
+          country = Some(country)
         )
       ),
       MailingAddress = Some(
@@ -187,13 +187,13 @@ class NotificationHandlerTest extends munit.FunSuite {
 
   private val cohortItem =
     CohortItem(
-      subscriptionName = expectedSubscriptionName,
+      subscriptionName = subscriptionName,
       processingStage = AmendmentComplete,
-      startDate = Some(expectedStartDate),
-      currency = Some(expectedCurrency),
-      oldPrice = Some(expectedOldPrice),
-      estimatedNewPrice = Some(expectedEstimatedNewPrice),
-      billingPeriod = Some(expectedBillingPeriod)
+      startDate = Some(startDate),
+      currency = Some(currency),
+      oldPrice = Some(oldPrice),
+      estimatedNewPrice = Some(estimatedNewPrice),
+      billingPeriod = Some(billingPeriod)
     )
 
   test("NotificationHandler should get records from cohort table and SF and send Email with the data") {
@@ -209,7 +209,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(
       unsafeRunSync(default)(
         (for {
-          _ <- TestClock.setTime(expectedCurrentTime)
+          _ <- TestClock.setTime(currentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
@@ -219,48 +219,48 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
 
     assertEquals(sentMessages.size, 1)
-    assertEquals(sentMessages(0).DataExtensionName, expectedDataExtensionName)
-    assertEquals(sentMessages(0).SfContactId, expectedBuyerId)
-    assertEquals(sentMessages(0).IdentityUserId, Some(expectedIdentityId))
-    assertEquals(sentMessages(0).To.Address, Some(expectedEmailAddress))
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_1, expectedStreet)
+    assertEquals(sentMessages(0).DataExtensionName, dataExtensionName)
+    assertEquals(sentMessages(0).SfContactId, buyerId)
+    assertEquals(sentMessages(0).IdentityUserId, Some(identityId))
+    assertEquals(sentMessages(0).To.Address, Some(emailAddress))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_1, street)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_2, None)
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_city, Some(expectedCity))
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_state, Some(expectedState))
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_postal_code, expectedPostalCode)
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_country, expectedCountry)
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, Some(expectedSalutation))
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, expectedFirstName)
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, expectedLastName)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_city, Some(city))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_state, Some(state))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_postal_code, postalCode)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_country, country)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, Some(salutation))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, firstName)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, lastName)
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount,
-      expectedCappedEstimatedNewPriceWithCurrencySymbolPrefix
+      cappedEstimatedNewPriceWithCurrencySymbolPrefix
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date,
-      expectedStartDateUserFriendlyFormat
+      startDateUserFriendlyFormat
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_frequency,
-      expectedBillingPeriodInNotification
+      billingPeriodInNotification
     )
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.subscription_id, expectedSubscriptionName)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.subscription_id, subscriptionName)
 
     assertEquals(updatedResultsWrittenToCohortTable.size, 2)
     assertEquals(
       updatedResultsWrittenToCohortTable(0),
       CohortItem(
-        subscriptionName = expectedSubscriptionName,
+        subscriptionName = subscriptionName,
         processingStage = NotificationSendProcessingOrError,
-        whenNotificationSent = Some(expectedCurrentTime)
+        whenNotificationSent = Some(currentTime)
       )
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(1),
       CohortItem(
-        subscriptionName = expectedSubscriptionName,
+        subscriptionName = subscriptionName,
         processingStage = NotificationSendComplete,
-        whenNotificationSent = Some(expectedCurrentTime)
+        whenNotificationSent = Some(currentTime)
       )
     )
   }
@@ -274,19 +274,19 @@ class NotificationHandlerTest extends munit.FunSuite {
     //     - the cohortItem, which has a specific startDate
     //     - the currentTime (which needs to have a particular value relatively to the start date, considering the
     //       shorter notification window)
-    //     - the expectedStartDateUserFriendlyFormat
+    //     - the startDateUserFriendlyFormat
 
     val itemStartDate = LocalDate.of(2023, 5, 1)
 
     val cohortItem =
       CohortItem(
-        subscriptionName = expectedSubscriptionName,
+        subscriptionName = subscriptionName,
         processingStage = AmendmentComplete,
         startDate = Some(itemStartDate),
-        currency = Some(expectedCurrency),
-        oldPrice = Some(expectedOldPrice),
-        estimatedNewPrice = Some(expectedEstimatedNewPrice),
-        billingPeriod = Some(expectedBillingPeriod)
+        currency = Some(currency),
+        oldPrice = Some(oldPrice),
+        estimatedNewPrice = Some(estimatedNewPrice),
+        billingPeriod = Some(billingPeriod)
       )
 
     val dataCurrentTime = Instant.parse("2023-03-29T07:00:00Z")
@@ -318,22 +318,22 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
 
     assertEquals(sentMessages.size, 1)
-    assertEquals(sentMessages(0).DataExtensionName, expectedDataExtensionName)
-    assertEquals(sentMessages(0).SfContactId, expectedBuyerId)
-    assertEquals(sentMessages(0).IdentityUserId, Some(expectedIdentityId))
-    assertEquals(sentMessages(0).To.Address, Some(expectedEmailAddress))
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_1, expectedStreet)
+    assertEquals(sentMessages(0).DataExtensionName, dataExtensionName)
+    assertEquals(sentMessages(0).SfContactId, buyerId)
+    assertEquals(sentMessages(0).IdentityUserId, Some(identityId))
+    assertEquals(sentMessages(0).To.Address, Some(emailAddress))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_1, street)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_address_2, None)
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_city, Some(expectedCity))
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_state, Some(expectedState))
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_postal_code, expectedPostalCode)
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_country, expectedCountry)
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, Some(expectedSalutation))
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, expectedFirstName)
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, expectedLastName)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_city, Some(city))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_state, Some(state))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_postal_code, postalCode)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_country, country)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, Some(salutation))
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, firstName)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, lastName)
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount,
-      expectedUnCappedEstimatedNewPriceWithCurrencySymbolPrefix
+      unCappedEstimatedNewPriceWithCurrencySymbolPrefix
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date,
@@ -341,15 +341,15 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_frequency,
-      expectedBillingPeriodInNotification
+      billingPeriodInNotification
     )
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.subscription_id, expectedSubscriptionName)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.subscription_id, subscriptionName)
 
     assertEquals(updatedResultsWrittenToCohortTable.size, 2)
     assertEquals(
       updatedResultsWrittenToCohortTable(0),
       CohortItem(
-        subscriptionName = expectedSubscriptionName,
+        subscriptionName = subscriptionName,
         processingStage = NotificationSendProcessingOrError,
         whenNotificationSent = Some(dataCurrentTime)
       )
@@ -357,7 +357,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(
       updatedResultsWrittenToCohortTable(1),
       CohortItem(
-        subscriptionName = expectedSubscriptionName,
+        subscriptionName = subscriptionName,
         processingStage = NotificationSendComplete,
         whenNotificationSent = Some(dataCurrentTime)
       )
@@ -378,7 +378,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(
       unsafeRunSync(default)(
         (for {
-          _ <- TestClock.setTime(expectedCurrentTime)
+          _ <- TestClock.setTime(currentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
@@ -415,7 +415,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(
       unsafeRunSync(default)(
         (for {
-          _ <- TestClock.setTime(expectedCurrentTime)
+          _ <- TestClock.setTime(currentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
@@ -444,7 +444,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(
       unsafeRunSync(default)(
         (for {
-          _ <- TestClock.setTime(expectedCurrentTime)
+          _ <- TestClock.setTime(currentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
@@ -454,7 +454,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
 
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, None)
-    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, expectedSalutation)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, salutation)
   }
 
   test("NotificationHandler should leave CohortItem in processing state if email send fails") {
@@ -469,7 +469,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(
       unsafeRunSync(default)(
         (for {
-          _ <- TestClock.setTime(expectedCurrentTime)
+          _ <- TestClock.setTime(currentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ failingStubEmailSender
@@ -482,9 +482,9 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(
       updatedResultsWrittenToCohortTable(0),
       CohortItem(
-        subscriptionName = expectedSubscriptionName,
+        subscriptionName = subscriptionName,
         processingStage = NotificationSendProcessingOrError,
-        whenNotificationSent = Some(expectedCurrentTime)
+        whenNotificationSent = Some(currentTime)
       )
     )
   }
@@ -503,7 +503,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(
       unsafeRunSync(default)(
         (for {
-          _ <- TestClock.setTime(expectedCurrentTime)
+          _ <- TestClock.setTime(currentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
@@ -516,7 +516,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(
       updatedResultsWrittenToCohortTable(0),
       CohortItem(
-        subscriptionName = expectedSubscriptionName,
+        subscriptionName = subscriptionName,
         processingStage = Cancelled
       )
     )

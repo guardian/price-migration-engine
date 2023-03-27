@@ -15,10 +15,10 @@ import java.time.{Instant, LocalDate, ZoneOffset}
 import scala.collection.mutable.ArrayBuffer
 
 class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
-  private val expectedSubscriptionName = "Sub-0001"
-  private val expectedWhenEmailSentDate = LocalDate.of(2020, 3, 23)
-  private val expectedPriceRiseId = "price-rise-id"
-  private val expectedCurrentTime = Instant.parse("2020-05-21T15:16:37Z")
+  private val subscriptionName = "Sub-0001"
+  private val whenEmailSentDate = LocalDate.of(2020, 3, 23)
+  private val priceRiseId = "price-rise-id"
+  private val currentTime = Instant.parse("2020-05-21T15:16:37Z")
 
   private def createStubCohortTable(
       updatedResultsWrittenToCohortTable: ArrayBuffer[CohortItem],
@@ -82,10 +82,10 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
     val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
 
     val cohortItem = CohortItem(
-      subscriptionName = expectedSubscriptionName,
+      subscriptionName = subscriptionName,
       processingStage = NotificationSendComplete,
-      salesforcePriceRiseId = Some(expectedPriceRiseId),
-      whenNotificationSent = Some(expectedWhenEmailSentDate.atStartOfDay().toInstant(ZoneOffset.UTC))
+      salesforcePriceRiseId = Some(priceRiseId),
+      whenNotificationSent = Some(whenEmailSentDate.atStartOfDay().toInstant(ZoneOffset.UTC))
     )
 
     val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
@@ -93,7 +93,7 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
     assertEquals(
       unsafeRunSync(default)(
         (for {
-          _ <- TestClock.setTime(expectedCurrentTime)
+          _ <- TestClock.setTime(currentTime)
           program <- SalesforceNotificationDateUpdateHandler.main
         } yield program).provideLayer(
           testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient
@@ -109,7 +109,7 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
     assertEquals(updatedPriceRises(0).Current_Price_Today__c, None)
     assertEquals(updatedPriceRises(0).Guardian_Weekly_New_Price__c, None)
     assertEquals(updatedPriceRises(0).Price_Rise_Date__c, None)
-    assertEquals(updatedPriceRises(0).Date_Letter_Sent__c, Some(expectedWhenEmailSentDate))
+    assertEquals(updatedPriceRises(0).Date_Letter_Sent__c, Some(whenEmailSentDate))
 
     assertEquals(updatedResultsWrittenToCohortTable.size, 1)
     assertEquals(
@@ -122,7 +122,7 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).whenNotificationSentWrittenToSalesforce,
-      Some(expectedCurrentTime)
+      Some(currentTime)
     )
   }
 }
