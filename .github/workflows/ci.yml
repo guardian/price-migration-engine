@@ -42,7 +42,7 @@ jobs:
         # Required by SBT riffRaffUpload
       - name: Assume AWS role
         if: env.isPrFromForkedRepo == 'false'
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
           aws-region: eu-west-1
