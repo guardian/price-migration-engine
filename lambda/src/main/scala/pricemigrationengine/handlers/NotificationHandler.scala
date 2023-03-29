@@ -151,7 +151,11 @@ object NotificationHandler extends CohortHandler {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
       firstName <- requiredField(contact.FirstName, "Contact.FirstName").orElse(
-        requiredField(contact.Salutation, "Contact.Salutation")
+        if (CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)) {
+          requiredField(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation")
+        } else {
+          requiredField(contact.Salutation, "Contact.Salutation")
+        }
       )
       lastName <- requiredField(contact.LastName, "Contact.LastName")
       address <- targetAddress(contact)
@@ -179,10 +183,9 @@ object NotificationHandler extends CohortHandler {
             Address = contact.Email,
             ContactAttributes = EmailPayloadContactAttributes(
               SubscriberAttributes = EmailPayloadSubscriberAttributes(
-                title =
-                  contact.FirstName flatMap (_ =>
-                    contact.Salutation
-                  ), // if no first name, we use salutation as first name and leave this field empty
+                title = contact.FirstName flatMap (_ =>
+                  contact.Salutation // if no first name, we use salutation as first name and leave this field empty
+                ),
                 first_name = firstName,
                 last_name = lastName,
                 billing_address_1 = street,
