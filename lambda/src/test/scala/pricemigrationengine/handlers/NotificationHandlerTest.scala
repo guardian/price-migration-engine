@@ -458,7 +458,7 @@ class NotificationHandlerTest extends munit.FunSuite {
   }
 
   test(
-    "NotificationHandler, in case of missing FirstMame and missing Salutation, should not send an email"
+    "NotificationHandler, in case of missing FirstName and missing Salutation, should not send an email"
   ) {
     val stubSalesforceClient =
       stubSFClient(List(salesforceSubscription), List(salesforceContact.copy(FirstName = None, Salutation = None)))
