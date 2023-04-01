@@ -132,14 +132,19 @@ object AmendmentHandler extends CohortHandler {
       .fetchSubscription(item.subscriptionName)
       .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
 
-  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    main(input).provideSome[Logging](
-      EnvConfig.cohortTable.layer,
-      EnvConfig.zuora.layer,
-      EnvConfig.stage.layer,
-      DynamoDBZIOLive.impl,
-      DynamoDBClientLive.impl,
-      CohortTableLive.impl(input),
-      ZuoraLive.impl
-    )
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
+    if (CohortSpec.isMembershipPriceRiseBatch1(input)) {
+      ZIO.succeed(HandlerOutput(isComplete = true))
+    } else {
+      main(input).provideSome[Logging](
+        EnvConfig.cohortTable.layer,
+        EnvConfig.zuora.layer,
+        EnvConfig.stage.layer,
+        DynamoDBZIOLive.impl,
+        DynamoDBClientLive.impl,
+        CohortTableLive.impl(input),
+        ZuoraLive.impl
+      )
+    }
+  }
 }
