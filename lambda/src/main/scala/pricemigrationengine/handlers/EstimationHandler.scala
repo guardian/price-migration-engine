@@ -116,7 +116,7 @@ object EstimationHandler extends CohortHandler {
         .contains("Month")
 
     // We usually spread the start date over 3 months, but in the case of membership price rise batch 1, we want all to do through within a month
-    val spreadPeriod = if (CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)) 1 else 3
+    val spreadPeriod = if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) 1 else 3
 
     if (isMonthlySubscription) {
       for {

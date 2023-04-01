@@ -56,7 +56,7 @@ object NotificationHandler extends CohortHandler {
 
   // to manage those different values for the max and min lead time, which define notification period, we introduce
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
-    if (CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)) {
+    if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
       membershipPriceRiseNotificationLeadTime
     } else {
       guLettersNotificationLeadTime
@@ -64,7 +64,7 @@ object NotificationHandler extends CohortHandler {
   }
 
   def minLeadTime(cohortSpec: CohortSpec): Int = {
-    if (CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)) {
+    if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
       membershipMinNotificationLeadTime
     } else {
       engineLettersMinNotificationLeadTime
@@ -160,7 +160,7 @@ object NotificationHandler extends CohortHandler {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
       firstName <- requiredField(contact.FirstName, "Contact.FirstName").orElse(
-        if (CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)) {
+        if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
           requiredField(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation")
         } else {
           requiredField(contact.Salutation, "Contact.Salutation")
@@ -180,7 +180,7 @@ object NotificationHandler extends CohortHandler {
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
 
       // In the case of membership price rise, we need to not cap the price
-      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, CohortSpec.isMembershipPriceRiseBatch1(cohortSpec))}"
+      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec))}"
 
       _ <- logMissingEmailAddress(cohortItem, contact)
 
