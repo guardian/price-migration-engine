@@ -1,6 +1,5 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.CohortSpec.isMembershipPriceRiseBatch1
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -113,7 +112,9 @@ object AmendmentHandler extends CohortHandler {
           )
         )
 
-      _ <- ZIO.fromEither(checkNewPrice(item, oldPrice, newPrice, CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)))
+      _ <- ZIO.fromEither(
+        checkNewPrice(item, oldPrice, newPrice, CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec))
+      )
 
       whenDone <- Clock.instant
     } yield SuccessfulAmendmentResult(
