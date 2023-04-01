@@ -711,41 +711,45 @@ class NotificationHandlerTest extends munit.FunSuite {
   }
 
   test("thereIsEnoughNotificationLeadTime behaves correctly (legacy case)") {
-    // The item startDate will be set for April 4th
-    // (note that the dates of the test, and the subsequent variations, are one month ahead from the actual migration dates)
+    // The item startDate will be set for May 4th
     // In the legacy case, of 35 days min lead time:
-    //     - Feb 1st should be enough lead time (although not yet in the notification window)
-    //     - May 1st should be not be enough (there only is 34 days from May 1st to April 4th)
+    //     - May 1st should be enough lead time (although not yet in the notification window)
+    //     - April 1st should be not be enough (there only is 33 days from April 1st to May 4th)
 
     // (We are going to use the same values for the membership migration, where we will observing that May
     // 1st will be enough, but May 5th won't)
 
-    val itemStartDate = LocalDate.of(2023, 4, 4)
+    val itemStartDate = LocalDate.of(2023, 5, 4)
 
     val cohortSpec = CohortSpec("CohortName", "BrazeCampaignName", LocalDate.of(2000, 1, 1), itemStartDate)
     val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
 
     // The two following dates are chosen to be after 1st Dec 2022, to hit the non trivial case of the check
-    val date2 = LocalDate.of(2023, 2, 1)
-    val date3 = LocalDate.of(2023, 3, 1)
+    val date2 = LocalDate.of(2023, 3, 1)
+    val date3 = LocalDate.of(2023, 4, 1)
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date2, cohortItem), true)
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date3, cohortItem), false)
   }
 
   test("thereIsEnoughNotificationLeadTime behaves correctly (membership case, Batch1)") {
     // We are using the same dates as for the previous test (legacy case)
-    // Here let's observe the slight shift in notification period due to membership variation.
-    // 34 days wasn't enough in the legacy case, but will be in the membership case.
-    // We also test with 30 days to observe that it won't be enough
 
-    val itemStartDate = LocalDate.of(2023, 4, 4)
+    // Here let's observe the slight shift in notification period due to membership variation, by which
+    // 33 days wasn't enough in the legacy case, but will be in the membership case. We also test with 30 days
+    // to observe that it won't be enough.
+
+    // Note that in the case of membership the notification period is -33 (included) to -31 (excluded) days
+    // For more details about why -33 is included but -31 is excluded, see explanation at the top of the Notification
+    // handler.
+
+    val itemStartDate = LocalDate.of(2023, 5, 4)
 
     val cohortSpec = CohortSpec("Membership2023_Batch1", "BrazeCampaignName", LocalDate.of(2000, 1, 1), itemStartDate)
     val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
 
-    val date2 = LocalDate.of(2023, 2, 1)
-    val date3 = LocalDate.of(2023, 3, 1) // 34 days to target
-    val date4 = LocalDate.of(2023, 3, 5) // 30 days to target
+    val date2 = LocalDate.of(2023, 3, 1) // true
+    val date3 = LocalDate.of(2023, 4, 1) // 33 days to target, should true
+    val date4 = LocalDate.of(2023, 4, 4) // 30 days to target, should false
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date2, cohortItem), true)
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date3, cohortItem), true)
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date4, cohortItem), false)
@@ -753,22 +757,26 @@ class NotificationHandlerTest extends munit.FunSuite {
 
   test("thereIsEnoughNotificationLeadTime behaves correctly (membership case, Batch2)") {
     // Similar as Batch1, but shifted by a month
-    // (note that the dates of the test, and the subsequent variations, are one month ahead from the actual migration dates)
 
-    val itemStartDate = LocalDate.of(2023, 5, 4)
+    // Note that in the case of membership the notification period is -33 (included) to -31 (excluded) days
+    // For more details about why -33 is included but -31 is excluded, see explanation at the top of the Notification
+    // handler.
+
+    val itemStartDate = LocalDate.of(2023, 6, 4)
 
     val cohortSpec = CohortSpec("Membership2023_Batch2", "BrazeCampaignName", LocalDate.of(2000, 1, 1), itemStartDate)
     val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
 
-    val date2 = LocalDate.of(2023, 3, 1)
-    val date3 = LocalDate.of(2023, 4, 1) // 33 days to target, should true
-    val date4 = LocalDate.of(2023, 4, 2) // 32 days to target, should true
-    val date5 = LocalDate.of(2023, 4, 3) // 31 days to target, should false
-    val date6 = LocalDate.of(2023, 4, 4) // 30 days to target, should false
+    val date2 = LocalDate.of(2023, 4, 1) // true
+    val date3 = LocalDate.of(2023, 5, 1) // 34 days to target, should true
+    val date4 = LocalDate.of(2023, 5, 2) // 33 days to target, should true
+    val date5 = LocalDate.of(2023, 5, 3) // 32 days to target, should true
+    val date6 = LocalDate.of(2023, 5, 4) // 31 days to target, should false
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date2, cohortItem), true)
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date3, cohortItem), true)
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date4, cohortItem), true)
-    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date5, cohortItem), false)
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date5, cohortItem), true)
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date6, cohortItem), false)
+
   }
 }

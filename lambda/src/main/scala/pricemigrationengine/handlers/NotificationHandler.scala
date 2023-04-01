@@ -23,6 +23,9 @@ object NotificationHandler extends CohortHandler {
 
   val guLettersNotificationLeadTime = 50
   private val engineLettersMinNotificationLeadTime = 35
+  // the notification period is -50 (included) to -35 (excluded) days
+  // We lookup subscriptions that are 50 (aka `maxLeadTime`) days away or more in the future, but require that the
+  // notification date, be *before* the start date minus 35 (aka `minLeadTime`)
 
   // (The following description refers to a lead time of 49 days, which was the original
   // lead time before updating it to 50 day as a side effect of moving the state machine morning
@@ -49,6 +52,7 @@ object NotificationHandler extends CohortHandler {
 
   private val membershipPriceRiseNotificationLeadTime = 33
   private val membershipMinNotificationLeadTime = 31
+  // the notification period is -33 (included) to -31 (excluded) days
 
   // This is a very short notification period (just two days), and notably if we get to the end of it, we will
   // have to repair the problem within a day, otherwise the price rise for the corresponding item will have to
