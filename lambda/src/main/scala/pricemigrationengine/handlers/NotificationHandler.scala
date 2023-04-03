@@ -48,7 +48,7 @@ object NotificationHandler extends CohortHandler {
   // To achieve this let's introduce...
 
   private val membershipPriceRiseNotificationLeadTime = 33
-  private val membershipMinNotificationLeadTime = 31
+  private val membershipMinNotificationLeadTime = 30
 
   // This is a very short notification period (just two days), and notably if we get to the end of it, we will
   // have to repair the problem within a day, otherwise the price rise for the corresponding item will have to
