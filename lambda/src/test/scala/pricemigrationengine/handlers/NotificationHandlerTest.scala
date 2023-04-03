@@ -1,6 +1,7 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.handlers.NotificationHandler.thereIsEnoughNotificationLeadTime
+import pricemigrationengine.handlers.NotificationHandler.guLettersNotificationLeadTime
 import pricemigrationengine.{TestLogging}
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
@@ -13,8 +14,7 @@ import zio.stream.ZStream
 import zio.test.{TestClock, testEnvironment}
 import zio.{IO, ZIO, ZLayer}
 
-import java.time.temporal.ChronoUnit
-import java.time.{Instant, LocalDate, ZoneOffset}
+import java.time.{Instant, LocalDate}
 import scala.collection.mutable.ArrayBuffer
 
 class NotificationHandlerTest extends munit.FunSuite {
@@ -195,6 +195,13 @@ class NotificationHandlerTest extends munit.FunSuite {
       estimatedNewPrice = Some(estimatedNewPrice),
       billingPeriod = Some(billingPeriod)
     )
+
+  test("guLettersNotificationLeadTime should be at least 49 days") {
+    // There is a comment at the top of the Notification handler which explains why the value 49 was chosen
+    // Here we are simply checking that it's at least 49 days (it was temporarily set to 50 day during
+    // membership migration)
+    assert(guLettersNotificationLeadTime >= 49)
+  }
 
   test("NotificationHandler should get records from cohort table and SF and send Email with the data") {
     val stubSalesforceClient = stubSFClient(List(salesforceSubscription), List(salesforceContact))
