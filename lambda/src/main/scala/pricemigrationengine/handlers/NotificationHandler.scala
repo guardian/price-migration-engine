@@ -21,8 +21,13 @@ object NotificationHandler extends CohortHandler {
 
   // The NotificationHandler acts on any item for which today is within the notification period for this item
 
-  private val guLettersNotificationLeadTime = 49
+  val guLettersNotificationLeadTime = 50
   private val engineLettersMinNotificationLeadTime = 35
+
+  // (The following description refers to a lead time of 49 days, which was the original
+  // lead time before updating it to 50 day as a side effect of moving the state machine morning
+  // start time to 11 BST for the membership migration. When the need for that change goes, then we will
+  // move the value back to 49 with no update in the below comment.)
 
   // Historically, for print subscriptions, we have used guLettersNotificationLeadTime and
   // engineLettersMinNotificationLeadTime to define the notification window. For instance,
@@ -30,8 +35,12 @@ object NotificationHandler extends CohortHandler {
   // { May 3rd - 49 days, guLettersNotificationLeadTime } and the end of the notification period
   // is { May 3rd - 35 days, engineLettersMinNotificationLeadTime }
 
+  // The value of 49 days itself was chosen so that overseas subscribers get their letters at least 30 days before
+  // price rise, so we plan for a 2 weeks mail delivery.
+
   // Note that technically, meaning legally, the end of the notification period is { May 3rd - 30 days }
-  // There is a 5 days period between the engineLettersMinNotificationLeadTime and what is legally required.
+  // There is a 5 days period between the engineLettersMinNotificationLeadTime and what is legally required, again to
+  // help with delivery periods. Below 35 days, it's better to postpone the price rise.
 
   // When the membership migration was defined, the requirement was to send letters exactly 33 days before
   // the price rise date (the cohortItem startDate). The idea was to send on March 29th, the emails corresponding
@@ -151,7 +160,11 @@ object NotificationHandler extends CohortHandler {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
       firstName <- requiredField(contact.FirstName, "Contact.FirstName").orElse(
-        requiredField(contact.Salutation, "Contact.Salutation")
+        if (CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)) {
+          requiredField(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation")
+        } else {
+          requiredField(contact.Salutation, "Contact.Salutation")
+        }
       )
       lastName <- requiredField(contact.LastName, "Contact.LastName")
       address <- targetAddress(contact)
@@ -179,10 +192,9 @@ object NotificationHandler extends CohortHandler {
             Address = contact.Email,
             ContactAttributes = EmailPayloadContactAttributes(
               SubscriberAttributes = EmailPayloadSubscriberAttributes(
-                title =
-                  contact.FirstName flatMap (_ =>
-                    contact.Salutation
-                  ), // if no first name, we use salutation as first name and leave this field empty
+                title = contact.FirstName flatMap (_ =>
+                  contact.Salutation // if no first name, we use salutation as first name and leave this field empty
+                ),
                 first_name = firstName,
                 last_name = lastName,
                 billing_address_1 = street,
