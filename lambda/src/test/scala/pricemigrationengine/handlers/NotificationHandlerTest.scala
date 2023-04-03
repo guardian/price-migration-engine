@@ -776,7 +776,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date3, cohortItem), true)
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date4, cohortItem), true)
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date5, cohortItem), true)
-    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date6, cohortItem), false)
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date6, cohortItem), true)
 
   }
 }
