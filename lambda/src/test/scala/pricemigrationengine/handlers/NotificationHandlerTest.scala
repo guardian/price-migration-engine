@@ -1,6 +1,7 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.handlers.NotificationHandler.thereIsEnoughNotificationLeadTime
+import pricemigrationengine.handlers.NotificationHandler.guLettersNotificationLeadTime
 import pricemigrationengine.{TestLogging}
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
@@ -13,8 +14,7 @@ import zio.stream.ZStream
 import zio.test.{TestClock, testEnvironment}
 import zio.{IO, ZIO, ZLayer}
 
-import java.time.temporal.ChronoUnit
-import java.time.{Instant, LocalDate, ZoneOffset}
+import java.time.{Instant, LocalDate}
 import scala.collection.mutable.ArrayBuffer
 
 class NotificationHandlerTest extends munit.FunSuite {
@@ -195,6 +195,13 @@ class NotificationHandlerTest extends munit.FunSuite {
       estimatedNewPrice = Some(estimatedNewPrice),
       billingPeriod = Some(billingPeriod)
     )
+
+  test("guLettersNotificationLeadTime should be at least 49 days") {
+    // There is a comment at the top of the Notification handler which explains why the value 49 was chosen
+    // Here we are simply checking that it's at least 49 days (it was temporarily set to 50 day during
+    // membership migration)
+    assert(guLettersNotificationLeadTime >= 49)
+  }
 
   test("NotificationHandler should get records from cohort table and SF and send Email with the data") {
     val stubSalesforceClient = stubSFClient(List(salesforceSubscription), List(salesforceContact))
@@ -455,6 +462,65 @@ class NotificationHandlerTest extends munit.FunSuite {
 
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, None)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, salutation)
+  }
+
+  test(
+    "NotificationHandler, in case of missing FirstName and missing Salutation, should not send an email"
+  ) {
+    val stubSalesforceClient =
+      stubSFClient(List(salesforceSubscription), List(salesforceContact.copy(FirstName = None, Salutation = None)))
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
+    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
+    val sentMessages = ArrayBuffer[EmailMessage]()
+    val stubEmailSender = createStubEmailSender(sentMessages)
+
+    // Building the cohort spec with the correct campaign name
+    val cohortSpec = CohortSpec("Name", brazeCampaignName, LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
+
+    assertEquals(
+      unsafeRunSync(default)(
+        (for {
+          _ <- TestClock.setTime(currentTime)
+          program <- NotificationHandler.main(cohortSpec)
+        } yield program).provideLayer(
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+        )
+      ),
+      Success(HandlerOutput(isComplete = true))
+    )
+
+    assertEquals(sentMessages.size, 0)
+  }
+
+  test(
+    "NotificationHandler, if membership price rise, in case of missing FirstMame and missing Salutation, should still send an email"
+  ) {
+    val stubSalesforceClient =
+      stubSFClient(List(salesforceSubscription), List(salesforceContact.copy(FirstName = None, Salutation = None)))
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
+    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
+    val sentMessages = ArrayBuffer[EmailMessage]()
+    val stubEmailSender = createStubEmailSender(sentMessages)
+
+    // Building the cohort spec with the correct campaign name
+    val cohortSpec =
+      CohortSpec("Membership2023_Batch1", brazeCampaignName, LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
+
+    assertEquals(
+      unsafeRunSync(default)(
+        (for {
+          _ <- TestClock.setTime(currentTime)
+          program <- NotificationHandler.main(cohortSpec)
+        } yield program).provideLayer(
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+        )
+      ),
+      Success(HandlerOutput(isComplete = true))
+    )
+
+    assertEquals(sentMessages.size, 1)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, None)
+    assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, "Member")
   }
 
   test("NotificationHandler should leave CohortItem in processing state if email send fails") {
