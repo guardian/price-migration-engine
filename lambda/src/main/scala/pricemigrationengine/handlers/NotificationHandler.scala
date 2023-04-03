@@ -23,6 +23,9 @@ object NotificationHandler extends CohortHandler {
 
   val guLettersNotificationLeadTime = 50
   private val engineLettersMinNotificationLeadTime = 35
+  // the notification period is -50 (included) to -35 (excluded) days
+  // We lookup subscriptions that are 50 (aka `maxLeadTime`) days away or more in the future, but require that the
+  // notification date, be *before* the start date minus 35 (aka `minLeadTime`)
 
   // (The following description refers to a lead time of 49 days, which was the original
   // lead time before updating it to 50 day as a side effect of moving the state machine morning
@@ -49,6 +52,7 @@ object NotificationHandler extends CohortHandler {
 
   private val membershipPriceRiseNotificationLeadTime = 33
   private val membershipMinNotificationLeadTime = 30
+  // the notification period is -33 (included) to -31 (excluded) days
 
   // This is a very short notification period (just two days), and notably if we get to the end of it, we will
   // have to repair the problem within a day, otherwise the price rise for the corresponding item will have to
@@ -56,7 +60,7 @@ object NotificationHandler extends CohortHandler {
 
   // to manage those different values for the max and min lead time, which define notification period, we introduce
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
-    if (CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)) {
+    if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
       membershipPriceRiseNotificationLeadTime
     } else {
       guLettersNotificationLeadTime
@@ -64,7 +68,7 @@ object NotificationHandler extends CohortHandler {
   }
 
   def minLeadTime(cohortSpec: CohortSpec): Int = {
-    if (CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)) {
+    if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
       membershipMinNotificationLeadTime
     } else {
       engineLettersMinNotificationLeadTime
@@ -160,7 +164,7 @@ object NotificationHandler extends CohortHandler {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
       firstName <- requiredField(contact.FirstName, "Contact.FirstName").orElse(
-        if (CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)) {
+        if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
           requiredField(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation")
         } else {
           requiredField(contact.Salutation, "Contact.Salutation")
@@ -180,7 +184,7 @@ object NotificationHandler extends CohortHandler {
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
 
       // In the case of membership price rise, we need to not cap the price
-      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, CohortSpec.isMembershipPriceRiseBatch1(cohortSpec))}"
+      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec))}"
 
       _ <- logMissingEmailAddress(cohortItem, contact)
 
