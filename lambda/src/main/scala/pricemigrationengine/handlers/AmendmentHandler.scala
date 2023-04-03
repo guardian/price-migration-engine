@@ -1,6 +1,5 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.CohortSpec.isMembershipPriceRiseBatch1
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -113,7 +112,9 @@ object AmendmentHandler extends CohortHandler {
           )
         )
 
-      _ <- ZIO.fromEither(checkNewPrice(item, oldPrice, newPrice, CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)))
+      _ <- ZIO.fromEither(
+        checkNewPrice(item, oldPrice, newPrice, CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec))
+      )
 
       whenDone <- Clock.instant
     } yield SuccessfulAmendmentResult(
@@ -133,7 +134,7 @@ object AmendmentHandler extends CohortHandler {
       .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    if (CohortSpec.isMembershipPriceRiseBatch1(input)) {
+    if (CohortSpec.isMembershipPriceRiseMonthlies(input)) {
       ZIO.succeed(HandlerOutput(isComplete = true))
     } else {
       main(input).provideSome[Logging](

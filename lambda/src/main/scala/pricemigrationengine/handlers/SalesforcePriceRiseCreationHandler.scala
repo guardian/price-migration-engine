@@ -1,6 +1,5 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.CohortSpec.isMembershipPriceRiseBatch1
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -86,7 +85,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
       Some(subscription.Buyer__c),
       Some(oldPrice),
       Some(
-        PriceCap.cappedPrice(oldPrice, estimatedNewPrice, CohortSpec.isMembershipPriceRiseBatch1(cohortSpec))
+        PriceCap.cappedPrice(oldPrice, estimatedNewPrice, CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec))
       ), // In case of membership price rise, we override the capping
       Some(priceRiseDate),
       Some(subscription.Id)
