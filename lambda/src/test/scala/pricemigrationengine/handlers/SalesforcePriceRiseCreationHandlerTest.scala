@@ -165,7 +165,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
   }
 
   test(
-    "SalesforcePriceRiseCreateHandler should get estimate from cohort table and create sf price rise (in the case of a non capped price rise)"
+    "SalesforcePriceRiseCreateHandler should get estimate from cohort table and create sf price rise (in the case of a non capped price rise: membership Batch1)"
   ) {
     // In this case
     val createdPriceRises = ArrayBuffer[SalesforcePriceRise]()
@@ -186,6 +186,71 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
     // In this case the name of the cohort will trigger a non price cap
     val cohortSpec = CohortSpec("Membership2023_Batch1", "Campaign1", LocalDate.of(2000, 1, 1), startDate)
+
+    assertEquals(
+      unsafeRunSync(default)(
+        (for {
+          _ <- TestClock.setTime(currentTime)
+          program <- SalesforcePriceRiseCreationHandler.main(cohortSpec)
+        } yield program).provideLayer(
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient
+        )
+      ),
+      Success(HandlerOutput(isComplete = true))
+    )
+
+    assertEquals(createdPriceRises.size, 1)
+    assertEquals(createdPriceRises(0).Name, Some(subscriptionName))
+    assertEquals(createdPriceRises(0).SF_Subscription__c, Some(s"SubscritionId-$subscriptionName"))
+    assertEquals(createdPriceRises(0).Buyer__c, Some(s"Buyer-$subscriptionName"))
+    assertEquals(createdPriceRises(0).Current_Price_Today__c, Some(oldPrice))
+    assertEquals(
+      createdPriceRises(0).Guardian_Weekly_New_Price__c,
+      Some(estimatedNewPrice) // expecting a non capped estimated price in this case
+    )
+    assertEquals(createdPriceRises(0).Price_Rise_Date__c, Some(startDate))
+
+    assertEquals(updatedResultsWrittenToCohortTable.size, 1)
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0).subscriptionName,
+      s"Sub-0001"
+    )
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0).processingStage,
+      SalesforcePriceRiceCreationComplete
+    )
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0).salesforcePriceRiseId,
+      Some(s"SubscritionId-$subscriptionName-price-rise-id")
+    )
+    assertEquals(
+      updatedResultsWrittenToCohortTable(0).whenSfShowEstimate,
+      Some(currentTime)
+    )
+  }
+
+  test(
+    "SalesforcePriceRiseCreateHandler should get estimate from cohort table and create sf price rise (in the case of a non capped price rise: membership Batch2)"
+  ) {
+    // In this case
+    val createdPriceRises = ArrayBuffer[SalesforcePriceRise]()
+    val updatedPriceRises = ArrayBuffer[SalesforcePriceRise]()
+    val stubSalesforceClient = stubSFClient(createdPriceRises, updatedPriceRises)
+    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
+
+    val cohortItem = CohortItem(
+      subscriptionName = subscriptionName,
+      processingStage = EstimationComplete,
+      startDate = Some(startDate),
+      currency = Some(currency),
+      oldPrice = Some(oldPrice),
+      estimatedNewPrice = Some(estimatedNewPrice)
+    )
+
+    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
+
+    // In this case the name of the cohort will trigger a non price cap
+    val cohortSpec = CohortSpec("Membership2023_Batch2", "Campaign1", LocalDate.of(2000, 1, 1), startDate)
 
     assertEquals(
       unsafeRunSync(default)(

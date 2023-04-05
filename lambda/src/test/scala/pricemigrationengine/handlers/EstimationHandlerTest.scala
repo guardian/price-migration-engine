@@ -37,7 +37,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
       }
     )
     suite("membership estimations")(
-      test("Estimation uses uncapped price") {
+      test("Estimation uses uncapped price, Membership2023_Batch1") {
 
         // The name of the cohort here is import to trigger the membership2023_Batch1 code path
         val cohortSpec =
@@ -55,6 +55,31 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         assertTrue(
           estimationResult == Right(
             SuccessfulEstimationResult("SUBSCRIPTION-NUMBER", LocalDate.of(2023, 5, 13), "GBP", 5, 7, "Month")
+          )
+        )
+      },
+      test("Estimation uses uncapped price, Membership2023_Batch2") {
+        // Similar to the previous test (and in particular we do reuse Batch1's fixtures as they are structurally
+        // indistinguishable from Batch1), but shifting by a month for Batch2.
+
+        val cohortSpec =
+          CohortSpec("Membership2023_Batch2", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 6, 1))
+        val startDate = cohortSpec.earliestPriceMigrationStartDate
+
+        val account = Fixtures.accountFromJson("Membership2023/Batch1/GBP/account.json")
+        val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch1/GBP/catalogue.json")
+        val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch1/GBP/subscription.json")
+        val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch1/GBP/invoice-preview.json")
+
+        // In the test, the actual startDate and the cohort's cohortSpec earliestPriceMigrationStartDate are same (which is fine)
+        val estimationResult = EstimationResult(account, catalogue, subscription, invoicePreview, startDate, cohortSpec)
+
+        // Compared to Membership2023_Batch1, we move the earliest possible start date by a month,
+        // from LocalDate.of(2023, 5, 1) to LocalDate.of(2023, 6, 1) will result in the actual subscription start
+        // date be postponed by a month (from LocalDate.of(2023, 5, 13) to LocalDate.of(2023, 6, 13)).
+        assertTrue(
+          estimationResult == Right(
+            SuccessfulEstimationResult("SUBSCRIPTION-NUMBER", LocalDate.of(2023, 6, 13), "GBP", 5, 7, "Month")
           )
         )
       }
