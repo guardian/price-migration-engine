@@ -140,7 +140,12 @@ object NotificationHandler extends CohortHandler {
       )
       lastName <- requiredField(contact.LastName, "Contact.LastName")
       address <- targetAddress(contact)
-      street <- requiredField(address.street, "Contact.OtherAddress.street")
+      street <-
+        if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
+          requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
+        } else {
+          requiredField(address.street, "Contact.OtherAddress.street")
+        }
       postalCode = address.postalCode.getOrElse("")
       country <- requiredField(address.country, "Contact.OtherAddress.country")
       oldPrice <- requiredField(cohortItem.oldPrice, "CohortItem.oldPrice")
