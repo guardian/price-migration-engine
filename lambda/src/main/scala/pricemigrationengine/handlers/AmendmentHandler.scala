@@ -112,9 +112,9 @@ object AmendmentHandler extends CohortHandler {
           )
         )
 
-      _ <- ZIO.fromEither(
-        checkNewPrice(item, oldPrice, newPrice, CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec))
-      )
+      // _ <- ZIO.fromEither(
+      //  checkNewPrice(item, oldPrice, newPrice, CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec))
+      // )
 
       whenDone <- Clock.instant
     } yield SuccessfulAmendmentResult(
