@@ -16,49 +16,19 @@ object NotificationHandler extends CohortHandler {
   val Unsuccessful = 0
   val Cancelled_Status = "Cancelled"
 
-  // --------------------------------------
-  // Notification Period 101
+  // For general information about the notification period see the docs/notification-periods.md
 
-  // The NotificationHandler acts on any item for which today is within the notification period for this item
-
+  // The standard notification period for letter products (where the notification is delivered by email)
+  // is -49 (included) to -35 (excluded) days.
+  // During membership migration the max time has (temporarily) been set to 50.
   val guLettersNotificationLeadTime = 50
   private val engineLettersMinNotificationLeadTime = 35
-  // the notification period is -50 (included) to -35 (excluded) days
-  // We lookup subscriptions that are 50 (aka `maxLeadTime`) days away or more in the future, but require that the
-  // notification date, be *before* the start date minus 35 (aka `minLeadTime`)
 
-  // (The following description refers to a lead time of 49 days, which was the original
-  // lead time before updating it to 50 day as a side effect of moving the state machine morning
-  // start time to 11 BST for the membership migration. When the need for that change goes, then we will
-  // move the value back to 49 with no update in the below comment.)
-
-  // Historically, for print subscriptions, we have used guLettersNotificationLeadTime and
-  // engineLettersMinNotificationLeadTime to define the notification window. For instance,
-  // considering a cohortItem with startDate set to May 3rd, the beginning of the notification period is
-  // { May 3rd - 49 days, guLettersNotificationLeadTime } and the end of the notification period
-  // is { May 3rd - 35 days, engineLettersMinNotificationLeadTime }
-
-  // The value of 49 days itself was chosen so that overseas subscribers get their letters at least 30 days before
-  // price rise, so we plan for a 2 weeks mail delivery.
-
-  // Note that technically, meaning legally, the end of the notification period is { May 3rd - 30 days }
-  // There is a 5 days period between the engineLettersMinNotificationLeadTime and what is legally required, again to
-  // help with delivery periods. Below 35 days, it's better to postpone the price rise.
-
-  // When the membership migration was defined, the requirement was to send letters exactly 33 days before
-  // the price rise date (the cohortItem startDate). The idea was to send on March 29th, the emails corresponding
-  // to price rise scheduled for May 1st, and keep the same exact lead time.
-  // To achieve this let's introduce...
-
+  // Membership migration
+  // Notification period: -33 (included) to -31 (excluded) days
   private val membershipPriceRiseNotificationLeadTime = 33
   private val membershipMinNotificationLeadTime = 31
-  // the notification period is -33 (included) to -31 (excluded) days
 
-  // This is a very short notification period (just two days), and notably if we get to the end of it, we will
-  // have to repair the problem within a day, otherwise the price rise for the corresponding item will have to
-  // be postponed.
-
-  // to manage those different values for the max and min lead time, which define notification period, we introduce
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
     if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
       membershipPriceRiseNotificationLeadTime
@@ -74,8 +44,6 @@ object NotificationHandler extends CohortHandler {
       engineLettersMinNotificationLeadTime
     }
   }
-
-  // --------------------------------------
 
   def thereIsEnoughNotificationLeadTime(cohortSpec: CohortSpec, today: LocalDate, cohortItem: CohortItem): Boolean = {
     // To help with backward compatibility with existing tests, we apply this condition from 1st Dec 2022.
