@@ -1,5 +1,6 @@
 package pricemigrationengine.handlers
 
+import pricemigrationengine.handlers.NotificationHandler.thereIsEnoughNotificationLeadTime
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -21,14 +22,13 @@ object EstimationHandler extends CohortHandler {
 
   def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
+      today <- Clock.currentDateTime.map(_.toLocalDate)
       catalogue <- Zuora.fetchProductCatalogue
       count <- CohortTable
         .fetch(ReadyForEstimation, None)
         .take(batchSize)
         .mapZIO(item =>
-          estimate(catalogue, cohortSpec)(
-            item
-          ).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
+          estimate(catalogue, cohortSpec)(today, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
         )
         .runCount
         .tapError(e => Logging.error(e.toString))
@@ -38,9 +38,10 @@ object EstimationHandler extends CohortHandler {
       catalogue: ZuoraProductCatalogue,
       cohortSpec: CohortSpec
   )(
-      item: CohortItem
+      today: LocalDate,
+      item: CohortItem,
   ): ZIO[CohortTable with Zuora, Failure, EstimationResult] =
-    doEstimation(catalogue, item, cohortSpec).foldZIO(
+    doEstimation(catalogue, item, cohortSpec, today).foldZIO(
       failure = {
         case failure: AmendmentDataFailure =>
           val result = FailedEstimationResult(item.subscriptionName, failure.reason)
@@ -64,22 +65,31 @@ object EstimationHandler extends CohortHandler {
   private def doEstimation(
       catalogue: ZuoraProductCatalogue,
       item: CohortItem,
-      cohortSpec: CohortSpec
+      cohortSpec: CohortSpec,
+      today: LocalDate,
   ): ZIO[Zuora, Failure, SuccessfulEstimationResult] = {
 
-    for {
-      subscription <-
-        Zuora
-          .fetchSubscription(item.subscriptionName)
-          .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
-      account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
-      invoicePreviewTargetDate = cohortSpec.earliestPriceMigrationStartDate.plusMonths(16)
-      invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
-      earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, cohortSpec)
-      result <- ZIO.fromEither(
-        EstimationResult(account, catalogue, subscription, invoicePreview, earliestStartDate, cohortSpec)
+    if (thereIsEnoughNotificationLeadTime(cohortSpec, today, item)) {
+      for {
+        subscription <-
+          Zuora
+            .fetchSubscription(item.subscriptionName)
+            .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
+        account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
+        invoicePreviewTargetDate = cohortSpec.earliestPriceMigrationStartDate.plusMonths(16)
+        invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
+        earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, cohortSpec)
+        result <- ZIO.fromEither(
+          EstimationResult(account, catalogue, subscription, invoicePreview, earliestStartDate, cohortSpec)
+        )
+      } yield result
+    } else {
+      ZIO.fail(
+        EstimationNotEnoughLeadTimeFailure(
+          s"[estimation] The start date of item ${item.subscriptionName} (startDate: ${item.startDate}) is too close to today ${today}"
+        )
       )
-    } yield result
+    }
   }
 
   /*
