@@ -2,14 +2,15 @@
 
 # Price Migration Engine
 
-This repo consists of a set of lambdas and DynamoDB table templates that are designed to interact together in a state machine.
+The price migration engine is an orchestration engine used to perform controlled price migrations. It currently consists in a collection of lambdas designed to work together as a state machine.
 
-To set up a new cohort of subscriptions for price rise, see [this doc](cohort-setup.md).
+To set up a new cohort of subscriptions for price rise, see [cohort setup](docs/cohort-setup.md).
 
 See readme for:
 
-* [State machine](stateMachine/README.md)
-* [Lambdas](lambda/README.md)
-* [Data stores](dynamoDb/README.md)
+* [State machine](stateMachine/README.md).
+* [Lambdas](lambda/README.md).
+* [Data stores](dynamoDb/README.md).
+* [Notification periods](docs/notification-periods.md).
 
-For production troubleshooting, see the [Troubleshooting](troubleshooting.md)
+For production troubleshooting, see the [troubleshooting document](docs/troubleshooting.md)
