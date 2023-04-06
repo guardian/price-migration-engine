@@ -65,8 +65,8 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
   val stubConfig = ZLayer.succeed(ExportConfig(s3ExportBucketName))
 
   test("CohortTableExportHandler should write cohort items to s3 as CSV") {
-    val expectedCohortName = "expected cohort name"
-    val cohortSpec = new CohortSpec(expectedCohortName, "", LocalDate.now(), LocalDate.now())
+    val cohortName = "expected cohort name"
+    val cohortSpec = new CohortSpec(cohortName, "", LocalDate.now(), LocalDate.now())
     val uploadedFiles = ArrayBuffer[(S3Location, String)]()
     val stubS3 = createStubS3(uploadedFiles)
 
@@ -106,7 +106,7 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
     assertEquals(s3ExportBucketName, uploadedFiles(0)._1.bucket)
     val (actualS3Location, actualFileContents) = uploadedFiles(0)
     assertEquals(s3ExportBucketName, actualS3Location.bucket)
-    assertEquals(s"data/${expectedCohortName}.csv", actualS3Location.key)
+    assertEquals(s"data/${cohortName}.csv", actualS3Location.key)
     assertEquals(
       """"cohort_name","subscription_name","processing_stage","start_date","currency","old_price","estimated_new_price","billing_period","when_estimation_done","salesforce_price_rise_id","when_sf_show_estimate","new_price","new_subscription_id","when_amendment_done","when_notification_sent","when_notification_sent_written_to_salesforce","when_amendment_written_to_salesforce"
         |"expected cohort name","subscription 1","NotificationSendComplete","2020-01-01","USD","1.0","2.0","quarter","2020-01-01T01:01:01Z","salesForcePriceRiseId1","2020-01-02T01:01:01Z","3.0","zuoraSubId1","2020-01-03T01:01:01Z","2020-01-04T01:01:01Z","2020-01-05T01:01:01Z","2020-01-06T01:01:01Z"""".stripMargin,
@@ -114,8 +114,8 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
     )
   }
   test("CohortTableExportHandler should write cohort items with missing optional values to s3 as CSV") {
-    val expectedCohortName = "expected cohort name"
-    val cohortSpec = new CohortSpec(expectedCohortName, "", LocalDate.now(), LocalDate.now())
+    val cohortName = "expected cohort name"
+    val cohortSpec = new CohortSpec(cohortName, "", LocalDate.now(), LocalDate.now())
     val uploadedFiles = ArrayBuffer[(S3Location, String)]()
     val stubS3 = createStubS3(uploadedFiles)
 
@@ -141,7 +141,7 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
     assertEquals(s3ExportBucketName, uploadedFiles(0)._1.bucket)
     val (actualS3Location, actualFileContents) = uploadedFiles(0)
     assertEquals(s3ExportBucketName, actualS3Location.bucket)
-    assertEquals(s"data/${expectedCohortName}.csv", actualS3Location.key)
+    assertEquals(s"data/${cohortName}.csv", actualS3Location.key)
     assertEquals(
       """"cohort_name","subscription_name","processing_stage","start_date","currency","old_price","estimated_new_price","billing_period","when_estimation_done","salesforce_price_rise_id","when_sf_show_estimate","new_price","new_subscription_id","when_amendment_done","when_notification_sent","when_notification_sent_written_to_salesforce","when_amendment_written_to_salesforce"
         |"expected cohort name","subscription 2","ReadyForEstimation","","","","","","","","","","","","","",""""".stripMargin,
