@@ -2,6 +2,7 @@ package pricemigrationengine.handlers
 
 import pricemigrationengine.Fixtures.{invoiceListFromJson, subscriptionFromJson}
 import pricemigrationengine.handlers.EstimationHandler.spreadEarliestStartDate
+import pricemigrationengine.handlers.NotificationHandler.thereIsEnoughNotificationLeadTime
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, NoPriceIncrease, ReadyForEstimation}
 import pricemigrationengine.model._
 import pricemigrationengine.service.{MockCohortTable, MockZuora}
@@ -211,7 +212,8 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       )
       val cohortItemRead = CohortItem(
         subscriptionName = "S1",
-        processingStage = ReadyForEstimation
+        processingStage = ReadyForEstimation,
+        startDate = Some(LocalDate.of(2022, 6, 1))
       )
       val cohortItemToWrite = CohortItem(
         subscriptionName = "S1",
@@ -242,10 +244,12 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         result = unit
       )
       val cohortSpec = CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
+      val today = LocalDate.of(2022, 4, 1)
       for {
         _ <- TestClock.setTime(time)
         _ <- EstimationHandler
           .estimate(productCatalogue, cohortSpec)(
+            today,
             cohortItemRead
           )
           .provide(zuoraUse, cohortTableUpdate)
@@ -280,7 +284,8 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       )
       val cohortItemRead = CohortItem(
         subscriptionName = "S1",
-        processingStage = ReadyForEstimation
+        processingStage = ReadyForEstimation,
+        startDate = Some(LocalDate.of(2022, 6, 1))
       )
       val subscriptionFetch = MockZuora.FetchSubscription(
         assertion = equalTo("S1"),
@@ -310,10 +315,12 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         result = unit
       )
       val cohortSpec = CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
+      val today = LocalDate.of(2022, 4, 1)
       for {
         _ <- TestClock.setTime(time)
         _ <- EstimationHandler
           .estimate(productCatalogue, cohortSpec)(
+            today,
             cohortItemRead
           )
           .provide(zuoraUse, cohortTableUpdate)
