@@ -27,22 +27,22 @@ class CohortTableLiveTest extends munit.FunSuite {
   val stubCohortTableConfiguration = ZLayer.succeed(CohortTableConfig(10))
   val stubStageConfiguration = ZLayer.succeed(StageConfig("DEV"))
 
-  val expectedTableName = "PriceMigration-DEV-name"
-  val expectedSubscriptionId = "subscription-id"
-  val expectedProcessingStage = ReadyForEstimation
-  val expectedStartDate = LocalDate.now.plusDays(Random.nextInt(365))
-  val expectedCurrency = "GBP"
-  val expectedOldPrice = Random.nextDouble()
-  val expectedNewPrice = Random.nextDouble()
-  val expectedEstimatedNewPrice = Random.nextDouble()
-  val expectedBillingPeriod = "Monthly"
-  val expectedWhenEstimationDone = Instant.ofEpochMilli(Random.nextLong())
-  val expectedPriceRiseId = "price-rise-id"
-  val expectedSfShowEstimate = Instant.ofEpochMilli(Random.nextLong())
-  val expectedNewSubscriptionId = "new-sub-id"
-  val expectedWhenAmendmentDone = Instant.ofEpochMilli(Random.nextLong())
-  val expectedWhenNotificationSent = Instant.ofEpochMilli(Random.nextLong())
-  val expectedWhenNotificationSentWrittenToSalesforce = Instant.ofEpochMilli(Random.nextLong())
+  val tableName = "PriceMigration-DEV-name"
+  val subscriptionId = "subscription-id"
+  val processingStage = ReadyForEstimation
+  val startDate = LocalDate.now.plusDays(Random.nextInt(365))
+  val currency = "GBP"
+  val oldPrice = Random.nextDouble()
+  val newPrice = Random.nextDouble()
+  val estimatedNewPrice = Random.nextDouble()
+  val billingPeriod = "Monthly"
+  val whenEstimationDone = Instant.ofEpochMilli(Random.nextLong())
+  val priceRiseId = "price-rise-id"
+  val sfShowEstimate = Instant.ofEpochMilli(Random.nextLong())
+  val newSubscriptionId = "new-sub-id"
+  val whenAmendmentDone = Instant.ofEpochMilli(Random.nextLong())
+  val whenNotificationSent = Instant.ofEpochMilli(Random.nextLong())
+  val whenNotificationSentWrittenToSalesforce = Instant.ofEpochMilli(Random.nextLong())
   val item1 = CohortItem("subscription-1", ReadyForEstimation)
   val item2 = CohortItem("subscription-2", ReadyForEstimation)
 
@@ -93,7 +93,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       Success(())
     )
 
-    assertEquals(receivedRequest.get.tableName, expectedTableName)
+    assertEquals(receivedRequest.get.tableName, tableName)
     assertEquals(receivedRequest.get.indexName, "ProcessingStageIndexV2")
     assertEquals(receivedRequest.get.keyConditionExpression, "processingStage = :processingStage")
     assertEquals(
@@ -104,43 +104,43 @@ class CohortTableLiveTest extends munit.FunSuite {
       unsafeRunSync(Runtime.default)(
         receivedDeserialiser.get.deserialise(
           Map(
-            "subscriptionNumber" -> AttributeValue.builder.s(expectedSubscriptionId).build(),
-            "processingStage" -> AttributeValue.builder.s(expectedProcessingStage.value).build(),
-            "expectedStartDate" -> AttributeValue.builder.s(expectedStartDate.toString).build(),
-            "currency" -> AttributeValue.builder.s(expectedCurrency).build(),
-            "oldPrice" -> AttributeValue.builder.n(expectedOldPrice.toString).build(),
-            "estimatedNewPrice" -> AttributeValue.builder.n(expectedEstimatedNewPrice.toString).build(),
-            "billingPeriod" -> AttributeValue.builder.s(expectedBillingPeriod).build(),
-            "whenEstimationDone" -> AttributeValue.builder.s(formatTimestamp(expectedWhenEstimationDone)).build(),
-            "salesforcePriceRiseId" -> AttributeValue.builder.s(expectedPriceRiseId).build(),
-            "whenSfShowEstimate" -> AttributeValue.builder.s(formatTimestamp(expectedSfShowEstimate)).build(),
-            "startDate" -> AttributeValue.builder.s(expectedStartDate.toString).build(),
-            "newPrice" -> AttributeValue.builder.n(expectedNewPrice.toString).build(),
-            "newSubscriptionId" -> AttributeValue.builder.s(expectedNewSubscriptionId).build(),
-            "whenAmendmentDone" -> AttributeValue.builder.s(formatTimestamp(expectedWhenAmendmentDone)).build(),
-            "whenNotificationSent" -> AttributeValue.builder.s(formatTimestamp(expectedWhenNotificationSent)).build(),
+            "subscriptionNumber" -> AttributeValue.builder.s(subscriptionId).build(),
+            "processingStage" -> AttributeValue.builder.s(processingStage.value).build(),
+            "expectedStartDate" -> AttributeValue.builder.s(startDate.toString).build(),
+            "currency" -> AttributeValue.builder.s(currency).build(),
+            "oldPrice" -> AttributeValue.builder.n(oldPrice.toString).build(),
+            "estimatedNewPrice" -> AttributeValue.builder.n(estimatedNewPrice.toString).build(),
+            "billingPeriod" -> AttributeValue.builder.s(billingPeriod).build(),
+            "whenEstimationDone" -> AttributeValue.builder.s(formatTimestamp(whenEstimationDone)).build(),
+            "salesforcePriceRiseId" -> AttributeValue.builder.s(priceRiseId).build(),
+            "whenSfShowEstimate" -> AttributeValue.builder.s(formatTimestamp(sfShowEstimate)).build(),
+            "startDate" -> AttributeValue.builder.s(startDate.toString).build(),
+            "newPrice" -> AttributeValue.builder.n(newPrice.toString).build(),
+            "newSubscriptionId" -> AttributeValue.builder.s(newSubscriptionId).build(),
+            "whenAmendmentDone" -> AttributeValue.builder.s(formatTimestamp(whenAmendmentDone)).build(),
+            "whenNotificationSent" -> AttributeValue.builder.s(formatTimestamp(whenNotificationSent)).build(),
             "whenNotificationSentWrittenToSalesforce" ->
-              AttributeValue.builder.s(formatTimestamp(expectedWhenNotificationSentWrittenToSalesforce)).build()
+              AttributeValue.builder.s(formatTimestamp(whenNotificationSentWrittenToSalesforce)).build()
           ).asJava
         )
       ),
       Success(
         CohortItem(
-          subscriptionName = expectedSubscriptionId,
-          processingStage = expectedProcessingStage,
-          startDate = Some(expectedStartDate),
-          currency = Some(expectedCurrency),
-          oldPrice = Some(expectedOldPrice),
-          estimatedNewPrice = Some(expectedEstimatedNewPrice),
-          billingPeriod = Some(expectedBillingPeriod),
-          whenEstimationDone = Some(expectedWhenEstimationDone),
-          salesforcePriceRiseId = Some(expectedPriceRiseId),
-          whenSfShowEstimate = Some(expectedSfShowEstimate),
-          newPrice = Some(expectedNewPrice),
-          newSubscriptionId = Some(expectedNewSubscriptionId),
-          whenAmendmentDone = Some(expectedWhenAmendmentDone),
-          whenNotificationSent = Some(expectedWhenNotificationSent),
-          whenNotificationSentWrittenToSalesforce = Some(expectedWhenNotificationSentWrittenToSalesforce)
+          subscriptionName = subscriptionId,
+          processingStage = processingStage,
+          startDate = Some(startDate),
+          currency = Some(currency),
+          oldPrice = Some(oldPrice),
+          estimatedNewPrice = Some(estimatedNewPrice),
+          billingPeriod = Some(billingPeriod),
+          whenEstimationDone = Some(whenEstimationDone),
+          salesforcePriceRiseId = Some(priceRiseId),
+          whenSfShowEstimate = Some(sfShowEstimate),
+          newPrice = Some(newPrice),
+          newSubscriptionId = Some(newSubscriptionId),
+          whenAmendmentDone = Some(whenAmendmentDone),
+          whenNotificationSent = Some(whenNotificationSent),
+          whenNotificationSentWrittenToSalesforce = Some(whenNotificationSentWrittenToSalesforce)
         )
       )
     )
@@ -192,7 +192,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       Success(())
     )
 
-    assertEquals(receivedRequest.get.tableName, expectedTableName)
+    assertEquals(receivedRequest.get.tableName, tableName)
     assertEquals(receivedRequest.get.indexName, "ProcessingStageStartDateIndexV1")
     assertEquals(
       receivedRequest.get.keyConditionExpression,
@@ -244,21 +244,21 @@ class CohortTableLiveTest extends munit.FunSuite {
     )
 
     val cohortItem = CohortItem(
-      subscriptionName = expectedSubscriptionId,
-      processingStage = expectedProcessingStage,
-      currency = Some(expectedCurrency),
-      oldPrice = Some(expectedOldPrice),
-      newPrice = Some(expectedNewPrice),
-      estimatedNewPrice = Some(expectedEstimatedNewPrice),
-      billingPeriod = Some(expectedBillingPeriod),
-      whenEstimationDone = Some(expectedWhenEstimationDone),
-      salesforcePriceRiseId = Some(expectedPriceRiseId),
-      whenSfShowEstimate = Some(expectedSfShowEstimate),
-      startDate = Some(expectedStartDate),
-      newSubscriptionId = Some(expectedNewSubscriptionId),
-      whenAmendmentDone = Some(expectedWhenAmendmentDone),
-      whenNotificationSent = Some(expectedWhenNotificationSent),
-      whenNotificationSentWrittenToSalesforce = Some(expectedWhenNotificationSentWrittenToSalesforce)
+      subscriptionName = subscriptionId,
+      processingStage = processingStage,
+      currency = Some(currency),
+      oldPrice = Some(oldPrice),
+      newPrice = Some(newPrice),
+      estimatedNewPrice = Some(estimatedNewPrice),
+      billingPeriod = Some(billingPeriod),
+      whenEstimationDone = Some(whenEstimationDone),
+      salesforcePriceRiseId = Some(priceRiseId),
+      whenSfShowEstimate = Some(sfShowEstimate),
+      startDate = Some(startDate),
+      newSubscriptionId = Some(newSubscriptionId),
+      whenAmendmentDone = Some(whenAmendmentDone),
+      whenNotificationSent = Some(whenNotificationSent),
+      whenNotificationSentWrittenToSalesforce = Some(whenNotificationSentWrittenToSalesforce)
     )
 
     assertEquals(
@@ -274,12 +274,12 @@ class CohortTableLiveTest extends munit.FunSuite {
       Success(())
     )
 
-    assertEquals(tableUpdated.get, expectedTableName)
-    assertEquals(receivedKey.get.subscriptionNumber, expectedSubscriptionId)
+    assertEquals(tableUpdated.get, tableName)
+    assertEquals(receivedKey.get.subscriptionNumber, subscriptionId)
     assertEquals(
       receivedKeySerialiser.get.serialise(receivedKey.get),
       Map(
-        "subscriptionNumber" -> AttributeValue.builder.s(expectedSubscriptionId).build()
+        "subscriptionNumber" -> AttributeValue.builder.s(subscriptionId).build()
       ).asJava
     )
 
@@ -287,7 +287,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       update.get("processingStage"),
       AttributeValueUpdate.builder
-        .value(AttributeValue.builder.s(expectedProcessingStage.value).build())
+        .value(AttributeValue.builder.s(processingStage.value).build())
         .action(PUT)
         .build(),
       "processingStage"
@@ -295,7 +295,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       update.get("currency"),
       AttributeValueUpdate.builder
-        .value(AttributeValue.builder.s(expectedCurrency).build())
+        .value(AttributeValue.builder.s(currency).build())
         .action(PUT)
         .build(),
       "currency"
@@ -303,7 +303,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       update.get("oldPrice"),
       AttributeValueUpdate.builder
-        .value(AttributeValue.builder.n(expectedOldPrice.toString).build())
+        .value(AttributeValue.builder.n(oldPrice.toString).build())
         .action(PUT)
         .build(),
       "oldPrice"
@@ -311,7 +311,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       update.get("newPrice"),
       AttributeValueUpdate.builder
-        .value(AttributeValue.builder.n(expectedNewPrice.toString).build())
+        .value(AttributeValue.builder.n(newPrice.toString).build())
         .action(PUT)
         .build(),
       "newPrice"
@@ -319,7 +319,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       update.get("estimatedNewPrice"),
       AttributeValueUpdate.builder
-        .value(AttributeValue.builder.n(expectedEstimatedNewPrice.toString).build())
+        .value(AttributeValue.builder.n(estimatedNewPrice.toString).build())
         .action(PUT)
         .build(),
       "estimatedNewPrice"
@@ -327,7 +327,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       update.get("billingPeriod"),
       AttributeValueUpdate.builder
-        .value(AttributeValue.builder.s(expectedBillingPeriod).build())
+        .value(AttributeValue.builder.s(billingPeriod).build())
         .action(PUT)
         .build(),
       "billingPeriod"
@@ -335,7 +335,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       update.get("salesforcePriceRiseId"),
       AttributeValueUpdate.builder
-        .value(AttributeValue.builder.s(expectedPriceRiseId).build())
+        .value(AttributeValue.builder.s(priceRiseId).build())
         .action(PUT)
         .build(),
       "salesforcePriceRiseId"
@@ -345,7 +345,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       AttributeValueUpdate.builder
         .value(
           AttributeValue.builder
-            .s(ISO_DATE_TIME.format(expectedSfShowEstimate.atZone(UTC)))
+            .s(ISO_DATE_TIME.format(sfShowEstimate.atZone(UTC)))
             .build()
         )
         .action(PUT)
@@ -355,7 +355,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       update.get("startDate"),
       AttributeValueUpdate.builder
-        .value(AttributeValue.builder.s(expectedStartDate.toString).build())
+        .value(AttributeValue.builder.s(startDate.toString).build())
         .action(PUT)
         .build(),
       "startDate"
@@ -363,7 +363,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       update.get("newSubscriptionId"),
       AttributeValueUpdate.builder
-        .value(AttributeValue.builder.s(expectedNewSubscriptionId).build())
+        .value(AttributeValue.builder.s(newSubscriptionId).build())
         .action(PUT)
         .build(),
       "newSubscriptionId"
@@ -371,7 +371,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       update.get("whenAmendmentDone"),
       AttributeValueUpdate.builder
-        .value(AttributeValue.builder.s(formatTimestamp(expectedWhenAmendmentDone)).build())
+        .value(AttributeValue.builder.s(formatTimestamp(whenAmendmentDone)).build())
         .action(PUT)
         .build(),
       "whenAmendmentDone"
@@ -379,7 +379,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       update.get("whenNotificationSentWrittenToSalesforce"),
       AttributeValueUpdate.builder
-        .value(AttributeValue.builder.s(formatTimestamp(expectedWhenNotificationSentWrittenToSalesforce)).build())
+        .value(AttributeValue.builder.s(formatTimestamp(whenNotificationSentWrittenToSalesforce)).build())
         .action(PUT)
         .build(),
       "whenNotificationSentWrittenToSalesforce"
@@ -387,7 +387,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(
       update.get("whenNotificationSent"),
       AttributeValueUpdate.builder
-        .value(AttributeValue.builder.s(formatTimestamp(expectedWhenNotificationSent)).build())
+        .value(AttributeValue.builder.s(formatTimestamp(whenNotificationSent)).build())
         .action(PUT)
         .build(),
       "whenNotificationSent"
@@ -519,7 +519,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       Success(())
     )
 
-    assertEquals(tableUpdated.get, expectedTableName)
+    assertEquals(tableUpdated.get, tableName)
     val insert = receivedSerialiser.get.serialise(receivedInsert.get)
     assertEquals(insert.get("subscriptionNumber"), AttributeValue.builder.s("Subscription-id").build())
     assertEquals(insert.get("processingStage"), AttributeValue.builder.s("ReadyForEstimation").build())
