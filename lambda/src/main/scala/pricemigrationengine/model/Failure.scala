@@ -19,6 +19,8 @@ case class CohortCreateFailure(reason: String) extends Failure
 case class CohortItemAlreadyPresentFailure(reason: String) extends Failure
 case class CohortUpdateFailure(reason: String) extends Failure
 
+case class EstimationNotEnoughLeadTimeFailure(reason: String) extends Failure
+
 case class ZuoraFailure(reason: String) extends Failure
 case class ZuoraFetchFailure(reason: String) extends Failure
 case class ZuoraUpdateFailure(reason: String) extends Failure
