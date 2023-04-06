@@ -32,22 +32,22 @@ class AmendmentHandlerTest extends munit.FunSuite {
     val ratePlanCharges = ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItems.head).toSeq
     val ratePlanChargesCheck = List(
       ZuoraRatePlanCharge(
-        "2c92a0f94c547592014c69f5b1204f80",
-        "Supporter Membership - Monthly",
-        "C-00400194",
-        "GBP",
-        Some(5.0),
-        Some("Month"),
-        Some(LocalDate.of(2023, 4, 13)),
-        Some(LocalDate.of(2023, 3, 13)),
-        None,
-        Some("Subscription_End"),
-        None,
-        None,
-        Some("ChargeTriggerDay"),
-        Some("ContractEffective"),
-        None,
-        None
+        productRatePlanChargeId = "2c92a0f94c547592014c69f5b1204f80",
+        name = "Supporter Membership - Monthly",
+        number = "C-00400194",
+        currency = "GBP",
+        price = Some(5.0),
+        billingPeriod = Some("Month"),
+        chargedThroughDate = Some(LocalDate.of(2023, 4, 13)),
+        processedThroughDate = Some(LocalDate.of(2023, 3, 13)),
+        specificBillingPeriod = None,
+        endDateCondition = Some("Subscription_End"),
+        upToPeriodsType = None,
+        upToPeriods = None,
+        billingDay = Some("ChargeTriggerDay"),
+        triggerEvent = Some("ContractEffective"),
+        triggerDate = None,
+        discountPercentage = None
       )
     )
 
