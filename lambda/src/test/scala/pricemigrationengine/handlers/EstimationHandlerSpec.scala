@@ -2,7 +2,6 @@ package pricemigrationengine.handlers
 
 import pricemigrationengine.Fixtures.{invoiceListFromJson, subscriptionFromJson}
 import pricemigrationengine.handlers.EstimationHandler.spreadEarliestStartDate
-import pricemigrationengine.handlers.NotificationHandler.thereIsEnoughNotificationLeadTime
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, NoPriceIncrease, ReadyForEstimation}
 import pricemigrationengine.model._
 import pricemigrationengine.service.{MockCohortTable, MockZuora}
@@ -157,30 +156,33 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       val invoiceList = invoiceListFromJson("NewspaperDelivery/Sixday+/InvoicePreview.json")
       val subscription = subscriptionFromJson("NewspaperDelivery/Sixday+/Subscription.json")
       val startDate = LocalDate.of(2022, 12, 14)
+      val today = LocalDate.of(2022, 1, 1)
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate_ <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec)
+        startDate_ <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec, today)
       } yield assert(startDate_)(equalTo(startDate))
     },
     test("Start date is correct for subscription less than one year old (2)") {
       val invoiceList = invoiceListFromJson("NewspaperDelivery/Waitrose25%Discount/InvoicePreview.json")
       val subscription = subscriptionFromJson("NewspaperDelivery/Waitrose25%Discount/Subscription.json")
       val startDate = LocalDate.of(2023, 3, 14)
+      val today = LocalDate.of(2022, 1, 1)
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate_ <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec)
+        startDate_ <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec, today)
       } yield assert(startDate_)(equalTo(startDate))
     },
     test("Start date is correct for subscription less than one year old (3)") {
       val invoiceList = invoiceListFromJson("NewspaperDelivery/Everyday/InvoicePreview.json")
       val subscription = subscriptionFromJson("NewspaperDelivery/Everyday/Subscription.json")
       val startDate = LocalDate.of(2022, 11, 14)
+      val today = LocalDate.of(2022, 1, 1)
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate_ <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec)
+        startDate_ <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec, today)
       } yield assert(startDate_)(equalTo(startDate))
     },
     test("updates cohort table with EstimationComplete when data is complete") {

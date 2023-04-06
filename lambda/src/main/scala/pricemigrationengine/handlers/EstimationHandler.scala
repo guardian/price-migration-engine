@@ -1,8 +1,8 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.handlers.NotificationHandler.thereIsEnoughNotificationLeadTime
+import pricemigrationengine.handlers.NotificationHandler.minLeadTime
 import pricemigrationengine.model.CohortTableFilter._
-import pricemigrationengine.model._
+import pricemigrationengine.model.{CohortSpec, _}
 import pricemigrationengine.services._
 import zio.{Clock, IO, Random, UIO, ZIO}
 
@@ -68,28 +68,30 @@ object EstimationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       today: LocalDate,
   ): ZIO[Zuora, Failure, SuccessfulEstimationResult] = {
-
-    if (thereIsEnoughNotificationLeadTime(cohortSpec, today, item)) {
-      for {
-        subscription <-
-          Zuora
-            .fetchSubscription(item.subscriptionName)
-            .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
-        account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
-        invoicePreviewTargetDate = cohortSpec.earliestPriceMigrationStartDate.plusMonths(16)
-        invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
-        earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, cohortSpec)
-        result <- ZIO.fromEither(
-          EstimationResult(account, catalogue, subscription, invoicePreview, earliestStartDate, cohortSpec)
-        )
-      } yield result
-    } else {
-      ZIO.fail(
-        EstimationNotEnoughLeadTimeFailure(
-          s"[estimation] The start date of item ${item.subscriptionName} (startDate: ${item.startDate}) is too close to today ${today}"
-        )
+    for {
+      subscription <-
+        Zuora
+          .fetchSubscription(item.subscriptionName)
+          .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
+      account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
+      invoicePreviewTargetDate = cohortSpec.earliestPriceMigrationStartDate.plusMonths(16)
+      invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
+      earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, cohortSpec, today)
+      result <- ZIO.fromEither(
+        EstimationResult(account, catalogue, subscription, invoicePreview, earliestStartDate, cohortSpec)
       )
-    }
+    } yield result
+  }
+
+  def datesMax(date1: LocalDate, date2: LocalDate): LocalDate = if (date1.isBefore(date2)) date2 else date1
+
+  def decideEarliestStartDate(cohortSpec: CohortSpec, today: LocalDate): LocalDate = {
+    datesMax(
+      cohortSpec.earliestPriceMigrationStartDate,
+      today.plusDays(
+        NotificationHandler.minLeadTime(cohortSpec: CohortSpec) + 1
+      ) // We need to be strictly over minLeadTime away. Exactly minLeadTime is not enough.
+    )
   }
 
   /*
@@ -98,10 +100,11 @@ object EstimationHandler extends CohortHandler {
   def spreadEarliestStartDate(
       subscription: ZuoraSubscription,
       invoicePreview: ZuoraInvoiceList,
-      cohortSpec: CohortSpec
+      cohortSpec: CohortSpec,
+      today: LocalDate,
   ): IO[ConfigFailure, LocalDate] = {
 
-    val earliestStartDate = cohortSpec.earliestPriceMigrationStartDate
+    val earliestStartDate = decideEarliestStartDate(cohortSpec: CohortSpec, today: LocalDate)
 
     def relu(number: Int): Int =
       if (number < 0) 0 else number
