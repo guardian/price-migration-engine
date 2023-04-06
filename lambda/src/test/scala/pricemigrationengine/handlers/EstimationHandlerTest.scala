@@ -1,7 +1,9 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.Fixtures
-import pricemigrationengine.model.{CohortSpec, EstimationResult, SuccessfulEstimationResult}
+import pricemigrationengine.handlers.NotificationHandler.thereIsEnoughNotificationLeadTime
+import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
+import pricemigrationengine.model.{CohortItem, CohortSpec, EstimationResult, SuccessfulEstimationResult}
 import zio.test._
 
 import java.time.{LocalDate, LocalDateTime, OffsetDateTime, ZoneOffset}
@@ -82,6 +84,61 @@ object EstimationHandlerTest extends ZIOSpecDefault {
             SuccessfulEstimationResult("SUBSCRIPTION-NUMBER", LocalDate.of(2023, 6, 13), "GBP", 5, 7, "Month")
           )
         )
+      }
+    )
+    suite("during estimation, we correctly check the notification period")(
+      test("general failure case") {
+        val cohortSpec = CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
+
+        val today = LocalDate.of(2022, 4, 1)
+        val cohortItemRead = CohortItem(
+          subscriptionName = "S1",
+          processingStage = ReadyForEstimation,
+          startDate = Some(LocalDate.of(2022, 4, 20))
+        )
+        // We should be returning false here, because, there's only 19 days difference between
+        // April, 1st and April, 20th
+        assertTrue(!thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItemRead))
+      },
+      test("general success case") {
+        val cohortSpec = CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
+
+        val today = LocalDate.of(2022, 4, 1)
+        val cohortItemRead = CohortItem(
+          subscriptionName = "S1",
+          processingStage = ReadyForEstimation,
+          startDate = Some(LocalDate.of(2022, 6, 20))
+        )
+        assertTrue(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItemRead))
+      },
+      test("close failure (general case)") {
+        val cohortSpec =
+          CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
+
+        val today = LocalDate.of(2022, 4, 1)
+        val cohortItemRead = CohortItem(
+          subscriptionName = "S1",
+          processingStage = ReadyForEstimation,
+          startDate = Some(LocalDate.of(2022, 5, 3))
+        )
+
+        // 32 days are not enough in the general case
+        assertTrue(!thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItemRead))
+      },
+      test("close failure in the general case becomes failure in the membership case") {
+
+        val cohortSpec =
+          CohortSpec("Membership2023_Batch1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
+
+        val today = LocalDate.of(2022, 4, 1)
+        val cohortItemRead = CohortItem(
+          subscriptionName = "S1",
+          processingStage = ReadyForEstimation,
+          startDate = Some(LocalDate.of(2022, 5, 3))
+        )
+
+        // 32 days are not enough in the general case, but are enough in the membership case
+        assertTrue(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItemRead))
       }
     )
   }
