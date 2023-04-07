@@ -26,7 +26,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
 
   private val time = OffsetDateTime.of(LocalDateTime.of(2022, 5, 16, 10, 2), ZoneOffset.ofHours(0)).toInstant
 
-  private val subscription = ZuoraSubscription(
+  private val subscription1 = ZuoraSubscription(
     subscriptionNumber = "S1",
     accountNumber = "A9107",
     customerAcceptanceDate = LocalDate.of(2022, 1, 1),
@@ -155,32 +155,35 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
     test("Start date is correct for subscription less than one year old (1)") {
       val invoiceList = invoiceListFromJson("NewspaperDelivery/Sixday+/InvoicePreview.json")
       val subscription = subscriptionFromJson("NewspaperDelivery/Sixday+/Subscription.json")
-      val expectedStartDate = LocalDate.of(2022, 12, 14)
+      val startDate = LocalDate.of(2022, 12, 14)
+      val today = LocalDate.of(2022, 1, 1)
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec)
-      } yield assert(startDate)(equalTo(expectedStartDate))
+        startDate_ <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec, today)
+      } yield assert(startDate_)(equalTo(startDate))
     },
     test("Start date is correct for subscription less than one year old (2)") {
       val invoiceList = invoiceListFromJson("NewspaperDelivery/Waitrose25%Discount/InvoicePreview.json")
       val subscription = subscriptionFromJson("NewspaperDelivery/Waitrose25%Discount/Subscription.json")
-      val expectedStartDate = LocalDate.of(2023, 3, 14)
+      val startDate = LocalDate.of(2023, 3, 14)
+      val today = LocalDate.of(2022, 1, 1)
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec)
-      } yield assert(startDate)(equalTo(expectedStartDate))
+        startDate_ <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec, today)
+      } yield assert(startDate_)(equalTo(startDate))
     },
     test("Start date is correct for subscription less than one year old (3)") {
       val invoiceList = invoiceListFromJson("NewspaperDelivery/Everyday/InvoicePreview.json")
       val subscription = subscriptionFromJson("NewspaperDelivery/Everyday/Subscription.json")
-      val expectedStartDate = LocalDate.of(2022, 11, 14)
+      val startDate = LocalDate.of(2022, 11, 14)
+      val today = LocalDate.of(2022, 1, 1)
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec)
-      } yield assert(startDate)(equalTo(expectedStartDate))
+        startDate_ <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec, today)
+      } yield assert(startDate_)(equalTo(startDate))
     },
     test("updates cohort table with EstimationComplete when data is complete") {
       val productCatalogue = ZuoraProductCatalogue(products =
@@ -211,9 +214,10 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       )
       val cohortItemRead = CohortItem(
         subscriptionName = "S1",
-        processingStage = ReadyForEstimation
+        processingStage = ReadyForEstimation,
+        startDate = Some(LocalDate.of(2022, 6, 1))
       )
-      val cohortItemExpectedToWrite = CohortItem(
+      val cohortItemToWrite = CohortItem(
         subscriptionName = "S1",
         processingStage = EstimationComplete,
         startDate = Some(LocalDate.of(2023, 7, 1)),
@@ -223,32 +227,34 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         billingPeriod = Some("Month"),
         whenEstimationDone = Some(time)
       )
-      val expectedSubscriptionFetch = MockZuora.FetchSubscription(
+      val subscriptionFetch = MockZuora.FetchSubscription(
         assertion = equalTo("S1"),
         result = value(subscription2)
       )
 
-      val expectedAccountToFetch = MockZuora.FetchAccount(
+      val accountToFetch = MockZuora.FetchAccount(
         assertion = equalTo(("A9107", "S1")),
         result = value(account)
       )
-      val expectedInvoiceFetch = MockZuora.FetchInvoicePreview(
+      val invoiceFetch = MockZuora.FetchInvoicePreview(
         assertion = equalTo("A11", LocalDate.of(2023, 9, 1)),
         result = value(invoicePreview)
       )
-      val expectedZuoraUse = expectedSubscriptionFetch and expectedInvoiceFetch and expectedAccountToFetch
-      val expectedCohortTableUpdate = MockCohortTable.Update(
-        assertion = equalTo(cohortItemExpectedToWrite),
+      val zuoraUse = subscriptionFetch and invoiceFetch and accountToFetch
+      val cohortTableUpdate = MockCohortTable.Update(
+        assertion = equalTo(cohortItemToWrite),
         result = unit
       )
       val cohortSpec = CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
+      val today = LocalDate.of(2022, 4, 1)
       for {
         _ <- TestClock.setTime(time)
         _ <- EstimationHandler
           .estimate(productCatalogue, cohortSpec)(
+            today,
             cohortItemRead
           )
-          .provide(expectedZuoraUse, expectedCohortTableUpdate)
+          .provide(zuoraUse, cohortTableUpdate)
       } yield assertTrue(true)
     },
     test("updates cohort table with NoPriceIncrease when estimated new price <= old price") {
@@ -280,22 +286,23 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       )
       val cohortItemRead = CohortItem(
         subscriptionName = "S1",
-        processingStage = ReadyForEstimation
+        processingStage = ReadyForEstimation,
+        startDate = Some(LocalDate.of(2022, 6, 1))
       )
-      val expectedSubscriptionFetch = MockZuora.FetchSubscription(
+      val subscriptionFetch = MockZuora.FetchSubscription(
         assertion = equalTo("S1"),
-        result = value(subscription)
+        result = value(subscription1)
       )
-      val expectedAccountToFetch = MockZuora.FetchAccount(
+      val accountToFetch = MockZuora.FetchAccount(
         assertion = equalTo(("A9107", "S1")),
         result = value(account)
       )
-      val expectedInvoiceFetch = MockZuora.FetchInvoicePreview(
+      val invoiceFetch = MockZuora.FetchInvoicePreview(
         assertion = equalTo("A11", LocalDate.of(2023, 9, 1)),
         result = value(invoicePreview)
       )
-      val expectedZuoraUse = expectedSubscriptionFetch and expectedInvoiceFetch and expectedAccountToFetch
-      val cohortItemExpectedToWrite = CohortItem(
+      val zuoraUse = subscriptionFetch and invoiceFetch and accountToFetch
+      val cohortItemToWrite = CohortItem(
         subscriptionName = "S1",
         processingStage = NoPriceIncrease,
         startDate = Some(LocalDate.of(2023, 7, 1)),
@@ -305,18 +312,20 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
         billingPeriod = Some("Month"),
         whenEstimationDone = Some(time)
       )
-      val expectedCohortTableUpdate = MockCohortTable.Update(
-        assertion = equalTo(cohortItemExpectedToWrite),
+      val cohortTableUpdate = MockCohortTable.Update(
+        assertion = equalTo(cohortItemToWrite),
         result = unit
       )
       val cohortSpec = CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
+      val today = LocalDate.of(2022, 4, 1)
       for {
         _ <- TestClock.setTime(time)
         _ <- EstimationHandler
           .estimate(productCatalogue, cohortSpec)(
+            today,
             cohortItemRead
           )
-          .provide(expectedZuoraUse, expectedCohortTableUpdate)
+          .provide(zuoraUse, cohortTableUpdate)
       } yield assertTrue(true)
     }
   )
