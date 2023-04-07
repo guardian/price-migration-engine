@@ -1,9 +1,8 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.Fixtures
-import pricemigrationengine.handlers.NotificationHandler.thereIsEnoughNotificationLeadTime
-import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
-import pricemigrationengine.model.{CohortItem, CohortSpec, EstimationResult, SuccessfulEstimationResult}
+import pricemigrationengine.handlers.EstimationHandler.{datesMax, decideEarliestStartDate}
+import pricemigrationengine.model.{CohortSpec, EstimationResult, SuccessfulEstimationResult}
 import zio.test._
 
 import java.time.{LocalDate, LocalDateTime, OffsetDateTime, ZoneOffset}
@@ -16,24 +15,28 @@ object EstimationHandlerTest extends ZIOSpecDefault {
   override def spec: Spec[TestEnvironment, Any] = {
     suite("spreadEarliestStartDate")(
       test("gives default value for a quarterly subscription") {
+        val today = LocalDate.of(2000, 1, 1)
         for {
           _ <- TestClock.setTime(testTime1)
           _ <- TestRandom.feedInts(1)
           earliestStartDate <- EstimationHandler.spreadEarliestStartDate(
             subscription = Fixtures.subscriptionFromJson("NewspaperVoucher/QuarterlyVoucher/Subscription.json"),
             invoicePreview = Fixtures.invoiceListFromJson("NewspaperVoucher/QuarterlyVoucher/InvoicePreview.json"),
-            CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), absoluteEarliestStartDate)
+            CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), absoluteEarliestStartDate),
+            today
           )
         } yield assertTrue(earliestStartDate == LocalDate.of(2020, 6, 2))
       },
       test("gives randomised value for a monthly subscription") {
+        val today = LocalDate.of(2000, 1, 1)
         for {
           _ <- TestClock.setTime(testTime1)
           _ <- TestRandom.feedInts(1)
           earliestStartDate <- EstimationHandler.spreadEarliestStartDate(
             subscription = Fixtures.subscriptionFromJson("NewspaperVoucher/Monthly/Subscription.json"),
             invoicePreview = Fixtures.invoiceListFromJson("NewspaperVoucher/Monthly/InvoicePreview.json"),
-            CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), absoluteEarliestStartDate)
+            CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), absoluteEarliestStartDate),
+            today
           )
         } yield assertTrue(earliestStartDate == LocalDate.of(2020, 7, 2))
       }
@@ -86,59 +89,49 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         )
       }
     )
-    suite("during estimation, we correctly check the notification period")(
-      test("general failure case") {
+    suite("during estimation, we correctly prevent start dates that are too close")(
+      test("datesMax") {
+        val date1 = LocalDate.of(2023, 4, 1)
+        val date2 = LocalDate.of(2023, 4, 2)
+        assertTrue(datesMax(date1, date1) == date1)
+        assertTrue(datesMax(date1, date2) == date2)
+      },
+      test("decideEarliestStartDate (legacy case, part 1)") {
+
+        val today = LocalDate.of(2023, 4, 1)
         val cohortSpec = CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
 
-        val today = LocalDate.of(2022, 4, 1)
-        val cohortItemRead = CohortItem(
-          subscriptionName = "S1",
-          processingStage = ReadyForEstimation,
-          startDate = Some(LocalDate.of(2022, 4, 20))
-        )
-        // We should be returning false here, because, there's only 19 days difference between
-        // April, 1st and April, 20th
-        assertTrue(!thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItemRead))
+        // today is: 2023-04-01
+        // The Cohort's earliestPriceMigrationStartDate is 2022-05-01
+        // (Today + 36 days) is after earliestPriceMigrationStartDate
+        // The earliest start date needs to be 36 days ahead of today (35 days min time + 1) -> 2023-05-07
+
+        assertTrue(decideEarliestStartDate(cohortSpec, today) == LocalDate.of(2023, 5, 7))
       },
-      test("general success case") {
+      test("decideEarliestStartDate (legacy case, part 2)") {
+
+        val today = LocalDate.of(2020, 4, 1)
         val cohortSpec = CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
 
-        val today = LocalDate.of(2022, 4, 1)
-        val cohortItemRead = CohortItem(
-          subscriptionName = "S1",
-          processingStage = ReadyForEstimation,
-          startDate = Some(LocalDate.of(2022, 6, 20))
-        )
-        assertTrue(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItemRead))
+        // today is: 2020-04-01
+        // The Cohort's earliestPriceMigrationStartDate is 2022-05-01
+        // earliestPriceMigrationStartDate is after (today + 36 days)
+        // The earliest start date can be earliestPriceMigrationStartDate
+
+        assertTrue(decideEarliestStartDate(cohortSpec, today) == cohortSpec.earliestPriceMigrationStartDate)
       },
-      test("close failure (general case)") {
-        val cohortSpec =
-          CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
+      test("decideEarliestStartDate (membership)") {
 
-        val today = LocalDate.of(2022, 4, 1)
-        val cohortItemRead = CohortItem(
-          subscriptionName = "S1",
-          processingStage = ReadyForEstimation,
-          startDate = Some(LocalDate.of(2022, 5, 3))
-        )
-
-        // 32 days are not enough in the general case
-        assertTrue(!thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItemRead))
-      },
-      test("close failure in the general case becomes failure in the membership case") {
-
+        val today = LocalDate.of(2023, 4, 1)
         val cohortSpec =
           CohortSpec("Membership2023_Batch1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
 
-        val today = LocalDate.of(2022, 4, 1)
-        val cohortItemRead = CohortItem(
-          subscriptionName = "S1",
-          processingStage = ReadyForEstimation,
-          startDate = Some(LocalDate.of(2022, 5, 3))
-        )
+        // today is: 2023-04-01
+        // The Cohort's earliestPriceMigrationStartDate is 2022-05-01
+        // (Today + 32 days) is after earliestPriceMigrationStartDate
+        // The earliest start date needs to be 32 days ahead of today -> 2023-05-05
 
-        // 32 days are not enough in the general case, but are enough in the membership case
-        assertTrue(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItemRead))
+        assertTrue(decideEarliestStartDate(cohortSpec, today) == LocalDate.of(2023, 5, 3))
       }
     )
   }
