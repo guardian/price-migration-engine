@@ -73,7 +73,7 @@ object AmendmentHandler extends CohortHandler {
         )
       )
 
-  private def checkExpirationTiming(
+  def checkExpirationTiming(
       item: CohortItem,
       subscription: ZuoraSubscription
   ): Either[Failure, Unit] = {
