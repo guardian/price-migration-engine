@@ -1,7 +1,11 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.Fixtures.{invoiceListFromJson, subscriptionFromJson}
-import pricemigrationengine.handlers.EstimationHandler.spreadEarliestStartDate
+import pricemigrationengine.handlers.EstimationHandler.{
+  decideStartDateLowerboundWithRandomAddition,
+  oneYearPolicy,
+  startDateGeneralLowerbound
+}
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, NoPriceIncrease, ReadyForEstimation}
 import pricemigrationengine.model._
 import pricemigrationengine.service.{MockCohortTable, MockZuora}
@@ -155,35 +159,49 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
     test("Start date is correct for subscription less than one year old (1)") {
       val invoiceList = invoiceListFromJson("NewspaperDelivery/Sixday+/InvoicePreview.json")
       val subscription = subscriptionFromJson("NewspaperDelivery/Sixday+/Subscription.json")
-      val startDate = LocalDate.of(2022, 12, 14)
       val today = LocalDate.of(2022, 1, 1)
+
+      // today is 2022-01-01
+      // today plus min notification period + 1 is 2022-02-06 (1)
+      // The cohort earliestMigrationStartDate is 2022-11-14 (2)
+      // The max date of (1) and (2) is 2022-11-14 (3)
+
+      assert(startDateGeneralLowerbound(cohortSpec, today))(equalTo(LocalDate.of(2022, 12, 14)))
+
+      // The subscription acceptance date is: 2021-11-15
+      // The subscription acceptance date plus a year is 2022-11-15 (4)
+      // The max date of (3) and (4) is 2022-11-15
+
+      assert(oneYearPolicy(LocalDate.of(2022, 12, 14), subscription: ZuoraSubscription))(
+        equalTo(LocalDate.of(2022, 11, 15))
+      )
+
+      // Then we add 2 months within the 3 months spread period (this is the effect of this particular TestClock)
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate_ <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec, today)
-      } yield assert(startDate_)(equalTo(startDate))
+        startDate <- decideStartDateLowerboundWithRandomAddition(subscription, invoiceList, cohortSpec, today)
+      } yield assert(startDate)(equalTo(LocalDate.of(2023, 1, 15)))
     },
     test("Start date is correct for subscription less than one year old (2)") {
       val invoiceList = invoiceListFromJson("NewspaperDelivery/Waitrose25%Discount/InvoicePreview.json")
       val subscription = subscriptionFromJson("NewspaperDelivery/Waitrose25%Discount/Subscription.json")
-      val startDate = LocalDate.of(2023, 3, 14)
       val today = LocalDate.of(2022, 1, 1)
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate_ <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec, today)
-      } yield assert(startDate_)(equalTo(startDate))
+        startDate <- decideStartDateLowerboundWithRandomAddition(subscription, invoiceList, cohortSpec, today)
+      } yield assert(startDate)(equalTo(LocalDate.of(2023, 4, 26)))
     },
     test("Start date is correct for subscription less than one year old (3)") {
       val invoiceList = invoiceListFromJson("NewspaperDelivery/Everyday/InvoicePreview.json")
       val subscription = subscriptionFromJson("NewspaperDelivery/Everyday/Subscription.json")
-      val startDate = LocalDate.of(2022, 11, 14)
       val today = LocalDate.of(2022, 1, 1)
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate_ <- spreadEarliestStartDate(subscription, invoiceList, cohortSpec, today)
-      } yield assert(startDate_)(equalTo(startDate))
+        startDate <- decideStartDateLowerboundWithRandomAddition(subscription, invoiceList, cohortSpec, today)
+      } yield assert(startDate)(equalTo(LocalDate.of(2023, 1, 14)))
     },
     test("updates cohort table with EstimationComplete when data is complete") {
       val productCatalogue = ZuoraProductCatalogue(products =
