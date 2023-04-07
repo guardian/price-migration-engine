@@ -9,6 +9,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
   test("Zuora amendment correctly creates a charge") {
     val fixtureSet = "GuardianWeekly/CappedPriceIncrease2"
     val date = LocalDate.of(2022, 12, 30)
+
     val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
       account = accountFromJson(s"$fixtureSet/Account.json"),
       catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
@@ -506,7 +507,6 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
   }
 
   test("Estimated price is computed correctly") {
-
     val fixtureSet = "GuardianWeekly/CappedPriceIncrease"
     val catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json")
     val subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json")

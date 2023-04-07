@@ -5,6 +5,8 @@ import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 
+import java.time.LocalDate
+
 /** Carries out price-rise amendments in Zuora.
   */
 object AmendmentHandler extends CohortHandler {
@@ -84,17 +86,29 @@ object AmendmentHandler extends CohortHandler {
       invoicePreviewBeforeUpdate <-
         Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
 
-      update <- ZIO.fromEither(
-        ZuoraSubscriptionUpdate
-          .updateOfRatePlansToCurrent(
-            account,
-            catalogue,
-            subscriptionBeforeUpdate,
-            invoicePreviewBeforeUpdate,
-            startDate,
-            PriceCap.priceCorrectionFactor(oldPrice, estimatedNewPrice)
+      update <-
+        if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
+          ZIO.fromEither(
+            ZuoraSubscriptionUpdate
+              .updateOfRatePlansToCurrentMembership2023(
+                subscriptionBeforeUpdate,
+                invoicePreviewBeforeUpdate,
+                startDate
+              )
           )
-      )
+        } else {
+          ZIO.fromEither(
+            ZuoraSubscriptionUpdate
+              .updateOfRatePlansToCurrent(
+                account,
+                catalogue,
+                subscriptionBeforeUpdate,
+                invoicePreviewBeforeUpdate,
+                startDate,
+                PriceCap.priceCorrectionFactor(oldPrice, estimatedNewPrice)
+              )
+          )
+        }
 
       newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
 

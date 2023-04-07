@@ -28,6 +28,7 @@ object ZuoraSubscriptionUpdate {
     * plan charge, we have to add a charge override to the update to adjust the price of the charge to the length of its
     * billing period.
     */
+
   def updateOfRatePlansToCurrent(
       account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
@@ -72,6 +73,43 @@ object ZuoraSubscriptionUpdate {
             currentTermPeriodType = if (isTermTooShort) Some("Day") else None
           )
         }
+    }
+  }
+
+  def updateOfRatePlansToCurrentMembership2023(
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      effectiveDate: LocalDate,
+  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+
+    // This variant has a simpler signature than its classic counterpart.
+
+    val activeRatePlans = (for {
+      invoiceItem <- ZuoraInvoiceItem.items(invoiceList, subscription, effectiveDate)
+      ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toSeq
+      price <- ratePlanCharge.price.toSeq
+      if price > 0
+      ratePlan <- ZuoraRatePlan.ratePlan(subscription, ratePlanCharge).toSeq
+    } yield ratePlan).distinct
+
+    if (activeRatePlans.isEmpty)
+      Left(AmendmentDataFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
+    else if (activeRatePlans.size > 1)
+      Left(AmendmentDataFailure(s"Multiple rate plans to update: ${activeRatePlans.map(_.id)}"))
+    else {
+
+      // At this point we know that we have exactly one activeRatePlans
+      val activeRatePlan = activeRatePlans.head
+
+      // In the case of Membership Batch 1, things are now more simple. We can hardcode the rate plan
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(AddZuoraRatePlan("8a1287c586832d250186a2040b1548fe", effectiveDate)),
+          remove = List(RemoveZuoraRatePlan(activeRatePlan.id, effectiveDate)),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
     }
   }
 }
