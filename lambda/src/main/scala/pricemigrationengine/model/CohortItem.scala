@@ -43,9 +43,6 @@ object CohortItem {
   def fromNoPriceIncreaseEstimationResult(result: SuccessfulEstimationResult): UIO[CohortItem] =
     fromSuccessfulEstimationResult(result).map(_.copy(processingStage = NoPriceIncrease))
 
-  def fromCappedPriceIncreaseEstimationResult(result: SuccessfulEstimationResult): UIO[CohortItem] =
-    fromSuccessfulEstimationResult(result).map(_.copy(processingStage = CappedPriceIncrease))
-
   def fromFailedEstimationResult(result: FailedEstimationResult): CohortItem =
     CohortItem(result.subscriptionNumber, EstimationFailed)
 
@@ -63,5 +60,8 @@ object CohortItem {
     )
 
   def fromCancelledAmendmentResult(result: CancelledAmendmentResult): CohortItem =
+    CohortItem(result.subscriptionNumber, Cancelled)
+
+  def fromExpiringSubscriptionResult(result: ExpiringSubscriptionResult): CohortItem =
     CohortItem(result.subscriptionNumber, Cancelled)
 }
