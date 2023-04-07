@@ -148,18 +148,14 @@ object AmendmentHandler extends CohortHandler {
       .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    if (CohortSpec.isMembershipPriceRiseMonthlies(input)) {
-      ZIO.succeed(HandlerOutput(isComplete = true))
-    } else {
-      main(input).provideSome[Logging](
-        EnvConfig.cohortTable.layer,
-        EnvConfig.zuora.layer,
-        EnvConfig.stage.layer,
-        DynamoDBZIOLive.impl,
-        DynamoDBClientLive.impl,
-        CohortTableLive.impl(input),
-        ZuoraLive.impl
-      )
-    }
+    main(input).provideSome[Logging](
+      EnvConfig.cohortTable.layer,
+      EnvConfig.zuora.layer,
+      EnvConfig.stage.layer,
+      DynamoDBZIOLive.impl,
+      DynamoDBClientLive.impl,
+      CohortTableLive.impl(input),
+      ZuoraLive.impl
+    )
   }
 }
