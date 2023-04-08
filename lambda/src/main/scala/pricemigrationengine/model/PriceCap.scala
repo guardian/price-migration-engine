@@ -22,7 +22,7 @@ object PriceCap {
     }
   }
 
-  def priceCorrectionFactor(
+  def priceCorrectionFactorForPriceCap(
       oldPrice: BigDecimal,
       estimatedNewPrice: BigDecimal,
       forceEstimated: Boolean = false

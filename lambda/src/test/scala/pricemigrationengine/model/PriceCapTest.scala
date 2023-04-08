@@ -21,7 +21,7 @@ class PriceCapTest extends munit.FunSuite {
     val estimatedNewPrice = BigDecimal(240)
     val correctionFactor = BigDecimal(0.5)
     // The capped price is 120, half of the estimated new price, hence a correction factor of 0.5
-    assertEquals(correctionFactor, PriceCap.priceCorrectionFactor(oldPrice, estimatedNewPrice))
+    assertEquals(correctionFactor, PriceCap.priceCorrectionFactorForPriceCap(oldPrice, estimatedNewPrice))
   }
 
   test("The price correction factor is computed correctly in case of force estimated") {
@@ -29,7 +29,7 @@ class PriceCapTest extends munit.FunSuite {
     val estimatedNewPrice = BigDecimal(240)
     val correctionFactor = BigDecimal(1)
     // The capped price is 120, half of the estimated new price, hence a correction factor of 0.5
-    assertEquals(correctionFactor, PriceCap.priceCorrectionFactor(oldPrice, estimatedNewPrice, true))
+    assertEquals(correctionFactor, PriceCap.priceCorrectionFactorForPriceCap(oldPrice, estimatedNewPrice, true))
   }
 
   test("Correction factor in case of 0 estimated new price") {
@@ -37,7 +37,7 @@ class PriceCapTest extends munit.FunSuite {
     val estimatedNewPrice = BigDecimal(1)
     val correctionFactor = BigDecimal(1)
     // The correction factor in case of an estimated new price of zero is conventionally set to 1
-    assertEquals(correctionFactor, PriceCap.priceCorrectionFactor(oldPrice, estimatedNewPrice))
+    assertEquals(correctionFactor, PriceCap.priceCorrectionFactorForPriceCap(oldPrice, estimatedNewPrice))
   }
 
 }
