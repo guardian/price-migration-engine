@@ -58,21 +58,6 @@ object AmendmentHandler extends CohortHandler {
       .fetchSubscription(item.subscriptionName)
       .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
 
-  private def checkNewPrice(
-      item: CohortItem,
-      oldPrice: BigDecimal,
-      newPrice: BigDecimal,
-      forceEstimated: Boolean
-  ): Either[AmendmentDataFailure, Unit] =
-    if (forceEstimated || newPrice <= PriceCap.cappedPrice(oldPrice, newPrice)) {
-      Right(())
-    } else
-      Left(
-        AmendmentDataFailure(
-          s"Cohort item: ${item.subscriptionName}. The new price ${newPrice} after amendment is higher than the old price ${oldPrice} + 20%"
-        )
-      )
-
   def checkExpirationTiming(
       item: CohortItem,
       subscription: ZuoraSubscription
@@ -150,7 +135,7 @@ object AmendmentHandler extends CohortHandler {
                 subscriptionBeforeUpdate,
                 invoicePreviewBeforeUpdate,
                 startDate,
-                PriceCap.priceCorrectionFactor(oldPrice, estimatedNewPrice)
+                PriceCap.priceCorrectionFactorForPriceCap(oldPrice, estimatedNewPrice)
               )
           )
         }
@@ -170,10 +155,6 @@ object AmendmentHandler extends CohortHandler {
             startDate
           )
         )
-
-      _ <- ZIO.fromEither(
-        checkNewPrice(item, oldPrice, newPrice, CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec))
-      )
 
       whenDone <- Clock.instant
     } yield SuccessfulAmendmentResult(

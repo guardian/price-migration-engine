@@ -1,13 +1,11 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.handlers.NotificationHandler.minLeadTime
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model.{CohortSpec, _}
 import pricemigrationengine.services._
-import zio.{Clock, IO, Random, UIO, ZIO}
+import zio.{Clock, IO, Random, ZIO}
 
 import java.time.LocalDate
-import java.time.temporal._
 
 /** Calculates start date and new price for a set of CohortItems.
   *

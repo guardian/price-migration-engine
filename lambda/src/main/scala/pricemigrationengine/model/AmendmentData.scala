@@ -36,8 +36,6 @@ object AmendmentData {
       startDateLowerBound: LocalDate,
       cohortSpec: CohortSpec,
   ): Either[AmendmentDataFailure, AmendmentData] = {
-    // Note: Here we are given the earliestStartDate and the cohortSpec. The earliestStartDate comes from
-    // `spreadEarliestStartDate` and now overrides the cohort's earliestPriceMigrationStartDate
     for {
       startDate <- nextServiceStartDate(invoiceList, subscription, startDateLowerBound)
       price <- priceData(account, catalogue, subscription, invoiceList, startDate, cohortSpec)
@@ -74,9 +72,6 @@ object AmendmentData {
       nextServiceStartDate: LocalDate,
       cohortSpec: CohortSpec,
   ): Either[AmendmentDataFailure, PriceData] = {
-
-    // Note: The nextServiceDate has gone through:
-    // cohortSpec.earliestPriceMigrationStartDate >> `spreadEarliestStartDate` >> `nextServiceStartDate`
 
     /*
       Date: March 2023
