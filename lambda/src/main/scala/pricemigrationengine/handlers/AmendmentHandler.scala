@@ -1,10 +1,11 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.CohortSpec.isMembershipPriceRiseBatch1
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
+
+import java.time.LocalDate
 
 /** Carries out price-rise amendments in Zuora.
   */
@@ -38,6 +39,13 @@ object AmendmentHandler extends CohortHandler {
           val result = CancelledAmendmentResult(item.subscriptionName)
           CohortTable.update(CohortItem.fromCancelledAmendmentResult(result)).as(result)
         }
+        case _: ExpiringSubscriptionFailure => {
+          // `ExpiringSubscriptionFailure` happens when the subscription's end of effective period is before the
+          // intended startDate (the price increase date). Alike `CancelledSubscriptionFailure` we cancel the amendment
+          // and the only effect is an updated cohort item in the database
+          val result = ExpiringSubscriptionResult(item.subscriptionName)
+          CohortTable.update(CohortItem.fromExpiringSubscriptionResult(result)).as(result)
+        }
         case e => ZIO.fail(e)
       },
       success = { result =>
@@ -45,20 +53,41 @@ object AmendmentHandler extends CohortHandler {
       }
     )
 
-  private def checkNewPrice(
+  private def fetchSubscription(item: CohortItem): ZIO[Zuora, Failure, ZuoraSubscription] =
+    Zuora
+      .fetchSubscription(item.subscriptionName)
+      .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
+
+  def checkExpirationTiming(
       item: CohortItem,
-      oldPrice: BigDecimal,
-      newPrice: BigDecimal,
-      forceEstimated: Boolean
-  ): Either[AmendmentDataFailure, Unit] =
-    if (forceEstimated || newPrice <= PriceCap.cappedPrice(oldPrice, newPrice)) {
-      Right(())
-    } else
-      Left(
-        AmendmentDataFailure(
-          s"Cohort item: ${item.subscriptionName}. The new price ${newPrice} after amendment is higher than the old price ${oldPrice} + 20%"
-        )
-      )
+      subscription: ZuoraSubscription
+  ): Either[Failure, Unit] = {
+    // We check that the subscription's end of effective period is after the startDate, to avoid Zuora's error:
+    // ```
+    // The Contract effective date should not be later than the term end date of the basic subscription
+    // ```
+    // Note that this check will be duplicated in the estimation handler (this check in the Amendment handler came first)
+
+    item.startDate match {
+      case None =>
+        Left(
+          AmendmentDataFailure(
+            s"Cohort item: ${item.subscriptionName}. Cohort Item doesn't have a startDate."
+          )
+        ) // This case won't really happen in practice, but item.startDate is an option
+      case Some(startDate) => {
+        if (subscription.termEndDate.isAfter(startDate)) {
+          Right(())
+        } else {
+          Left(
+            ExpiringSubscriptionFailure(
+              s"Cohort item: ${item.subscriptionName}. The item startDate (price increase date) is after the subscription's end of effective period"
+            )
+          )
+        }
+      }
+    }
+  }
 
   private def doAmendment(
       cohortSpec: CohortSpec,
@@ -80,22 +109,36 @@ object AmendmentHandler extends CohortHandler {
 
       subscriptionBeforeUpdate <- fetchSubscription(item)
 
+      _ <- ZIO.fromEither(checkExpirationTiming(item, subscriptionBeforeUpdate))
+
       account <- Zuora.fetchAccount(subscriptionBeforeUpdate.accountNumber, subscriptionBeforeUpdate.subscriptionNumber)
 
       invoicePreviewBeforeUpdate <-
         Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
 
-      update <- ZIO.fromEither(
-        ZuoraSubscriptionUpdate
-          .updateOfRatePlansToCurrent(
-            account,
-            catalogue,
-            subscriptionBeforeUpdate,
-            invoicePreviewBeforeUpdate,
-            startDate,
-            PriceCap.priceCorrectionFactor(oldPrice, estimatedNewPrice)
+      update <-
+        if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
+          ZIO.fromEither(
+            ZuoraSubscriptionUpdate
+              .updateOfRatePlansToCurrentMembership2023(
+                subscriptionBeforeUpdate,
+                invoicePreviewBeforeUpdate,
+                startDate
+              )
           )
-      )
+        } else {
+          ZIO.fromEither(
+            ZuoraSubscriptionUpdate
+              .updateOfRatePlansToCurrent(
+                account,
+                catalogue,
+                subscriptionBeforeUpdate,
+                invoicePreviewBeforeUpdate,
+                startDate,
+                PriceCap.priceCorrectionFactorForPriceCap(oldPrice, estimatedNewPrice)
+              )
+          )
+        }
 
       newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
 
@@ -113,8 +156,6 @@ object AmendmentHandler extends CohortHandler {
           )
         )
 
-      _ <- ZIO.fromEither(checkNewPrice(item, oldPrice, newPrice, CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)))
-
       whenDone <- Clock.instant
     } yield SuccessfulAmendmentResult(
       item.subscriptionName,
@@ -127,12 +168,7 @@ object AmendmentHandler extends CohortHandler {
     )
   }
 
-  private def fetchSubscription(item: CohortItem): ZIO[Zuora, Failure, ZuoraSubscription] =
-    Zuora
-      .fetchSubscription(item.subscriptionName)
-      .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
-
-  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     main(input).provideSome[Logging](
       EnvConfig.cohortTable.layer,
       EnvConfig.zuora.layer,
@@ -142,4 +178,5 @@ object AmendmentHandler extends CohortHandler {
       CohortTableLive.impl(input),
       ZuoraLive.impl
     )
+  }
 }

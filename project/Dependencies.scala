@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
   private val zioVersion = "2.0.10"
-  private val awsSdkVersion = "2.20.32"
+  private val awsSdkVersion = "2.20.41"
 
   lazy val awsDynamoDb = "software.amazon.awssdk" % "dynamodb" % awsSdkVersion
   lazy val awsS3 = "software.amazon.awssdk" % "s3" % awsSdkVersion
@@ -12,7 +12,7 @@ object Dependencies {
   lazy val zioStreams = "dev.zio" %% "zio-streams" % zioVersion
   lazy val zioTest = "dev.zio" %% "zio-test" % zioVersion
   lazy val zioTestSbt = "dev.zio" %% "zio-test-sbt" % zioVersion
-  lazy val zioMock = "dev.zio" %% "zio-mock" % "1.0.0-RC9"
+  lazy val zioMock = "dev.zio" %% "zio-mock" % "1.0.0-RC10"
   lazy val upickle = "com.lihaoyi" %% "upickle" % "2.0.0"
   lazy val awsLambda = "com.amazonaws" % "aws-lambda-java-core" % "1.2.2"
   lazy val http = "org.scalaj" %% "scalaj-http" % "2.4.2"

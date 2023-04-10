@@ -1,6 +1,5 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.model.CohortSpec.isMembershipPriceRiseBatch1
 import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, productPricingMap}
 
 import java.time.LocalDate
@@ -34,13 +33,11 @@ object AmendmentData {
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-      earliestStartDate: LocalDate,
+      startDateLowerBound: LocalDate,
       cohortSpec: CohortSpec,
   ): Either[AmendmentDataFailure, AmendmentData] = {
-    // Note: Here we are given the earliestStartDate and the cohortSpec. The earliestStartDate comes from
-    // `spreadEarliestStartDate` and now overrides the cohort's earliestPriceMigrationStartDate
     for {
-      startDate <- nextServiceStartDate(invoiceList, subscription, earliestStartDate)
+      startDate <- nextServiceStartDate(invoiceList, subscription, startDateLowerBound)
       price <- priceData(account, catalogue, subscription, invoiceList, startDate, cohortSpec)
     } yield AmendmentData(startDate, priceData = price)
   }
@@ -76,9 +73,6 @@ object AmendmentData {
       cohortSpec: CohortSpec,
   ): Either[AmendmentDataFailure, PriceData] = {
 
-    // Note: The nextServiceDate has gone through:
-    // cohortSpec.earliestPriceMigrationStartDate >> `spreadEarliestStartDate` >> `nextServiceStartDate`
-
     /*
       Date: March 2023
       Author: Pascal
@@ -96,7 +90,7 @@ object AmendmentData {
       moment, just a difference between regular price rises and membership (batch 1) will do.
      */
 
-    if (CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)) {
+    if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
       Membership2023.priceData(account, catalogue, subscription, invoiceList, nextServiceStartDate)
     } else {
       priceDataWithRatePlanMatching(account, catalogue, subscription, invoiceList, nextServiceStartDate)

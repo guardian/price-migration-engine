@@ -1,13 +1,11 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.CohortSpec.isMembershipPriceRiseBatch1
 import pricemigrationengine.model.CohortTableFilter._
-import pricemigrationengine.model._
+import pricemigrationengine.model.{CohortSpec, _}
 import pricemigrationengine.services._
-import zio.{Clock, IO, Random, UIO, ZIO}
+import zio.{Clock, IO, Random, ZIO}
 
 import java.time.LocalDate
-import java.time.temporal._
 
 /** Calculates start date and new price for a set of CohortItems.
   *
@@ -22,14 +20,13 @@ object EstimationHandler extends CohortHandler {
 
   def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
+      today <- Clock.currentDateTime.map(_.toLocalDate)
       catalogue <- Zuora.fetchProductCatalogue
       count <- CohortTable
         .fetch(ReadyForEstimation, None)
         .take(batchSize)
         .mapZIO(item =>
-          estimate(catalogue, cohortSpec)(
-            item
-          ).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
+          estimate(catalogue, cohortSpec)(today, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
         )
         .runCount
         .tapError(e => Logging.error(e.toString))
@@ -39,9 +36,10 @@ object EstimationHandler extends CohortHandler {
       catalogue: ZuoraProductCatalogue,
       cohortSpec: CohortSpec
   )(
-      item: CohortItem
+      today: LocalDate,
+      item: CohortItem,
   ): ZIO[CohortTable with Zuora, Failure, EstimationResult] =
-    doEstimation(catalogue, item, cohortSpec).foldZIO(
+    doEstimation(catalogue, item, cohortSpec, today).foldZIO(
       failure = {
         case failure: AmendmentDataFailure =>
           val result = FailedEstimationResult(item.subscriptionName, failure.reason)
@@ -65,9 +63,9 @@ object EstimationHandler extends CohortHandler {
   private def doEstimation(
       catalogue: ZuoraProductCatalogue,
       item: CohortItem,
-      cohortSpec: CohortSpec
+      cohortSpec: CohortSpec,
+      today: LocalDate,
   ): ZIO[Zuora, Failure, SuccessfulEstimationResult] = {
-
     for {
       subscription <-
         Zuora
@@ -76,57 +74,76 @@ object EstimationHandler extends CohortHandler {
       account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
       invoicePreviewTargetDate = cohortSpec.earliestPriceMigrationStartDate.plusMonths(16)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
-      earliestStartDate <- spreadEarliestStartDate(subscription, invoicePreview, cohortSpec)
+      startDateLowerBound <- decideStartDateLowerboundWithRandomAddition(
+        subscription,
+        invoicePreview,
+        cohortSpec,
+        today
+      )
       result <- ZIO.fromEither(
-        EstimationResult(account, catalogue, subscription, invoicePreview, earliestStartDate, cohortSpec)
+        EstimationResult(account, catalogue, subscription, invoicePreview, startDateLowerBound, cohortSpec)
       )
     } yield result
   }
 
-  /*
-   * Earliest start date spread out over 3 months.
-   */
-  def spreadEarliestStartDate(
+  def datesMax(date1: LocalDate, date2: LocalDate): LocalDate = if (date1.isBefore(date2)) date2 else date1
+
+  def startDateGeneralLowerbound(cohortSpec: CohortSpec, today: LocalDate): LocalDate = {
+    datesMax(
+      cohortSpec.earliestPriceMigrationStartDate,
+      today.plusDays(
+        NotificationHandler.minLeadTime(cohortSpec: CohortSpec) + 1
+      ) // +1 because we need to be strictly over minLeadTime days away. Exactly minLeadTime is not enough.
+    )
+  }
+
+  // This function takes a date and a subscription and returns the highest between that date
+  // and the customer's customerAcceptanceDate. Doing so we implement the policy of not increasing customers during
+  // their first year.
+  def oneYearPolicy(lowerbound: LocalDate, subscription: ZuoraSubscription): LocalDate = {
+    datesMax(lowerbound, subscription.customerAcceptanceDate.plusMonths(12))
+  }
+
+  // Determines whether the subscription is a monthly subscription
+  // To do so, we simply check whether the billing period of a rate plan charge contains "Month"
+  def isMonthlySubscription(subscription: ZuoraSubscription, invoicePreview: ZuoraInvoiceList): Boolean = {
+    invoicePreview.invoiceItems
+      .flatMap(invoiceItem => ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toOption)
+      .flatMap(_.billingPeriod)
+      .headOption
+      .contains("Month")
+  }
+
+  // In legacy print product cases, we have spread the price rises over 3 months for monthly subscriptions, but
+  // in the case of membership we want to do this over a single month, hence a value of 1. For annual subscriptions
+  // we do not need to apply a spread
+  def decideSpreadPeriod(
       subscription: ZuoraSubscription,
       invoicePreview: ZuoraInvoiceList,
       cohortSpec: CohortSpec
+  ): Int = {
+    if (isMonthlySubscription(subscription, invoicePreview))
+      if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) 1 else 3
+    else 1
+  }
+
+  def decideStartDateLowerboundWithRandomAddition(
+      subscription: ZuoraSubscription,
+      invoicePreview: ZuoraInvoiceList,
+      cohortSpec: CohortSpec,
+      today: LocalDate
   ): IO[ConfigFailure, LocalDate] = {
+    // We start by deciding the start date general lower bound, which is determined by the cohort's
+    // earliestPriceMigrationStartDate and the notification period to this migration
+    val startDateLowerBound1 = startDateGeneralLowerbound(cohortSpec: CohortSpec, today: LocalDate)
 
-    val earliestStartDate = cohortSpec.earliestPriceMigrationStartDate
+    // We now respect the policy of not increasing members during their first year
+    val startDateLowerBound2 = oneYearPolicy(startDateLowerBound1, subscription)
 
-    def relu(number: Int): Int =
-      if (number < 0) 0 else number
-
-    /*
-      Any subscription less than one year old (i.e.: purchased within the last year), should only be risen at least one year after purchase, hence we raise them on the thirteenth month.
-     */
-    def startOnThirteenthMonth(earliestStartDate: LocalDate, subscription: ZuoraSubscription): UIO[Int] = {
-      ZIO.succeed(
-        relu(
-          ChronoUnit.MONTHS.between(earliestStartDate, subscription.customerAcceptanceDate.plusMonths(13)).toInt
-        )
-      )
-    }
-
-    val isMonthlySubscription =
-      invoicePreview.invoiceItems
-        .flatMap(invoiceItem => ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toOption)
-        .flatMap(_.billingPeriod)
-        .headOption
-        .contains("Month")
-
-    // We usually spread the start date over 3 months, but in the case of membership price rise batch 1, we want all to do through within a month
-    val spreadPeriod = if (CohortSpec.isMembershipPriceRiseBatch1(cohortSpec)) 1 else 3
-
-    if (isMonthlySubscription) {
-      for {
-        yearAgo <- Clock.localDateTime.map(_.toLocalDate.minusYears(1))
-        randomFactor <-
-          if (subscription.customerAcceptanceDate.isBefore(yearAgo)) Random.nextIntBetween(0, spreadPeriod)
-          else startOnThirteenthMonth(earliestStartDate, subscription)
-      } yield earliestStartDate.plusMonths(randomFactor)
-    } else
-      ZIO.succeed(earliestStartDate)
+    val spreadPeriod = decideSpreadPeriod(subscription, invoicePreview, cohortSpec)
+    for {
+      randomFactor <- Random.nextIntBetween(0, spreadPeriod)
+    } yield startDateLowerBound2.plusMonths(randomFactor)
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
