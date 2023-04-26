@@ -41,8 +41,9 @@ Resources:
             Action:
               - secretsmanager:DescribeSecret
               - secretsmanager:GetSecretValue
-            Resource:
-            - arn:aws:secretsmanager:eu-west-1:865473395570:secret:price-migration-engine-lambda-CODE-CoDz8f
+            Resource: !Sub 
+                      - "arn:aws:secretsmanager:eu-west-1:865473395570:secret:price-migration-engine-lambda-${Stage}-${SecretsVersion}"
+                      - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
       Roles:
         - Ref: PriceMigrationEngineTableCreateLambdaRole
         - Ref: PriceMigrationEngineSubscriptionIdUploadLambdaRole
