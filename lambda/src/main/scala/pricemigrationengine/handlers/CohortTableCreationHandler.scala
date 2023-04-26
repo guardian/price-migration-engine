@@ -20,11 +20,10 @@ object CohortTableCreationHandler extends CohortHandler {
       )
       .as(HandlerOutput(isComplete = true))
 
-  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
     main(input).provideSome[Logging](
       EnvConfig.stage.layer,
       DynamoDBClientLive.impl,
       CohortTableDdlLive.impl
     )
-  }
 }
