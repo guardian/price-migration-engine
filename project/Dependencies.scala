@@ -9,6 +9,7 @@ object Dependencies {
   lazy val awsSQS = "software.amazon.awssdk" % "sqs" % awsSdkVersion
   lazy val awsStateMachine = "software.amazon.awssdk" % "sfn" % awsSdkVersion
   lazy val awsSecretsManager = "software.amazon.awssdk" % "secretsmanager" % awsSdkVersion
+  lazy val playJson = "com.typesafe.play" %% "play-json" % "2.9.4"
   lazy val zio = "dev.zio" %% "zio" % zioVersion
   lazy val zioStreams = "dev.zio" %% "zio-streams" % zioVersion
   lazy val zioTest = "dev.zio" %% "zio-test" % zioVersion
@@ -20,5 +21,4 @@ object Dependencies {
   lazy val munit = "org.scalameta" %% "munit" % "0.7.29"
   lazy val commonsCsv = "org.apache.commons" % "commons-csv" % "1.10.0"
   lazy val slf4jNop = "org.slf4j" % "slf4j-nop" % "2.0.7"
-  lazy val playJson = "com.typesafe.play" %% "play-json" % "2.9.4"
 }
