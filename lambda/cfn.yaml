@@ -31,6 +31,29 @@ Mappings:
 
 Resources:
 
+  ReadFromSecretsManager:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: ReadFromSecretsManager
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - secretsmanager:DescribeSecret
+              - secretsmanager:GetSecretValue
+            Resource:
+            - arn:aws:secretsmanager:eu-west-1:865473395570:secret:price-migration-engine-lambda-CODE-CoDz8f
+      Roles:
+        - Ref: PriceMigrationEngineTableCreateLambdaRole
+        - Ref: PriceMigrationEngineSubscriptionIdUploadLambdaRole
+        - Ref: PriceMigrationEngineEstimationLambdaRole
+        - Ref: PriceMigrationEngineSalesforcePriceCreationLambdaRole
+        - Ref: PriceMigrationEngineAmendmentLambdaRole
+        - Ref: PriceMigrationEngineNotificationLambdaRole
+        - Ref: PriceMigrationEngineSalesforceNotificationDateUpdateLambdaRole
+        - Ref: PriceMigrationEngineSalesforceAmendmentUpdateLambdaRole
+        - Ref: PriceMigrationEngineCohortTableDatalakeExportLambdaRole
+
   ReadFromDistBucketPolicy:
     Type: AWS::IAM::Policy
     Properties:

@@ -36,8 +36,6 @@ object SecretManagerClient {
 
   lazy val secretsClient = SecretsManagerClient
     .builder()
-    .region(region)
-    .credentialsProvider(ProfileCredentialsProvider.create())
     .build()
 
   lazy val secretId: String = "price-migration-engine-lambda-CODE"
@@ -46,7 +44,4 @@ object SecretManagerClient {
     secretsClient.getSecretValue(GetSecretValueRequest.builder().secretId(secretId).build()).secretString()
 
   lazy val secrets: PriceMigrationEngineSecrets = Json.parse(secretsJsonString).as[PriceMigrationEngineSecrets]
-
-  println(secrets)
-
 }
