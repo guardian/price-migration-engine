@@ -3,6 +3,8 @@ package pricemigrationengine.services
 import pricemigrationengine.model._
 import zio.{Layer, ZIO, ZLayer}
 
+import play.api.libs.json.Json
+
 import java.lang.System.getenv
 
 /** Configuration settings found in system environment.
@@ -21,9 +23,9 @@ object EnvConfig {
   object zuora {
     val layer: Layer[ConfigFailure, ZuoraConfig] = ZLayer.fromZIO(
       for {
-        zuoraApiHost <- env("zuoraApiHost")
-        zuoraClientId <- env("zuoraClientId")
-        zuoraClientSecret <- env("zuoraClientSecret")
+        zuoraApiHost <- ZIO.succeed(SecretManagerClient.secrets.zuoraApiHost)
+        zuoraClientId <- ZIO.succeed(SecretManagerClient.secrets.zuoraClientId)
+        zuoraClientSecret <- ZIO.succeed(SecretManagerClient.secrets.zuoraClientSecret)
       } yield ZuoraConfig(
         zuoraApiHost,
         zuoraClientId,
@@ -43,12 +45,12 @@ object EnvConfig {
   object salesforce {
     val layer: Layer[ConfigFailure, SalesforceConfig] = ZLayer.fromZIO(
       for {
-        salesforceAuthUrl <- env("salesforceAuthUrl")
-        salesforceClientId <- env("salesforceClientId")
-        salesforceClientSecret <- env("salesforceClientSecret")
-        salesforceUserName <- env("salesforceUserName")
-        salesforcePassword <- env("salesforcePassword")
-        salesforceToken <- env("salesforceToken")
+        salesforceAuthUrl <- ZIO.succeed(SecretManagerClient.secrets.salesforceAuthUrl)
+        salesforceClientId <- ZIO.succeed(SecretManagerClient.secrets.salesforceClientId)
+        salesforceClientSecret <- ZIO.succeed(SecretManagerClient.secrets.salesforceClientSecret)
+        salesforceUserName <- ZIO.succeed(SecretManagerClient.secrets.salesforceUserName)
+        salesforcePassword <- ZIO.succeed(SecretManagerClient.secrets.salesforcePassword)
+        salesforceToken <- ZIO.succeed(SecretManagerClient.secrets.salesforceToken)
       } yield SalesforceConfig(
         salesforceAuthUrl,
         salesforceClientId,
