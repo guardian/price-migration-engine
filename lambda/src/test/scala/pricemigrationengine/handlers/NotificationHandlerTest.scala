@@ -197,10 +197,9 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
 
   test("guLettersNotificationLeadTime should be at least 49 days") {
-    // There is a comment at the top of the Notification handler which explains why the value 49 was chosen
-    // Here we are simply checking that it's at least 49 days (it was temporarily set to 50 day during
-    // membership migration)
-    assert(guLettersNotificationLeadTime >= 49)
+    // "Should be at least 49 days", but for invariance we test against the
+    // usual value of exactly 49
+    assert(guLettersNotificationLeadTime == 49)
   }
 
   test("NotificationHandler should get records from cohort table and SF and send Email with the data") {
