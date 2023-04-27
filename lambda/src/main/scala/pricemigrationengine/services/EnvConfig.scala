@@ -23,13 +23,11 @@ object EnvConfig {
   object zuora {
     val layer: Layer[ConfigFailure, ZuoraConfig] = ZLayer.fromZIO(
       for {
-        zuoraApiHost <- ZIO.succeed(SecretManagerClient.secrets.zuoraApiHost)
-        zuoraClientId <- ZIO.succeed(SecretManagerClient.secrets.zuoraClientId)
-        zuoraClientSecret <- ZIO.succeed(SecretManagerClient.secrets.zuoraClientSecret)
+        secrets <- EngineSecrets.getSecrets
       } yield ZuoraConfig(
-        zuoraApiHost,
-        zuoraClientId,
-        zuoraClientSecret
+        secrets.zuoraApiHost,
+        secrets.zuoraClientId,
+        secrets.zuoraClientSecret
       )
     )
   }
@@ -45,19 +43,14 @@ object EnvConfig {
   object salesforce {
     val layer: Layer[ConfigFailure, SalesforceConfig] = ZLayer.fromZIO(
       for {
-        salesforceAuthUrl <- ZIO.succeed(SecretManagerClient.secrets.salesforceAuthUrl)
-        salesforceClientId <- ZIO.succeed(SecretManagerClient.secrets.salesforceClientId)
-        salesforceClientSecret <- ZIO.succeed(SecretManagerClient.secrets.salesforceClientSecret)
-        salesforceUserName <- ZIO.succeed(SecretManagerClient.secrets.salesforceUserName)
-        salesforcePassword <- ZIO.succeed(SecretManagerClient.secrets.salesforcePassword)
-        salesforceToken <- ZIO.succeed(SecretManagerClient.secrets.salesforceToken)
+        secrets <- EngineSecrets.getSecrets
       } yield SalesforceConfig(
-        salesforceAuthUrl,
-        salesforceClientId,
-        salesforceClientSecret,
-        salesforceUserName,
-        salesforcePassword,
-        salesforceToken
+        secrets.salesforceAuthUrl,
+        secrets.salesforceClientId,
+        secrets.salesforceClientSecret,
+        secrets.salesforceUserName,
+        secrets.salesforcePassword,
+        secrets.salesforceToken
       )
     )
   }

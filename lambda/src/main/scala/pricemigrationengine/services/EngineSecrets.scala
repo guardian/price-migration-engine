@@ -3,18 +3,15 @@ package pricemigrationengine.services
 import pricemigrationengine.model._
 import zio.{Layer, ZIO, ZLayer}
 
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.regions
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain
-import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider
 import software.amazon.awssdk.services.secretsmanager._
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest
 
 import play.api.libs.json.Json
-
+import upickle.default._
 import java.lang.System.getenv
 
-case class PriceMigrationEngineSecrets(
+sealed case class EngineSecrets(
     zuoraApiHost: String,
     zuoraClientId: String,
     zuoraClientSecret: String,
@@ -26,11 +23,8 @@ case class PriceMigrationEngineSecrets(
     salesforceAuthUrl: String
 )
 
-object PriceMigrationEngineSecrets {
-  implicit val secretsRead = Json.reads[PriceMigrationEngineSecrets]
-}
-
-object SecretManagerClient {
+object EngineSecrets {
+  implicit val secretsRead = Json.reads[EngineSecrets]
 
   lazy val region: regions.Region = regions.Region.EU_WEST_1
 
@@ -41,5 +35,9 @@ object SecretManagerClient {
   lazy val secretsJsonString =
     secretsClient.getSecretValue(GetSecretValueRequest.builder().secretId(secretId).build()).secretString()
 
-  lazy val secrets: PriceMigrationEngineSecrets = Json.parse(secretsJsonString).as[PriceMigrationEngineSecrets]
+  lazy val secrets: EngineSecrets = Json.parse(secretsJsonString).as[EngineSecrets]
+
+  def getSecrets: ZIO[Any, ConfigFailure, EngineSecrets] = {
+    ZIO.succeed(secrets)
+  }
 }
