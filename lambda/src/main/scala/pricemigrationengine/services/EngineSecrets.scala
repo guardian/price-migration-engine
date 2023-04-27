@@ -26,16 +26,16 @@ sealed case class EngineSecrets(
 object EngineSecrets {
   implicit val secretsRead = Json.reads[EngineSecrets]
 
-  lazy val region: regions.Region = regions.Region.EU_WEST_1
+  private lazy val region: regions.Region = regions.Region.EU_WEST_1
 
-  lazy val secretsClient = SecretsManagerClient.create()
+  private lazy val secretsClient = SecretsManagerClient.create()
 
-  lazy val secretId: String = "price-migration-engine-lambda-CODE"
+  private lazy val secretId: String = "price-migration-engine-lambda-CODE"
 
-  lazy val secretsJsonString =
+  private lazy val secretsJsonString =
     secretsClient.getSecretValue(GetSecretValueRequest.builder().secretId(secretId).build()).secretString()
 
-  lazy val secrets: EngineSecrets = Json.parse(secretsJsonString).as[EngineSecrets]
+  private lazy val secrets: EngineSecrets = Json.parse(secretsJsonString).as[EngineSecrets]
 
   def getSecrets: ZIO[Any, ConfigFailure, EngineSecrets] = {
     ZIO.succeed(secrets)
