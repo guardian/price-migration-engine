@@ -30,7 +30,7 @@ object EngineSecrets {
 
   private lazy val secretsClient = SecretsManagerClient.create()
 
-  private lazy val secretId: String = "price-migration-engine-lambda-CODE"
+  private lazy val secretId: String = s"price-migration-engine-lambda-${getenv("stage")}"
 
   private lazy val secretsJsonString =
     secretsClient.getSecretValue(GetSecretValueRequest.builder().secretId(secretId).build()).secretString()
