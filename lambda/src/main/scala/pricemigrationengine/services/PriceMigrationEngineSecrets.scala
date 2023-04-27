@@ -34,9 +34,7 @@ object SecretManagerClient {
 
   lazy val region: regions.Region = regions.Region.EU_WEST_1
 
-  lazy val secretsClient = SecretsManagerClient
-    .builder()
-    .build()
+  lazy val secretsClient = SecretsManagerClient.create()
 
   lazy val secretId: String = "price-migration-engine-lambda-CODE"
 
