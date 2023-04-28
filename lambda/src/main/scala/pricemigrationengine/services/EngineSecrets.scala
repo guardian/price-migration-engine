@@ -32,15 +32,14 @@ object EngineSecrets {
   private lazy val secretId: String = s"price-migration-engine-lambda-${getenv("stage")}"
 
   def getSecretString: ZIO[Any, ConfigFailure, String] = {
-    for {
-      s <- ZIO
+    ZIO
         .attempt(
           secretsClient.getSecretValue(GetSecretValueRequest.builder().secretId(secretId).build()).secretString()
         )
         .mapError { ex =>
           ConfigFailure(s"Failure to retrieve secrets string: ${ex.getMessage}")
         }
-    } yield s
+    }
   }
 
   def getSecrets: ZIO[Any, ConfigFailure, EngineSecrets] = {
