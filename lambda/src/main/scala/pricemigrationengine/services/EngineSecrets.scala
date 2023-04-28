@@ -9,7 +9,7 @@ import upickle.default._
 
 import java.lang.System.getenv
 
-sealed case class EngineSecrets(
+case class EngineSecrets(
     zuoraApiHost: String,
     zuoraClientId: String,
     zuoraClientSecret: String,
@@ -31,12 +31,26 @@ object EngineSecrets {
 
   private lazy val secretId: String = s"price-migration-engine-lambda-${getenv("stage")}"
 
-  private lazy val secretsJsonString =
-    secretsClient.getSecretValue(GetSecretValueRequest.builder().secretId(secretId).build()).secretString()
-
-  private lazy val secrets: EngineSecrets = read[EngineSecrets](secretsJsonString)
+  def getSecretString: ZIO[Any, ConfigFailure, String] = {
+    for {
+      s <- ZIO
+        .attempt(
+          secretsClient.getSecretValue(GetSecretValueRequest.builder().secretId(secretId).build()).secretString()
+        )
+        .mapError { ex =>
+          ConfigFailure(s"Failure to retrieve secrets string: ${ex.getMessage}")
+        }
+    } yield s
+  }
 
   def getSecrets: ZIO[Any, ConfigFailure, EngineSecrets] = {
-    ZIO.succeed(secrets)
+    for {
+      secretJsonString <- getSecretString
+      secrets <- ZIO
+        .attempt(read[EngineSecrets](secretJsonString))
+        .mapError { ex =>
+          ConfigFailure(s"Failure to parse secrets string: ${ex.getMessage}")
+        }
+    } yield secrets
   }
 }

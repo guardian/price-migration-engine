@@ -14,17 +14,17 @@ Parameters:
 Mappings:
   StageMap:
     DEV:
-      SecretsVersion: "4db851a7-5832-4ce2-9356-b4c412d80f30"
+      SecretsVersion: "NArGcZ"
       BucketName: price-migration-engine-dev
       SQSQueueName: direct-mail-CODE
       ExportBucketName: price-migration-engine-dev
     CODE:
-      SecretsVersion: "4c808606-4f2b-4925-bf71-8fd75a102e2b"
+      SecretsVersion: "CoDz8f"
       BucketName: price-migration-engine-code
       SQSQueueName: direct-mail-CODE
       ExportBucketName: price-migration-engine-code
     PROD:
-      SecretsVersion: "b069693b-69dd-40ee-a586-70d409778d2b"
+      SecretsVersion: "TTMSyJ"
       BucketName: price-migration-engine-prod
       SQSQueueName: direct-mail-PROD
       ExportBucketName: ophan-clean-price-migration-engine-cohort-items
@@ -443,18 +443,6 @@ Resources:
       Environment:
         Variables:
           stage: !Ref Stage
-          zuoraApiHost:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraApiHost::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          zuoraClientId:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientId::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          zuoraClientSecret:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
           batchSize: 100
       Role:
         Fn::GetAtt:
@@ -480,30 +468,6 @@ Resources:
         Variables:
           stage: !Ref Stage
           batchSize: 100
-          salesforceAuthUrl:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceAuthUrl::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforceClientId:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceClientId::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforceClientSecret:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceClientSecret::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforceUserName:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceUserName::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforcePassword:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforcePassword::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforceToken:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceToken::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
       Role:
         Fn::GetAtt:
           - PriceMigrationEngineSalesforcePriceCreationLambdaRole
@@ -527,18 +491,6 @@ Resources:
       Environment:
         Variables:
           stage: !Ref Stage
-          zuoraApiHost:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraApiHost::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          zuoraClientId:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientId::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          zuoraClientSecret:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:zuoraClientSecret::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
           batchSize: 100
       Role:
         Fn::GetAtt:
@@ -564,30 +516,6 @@ Resources:
         Variables:
           stage: !Ref Stage
           batchSize: 100
-          salesforceAuthUrl:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceAuthUrl::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforceClientId:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceClientId::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforceClientSecret:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceClientSecret::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforceUserName:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceUserName::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforcePassword:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforcePassword::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforceToken:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceToken::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
           sqsEmailQueueName:
             !FindInMap [ StageMap, !Ref Stage, SQSQueueName ]
       Role:
@@ -614,30 +542,6 @@ Resources:
         Variables:
           stage: !Ref Stage
           batchSize: 100
-          salesforceAuthUrl:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceAuthUrl::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforceClientId:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceClientId::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforceClientSecret:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceClientSecret::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforceUserName:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceUserName::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforcePassword:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforcePassword::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforceToken:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceToken::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
       Role:
         Fn::GetAtt:
           - PriceMigrationEngineSalesforceNotificationDateUpdateLambdaRole
@@ -664,30 +568,6 @@ Resources:
         Variables:
           stage: !Ref Stage
           batchSize: 100
-          salesforceAuthUrl:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceAuthUrl::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforceClientId:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceClientId::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforceClientSecret:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceClientSecret::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforceUserName:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceUserName::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforcePassword:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforcePassword::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
-          salesforceToken:
-            !Sub
-            - '{{resolve:secretsmanager:price-migration-engine-lambda-${Stage}:SecretString:salesforceToken::${SecretsVersion}}}'
-            - SecretsVersion: !FindInMap [StageMap, !Ref Stage, SecretsVersion]
       Role:
         Fn::GetAtt:
           - PriceMigrationEngineSalesforceAmendmentUpdateLambdaRole
