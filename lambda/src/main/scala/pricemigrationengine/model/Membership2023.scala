@@ -13,10 +13,10 @@ object Membership2023 {
 
   val priceMap: Map[Currency, BigDecimal] = Map(
     "GBP" -> BigDecimal(7),
-    "AUD" -> BigDecimal(14),
-    "CAD" -> BigDecimal(9.79),
-    "EUR" -> BigDecimal(6.99),
-    "USD" -> BigDecimal(9.79),
+    "AUD" -> BigDecimal(14.99),
+    "CAD" -> BigDecimal(12.99),
+    "EUR" -> BigDecimal(9.99),
+    "USD" -> BigDecimal(9.99),
   )
 
   def priceData(
