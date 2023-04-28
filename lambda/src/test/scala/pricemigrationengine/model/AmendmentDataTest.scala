@@ -684,7 +684,7 @@ class AmendmentDataTest extends munit.FunSuite {
 
     assertEquals(
       priceData,
-      Right(PriceData(currency = "AUD", oldPrice = 10, newPrice = 14, billingPeriod = "Month"))
+      Right(PriceData(currency = "AUD", oldPrice = 10, newPrice = 14.99, billingPeriod = "Month"))
     )
   }
 
@@ -720,7 +720,7 @@ class AmendmentDataTest extends munit.FunSuite {
 
     assertEquals(
       priceData,
-      Right(PriceData(currency = "AUD", oldPrice = 10, newPrice = 14, billingPeriod = "Month"))
+      Right(PriceData(currency = "AUD", oldPrice = 10, newPrice = 14.99, billingPeriod = "Month"))
     )
   }
 
