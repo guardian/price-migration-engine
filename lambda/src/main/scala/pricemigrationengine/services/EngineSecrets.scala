@@ -33,13 +33,12 @@ object EngineSecrets {
 
   def getSecretString: ZIO[Any, ConfigFailure, String] = {
     ZIO
-        .attempt(
-          secretsClient.getSecretValue(GetSecretValueRequest.builder().secretId(secretId).build()).secretString()
-        )
-        .mapError { ex =>
-          ConfigFailure(s"Failure to retrieve secrets string: ${ex.getMessage}")
-        }
-    }
+      .attempt(
+        secretsClient.getSecretValue(GetSecretValueRequest.builder().secretId(secretId).build()).secretString()
+      )
+      .mapError { ex =>
+        ConfigFailure(s"Failure to retrieve secrets string: ${ex.getMessage}")
+      }
   }
 
   def getSecrets: ZIO[Any, ConfigFailure, EngineSecrets] = {
