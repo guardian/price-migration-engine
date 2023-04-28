@@ -3,8 +3,6 @@ package pricemigrationengine.services
 import pricemigrationengine.model._
 import zio.{Layer, ZIO, ZLayer}
 
-import play.api.libs.json.Json
-
 import java.lang.System.getenv
 
 /** Configuration settings found in system environment.

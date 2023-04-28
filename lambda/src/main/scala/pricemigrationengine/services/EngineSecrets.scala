@@ -2,13 +2,11 @@ package pricemigrationengine.services
 
 import pricemigrationengine.model._
 import zio.{Layer, ZIO, ZLayer}
-
 import software.amazon.awssdk.regions
 import software.amazon.awssdk.services.secretsmanager._
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest
-
-import play.api.libs.json.Json
 import upickle.default._
+
 import java.lang.System.getenv
 
 sealed case class EngineSecrets(
@@ -24,7 +22,8 @@ sealed case class EngineSecrets(
 )
 
 object EngineSecrets {
-  implicit val secretsRead = Json.reads[EngineSecrets]
+
+  implicit val reader: Reader[EngineSecrets] = macroRW
 
   private lazy val region: regions.Region = regions.Region.EU_WEST_1
 
@@ -35,7 +34,7 @@ object EngineSecrets {
   private lazy val secretsJsonString =
     secretsClient.getSecretValue(GetSecretValueRequest.builder().secretId(secretId).build()).secretString()
 
-  private lazy val secrets: EngineSecrets = Json.parse(secretsJsonString).as[EngineSecrets]
+  private lazy val secrets: EngineSecrets = read[EngineSecrets](secretsJsonString)
 
   def getSecrets: ZIO[Any, ConfigFailure, EngineSecrets] = {
     ZIO.succeed(secrets)

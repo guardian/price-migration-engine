@@ -53,7 +53,6 @@ lazy val lambda = (project in file("lambda"))
       awsSecretsManager,
       http,
       commonsCsv,
-      playJson,
       slf4jNop % Runtime,
       munit % Test,
       zioTest % Test,

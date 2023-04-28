@@ -9,7 +9,6 @@ object Dependencies {
   lazy val awsSQS = "software.amazon.awssdk" % "sqs" % awsSdkVersion
   lazy val awsStateMachine = "software.amazon.awssdk" % "sfn" % awsSdkVersion
   lazy val awsSecretsManager = "software.amazon.awssdk" % "secretsmanager" % awsSdkVersion
-  lazy val playJson = "com.typesafe.play" %% "play-json" % "2.9.4"
   lazy val zio = "dev.zio" %% "zio" % zioVersion
   lazy val zioStreams = "dev.zio" %% "zio-streams" % zioVersion
   lazy val zioTest = "dev.zio" %% "zio-test" % zioVersion
