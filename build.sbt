@@ -50,6 +50,7 @@ lazy val lambda = (project in file("lambda"))
       awsS3,
       awsSQS,
       awsStateMachine,
+      awsSecretsManager,
       http,
       commonsCsv,
       slf4jNop % Runtime,
