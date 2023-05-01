@@ -554,34 +554,6 @@ class NotificationHandlerTest extends munit.FunSuite {
   }
 
   test(
-    "NotificationHandler, in case of missing FirstName and missing Salutation, should not send an email"
-  ) {
-    val stubSalesforceClient =
-      stubSFClient(List(salesforceSubscription), List(salesforceContact.copy(FirstName = None, Salutation = None)))
-    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
-    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
-    val sentMessages = ArrayBuffer[EmailMessage]()
-    val stubEmailSender = createStubEmailSender(sentMessages)
-
-    // Building the cohort spec with the correct campaign name
-    val cohortSpec = CohortSpec("Name", brazeCampaignName, LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
-
-    assertEquals(
-      unsafeRunSync(default)(
-        (for {
-          _ <- TestClock.setTime(currentTime)
-          program <- NotificationHandler.main(cohortSpec)
-        } yield program).provideLayer(
-          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
-        )
-      ),
-      Success(HandlerOutput(isComplete = true))
-    )
-
-    assertEquals(sentMessages.size, 0)
-  }
-
-  test(
     "NotificationHandler, if membership price rise (Batch1), in case of missing FirstMame and missing Salutation, should still send an email"
   ) {
     val stubSalesforceClient =

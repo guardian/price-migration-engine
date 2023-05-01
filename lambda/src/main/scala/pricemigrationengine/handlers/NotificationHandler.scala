@@ -131,11 +131,7 @@ object NotificationHandler extends CohortHandler {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
       firstName <- requiredField(contact.FirstName, "Contact.FirstName").orElse(
-        if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
-          requiredField(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation")
-        } else {
-          requiredField(contact.Salutation, "Contact.Salutation")
-        }
+        requiredField(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation")
       )
       lastName <- requiredField(contact.LastName, "Contact.LastName")
       address <- targetAddress(contact)
