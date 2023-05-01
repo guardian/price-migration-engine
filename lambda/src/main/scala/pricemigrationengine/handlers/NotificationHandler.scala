@@ -21,7 +21,7 @@ object NotificationHandler extends CohortHandler {
   // The standard notification period for letter products (where the notification is delivered by email)
   // is -49 (included) to -35 (excluded) days.
   val guLettersNotificationLeadTime = 49
-  private val engineLettersMinNotificationLeadTime = 35
+  private val engineLettersMinNotificationLeadTime = 30
 
   // Membership migration
   // Notification period: -33 (included) to -31 (excluded) days
