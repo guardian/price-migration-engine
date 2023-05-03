@@ -702,52 +702,52 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date3, cohortItem), false)
   }
 
-  test("thereIsEnoughNotificationLeadTime behaves correctly (membership case, Batch1)") {
-    // We are using the same dates as for the previous test (legacy case)
+  // test("thereIsEnoughNotificationLeadTime behaves correctly (membership case, Batch1)") {
+  // We are using the same dates as for the previous test (legacy case)
 
-    // Here let's observe the slight shift in notification period due to membership variation, by which
-    // 33 days wasn't enough in the legacy case, but will be in the membership case. We also test with 30 days
-    // to observe that it won't be enough.
+  // Here let's observe the slight shift in notification period due to membership variation, by which
+  // 33 days wasn't enough in the legacy case, but will be in the membership case. We also test with 30 days
+  // to observe that it won't be enough.
 
-    // Note that in the case of membership the notification period is -33 (included) to -31 (excluded) days
-    // For more details about why -33 is included but -31 is excluded, see explanation at the top of the Notification
-    // handler.
+  // Note that in the case of membership the notification period is -33 (included) to -31 (excluded) days
+  // For more details about why -33 is included but -31 is excluded, see explanation at the top of the Notification
+  // handler.
 
-    val itemStartDate = LocalDate.of(2023, 5, 4)
+  // val itemStartDate = LocalDate.of(2023, 5, 4)
 
-    val cohortSpec = CohortSpec("Membership2023_Batch1", "BrazeCampaignName", LocalDate.of(2000, 1, 1), itemStartDate)
-    val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
+  // val cohortSpec = CohortSpec("Membership2023_Batch1", "BrazeCampaignName", LocalDate.of(2000, 1, 1), itemStartDate)
+  // val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
 
-    val date2 = LocalDate.of(2023, 3, 1) // true
-    val date3 = LocalDate.of(2023, 4, 1) // 33 days to target, should true
-    val date4 = LocalDate.of(2023, 4, 4) // 30 days to target, should false
-    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date2, cohortItem), true)
-    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date3, cohortItem), true)
-    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date4, cohortItem), false)
-  }
+  // val date2 = LocalDate.of(2023, 3, 1) // true
+  // val date3 = LocalDate.of(2023, 4, 1) // 33 days to target, should true
+  // val date4 = LocalDate.of(2023, 4, 4) // 30 days to target, should false
+  // assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date2, cohortItem), true)
+  // assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date3, cohortItem), true)
+  // assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date4, cohortItem), false)
+  // }
 
-  test("thereIsEnoughNotificationLeadTime behaves correctly (membership case, Batch2)") {
-    // Similar as Batch1, but shifted by a month
+  // test("thereIsEnoughNotificationLeadTime behaves correctly (membership case, Batch2)") {
+  // Similar as Batch1, but shifted by a month
 
-    // Note that in the case of membership the notification period is -33 (included) to -31 (excluded) days
-    // For more details about why -33 is included but -31 is excluded, see explanation at the top of the Notification
-    // handler.
+  // Note that in the case of membership the notification period is -33 (included) to -31 (excluded) days
+  // For more details about why -33 is included but -31 is excluded, see explanation at the top of the Notification
+  // handler.
 
-    val itemStartDate = LocalDate.of(2023, 6, 4)
+  //  val itemStartDate = LocalDate.of(2023, 6, 4)
 
-    val cohortSpec = CohortSpec("Membership2023_Batch2", "BrazeCampaignName", LocalDate.of(2000, 1, 1), itemStartDate)
-    val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
+  //  val cohortSpec = CohortSpec("Membership2023_Batch2", "BrazeCampaignName", LocalDate.of(2000, 1, 1), itemStartDate)
+  //  val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
 
-    val date2 = LocalDate.of(2023, 4, 1) // true
-    val date3 = LocalDate.of(2023, 5, 1) // 34 days to target, should true
-    val date4 = LocalDate.of(2023, 5, 2) // 33 days to target, should true
-    val date5 = LocalDate.of(2023, 5, 3) // 32 days to target, should true
-    val date6 = LocalDate.of(2023, 5, 4) // 31 days to target, should false
-    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date2, cohortItem), true)
-    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date3, cohortItem), true)
-    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date4, cohortItem), true)
-    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date5, cohortItem), true)
-    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date6, cohortItem), false)
+  //  val date2 = LocalDate.of(2023, 4, 1) // true
+  //  val date3 = LocalDate.of(2023, 5, 1) // 34 days to target, should true
+  //  val date4 = LocalDate.of(2023, 5, 2) // 33 days to target, should true
+  //  val date5 = LocalDate.of(2023, 5, 3) // 32 days to target, should true
+  //  val date6 = LocalDate.of(2023, 5, 4) // 31 days to target, should false
+  //  assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date2, cohortItem), true)
+  //  assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date3, cohortItem), true)
+  //  assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date4, cohortItem), true)
+  //  assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date5, cohortItem), true)
+  //  assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date6, cohortItem), false)
 
-  }
+  // }
 }

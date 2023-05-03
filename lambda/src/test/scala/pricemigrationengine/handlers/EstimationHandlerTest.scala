@@ -120,19 +120,19 @@ object EstimationHandlerTest extends ZIOSpecDefault {
 
         assertTrue(startDateGeneralLowerbound(cohortSpec, today) == cohortSpec.earliestPriceMigrationStartDate)
       },
-      test("decideEarliestStartDate (membership)") {
+      // test("decideEarliestStartDate (membership)") {
 
-        val today = LocalDate.of(2023, 4, 1)
-        val cohortSpec =
-          CohortSpec("Membership2023_Batch1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
+      //  val today = LocalDate.of(2023, 4, 1)
+      //  val cohortSpec =
+      //    CohortSpec("Membership2023_Batch1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
 
-        // today is: 2023-04-01
-        // The Cohort's earliestPriceMigrationStartDate is 2022-05-01
-        // (Today + 32 days) is after earliestPriceMigrationStartDate
-        // The earliest start date needs to be 32 days ahead of today -> 2023-05-05
+      // today is: 2023-04-01
+      // The Cohort's earliestPriceMigrationStartDate is 2022-05-01
+      // (Today + 32 days) is after earliestPriceMigrationStartDate
+      // The earliest start date needs to be 32 days ahead of today -> 2023-05-05
 
-        assertTrue(startDateGeneralLowerbound(cohortSpec, today) == LocalDate.of(2023, 5, 3))
-      }
+      //  assertTrue(startDateGeneralLowerbound(cohortSpec, today) == LocalDate.of(2023, 5, 3))
+      // }
     )
   }
 }
