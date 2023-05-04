@@ -26,7 +26,7 @@ object NotificationHandler extends CohortHandler {
   // Membership migration
   // Notification period: -33 (included) to -31 (excluded) days
   private val membershipPriceRiseNotificationLeadTime = 33
-  private val membershipMinNotificationLeadTime = 30
+  private val membershipMinNotificationLeadTime = 29
 
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
     if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
