@@ -9,25 +9,23 @@ import java.lang.System.getenv
   */
 object EnvConfig {
 
-  private def env(name: String) =
+  private def env(name: String): ZIO[Any, ConfigFailure, String] =
     for {
       opt <- optionalEnv(name)
       value <- ZIO.fromOption(opt).orElseFail(ConfigFailure(s"No value for '$name' in environment"))
     } yield value
 
-  private def optionalEnv(name: String) =
+  private def optionalEnv(name: String): ZIO[Any, ConfigFailure, Option[String]] =
     ZIO.attempt(Option(getenv(name))).mapError(e => ConfigFailure(e.getMessage))
 
   object zuora {
     val layer: Layer[ConfigFailure, ZuoraConfig] = ZLayer.fromZIO(
       for {
-        zuoraApiHost <- env("zuoraApiHost")
-        zuoraClientId <- env("zuoraClientId")
-        zuoraClientSecret <- env("zuoraClientSecret")
+        secrets <- EngineSecrets.getSecrets
       } yield ZuoraConfig(
-        zuoraApiHost,
-        zuoraClientId,
-        zuoraClientSecret
+        secrets.zuoraApiHost,
+        secrets.zuoraClientId,
+        secrets.zuoraClientSecret
       )
     )
   }
@@ -43,19 +41,14 @@ object EnvConfig {
   object salesforce {
     val layer: Layer[ConfigFailure, SalesforceConfig] = ZLayer.fromZIO(
       for {
-        salesforceAuthUrl <- env("salesforceAuthUrl")
-        salesforceClientId <- env("salesforceClientId")
-        salesforceClientSecret <- env("salesforceClientSecret")
-        salesforceUserName <- env("salesforceUserName")
-        salesforcePassword <- env("salesforcePassword")
-        salesforceToken <- env("salesforceToken")
+        secrets <- EngineSecrets.getSecrets
       } yield SalesforceConfig(
-        salesforceAuthUrl,
-        salesforceClientId,
-        salesforceClientSecret,
-        salesforceUserName,
-        salesforcePassword,
-        salesforceToken
+        secrets.salesforceAuthUrl,
+        secrets.salesforceClientId,
+        secrets.salesforceClientSecret,
+        secrets.salesforceUserName,
+        secrets.salesforcePassword,
+        secrets.salesforceToken
       )
     )
   }

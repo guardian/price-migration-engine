@@ -20,8 +20,7 @@ object NotificationHandler extends CohortHandler {
 
   // The standard notification period for letter products (where the notification is delivered by email)
   // is -49 (included) to -35 (excluded) days.
-  // During membership migration the max time has (temporarily) been set to 50.
-  val guLettersNotificationLeadTime = 50
+  val guLettersNotificationLeadTime = 49
   private val engineLettersMinNotificationLeadTime = 35
 
   // Membership migration
@@ -132,11 +131,7 @@ object NotificationHandler extends CohortHandler {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
       firstName <- requiredField(contact.FirstName, "Contact.FirstName").orElse(
-        if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
-          requiredField(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation")
-        } else {
-          requiredField(contact.Salutation, "Contact.Salutation")
-        }
+        requiredField(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation")
       )
       lastName <- requiredField(contact.LastName, "Contact.LastName")
       address <- targetAddress(contact)
@@ -147,7 +142,12 @@ object NotificationHandler extends CohortHandler {
           requiredField(address.street, "Contact.OtherAddress.street")
         }
       postalCode = address.postalCode.getOrElse("")
-      country <- requiredField(address.country, "Contact.OtherAddress.country")
+      country <-
+        if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
+          requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
+        } else {
+          requiredField(address.country, "Contact.OtherAddress.country")
+        }
       oldPrice <- requiredField(cohortItem.oldPrice, "CohortItem.oldPrice")
       estimatedNewPrice <- requiredField(cohortItem.estimatedNewPrice, "CohortItem.estimatedNewPrice")
       startDate <- requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate")
