@@ -29,7 +29,7 @@ object NotificationHandler extends CohortHandler {
   private val membershipMinNotificationLeadTime = 31
 
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
-    if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
+    if (CohortSpec.isMembershipPriceRise(cohortSpec)) {
       membershipPriceRiseNotificationLeadTime
     } else {
       guLettersNotificationLeadTime
@@ -37,7 +37,7 @@ object NotificationHandler extends CohortHandler {
   }
 
   def minLeadTime(cohortSpec: CohortSpec): Int = {
-    if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
+    if (CohortSpec.isMembershipPriceRise(cohortSpec)) {
       membershipMinNotificationLeadTime
     } else {
       engineLettersMinNotificationLeadTime
@@ -136,14 +136,14 @@ object NotificationHandler extends CohortHandler {
       lastName <- requiredField(contact.LastName, "Contact.LastName")
       address <- targetAddress(contact)
       street <-
-        if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
+        if (CohortSpec.isMembershipPriceRise(cohortSpec)) {
           requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
         } else {
           requiredField(address.street, "Contact.OtherAddress.street")
         }
       postalCode = address.postalCode.getOrElse("")
       country <-
-        if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
+        if (CohortSpec.isMembershipPriceRise(cohortSpec)) {
           requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
         } else {
           requiredField(address.country, "Contact.OtherAddress.country")
@@ -157,7 +157,7 @@ object NotificationHandler extends CohortHandler {
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
 
       // In the case of membership price rise, we need to not cap the price
-      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec))}"
+      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, CohortSpec.isMembershipPriceRise(cohortSpec))}"
 
       _ <- logMissingEmailAddress(cohortItem, contact)
 

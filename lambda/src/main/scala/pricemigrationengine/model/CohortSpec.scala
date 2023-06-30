@@ -65,7 +65,13 @@ object CohortSpec {
 
   def isMembershipPriceRiseBatch1(cohortSpec: CohortSpec): Boolean = cohortSpec.cohortName == "Membership2023_Batch1"
   def isMembershipPriceRiseBatch2(cohortSpec: CohortSpec): Boolean = cohortSpec.cohortName == "Membership2023_Batch2"
+  def isMembershipPriceRiseBatch3(cohortSpec: CohortSpec): Boolean = cohortSpec.cohortName == "Membership2023_Batch3"
 
   def isMembershipPriceRiseMonthlies(cohortSpec: CohortSpec) =
     isMembershipPriceRiseBatch1(cohortSpec) || isMembershipPriceRiseBatch2(cohortSpec)
+
+  def isMembershipPriceRiseAnnuals(cohortSpec: CohortSpec) = isMembershipPriceRiseBatch3(cohortSpec)
+
+  def isMembershipPriceRise(cohortSpec: CohortSpec) =
+    isMembershipPriceRiseMonthlies(cohortSpec) || isMembershipPriceRiseAnnuals(cohortSpec)
 }
