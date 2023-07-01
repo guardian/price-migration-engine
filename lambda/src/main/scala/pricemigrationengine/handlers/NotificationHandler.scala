@@ -263,16 +263,20 @@ object NotificationHandler extends CohortHandler {
     } yield 0
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    main(input).provideSome[Logging](
-      EnvConfig.salesforce.layer,
-      EnvConfig.cohortTable.layer,
-      EnvConfig.emailSender.layer,
-      EnvConfig.stage.layer,
-      DynamoDBClientLive.impl,
-      DynamoDBZIOLive.impl,
-      CohortTableLive.impl(input),
-      SalesforceClientLive.impl,
-      EmailSenderLive.impl
-    )
+    if (!CohortSpec.isMembershipPriceRiseBatch3(input)) {
+      main(input).provideSome[Logging](
+        EnvConfig.salesforce.layer,
+        EnvConfig.cohortTable.layer,
+        EnvConfig.emailSender.layer,
+        EnvConfig.stage.layer,
+        DynamoDBClientLive.impl,
+        DynamoDBZIOLive.impl,
+        CohortTableLive.impl(input),
+        SalesforceClientLive.impl,
+        EmailSenderLive.impl
+      )
+    } else {
+      ZIO.succeed(HandlerOutput(isComplete = true))
+    }
   }
 }
