@@ -13,7 +13,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
   private val testTime1 = OffsetDateTime.of(LocalDateTime.of(2022, 7, 10, 10, 2), ZoneOffset.ofHours(0)).toInstant
 
   override def spec: Spec[TestEnvironment, Any] = {
-    suite("spreadEarliestStartDate")(
+    suite("EstimationHandlerTest")(
       test("spreadEarliestStartDate: gives default value for a quarterly subscription") {
         val today = LocalDate.of(2000, 1, 1)
         for {
