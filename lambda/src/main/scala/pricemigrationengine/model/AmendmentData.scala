@@ -90,8 +90,8 @@ object AmendmentData {
       moment, just a difference between regular price rises and membership (batch 1) will do.
      */
 
-    if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
-      Membership2023.priceData(account, catalogue, subscription, invoiceList, nextServiceStartDate)
+    if (CohortSpec.isMembershipPriceRise(cohortSpec)) {
+      Membership2023.priceData(account, catalogue, subscription, invoiceList, nextServiceStartDate, cohortSpec)
     } else {
       priceDataWithRatePlanMatching(account, catalogue, subscription, invoiceList, nextServiceStartDate)
     }

@@ -76,7 +76,7 @@ object ZuoraSubscriptionUpdate {
     }
   }
 
-  def updateOfRatePlansToCurrentMembership2023(
+  def updateOfRatePlansToCurrent_Membership2023_Monthlies(
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       effectiveDate: LocalDate,
@@ -101,10 +101,47 @@ object ZuoraSubscriptionUpdate {
       // At this point we know that we have exactly one activeRatePlans
       val activeRatePlan = activeRatePlans.head
 
-      // In the case of Membership Batch 1, things are now more simple. We can hardcode the rate plan
+      // In the case of Membership Batch 1 and 2 (monthlies), things are now more simple. We can hardcode the rate plan
       Right(
         ZuoraSubscriptionUpdate(
           add = List(AddZuoraRatePlan("8a1287c586832d250186a2040b1548fe", effectiveDate)),
+          remove = List(RemoveZuoraRatePlan(activeRatePlan.id, effectiveDate)),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
+    }
+  }
+
+  def updateOfRatePlansToCurrent_Membership2023_Annuals(
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      effectiveDate: LocalDate,
+  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+
+    // This variant has a simpler signature than its classic counterpart.
+
+    val activeRatePlans = (for {
+      invoiceItem <- ZuoraInvoiceItem.items(invoiceList, subscription, effectiveDate)
+      ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toSeq
+      price <- ratePlanCharge.price.toSeq
+      if price > 0
+      ratePlan <- ZuoraRatePlan.ratePlan(subscription, ratePlanCharge).toSeq
+    } yield ratePlan).distinct
+
+    if (activeRatePlans.isEmpty)
+      Left(AmendmentDataFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
+    else if (activeRatePlans.size > 1)
+      Left(AmendmentDataFailure(s"Multiple rate plans to update: ${activeRatePlans.map(_.id)}"))
+    else {
+
+      // At this point we know that we have exactly one activeRatePlans
+      val activeRatePlan = activeRatePlans.head
+
+      // Batch 3 (annuals)
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(AddZuoraRatePlan("8a129ce886834fa90186a20c3ee70b6a", effectiveDate)),
           remove = List(RemoveZuoraRatePlan(activeRatePlan.id, effectiveDate)),
           currentTerm = None,
           currentTermPeriodType = None

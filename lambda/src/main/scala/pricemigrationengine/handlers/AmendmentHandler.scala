@@ -120,7 +120,16 @@ object AmendmentHandler extends CohortHandler {
         if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
           ZIO.fromEither(
             ZuoraSubscriptionUpdate
-              .updateOfRatePlansToCurrentMembership2023(
+              .updateOfRatePlansToCurrent_Membership2023_Monthlies(
+                subscriptionBeforeUpdate,
+                invoicePreviewBeforeUpdate,
+                startDate
+              )
+          )
+        } else if (CohortSpec.isMembershipPriceRiseAnnuals(cohortSpec)) {
+          ZIO.fromEither(
+            ZuoraSubscriptionUpdate
+              .updateOfRatePlansToCurrent_Membership2023_Annuals(
                 subscriptionBeforeUpdate,
                 invoicePreviewBeforeUpdate,
                 startDate

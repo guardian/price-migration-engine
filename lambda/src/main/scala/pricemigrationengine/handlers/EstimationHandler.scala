@@ -115,15 +115,15 @@ object EstimationHandler extends CohortHandler {
   }
 
   // In legacy print product cases, we have spread the price rises over 3 months for monthly subscriptions, but
-  // in the case of membership we want to do this over a single month, hence a value of 1. For annual subscriptions
-  // we do not need to apply a spread
+  // in the case of membership we want to do this over a single month, hence a value of 1.
+  // For annual subscriptions we are not applying any spread and defaulting to value 1
   def decideSpreadPeriod(
       subscription: ZuoraSubscription,
       invoicePreview: ZuoraInvoiceList,
       cohortSpec: CohortSpec
   ): Int = {
     if (isMonthlySubscription(subscription, invoicePreview))
-      if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) 1 else 3
+      if (CohortSpec.isMembershipPriceRise(cohortSpec)) 1 else 3
     else 1
   }
 

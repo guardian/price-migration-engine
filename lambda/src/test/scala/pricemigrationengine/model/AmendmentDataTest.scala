@@ -724,4 +724,40 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
+  test("priceData: is correct in the case of membership subscriptions [GBP], Batch3") {
+    val cohortSpec =
+      CohortSpec("Membership2023_Batch3", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 7, 1))
+
+    val account = Fixtures.accountFromJson("Membership2023/Batch3/GBP/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch3/GBP/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch3/GBP/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch3/GBP/invoice-preview.json")
+
+    val priceData =
+      AmendmentData.priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2024, 1, 20), cohortSpec)
+
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "GBP", oldPrice = 49, newPrice = 75, billingPeriod = "Annual"))
+    )
+  }
+
+  test("priceData: is correct in the case of membership subscriptions [USD], Batch3") {
+    val cohortSpec =
+      CohortSpec("Membership2023_Batch3", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 7, 1))
+
+    val account = Fixtures.accountFromJson("Membership2023/Batch3/USD/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch3/USD/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch3/USD/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch3/USD/invoice-preview.json")
+
+    val priceData =
+      AmendmentData.priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2024, 1, 20), cohortSpec)
+
+    assertEquals(
+      priceData,
+      Right(PriceData(currency = "USD", oldPrice = 69, newPrice = 120, billingPeriod = "Annual"))
+    )
+  }
+
 }
