@@ -109,8 +109,8 @@ object SubscriptionIdUploadHandler extends CohortHandler {
           CohortTable
             .create(CohortItem(subscriptionId, ReadyForEstimation))
         } <* Logging.info(s"Imported subscription $subscriptionId"))
-          .catchSome { case _: CohortItemAlreadyPresentFailure =>
-            Logging.info(s"Ignored $subscriptionId as already in table").unit
+          .catchSome { case e: CohortItemAlreadyPresentFailure =>
+            Logging.info(s"Ignored $subscriptionId as already in table (DB error: ${e.reason})").unit
           }
           .tapError(e => Logging.error(s"Subscription $subscriptionId failed: $e"))
       }
