@@ -86,7 +86,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
           )
         )
       },
-      test("membership estimations: Estimation uses uncapped price, Membership2023_Batch3") {
+      test("membership estimations: Estimation uses uncapped price, Membership2023_Batch3 (GBP)") {
         // Batch 3 is the annual runs
 
         val cohortSpec =
@@ -103,6 +103,26 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         assertTrue(
           estimationResult == Right(
             SuccessfulEstimationResult("SUBSCRIPTION-NUMBER", LocalDate.of(2024, 1, 20), "GBP", 49, 75, "Annual")
+          )
+        )
+      },
+      test("membership estimations: Estimation uses uncapped price, Membership2023_Batch3 (USD)") {
+        // Batch 3 is the annual runs
+
+        val cohortSpec =
+          CohortSpec("Membership2023_Batch3", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 7, 1))
+        val startDate = cohortSpec.earliestPriceMigrationStartDate
+
+        val account = Fixtures.accountFromJson("Membership2023/Batch3/USD/account.json")
+        val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch3/USD/catalogue.json")
+        val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch3/USD/subscription.json")
+        val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch3/USD/invoice-preview.json")
+
+        val estimationResult = EstimationResult(account, catalogue, subscription, invoicePreview, startDate, cohortSpec)
+
+        assertTrue(
+          estimationResult == Right(
+            SuccessfulEstimationResult("SUBSCRIPTION-NUMBER", LocalDate.of(2024, 1, 20), "USD", 69, 120, "Annual")
           )
         )
       },
