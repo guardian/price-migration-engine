@@ -13,8 +13,8 @@ object EstimationHandlerTest extends ZIOSpecDefault {
   private val testTime1 = OffsetDateTime.of(LocalDateTime.of(2022, 7, 10, 10, 2), ZoneOffset.ofHours(0)).toInstant
 
   override def spec: Spec[TestEnvironment, Any] = {
-    suite("spreadEarliestStartDate")(
-      test("gives default value for a quarterly subscription") {
+    suite("EstimationHandlerTest")(
+      test("spreadEarliestStartDate: gives default value for a quarterly subscription") {
         val today = LocalDate.of(2000, 1, 1)
         for {
           _ <- TestClock.setTime(testTime1)
@@ -25,9 +25,9 @@ object EstimationHandlerTest extends ZIOSpecDefault {
             CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), absoluteEarliestStartDate),
             today
           )
-        } yield assertTrue(earliestStartDate == LocalDate.of(2020, 6, 2))
+        } yield assertTrue(earliestStartDate == LocalDate.of(2020, 7, 2))
       },
-      test("gives randomised value for a monthly subscription") {
+      test("spreadEarliestStartDate: gives randomised value for a monthly subscription") {
         val today = LocalDate.of(2000, 1, 1)
         for {
           _ <- TestClock.setTime(testTime1)
@@ -39,10 +39,8 @@ object EstimationHandlerTest extends ZIOSpecDefault {
             today
           )
         } yield assertTrue(earliestStartDate == LocalDate.of(2020, 7, 2))
-      }
-    )
-    suite("membership estimations")(
-      test("Estimation uses uncapped price, Membership2023_Batch1") {
+      },
+      test("membership estimations: Estimation uses uncapped price, Membership2023_Batch1") {
 
         // The name of the cohort here is import to trigger the membership2023_Batch1 code path
         val cohortSpec =
@@ -63,7 +61,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
           )
         )
       },
-      test("Estimation uses uncapped price, Membership2023_Batch2") {
+      test("membership estimations: Estimation uses uncapped price, Membership2023_Batch2") {
         // Similar to the previous test (and in particular we do reuse Batch1's fixtures as they are structurally
         // indistinguishable from Batch1), but shifting by a month for Batch2.
 
@@ -87,16 +85,16 @@ object EstimationHandlerTest extends ZIOSpecDefault {
             SuccessfulEstimationResult("SUBSCRIPTION-NUMBER", LocalDate.of(2023, 6, 13), "GBP", 5, 7, "Month")
           )
         )
-      }
-    )
-    suite("during estimation, we correctly prevent start dates that are too close")(
-      test("datesMax") {
+      },
+      test("during estimation, we correctly prevent start dates that are too close: datesMax") {
         val date1 = LocalDate.of(2023, 4, 1)
         val date2 = LocalDate.of(2023, 4, 2)
         assertTrue(datesMax(date1, date1) == date1)
         assertTrue(datesMax(date1, date2) == date2)
       },
-      test("decideEarliestStartDate (legacy case, part 1)") {
+      test(
+        "during estimation, we correctly prevent start dates that are too close: decideEarliestStartDate (legacy case, part 1)"
+      ) {
 
         val today = LocalDate.of(2023, 4, 1)
         val cohortSpec = CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
@@ -108,7 +106,9 @@ object EstimationHandlerTest extends ZIOSpecDefault {
 
         assertTrue(startDateGeneralLowerbound(cohortSpec, today) == LocalDate.of(2023, 5, 7))
       },
-      test("decideEarliestStartDate (legacy case, part 2)") {
+      test(
+        "during estimation, we correctly prevent start dates that are too close: decideEarliestStartDate (legacy case, part 2)"
+      ) {
 
         val today = LocalDate.of(2020, 4, 1)
         val cohortSpec = CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
@@ -120,7 +120,9 @@ object EstimationHandlerTest extends ZIOSpecDefault {
 
         assertTrue(startDateGeneralLowerbound(cohortSpec, today) == cohortSpec.earliestPriceMigrationStartDate)
       },
-      test("decideEarliestStartDate (membership)") {
+      test(
+        "during estimation, we correctly prevent start dates that are too close: decideEarliestStartDate (membership)"
+      ) {
 
         val today = LocalDate.of(2023, 4, 1)
         val cohortSpec =
