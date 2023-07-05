@@ -63,7 +63,6 @@ object NotificationHandler extends CohortHandler {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       count <- CohortTable
         .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
-        .filter(item => item.subscriptionName == "A-S00247550")
         .mapZIO(item => sendNotification(cohortSpec)(item, today))
         .runFold(0) { (sum, count) => sum + count }
       _ <- Logging.info(s"Successfully sent $count price rise notifications")
