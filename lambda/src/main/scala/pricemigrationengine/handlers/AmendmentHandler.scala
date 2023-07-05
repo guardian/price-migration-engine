@@ -81,7 +81,7 @@ object AmendmentHandler extends CohortHandler {
         } else {
           Left(
             ExpiringSubscriptionFailure(
-              s"Cohort item: ${item.subscriptionName}. The item startDate (price increase date) is after the subscription's end of effective period"
+              s"Cohort item: ${item.subscriptionName}. The item startDate (price increase date), ${item.startDate}, is after the subscription's end of effective period (${subscription.termEndDate.toString})"
             )
           )
         }
@@ -178,14 +178,18 @@ object AmendmentHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    main(input).provideSome[Logging](
-      EnvConfig.cohortTable.layer,
-      EnvConfig.zuora.layer,
-      EnvConfig.stage.layer,
-      DynamoDBZIOLive.impl,
-      DynamoDBClientLive.impl,
-      CohortTableLive.impl(input),
-      ZuoraLive.impl
-    )
+    if (!CohortSpec.isMembershipPriceRiseAnnuals(input)) {
+      main(input).provideSome[Logging](
+        EnvConfig.cohortTable.layer,
+        EnvConfig.zuora.layer,
+        EnvConfig.stage.layer,
+        DynamoDBZIOLive.impl,
+        DynamoDBClientLive.impl,
+        CohortTableLive.impl(input),
+        ZuoraLive.impl
+      )
+    } else {
+      ZIO.succeed(HandlerOutput(isComplete = true))
+    }
   }
 }
