@@ -750,4 +750,32 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date6, cohortItem), false)
 
   }
+
+  test("thereIsEnoughNotificationLeadTime behaves correctly (membership case, Batch3)") {
+    // Here we are testing and calibrating the timing required for a start of emailing on 5 July 2023
+    // Sending a couple on the 5th that will need to be time cleared (at -33 days)
+
+    val today = LocalDate.of(2023, 7, 5)
+
+    val itemStartDate1 = LocalDate.of(2023, 8, 4) // +30 days
+    val itemStartDate2 = LocalDate.of(2023, 8, 5) // +31 days
+    val itemStartDate3 = LocalDate.of(2023, 8, 6) // +32 days
+    val itemStartDate4 = LocalDate.of(2023, 8, 7) // +33 days
+    val itemStartDate5 = LocalDate.of(2023, 8, 8) // +34 days
+
+    val cohortItem1 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate1))
+    val cohortItem2 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate2))
+    val cohortItem3 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate3))
+    val cohortItem4 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate4))
+    val cohortItem5 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate5))
+
+    val cohortSpec =
+      CohortSpec("Membership2023_Batch3", "BrazeCampaignName", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 1, 1))
+
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem1), false) // +30 days
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem2), false) // +31 days
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem3), true) // +32 days
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem4), true) // +33 days
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem5), true) // +34 days
+  }
 }
