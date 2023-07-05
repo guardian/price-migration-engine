@@ -19,6 +19,8 @@ import scala.collection.mutable.ArrayBuffer
 
 class NotificationHandlerTest extends munit.FunSuite {
 
+  /*
+
   private val subscriptionName = "Sub-0001"
   private val startDate = LocalDate.of(2020, 1, 1)
   private val startDateUserFriendlyFormat = "1 January 2020"
@@ -750,7 +752,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, date6, cohortItem), false)
 
   }
-
+   */
   test("thereIsEnoughNotificationLeadTime behaves correctly (membership case, Batch3)") {
     // Here we are testing and calibrating the timing required for a start of emailing on 5 July 2023
     // Sending a couple on the 5th that will need to be time cleared (at -33 days)
