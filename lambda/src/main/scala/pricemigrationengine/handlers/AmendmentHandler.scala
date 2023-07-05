@@ -39,10 +39,11 @@ object AmendmentHandler extends CohortHandler {
           val result = CancelledAmendmentResult(item.subscriptionName)
           CohortTable.update(CohortItem.fromCancelledAmendmentResult(result)).as(result)
         }
-        case _: ExpiringSubscriptionFailure => {
+        case e: ExpiringSubscriptionFailure => {
           // `ExpiringSubscriptionFailure` happens when the subscription's end of effective period is before the
           // intended startDate (the price increase date). Alike `CancelledSubscriptionFailure` we cancel the amendment
           // and the only effect is an updated cohort item in the database
+          Logging.info(e.reason)
           val result = ExpiringSubscriptionResult(item.subscriptionName)
           CohortTable.update(CohortItem.fromExpiringSubscriptionResult(result)).as(result)
         }
@@ -81,7 +82,7 @@ object AmendmentHandler extends CohortHandler {
         } else {
           Left(
             ExpiringSubscriptionFailure(
-              s"Cohort item: ${item.subscriptionName}. The item startDate (price increase date) is after the subscription's end of effective period"
+              s"Cohort item: ${item.subscriptionName}. The item startDate (price increase date), ${item.startDate}, is after the subscription's end of effective period (${subscription.termEndDate.toString})"
             )
           )
         }
