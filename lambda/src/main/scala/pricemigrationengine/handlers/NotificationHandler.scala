@@ -19,28 +19,31 @@ object NotificationHandler extends CohortHandler {
   // For general information about the notification period see the docs/notification-periods.md
 
   // The standard notification period for letter products (where the notification is delivered by email)
-  // is -49 (included) to -35 (excluded) days.
-  val guLettersNotificationLeadTime = 49
-  private val engineLettersMinNotificationLeadTime = 35
+  // is -49 (included) to -35 (excluded) days. Legally the min is 30 days, but we set 35 days to alert if a
+  // subscription if exiting the notification window and needs to be investigated and repaired before the deadline
+  // of 30 days.
+
+  val letterMaxNotificationLeadTime = 49
+  private val letterMinNotificationLeadTime = 35
 
   // Membership migration
   // Notification period: -33 (included) to -31 (excluded) days
-  private val membershipPriceRiseNotificationLeadTime = 33
-  private val membershipMinNotificationLeadTime = 31
+  private val emailMaxNotificationLeadTime = 33
+  private val emailMinNotificationLeadTime = 31
 
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
     if (CohortSpec.isMembershipPriceRise(cohortSpec)) {
-      membershipPriceRiseNotificationLeadTime
+      emailMaxNotificationLeadTime
     } else {
-      guLettersNotificationLeadTime
+      letterMaxNotificationLeadTime
     }
   }
 
   def minLeadTime(cohortSpec: CohortSpec): Int = {
     if (CohortSpec.isMembershipPriceRise(cohortSpec)) {
-      membershipMinNotificationLeadTime
+      emailMinNotificationLeadTime
     } else {
-      engineLettersMinNotificationLeadTime
+      letterMinNotificationLeadTime
     }
   }
 
