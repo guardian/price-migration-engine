@@ -32,18 +32,16 @@ object NotificationHandler extends CohortHandler {
   private val emailMinNotificationLeadTime = 31
 
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
-    if (CohortSpec.isMembershipPriceRise(cohortSpec)) {
-      emailMaxNotificationLeadTime
-    } else {
-      letterMaxNotificationLeadTime
+    MigrationType(cohortSpec) match {
+      case Legacy => letterMaxNotificationLeadTime
+      case _      => emailMaxNotificationLeadTime
     }
   }
 
   def minLeadTime(cohortSpec: CohortSpec): Int = {
-    if (CohortSpec.isMembershipPriceRise(cohortSpec)) {
-      emailMinNotificationLeadTime
-    } else {
-      letterMinNotificationLeadTime
+    MigrationType(cohortSpec) match {
+      case Legacy => letterMinNotificationLeadTime
+      case _      => emailMinNotificationLeadTime
     }
   }
 
@@ -138,19 +136,21 @@ object NotificationHandler extends CohortHandler {
       )
       lastName <- requiredField(contact.LastName, "Contact.LastName")
       address <- targetAddress(contact)
-      street <-
-        if (CohortSpec.isMembershipPriceRise(cohortSpec)) {
+      street <- MigrationType(cohortSpec) match {
+        case Membership2023Monthlies =>
           requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
-        } else {
-          requiredField(address.street, "Contact.OtherAddress.street")
-        }
+        case Membership2023Annuals =>
+          requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
+        case _ => requiredField(address.street, "Contact.OtherAddress.street")
+      }
       postalCode = address.postalCode.getOrElse("")
-      country <-
-        if (CohortSpec.isMembershipPriceRise(cohortSpec)) {
+      country <- MigrationType(cohortSpec) match {
+        case Membership2023Monthlies =>
           requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
-        } else {
-          requiredField(address.country, "Contact.OtherAddress.country")
-        }
+        case Membership2023Annuals =>
+          requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
+        case _ => requiredField(address.country, "Contact.OtherAddress.country")
+      }
       oldPrice <- requiredField(cohortItem.oldPrice, "CohortItem.oldPrice")
       estimatedNewPrice <- requiredField(cohortItem.estimatedNewPrice, "CohortItem.estimatedNewPrice")
       startDate <- requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate")
@@ -159,8 +159,13 @@ object NotificationHandler extends CohortHandler {
       currencyISOCode <- requiredField(cohortItem.currency, "CohortItem.currency")
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
 
-      // In the case of membership price rise, we need to not cap the price
-      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, CohortSpec.isMembershipPriceRise(cohortSpec))}"
+      forceEstimated = MigrationType(cohortSpec) match {
+        case Membership2023Monthlies => true
+        case Membership2023Annuals   => true
+        case _                       => false
+      }
+
+      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, forceEstimated)}"
 
       _ <- logMissingEmailAddress(cohortItem, contact)
 

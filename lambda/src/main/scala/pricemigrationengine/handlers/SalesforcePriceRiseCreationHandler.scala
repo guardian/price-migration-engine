@@ -80,16 +80,21 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
         ZIO
           .fromOption(cohortItem.startDate)
           .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a startDate"))
-    } yield SalesforcePriceRise(
-      Some(subscription.Name),
-      Some(subscription.Buyer__c),
-      Some(oldPrice),
-      Some(
-        PriceCap.cappedPrice(oldPrice, estimatedNewPrice, CohortSpec.isMembershipPriceRise(cohortSpec))
-      ), // In case of membership price rise, we override the capping
-      Some(priceRiseDate),
-      Some(subscription.Id)
-    )
+    } yield {
+      val forceEstimated = MigrationType(cohortSpec) match {
+        case Membership2023Monthlies => true
+        case Membership2023Annuals   => true
+        case _                       => false
+      }
+      SalesforcePriceRise(
+        Some(subscription.Name),
+        Some(subscription.Buyer__c),
+        Some(oldPrice),
+        Some(PriceCap.cappedPrice(oldPrice, estimatedNewPrice, forceEstimated)),
+        Some(priceRiseDate),
+        Some(subscription.Id)
+      )
+    }
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =

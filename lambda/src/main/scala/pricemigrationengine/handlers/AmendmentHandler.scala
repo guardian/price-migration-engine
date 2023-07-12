@@ -116,8 +116,8 @@ object AmendmentHandler extends CohortHandler {
       invoicePreviewBeforeUpdate <-
         Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
 
-      update <-
-        if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
+      update <- MigrationType(cohortSpec) match {
+        case Membership2023Monthlies =>
           ZIO.fromEither(
             ZuoraSubscriptionUpdate
               .updateOfRatePlansToCurrent_Membership2023_Monthlies(
@@ -126,7 +126,7 @@ object AmendmentHandler extends CohortHandler {
                 startDate
               )
           )
-        } else if (CohortSpec.isMembershipPriceRiseAnnuals(cohortSpec)) {
+        case Membership2023Annuals =>
           ZIO.fromEither(
             ZuoraSubscriptionUpdate
               .updateOfRatePlansToCurrent_Membership2023_Annuals(
@@ -135,7 +135,7 @@ object AmendmentHandler extends CohortHandler {
                 startDate
               )
           )
-        } else {
+        case _ =>
           ZIO.fromEither(
             ZuoraSubscriptionUpdate
               .updateOfRatePlansToCurrent(
@@ -147,7 +147,7 @@ object AmendmentHandler extends CohortHandler {
                 PriceCap.priceCorrectionFactorForPriceCap(oldPrice, estimatedNewPrice)
               )
           )
-        }
+      }
 
       newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
 
@@ -178,18 +178,18 @@ object AmendmentHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    if (!CohortSpec.isMembershipPriceRiseAnnuals(input)) {
-      main(input).provideSome[Logging](
-        EnvConfig.cohortTable.layer,
-        EnvConfig.zuora.layer,
-        EnvConfig.stage.layer,
-        DynamoDBZIOLive.impl,
-        DynamoDBClientLive.impl,
-        CohortTableLive.impl(input),
-        ZuoraLive.impl
-      )
-    } else {
-      ZIO.succeed(HandlerOutput(isComplete = true))
+    MigrationType(input) match {
+      case Membership2023Annuals => ZIO.succeed(HandlerOutput(isComplete = true))
+      case _ =>
+        main(input).provideSome[Logging](
+          EnvConfig.cohortTable.layer,
+          EnvConfig.zuora.layer,
+          EnvConfig.stage.layer,
+          DynamoDBZIOLive.impl,
+          DynamoDBClientLive.impl,
+          CohortTableLive.impl(input),
+          ZuoraLive.impl
+        )
     }
   }
 }
