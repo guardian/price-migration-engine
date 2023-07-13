@@ -90,24 +90,24 @@ object Membership2023 {
       }
     }
 
-    if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
-      for {
-        ratePlan <- subscriptionRatePlan(subscription)
-        ratePlanCharge <- subscriptionRatePlanCharge(subscription, ratePlan)
-        currency = ratePlanCharge.currency
-        oldPrice <- getOldPrice(subscription, ratePlanCharge)
-        newPrice <- currencyToNewPriceMonthlies(currency: String)
-      } yield PriceData(currency, oldPrice, newPrice, "Month")
-    } else if (CohortSpec.isMembershipPriceRiseAnnuals(cohortSpec)) {
-      for {
-        ratePlan <- subscriptionRatePlan(subscription)
-        ratePlanCharge <- subscriptionRatePlanCharge(subscription, ratePlan)
-        currency = ratePlanCharge.currency
-        oldPrice <- getOldPrice(subscription, ratePlanCharge)
-        newPrice <- currencyToNewPriceAnnuals(currency: String)
-      } yield PriceData(currency, oldPrice, newPrice, "Annual")
-    } else {
-      Left(AmendmentDataFailure(s"(error: 7ba45f10) Incorrect cohort spec for this function: ${cohortSpec}"))
+    MigrationType(cohortSpec) match {
+      case Membership2023Monthlies =>
+        for {
+          ratePlan <- subscriptionRatePlan(subscription)
+          ratePlanCharge <- subscriptionRatePlanCharge(subscription, ratePlan)
+          currency = ratePlanCharge.currency
+          oldPrice <- getOldPrice(subscription, ratePlanCharge)
+          newPrice <- currencyToNewPriceMonthlies(currency: String)
+        } yield PriceData(currency, oldPrice, newPrice, "Month")
+      case Membership2023Annuals =>
+        for {
+          ratePlan <- subscriptionRatePlan(subscription)
+          ratePlanCharge <- subscriptionRatePlanCharge(subscription, ratePlan)
+          currency = ratePlanCharge.currency
+          oldPrice <- getOldPrice(subscription, ratePlanCharge)
+          newPrice <- currencyToNewPriceAnnuals(currency: String)
+        } yield PriceData(currency, oldPrice, newPrice, "Annual")
+      case _ => Left(AmendmentDataFailure(s"(error: 7ba45f10) Incorrect cohort spec for this function: ${cohortSpec}"))
     }
   }
 }

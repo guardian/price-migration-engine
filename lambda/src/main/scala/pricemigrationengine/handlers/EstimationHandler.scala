@@ -122,9 +122,13 @@ object EstimationHandler extends CohortHandler {
       invoicePreview: ZuoraInvoiceList,
       cohortSpec: CohortSpec
   ): Int = {
-    if (isMonthlySubscription(subscription, invoicePreview))
-      if (CohortSpec.isMembershipPriceRise(cohortSpec)) 1 else 3
-    else 1
+    if (isMonthlySubscription(subscription, invoicePreview)) {
+      MigrationType(cohortSpec) match {
+        case Membership2023Monthlies => 1
+        case Membership2023Annuals   => 1
+        case _                       => 3
+      }
+    } else 1
   }
 
   def decideStartDateLowerboundWithRandomAddition(
