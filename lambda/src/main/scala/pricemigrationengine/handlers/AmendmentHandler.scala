@@ -135,7 +135,19 @@ object AmendmentHandler extends CohortHandler {
                 startDate
               )
           )
-        case _ =>
+        case SupporterPlus2023V1V2 =>
+          ZIO.fromEither(
+            ZuoraSubscriptionUpdate
+              .updateOfRatePlansToCurrent(
+                account,
+                catalogue,
+                subscriptionBeforeUpdate,
+                invoicePreviewBeforeUpdate,
+                startDate,
+                PriceCap.priceCorrectionFactorForPriceCap(oldPrice, estimatedNewPrice)
+              )
+          )
+        case Legacy =>
           ZIO.fromEither(
             ZuoraSubscriptionUpdate
               .updateOfRatePlansToCurrent(

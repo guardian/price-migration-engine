@@ -49,13 +49,15 @@ sealed trait MigrationType
 object Legacy extends MigrationType // refers to all migrations before membership 2023 and supporter 2023
 object Membership2023Monthlies extends MigrationType
 object Membership2023Annuals extends MigrationType
+object SupporterPlus2023V1V2 extends MigrationType
 
 object MigrationType {
   def apply(cohortSpec: CohortSpec): MigrationType = cohortSpec.cohortName match {
-    case "Membership2023_Batch1" => Membership2023Monthlies
-    case "Membership2023_Batch2" => Membership2023Monthlies
-    case "Membership2023_Batch3" => Membership2023Annuals
-    case _                       => Legacy
+    case "Membership2023_Batch1"    => Membership2023Monthlies
+    case "Membership2023_Batch2"    => Membership2023Monthlies
+    case "Membership2023_Batch3"    => Membership2023Annuals
+    case "SupporterRevenue2023V1V2" => SupporterPlus2023V1V2
+    case _                          => Legacy
   }
 }
 

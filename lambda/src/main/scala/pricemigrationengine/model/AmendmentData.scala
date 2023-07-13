@@ -74,6 +74,7 @@ object AmendmentData {
   ): Either[AmendmentDataFailure, PriceData] = {
 
     /*
+      ------------------
       Date: March 2023
       Author: Pascal
 
@@ -88,6 +89,12 @@ object AmendmentData {
 
       Depending on what the future migrations do, there might be an opportunity for refactoring this file, but for the
       moment, just a difference between regular price rises and membership (batch 1) will do.
+
+      ------------------
+      Date: July 2023
+      Author: Pascal
+
+      We are going to keep/use the same principle for Supporter Revenue V1 to V2 migration
      */
 
     MigrationType(cohortSpec) match {
@@ -95,6 +102,15 @@ object AmendmentData {
         Membership2023.priceData(account, catalogue, subscription, invoiceList, nextServiceStartDate, cohortSpec)
       case Membership2023Annuals =>
         Membership2023.priceData(account, catalogue, subscription, invoiceList, nextServiceStartDate, cohortSpec)
+      case SupporterPlus2023V1V2 =>
+        SupporterRevenue2023V1V2.priceData(
+          account,
+          catalogue,
+          subscription,
+          invoiceList,
+          nextServiceStartDate,
+          cohortSpec
+        )
       case _ => priceDataWithRatePlanMatching(account, catalogue, subscription, invoiceList, nextServiceStartDate)
     }
   }
