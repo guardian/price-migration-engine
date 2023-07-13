@@ -1,8 +1,8 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.handlers.NotificationHandler.thereIsEnoughNotificationLeadTime
-import pricemigrationengine.handlers.NotificationHandler.guLettersNotificationLeadTime
-import pricemigrationengine.{TestLogging}
+import pricemigrationengine.handlers.NotificationHandler.letterMaxNotificationLeadTime
+import pricemigrationengine.TestLogging
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
@@ -199,7 +199,7 @@ class NotificationHandlerTest extends munit.FunSuite {
   test("guLettersNotificationLeadTime should be at least 49 days") {
     // "Should be at least 49 days", but for invariance we test against the
     // usual value of exactly 49
-    assert(guLettersNotificationLeadTime == 49)
+    assert(letterMaxNotificationLeadTime == 49)
   }
 
   test("NotificationHandler should get records from cohort table and SF and send Email with the data") {
