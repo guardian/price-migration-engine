@@ -12,6 +12,7 @@ object SupporterRevenue2023V1V2 {
     "CAD" -> BigDecimal(13),
     "EUR" -> BigDecimal(10),
     "USD" -> BigDecimal(13),
+    "NZD" -> BigDecimal(17),
   )
 
   val newPriceMapAnnuals: Map[Currency, BigDecimal] = Map(
@@ -20,6 +21,7 @@ object SupporterRevenue2023V1V2 {
     "CAD" -> BigDecimal(120),
     "EUR" -> BigDecimal(95),
     "USD" -> BigDecimal(120),
+    "NZD" -> BigDecimal(160),
   )
 
   def subscriptionRatePlan(subscription: ZuoraSubscription): Either[AmendmentDataFailure, ZuoraRatePlan] = {
