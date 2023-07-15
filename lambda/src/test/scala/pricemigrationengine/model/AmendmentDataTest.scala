@@ -935,5 +935,4 @@ class AmendmentDataTest extends munit.FunSuite {
       PriceData(currency, 120, 120, "Annual")
     )
   }
-
 }
