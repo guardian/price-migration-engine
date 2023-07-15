@@ -6,7 +6,7 @@ import java.time.LocalDate
 
 object SupporterRevenue2023V1V2 {
 
-  val priceMapMonthlies: Map[Currency, BigDecimal] = Map(
+  val newPriceMapMonthlies: Map[Currency, BigDecimal] = Map(
     "GBP" -> BigDecimal(10),
     "AUD" -> BigDecimal(17),
     "CAD" -> BigDecimal(13),
@@ -14,7 +14,7 @@ object SupporterRevenue2023V1V2 {
     "USD" -> BigDecimal(13),
   )
 
-  val priceMapAnnuals: Map[Currency, BigDecimal] = Map(
+  val newPriceMapAnnuals: Map[Currency, BigDecimal] = Map(
     "GBP" -> BigDecimal(95),
     "AUD" -> BigDecimal(160),
     "CAD" -> BigDecimal(120),
@@ -65,14 +65,14 @@ object SupporterRevenue2023V1V2 {
   }
 
   def currencyToNewPriceMonthlies(currency: String): Either[AmendmentDataFailure, BigDecimal] = {
-    priceMapMonthlies.get(currency) match {
+    newPriceMapMonthlies.get(currency) match {
       case None => Left(AmendmentDataFailure(s"Could not determine a new monthly price for currency: ${currency}"))
       case Some(price) => Right(price)
     }
   }
 
   def currencyToNewPriceAnnuals(currency: String): Either[AmendmentDataFailure, BigDecimal] = {
-    priceMapAnnuals.get(currency) match {
+    newPriceMapAnnuals.get(currency) match {
       case None => Left(AmendmentDataFailure(s"Could not determine a new annual price for currency: ${currency}"))
       case Some(price) => Right(price)
     }
@@ -155,9 +155,10 @@ object SupporterRevenue2023V1V2 {
     val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, nextServiceStartDate)
     for {
       ratePlanCharges <- ratePlanChargesOrFail(subscription, invoiceItems)
-      pairs <- ratePlanChargePairs(catalogue, ratePlanCharges)
-      billingPeriod <- pairs
-        .flatMap(_.chargeFromSubscription.billingPeriod)
+      billingPeriod <- ratePlanCharges
+        .map(rpc => rpc.billingPeriod)
+        .filter(period => period.isDefined)
+        .map(rpc => rpc.get)
         .headOption
         .toRight(AmendmentDataFailure("Unknown billing period"))
     } yield billingPeriod
