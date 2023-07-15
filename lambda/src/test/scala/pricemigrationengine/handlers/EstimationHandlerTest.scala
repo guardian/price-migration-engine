@@ -173,6 +173,37 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         // The earliest start date needs to be 32 days ahead of today -> 2023-05-05
 
         assertTrue(startDateGeneralLowerbound(cohortSpec, today) == LocalDate.of(2023, 5, 3))
+      },
+      test("EstimationResult is correct for SupporterRevenue2023V1V2 annual") {
+
+        val cohortSpec =
+          CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+
+        val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/annual/account.json")
+        val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/annual/catalogue.json")
+        val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/annual/subscription.json")
+        val invoicePreview = Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/annual/invoice-preview.json")
+
+        val estimationResult = EstimationResult(
+          account = account,
+          catalogue = catalogue,
+          subscription = subscription,
+          invoiceList = invoicePreview,
+          startDateLowerBound = LocalDate.of(2023, 8, 21),
+          cohortSpec = cohortSpec,
+        ).toOption.get
+
+        assertTrue(
+          estimationResult ==
+            SuccessfulEstimationResult(
+              subscriptionName = "SUBSCRIPTION-NUMBER",
+              startDate = LocalDate.of(2024, 7, 2),
+              currency = "USD",
+              oldPrice = BigDecimal(120),
+              estimatedNewPrice = BigDecimal(120),
+              billingPeriod = "Annual"
+            )
+        )
       }
     )
   }
