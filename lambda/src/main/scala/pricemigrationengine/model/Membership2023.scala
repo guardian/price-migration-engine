@@ -21,6 +21,62 @@ object Membership2023 {
     "USD" -> BigDecimal(120),
   )
 
+  def subscriptionRatePlan(subscription: ZuoraSubscription): Either[AmendmentDataFailure, ZuoraRatePlan] = {
+    subscription.ratePlans.headOption match {
+      case None =>
+        Left(AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} doesn't have any rate plan"))
+      case Some(ratePlan) => Right(ratePlan)
+    }
+  }
+
+  def subscriptionRatePlanCharge(
+      subscription: ZuoraSubscription,
+      ratePlan: ZuoraRatePlan
+  ): Either[AmendmentDataFailure, ZuoraRatePlanCharge] = {
+    ratePlan.ratePlanCharges.headOption match {
+      case None => {
+        // Although not enforced by the signature of the function, for this error message to make sense we expect that
+        // the rate plan belongs to the currency
+        Left(
+          AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} has a rate plan, but with no charge")
+        )
+      }
+      case Some(ratePlanCharge) => Right(ratePlanCharge)
+    }
+  }
+
+  def getOldPrice(
+      subscription: ZuoraSubscription,
+      ratePlanCharge: ZuoraRatePlanCharge
+  ): Either[AmendmentDataFailure, BigDecimal] = {
+    ratePlanCharge.price match {
+      case None => {
+        // Although not enforced by the signature of the function, for this error message to make sense we expect that
+        // the rate plan charge belongs to the currency
+        Left(
+          AmendmentDataFailure(
+            s"Subscription ${subscription.subscriptionNumber} has a rate plan charge, but with no currency"
+          )
+        )
+      }
+      case Some(price) => Right(price)
+    }
+  }
+
+  def currencyToNewPriceMonthlies(currency: String): Either[AmendmentDataFailure, BigDecimal] = {
+    priceMapMonthlies.get(currency) match {
+      case None => Left(AmendmentDataFailure(s"Could not determine a new monthly price for currency: ${currency}"))
+      case Some(price) => Right(price)
+    }
+  }
+
+  def currencyToNewPriceAnnuals(currency: String): Either[AmendmentDataFailure, BigDecimal] = {
+    priceMapAnnuals.get(currency) match {
+      case None => Left(AmendmentDataFailure(s"Could not determine a new annual price for currency: ${currency}"))
+      case Some(price) => Right(price)
+    }
+  }
+
   def priceData(
       account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
@@ -29,66 +85,6 @@ object Membership2023 {
       nextServiceDate: LocalDate,
       cohortSpec: CohortSpec
   ): Either[AmendmentDataFailure, PriceData] = {
-
-    // Here we are going to use the Rate Plan from the subscription itself.
-    // We do not need to look up the one in the product catalogue.
-    // We will be using it to find out the currency.
-
-    def subscriptionRatePlan(subscription: ZuoraSubscription): Either[AmendmentDataFailure, ZuoraRatePlan] = {
-      subscription.ratePlans.headOption match {
-        case None =>
-          Left(AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} doesn't have any rate plan"))
-        case Some(ratePlan) => Right(ratePlan)
-      }
-    }
-
-    def subscriptionRatePlanCharge(
-        subscription: ZuoraSubscription,
-        ratePlan: ZuoraRatePlan
-    ): Either[AmendmentDataFailure, ZuoraRatePlanCharge] = {
-      ratePlan.ratePlanCharges.headOption match {
-        case None => {
-          // Although not enforced by the signature of the function, for this error message to make sense we expect that
-          // the rate plan belongs to the currency
-          Left(
-            AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} has a rate plan, but with no charge")
-          )
-        }
-        case Some(ratePlanCharge) => Right(ratePlanCharge)
-      }
-    }
-
-    def getOldPrice(
-        subscription: ZuoraSubscription,
-        ratePlanCharge: ZuoraRatePlanCharge
-    ): Either[AmendmentDataFailure, BigDecimal] = {
-      ratePlanCharge.price match {
-        case None => {
-          // Although not enforced by the signature of the function, for this error message to make sense we expect that
-          // the rate plan charge belongs to the currency
-          Left(
-            AmendmentDataFailure(
-              s"Subscription ${subscription.subscriptionNumber} has a rate plan charge, but with no currency"
-            )
-          )
-        }
-        case Some(price) => Right(price)
-      }
-    }
-
-    def currencyToNewPriceMonthlies(currency: String): Either[AmendmentDataFailure, BigDecimal] = {
-      priceMapMonthlies.get(currency) match {
-        case None => Left(AmendmentDataFailure(s"Could not determine a new monthly price for currency: ${currency}"))
-        case Some(price) => Right(price)
-      }
-    }
-
-    def currencyToNewPriceAnnuals(currency: String): Either[AmendmentDataFailure, BigDecimal] = {
-      priceMapAnnuals.get(currency) match {
-        case None => Left(AmendmentDataFailure(s"Could not determine a new annual price for currency: ${currency}"))
-        case Some(price) => Right(price)
-      }
-    }
 
     MigrationType(cohortSpec) match {
       case Membership2023Monthlies =>
