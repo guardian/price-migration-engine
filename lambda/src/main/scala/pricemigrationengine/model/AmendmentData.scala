@@ -64,6 +64,41 @@ object AmendmentData {
       chargeFromProduct: ZuoraProductRatePlanCharge
   )
 
+  def hasNotPriceAndDiscount(ratePlanCharge: ZuoraRatePlanCharge) =
+    ratePlanCharge.price.isDefined ^ ratePlanCharge.discountPercentage.exists(_ > 0)
+
+  def ratePlanCharge(
+      subscription: ZuoraSubscription,
+      invoiceItem: ZuoraInvoiceItem
+  ): Either[AmendmentDataFailure, ZuoraRatePlanCharge] =
+    ZuoraRatePlanCharge
+      .matchingRatePlanCharge(subscription, invoiceItem)
+      .filterOrElse(
+        hasNotPriceAndDiscount,
+        AmendmentDataFailure(s"Rate plan charge '${invoiceItem.chargeNumber}' has price and discount")
+      )
+
+  def ratePlanChargesOrFail(
+      subscription: ZuoraSubscription,
+      invoiceItems: Seq[ZuoraInvoiceItem]
+  ): Either[AmendmentDataFailure, Seq[ZuoraRatePlanCharge]] = {
+    val ratePlanCharges = invoiceItems.map(item => ratePlanCharge(subscription, item))
+    val failures = ratePlanCharges.collect { case Left(failure) => failure }
+
+    if (failures.isEmpty) Right(ratePlanCharges.collect { case Right(charge) => charge })
+    else Left(AmendmentDataFailure(failures.map(_.reason).mkString(", ")))
+  }
+
+  def ratePlanChargePair(
+      catalogue: ZuoraProductCatalogue,
+      ratePlanCharge: ZuoraRatePlanCharge
+  ): Either[ZuoraProductRatePlanChargeId, RatePlanChargePair] = {
+    productPricingMap(catalogue)
+      .get(ratePlanCharge.productRatePlanChargeId)
+      .toRight(ratePlanCharge.productRatePlanChargeId)
+      .map(productRatePlanCharge => RatePlanChargePair(ratePlanCharge, productRatePlanCharge))
+  }
+
   def priceData(
       account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
@@ -99,6 +134,25 @@ object AmendmentData {
     }
   }
 
+  def ratePlanChargePairs(
+      catalogue: ZuoraProductCatalogue,
+      ratePlanCharges: Seq[ZuoraRatePlanCharge]
+  ): Either[AmendmentDataFailure, Seq[RatePlanChargePair]] = {
+    /*
+     * distinct because where a sub has a discount rate plan,
+     * the same discount will appear against each product rate plan charge in the invoice preview.
+     */
+    val pairs = ratePlanCharges.distinctBy(_.productRatePlanChargeId).map(rp => ratePlanChargePair(catalogue, rp))
+    val failures = pairs.collect { case Left(failure) => failure }
+    if (failures.isEmpty) Right(pairs.collect { case Right(pricing) => pricing })
+    else
+      Left(
+        AmendmentDataFailure(
+          s"Failed to find matching product rate plan charges for rate plan charges: ${failures.mkString(", ")}"
+        )
+      )
+  }
+
   /** General algorithm: <ol> <li>For a given date, gather chargeNumber fields from invoice preview.</li> <li>For each
     * chargeNumber, match it with ratePlanCharge number on sub and get corresponding ratePlanCharge.</li> <li>For each
     * ratePlanCharge, match its productRatePlanChargeId with id in catalogue and get pricing currency, price and
@@ -113,62 +167,12 @@ object AmendmentData {
       nextServiceStartDate: LocalDate,
   ): Either[AmendmentDataFailure, PriceData] = {
 
-    def hasNotPriceAndDiscount(ratePlanCharge: ZuoraRatePlanCharge) =
-      ratePlanCharge.price.isDefined ^ ratePlanCharge.discountPercentage.exists(_ > 0)
-
-    def ratePlanCharge(invoiceItem: ZuoraInvoiceItem): Either[AmendmentDataFailure, ZuoraRatePlanCharge] =
-      ZuoraRatePlanCharge
-        .matchingRatePlanCharge(subscription, invoiceItem)
-        .filterOrElse(
-          hasNotPriceAndDiscount,
-          AmendmentDataFailure(s"Rate plan charge '${invoiceItem.chargeNumber}' has price and discount")
-        )
-
-    def ratePlanChargesOrFail(
-        invoiceItems: Seq[ZuoraInvoiceItem]
-    ): Either[AmendmentDataFailure, Seq[ZuoraRatePlanCharge]] = {
-      val ratePlanCharges = invoiceItems.map(ratePlanCharge)
-      val failures = ratePlanCharges.collect { case Left(failure) => failure }
-
-      if (failures.isEmpty) Right(ratePlanCharges.collect { case Right(charge) => charge })
-      else Left(AmendmentDataFailure(failures.map(_.reason).mkString(", ")))
-    }
-
-    def ratePlanChargePair(
-        catalogue: ZuoraProductCatalogue,
-        ratePlanCharge: ZuoraRatePlanCharge
-    ): Either[ZuoraProductRatePlanChargeId, RatePlanChargePair] = {
-      productPricingMap(catalogue)
-        .get(ratePlanCharge.productRatePlanChargeId)
-        .toRight(ratePlanCharge.productRatePlanChargeId)
-        .map(productRatePlanCharge => RatePlanChargePair(ratePlanCharge, productRatePlanCharge))
-    }
-
-    def ratePlanChargePairs(
-        catalogue: ZuoraProductCatalogue,
-        ratePlanCharges: Seq[ZuoraRatePlanCharge]
-    ): Either[AmendmentDataFailure, Seq[RatePlanChargePair]] = {
-      /*
-       * distinct because where a sub has a discount rate plan,
-       * the same discount will appear against each product rate plan charge in the invoice preview.
-       */
-      val pairs = ratePlanCharges.distinctBy(_.productRatePlanChargeId).map(rp => ratePlanChargePair(catalogue, rp))
-      val failures = pairs.collect { case Left(failure) => failure }
-      if (failures.isEmpty) Right(pairs.collect { case Right(pricing) => pricing })
-      else
-        Left(
-          AmendmentDataFailure(
-            s"Failed to find matching product rate plan charges for rate plan charges: ${failures.mkString(", ")}"
-          )
-        )
-    }
-
     val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, nextServiceStartDate)
 
     val zoneABCPlanNames = List("Guardian Weekly Zone A", "Guardian Weekly Zone B", "Guardian Weekly Zone C")
 
     for {
-      ratePlanCharges <- ratePlanChargesOrFail(invoiceItems)
+      ratePlanCharges <- ratePlanChargesOrFail(subscription, invoiceItems)
       ratePlan <- ZuoraRatePlan
         .ratePlan(subscription, ratePlanCharges.head)
         .toRight(AmendmentDataFailure(s"Failed to get RatePlan for charges: $ratePlanCharges"))
