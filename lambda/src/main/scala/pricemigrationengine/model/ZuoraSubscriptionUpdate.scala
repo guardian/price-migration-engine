@@ -75,42 +75,6 @@ object ZuoraSubscriptionUpdate {
         }
     }
   }
-
-  def updateOfRatePlansToCurrent_SupporterPlus2023V1V2_Annuals(
-      subscription: ZuoraSubscription,
-      invoiceList: ZuoraInvoiceList,
-      effectiveDate: LocalDate,
-  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
-
-    // This variant has a simpler signature than its classic counterpart.
-
-    val activeRatePlans = (for {
-      invoiceItem <- ZuoraInvoiceItem.items(invoiceList, subscription, effectiveDate)
-      ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toSeq
-      price <- ratePlanCharge.price.toSeq
-      if price > 0
-      ratePlan <- ZuoraRatePlan.ratePlan(subscription, ratePlanCharge).toSeq
-    } yield ratePlan).distinct
-
-    if (activeRatePlans.isEmpty)
-      Left(AmendmentDataFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
-    else if (activeRatePlans.size > 1)
-      Left(AmendmentDataFailure(s"Multiple rate plans to update: ${activeRatePlans.map(_.id)}"))
-    else {
-
-      // At this point we know that we have exactly one activeRatePlans
-      val activeRatePlan = activeRatePlans.head
-
-      Right(
-        ZuoraSubscriptionUpdate(
-          add = List(AddZuoraRatePlan("8a128ed885fc6ded01860228f77e3d5a", effectiveDate)),
-          remove = List(RemoveZuoraRatePlan(activeRatePlan.id, effectiveDate)),
-          currentTerm = None,
-          currentTermPeriodType = None
-        )
-      )
-    }
-  }
 }
 
 case class AddZuoraRatePlan(

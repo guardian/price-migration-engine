@@ -183,4 +183,128 @@ object SupporterRevenue2023V1V2 {
       newPrice <- currencyToNewPrice(billingP, currency: String)
     } yield PriceData(currency, oldPrice, newPrice, billingP)
   }
+
+  def updateOfRatePlanToCurrentMonth(
+      item: CohortItem,
+      activeRatePlan: ZuoraRatePlan,
+      effectiveDate: LocalDate,
+  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+
+    /*
+      So... the logic here, which is going to be similar for Annuals, is that we compare the estimated price
+      with the price recorded in newPriceMapAnnuals. If they are similar, we will interpret as the fact that the
+      subscription was paying the exact rate plan amount. If it is higher than we will issue a charge override
+      for the contribution rate plan charge.
+
+      All of this logic will be checked in tests.
+     */
+
+    val chargeOverrides = for {
+      currency <- item.currency
+      price <- currencyToNewPrice("Month", currency).toOption
+      estimatedPrice <- item.estimatedNewPrice
+    } yield {
+      if (estimatedPrice > price) {
+        List(
+          ChargeOverride(
+            productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270", // Montly Contribution
+            billingPeriod = "Month",
+            price = estimatedPrice - price
+          )
+        )
+      } else {
+        List()
+      }
+    }
+
+    chargeOverrides match {
+      case None => Left(AmendmentDataFailure(""))
+      case Some(charges) =>
+        Right(
+          ZuoraSubscriptionUpdate(
+            add = List(
+              AddZuoraRatePlan("8a128ed885fc6ded018602296ace3eb8", effectiveDate, charges)
+            ), // supporter plus monthly v2 with specific charges
+            remove = List(RemoveZuoraRatePlan(activeRatePlan.id, effectiveDate)),
+            currentTerm = None,
+            currentTermPeriodType = None
+          )
+        )
+    }
+  }
+
+  def updateOfRatePlanToCurrentAnnual(
+      item: CohortItem,
+      activeRatePlan: ZuoraRatePlan,
+      effectiveDate: LocalDate,
+  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+
+    val chargeOverrides = for {
+      currency <- item.currency
+      price <- currencyToNewPrice("Annual", currency).toOption
+      estimatedPrice <- item.estimatedNewPrice
+    } yield {
+      if (estimatedPrice > price) {
+        List(
+          ChargeOverride(
+            productRatePlanChargeId = "8a12892d85fc6df4018602451322287f", // Annual Contribution
+            billingPeriod = "Annual",
+            price = estimatedPrice - price
+          )
+        )
+      } else {
+        List()
+      }
+    }
+
+    chargeOverrides match {
+      case None => Left(AmendmentDataFailure(""))
+      case Some(charges) =>
+        Right(
+          ZuoraSubscriptionUpdate(
+            add = List(
+              AddZuoraRatePlan("8a128ed885fc6ded01860228f77e3d5a", effectiveDate, charges)
+            ), // supporter plus annual v2 with specific charges
+            remove = List(RemoveZuoraRatePlan(activeRatePlan.id, effectiveDate)),
+            currentTerm = None,
+            currentTermPeriodType = None
+          )
+        )
+    }
+  }
+
+  def updateOfRatePlansToCurrent(
+      item: CohortItem,
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      effectiveDate: LocalDate,
+  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+
+    val activeRatePlans = (for {
+      invoiceItem <- ZuoraInvoiceItem.items(invoiceList, subscription, effectiveDate)
+      ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toSeq
+      price <- ratePlanCharge.price.toSeq
+      if price > 0
+      ratePlan <- ZuoraRatePlan.ratePlan(subscription, ratePlanCharge).toSeq
+    } yield ratePlan).distinct
+
+    if (activeRatePlans.isEmpty)
+      Left(AmendmentDataFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
+    else if (activeRatePlans.size > 1)
+      Left(AmendmentDataFailure(s"Multiple rate plans to update: ${activeRatePlans.map(_.id)}"))
+    else {
+      // At this point we know that we have exactly one active rate plan
+      val activeRatePlan = activeRatePlans.head
+      item.billingPeriod match {
+        case Some("Month")  => updateOfRatePlanToCurrentMonth(item, activeRatePlan, effectiveDate)
+        case Some("Annual") => updateOfRatePlanToCurrentAnnual(item, activeRatePlan, effectiveDate)
+        case _ =>
+          Left(
+            AmendmentDataFailure(
+              s"Unsupported billing period (expecting Month, Annual), got ${item.billingPeriod} from ${item}"
+            )
+          )
+      }
+    }
+  }
 }

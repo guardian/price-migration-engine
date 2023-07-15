@@ -361,8 +361,6 @@ class AmendmentHandlerTest extends munit.FunSuite {
     // ZuoraInvoiceItem.items finds the invoice items corresponding to that billing date
     val invoiceItems = ZuoraInvoiceItem.items(invoicePreview, subscription, effectiveDate)
 
-    println(invoiceItems)
-
     val invoiceItemsCheck =
       List(ZuoraInvoiceItem("SUBSCRIPTION-NUMBER", LocalDate.of(2024, 7, 2), "C-04417974", "Supporter Plus"))
     assertEquals(invoiceItems, invoiceItemsCheck)
@@ -434,11 +432,26 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
 
-    val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent_SupporterPlus2023V1V2_Annuals(
+    val item =
+      CohortItem(
+        subscriptionName = "SUBSCRIPTION-NUMBER",
+        processingStage = NotificationSendDateWrittenToSalesforce,
+        startDate = Some(LocalDate.of(2024, 7, 2)),
+        currency = Some("USD"),
+        oldPrice = Some(BigDecimal(120)),
+        estimatedNewPrice = Some(BigDecimal(120)),
+        billingPeriod = Some("Annual")
+      )
+
+    val update = SupporterRevenue2023V1V2.updateOfRatePlansToCurrent(
+      item,
       subscription,
       invoicePreview,
       effectiveDate: LocalDate
     )
+
+    // note: the product rate plan id we are removing it: 8a12865b8219d9b40182210618a464ba, but the subscription can
+    // have a slightly different "effective" rate plan with it's own id, in this case 8a128432890171d1018914866bee0e7f
 
     assertEquals(
       update,
