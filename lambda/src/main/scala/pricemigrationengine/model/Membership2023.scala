@@ -85,11 +85,6 @@ object Membership2023 {
       nextServiceDate: LocalDate,
       cohortSpec: CohortSpec
   ): Either[AmendmentDataFailure, PriceData] = {
-
-    // Here we are going to use the Rate Plan from the subscription itself.
-    // We do not need to look up the one in the product catalogue.
-    // We will be using it to find out the currency.
-
     MigrationType(cohortSpec) match {
       case Membership2023Monthlies =>
         for {
