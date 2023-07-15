@@ -96,7 +96,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
 
-    val update = Membership2023.updateOfRatePlansToCurrent_Membership2023_Monthlies(
+    val update = Membership2023.updateOfRatePlansToCurrent_Monthlies(
       subscription,
       invoicePreview,
       effectiveDate: LocalDate
@@ -203,7 +203,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
 
-    val update = Membership2023.updateOfRatePlansToCurrent_Membership2023_Annuals(
+    val update = Membership2023.updateOfRatePlansToCurrent_Annuals(
       subscription,
       invoicePreview,
       effectiveDate: LocalDate
@@ -310,7 +310,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
 
-    val update = Membership2023.updateOfRatePlansToCurrent_Membership2023_Annuals(
+    val update = Membership2023.updateOfRatePlansToCurrent_Annuals(
       subscription,
       invoicePreview,
       effectiveDate: LocalDate

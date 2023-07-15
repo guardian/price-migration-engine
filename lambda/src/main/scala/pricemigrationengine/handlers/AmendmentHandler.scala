@@ -120,7 +120,7 @@ object AmendmentHandler extends CohortHandler {
         case Membership2023Monthlies =>
           ZIO.fromEither(
             Membership2023
-              .updateOfRatePlansToCurrent_Membership2023_Monthlies(
+              .updateOfRatePlansToCurrent_Monthlies(
                 subscriptionBeforeUpdate,
                 invoicePreviewBeforeUpdate,
                 startDate
@@ -129,7 +129,7 @@ object AmendmentHandler extends CohortHandler {
         case Membership2023Annuals =>
           ZIO.fromEither(
             Membership2023
-              .updateOfRatePlansToCurrent_Membership2023_Annuals(
+              .updateOfRatePlansToCurrent_Annuals(
                 subscriptionBeforeUpdate,
                 invoicePreviewBeforeUpdate,
                 startDate
