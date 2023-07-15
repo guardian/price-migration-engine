@@ -1,6 +1,7 @@
 package pricemigrationengine.model
 import pricemigrationengine.model.CohortSpec
-
+import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, productPricingMap}
+import scala.math.BigDecimal.RoundingMode
 import java.time.LocalDate
 
 object SupporterRevenue2023V1V2 {
@@ -77,16 +78,89 @@ object SupporterRevenue2023V1V2 {
     }
   }
 
+  def currencyToNewPrice(bilingP: String, currency: String): Either[AmendmentDataFailure, BigDecimal] = {
+    if (bilingP == "Month") {
+      currencyToNewPriceMonthlies(currency: String)
+    } else {
+      currencyToNewPriceAnnuals(currency: String)
+    }
+  }
+
+  case class RatePlanChargePair(
+      chargeFromSubscription: ZuoraRatePlanCharge,
+      chargeFromProduct: ZuoraProductRatePlanCharge
+  )
+
+  def hasNotPriceAndDiscount(ratePlanCharge: ZuoraRatePlanCharge): Boolean =
+    ratePlanCharge.price.isDefined ^ ratePlanCharge.discountPercentage.exists(_ > 0)
+
+  def ratePlanCharge(
+      subscription: ZuoraSubscription,
+      invoiceItem: ZuoraInvoiceItem
+  ): Either[AmendmentDataFailure, ZuoraRatePlanCharge] =
+    ZuoraRatePlanCharge
+      .matchingRatePlanCharge(subscription, invoiceItem)
+      .filterOrElse(
+        hasNotPriceAndDiscount,
+        AmendmentDataFailure(s"Rate plan charge '${invoiceItem.chargeNumber}' has price and discount")
+      )
+
+  def ratePlanChargesOrFail(
+      subscription: ZuoraSubscription,
+      invoiceItems: Seq[ZuoraInvoiceItem]
+  ): Either[AmendmentDataFailure, Seq[ZuoraRatePlanCharge]] = {
+    val ratePlanCharges = invoiceItems.map(item => ratePlanCharge(subscription, item))
+    val failures = ratePlanCharges.collect { case Left(failure) => failure }
+
+    if (failures.isEmpty) Right(ratePlanCharges.collect { case Right(charge) => charge })
+    else Left(AmendmentDataFailure(failures.map(_.reason).mkString(", ")))
+  }
+
+  def ratePlanChargePair(
+      catalogue: ZuoraProductCatalogue,
+      ratePlanCharge: ZuoraRatePlanCharge
+  ): Either[ZuoraProductRatePlanChargeId, RatePlanChargePair] = {
+    productPricingMap(catalogue)
+      .get(ratePlanCharge.productRatePlanChargeId)
+      .toRight(ratePlanCharge.productRatePlanChargeId)
+      .map(productRatePlanCharge => RatePlanChargePair(ratePlanCharge, productRatePlanCharge))
+  }
+
+  def ratePlanChargePairs(
+      catalogue: ZuoraProductCatalogue,
+      ratePlanCharges: Seq[ZuoraRatePlanCharge]
+  ): Either[AmendmentDataFailure, Seq[RatePlanChargePair]] = {
+    /*
+     * distinct because where a sub has a discount rate plan,
+     * the same discount will appear against each product rate plan charge in the invoice preview.
+     */
+    val pairs = ratePlanCharges.distinctBy(_.productRatePlanChargeId).map(rp => ratePlanChargePair(catalogue, rp))
+    val failures = pairs.collect { case Left(failure) => failure }
+    if (failures.isEmpty) Right(pairs.collect { case Right(pricing) => pricing })
+    else
+      Left(
+        AmendmentDataFailure(
+          s"Failed to find matching product rate plan charges for rate plan charges: ${failures.mkString(", ")}"
+        )
+      )
+  }
+
   def billingPeriod(
       account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       nextServiceStartDate: LocalDate,
-  ): Option[String] = {
-
-    Some("Month")
-
+  ): Either[AmendmentDataFailure, String] = {
+    val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, nextServiceStartDate)
+    for {
+      ratePlanCharges <- ratePlanChargesOrFail(subscription, invoiceItems)
+      pairs <- ratePlanChargePairs(catalogue, ratePlanCharges)
+      billingPeriod <- pairs
+        .flatMap(_.chargeFromSubscription.billingPeriod)
+        .headOption
+        .toRight(AmendmentDataFailure("Unknown billing period"))
+    } yield billingPeriod
   }
 
   def priceData(
@@ -97,29 +171,13 @@ object SupporterRevenue2023V1V2 {
       nextServiceDate: LocalDate,
       cohortSpec: CohortSpec
   ): Either[AmendmentDataFailure, PriceData] = {
-
-    // Here we are going to use the Rate Plan from the subscription itself.
-    // We do not need to look up the one in the product catalogue.
-    // We will be using it to find out the currency.
-
-    val isMonthly = true // needs to be determined
-
-    if (isMonthly) {
-      for {
-        ratePlan <- subscriptionRatePlan(subscription)
-        ratePlanCharge <- subscriptionRatePlanCharge(subscription, ratePlan)
-        currency = ratePlanCharge.currency
-        oldPrice <- getOldPrice(subscription, ratePlanCharge)
-        newPrice <- currencyToNewPriceMonthlies(currency: String)
-      } yield PriceData(currency, oldPrice, newPrice, "Month")
-    } else {
-      for {
-        ratePlan <- subscriptionRatePlan(subscription)
-        ratePlanCharge <- subscriptionRatePlanCharge(subscription, ratePlan)
-        currency = ratePlanCharge.currency
-        oldPrice <- getOldPrice(subscription, ratePlanCharge)
-        newPrice <- currencyToNewPriceAnnuals(currency: String)
-      } yield PriceData(currency, oldPrice, newPrice, "Annual")
-    }
+    for {
+      ratePlan <- subscriptionRatePlan(subscription)
+      ratePlanCharge <- subscriptionRatePlanCharge(subscription, ratePlan)
+      currency = ratePlanCharge.currency
+      oldPrice <- getOldPrice(subscription, ratePlanCharge)
+      billingP <- billingPeriod(account, catalogue, subscription, invoiceList, nextServiceDate)
+      newPrice <- currencyToNewPrice(billingP, currency: String)
+    } yield PriceData(currency, oldPrice, newPrice, billingP)
   }
 }
