@@ -50,9 +50,18 @@ object EstimationHandler extends CohortHandler {
         case e => ZIO.fail(e)
       },
       success = { result =>
-        val cohortItemToWrite =
-          if (result.estimatedNewPrice <= result.oldPrice) CohortItem.fromNoPriceIncreaseEstimationResult(result)
-          else CohortItem.fromSuccessfulEstimationResult(result)
+        val cohortItemToWrite = MigrationType(cohortSpec) match {
+          case SupporterPlus2023V1V2 => {
+            // SupporterPlus2023V1V2 is different here, because it's a rate plan migration and not a price increase
+            // The first of its kind. In particular we do not want processing stage `NoPriceIncrease`
+            CohortItem.fromSuccessfulEstimationResult(result)
+          }
+          case _ => {
+            if (result.estimatedNewPrice <= result.oldPrice) CohortItem.fromNoPriceIncreaseEstimationResult(result)
+            else CohortItem.fromSuccessfulEstimationResult(result)
+          }
+        }
+
         for {
           cohortItem <- cohortItemToWrite
           _ <- CohortTable.update(cohortItem)
