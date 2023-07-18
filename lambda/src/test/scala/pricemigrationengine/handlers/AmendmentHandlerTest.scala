@@ -112,6 +112,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
   }
+
   test("Membership2023 Amendment Batch3 / annuals / GBP") {
 
     // This test is going to be used as discovery to reverse engineer the way `updateOfRatePlansToCurrent` works.
@@ -217,6 +218,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
   }
+
   test("Membership2023 Amendment Batch3 / annuals / USD") {
 
     // This test is going to be used as discovery to reverse engineer the way `updateOfRatePlansToCurrent` works.
@@ -322,6 +324,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
   }
+
   test("Check subscription's end date versus the cohort item's start (price increase) date") {
     // Stage 1
     val subscription1 = Fixtures.subscriptionFromJson("Membership2023/Batch1/GBP/subscription.json")
@@ -347,6 +350,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
     // This triggers the ExpiringSubscriptionFailure case
     assertEquals(checkExpirationTiming(item3, subscription3).isLeft, true)
   }
+
   test("SupporterPlus2023V1V2 Amendment (monthly standard)") {
 
     val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/monthly-standard/account.json")
@@ -465,6 +469,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
   }
+
   test("SupporterPlus2023V1V2 Amendment (monthly contribution)") {
 
     val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/monthly-contribution/account.json")
@@ -604,6 +609,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
   }
+
   test("SupporterPlus2023V1V2 Amendment (annual standard)") {
 
     val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/annual-standard/account.json")
@@ -722,6 +728,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
   }
+
   test("SupporterPlus2023V1V2 Amendment (annual contribution)") {
 
     val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/annual-contribution/account.json")

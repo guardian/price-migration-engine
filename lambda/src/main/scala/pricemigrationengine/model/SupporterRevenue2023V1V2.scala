@@ -204,17 +204,17 @@ object SupporterRevenue2023V1V2 {
       All of this logic will be checked in tests.
      */
 
-    val chargeOverrides = for {
+    val chargeOverrides: Option[List[ChargeOverride]] = for {
       currency <- item.currency
       price <- currencyToNewPrice("Month", currency).toOption
-      estimatedPrice <- item.estimatedNewPrice
+      oldPrice <- item.oldPrice
     } yield {
-      if (estimatedPrice > price) {
+      if (oldPrice > price) {
         List(
           ChargeOverride(
-            productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270", // Montly Contribution
+            productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270", // Monthly Contribution
             billingPeriod = "Month",
-            price = estimatedPrice - price
+            price = oldPrice - price
           )
         )
       } else {
@@ -223,7 +223,7 @@ object SupporterRevenue2023V1V2 {
     }
 
     chargeOverrides match {
-      case None => Left(AmendmentDataFailure(""))
+      case None => Left(AmendmentDataFailure(s"Could not compute charge overrides for item: ${item}"))
       case Some(charges) =>
         Right(
           ZuoraSubscriptionUpdate(
