@@ -174,7 +174,38 @@ object EstimationHandlerTest extends ZIOSpecDefault {
 
         assertTrue(startDateGeneralLowerbound(cohortSpec, today) == LocalDate.of(2023, 5, 3))
       },
-      test("EstimationResult is correct for SupporterRevenue2023V1V2 annual") {
+      test("EstimationResult is correct for SupporterRevenue2023V1V2 (monthly standard)") {
+
+        val cohortSpec =
+          CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+
+        val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/monthly-standard/account.json")
+        val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/monthly-standard/catalogue.json")
+        val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/monthly-standard/subscription.json")
+        val invoicePreview = Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/monthly-standard/invoice-preview.json")
+
+        val estimationResult = EstimationResult(
+          account = account,
+          catalogue = catalogue,
+          subscription = subscription,
+          invoiceList = invoicePreview,
+          startDateLowerBound = LocalDate.of(2023, 8, 21),
+          cohortSpec = cohortSpec,
+        ).toOption.get
+
+        assertTrue(
+          estimationResult ==
+            SuccessfulEstimationResult(
+              subscriptionName = "SUBSCRIPTION-NUMBER",
+              startDate = LocalDate.of(2023, 9, 1),
+              currency = "GBP",
+              oldPrice = BigDecimal(10.0),
+              estimatedNewPrice = BigDecimal(10),
+              billingPeriod = "Month"
+            )
+        )
+      },
+      test("EstimationResult is correct for SupporterRevenue2023V1V2 (annual standard)") {
 
         val cohortSpec =
           CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
@@ -204,7 +235,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
               billingPeriod = "Annual"
             )
         )
-      }
+      },
     )
   }
 }

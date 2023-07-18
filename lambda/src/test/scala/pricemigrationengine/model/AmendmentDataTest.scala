@@ -760,7 +760,73 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
-  test("billing period is correct for SupporterRevenue2023V1V2") {
+  test("billing period is correct for SupporterRevenue2023V1V2 (montly standard)") {
+    val cohortSpec =
+      CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+
+    val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/monthly-standard/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/monthly-standard/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/monthly-standard/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/monthly-standard/invoice-preview.json")
+
+    val nextServiceStartDate = LocalDate.of(2023, 8, 1)
+
+    val invoiceItems = ZuoraInvoiceItem.items(invoicePreview, subscription, nextServiceStartDate)
+    assertEquals(
+      invoiceItems,
+      List(
+        ZuoraInvoiceItem(
+          subscriptionNumber = "SUBSCRIPTION-NUMBER",
+          serviceStartDate = LocalDate.of(2023, 8, 1),
+          chargeNumber = "C-04240692",
+          productName = "Supporter Plus"
+        )
+      )
+    )
+
+    val rpcof = SupporterRevenue2023V1V2.ratePlanChargesOrFail(subscription, invoiceItems)
+    assertEquals(
+      rpcof,
+      Right(
+        List(
+          ZuoraRatePlanCharge(
+            productRatePlanChargeId = "8a12865b8219d9b401822106194e64e3", // Supporter Plus Monthly Charge (GBP)
+            name = "Supporter Plus Monthly Charge",
+            number = "C-04240692",
+            currency = "GBP",
+            price = Some(10.0),
+            billingPeriod = Some("Month"),
+            chargedThroughDate = Some(LocalDate.of(2023, 8, 1)),
+            processedThroughDate = Some(LocalDate.of(2023, 7, 1)),
+            specificBillingPeriod = None,
+            endDateCondition = Some("Subscription_End"),
+            upToPeriodsType = None,
+            upToPeriods = None,
+            billingDay = Some("ChargeTriggerDay"),
+            triggerEvent = Some("CustomerAcceptance"),
+            triggerDate = None,
+            discountPercentage = None
+          )
+        )
+      )
+    )
+
+    val billingPeriod =
+      SupporterRevenue2023V1V2.billingPeriod(
+        account,
+        catalogue,
+        subscription,
+        invoicePreview,
+        LocalDate.of(2023, 8, 1)
+      )
+
+    assertEquals(
+      billingPeriod,
+      Right("Month")
+    )
+  }
+
+  test("billing period is correct for SupporterRevenue2023V1V2 (annual standard)") {
     val cohortSpec =
       CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
 
@@ -826,7 +892,7 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
-  test("priceData: is correct for SupporterRevenue2023V1V2 annual") {
+  test("priceData: is correct for SupporterRevenue2023V1V2 (annual standard)") {
 
     val cohortSpec =
       CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
