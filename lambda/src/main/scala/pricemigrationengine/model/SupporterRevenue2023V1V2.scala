@@ -32,37 +32,42 @@ object SupporterRevenue2023V1V2 {
     }
   }
 
-  def subscriptionRatePlanCharge(
+  def subscriptionRatePlanCharges(
       subscription: ZuoraSubscription,
       ratePlan: ZuoraRatePlan
-  ): Either[AmendmentDataFailure, ZuoraRatePlanCharge] = {
-    ratePlan.ratePlanCharges.headOption match {
-      case None => {
+  ): Either[AmendmentDataFailure, List[ZuoraRatePlanCharge]] = {
+
+    ratePlan.ratePlanCharges match {
+      case Nil => {
         // Although not enforced by the signature of the function, for this error message to make sense we expect that
         // the rate plan belongs to the currency
         Left(
           AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} has a rate plan, but with no charge")
         )
       }
-      case Some(ratePlanCharge) => Right(ratePlanCharge)
+      case _ => Right(ratePlan.ratePlanCharges)
     }
   }
 
   def getOldPrice(
       subscription: ZuoraSubscription,
-      ratePlanCharge: ZuoraRatePlanCharge
+      ratePlanCharges: List[ZuoraRatePlanCharge]
   ): Either[AmendmentDataFailure, BigDecimal] = {
-    ratePlanCharge.price match {
-      case None => {
+    ratePlanCharges match {
+      case Nil => {
         // Although not enforced by the signature of the function, for this error message to make sense we expect that
         // the rate plan charge belongs to the currency
         Left(
           AmendmentDataFailure(
-            s"Subscription ${subscription.subscriptionNumber} has a rate plan charge, but with no currency"
+            s"Subscription ${subscription.subscriptionNumber} has no rate plan charges"
           )
         )
       }
-      case Some(price) => Right(price)
+      case _ => {
+        Right(ratePlanCharges.map(x => x.price).filter(p => p.isDefined).map(p => p.get).fold(BigDecimal(0)) { (z, i) =>
+          z + i
+        })
+      }
     }
   }
 
@@ -176,9 +181,9 @@ object SupporterRevenue2023V1V2 {
   ): Either[AmendmentDataFailure, PriceData] = {
     for {
       ratePlan <- subscriptionRatePlan(subscription)
-      ratePlanCharge <- subscriptionRatePlanCharge(subscription, ratePlan)
-      currency = ratePlanCharge.currency
-      oldPrice <- getOldPrice(subscription, ratePlanCharge)
+      ratePlanCharges <- subscriptionRatePlanCharges(subscription, ratePlan)
+      currency = ratePlanCharges.head.currency
+      oldPrice <- getOldPrice(subscription, ratePlanCharges)
       billingP <- billingPeriod(account, catalogue, subscription, invoiceList, nextServiceDate)
       newPrice <- currencyToNewPrice(billingP, currency: String)
     } yield PriceData(currency, oldPrice, newPrice, billingP)

@@ -760,7 +760,7 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
-  test("billing period is correct for SupporterRevenue2023V1V2 (montly standard)") {
+  test("billing period is correct for SupporterRevenue2023V1V2 (monthly standard)") {
     val cohortSpec =
       CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
 
@@ -826,7 +826,7 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
-  test("billing period is correct for SupporterRevenue2023V1V2 (montly contribution)") {
+  test("billing period is correct for SupporterRevenue2023V1V2 (monthly contribution)") {
     val cohortSpec =
       CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
 
@@ -982,6 +982,266 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
+  test("priceData: is correct for SupporterRevenue2023V1V2 (monthly standard)") {
+
+    val cohortSpec =
+      CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+
+    val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/monthly-standard/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/monthly-standard/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/monthly-standard/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/monthly-standard/invoice-preview.json")
+
+    // We are going to use this test to make the computation of the price data for supporter plus explicit
+
+    // We are using this `.toOption.get` technique to go through the original for construct step by step
+    // By doing so we could get a runtime error while running the tests instead of a test framework error.
+    // In either case it's an error :)
+
+    val ratePlan = SupporterRevenue2023V1V2.subscriptionRatePlan(subscription: ZuoraSubscription).toOption.get
+    assertEquals(
+      ratePlan,
+      ZuoraRatePlan(
+        id = "8a129d388962fe000189679374c3429c",
+        productName = "Contributor",
+        productRatePlanId = "2c92a0fc5aacfadd015ad24db4ff5e97",
+        ratePlanName = "Monthly Contribution",
+        List(
+          ZuoraRatePlanCharge(
+            productRatePlanChargeId = "2c92a0fc5aacfadd015ad250bf2c6d38",
+            name = "Monthly Contribution",
+            number = "C-01337228",
+            currency = "GBP",
+            price = Some(10.0),
+            billingPeriod = Some("Month"),
+            chargedThroughDate = Some(LocalDate.of(2023, 4, 1)),
+            processedThroughDate = Some(LocalDate.of(2023, 4, 1)),
+            specificBillingPeriod = None,
+            endDateCondition = Some("Subscription_End"),
+            upToPeriodsType = None,
+            upToPeriods = None,
+            billingDay = Some("ChargeTriggerDay"),
+            triggerEvent = Some("CustomerAcceptance"),
+            triggerDate = None,
+            discountPercentage = None
+          )
+        ),
+        lastChangeType = Some("Remove")
+      )
+    )
+
+    val ratePlanCharges = SupporterRevenue2023V1V2.subscriptionRatePlanCharges(subscription, ratePlan).toOption.get
+    assertEquals(
+      ratePlanCharges,
+      List(
+        ZuoraRatePlanCharge(
+          productRatePlanChargeId = "2c92a0fc5aacfadd015ad250bf2c6d38",
+          name = "Monthly Contribution",
+          number = "C-01337228",
+          currency = "GBP",
+          price = Some(10.0),
+          billingPeriod = Some("Month"),
+          chargedThroughDate = Some(LocalDate.of(2023, 4, 1)),
+          processedThroughDate = Some(LocalDate.of(2023, 4, 1)),
+          specificBillingPeriod = None,
+          endDateCondition = Some("Subscription_End"),
+          upToPeriodsType = None,
+          upToPeriods = None,
+          billingDay = Some("ChargeTriggerDay"),
+          triggerEvent = Some("CustomerAcceptance"),
+          triggerDate = None,
+          discountPercentage = None
+        )
+      )
+    )
+
+    val currency = ratePlanCharges.head.currency
+    assertEquals(
+      currency,
+      "GBP"
+    )
+
+    val oldPrice = SupporterRevenue2023V1V2.getOldPrice(subscription, ratePlanCharges).toOption.get
+    assertEquals(
+      oldPrice,
+      BigDecimal(10)
+    )
+
+    val billingP =
+      SupporterRevenue2023V1V2
+        .billingPeriod(account, catalogue, subscription, invoicePreview, LocalDate.of(2024, 4, 1))
+        .toOption
+        .get
+    assertEquals(
+      billingP,
+      "Month"
+    )
+
+    val newPrice = SupporterRevenue2023V1V2.currencyToNewPrice(billingP, currency).toOption.get
+    assertEquals(
+      newPrice,
+      BigDecimal(10)
+    )
+
+    val priceData =
+      AmendmentData
+        .priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2024, 4, 1), cohortSpec)
+        .toOption
+        .get
+    assertEquals(
+      priceData,
+      PriceData(currency, 10, 10, "Month")
+    )
+  }
+
+  test("priceData: is correct for SupporterRevenue2023V1V2 (monthly contribution)") {
+
+    val cohortSpec =
+      CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+
+    val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/monthly-contribution/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/monthly-contribution/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/monthly-contribution/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/monthly-contribution/invoice-preview.json")
+
+    // We are going to use this test to make the computation of the price data for supporter plus explicit
+
+    // We are using this `.toOption.get` technique to go through the original for construct step by step
+    // By doing so we could get a runtime error while running the tests instead of a test framework error.
+    // In either case it's an error :)
+
+    val ratePlan = SupporterRevenue2023V1V2.subscriptionRatePlan(subscription: ZuoraSubscription).toOption.get
+    assertEquals(
+      ratePlan,
+      ZuoraRatePlan(
+        id = "8a128009892f2bae018930e579906d85",
+        productName = "Supporter Plus",
+        productRatePlanId = "8a128ed885fc6ded018602296ace3eb8",
+        ratePlanName = "Supporter Plus V2 - Monthly",
+        List(
+          ZuoraRatePlanCharge(
+            productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
+            name = "Supporter Plus Monthly Charge",
+            number = "C-04426876",
+            currency = "USD",
+            price = Some(13.0),
+            billingPeriod = Some("Month"),
+            chargedThroughDate = Some(LocalDate.of(2023, 8, 7)),
+            processedThroughDate = Some(LocalDate.of(2023, 7, 7)),
+            specificBillingPeriod = None,
+            endDateCondition = Some("Subscription_End"),
+            upToPeriodsType = None,
+            upToPeriods = None,
+            billingDay = Some("ChargeTriggerDay"),
+            triggerEvent = Some("CustomerAcceptance"),
+            triggerDate = None,
+            discountPercentage = None
+          ),
+          ZuoraRatePlanCharge(
+            productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270",
+            name = "Contribution",
+            number = "C-04426875",
+            currency = "USD",
+            price = Some(27.0),
+            billingPeriod = Some("Month"),
+            chargedThroughDate = Some(LocalDate.of(2023, 8, 7)),
+            processedThroughDate = Some(LocalDate.of(2023, 7, 7)),
+            specificBillingPeriod = None,
+            endDateCondition = Some("Subscription_End"),
+            upToPeriodsType = None,
+            upToPeriods = None,
+            billingDay = Some("ChargeTriggerDay"),
+            triggerEvent = Some("ContractEffective"),
+            triggerDate = None,
+            discountPercentage = None
+          )
+        ),
+        lastChangeType = None
+      )
+    )
+
+    val ratePlanCharges = SupporterRevenue2023V1V2.subscriptionRatePlanCharges(subscription, ratePlan).toOption.get
+    assertEquals(
+      ratePlanCharges,
+      List(
+        ZuoraRatePlanCharge(
+          productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
+          name = "Supporter Plus Monthly Charge",
+          number = "C-04426876",
+          currency = "USD",
+          price = Some(13.0),
+          billingPeriod = Some("Month"),
+          chargedThroughDate = Some(LocalDate.of(2023, 8, 7)),
+          processedThroughDate = Some(LocalDate.of(2023, 7, 7)),
+          specificBillingPeriod = None,
+          endDateCondition = Some("Subscription_End"),
+          upToPeriodsType = None,
+          upToPeriods = None,
+          billingDay = Some("ChargeTriggerDay"),
+          triggerEvent = Some("CustomerAcceptance"),
+          triggerDate = None,
+          discountPercentage = None
+        ),
+        ZuoraRatePlanCharge(
+          productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270",
+          name = "Contribution",
+          number = "C-04426875",
+          currency = "USD",
+          price = Some(27.0),
+          billingPeriod = Some("Month"),
+          chargedThroughDate = Some(LocalDate.of(2023, 8, 7)),
+          processedThroughDate = Some(LocalDate.of(2023, 7, 7)),
+          specificBillingPeriod = None,
+          endDateCondition = Some("Subscription_End"),
+          upToPeriodsType = None,
+          upToPeriods = None,
+          billingDay = Some("ChargeTriggerDay"),
+          triggerEvent = Some("ContractEffective"),
+          triggerDate = None,
+          discountPercentage = None
+        )
+      )
+    )
+
+    val currency = ratePlanCharges.head.currency
+    assertEquals(
+      currency,
+      "USD"
+    )
+
+    val oldPrice = SupporterRevenue2023V1V2.getOldPrice(subscription, ratePlanCharges).toOption.get
+    assertEquals(
+      oldPrice,
+      BigDecimal(40)
+    )
+
+    val billingP =
+      SupporterRevenue2023V1V2
+        .billingPeriod(account, catalogue, subscription, invoicePreview, LocalDate.of(2023, 8, 7))
+        .toOption
+        .get
+    assertEquals(
+      billingP,
+      "Month"
+    )
+
+    val newPrice = SupporterRevenue2023V1V2.currencyToNewPrice(billingP, currency).toOption.get
+    assertEquals(
+      newPrice,
+      BigDecimal(13)
+    )
+
+    val priceData =
+      AmendmentData
+        .priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2023, 8, 7), cohortSpec)
+        .toOption
+        .get
+    assertEquals(
+      priceData,
+      PriceData(currency, 40, 13, "Month")
+    )
+  }
+
   test("priceData: is correct for SupporterRevenue2023V1V2 (annual standard)") {
 
     val cohortSpec =
@@ -1030,36 +1290,38 @@ class AmendmentDataTest extends munit.FunSuite {
       )
     )
 
-    val ratePlanCharge = SupporterRevenue2023V1V2.subscriptionRatePlanCharge(subscription, ratePlan).toOption.get
+    val ratePlanCharges = SupporterRevenue2023V1V2.subscriptionRatePlanCharges(subscription, ratePlan).toOption.get
     assertEquals(
-      ratePlanCharge,
-      ZuoraRatePlanCharge(
-        productRatePlanChargeId = "8a12865b8219d9b40182210618c664c1",
-        name = "Supporter Plus Annual Charge",
-        number = "C-04417974",
-        currency = "USD",
-        price = Some(120.0),
-        billingPeriod = Some("Annual"),
-        chargedThroughDate = Some(LocalDate.of(2024, 7, 2)),
-        processedThroughDate = Some(LocalDate.of(2023, 7, 2)),
-        specificBillingPeriod = None,
-        endDateCondition = Some("Subscription_End"),
-        upToPeriodsType = None,
-        upToPeriods = None,
-        billingDay = Some("ChargeTriggerDay"),
-        triggerEvent = Some("CustomerAcceptance"),
-        triggerDate = None,
-        discountPercentage = None
+      ratePlanCharges,
+      List(
+        ZuoraRatePlanCharge(
+          productRatePlanChargeId = "8a12865b8219d9b40182210618c664c1",
+          name = "Supporter Plus Annual Charge",
+          number = "C-04417974",
+          currency = "USD",
+          price = Some(120.0),
+          billingPeriod = Some("Annual"),
+          chargedThroughDate = Some(LocalDate.of(2024, 7, 2)),
+          processedThroughDate = Some(LocalDate.of(2023, 7, 2)),
+          specificBillingPeriod = None,
+          endDateCondition = Some("Subscription_End"),
+          upToPeriodsType = None,
+          upToPeriods = None,
+          billingDay = Some("ChargeTriggerDay"),
+          triggerEvent = Some("CustomerAcceptance"),
+          triggerDate = None,
+          discountPercentage = None
+        )
       )
     )
 
-    val currency = ratePlanCharge.currency
+    val currency = ratePlanCharges.head.currency
     assertEquals(
       currency,
       "USD"
     )
 
-    val oldPrice = SupporterRevenue2023V1V2.getOldPrice(subscription, ratePlanCharge).toOption.get
+    val oldPrice = SupporterRevenue2023V1V2.getOldPrice(subscription, ratePlanCharges).toOption.get
     assertEquals(
       oldPrice,
       BigDecimal(120)
@@ -1089,6 +1351,154 @@ class AmendmentDataTest extends munit.FunSuite {
     assertEquals(
       priceData,
       PriceData(currency, 120, 120, "Annual")
+    )
+  }
+
+  test("priceData: is correct for SupporterRevenue2023V1V2 (annual contribution)") {
+
+    val cohortSpec =
+      CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+
+    val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/annual-contribution/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/annual-contribution/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/annual-contribution/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/annual-contribution/invoice-preview.json")
+
+    // We are going to use this test to make the computation of the price data for supporter plus explicit
+
+    // We are using this `.toOption.get` technique to go through the original for construct step by step
+    // By doing so we could get a runtime error while running the tests instead of a test framework error.
+    // In either case it's an error :)
+
+    val ratePlan = SupporterRevenue2023V1V2.subscriptionRatePlan(subscription: ZuoraSubscription).toOption.get
+    assertEquals(
+      ratePlan,
+      ZuoraRatePlan(
+        id = "8a12873f89548834018958ae04d62981",
+        productName = "Supporter Plus",
+        productRatePlanId = "8a128ed885fc6ded01860228f77e3d5a",
+        ratePlanName = "Supporter Plus V2 - Annual",
+        List(
+          ZuoraRatePlanCharge(
+            productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
+            name = "Supporter Plus Annual Charge",
+            number = "C-04439843",
+            currency = "EUR",
+            price = Some(95.0),
+            billingPeriod = Some("Annual"),
+            chargedThroughDate = Some(LocalDate.of(2024, 7, 15)),
+            processedThroughDate = Some(LocalDate.of(2023, 7, 15)),
+            specificBillingPeriod = None,
+            endDateCondition = Some("Subscription_End"),
+            upToPeriodsType = None,
+            upToPeriods = None,
+            billingDay = Some("ChargeTriggerDay"),
+            triggerEvent = Some("CustomerAcceptance"),
+            triggerDate = None,
+            discountPercentage = None
+          ),
+          ZuoraRatePlanCharge(
+            productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
+            name = "Contribution",
+            number = "C-04439842",
+            currency = "EUR",
+            price = Some(25.0),
+            billingPeriod = Some("Annual"),
+            chargedThroughDate = Some(LocalDate.of(2024, 7, 15)),
+            processedThroughDate = Some(LocalDate.of(2023, 7, 15)),
+            specificBillingPeriod = None,
+            endDateCondition = Some("Subscription_End"),
+            upToPeriodsType = None,
+            upToPeriods = None,
+            billingDay = Some("ChargeTriggerDay"),
+            triggerEvent = Some("ContractEffective"),
+            triggerDate = None,
+            discountPercentage = None
+          )
+        ),
+        None
+      )
+    )
+
+    val ratePlanCharges = SupporterRevenue2023V1V2.subscriptionRatePlanCharges(subscription, ratePlan).toOption.get
+    assertEquals(
+      ratePlanCharges,
+      List(
+        ZuoraRatePlanCharge(
+          productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
+          name = "Supporter Plus Annual Charge",
+          number = "C-04439843",
+          currency = "EUR",
+          price = Some(95.0),
+          billingPeriod = Some("Annual"),
+          chargedThroughDate = Some(LocalDate.of(2024, 7, 15)),
+          processedThroughDate = Some(LocalDate.of(2023, 7, 15)),
+          specificBillingPeriod = None,
+          endDateCondition = Some("Subscription_End"),
+          upToPeriodsType = None,
+          upToPeriods = None,
+          billingDay = Some("ChargeTriggerDay"),
+          triggerEvent = Some("CustomerAcceptance"),
+          triggerDate = None,
+          discountPercentage = None
+        ),
+        ZuoraRatePlanCharge(
+          productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
+          name = "Contribution",
+          number = "C-04439842",
+          currency = "EUR",
+          price = Some(25.0),
+          billingPeriod = Some("Annual"),
+          chargedThroughDate = Some(LocalDate.of(2024, 7, 15)),
+          processedThroughDate = Some(LocalDate.of(2023, 7, 15)),
+          specificBillingPeriod = None,
+          endDateCondition = Some("Subscription_End"),
+          upToPeriodsType = None,
+          upToPeriods = None,
+          billingDay = Some("ChargeTriggerDay"),
+          triggerEvent = Some("ContractEffective"),
+          triggerDate = None,
+          discountPercentage = None
+        )
+      )
+    )
+
+    val currency = ratePlanCharges.head.currency
+    assertEquals(
+      currency,
+      "EUR"
+    )
+
+    val oldPrice = SupporterRevenue2023V1V2.getOldPrice(subscription, ratePlanCharges).toOption.get
+    assertEquals(
+      oldPrice,
+      BigDecimal(120)
+    )
+
+    val billingP =
+      SupporterRevenue2023V1V2
+        .billingPeriod(account, catalogue, subscription, invoicePreview, LocalDate.of(2024, 7, 15))
+        .toOption
+        .get
+    assertEquals(
+      billingP,
+      "Annual"
+    )
+
+    val newPrice = SupporterRevenue2023V1V2.currencyToNewPrice(billingP, currency).toOption.get
+    assertEquals(
+      newPrice,
+      BigDecimal(95)
+    )
+
+    val priceData =
+      AmendmentData
+        .priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2024, 7, 15), cohortSpec)
+        .toOption
+        .get
+    assertEquals(
+      priceData,
+      PriceData(currency, 120, 95, "Annual")
     )
   }
 }
