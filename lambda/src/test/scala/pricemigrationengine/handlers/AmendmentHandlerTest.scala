@@ -722,4 +722,140 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
   }
+  test("SupporterPlus2023V1V2 Amendment (annual contribution)") {
+
+    val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/annual-contribution/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/annual-contribution/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/annual-contribution/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/annual-contribution/invoice-preview.json")
+
+    // The effective date must be a billing date
+    // Here we get the next billing date according to the invoice preview.
+    val effectiveDate = LocalDate.of(2024, 7, 15) // annual: 2024-07-02
+
+    // ZuoraInvoiceItem.items finds the invoice items corresponding to that billing date
+    val invoiceItems = ZuoraInvoiceItem.items(invoicePreview, subscription, effectiveDate)
+
+    val invoiceItemsCheck =
+      List(
+        ZuoraInvoiceItem("SUBSCRIPTION-NUMBER", LocalDate.of(2024, 7, 15), "C-04439842", "Supporter Plus"),
+        ZuoraInvoiceItem("SUBSCRIPTION-NUMBER", LocalDate.of(2024, 7, 15), "C-04439843", "Supporter Plus")
+      )
+    assertEquals(invoiceItems, invoiceItemsCheck)
+
+    val ratePlanCharges = ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItems.head).toSeq
+    val ratePlanChargesCheck = List(
+      ZuoraRatePlanCharge(
+        productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
+        name = "Contribution",
+        number = "C-04439842",
+        currency = "EUR",
+        price = Some(25.0),
+        billingPeriod = Some("Annual"),
+        chargedThroughDate = Some(LocalDate.of(2024, 7, 15)),
+        processedThroughDate = Some(LocalDate.of(2023, 7, 15)),
+        specificBillingPeriod = None,
+        endDateCondition = Some("Subscription_End"),
+        upToPeriodsType = None,
+        upToPeriods = None,
+        billingDay = Some("ChargeTriggerDay"),
+        triggerEvent = Some("ContractEffective"),
+        triggerDate = None,
+        discountPercentage = None
+      )
+    )
+
+    assertEquals(
+      ratePlanCharges,
+      ratePlanChargesCheck
+    )
+
+    // And now that we have a ZuoraRatePlanCharge, we can use it to find a matching rate plans.
+
+    val ratePlans = ZuoraRatePlan.ratePlan(subscription, ratePlanCharges.head).toSeq
+
+    assertEquals(
+      ratePlans,
+      List(
+        ZuoraRatePlan(
+          id = "8a12873f89548834018958ae04d62981",
+          productName = "Supporter Plus",
+          productRatePlanId = "8a128ed885fc6ded01860228f77e3d5a",
+          ratePlanName = "Supporter Plus V2 - Annual",
+          ratePlanCharges = List(
+            ZuoraRatePlanCharge(
+              productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
+              name = "Supporter Plus Annual Charge",
+              number = "C-04439843",
+              currency = "EUR",
+              price = Some(95.0),
+              billingPeriod = Some("Annual"),
+              chargedThroughDate = Some(LocalDate.of(2024, 7, 15)),
+              processedThroughDate = Some(LocalDate.of(2023, 7, 15)),
+              specificBillingPeriod = None,
+              endDateCondition = Some("Subscription_End"),
+              upToPeriodsType = None,
+              upToPeriods = None,
+              billingDay = Some("ChargeTriggerDay"),
+              triggerEvent = Some("CustomerAcceptance"),
+              triggerDate = None,
+              discountPercentage = None
+            ),
+            ZuoraRatePlanCharge(
+              productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
+              name = "Contribution",
+              number = "C-04439842",
+              currency = "EUR",
+              price = Some(25.0),
+              billingPeriod = Some("Annual"),
+              chargedThroughDate = Some(LocalDate.of(2024, 7, 15)),
+              processedThroughDate = Some(LocalDate.of(2023, 7, 15)),
+              specificBillingPeriod = None,
+              endDateCondition = Some("Subscription_End"),
+              upToPeriodsType = None,
+              upToPeriods = None,
+              billingDay = Some("ChargeTriggerDay"),
+              triggerEvent = Some("ContractEffective"),
+              triggerDate = None,
+              discountPercentage = None
+            )
+          ),
+          lastChangeType = None
+        )
+      )
+    )
+
+    val item =
+      CohortItem(
+        subscriptionName = "SUBSCRIPTION-NUMBER",
+        processingStage = NotificationSendDateWrittenToSalesforce,
+        startDate = Some(LocalDate.of(2024, 7, 2)),
+        currency = Some("USD"),
+        oldPrice = Some(BigDecimal(120)),
+        estimatedNewPrice = Some(BigDecimal(120)),
+        billingPeriod = Some("Annual")
+      )
+
+    val update = SupporterRevenue2023V1V2.updateOfRatePlansToCurrent(
+      item,
+      subscription,
+      invoicePreview,
+      effectiveDate: LocalDate
+    )
+
+    // note: the product rate plan id we are removing it: 8a12865b8219d9b40182210618a464ba, but the subscription can
+    // have a slightly different "effective" rate plan with it's own id, in this case 8a128432890171d1018914866bee0e7f
+
+    assertEquals(
+      update,
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(AddZuoraRatePlan("8a128ed885fc6ded01860228f77e3d5a", LocalDate.of(2024, 7, 15))),
+          remove = List(RemoveZuoraRatePlan("8a12873f89548834018958ae04d62981", LocalDate.of(2024, 7, 15))),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
+    )
+  }
 }
