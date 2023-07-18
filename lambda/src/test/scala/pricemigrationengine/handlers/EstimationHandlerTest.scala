@@ -268,6 +268,38 @@ object EstimationHandlerTest extends ZIOSpecDefault {
             )
         )
       },
+      test("EstimationResult is correct for SupporterRevenue2023V1V2 (annual contribution)") {
+
+        val cohortSpec =
+          CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+
+        val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/annual-contribution/account.json")
+        val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/annual-contribution/catalogue.json")
+        val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/annual-contribution/subscription.json")
+        val invoicePreview =
+          Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/annual-contribution/invoice-preview.json")
+
+        val estimationResult = EstimationResult(
+          account = account,
+          catalogue = catalogue,
+          subscription = subscription,
+          invoiceList = invoicePreview,
+          startDateLowerBound = LocalDate.of(2023, 8, 21),
+          cohortSpec = cohortSpec,
+        ).toOption.get
+
+        assertTrue(
+          estimationResult ==
+            SuccessfulEstimationResult(
+              subscriptionName = "SUBSCRIPTION-NUMBER",
+              startDate = LocalDate.of(2024, 7, 15),
+              currency = "EUR",
+              oldPrice = BigDecimal(120),
+              estimatedNewPrice = BigDecimal(95),
+              billingPeriod = "Annual"
+            )
+        )
+      },
     )
   }
 }

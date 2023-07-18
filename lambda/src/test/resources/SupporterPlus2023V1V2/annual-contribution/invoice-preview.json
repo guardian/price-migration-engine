@@ -2,9 +2,9 @@
   "accountId" : "8a12873f89548834018958ae044c2954",
   "invoiceItems" : [ {
     "id" : "f73b4f6ff3f24fb69e0a4d60cef1c57a",
-    "subscriptionName" : "A-S01910517",
+    "subscriptionName" : "SUBSCRIPTION-NUMBER",
     "subscriptionId" : "8a1288c18962de78018969e95c9755f0",
-    "subscriptionNumber" : "A-S01910517",
+    "subscriptionNumber" : "SUBSCRIPTION-NUMBER",
     "serviceStartDate" : "2024-07-15",
     "serviceEndDate" : "2025-07-14",
     "chargeAmount" : 25.000000000,
@@ -22,9 +22,9 @@
     "appliedToItemId" : null
   }, {
     "id" : "058eca93a1884cf1b04b5cbac47f74f7",
-    "subscriptionName" : "A-S01910517",
+    "subscriptionName" : "SUBSCRIPTION-NUMBER",
     "subscriptionId" : "8a1288c18962de78018969e95c9755f0",
-    "subscriptionNumber" : "A-S01910517",
+    "subscriptionNumber" : "SUBSCRIPTION-NUMBER",
     "serviceStartDate" : "2024-07-15",
     "serviceEndDate" : "2025-07-14",
     "chargeAmount" : 79.830000000,
