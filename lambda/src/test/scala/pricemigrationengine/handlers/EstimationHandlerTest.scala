@@ -179,10 +179,10 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         val cohortSpec =
           CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
 
-        val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/annual/account.json")
-        val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/annual/catalogue.json")
-        val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/annual/subscription.json")
-        val invoicePreview = Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/annual/invoice-preview.json")
+        val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/annual-standard/account.json")
+        val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/annual-standard/catalogue.json")
+        val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/annual-standard/subscription.json")
+        val invoicePreview = Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/annual-standard/invoice-preview.json")
 
         val estimationResult = EstimationResult(
           account = account,

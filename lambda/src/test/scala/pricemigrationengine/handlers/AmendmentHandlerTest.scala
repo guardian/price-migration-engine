@@ -349,10 +349,10 @@ class AmendmentHandlerTest extends munit.FunSuite {
   }
   test("SupporterPlus2023V1V2 Amendment") {
 
-    val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/annual/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/annual/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/annual/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/annual/invoice-preview.json")
+    val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/annual-standard/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/annual-standard/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/annual-standard/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/annual-standard/invoice-preview.json")
 
     // The effective date must be a billing date
     // Here we get the next billing date according to the invoice preview.
