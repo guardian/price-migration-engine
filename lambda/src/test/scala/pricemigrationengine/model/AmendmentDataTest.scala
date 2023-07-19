@@ -784,7 +784,7 @@ class AmendmentDataTest extends munit.FunSuite {
       )
     )
 
-    val rpcof = SupporterRevenue2023V1V2.ratePlanChargesOrFail(subscription, invoiceItems)
+    val rpcof = SupporterPlus2023V1V2.ratePlanChargesOrFail(subscription, invoiceItems)
     assertEquals(
       rpcof,
       Right(
@@ -812,7 +812,7 @@ class AmendmentDataTest extends munit.FunSuite {
     )
 
     val billingPeriod =
-      SupporterRevenue2023V1V2.billingPeriod(
+      SupporterPlus2023V1V2.billingPeriod(
         account,
         catalogue,
         subscription,
@@ -850,7 +850,7 @@ class AmendmentDataTest extends munit.FunSuite {
       )
     )
 
-    val rpcof = SupporterRevenue2023V1V2.ratePlanChargesOrFail(subscription, invoiceItems)
+    val rpcof = SupporterPlus2023V1V2.ratePlanChargesOrFail(subscription, invoiceItems)
     assertEquals(
       rpcof,
       Right(
@@ -878,7 +878,7 @@ class AmendmentDataTest extends munit.FunSuite {
     )
 
     val billingPeriod =
-      SupporterRevenue2023V1V2.billingPeriod(
+      SupporterPlus2023V1V2.billingPeriod(
         account,
         catalogue,
         subscription,
@@ -916,7 +916,7 @@ class AmendmentDataTest extends munit.FunSuite {
       )
     )
 
-    val rpcof = SupporterRevenue2023V1V2.ratePlanChargesOrFail(subscription, invoiceItems)
+    val rpcof = SupporterPlus2023V1V2.ratePlanChargesOrFail(subscription, invoiceItems)
     assertEquals(
       rpcof,
       Right(
@@ -944,7 +944,7 @@ class AmendmentDataTest extends munit.FunSuite {
     )
 
     val billingPeriod =
-      SupporterRevenue2023V1V2.billingPeriod(
+      SupporterPlus2023V1V2.billingPeriod(
         account,
         catalogue,
         subscription,
@@ -974,7 +974,7 @@ class AmendmentDataTest extends munit.FunSuite {
     // By doing so we could get a runtime error while running the tests instead of a test framework error.
     // In either case it's an error :)
 
-    val ratePlan = SupporterRevenue2023V1V2.subscriptionRatePlan(subscription: ZuoraSubscription).toOption.get
+    val ratePlan = SupporterPlus2023V1V2.subscriptionRatePlan(subscription: ZuoraSubscription).toOption.get
     assertEquals(
       ratePlan,
       ZuoraRatePlan(
@@ -1006,7 +1006,7 @@ class AmendmentDataTest extends munit.FunSuite {
       )
     )
 
-    val ratePlanCharges = SupporterRevenue2023V1V2.subscriptionRatePlanCharges(subscription, ratePlan).toOption.get
+    val ratePlanCharges = SupporterPlus2023V1V2.subscriptionRatePlanCharges(subscription, ratePlan).toOption.get
     assertEquals(
       ratePlanCharges,
       List(
@@ -1037,14 +1037,14 @@ class AmendmentDataTest extends munit.FunSuite {
       "GBP"
     )
 
-    val oldPrice = SupporterRevenue2023V1V2.getOldPrice(subscription, ratePlanCharges).toOption.get
+    val oldPrice = SupporterPlus2023V1V2.getOldPrice(subscription, ratePlanCharges).toOption.get
     assertEquals(
       oldPrice,
       BigDecimal(10)
     )
 
     val billingP =
-      SupporterRevenue2023V1V2
+      SupporterPlus2023V1V2
         .billingPeriod(account, catalogue, subscription, invoicePreview, LocalDate.of(2024, 4, 1))
         .toOption
         .get
@@ -1053,7 +1053,7 @@ class AmendmentDataTest extends munit.FunSuite {
       "Month"
     )
 
-    val newPrice = SupporterRevenue2023V1V2.currencyToNewPrice(billingP, currency).toOption.get
+    val newPrice = SupporterPlus2023V1V2.currencyToNewPrice(billingP, currency).toOption.get
     assertEquals(
       newPrice,
       BigDecimal(10)
@@ -1086,7 +1086,7 @@ class AmendmentDataTest extends munit.FunSuite {
     // By doing so we could get a runtime error while running the tests instead of a test framework error.
     // In either case it's an error :)
 
-    val ratePlan = SupporterRevenue2023V1V2.subscriptionRatePlan(subscription: ZuoraSubscription).toOption.get
+    val ratePlan = SupporterPlus2023V1V2.subscriptionRatePlan(subscription: ZuoraSubscription).toOption.get
     assertEquals(
       ratePlan,
       ZuoraRatePlan(
@@ -1118,7 +1118,7 @@ class AmendmentDataTest extends munit.FunSuite {
       )
     )
 
-    val ratePlanCharges = SupporterRevenue2023V1V2.subscriptionRatePlanCharges(subscription, ratePlan).toOption.get
+    val ratePlanCharges = SupporterPlus2023V1V2.subscriptionRatePlanCharges(subscription, ratePlan).toOption.get
     assertEquals(
       ratePlanCharges,
       List(
@@ -1149,14 +1149,14 @@ class AmendmentDataTest extends munit.FunSuite {
       "GBP"
     )
 
-    val oldPrice = SupporterRevenue2023V1V2.getOldPrice(subscription, ratePlanCharges).toOption.get
+    val oldPrice = SupporterPlus2023V1V2.getOldPrice(subscription, ratePlanCharges).toOption.get
     assertEquals(
       oldPrice,
       BigDecimal(25.0)
     )
 
     val billingP =
-      SupporterRevenue2023V1V2
+      SupporterPlus2023V1V2
         .billingPeriod(account, catalogue, subscription, invoicePreview, LocalDate.of(2023, 8, 3))
         .toOption
         .get
@@ -1165,7 +1165,7 @@ class AmendmentDataTest extends munit.FunSuite {
       "Month"
     )
 
-    val newPrice = SupporterRevenue2023V1V2.currencyToNewPrice(billingP, currency).toOption.get
+    val newPrice = SupporterPlus2023V1V2.currencyToNewPrice(billingP, currency).toOption.get
     assertEquals(
       newPrice,
       BigDecimal(10)
@@ -1198,7 +1198,7 @@ class AmendmentDataTest extends munit.FunSuite {
     // By doing so we could get a runtime error while running the tests instead of a test framework error.
     // In either case it's an error :)
 
-    val ratePlan = SupporterRevenue2023V1V2.subscriptionRatePlan(subscription: ZuoraSubscription).toOption.get
+    val ratePlan = SupporterPlus2023V1V2.subscriptionRatePlan(subscription: ZuoraSubscription).toOption.get
     assertEquals(
       ratePlan,
       ZuoraRatePlan(
@@ -1230,7 +1230,7 @@ class AmendmentDataTest extends munit.FunSuite {
       )
     )
 
-    val ratePlanCharges = SupporterRevenue2023V1V2.subscriptionRatePlanCharges(subscription, ratePlan).toOption.get
+    val ratePlanCharges = SupporterPlus2023V1V2.subscriptionRatePlanCharges(subscription, ratePlan).toOption.get
     assertEquals(
       ratePlanCharges,
       List(
@@ -1261,14 +1261,14 @@ class AmendmentDataTest extends munit.FunSuite {
       "USD"
     )
 
-    val oldPrice = SupporterRevenue2023V1V2.getOldPrice(subscription, ratePlanCharges).toOption.get
+    val oldPrice = SupporterPlus2023V1V2.getOldPrice(subscription, ratePlanCharges).toOption.get
     assertEquals(
       oldPrice,
       BigDecimal(120)
     )
 
     val billingP =
-      SupporterRevenue2023V1V2
+      SupporterPlus2023V1V2
         .billingPeriod(account, catalogue, subscription, invoicePreview, LocalDate.of(2024, 7, 2))
         .toOption
         .get
@@ -1277,7 +1277,7 @@ class AmendmentDataTest extends munit.FunSuite {
       "Annual"
     )
 
-    val newPrice = SupporterRevenue2023V1V2.currencyToNewPrice(billingP, currency).toOption.get
+    val newPrice = SupporterPlus2023V1V2.currencyToNewPrice(billingP, currency).toOption.get
     assertEquals(
       newPrice,
       BigDecimal(120)
@@ -1310,7 +1310,7 @@ class AmendmentDataTest extends munit.FunSuite {
     // By doing so we could get a runtime error while running the tests instead of a test framework error.
     // In either case it's an error :)
 
-    val ratePlan = SupporterRevenue2023V1V2.subscriptionRatePlan(subscription: ZuoraSubscription).toOption.get
+    val ratePlan = SupporterPlus2023V1V2.subscriptionRatePlan(subscription: ZuoraSubscription).toOption.get
     assertEquals(
       ratePlan,
       ZuoraRatePlan(
@@ -1342,7 +1342,7 @@ class AmendmentDataTest extends munit.FunSuite {
       )
     )
 
-    val ratePlanCharges = SupporterRevenue2023V1V2.subscriptionRatePlanCharges(subscription, ratePlan).toOption.get
+    val ratePlanCharges = SupporterPlus2023V1V2.subscriptionRatePlanCharges(subscription, ratePlan).toOption.get
     assertEquals(
       ratePlanCharges,
       List(
@@ -1373,14 +1373,14 @@ class AmendmentDataTest extends munit.FunSuite {
       "GBP"
     )
 
-    val oldPrice = SupporterRevenue2023V1V2.getOldPrice(subscription, ratePlanCharges).toOption.get
+    val oldPrice = SupporterPlus2023V1V2.getOldPrice(subscription, ratePlanCharges).toOption.get
     assertEquals(
       oldPrice,
       BigDecimal(120)
     )
 
     val billingP =
-      SupporterRevenue2023V1V2
+      SupporterPlus2023V1V2
         .billingPeriod(account, catalogue, subscription, invoicePreview, LocalDate.of(2024, 6, 28))
         .toOption
         .get
@@ -1389,7 +1389,7 @@ class AmendmentDataTest extends munit.FunSuite {
       "Annual"
     )
 
-    val newPrice = SupporterRevenue2023V1V2.currencyToNewPrice(billingP, currency).toOption.get
+    val newPrice = SupporterPlus2023V1V2.currencyToNewPrice(billingP, currency).toOption.get
     assertEquals(
       newPrice,
       BigDecimal(95)

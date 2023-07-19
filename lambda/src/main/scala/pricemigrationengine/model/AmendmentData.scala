@@ -309,8 +309,8 @@ object AmendmentData {
         Membership2023.priceData(account, catalogue, subscription, invoiceList, nextServiceStartDate, cohortSpec)
       case Membership2023Annuals =>
         Membership2023.priceData(account, catalogue, subscription, invoiceList, nextServiceStartDate, cohortSpec)
-      case SupporterPlus2023V1V2 =>
-        SupporterRevenue2023V1V2.priceData(
+      case SupporterPlus2023V1V2MA =>
+        SupporterPlus2023V1V2.priceData(
           account,
           catalogue,
           subscription,

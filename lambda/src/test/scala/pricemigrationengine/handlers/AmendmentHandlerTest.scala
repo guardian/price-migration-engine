@@ -447,7 +447,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingPeriod = Some("Annual")
       )
 
-    val update = SupporterRevenue2023V1V2.updateOfRatePlansToCurrent(
+    val update = SupporterPlus2023V1V2.updateOfRatePlansToCurrent(
       item,
       subscription,
       invoicePreview,
@@ -573,7 +573,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingPeriod = Some("Month")
       )
 
-    val update = SupporterRevenue2023V1V2.updateOfRatePlansToCurrent(
+    val update = SupporterPlus2023V1V2.updateOfRatePlansToCurrent(
       item,
       subscription,
       invoicePreview,
@@ -701,7 +701,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingPeriod = Some("Annual")
       )
 
-    val update = SupporterRevenue2023V1V2.updateOfRatePlansToCurrent(
+    val update = SupporterPlus2023V1V2.updateOfRatePlansToCurrent(
       item,
       subscription,
       invoicePreview,
@@ -819,7 +819,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingPeriod = Some("Annual")
       )
 
-    val update = SupporterRevenue2023V1V2.updateOfRatePlansToCurrent(
+    val update = SupporterPlus2023V1V2.updateOfRatePlansToCurrent(
       item,
       subscription,
       invoicePreview,

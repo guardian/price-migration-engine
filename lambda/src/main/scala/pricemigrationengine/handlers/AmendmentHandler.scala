@@ -135,9 +135,9 @@ object AmendmentHandler extends CohortHandler {
                 startDate
               )
           )
-        case SupporterPlus2023V1V2 =>
+        case SupporterPlus2023V1V2MA =>
           ZIO.fromEither(
-            SupporterRevenue2023V1V2
+            SupporterPlus2023V1V2
               .updateOfRatePlansToCurrent(
                 item,
                 subscriptionBeforeUpdate,

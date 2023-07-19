@@ -4,7 +4,7 @@ import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, 
 import scala.math.BigDecimal.RoundingMode
 import java.time.LocalDate
 
-object SupporterRevenue2023V1V2 {
+object SupporterPlus2023V1V2 {
 
   val newPriceMapMonthlies: Map[Currency, BigDecimal] = Map(
     "GBP" -> BigDecimal(10),
@@ -64,9 +64,7 @@ object SupporterRevenue2023V1V2 {
         )
       }
       case _ => {
-        Right(ratePlanCharges.map(x => x.price).filter(p => p.isDefined).map(p => p.get).fold(BigDecimal(0)) { (z, i) =>
-          z + i
-        })
+        Right(ratePlanCharges.flatMap(_.price).sum)
       }
     }
   }
@@ -85,8 +83,8 @@ object SupporterRevenue2023V1V2 {
     }
   }
 
-  def currencyToNewPrice(bilingP: String, currency: String): Either[AmendmentDataFailure, BigDecimal] = {
-    if (bilingP == "Month") {
+  def currencyToNewPrice(billingP: String, currency: String): Either[AmendmentDataFailure, BigDecimal] = {
+    if (billingP == "Month") {
       currencyToNewPriceMonthlies(currency: String)
     } else {
       currencyToNewPriceAnnuals(currency: String)

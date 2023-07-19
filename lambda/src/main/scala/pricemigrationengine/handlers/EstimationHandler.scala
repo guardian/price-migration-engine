@@ -51,7 +51,7 @@ object EstimationHandler extends CohortHandler {
       },
       success = { result =>
         val cohortItemToWrite = MigrationType(cohortSpec) match {
-          case SupporterPlus2023V1V2 => {
+          case SupporterPlus2023V1V2MA => {
             // SupporterPlus2023V1V2 is different here, because it's a rate plan migration and not a price increase
             // The first of its kind. In particular we do not want processing stage `NoPriceIncrease`
             CohortItem.fromSuccessfulEstimationResult(result)
