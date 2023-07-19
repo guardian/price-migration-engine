@@ -835,7 +835,7 @@ class AmendmentDataTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/monthly-contribution/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/monthly-contribution/invoice-preview.json")
 
-    val nextServiceStartDate = LocalDate.of(2023, 9, 7)
+    val nextServiceStartDate = LocalDate.of(2023, 8, 3)
 
     val invoiceItems = ZuoraInvoiceItem.items(invoicePreview, subscription, nextServiceStartDate)
     assertEquals(
@@ -843,14 +843,8 @@ class AmendmentDataTest extends munit.FunSuite {
       List(
         ZuoraInvoiceItem(
           subscriptionNumber = "SUBSCRIPTION-NUMBER",
-          serviceStartDate = LocalDate.of(2023, 9, 7),
-          chargeNumber = "C-04426875",
-          productName = "Supporter Plus"
-        ),
-        ZuoraInvoiceItem(
-          subscriptionNumber = "SUBSCRIPTION-NUMBER",
-          serviceStartDate = LocalDate.of(2023, 9, 7),
-          chargeNumber = "C-04426876",
+          serviceStartDate = LocalDate.of(2023, 8, 3),
+          chargeNumber = "C-04419773",
           productName = "Supporter Plus"
         )
       )
@@ -862,32 +856,14 @@ class AmendmentDataTest extends munit.FunSuite {
       Right(
         List(
           ZuoraRatePlanCharge(
-            productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270", // Contribution
-            name = "Contribution",
-            number = "C-04426875",
-            currency = "USD",
-            price = Some(27.0),
-            billingPeriod = Some("Month"),
-            chargedThroughDate = Some(LocalDate.of(2023, 8, 7)),
-            processedThroughDate = Some(LocalDate.of(2023, 7, 7)),
-            specificBillingPeriod = None,
-            endDateCondition = Some("Subscription_End"),
-            upToPeriodsType = None,
-            upToPeriods = None,
-            billingDay = Some("ChargeTriggerDay"),
-            triggerEvent = Some("ContractEffective"),
-            triggerDate = None,
-            discountPercentage = None
-          ),
-          ZuoraRatePlanCharge(
-            productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba", // Supporter Plus Monthly Charge (USD)
+            productRatePlanChargeId = "8a12865b8219d9b401822106194e64e3", // Supporter Plus Monthly Charge (USD)
             name = "Supporter Plus Monthly Charge",
-            number = "C-04426876",
-            currency = "USD",
-            price = Some(13.0),
+            number = "C-04419773",
+            currency = "GBP",
+            price = Some(25.0),
             billingPeriod = Some("Month"),
-            chargedThroughDate = Some(LocalDate.of(2023, 8, 7)),
-            processedThroughDate = Some(LocalDate.of(2023, 7, 7)),
+            chargedThroughDate = Some(LocalDate.of(2023, 8, 3)),
+            processedThroughDate = Some(LocalDate.of(2023, 7, 3)),
             specificBillingPeriod = None,
             endDateCondition = Some("Subscription_End"),
             upToPeriodsType = None,
@@ -907,7 +883,7 @@ class AmendmentDataTest extends munit.FunSuite {
         catalogue,
         subscription,
         invoicePreview,
-        LocalDate.of(2023, 8, 7)
+        LocalDate.of(2023, 8, 3)
       )
 
     assertEquals(
@@ -1114,44 +1090,26 @@ class AmendmentDataTest extends munit.FunSuite {
     assertEquals(
       ratePlan,
       ZuoraRatePlan(
-        id = "8a128009892f2bae018930e579906d85",
+        id = "8a12921d89018aaa01891bef52021b65",
         productName = "Supporter Plus",
-        productRatePlanId = "8a128ed885fc6ded018602296ace3eb8",
-        ratePlanName = "Supporter Plus V2 - Monthly",
+        productRatePlanId = "8a12865b8219d9b401822106192b64dc",
+        ratePlanName = "Supporter Plus Monthly",
         List(
           ZuoraRatePlanCharge(
-            productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
+            productRatePlanChargeId = "8a12865b8219d9b401822106194e64e3",
             name = "Supporter Plus Monthly Charge",
-            number = "C-04426876",
-            currency = "USD",
-            price = Some(13.0),
+            number = "C-04419773",
+            currency = "GBP",
+            price = Some(25.0),
             billingPeriod = Some("Month"),
-            chargedThroughDate = Some(LocalDate.of(2023, 8, 7)),
-            processedThroughDate = Some(LocalDate.of(2023, 7, 7)),
+            chargedThroughDate = Some(LocalDate.of(2023, 8, 3)),
+            processedThroughDate = Some(LocalDate.of(2023, 7, 3)),
             specificBillingPeriod = None,
             endDateCondition = Some("Subscription_End"),
             upToPeriodsType = None,
             upToPeriods = None,
             billingDay = Some("ChargeTriggerDay"),
             triggerEvent = Some("CustomerAcceptance"),
-            triggerDate = None,
-            discountPercentage = None
-          ),
-          ZuoraRatePlanCharge(
-            productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270",
-            name = "Contribution",
-            number = "C-04426875",
-            currency = "USD",
-            price = Some(27.0),
-            billingPeriod = Some("Month"),
-            chargedThroughDate = Some(LocalDate.of(2023, 8, 7)),
-            processedThroughDate = Some(LocalDate.of(2023, 7, 7)),
-            specificBillingPeriod = None,
-            endDateCondition = Some("Subscription_End"),
-            upToPeriodsType = None,
-            upToPeriods = None,
-            billingDay = Some("ChargeTriggerDay"),
-            triggerEvent = Some("ContractEffective"),
             triggerDate = None,
             discountPercentage = None
           )
@@ -1165,38 +1123,20 @@ class AmendmentDataTest extends munit.FunSuite {
       ratePlanCharges,
       List(
         ZuoraRatePlanCharge(
-          productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
+          productRatePlanChargeId = "8a12865b8219d9b401822106194e64e3",
           name = "Supporter Plus Monthly Charge",
-          number = "C-04426876",
-          currency = "USD",
-          price = Some(13.0),
+          number = "C-04419773",
+          currency = "GBP",
+          price = Some(25.0),
           billingPeriod = Some("Month"),
-          chargedThroughDate = Some(LocalDate.of(2023, 8, 7)),
-          processedThroughDate = Some(LocalDate.of(2023, 7, 7)),
+          chargedThroughDate = Some(LocalDate.of(2023, 8, 3)),
+          processedThroughDate = Some(LocalDate.of(2023, 7, 3)),
           specificBillingPeriod = None,
           endDateCondition = Some("Subscription_End"),
           upToPeriodsType = None,
           upToPeriods = None,
           billingDay = Some("ChargeTriggerDay"),
           triggerEvent = Some("CustomerAcceptance"),
-          triggerDate = None,
-          discountPercentage = None
-        ),
-        ZuoraRatePlanCharge(
-          productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270",
-          name = "Contribution",
-          number = "C-04426875",
-          currency = "USD",
-          price = Some(27.0),
-          billingPeriod = Some("Month"),
-          chargedThroughDate = Some(LocalDate.of(2023, 8, 7)),
-          processedThroughDate = Some(LocalDate.of(2023, 7, 7)),
-          specificBillingPeriod = None,
-          endDateCondition = Some("Subscription_End"),
-          upToPeriodsType = None,
-          upToPeriods = None,
-          billingDay = Some("ChargeTriggerDay"),
-          triggerEvent = Some("ContractEffective"),
           triggerDate = None,
           discountPercentage = None
         )
@@ -1206,18 +1146,18 @@ class AmendmentDataTest extends munit.FunSuite {
     val currency = ratePlanCharges.head.currency
     assertEquals(
       currency,
-      "USD"
+      "GBP"
     )
 
     val oldPrice = SupporterRevenue2023V1V2.getOldPrice(subscription, ratePlanCharges).toOption.get
     assertEquals(
       oldPrice,
-      BigDecimal(40)
+      BigDecimal(25.0)
     )
 
     val billingP =
       SupporterRevenue2023V1V2
-        .billingPeriod(account, catalogue, subscription, invoicePreview, LocalDate.of(2023, 8, 7))
+        .billingPeriod(account, catalogue, subscription, invoicePreview, LocalDate.of(2023, 8, 3))
         .toOption
         .get
     assertEquals(
@@ -1228,17 +1168,17 @@ class AmendmentDataTest extends munit.FunSuite {
     val newPrice = SupporterRevenue2023V1V2.currencyToNewPrice(billingP, currency).toOption.get
     assertEquals(
       newPrice,
-      BigDecimal(13)
+      BigDecimal(10)
     )
 
     val priceData =
       AmendmentData
-        .priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2023, 8, 7), cohortSpec)
+        .priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2023, 8, 3), cohortSpec)
         .toOption
         .get
     assertEquals(
       priceData,
-      PriceData(currency, 40, 13, "Month")
+      PriceData(currency, 25, 10, "Month")
     )
   }
 
@@ -1374,44 +1314,26 @@ class AmendmentDataTest extends munit.FunSuite {
     assertEquals(
       ratePlan,
       ZuoraRatePlan(
-        id = "8a12873f89548834018958ae04d62981",
+        id = "8a12843288f6ded10188ff5fbef67bb3",
         productName = "Supporter Plus",
-        productRatePlanId = "8a128ed885fc6ded01860228f77e3d5a",
-        ratePlanName = "Supporter Plus V2 - Annual",
+        productRatePlanId = "8a12865b8219d9b40182210618a464ba",
+        ratePlanName = "Supporter Plus Annual",
         List(
           ZuoraRatePlanCharge(
-            productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
+            productRatePlanChargeId = "8a12865b8219d9b40182210618c664c1",
             name = "Supporter Plus Annual Charge",
-            number = "C-04439843",
-            currency = "EUR",
-            price = Some(95.0),
+            number = "C-04411538",
+            currency = "GBP",
+            price = Some(120.0),
             billingPeriod = Some("Annual"),
-            chargedThroughDate = Some(LocalDate.of(2024, 7, 15)),
-            processedThroughDate = Some(LocalDate.of(2023, 7, 15)),
+            chargedThroughDate = Some(LocalDate.of(2024, 6, 28)),
+            processedThroughDate = Some(LocalDate.of(2023, 6, 28)),
             specificBillingPeriod = None,
             endDateCondition = Some("Subscription_End"),
             upToPeriodsType = None,
             upToPeriods = None,
             billingDay = Some("ChargeTriggerDay"),
             triggerEvent = Some("CustomerAcceptance"),
-            triggerDate = None,
-            discountPercentage = None
-          ),
-          ZuoraRatePlanCharge(
-            productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
-            name = "Contribution",
-            number = "C-04439842",
-            currency = "EUR",
-            price = Some(25.0),
-            billingPeriod = Some("Annual"),
-            chargedThroughDate = Some(LocalDate.of(2024, 7, 15)),
-            processedThroughDate = Some(LocalDate.of(2023, 7, 15)),
-            specificBillingPeriod = None,
-            endDateCondition = Some("Subscription_End"),
-            upToPeriodsType = None,
-            upToPeriods = None,
-            billingDay = Some("ChargeTriggerDay"),
-            triggerEvent = Some("ContractEffective"),
             triggerDate = None,
             discountPercentage = None
           )
@@ -1425,38 +1347,20 @@ class AmendmentDataTest extends munit.FunSuite {
       ratePlanCharges,
       List(
         ZuoraRatePlanCharge(
-          productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
+          productRatePlanChargeId = "8a12865b8219d9b40182210618c664c1",
           name = "Supporter Plus Annual Charge",
-          number = "C-04439843",
-          currency = "EUR",
-          price = Some(95.0),
+          number = "C-04411538",
+          currency = "GBP",
+          price = Some(120.0),
           billingPeriod = Some("Annual"),
-          chargedThroughDate = Some(LocalDate.of(2024, 7, 15)),
-          processedThroughDate = Some(LocalDate.of(2023, 7, 15)),
+          chargedThroughDate = Some(LocalDate.of(2024, 6, 28)),
+          processedThroughDate = Some(LocalDate.of(2023, 6, 28)),
           specificBillingPeriod = None,
           endDateCondition = Some("Subscription_End"),
           upToPeriodsType = None,
           upToPeriods = None,
           billingDay = Some("ChargeTriggerDay"),
           triggerEvent = Some("CustomerAcceptance"),
-          triggerDate = None,
-          discountPercentage = None
-        ),
-        ZuoraRatePlanCharge(
-          productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
-          name = "Contribution",
-          number = "C-04439842",
-          currency = "EUR",
-          price = Some(25.0),
-          billingPeriod = Some("Annual"),
-          chargedThroughDate = Some(LocalDate.of(2024, 7, 15)),
-          processedThroughDate = Some(LocalDate.of(2023, 7, 15)),
-          specificBillingPeriod = None,
-          endDateCondition = Some("Subscription_End"),
-          upToPeriodsType = None,
-          upToPeriods = None,
-          billingDay = Some("ChargeTriggerDay"),
-          triggerEvent = Some("ContractEffective"),
           triggerDate = None,
           discountPercentage = None
         )
@@ -1466,7 +1370,7 @@ class AmendmentDataTest extends munit.FunSuite {
     val currency = ratePlanCharges.head.currency
     assertEquals(
       currency,
-      "EUR"
+      "GBP"
     )
 
     val oldPrice = SupporterRevenue2023V1V2.getOldPrice(subscription, ratePlanCharges).toOption.get
@@ -1477,7 +1381,7 @@ class AmendmentDataTest extends munit.FunSuite {
 
     val billingP =
       SupporterRevenue2023V1V2
-        .billingPeriod(account, catalogue, subscription, invoicePreview, LocalDate.of(2024, 7, 15))
+        .billingPeriod(account, catalogue, subscription, invoicePreview, LocalDate.of(2024, 6, 28))
         .toOption
         .get
     assertEquals(
@@ -1493,7 +1397,7 @@ class AmendmentDataTest extends munit.FunSuite {
 
     val priceData =
       AmendmentData
-        .priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2024, 7, 15), cohortSpec)
+        .priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2024, 6, 28), cohortSpec)
         .toOption
         .get
     assertEquals(

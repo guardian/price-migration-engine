@@ -229,10 +229,10 @@ object EstimationHandlerTest extends ZIOSpecDefault {
           estimationResult ==
             SuccessfulEstimationResult(
               subscriptionName = "SUBSCRIPTION-NUMBER",
-              startDate = LocalDate.of(2023, 9, 7),
-              currency = "USD",
-              oldPrice = BigDecimal(40.0),
-              estimatedNewPrice = BigDecimal(13),
+              startDate = LocalDate.of(2023, 9, 3),
+              currency = "GBP",
+              oldPrice = BigDecimal(25.0),
+              estimatedNewPrice = BigDecimal(10),
               billingPeriod = "Month"
             )
         )
@@ -292,8 +292,8 @@ object EstimationHandlerTest extends ZIOSpecDefault {
           estimationResult ==
             SuccessfulEstimationResult(
               subscriptionName = "SUBSCRIPTION-NUMBER",
-              startDate = LocalDate.of(2024, 7, 15),
-              currency = "EUR",
+              startDate = LocalDate.of(2024, 6, 28),
+              currency = "GBP",
               oldPrice = BigDecimal(120),
               estimatedNewPrice = BigDecimal(95),
               billingPeriod = "Annual"

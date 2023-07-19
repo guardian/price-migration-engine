@@ -479,15 +479,14 @@ class AmendmentHandlerTest extends munit.FunSuite {
 
     // The effective date must be a billing date
     // Here we get the next billing date according to the invoice preview.
-    val effectiveDate = LocalDate.of(2023, 9, 7) // annual: 2023-09-07
+    val effectiveDate = LocalDate.of(2023, 8, 3) // montly: 2023-08-03
 
     // ZuoraInvoiceItem.items finds the invoice items corresponding to that billing date
     val invoiceItems = ZuoraInvoiceItem.items(invoicePreview, subscription, effectiveDate)
 
     val invoiceItemsCheck =
       List(
-        ZuoraInvoiceItem("SUBSCRIPTION-NUMBER", LocalDate.of(2023, 9, 7), "C-04426875", "Supporter Plus"),
-        ZuoraInvoiceItem("SUBSCRIPTION-NUMBER", LocalDate.of(2023, 9, 7), "C-04426876", "Supporter Plus")
+        ZuoraInvoiceItem("SUBSCRIPTION-NUMBER", LocalDate.of(2023, 8, 3), "C-04419773", "Supporter Plus"),
       )
     assertEquals(invoiceItems, invoiceItemsCheck)
 
@@ -497,20 +496,20 @@ class AmendmentHandlerTest extends munit.FunSuite {
     val ratePlanCharges = ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItems.head).toSeq
     val ratePlanChargesCheck = List(
       ZuoraRatePlanCharge(
-        productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270",
-        name = "Contribution",
-        number = "C-04426875",
-        currency = "USD",
-        price = Some(27.0),
+        productRatePlanChargeId = "8a12865b8219d9b401822106194e64e3",
+        name = "Supporter Plus Monthly Charge",
+        number = "C-04419773",
+        currency = "GBP",
+        price = Some(25.0),
         billingPeriod = Some("Month"),
-        chargedThroughDate = Some(LocalDate.of(2023, 8, 7)),
-        processedThroughDate = Some(LocalDate.of(2023, 7, 7)),
+        chargedThroughDate = Some(LocalDate.of(2023, 8, 3)),
+        processedThroughDate = Some(LocalDate.of(2023, 7, 3)),
         specificBillingPeriod = None,
         endDateCondition = Some("Subscription_End"),
         upToPeriodsType = None,
         upToPeriods = None,
         billingDay = Some("ChargeTriggerDay"),
-        triggerEvent = Some("ContractEffective"),
+        triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
         discountPercentage = None
       )
@@ -529,44 +528,26 @@ class AmendmentHandlerTest extends munit.FunSuite {
       ratePlans,
       List(
         ZuoraRatePlan(
-          id = "8a128009892f2bae018930e579906d85",
+          id = "8a12921d89018aaa01891bef52021b65",
           productName = "Supporter Plus",
-          productRatePlanId = "8a128ed885fc6ded018602296ace3eb8",
-          ratePlanName = "Supporter Plus V2 - Monthly",
+          productRatePlanId = "8a12865b8219d9b401822106192b64dc",
+          ratePlanName = "Supporter Plus Monthly",
           ratePlanCharges = List(
             ZuoraRatePlanCharge(
-              productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
+              productRatePlanChargeId = "8a12865b8219d9b401822106194e64e3",
               name = "Supporter Plus Monthly Charge",
-              number = "C-04426876",
-              currency = "USD",
-              price = Some(13.0),
+              number = "C-04419773",
+              currency = "GBP",
+              price = Some(25.0),
               billingPeriod = Some("Month"),
-              chargedThroughDate = Some(LocalDate.of(2023, 8, 7)),
-              processedThroughDate = Some(LocalDate.of(2023, 7, 7)),
+              chargedThroughDate = Some(LocalDate.of(2023, 8, 3)),
+              processedThroughDate = Some(LocalDate.of(2023, 7, 3)),
               specificBillingPeriod = None,
               endDateCondition = Some("Subscription_End"),
               upToPeriodsType = None,
               upToPeriods = None,
               billingDay = Some("ChargeTriggerDay"),
               triggerEvent = Some("CustomerAcceptance"),
-              triggerDate = None,
-              discountPercentage = None
-            ),
-            ZuoraRatePlanCharge(
-              productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270",
-              name = "Contribution",
-              number = "C-04426875",
-              currency = "USD",
-              price = Some(27.0),
-              billingPeriod = Some("Month"),
-              chargedThroughDate = Some(LocalDate.of(2023, 8, 7)),
-              processedThroughDate = Some(LocalDate.of(2023, 7, 7)),
-              specificBillingPeriod = None,
-              endDateCondition = Some("Subscription_End"),
-              upToPeriodsType = None,
-              upToPeriods = None,
-              billingDay = Some("ChargeTriggerDay"),
-              triggerEvent = Some("ContractEffective"),
               triggerDate = None,
               discountPercentage = None
             )
@@ -601,8 +582,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
       update,
       Right(
         ZuoraSubscriptionUpdate(
-          add = List(AddZuoraRatePlan("8a128ed885fc6ded01860228f77e3d5a", LocalDate.of(2023, 9, 7))),
-          remove = List(RemoveZuoraRatePlan("8a128009892f2bae018930e579906d85", LocalDate.of(2023, 9, 7))),
+          add = List(AddZuoraRatePlan("8a128ed885fc6ded01860228f77e3d5a", LocalDate.of(2023, 8, 3))),
+          remove = List(RemoveZuoraRatePlan("8a12921d89018aaa01891bef52021b65", LocalDate.of(2023, 8, 3))),
           currentTerm = None,
           currentTermPeriodType = None
         )
@@ -738,35 +719,34 @@ class AmendmentHandlerTest extends munit.FunSuite {
 
     // The effective date must be a billing date
     // Here we get the next billing date according to the invoice preview.
-    val effectiveDate = LocalDate.of(2024, 7, 15) // annual: 2024-07-02
+    val effectiveDate = LocalDate.of(2024, 6, 28) // annual: 2024-07-02
 
     // ZuoraInvoiceItem.items finds the invoice items corresponding to that billing date
     val invoiceItems = ZuoraInvoiceItem.items(invoicePreview, subscription, effectiveDate)
 
     val invoiceItemsCheck =
       List(
-        ZuoraInvoiceItem("SUBSCRIPTION-NUMBER", LocalDate.of(2024, 7, 15), "C-04439842", "Supporter Plus"),
-        ZuoraInvoiceItem("SUBSCRIPTION-NUMBER", LocalDate.of(2024, 7, 15), "C-04439843", "Supporter Plus")
+        ZuoraInvoiceItem("SUBSCRIPTION-NUMBER", LocalDate.of(2024, 6, 28), "C-04411538", "Supporter Plus"),
       )
     assertEquals(invoiceItems, invoiceItemsCheck)
 
     val ratePlanCharges = ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItems.head).toSeq
     val ratePlanChargesCheck = List(
       ZuoraRatePlanCharge(
-        productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
-        name = "Contribution",
-        number = "C-04439842",
-        currency = "EUR",
-        price = Some(25.0),
+        productRatePlanChargeId = "8a12865b8219d9b40182210618c664c1",
+        name = "Supporter Plus Annual Charge",
+        number = "C-04411538",
+        currency = "GBP",
+        price = Some(120.0),
         billingPeriod = Some("Annual"),
-        chargedThroughDate = Some(LocalDate.of(2024, 7, 15)),
-        processedThroughDate = Some(LocalDate.of(2023, 7, 15)),
+        chargedThroughDate = Some(LocalDate.of(2024, 6, 28)),
+        processedThroughDate = Some(LocalDate.of(2023, 6, 28)),
         specificBillingPeriod = None,
         endDateCondition = Some("Subscription_End"),
         upToPeriodsType = None,
         upToPeriods = None,
         billingDay = Some("ChargeTriggerDay"),
-        triggerEvent = Some("ContractEffective"),
+        triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
         discountPercentage = None
       )
@@ -785,44 +765,26 @@ class AmendmentHandlerTest extends munit.FunSuite {
       ratePlans,
       List(
         ZuoraRatePlan(
-          id = "8a12873f89548834018958ae04d62981",
+          id = "8a12843288f6ded10188ff5fbef67bb3",
           productName = "Supporter Plus",
-          productRatePlanId = "8a128ed885fc6ded01860228f77e3d5a",
-          ratePlanName = "Supporter Plus V2 - Annual",
+          productRatePlanId = "8a12865b8219d9b40182210618a464ba",
+          ratePlanName = "Supporter Plus Annual",
           ratePlanCharges = List(
             ZuoraRatePlanCharge(
-              productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
+              productRatePlanChargeId = "8a12865b8219d9b40182210618c664c1",
               name = "Supporter Plus Annual Charge",
-              number = "C-04439843",
-              currency = "EUR",
-              price = Some(95.0),
+              number = "C-04411538",
+              currency = "GBP",
+              price = Some(120.0),
               billingPeriod = Some("Annual"),
-              chargedThroughDate = Some(LocalDate.of(2024, 7, 15)),
-              processedThroughDate = Some(LocalDate.of(2023, 7, 15)),
+              chargedThroughDate = Some(LocalDate.of(2024, 6, 28)),
+              processedThroughDate = Some(LocalDate.of(2023, 6, 28)),
               specificBillingPeriod = None,
               endDateCondition = Some("Subscription_End"),
               upToPeriodsType = None,
               upToPeriods = None,
               billingDay = Some("ChargeTriggerDay"),
               triggerEvent = Some("CustomerAcceptance"),
-              triggerDate = None,
-              discountPercentage = None
-            ),
-            ZuoraRatePlanCharge(
-              productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
-              name = "Contribution",
-              number = "C-04439842",
-              currency = "EUR",
-              price = Some(25.0),
-              billingPeriod = Some("Annual"),
-              chargedThroughDate = Some(LocalDate.of(2024, 7, 15)),
-              processedThroughDate = Some(LocalDate.of(2023, 7, 15)),
-              specificBillingPeriod = None,
-              endDateCondition = Some("Subscription_End"),
-              upToPeriodsType = None,
-              upToPeriods = None,
-              billingDay = Some("ChargeTriggerDay"),
-              triggerEvent = Some("ContractEffective"),
               triggerDate = None,
               discountPercentage = None
             )
@@ -836,7 +798,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
       CohortItem(
         subscriptionName = "SUBSCRIPTION-NUMBER",
         processingStage = NotificationSendDateWrittenToSalesforce,
-        startDate = Some(LocalDate.of(2024, 7, 2)),
+        startDate = Some(LocalDate.of(2024, 6, 28)),
         currency = Some("USD"),
         oldPrice = Some(BigDecimal(120)),
         estimatedNewPrice = Some(BigDecimal(120)),
@@ -857,8 +819,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
       update,
       Right(
         ZuoraSubscriptionUpdate(
-          add = List(AddZuoraRatePlan("8a128ed885fc6ded01860228f77e3d5a", LocalDate.of(2024, 7, 15))),
-          remove = List(RemoveZuoraRatePlan("8a12873f89548834018958ae04d62981", LocalDate.of(2024, 7, 15))),
+          add = List(AddZuoraRatePlan("8a128ed885fc6ded01860228f77e3d5a", LocalDate.of(2024, 6, 28))),
+          remove = List(RemoveZuoraRatePlan("8a12843288f6ded10188ff5fbef67bb3", LocalDate.of(2024, 6, 28))),
           currentTerm = None,
           currentTermPeriodType = None
         )
