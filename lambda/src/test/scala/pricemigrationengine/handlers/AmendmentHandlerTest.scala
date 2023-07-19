@@ -557,15 +557,20 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
 
+    val cohortSpec =
+      CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+
+    // The details of the item must match that of the estimation results in the corresponding EstimationHandlerTest
+
     val item =
       CohortItem(
         subscriptionName = "SUBSCRIPTION-NUMBER",
         processingStage = NotificationSendDateWrittenToSalesforce,
-        startDate = Some(LocalDate.of(2024, 7, 2)),
-        currency = Some("USD"),
-        oldPrice = Some(BigDecimal(120)),
-        estimatedNewPrice = Some(BigDecimal(120)),
-        billingPeriod = Some("Annual")
+        startDate = Some(LocalDate.of(2023, 9, 3)),
+        currency = Some("GBP"),
+        oldPrice = Some(BigDecimal(25)),
+        estimatedNewPrice = Some(BigDecimal(10)),
+        billingPeriod = Some("Month")
       )
 
     val update = SupporterRevenue2023V1V2.updateOfRatePlansToCurrent(
@@ -575,14 +580,23 @@ class AmendmentHandlerTest extends munit.FunSuite {
       effectiveDate: LocalDate
     )
 
-    // note: the product rate plan id we are removing it: 8a12865b8219d9b40182210618a464ba, but the subscription can
-    // have a slightly different "effective" rate plan with it's own id, in this case 8a128432890171d1018914866bee0e7f
-
     assertEquals(
       update,
       Right(
         ZuoraSubscriptionUpdate(
-          add = List(AddZuoraRatePlan("8a128ed885fc6ded01860228f77e3d5a", LocalDate.of(2023, 8, 3))),
+          add = List(
+            AddZuoraRatePlan(
+              "8a128ed885fc6ded018602296ace3eb8",
+              LocalDate.of(2023, 8, 3),
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270",
+                  billingPeriod = "Month",
+                  price = 15
+                )
+              )
+            )
+          ),
           remove = List(RemoveZuoraRatePlan("8a12921d89018aaa01891bef52021b65", LocalDate.of(2023, 8, 3))),
           currentTerm = None,
           currentTermPeriodType = None
@@ -799,7 +813,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
         subscriptionName = "SUBSCRIPTION-NUMBER",
         processingStage = NotificationSendDateWrittenToSalesforce,
         startDate = Some(LocalDate.of(2024, 6, 28)),
-        currency = Some("USD"),
+        currency = Some("GBP"),
         oldPrice = Some(BigDecimal(120)),
         estimatedNewPrice = Some(BigDecimal(120)),
         billingPeriod = Some("Annual")
@@ -812,14 +826,23 @@ class AmendmentHandlerTest extends munit.FunSuite {
       effectiveDate: LocalDate
     )
 
-    // note: the product rate plan id we are removing it: 8a12865b8219d9b40182210618a464ba, but the subscription can
-    // have a slightly different "effective" rate plan with it's own id, in this case 8a128432890171d1018914866bee0e7f
-
     assertEquals(
       update,
       Right(
         ZuoraSubscriptionUpdate(
-          add = List(AddZuoraRatePlan("8a128ed885fc6ded01860228f77e3d5a", LocalDate.of(2024, 6, 28))),
+          add = List(
+            AddZuoraRatePlan(
+              "8a128ed885fc6ded01860228f77e3d5a",
+              LocalDate.of(2024, 6, 28),
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
+                  billingPeriod = "Annual",
+                  price = 25
+                )
+              )
+            )
+          ),
           remove = List(RemoveZuoraRatePlan("8a12843288f6ded10188ff5fbef67bb3", LocalDate.of(2024, 6, 28))),
           currentTerm = None,
           currentTermPeriodType = None
