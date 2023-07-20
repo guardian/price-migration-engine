@@ -978,20 +978,20 @@ class AmendmentDataTest extends munit.FunSuite {
     assertEquals(
       ratePlan,
       ZuoraRatePlan(
-        id = "8a129d388962fe000189679374c3429c",
-        productName = "Contributor",
-        productRatePlanId = "2c92a0fc5aacfadd015ad24db4ff5e97",
-        ratePlanName = "Monthly Contribution",
+        id = "8a129d388962fe000189679374ce42a1",
+        productName = "Supporter Plus",
+        productRatePlanId = "8a12865b8219d9b401822106192b64dc",
+        ratePlanName = "Supporter Plus Monthly",
         List(
           ZuoraRatePlanCharge(
-            productRatePlanChargeId = "2c92a0fc5aacfadd015ad250bf2c6d38",
-            name = "Monthly Contribution",
-            number = "C-01337228",
+            productRatePlanChargeId = "8a12865b8219d9b401822106194e64e3",
+            name = "Supporter Plus Monthly Charge",
+            number = "C-04240692",
             currency = "GBP",
             price = Some(10.0),
             billingPeriod = Some("Month"),
-            chargedThroughDate = Some(LocalDate.of(2023, 4, 1)),
-            processedThroughDate = Some(LocalDate.of(2023, 4, 1)),
+            chargedThroughDate = Some(LocalDate.of(2023, 8, 1)),
+            processedThroughDate = Some(LocalDate.of(2023, 7, 1)),
             specificBillingPeriod = None,
             endDateCondition = Some("Subscription_End"),
             upToPeriodsType = None,
@@ -1002,7 +1002,7 @@ class AmendmentDataTest extends munit.FunSuite {
             discountPercentage = None
           )
         ),
-        lastChangeType = Some("Remove")
+        lastChangeType = Some("Add")
       )
     )
 
@@ -1011,14 +1011,14 @@ class AmendmentDataTest extends munit.FunSuite {
       ratePlanCharges,
       List(
         ZuoraRatePlanCharge(
-          productRatePlanChargeId = "2c92a0fc5aacfadd015ad250bf2c6d38",
-          name = "Monthly Contribution",
-          number = "C-01337228",
+          productRatePlanChargeId = "8a12865b8219d9b401822106194e64e3",
+          name = "Supporter Plus Monthly Charge",
+          number = "C-04240692",
           currency = "GBP",
           price = Some(10.0),
           billingPeriod = Some("Month"),
-          chargedThroughDate = Some(LocalDate.of(2023, 4, 1)),
-          processedThroughDate = Some(LocalDate.of(2023, 4, 1)),
+          chargedThroughDate = Some(LocalDate.of(2023, 8, 1)),
+          processedThroughDate = Some(LocalDate.of(2023, 7, 1)),
           specificBillingPeriod = None,
           endDateCondition = Some("Subscription_End"),
           upToPeriodsType = None,
