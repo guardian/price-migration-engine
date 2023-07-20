@@ -558,7 +558,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
     )
 
     val cohortSpec =
-      CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+      CohortSpec("SupporterPlus2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
 
     // The details of the item must match that of the estimation results in the corresponding EstimationHandlerTest
 

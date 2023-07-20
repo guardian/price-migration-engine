@@ -53,11 +53,11 @@ object SupporterPlus2023V1V2MA extends MigrationType
 
 object MigrationType {
   def apply(cohortSpec: CohortSpec): MigrationType = cohortSpec.cohortName match {
-    case "Membership2023_Batch1"    => Membership2023Monthlies
-    case "Membership2023_Batch2"    => Membership2023Monthlies
-    case "Membership2023_Batch3"    => Membership2023Annuals
-    case "SupporterRevenue2023V1V2" => SupporterPlus2023V1V2MA
-    case _                          => Legacy
+    case "Membership2023_Batch1" => Membership2023Monthlies
+    case "Membership2023_Batch2" => Membership2023Monthlies
+    case "Membership2023_Batch3" => Membership2023Annuals
+    case "SupporterPlus2023V1V2" => SupporterPlus2023V1V2MA
+    case _                       => Legacy
   }
 }
 

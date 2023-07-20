@@ -145,7 +145,7 @@ object SupporterPlus2023V1V2 {
     else
       Left(
         AmendmentDataFailure(
-          s"Failed to find matching product rate plan charges for rate plan charges: ${failures.mkString(", ")}"
+          s"[SupporterPlus2023V1V2] Failed to find matching product rate plan charges for rate plan charges: ${failures.mkString(", ")}"
         )
       )
   }
