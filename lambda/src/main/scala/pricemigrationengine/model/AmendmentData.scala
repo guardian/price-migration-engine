@@ -105,7 +105,7 @@ object AmendmentData {
     else
       Left(
         AmendmentDataFailure(
-          s"Failed to find matching product rate plan charges for rate plan charges: ${failures.mkString(", ")}"
+          s"[AmendmentData] Failed to find matching product rate plan charges for rate plan charges: ${failures.mkString(", ")}"
         )
       )
   }
