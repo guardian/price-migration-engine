@@ -300,6 +300,41 @@ object EstimationHandlerTest extends ZIOSpecDefault {
             )
         )
       },
+      test(
+        "EstimationResult is correct for SupporterPlus2023V1V2 (the curious case of a monthly with incorrect old price)"
+      ) {
+
+        val cohortSpec =
+          CohortSpec("SupporterPlus2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+
+        val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/z-monthly-extra-case-1/account.json")
+        val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/z-monthly-extra-case-1/catalogue.json")
+        val subscription =
+          Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/z-monthly-extra-case-1/subscription.json")
+        val invoicePreview =
+          Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/z-monthly-extra-case-1/invoice-preview.json")
+
+        val estimationResult = EstimationResult(
+          account = account,
+          catalogue = catalogue,
+          subscription = subscription,
+          invoiceList = invoicePreview,
+          startDateLowerBound = LocalDate.of(2023, 8, 21),
+          cohortSpec = cohortSpec,
+        ).toOption.get
+
+        assertTrue(
+          estimationResult ==
+            SuccessfulEstimationResult(
+              subscriptionName = "SUBSCRIPTION-NUMBER",
+              startDate = LocalDate.of(2023, 9, 8),
+              currency = "GBP",
+              oldPrice = BigDecimal(10.0),
+              estimatedNewPrice = BigDecimal(10),
+              billingPeriod = "Month"
+            )
+        )
+      },
     )
   }
 }
