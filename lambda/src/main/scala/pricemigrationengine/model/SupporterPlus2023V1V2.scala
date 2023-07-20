@@ -25,7 +25,7 @@ object SupporterPlus2023V1V2 {
   )
 
   def subscriptionRatePlan(subscription: ZuoraSubscription): Either[AmendmentDataFailure, ZuoraRatePlan] = {
-    subscription.ratePlans.headOption match {
+    subscription.ratePlans.filter(rp => rp.productName == "Supporter Plus").headOption match {
       case None =>
         Left(AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} doesn't have any rate plan"))
       case Some(ratePlan) => Right(ratePlan)
@@ -177,14 +177,33 @@ object SupporterPlus2023V1V2 {
       nextServiceDate: LocalDate,
       cohortSpec: CohortSpec
   ): Either[AmendmentDataFailure, PriceData] = {
-    for {
+    val result = (for {
       ratePlan <- subscriptionRatePlan(subscription)
       ratePlanCharges <- subscriptionRatePlanCharges(subscription, ratePlan)
       currency = ratePlanCharges.head.currency
       oldPrice <- getOldPrice(subscription, ratePlanCharges)
       billingP <- billingPeriod(account, catalogue, subscription, invoiceList, nextServiceDate)
       newPrice <- currencyToNewPrice(billingP, currency: String)
-    } yield PriceData(currency, oldPrice, newPrice, billingP)
+    } yield {
+      PriceData(currency, oldPrice, newPrice, billingP)
+    })
+    result match {
+      case Left(_) => result
+      case Right(priceData) => {
+        if (priceData.newPrice <= priceData.oldPrice) {
+          Right(priceData)
+        } else {
+          // I this case the new price is higher than the old price. (Meaning that the v2 rate plan is higher than the)
+          // old rate plan charge plus whichever extra contribution the subscription was paying.
+          // We would want to know about that and investigate.
+          Left(
+            AmendmentDataFailure(
+              s"[SupporterPlus2023V1V2] Possibly incorrect pricing for subscription ${subscription.subscriptionNumber}. The new price, ${priceData.newPrice}, is higher than the old price, ${priceData.oldPrice}."
+            )
+          )
+        }
+      }
+    }
   }
 
   def updateOfRatePlanToCurrentMonth(
