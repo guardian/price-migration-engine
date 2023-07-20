@@ -33,15 +33,19 @@ object NotificationHandler extends CohortHandler {
 
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case Legacy => letterMaxNotificationLeadTime
-      case _      => emailMaxNotificationLeadTime
+      case Membership2023Monthlies => emailMaxNotificationLeadTime
+      case Membership2023Annuals   => emailMaxNotificationLeadTime
+      case SupporterPlus2023V1V2MA => emailMaxNotificationLeadTime
+      case Legacy                  => letterMaxNotificationLeadTime
     }
   }
 
   def minLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case Legacy => letterMinNotificationLeadTime
-      case _      => emailMinNotificationLeadTime
+      case Membership2023Monthlies => emailMinNotificationLeadTime
+      case Membership2023Annuals   => emailMinNotificationLeadTime
+      case SupporterPlus2023V1V2MA => emailMinNotificationLeadTime
+      case Legacy                  => letterMinNotificationLeadTime
     }
   }
 
@@ -162,9 +166,9 @@ object NotificationHandler extends CohortHandler {
       forceEstimated = MigrationType(cohortSpec) match {
         case Membership2023Monthlies => true
         case Membership2023Annuals   => true
-        case _                       => false
+        case SupporterPlus2023V1V2MA => true
+        case Legacy                  => false
       }
-
       cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, forceEstimated)}"
 
       _ <- logMissingEmailAddress(cohortItem, contact)

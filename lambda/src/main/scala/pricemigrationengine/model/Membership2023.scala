@@ -85,7 +85,6 @@ object Membership2023 {
       nextServiceDate: LocalDate,
       cohortSpec: CohortSpec
   ): Either[AmendmentDataFailure, PriceData] = {
-
     MigrationType(cohortSpec) match {
       case Membership2023Monthlies =>
         for {

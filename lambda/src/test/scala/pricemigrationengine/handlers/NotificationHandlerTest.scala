@@ -778,4 +778,32 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem4), true) // +33 days
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem5), true) // +34 days
   }
+
+  test("thereIsEnoughNotificationLeadTime behaves correctly (supporter plus 2023)") {
+    // Here we are testing and calibrating the timing required for a start of emailing on 22 August 2023
+    // Process starting 20 July 2023
+
+    val today = LocalDate.of(2023, 7, 20)
+
+    val itemStartDate1 = LocalDate.of(2023, 8, 19) // +30 days
+    val itemStartDate2 = LocalDate.of(2023, 8, 20) // +31 days
+    val itemStartDate3 = LocalDate.of(2023, 8, 21) // +32 days
+    val itemStartDate4 = LocalDate.of(2023, 8, 22) // +33 days
+    val itemStartDate5 = LocalDate.of(2023, 8, 23) // +34 days
+
+    val cohortItem1 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate1))
+    val cohortItem2 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate2))
+    val cohortItem3 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate3))
+    val cohortItem4 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate4))
+    val cohortItem5 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate5))
+
+    val cohortSpec =
+      CohortSpec("Membership2023_Batch3", "BrazeCampaignName", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 8, 22))
+
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem1), false) // +30 days
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem2), false) // +31 days
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem3), true) // +32 days
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem4), true) // +33 days
+    assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem5), true) // +34 days
+  }
 }

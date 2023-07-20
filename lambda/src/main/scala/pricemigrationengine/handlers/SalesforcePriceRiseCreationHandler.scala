@@ -84,7 +84,8 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
       val forceEstimated = MigrationType(cohortSpec) match {
         case Membership2023Monthlies => true
         case Membership2023Annuals   => true
-        case _                       => false
+        case SupporterPlus2023V1V2MA => true
+        case Legacy                  => false
       }
       SalesforcePriceRise(
         Some(subscription.Name),
