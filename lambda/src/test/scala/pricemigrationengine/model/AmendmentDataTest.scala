@@ -760,9 +760,9 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
-  test("billing period is correct for SupporterRevenue2023V1V2 (monthly standard)") {
+  test("billing period is correct for SupporterPlus2023V1V2 (monthly standard)") {
     val cohortSpec =
-      CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+      CohortSpec("SupporterPlus2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
 
     val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/monthly-standard/account.json")
     val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/monthly-standard/catalogue.json")
@@ -826,9 +826,9 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
-  test("billing period is correct for SupporterRevenue2023V1V2 (monthly contribution)") {
+  test("billing period is correct for SupporterPlus2023V1V2 (monthly contribution)") {
     val cohortSpec =
-      CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+      CohortSpec("SupporterPlus2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
 
     val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/monthly-contribution/account.json")
     val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/monthly-contribution/catalogue.json")
@@ -892,9 +892,9 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
-  test("billing period is correct for SupporterRevenue2023V1V2 (annual standard)") {
+  test("billing period is correct for SupporterPlus2023V1V2 (annual standard)") {
     val cohortSpec =
-      CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+      CohortSpec("SupporterPlus2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
 
     val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/annual-standard/account.json")
     val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/annual-standard/catalogue.json")
@@ -958,10 +958,10 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
-  test("priceData: is correct for SupporterRevenue2023V1V2 (monthly standard)") {
+  test("priceData: is correct for SupporterPlus2023V1V2 (monthly standard)") {
 
     val cohortSpec =
-      CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+      CohortSpec("SupporterPlus2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
 
     val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/monthly-standard/account.json")
     val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/monthly-standard/catalogue.json")
@@ -1070,10 +1070,10 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
-  test("priceData: is correct for SupporterRevenue2023V1V2 (monthly contribution)") {
+  test("priceData: is correct for SupporterPlus2023V1V2 (monthly contribution)") {
 
     val cohortSpec =
-      CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+      CohortSpec("SupporterPlus2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
 
     val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/monthly-contribution/account.json")
     val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/monthly-contribution/catalogue.json")
@@ -1182,10 +1182,10 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
-  test("priceData: is correct for SupporterRevenue2023V1V2 (annual standard)") {
+  test("priceData: is correct for SupporterPlus2023V1V2 (annual standard)") {
 
     val cohortSpec =
-      CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+      CohortSpec("SupporterPlus2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
 
     val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/annual-standard/account.json")
     val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/annual-standard/catalogue.json")
@@ -1294,10 +1294,10 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
-  test("priceData: is correct for SupporterRevenue2023V1V2 (annual contribution)") {
+  test("priceData: is correct for SupporterPlus2023V1V2 (annual contribution)") {
 
     val cohortSpec =
-      CohortSpec("SupporterRevenue2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
+      CohortSpec("SupporterPlus2023V1V2", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
 
     val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/annual-contribution/account.json")
     val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/annual-contribution/catalogue.json")
