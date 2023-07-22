@@ -19,28 +19,33 @@ object NotificationHandler extends CohortHandler {
   // For general information about the notification period see the docs/notification-periods.md
 
   // The standard notification period for letter products (where the notification is delivered by email)
-  // is -49 (included) to -35 (excluded) days.
-  val guLettersNotificationLeadTime = 49
-  private val engineLettersMinNotificationLeadTime = 35
+  // is -49 (included) to -35 (excluded) days. Legally the min is 30 days, but we set 35 days to alert if a
+  // subscription if exiting the notification window and needs to be investigated and repaired before the deadline
+  // of 30 days.
+
+  val letterMaxNotificationLeadTime = 49
+  private val letterMinNotificationLeadTime = 35
 
   // Membership migration
   // Notification period: -33 (included) to -31 (excluded) days
-  private val membershipPriceRiseNotificationLeadTime = 33
-  private val membershipMinNotificationLeadTime = 31
+  private val emailMaxNotificationLeadTime = 33
+  private val emailMinNotificationLeadTime = 31
 
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
-    if (CohortSpec.isMembershipPriceRise(cohortSpec)) {
-      membershipPriceRiseNotificationLeadTime
-    } else {
-      guLettersNotificationLeadTime
+    MigrationType(cohortSpec) match {
+      case Membership2023Monthlies => emailMaxNotificationLeadTime
+      case Membership2023Annuals   => emailMaxNotificationLeadTime
+      case SupporterPlus2023V1V2MA => emailMaxNotificationLeadTime
+      case Legacy                  => letterMaxNotificationLeadTime
     }
   }
 
   def minLeadTime(cohortSpec: CohortSpec): Int = {
-    if (CohortSpec.isMembershipPriceRise(cohortSpec)) {
-      membershipMinNotificationLeadTime
-    } else {
-      engineLettersMinNotificationLeadTime
+    MigrationType(cohortSpec) match {
+      case Membership2023Monthlies => emailMinNotificationLeadTime
+      case Membership2023Annuals   => emailMinNotificationLeadTime
+      case SupporterPlus2023V1V2MA => emailMinNotificationLeadTime
+      case Legacy                  => letterMinNotificationLeadTime
     }
   }
 
@@ -127,19 +132,21 @@ object NotificationHandler extends CohortHandler {
       )
       lastName <- requiredField(contact.LastName, "Contact.LastName")
       address <- targetAddress(contact)
-      street <-
-        if (CohortSpec.isMembershipPriceRise(cohortSpec)) {
+      street <- MigrationType(cohortSpec) match {
+        case Membership2023Monthlies =>
           requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
-        } else {
-          requiredField(address.street, "Contact.OtherAddress.street")
-        }
+        case Membership2023Annuals =>
+          requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
+        case _ => requiredField(address.street, "Contact.OtherAddress.street")
+      }
       postalCode = address.postalCode.getOrElse("")
-      country <-
-        if (CohortSpec.isMembershipPriceRise(cohortSpec)) {
+      country <- MigrationType(cohortSpec) match {
+        case Membership2023Monthlies =>
           requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
-        } else {
-          requiredField(address.country, "Contact.OtherAddress.country")
-        }
+        case Membership2023Annuals =>
+          requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
+        case _ => requiredField(address.country, "Contact.OtherAddress.country")
+      }
       oldPrice <- requiredField(cohortItem.oldPrice, "CohortItem.oldPrice")
       estimatedNewPrice <- requiredField(cohortItem.estimatedNewPrice, "CohortItem.estimatedNewPrice")
       startDate <- requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate")
@@ -148,8 +155,13 @@ object NotificationHandler extends CohortHandler {
       currencyISOCode <- requiredField(cohortItem.currency, "CohortItem.currency")
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
 
-      // In the case of membership price rise, we need to not cap the price
-      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, CohortSpec.isMembershipPriceRise(cohortSpec))}"
+      forceEstimated = MigrationType(cohortSpec) match {
+        case Membership2023Monthlies => true
+        case Membership2023Annuals   => true
+        case SupporterPlus2023V1V2MA => true
+        case Legacy                  => false
+      }
+      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, forceEstimated)}"
 
       _ <- logMissingEmailAddress(cohortItem, contact)
 

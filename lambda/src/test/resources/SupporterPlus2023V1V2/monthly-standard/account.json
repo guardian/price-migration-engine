@@ -1,0 +1,46 @@
+{
+  "basicInfo" : {
+    "id" : "ACCOUNT-ID",
+    "name" : "0010J00001w3XTWQA2",
+    "accountNumber" : "ACCOUNT-NUMBER",
+    "notes" : null,
+    "status" : "Active",
+    "crmId" : "0010J00001w3XTWQA2",
+    "batch" : "Batch1",
+    "invoiceTemplateId" : "2c92a0fb49377eae014951ca848e074b",
+    "communicationProfileId" : null,
+    "purchaseOrderNumber" : null,
+    "customerServiceRepName" : null,
+    "IdentityId__c" : "IDENTITY-ID-C",
+    "sfContactId__c" : "SF-CONTACT-ID-C",
+    "CCURN__c" : null,
+    "SpecialDeliveryInstructions__c" : null,
+    "NonStandardDataReason__c" : null,
+    "ProcessingAdvice__c" : "NoAdvice",
+    "CreatedRequestId__c" : null,
+    "RetryStatus__c" : null,
+    "salesRep" : null,
+    "sequenceSetId" : null
+  },
+  "billingAndPayment" : {
+    "billCycleDay" : 18,
+    "currency" : "GBP",
+    "paymentTerm" : "Due Upon Receipt",
+    "paymentGateway" : "GoCardless",
+    "defaultPaymentMethodId" : "2c92a0ff64a5de7f0164acece15e1ed2",
+    "invoiceDeliveryPrefsPrint" : false,
+    "invoiceDeliveryPrefsEmail" : false,
+    "autoPay" : true,
+    "additionalEmailAddresses" : [ ]
+  },
+  "metrics" : {
+    "balance" : 0.000000000,
+    "totalInvoiceBalance" : 0.000000000,
+    "creditBalance" : 0.000000000,
+    "contractedMrr" : 10.000000000
+  },
+  "billToContact" : null,
+  "soldToContact" : null,
+  "taxInfo" : null,
+  "success" : true
+}

@@ -116,26 +116,36 @@ object AmendmentHandler extends CohortHandler {
       invoicePreviewBeforeUpdate <-
         Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
 
-      update <-
-        if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
+      update <- MigrationType(cohortSpec) match {
+        case Membership2023Monthlies =>
           ZIO.fromEither(
-            ZuoraSubscriptionUpdate
-              .updateOfRatePlansToCurrent_Membership2023_Monthlies(
+            Membership2023
+              .updateOfRatePlansToCurrent_Monthlies(
                 subscriptionBeforeUpdate,
                 invoicePreviewBeforeUpdate,
                 startDate
               )
           )
-        } else if (CohortSpec.isMembershipPriceRiseAnnuals(cohortSpec)) {
+        case Membership2023Annuals =>
           ZIO.fromEither(
-            ZuoraSubscriptionUpdate
-              .updateOfRatePlansToCurrent_Membership2023_Annuals(
+            Membership2023
+              .updateOfRatePlansToCurrent_Annuals(
                 subscriptionBeforeUpdate,
                 invoicePreviewBeforeUpdate,
                 startDate
               )
           )
-        } else {
+        case SupporterPlus2023V1V2MA =>
+          ZIO.fromEither(
+            SupporterPlus2023V1V2
+              .updateOfRatePlansToCurrent(
+                item,
+                subscriptionBeforeUpdate,
+                invoicePreviewBeforeUpdate,
+                startDate
+              )
+          )
+        case Legacy =>
           ZIO.fromEither(
             ZuoraSubscriptionUpdate
               .updateOfRatePlansToCurrent(
@@ -147,7 +157,7 @@ object AmendmentHandler extends CohortHandler {
                 PriceCap.priceCorrectionFactorForPriceCap(oldPrice, estimatedNewPrice)
               )
           )
-        }
+      }
 
       newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
 
@@ -178,18 +188,19 @@ object AmendmentHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    if (!CohortSpec.isMembershipPriceRiseAnnuals(input)) {
-      main(input).provideSome[Logging](
-        EnvConfig.cohortTable.layer,
-        EnvConfig.zuora.layer,
-        EnvConfig.stage.layer,
-        DynamoDBZIOLive.impl,
-        DynamoDBClientLive.impl,
-        CohortTableLive.impl(input),
-        ZuoraLive.impl
-      )
-    } else {
-      ZIO.succeed(HandlerOutput(isComplete = true))
+    MigrationType(input) match {
+      case Membership2023Annuals   => ZIO.succeed(HandlerOutput(isComplete = true))
+      case SupporterPlus2023V1V2MA => ZIO.succeed(HandlerOutput(isComplete = true))
+      case _ =>
+        main(input).provideSome[Logging](
+          EnvConfig.cohortTable.layer,
+          EnvConfig.zuora.layer,
+          EnvConfig.stage.layer,
+          DynamoDBZIOLive.impl,
+          DynamoDBClientLive.impl,
+          CohortTableLive.impl(input),
+          ZuoraLive.impl
+        )
     }
   }
 }

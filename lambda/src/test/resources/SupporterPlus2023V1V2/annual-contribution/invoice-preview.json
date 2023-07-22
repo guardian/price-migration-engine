@@ -1,0 +1,25 @@
+{
+  "accountId" : "ACCOUNT-ID",
+  "invoiceItems" : [ {
+    "id" : "c543d5155cb742ccaaa1c76ce3ab4abe",
+    "subscriptionName" : "SUBSCRIPTION-NUMBER",
+    "subscriptionId" : "8a12886a8962de7001896d624165165b",
+    "subscriptionNumber" : "SUBSCRIPTION-NUMBER",
+    "serviceStartDate" : "2024-06-28",
+    "serviceEndDate" : "2025-06-27",
+    "chargeAmount" : 120.000000000,
+    "chargeDescription" : "",
+    "chargeName" : "Supporter Plus Annual Charge",
+    "chargeNumber" : "C-04411538",
+    "chargeId" : "8a12843288f6ded10188ff5fbf027bb4",
+    "productName" : "Supporter Plus",
+    "quantity" : 1,
+    "taxAmount" : 0.000000000,
+    "unitOfMeasure" : "",
+    "chargeDate" : "2023-07-19 10:01:43",
+    "chargeType" : "Recurring",
+    "processingType" : "Charge",
+    "appliedToItemId" : null
+  } ],
+  "success" : true
+}

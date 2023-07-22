@@ -21,6 +21,62 @@ object Membership2023 {
     "USD" -> BigDecimal(120),
   )
 
+  def subscriptionRatePlan(subscription: ZuoraSubscription): Either[AmendmentDataFailure, ZuoraRatePlan] = {
+    subscription.ratePlans.headOption match {
+      case None =>
+        Left(AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} doesn't have any rate plan"))
+      case Some(ratePlan) => Right(ratePlan)
+    }
+  }
+
+  def subscriptionRatePlanCharge(
+      subscription: ZuoraSubscription,
+      ratePlan: ZuoraRatePlan
+  ): Either[AmendmentDataFailure, ZuoraRatePlanCharge] = {
+    ratePlan.ratePlanCharges.headOption match {
+      case None => {
+        // Although not enforced by the signature of the function, for this error message to make sense we expect that
+        // the rate plan belongs to the currency
+        Left(
+          AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} has a rate plan, but with no charge")
+        )
+      }
+      case Some(ratePlanCharge) => Right(ratePlanCharge)
+    }
+  }
+
+  def getOldPrice(
+      subscription: ZuoraSubscription,
+      ratePlanCharge: ZuoraRatePlanCharge
+  ): Either[AmendmentDataFailure, BigDecimal] = {
+    ratePlanCharge.price match {
+      case None => {
+        // Although not enforced by the signature of the function, for this error message to make sense we expect that
+        // the rate plan charge belongs to the currency
+        Left(
+          AmendmentDataFailure(
+            s"Subscription ${subscription.subscriptionNumber} has a rate plan charge, but with no currency"
+          )
+        )
+      }
+      case Some(price) => Right(price)
+    }
+  }
+
+  def currencyToNewPriceMonthlies(currency: String): Either[AmendmentDataFailure, BigDecimal] = {
+    priceMapMonthlies.get(currency) match {
+      case None => Left(AmendmentDataFailure(s"Could not determine a new monthly price for currency: ${currency}"))
+      case Some(price) => Right(price)
+    }
+  }
+
+  def currencyToNewPriceAnnuals(currency: String): Either[AmendmentDataFailure, BigDecimal] = {
+    priceMapAnnuals.get(currency) match {
+      case None => Left(AmendmentDataFailure(s"Could not determine a new annual price for currency: ${currency}"))
+      case Some(price) => Right(price)
+    }
+  }
+
   def priceData(
       account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
@@ -29,85 +85,98 @@ object Membership2023 {
       nextServiceDate: LocalDate,
       cohortSpec: CohortSpec
   ): Either[AmendmentDataFailure, PriceData] = {
-
-    // Here we are going to use the Rate Plan from the subscription itself.
-    // We do not need to look up the one in the product catalogue.
-    // We will be using it to find out the currency.
-
-    def subscriptionRatePlan(subscription: ZuoraSubscription): Either[AmendmentDataFailure, ZuoraRatePlan] = {
-      subscription.ratePlans.headOption match {
-        case None =>
-          Left(AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} doesn't have any rate plan"))
-        case Some(ratePlan) => Right(ratePlan)
-      }
+    MigrationType(cohortSpec) match {
+      case Membership2023Monthlies =>
+        for {
+          ratePlan <- subscriptionRatePlan(subscription)
+          ratePlanCharge <- subscriptionRatePlanCharge(subscription, ratePlan)
+          currency = ratePlanCharge.currency
+          oldPrice <- getOldPrice(subscription, ratePlanCharge)
+          newPrice <- currencyToNewPriceMonthlies(currency: String)
+        } yield PriceData(currency, oldPrice, newPrice, "Month")
+      case Membership2023Annuals =>
+        for {
+          ratePlan <- subscriptionRatePlan(subscription)
+          ratePlanCharge <- subscriptionRatePlanCharge(subscription, ratePlan)
+          currency = ratePlanCharge.currency
+          oldPrice <- getOldPrice(subscription, ratePlanCharge)
+          newPrice <- currencyToNewPriceAnnuals(currency: String)
+        } yield PriceData(currency, oldPrice, newPrice, "Annual")
+      case _ => Left(AmendmentDataFailure(s"(error: 7ba45f10) Incorrect cohort spec for this function: ${cohortSpec}"))
     }
+  }
 
-    def subscriptionRatePlanCharge(
-        subscription: ZuoraSubscription,
-        ratePlan: ZuoraRatePlan
-    ): Either[AmendmentDataFailure, ZuoraRatePlanCharge] = {
-      ratePlan.ratePlanCharges.headOption match {
-        case None => {
-          // Although not enforced by the signature of the function, for this error message to make sense we expect that
-          // the rate plan belongs to the currency
-          Left(
-            AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} has a rate plan, but with no charge")
-          )
-        }
-        case Some(ratePlanCharge) => Right(ratePlanCharge)
-      }
+  def updateOfRatePlansToCurrent_Monthlies(
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      effectiveDate: LocalDate,
+  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+
+    // This variant has a simpler signature than its classic counterpart.
+
+    val activeRatePlans = (for {
+      invoiceItem <- ZuoraInvoiceItem.items(invoiceList, subscription, effectiveDate)
+      ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toSeq
+      price <- ratePlanCharge.price.toSeq
+      if price > 0
+      ratePlan <- ZuoraRatePlan.ratePlan(subscription, ratePlanCharge).toSeq
+    } yield ratePlan).distinct
+
+    if (activeRatePlans.isEmpty)
+      Left(AmendmentDataFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
+    else if (activeRatePlans.size > 1)
+      Left(AmendmentDataFailure(s"Multiple rate plans to update: ${activeRatePlans.map(_.id)}"))
+    else {
+
+      // At this point we know that we have exactly one activeRatePlans
+      val activeRatePlan = activeRatePlans.head
+
+      // In the case of Membership Batch 1 and 2 (monthlies), things are now more simple. We can hardcode the rate plan
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(AddZuoraRatePlan("8a1287c586832d250186a2040b1548fe", effectiveDate)),
+          remove = List(RemoveZuoraRatePlan(activeRatePlan.id, effectiveDate)),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
     }
+  }
 
-    def getOldPrice(
-        subscription: ZuoraSubscription,
-        ratePlanCharge: ZuoraRatePlanCharge
-    ): Either[AmendmentDataFailure, BigDecimal] = {
-      ratePlanCharge.price match {
-        case None => {
-          // Although not enforced by the signature of the function, for this error message to make sense we expect that
-          // the rate plan charge belongs to the currency
-          Left(
-            AmendmentDataFailure(
-              s"Subscription ${subscription.subscriptionNumber} has a rate plan charge, but with no currency"
-            )
-          )
-        }
-        case Some(price) => Right(price)
-      }
-    }
+  def updateOfRatePlansToCurrent_Annuals(
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      effectiveDate: LocalDate,
+  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
 
-    def currencyToNewPriceMonthlies(currency: String): Either[AmendmentDataFailure, BigDecimal] = {
-      priceMapMonthlies.get(currency) match {
-        case None => Left(AmendmentDataFailure(s"Could not determine a new monthly price for currency: ${currency}"))
-        case Some(price) => Right(price)
-      }
-    }
+    // This variant has a simpler signature than its classic counterpart.
 
-    def currencyToNewPriceAnnuals(currency: String): Either[AmendmentDataFailure, BigDecimal] = {
-      priceMapAnnuals.get(currency) match {
-        case None => Left(AmendmentDataFailure(s"Could not determine a new annual price for currency: ${currency}"))
-        case Some(price) => Right(price)
-      }
-    }
+    val activeRatePlans = (for {
+      invoiceItem <- ZuoraInvoiceItem.items(invoiceList, subscription, effectiveDate)
+      ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toSeq
+      price <- ratePlanCharge.price.toSeq
+      if price > 0
+      ratePlan <- ZuoraRatePlan.ratePlan(subscription, ratePlanCharge).toSeq
+    } yield ratePlan).distinct
 
-    if (CohortSpec.isMembershipPriceRiseMonthlies(cohortSpec)) {
-      for {
-        ratePlan <- subscriptionRatePlan(subscription)
-        ratePlanCharge <- subscriptionRatePlanCharge(subscription, ratePlan)
-        currency = ratePlanCharge.currency
-        oldPrice <- getOldPrice(subscription, ratePlanCharge)
-        newPrice <- currencyToNewPriceMonthlies(currency: String)
-      } yield PriceData(currency, oldPrice, newPrice, "Month")
-    } else if (CohortSpec.isMembershipPriceRiseAnnuals(cohortSpec)) {
-      for {
-        ratePlan <- subscriptionRatePlan(subscription)
-        ratePlanCharge <- subscriptionRatePlanCharge(subscription, ratePlan)
-        currency = ratePlanCharge.currency
-        oldPrice <- getOldPrice(subscription, ratePlanCharge)
-        newPrice <- currencyToNewPriceAnnuals(currency: String)
-      } yield PriceData(currency, oldPrice, newPrice, "Annual")
-    } else {
-      Left(AmendmentDataFailure(s"(error: 7ba45f10) Incorrect cohort spec for this function: ${cohortSpec}"))
+    if (activeRatePlans.isEmpty)
+      Left(AmendmentDataFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
+    else if (activeRatePlans.size > 1)
+      Left(AmendmentDataFailure(s"Multiple rate plans to update: ${activeRatePlans.map(_.id)}"))
+    else {
+
+      // At this point we know that we have exactly one activeRatePlans
+      val activeRatePlan = activeRatePlans.head
+
+      // Batch 3 (annuals)
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(AddZuoraRatePlan("8a129ce886834fa90186a20c3ee70b6a", effectiveDate)),
+          remove = List(RemoveZuoraRatePlan(activeRatePlan.id, effectiveDate)),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
     }
   }
 }
