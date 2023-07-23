@@ -150,6 +150,8 @@ object NotificationHandler extends CohortHandler {
           requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
         case Membership2023Annuals =>
           requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
+        case SupporterPlus2023V1V2MA =>
+          requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
         case _ => requiredField(address.country, "Contact.OtherAddress.country")
       }
       oldPrice <- requiredField(cohortItem.oldPrice, "CohortItem.oldPrice")
