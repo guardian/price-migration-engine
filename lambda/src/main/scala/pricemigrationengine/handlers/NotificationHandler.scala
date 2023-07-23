@@ -139,7 +139,11 @@ object NotificationHandler extends CohortHandler {
         requiredField(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation")
       )
       lastName <- requiredField(contact.LastName, "Contact.LastName")
-      address <- targetAddress(contact)
+      address <- MigrationType(cohortSpec) match {
+        case SupporterPlus2023V1V2MA => ZIO.succeed(SalesforceAddress(None, None, None, None, None))
+        case _                       => targetAddress(contact)
+      }
+
       street <- MigrationType(cohortSpec) match {
         case Membership2023Monthlies =>
           requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
