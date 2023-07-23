@@ -141,7 +141,8 @@ object NotificationHandler extends CohortHandler {
           requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
         case Membership2023Annuals =>
           requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
-        case _ => requiredField(address.street, "Contact.OtherAddress.street")
+        case SupporterPlus2023V1V2MA => ZIO.succeed("")
+        case _                       => requiredField(address.street, "Contact.OtherAddress.street")
       }
       postalCode = address.postalCode.getOrElse("")
       country <- MigrationType(cohortSpec) match {
