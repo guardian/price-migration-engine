@@ -189,8 +189,7 @@ object AmendmentHandler extends CohortHandler {
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     MigrationType(input) match {
-      case Membership2023Annuals   => ZIO.succeed(HandlerOutput(isComplete = true))
-      case SupporterPlus2023V1V2MA => ZIO.succeed(HandlerOutput(isComplete = true))
+      case Membership2023Annuals => ZIO.succeed(HandlerOutput(isComplete = true))
       case _ =>
         main(input).provideSome[Logging](
           EnvConfig.cohortTable.layer,
