@@ -207,6 +207,18 @@ object ZuoraLive {
               response => response.subscriptionId
             )
           ) <* logging.info(s"Updated subscription ${subscription.subscriptionNumber} with: $update")
+
+        override def renewSubscription(subscriptionNumber: String): ZIO[Any, ZuoraRenewalFailure, Unit] =
+          retry(
+            put[Unit](
+              path = s"subscriptions/${subscriptionNumber}/renew",
+              body = "{}"
+            ).mapBoth(
+              e => ZuoraRenewalFailure(s"Failed to renew subscription number ${subscriptionNumber}"),
+              response => ()
+            )
+          ) <* logging.info(s"renewed subscription ${subscriptionNumber}")
+
       }
     )
 }

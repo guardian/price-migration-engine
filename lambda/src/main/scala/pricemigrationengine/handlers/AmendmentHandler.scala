@@ -12,7 +12,7 @@ import java.time.LocalDate
 object AmendmentHandler extends CohortHandler {
 
   // TODO: move to config
-  private val batchSize = 150
+  private val batchSize = 100
 
   private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
@@ -94,6 +94,17 @@ object AmendmentHandler extends CohortHandler {
     }
   }
 
+  private def renewSubscriptionIfNeeded(
+      subscription: ZuoraSubscription,
+      startDate: LocalDate
+  ): ZIO[Zuora, Failure, Unit] = {
+    if (subscription.termEndDate.isBefore(startDate)) {
+      Zuora.renewSubscription(subscription.subscriptionNumber)
+    } else {
+      ZIO.succeed(())
+    }
+  }
+
   private def doAmendment(
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
@@ -115,6 +126,8 @@ object AmendmentHandler extends CohortHandler {
       subscriptionBeforeUpdate <- fetchSubscription(item)
 
       _ <- ZIO.fromEither(checkExpirationTiming(cohortSpec, item, subscriptionBeforeUpdate))
+
+      _ <- renewSubscriptionIfNeeded(subscriptionBeforeUpdate, startDate)
 
       account <- Zuora.fetchAccount(subscriptionBeforeUpdate.accountNumber, subscriptionBeforeUpdate.subscriptionNumber)
 
