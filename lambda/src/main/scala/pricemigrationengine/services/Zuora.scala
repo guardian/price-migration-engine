@@ -19,6 +19,8 @@ trait Zuora {
       subscription: ZuoraSubscription,
       update: ZuoraSubscriptionUpdate
   ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId]
+
+  def renewSubscription(subscriptionNumber: String): ZIO[Any, ZuoraRenewalFailure, Unit]
 }
 
 object Zuora {
@@ -40,4 +42,7 @@ object Zuora {
       update: ZuoraSubscriptionUpdate
   ): ZIO[Zuora, ZuoraUpdateFailure, ZuoraSubscriptionId] =
     ZIO.environmentWithZIO(_.get.updateSubscription(subscription, update))
+
+  def renewSubscription(subscriptionNumber: String): ZIO[Zuora, ZuoraRenewalFailure, Unit] =
+    ZIO.environmentWithZIO(_.get.renewSubscription(subscriptionNumber))
 }
