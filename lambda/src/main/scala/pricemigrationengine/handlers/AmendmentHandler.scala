@@ -12,7 +12,7 @@ import java.time.LocalDate
 object AmendmentHandler extends CohortHandler {
 
   // TODO: move to config
-  private val batchSize = 150
+  private val batchSize = 100
 
   private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
@@ -59,14 +59,12 @@ object AmendmentHandler extends CohortHandler {
       .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
 
   def checkExpirationTiming(
+      cohortSpec: CohortSpec,
       item: CohortItem,
       subscription: ZuoraSubscription
   ): Either[Failure, Unit] = {
-    // We check that the subscription's end of effective period is after the startDate, to avoid Zuora's error:
-    // ```
-    // The Contract effective date should not be later than the term end date of the basic subscription
-    // ```
-    // Note that this check will be duplicated in the estimation handler (this check in the Amendment handler came first)
+    // We check that the subscription's end of effective period is after the startDate, to avoid a Zuora's error
+    // Note that we do not make that check for digital products (notably: Membership2023Annuals and SupporterPlus2023V1V2MA)
 
     item.startDate match {
       case None =>
@@ -76,16 +74,34 @@ object AmendmentHandler extends CohortHandler {
           )
         ) // This case won't really happen in practice, but item.startDate is an option
       case Some(startDate) => {
-        if (subscription.termEndDate.isAfter(startDate)) {
-          Right(())
-        } else {
-          Left(
-            ExpiringSubscriptionFailure(
-              s"Cohort item: ${item.subscriptionName}. The item startDate (price increase date), ${item.startDate}, is after the subscription's end of effective period (${subscription.termEndDate.toString})"
-            )
-          )
+        MigrationType(cohortSpec) match {
+          case Membership2023Annuals =>
+            Right(())
+          case SupporterPlus2023V1V2MA =>
+            Right(())
+          case _ =>
+            if (subscription.termEndDate.isAfter(startDate)) {
+              Right(())
+            } else {
+              Left(
+                ExpiringSubscriptionFailure(
+                  s"Cohort item: ${item.subscriptionName}. The item startDate (price increase date), ${item.startDate}, is after the subscription's end of effective period (${subscription.termEndDate.toString})"
+                )
+              )
+            }
         }
       }
+    }
+  }
+
+  private def renewSubscriptionIfNeeded(
+      subscription: ZuoraSubscription,
+      startDate: LocalDate
+  ): ZIO[Zuora, Failure, Unit] = {
+    if (subscription.termEndDate.isBefore(startDate)) {
+      Zuora.renewSubscription(subscription.subscriptionNumber)
+    } else {
+      ZIO.succeed(())
     }
   }
 
@@ -109,7 +125,9 @@ object AmendmentHandler extends CohortHandler {
 
       subscriptionBeforeUpdate <- fetchSubscription(item)
 
-      _ <- ZIO.fromEither(checkExpirationTiming(item, subscriptionBeforeUpdate))
+      _ <- ZIO.fromEither(checkExpirationTiming(cohortSpec, item, subscriptionBeforeUpdate))
+
+      _ <- renewSubscriptionIfNeeded(subscriptionBeforeUpdate, startDate)
 
       account <- Zuora.fetchAccount(subscriptionBeforeUpdate.accountNumber, subscriptionBeforeUpdate.subscriptionNumber)
 
@@ -188,19 +206,14 @@ object AmendmentHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    MigrationType(input) match {
-      case Membership2023Annuals   => ZIO.succeed(HandlerOutput(isComplete = true))
-      case SupporterPlus2023V1V2MA => ZIO.succeed(HandlerOutput(isComplete = true))
-      case _ =>
-        main(input).provideSome[Logging](
-          EnvConfig.cohortTable.layer,
-          EnvConfig.zuora.layer,
-          EnvConfig.stage.layer,
-          DynamoDBZIOLive.impl,
-          DynamoDBClientLive.impl,
-          CohortTableLive.impl(input),
-          ZuoraLive.impl
-        )
-    }
+    main(input).provideSome[Logging](
+      EnvConfig.cohortTable.layer,
+      EnvConfig.zuora.layer,
+      EnvConfig.stage.layer,
+      DynamoDBZIOLive.impl,
+      DynamoDBClientLive.impl,
+      CohortTableLive.impl(input),
+      ZuoraLive.impl
+    )
   }
 }
