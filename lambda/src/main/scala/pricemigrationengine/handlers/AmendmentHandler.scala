@@ -12,7 +12,7 @@ import java.time.LocalDate
 object AmendmentHandler extends CohortHandler {
 
   // TODO: move to config
-  private val batchSize = 150
+  private val batchSize = 100
 
   private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
