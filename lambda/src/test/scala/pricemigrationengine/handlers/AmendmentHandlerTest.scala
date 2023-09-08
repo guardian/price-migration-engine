@@ -4,7 +4,6 @@ import pricemigrationengine.model.{ZuoraRatePlanCharge, ZuoraSubscriptionUpdate,
 
 import java.time.LocalDate
 import pricemigrationengine.Fixtures
-import pricemigrationengine.handlers.AmendmentHandler.checkExpirationTiming
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 
 class AmendmentHandlerTest extends munit.FunSuite {
@@ -323,35 +322,6 @@ class AmendmentHandlerTest extends munit.FunSuite {
         )
       )
     )
-  }
-
-  test("Check subscription's end date versus the cohort item's start (price increase) date") {
-    val cohortSpec =
-      CohortSpec("NAME", "Campaign1", LocalDate.of(2023, 7, 14), LocalDate.of(2023, 8, 21))
-
-    // Stage 1
-    val subscription1 = Fixtures.subscriptionFromJson("Membership2023/Batch1/GBP/subscription.json")
-    val item1 =
-      CohortItem("SUBSCRIPTION-NUMBER", NotificationSendDateWrittenToSalesforce, Some(LocalDate.of(2023, 4, 10)))
-    // subscription1.termEndDate is 2023-11-09
-    // item's startDate is LocalDate.of(2023, 4, 10)
-    // This is the good case
-    assertEquals(checkExpirationTiming(cohortSpec, item1, subscription1), Right(()))
-
-    // Stage 2
-    val subscription2 = Fixtures.subscriptionFromJson("Membership2023/Batch1/GBP/subscription.json")
-    val item2 = CohortItem("SUBSCRIPTION-NUMBER", NotificationSendDateWrittenToSalesforce, None)
-    // item's startDate is None, this triggers the AmendmentDataFailure
-    assertEquals(checkExpirationTiming(cohortSpec, item2, subscription2).isLeft, true)
-
-    // Stage 3
-    val subscription3 = Fixtures.subscriptionFromJson("Membership2023/Batch1/GBP/subscription.json")
-    val item3 =
-      CohortItem("SUBSCRIPTION-NUMBER", NotificationSendDateWrittenToSalesforce, Some(LocalDate.of(2024, 4, 1)))
-    // subscription3.termEndDate is 2023-11-09
-    // item's startDate is LocalDate.of(2024, 1, 1)
-    // This triggers the ExpiringSubscriptionFailure case
-    assertEquals(checkExpirationTiming(cohortSpec, item3, subscription3).isLeft, true)
   }
 
   test("SupporterPlus2023V1V2 Amendment (monthly standard)") {
