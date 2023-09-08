@@ -69,6 +69,33 @@ object AmendmentHandler extends CohortHandler {
     }
   }
 
+  private def checkFinalPriceVersusEstimatedNewPrice(
+      item: CohortItem,
+      estimatedNewPrice: BigDecimal,
+      newPrice: BigDecimal
+  ): ZIO[Zuora, Failure, Unit] = {
+    // Date: 8 Sept 2023
+    // This function is introduced as part of a multi stage update of the
+    // engine to detect and deal with situations where the final price is higher than the
+    // estimated new price, which has happened with Quarterly Guardian Weekly subscriptions
+    // The ultimate aim is to update the engine to deal with those situations automatically,
+    // but in this step we simply error and will alarm at the next occurrence of this situation.
+    // When that situation occurs, a good course of action will be to
+    //    1. Revert the amendment in Zuora
+    //    2. Reset the cohort item in the dynamo table
+    //    3. Update the code to perform a negative charge back
+    //    4. Rerun the engine and check the item in Zuora
+    if (newPrice > estimatedNewPrice) {
+      ZIO.fail(
+        AmendmentDataFailure(
+          s"[e9054daa] Item $item has gone through the amendment step but has failed the final price check"
+        )
+      )
+    } else {
+      ZIO.succeed(())
+    }
+  }
+
   private def doAmendment(
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
@@ -155,6 +182,8 @@ object AmendmentHandler extends CohortHandler {
           )
         )
 
+      _ <- checkFinalPriceVersusEstimatedNewPrice(item, estimatedNewPrice, newPrice)
+
       whenDone <- Clock.instant
     } yield SuccessfulAmendmentResult(
       item.subscriptionName,
@@ -165,6 +194,7 @@ object AmendmentHandler extends CohortHandler {
       newSubscriptionId,
       whenDone
     )
+
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
