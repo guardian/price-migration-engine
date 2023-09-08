@@ -70,6 +70,7 @@ object AmendmentHandler extends CohortHandler {
   }
 
   private def checkFinalPriceVersusEstimatedNewPrice(
+      cohortSpec: CohortSpec,
       item: CohortItem,
       estimatedNewPrice: BigDecimal,
       newPrice: BigDecimal
@@ -85,14 +86,24 @@ object AmendmentHandler extends CohortHandler {
     //    2. Reset the cohort item in the dynamo table
     //    3. Update the code to perform a negative charge back
     //    4. Rerun the engine and check the item in Zuora
-    if (newPrice > estimatedNewPrice) {
-      ZIO.fail(
-        AmendmentDataFailure(
-          s"[e9054daa] Item $item has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice}"
-        )
-      )
-    } else {
-      ZIO.succeed(())
+
+    // Note that we do not apply the check to the SupporterPlus2023V1V2 migration
+    // where due to the way the prices are computed, the new price can be higher than the
+    // estimated price (which wasn't including the extra contribution).
+
+    MigrationType(cohortSpec) match {
+      case SupporterPlus2023V1V2MA => ZIO.succeed(())
+      case _ => {
+        if (newPrice > estimatedNewPrice) {
+          ZIO.fail(
+            AmendmentDataFailure(
+              s"[e9054daa] Item $item has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice}"
+            )
+          )
+        } else {
+          ZIO.succeed(())
+        }
+      }
     }
   }
 
@@ -182,7 +193,7 @@ object AmendmentHandler extends CohortHandler {
           )
         )
 
-      _ <- checkFinalPriceVersusEstimatedNewPrice(item, estimatedNewPrice, newPrice)
+      _ <- checkFinalPriceVersusEstimatedNewPrice(cohortSpec, item, estimatedNewPrice, newPrice)
 
       whenDone <- Clock.instant
     } yield SuccessfulAmendmentResult(
