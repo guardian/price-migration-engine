@@ -88,7 +88,7 @@ object AmendmentHandler extends CohortHandler {
     if (newPrice > estimatedNewPrice) {
       ZIO.fail(
         AmendmentDataFailure(
-          s"[e9054daa] Item $item has gone through the amendment step but has failed the final price check"
+          s"[e9054daa] Item $item has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice}"
         )
       )
     } else {
