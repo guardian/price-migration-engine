@@ -58,42 +58,6 @@ object AmendmentHandler extends CohortHandler {
       .fetchSubscription(item.subscriptionName)
       .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
 
-  def checkExpirationTiming(
-      cohortSpec: CohortSpec,
-      item: CohortItem,
-      subscription: ZuoraSubscription
-  ): Either[Failure, Unit] = {
-    // We check that the subscription's end of effective period is after the startDate, to avoid a Zuora's error
-    // Note that we do not make that check for digital products (notably: Membership2023Annuals and SupporterPlus2023V1V2MA)
-
-    item.startDate match {
-      case None =>
-        Left(
-          AmendmentDataFailure(
-            s"Cohort item: ${item.subscriptionName}. Cohort Item doesn't have a startDate."
-          )
-        ) // This case won't really happen in practice, but item.startDate is an option
-      case Some(startDate) => {
-        MigrationType(cohortSpec) match {
-          case Membership2023Annuals =>
-            Right(())
-          case SupporterPlus2023V1V2MA =>
-            Right(())
-          case _ =>
-            if (subscription.termEndDate.isAfter(startDate)) {
-              Right(())
-            } else {
-              Left(
-                ExpiringSubscriptionFailure(
-                  s"Cohort item: ${item.subscriptionName}. The item startDate (price increase date), ${item.startDate}, is after the subscription's end of effective period (${subscription.termEndDate.toString})"
-                )
-              )
-            }
-        }
-      }
-    }
-  }
-
   private def renewSubscriptionIfNeeded(
       subscription: ZuoraSubscription,
       startDate: LocalDate
@@ -124,8 +88,6 @@ object AmendmentHandler extends CohortHandler {
       invoicePreviewTargetDate = startDate.plusMonths(13)
 
       subscriptionBeforeUpdate <- fetchSubscription(item)
-
-      _ <- ZIO.fromEither(checkExpirationTiming(cohortSpec, item, subscriptionBeforeUpdate))
 
       _ <- renewSubscriptionIfNeeded(subscriptionBeforeUpdate, startDate)
 
