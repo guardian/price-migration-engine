@@ -58,42 +58,6 @@ object AmendmentHandler extends CohortHandler {
       .fetchSubscription(item.subscriptionName)
       .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
 
-  def checkExpirationTiming(
-      cohortSpec: CohortSpec,
-      item: CohortItem,
-      subscription: ZuoraSubscription
-  ): Either[Failure, Unit] = {
-    // We check that the subscription's end of effective period is after the startDate, to avoid a Zuora's error
-    // Note that we do not make that check for digital products (notably: Membership2023Annuals and SupporterPlus2023V1V2MA)
-
-    item.startDate match {
-      case None =>
-        Left(
-          AmendmentDataFailure(
-            s"Cohort item: ${item.subscriptionName}. Cohort Item doesn't have a startDate."
-          )
-        ) // This case won't really happen in practice, but item.startDate is an option
-      case Some(startDate) => {
-        MigrationType(cohortSpec) match {
-          case Membership2023Annuals =>
-            Right(())
-          case SupporterPlus2023V1V2MA =>
-            Right(())
-          case _ =>
-            if (subscription.termEndDate.isAfter(startDate)) {
-              Right(())
-            } else {
-              Left(
-                ExpiringSubscriptionFailure(
-                  s"Cohort item: ${item.subscriptionName}. The item startDate (price increase date), ${item.startDate}, is after the subscription's end of effective period (${subscription.termEndDate.toString})"
-                )
-              )
-            }
-        }
-      }
-    }
-  }
-
   private def renewSubscriptionIfNeeded(
       subscription: ZuoraSubscription,
       startDate: LocalDate
@@ -102,6 +66,44 @@ object AmendmentHandler extends CohortHandler {
       Zuora.renewSubscription(subscription.subscriptionNumber)
     } else {
       ZIO.succeed(())
+    }
+  }
+
+  private def checkFinalPriceVersusEstimatedNewPrice(
+      cohortSpec: CohortSpec,
+      item: CohortItem,
+      estimatedNewPrice: BigDecimal,
+      newPrice: BigDecimal
+  ): ZIO[Zuora, Failure, Unit] = {
+    // Date: 8 Sept 2023
+    // This function is introduced as part of a multi stage update of the
+    // engine to detect and deal with situations where the final price is higher than the
+    // estimated new price, which has happened with Quarterly Guardian Weekly subscriptions
+    // The ultimate aim is to update the engine to deal with those situations automatically,
+    // but in this step we simply error and will alarm at the next occurrence of this situation.
+    // When that situation occurs, a good course of action will be to
+    //    1. Revert the amendment in Zuora
+    //    2. Reset the cohort item in the dynamo table
+    //    3. Update the code to perform a negative charge back
+    //    4. Rerun the engine and check the item in Zuora
+
+    // Note that we do not apply the check to the SupporterPlus2023V1V2 migration
+    // where due to the way the prices are computed, the new price can be higher than the
+    // estimated price (which wasn't including the extra contribution).
+
+    MigrationType(cohortSpec) match {
+      case SupporterPlus2023V1V2MA => ZIO.succeed(())
+      case _ => {
+        if (newPrice > estimatedNewPrice) {
+          ZIO.fail(
+            AmendmentDataFailure(
+              s"[e9054daa] Item $item has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice}"
+            )
+          )
+        } else {
+          ZIO.succeed(())
+        }
+      }
     }
   }
 
@@ -124,8 +126,6 @@ object AmendmentHandler extends CohortHandler {
       invoicePreviewTargetDate = startDate.plusMonths(13)
 
       subscriptionBeforeUpdate <- fetchSubscription(item)
-
-      _ <- ZIO.fromEither(checkExpirationTiming(cohortSpec, item, subscriptionBeforeUpdate))
 
       _ <- renewSubscriptionIfNeeded(subscriptionBeforeUpdate, startDate)
 
@@ -193,6 +193,8 @@ object AmendmentHandler extends CohortHandler {
           )
         )
 
+      _ <- checkFinalPriceVersusEstimatedNewPrice(cohortSpec, item, estimatedNewPrice, newPrice)
+
       whenDone <- Clock.instant
     } yield SuccessfulAmendmentResult(
       item.subscriptionName,
@@ -203,6 +205,7 @@ object AmendmentHandler extends CohortHandler {
       newSubscriptionId,
       whenDone
     )
+
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
