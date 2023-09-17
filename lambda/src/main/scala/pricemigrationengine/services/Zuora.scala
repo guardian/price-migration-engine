@@ -50,6 +50,10 @@ object Zuora {
   def renewSubscription(subscriptionNumber: String): ZIO[Zuora, ZuoraRenewalFailure, Unit] =
     ZIO.environmentWithZIO(_.get.renewSubscription(subscriptionNumber))
 
+  // Note: the Zuora documentation
+  // https://www.zuora.com/developer/api-references/older-api/operation/GET_AmendmentsBySubscriptionID/
+  // specifies that a subscriptionId is to be provided, but it also works with a subscription number
+  // (aka subscription name for a cohort item).
   def fetchLastSubscriptionAmendment(
       subscriptionId: ZuoraSubscriptionId
   ): ZIO[Zuora, Failure, ZuoraSubscriptionAmendment] =
