@@ -176,7 +176,7 @@ object NotificationHandler extends CohortHandler {
         case SupporterPlus2023V1V2MA => true
         case Legacy                  => false
       }
-      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, forceEstimated)}"
+      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap(oldPrice, estimatedNewPrice, forceEstimated)}"
 
       _ <- logMissingEmailAddress(cohortItem, contact)
 

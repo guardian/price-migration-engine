@@ -35,7 +35,7 @@ object ZuoraSubscriptionUpdate {
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       effectiveDate: LocalDate,
-      priceCorrectionFactor: BigDecimal
+      priceEnforced: Option[BigDecimal]
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
 
     val activeRatePlans = (for {
@@ -57,8 +57,8 @@ object ZuoraSubscriptionUpdate {
       activeRatePlans
         .map(
           if (isZoneABC.nonEmpty)
-            AddZuoraRatePlan.fromRatePlanGuardianWeekly(account, catalogue, effectiveDate, priceCorrectionFactor)
-          else AddZuoraRatePlan.fromRatePlan(pricingData, effectiveDate, priceCorrectionFactor)
+            AddZuoraRatePlan.fromRatePlanGuardianWeekly(account, catalogue, effectiveDate, priceEnforced)
+          else AddZuoraRatePlan.fromRatePlan(pricingData, effectiveDate, priceEnforced)
         )
         .sequence
         .map { add =>
@@ -89,12 +89,12 @@ object AddZuoraRatePlan {
   def fromRatePlan(
       pricingData: ZuoraPricingData,
       contractEffectiveDate: LocalDate,
-      priceCorrectionFactor: BigDecimal
+      priceEnforced: Option[BigDecimal]
   )(
       ratePlan: ZuoraRatePlan
   ): Either[AmendmentDataFailure, AddZuoraRatePlan] = {
     for {
-      chargeOverrides <- ChargeOverride.fromRatePlan(pricingData, ratePlan, priceCorrectionFactor)
+      chargeOverrides <- ChargeOverride.fromRatePlan(pricingData, ratePlan, priceEnforced)
     } yield AddZuoraRatePlan(
       productRatePlanId = ratePlan.productRatePlanId,
       contractEffectiveDate,
@@ -106,7 +106,7 @@ object AddZuoraRatePlan {
       account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
       contractEffectiveDate: LocalDate,
-      priceCorrectionFactor: BigDecimal
+      priceEnforced: Option[BigDecimal]
   )(
       ratePlan: ZuoraRatePlan
   ): Either[AmendmentDataFailure, AddZuoraRatePlan] =
@@ -121,7 +121,7 @@ object AddZuoraRatePlan {
           fromRatePlanCharge(
             chargePair.chargeFromProduct,
             chargePair.chargeFromSubscription,
-            priceCorrectionFactor
+            priceEnforced
           )
         )
         .sequence
@@ -154,18 +154,18 @@ object ChargeOverride {
   def fromRatePlan(
       pricingData: ZuoraPricingData,
       ratePlan: ZuoraRatePlan,
-      priceCorrectionFactor: BigDecimal
+      priceEnforced: Option[BigDecimal]
   ): Either[AmendmentDataFailure, Seq[ChargeOverride]] =
     (for {
       ratePlanCharge <- ratePlan.ratePlanCharges
       productRatePlanCharge <- pricingData.get(ratePlanCharge.productRatePlanChargeId).toSeq
-    } yield fromRatePlanCharge(productRatePlanCharge, ratePlanCharge, priceCorrectionFactor)).sequence
+    } yield fromRatePlanCharge(productRatePlanCharge, ratePlanCharge, priceEnforced)).sequence
       .map(_.flatten)
 
   def fromRatePlanCharge(
       productRatePlanCharge: ZuoraProductRatePlanCharge,
       ratePlanCharge: ZuoraRatePlanCharge,
-      priceCorrectionFactor: BigDecimal
+      priceEnforced: Option[BigDecimal]
   ): Either[AmendmentDataFailure, Option[ChargeOverride]] =
     for {
       billingPeriod <- ratePlanCharge.billingPeriod.toRight(
@@ -191,6 +191,6 @@ object ChargeOverride {
       )
 
     } yield {
-      Some(ChargeOverride(productRatePlanCharge.id, billingPeriod, price * priceCorrectionFactor))
+      Some(ChargeOverride(productRatePlanCharge.id, billingPeriod, priceEnforced.getOrElse(price)))
     }
 }
