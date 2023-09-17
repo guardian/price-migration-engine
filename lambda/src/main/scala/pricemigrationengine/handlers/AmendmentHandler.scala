@@ -172,7 +172,7 @@ object AmendmentHandler extends CohortHandler {
                 subscriptionBeforeUpdate,
                 invoicePreviewBeforeUpdate,
                 startDate,
-                Some(estimatedNewPrice)
+                Some(PriceCap(oldPrice, estimatedNewPrice))
               )
           )
       }
