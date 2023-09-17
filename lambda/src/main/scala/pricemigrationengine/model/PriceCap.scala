@@ -14,25 +14,11 @@ object PriceCap {
    */
 
   private val priceCappingMultiplier = 1.2 // old price + 20%
-  def cappedPrice(oldPrice: BigDecimal, estimatedNewPrice: BigDecimal, forceEstimated: Boolean = false): BigDecimal = {
+  def apply(oldPrice: BigDecimal, estimatedNewPrice: BigDecimal, forceEstimated: Boolean = false): BigDecimal = {
     if (forceEstimated) {
       estimatedNewPrice
     } else {
       List(estimatedNewPrice, oldPrice * priceCappingMultiplier).min
-    }
-  }
-
-  def priceCorrectionFactorForPriceCap(
-      oldPrice: BigDecimal,
-      estimatedNewPrice: BigDecimal,
-      forceEstimated: Boolean = false
-  ): BigDecimal = {
-    if (
-      forceEstimated || estimatedNewPrice == 0 || estimatedNewPrice.compareTo(oldPrice * priceCappingMultiplier) <= 0
-    ) {
-      1
-    } else {
-      (oldPrice * priceCappingMultiplier) / estimatedNewPrice
     }
   }
 }

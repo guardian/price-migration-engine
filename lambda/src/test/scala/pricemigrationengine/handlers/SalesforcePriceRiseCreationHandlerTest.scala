@@ -24,7 +24,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
   // To make the membership price rise test meaningful, this should actually be higher than the capped price.
   private val estimatedNewPrice = BigDecimal(15.00)
   test("For membership test, we need the estimatedNewPrice to be higher than the capped price") {
-    assert(PriceCap.cappedPrice(oldPrice, estimatedNewPrice) < estimatedNewPrice)
+    assert(PriceCap(oldPrice, estimatedNewPrice) < estimatedNewPrice)
   }
 
   private val currentTime = Instant.parse("2020-05-21T15:16:37Z")
@@ -141,7 +141,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     assertEquals(createdPriceRises(0).Current_Price_Today__c, Some(oldPrice))
     assertEquals(
       createdPriceRises(0).Guardian_Weekly_New_Price__c,
-      Some(PriceCap.cappedPrice(oldPrice, estimatedNewPrice))
+      Some(PriceCap(oldPrice, estimatedNewPrice))
     )
     assertEquals(createdPriceRises(0).Price_Rise_Date__c, Some(startDate))
 
@@ -336,7 +336,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     assertEquals(updatedPriceRises(0).Current_Price_Today__c, Some(oldPrice))
     assertEquals(
       updatedPriceRises(0).Guardian_Weekly_New_Price__c,
-      Some(PriceCap.cappedPrice(oldPrice, estimatedNewPrice))
+      Some(PriceCap(oldPrice, estimatedNewPrice))
     )
     assertEquals(updatedPriceRises(0).Price_Rise_Date__c, Some(startDate))
 

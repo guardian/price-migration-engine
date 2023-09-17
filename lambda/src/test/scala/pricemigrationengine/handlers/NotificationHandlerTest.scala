@@ -30,7 +30,7 @@ class NotificationHandlerTest extends munit.FunSuite {
   // The estimated new price is the price without cap
   private val estimatedNewPrice = BigDecimal(15.00)
   test("For membership test, we need the estimatedNewPrice to be higher than the capped price") {
-    assert(PriceCap.cappedPrice(oldPrice, estimatedNewPrice) < estimatedNewPrice)
+    assert(PriceCap(oldPrice, estimatedNewPrice) < estimatedNewPrice)
   }
 
   // The price that is displayed to the customer is capped using the old price as base
