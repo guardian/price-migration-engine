@@ -126,12 +126,6 @@ object AmendmentHandler extends CohortHandler {
   private def checkMigrationRelevanceBasedOnLastAmendment(item: CohortItem): ZIO[Zuora, Failure, Unit] = {
     // See the preambule of the ZuoraSubscriptionAmendment case class for context
 
-    // $1:
-    // The Zuora documentation
-    // https://www.zuora.com/developer/api-references/older-api/operation/GET_AmendmentsBySubscriptionID/
-    // specifies that a subscriptionId is to be provided, but it also works with a subscription number
-    // (aka subscription name for a cohort item).
-
     for {
       amendment <- Zuora.fetchLastSubscriptionAmendment(item.subscriptionName) // $1
       estimationInstant <- ZIO
@@ -152,6 +146,11 @@ object AmendmentHandler extends CohortHandler {
           )
         }
     } yield result
+
+    // $1: The Zuora documentation
+    // https://www.zuora.com/developer/api-references/older-api/operation/GET_AmendmentsBySubscriptionID/
+    // specifies that a subscriptionId is to be provided, but it also works with a subscription number
+    // (aka subscription name for a cohort item).
   }
 
   private def doAmendment(
