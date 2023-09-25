@@ -828,7 +828,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
   test("compare amendments and instants") {
     val amendment = ZuoraSubscriptionAmendment("2023-09-17")
 
-    val date = LocalDate.parse(amendment.effectiveDate)
+    val date = LocalDate.parse(amendment.bookingDate)
     // Checking that LocalDate.parse works as intended on a "YYYY-MM-DD"
     assertEquals(date, LocalDate.of(2023, 9, 17))
 
