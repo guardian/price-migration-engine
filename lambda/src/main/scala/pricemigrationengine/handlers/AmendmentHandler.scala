@@ -133,11 +133,10 @@ object AmendmentHandler extends CohortHandler {
     // (aka subscription name for a cohort item).
 
     for {
-      amendment <- Zuora.fetchLastSubscriptionAmendment(item.subscriptionName).debug("amendment") // $1
+      amendment <- Zuora.fetchLastSubscriptionAmendment(item.subscriptionName) // $1
       estimationInstant <- ZIO
         .fromOption(item.whenEstimationDone)
         .mapError(ex => AmendmentDataFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
-        .debug("estimationInstant")
       result <-
         if (amendmentIsBeforeInstant(amendment, estimationInstant)) {
           ZIO.succeed(())
