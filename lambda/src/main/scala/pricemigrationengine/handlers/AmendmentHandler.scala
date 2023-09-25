@@ -135,6 +135,7 @@ object AmendmentHandler extends CohortHandler {
       estimationInstant <- ZIO
         .fromOption(item.whenEstimationDone)
         .mapError(ex => AmendmentDataFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
+        .debug("estimationInstant")
     } yield
       if (amendmentIsBeforeInstant(amendment, estimationInstant)) {
         ZIO.succeed(())
