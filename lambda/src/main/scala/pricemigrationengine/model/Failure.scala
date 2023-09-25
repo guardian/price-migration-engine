@@ -27,6 +27,7 @@ case class ZuoraRenewalFailure(reason: String) extends Failure
 case class AmendmentDataFailure(reason: String) extends Failure
 case class CancelledSubscriptionFailure(reason: String) extends Failure
 case class ExpiringSubscriptionFailure(reason: String) extends Failure
+case class IncompatibleAmendmentHistory(reason: String) extends Failure
 
 case class SalesforcePriceRiseWriteFailure(reason: String) extends Failure
 case class SalesforceClientFailure(reason: String) extends Failure
