@@ -118,7 +118,7 @@ object AmendmentHandler extends CohortHandler {
   }
 
   def amendmentIsBeforeInstant(amendment: ZuoraSubscriptionAmendment, instant: java.time.Instant): Boolean = {
-    LocalDate.parse(amendment.effectiveDate).isBefore(LocalDateTime.ofInstant(instant, ZoneOffset.UTC).toLocalDate)
+    LocalDate.parse(amendment.bookingDate).isBefore(LocalDateTime.ofInstant(instant, ZoneOffset.UTC).toLocalDate)
   }
 
   private def checkMigrationRelevanceBasedOnLastAmendment(item: CohortItem): ZIO[Zuora, Failure, Unit] = {
@@ -150,7 +150,7 @@ object AmendmentHandler extends CohortHandler {
 
         ZIO.fail(
           AmendmentDataFailure(
-            s"[77c13996] Cohort item ${item} is being written for cancellation, during scheduled amendment, due to last amendment check failing"
+            s"[77c13996] Cohort item ${item} is being written for cancellation, during scheduled amendment, due to last amendment check failing; amendment: ${amendment}"
           )
         )
       }

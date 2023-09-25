@@ -7,32 +7,38 @@ import upickle.default._
 
 /*
 {
-  "success": true,
-  "id": "402896a9529c100a01529c30e26a0018",
-  "code": "A-AM00000002",
-  "name": "testAmendment",
-  "type": "TermsAndConditions",
-  "description": "just for test",
-  "status": "Completed",
-  "contractEffectiveDate": "2016-02-01",
-  "serviceActivationDate": "2016-02-01",
-  "customerAcceptanceDate": "2016-02-01",
-  "effectiveDate": "2016-02-01",
-  "newSubscriptionId": "402896a9529c100a01529c311930001d",
-  "baseSubscriptionId": "402896a9529c100a01529c2f2cc30010",
-  "termType": "TERMED",
-  "currentTerm": 2,
-  "currentTermPeriodType": "Month",
-  "termStartDate": "2015-12-31",
-  "renewalSetting": "RENEW_WITH_SPECIFIC_TERM",
-  "renewalTerm": 1,
-  "renewalTermPeriodType": "Month",
-  "autoRenew": false,
-  "specificUpdateDate": null,
-  "newRatePlanId": null,
-  "baseRatePlanId": null,
-  "destinationAccountId": "402896a9529bc3dc01529bcba7120023",
-  "destinationInvoiceOwnerId": "402896a9529bc3dc01529bcba7120023"
+  "success" : true,
+  "id" : "8a129e8f8abcd26f018acc9501e37fbc",
+  "code" : "A-AM08077754",
+  "name" : "remove",
+  "type" : "RemoveProduct",
+  "description" : null,
+  "status" : "Completed",
+  "contractEffectiveDate" : "2023-10-28",
+  "serviceActivationDate" : "2023-10-28",
+  "customerAcceptanceDate" : "2023-10-28",
+  "effectiveDate" : "2023-10-28",
+  "suspendDate" : null,
+  "resumeDate" : null,
+  "newSubscriptionId" : "8a129e8f8abcd26f018acc9502127fc1",
+  "baseSubscriptionId" : "8a129e8f8abcd26f018acc9500137f9b",
+  "bookingDate" : "2023-09-25",
+  "termType" : null,
+  "currentTerm" : null,
+  "currentTermPeriodType" : null,
+  "termStartDate" : null,
+  "renewalSetting" : null,
+  "renewalTerm" : null,
+  "renewalTermPeriodType" : null,
+  "autoRenew" : null,
+  "specificUpdateDate" : null,
+  "newRatePlanId" : "8a129e8f8abcd26f018acc9501cc7fb9",
+  "baseRatePlanId" : "8a129e8f8abcd26f018acc9500247fa2",
+  "destinationAccountId" : null,
+  "destinationInvoiceOwnerId" : null,
+  "subType" : null,
+  "effectivePolicy" : null,
+  "createdByOrder" : false
 }
  */
 
@@ -59,7 +65,7 @@ import upickle.default._
   coincide with the date the amendment was created). But, this is clearly not enough for the type of  thorough evaluation
   that would lead to a better check (without false positives).
 
-  1. At the moment we only need the effectiveDate. This is the reason why this first version of the class only carries
+  1. At the moment we only need the bookingDate. This is the reason why this first version of the class only carries
      that one attribute.
 
   2. It will be great if in the future the following is done
@@ -72,7 +78,7 @@ import upickle.default._
     - checkMigrationRelevanceBasedOnLastAmendment in the amendment handler
  */
 
-case class ZuoraSubscriptionAmendment(effectiveDate: String)
+case class ZuoraSubscriptionAmendment(bookingDate: String)
 
 object ZuoraSubscriptionAmendment {
   implicit val rwSubscription: ReadWriter[ZuoraSubscriptionAmendment] = macroRW
