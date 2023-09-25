@@ -169,7 +169,7 @@ object AmendmentHandler extends CohortHandler {
 
     for {
 
-      _ <- checkMigrationRelevanceBasedOnLastAmendment(item)
+      _ <- checkMigrationRelevanceBasedOnLastAmendment(item).debug("check relevance")
 
       startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
 
