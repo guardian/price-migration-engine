@@ -118,7 +118,11 @@ object AmendmentHandler extends CohortHandler {
   }
 
   def amendmentIsBeforeInstant(amendment: ZuoraSubscriptionAmendment, instant: java.time.Instant): Boolean = {
-    LocalDate.parse(amendment.bookingDate).isBefore(LocalDateTime.ofInstant(instant, ZoneOffset.UTC).toLocalDate)
+    val amendmentDate = LocalDate.parse(amendment.bookingDate)
+    val estimationDate = LocalDateTime.ofInstant(instant, ZoneOffset.UTC).toLocalDate
+    println(s"amendmentDate: ${amendmentDate}")
+    println(s"estimationDate: ${estimationDate}")
+    amendmentDate.isBefore(estimationDate)
   }
 
   private def checkMigrationRelevanceBasedOnLastAmendment(item: CohortItem): ZIO[Zuora, Failure, Unit] = {
