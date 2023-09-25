@@ -120,8 +120,6 @@ object AmendmentHandler extends CohortHandler {
   def amendmentIsBeforeInstant(amendment: ZuoraSubscriptionAmendment, instant: java.time.Instant): Boolean = {
     val amendmentDate = LocalDate.parse(amendment.bookingDate)
     val estimationDate = LocalDateTime.ofInstant(instant, ZoneOffset.UTC).toLocalDate
-    println(s"amendmentDate: ${amendmentDate}")
-    println(s"estimationDate: ${estimationDate}")
     amendmentDate.isBefore(estimationDate)
   }
 
@@ -140,25 +138,21 @@ object AmendmentHandler extends CohortHandler {
         .fromOption(item.whenEstimationDone)
         .mapError(ex => AmendmentDataFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
         .debug("estimationInstant")
-    } yield
-      if (amendmentIsBeforeInstant(amendment, estimationInstant)) {
-        ZIO.succeed(())
-      } else {
-
-        // In this temporary version of the code, we are writing it with a general failure,
-        // Once we observe this happen we will use the IncompatibleAmendmentHistory failure, which results in a cancellation
-
-        // ZIO.fail(
-        //  IncompatibleAmendmentHistory(
-        //    s"[4f7589ea] Cohort item ${item} is being written for cancellation, during scheduled amendment, due to last amendment check failing"
-        //  )
-
-        ZIO.fail(
-          AmendmentDataFailure(
-            s"[77c13996] Cohort item ${item} is being written for cancellation, during scheduled amendment, due to last amendment check failing; amendment: ${amendment}"
+      result <-
+        if (amendmentIsBeforeInstant(amendment, estimationInstant)) {
+          ZIO.succeed(())
+        } else {
+          // ZIO.fail(
+          //  IncompatibleAmendmentHistory(
+          //    s"[4f7589ea] Cohort item ${item} is being written for cancellation, during scheduled amendment, due to last amendment check failing"
+          //  )
+          ZIO.fail(
+            AmendmentDataFailure(
+              s"[77c13996] Cohort item ${item} is being written for cancellation, during scheduled amendment, due to last amendment check failing; amendment: ${amendment}"
+            )
           )
-        )
-      }
+        }
+    } yield result
   }
 
   private def doAmendment(
