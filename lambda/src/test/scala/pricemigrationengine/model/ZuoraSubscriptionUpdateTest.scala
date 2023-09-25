@@ -16,7 +16,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      1
+      None
     )
     assertEquals(
       update,
@@ -48,7 +48,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
     )
   }
 
-  test("Zuora amendment correctly creates a charge override from a non trivial price correction factor") {
+  test("Zuora amendment correctly creates a charge override from an enforced priced") {
     val fixtureSet = "GuardianWeekly/CappedPriceIncrease3"
     val date = LocalDate.of(2022, 12, 19)
     val update = ZuoraSubscriptionUpdate.updateOfRatePlansToCurrent(
@@ -57,7 +57,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      0.5
+      Some(37.20)
     )
     assertEquals(
       update,
@@ -98,7 +98,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      1
+      None
     )
     assertEquals(
       update,
@@ -141,7 +141,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      1
+      None
     )
     assertEquals(
       update,
@@ -179,7 +179,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      1
+      None
     )
     assertEquals(
       update,
@@ -247,7 +247,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      1
+      None
     )
     assertEquals(
       update,
@@ -290,7 +290,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      1
+      None
     )
     assertEquals(
       update,
@@ -333,7 +333,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      1
+      None
     )
     assertEquals(
       update,
@@ -371,7 +371,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      1
+      None
     )
     assertEquals(
       update,
@@ -434,7 +434,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      1
+      None
     )
     assertEquals(
       update,
@@ -477,7 +477,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
       date,
-      1
+      None
     )
     assertEquals(
       update,
