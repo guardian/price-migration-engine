@@ -46,7 +46,7 @@ object AmendmentHandler extends CohortHandler {
           val result = ExpiringSubscriptionResult(item.subscriptionName)
           CohortTable.update(CohortItem.fromExpiringSubscriptionResult(result)).as(result)
         }
-        case _: IncompatibleAmendmentHistory => {
+        case _: IncompatibleAmendmentHistoryFailure => {
           // See the preambule of the ZuoraSubscriptionAmendment case class for context about
           // IncompatibleAmendmentHistory
           // Note: At the moment we only have one CancelledAmendmentResult, it would be great one day
