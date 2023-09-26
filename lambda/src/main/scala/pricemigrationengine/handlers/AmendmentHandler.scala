@@ -122,13 +122,9 @@ object AmendmentHandler extends CohortHandler {
         if (amendmentIsBeforeInstant(amendment, estimationInstant)) {
           ZIO.succeed(())
         } else {
-          // ZIO.fail(
-          //  IncompatibleAmendmentHistory(
-          //    s"[4f7589ea] Cohort item ${item} is being written for cancellation, during scheduled amendment, due to last amendment check failing"
-          //  )
           ZIO.fail(
-            AmendmentDataFailure(
-              s"[77c13996] Cohort item ${item} is being written for cancellation, during scheduled amendment, due to last amendment check failing; amendment: ${amendment}"
+            IncompatibleAmendmentHistoryFailure(
+              s"[4f7589ea] Cohort item ${item} is being written for cancellation, during scheduled amendment, due to last amendment check failing; amendment: ${amendment}"
             )
           )
         }
