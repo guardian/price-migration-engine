@@ -124,7 +124,7 @@ object AmendmentHandler extends CohortHandler {
         } else {
           ZIO.fail(
             IncompatibleAmendmentHistoryFailure(
-              s"[4f7589ea] Cohort item ${item} is being written for cancellation, during scheduled amendment, due to last amendment check failing"
+              s"[4f7589ea] Cohort item ${item} is being written for cancellation, during scheduled amendment, due to last amendment check failing; amendment: ${amendment}"
             )
           )
         }
