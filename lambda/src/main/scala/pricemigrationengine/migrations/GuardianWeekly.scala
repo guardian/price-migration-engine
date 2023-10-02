@@ -1,8 +1,15 @@
-package pricemigrationengine.model
+package pricemigrationengine.migrations
 
 import pricemigrationengine.model.AmendmentData.RatePlanChargePair
-import pricemigrationengine.model.BillingPeriod.BillingPeriod
 import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, newGuardianWeeklyRatePlans}
+import pricemigrationengine.model.{
+  AmendmentDataFailure,
+  ZuoraAccount,
+  ZuoraProductCatalogue,
+  ZuoraProductRatePlan,
+  ZuoraRatePlanCharge,
+  Currency
+}
 
 object BillingPeriod extends Enumeration {
   type BillingPeriod = Value

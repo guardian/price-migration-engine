@@ -1,5 +1,24 @@
-package pricemigrationengine.model
-import pricemigrationengine.model.CohortSpec
+package pricemigrationengine.migrations
+
+import pricemigrationengine.model.{
+  AddZuoraRatePlan,
+  AmendmentDataFailure,
+  CohortSpec,
+  Currency,
+  Membership2023Annuals,
+  Membership2023Monthlies,
+  MigrationType,
+  PriceData,
+  RemoveZuoraRatePlan,
+  ZuoraAccount,
+  ZuoraInvoiceItem,
+  ZuoraInvoiceList,
+  ZuoraProductCatalogue,
+  ZuoraRatePlan,
+  ZuoraRatePlanCharge,
+  ZuoraSubscription,
+  ZuoraSubscriptionUpdate
+}
 
 import java.time.LocalDate
 

@@ -5,6 +5,7 @@ import pricemigrationengine.model.{ZuoraRatePlanCharge, ZuoraSubscriptionUpdate,
 import java.time.{LocalDate, ZoneOffset}
 import pricemigrationengine.Fixtures
 import pricemigrationengine.handlers.AmendmentHandler.amendmentIsBeforeInstant
+import pricemigrationengine.migrations.Membership2023
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 
 class AmendmentHandlerTest extends munit.FunSuite {

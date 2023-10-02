@@ -1,11 +1,12 @@
 package pricemigrationengine.model
 
+import pricemigrationengine.migrations.GuardianWeekly
 import pricemigrationengine.model.ChargeOverride.fromRatePlanCharge
 
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit.DAYS
 import pricemigrationengine.model.Either._
-import pricemigrationengine.model.ZuoraProductCatalogue.{productPricingMap}
+import pricemigrationengine.model.ZuoraProductCatalogue.productPricingMap
 import upickle.default.{ReadWriter, macroRW}
 
 case class ZuoraSubscriptionUpdate(
