@@ -22,7 +22,7 @@ import pricemigrationengine.model.{
 
 import java.time.LocalDate
 
-object Membership2023 {
+object Membership2023Migration {
 
   val priceMapMonthlies: Map[Currency, BigDecimal] = Map(
     "GBP" -> BigDecimal(7),

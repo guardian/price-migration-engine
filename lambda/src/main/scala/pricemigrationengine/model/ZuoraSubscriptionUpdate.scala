@@ -1,6 +1,6 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.migrations.GuardianWeekly
+import pricemigrationengine.migrations.GuardianWeeklyMigration
 import pricemigrationengine.model.ChargeOverride.fromRatePlanCharge
 
 import java.time.LocalDate
@@ -112,7 +112,7 @@ object AddZuoraRatePlan {
       ratePlan: ZuoraRatePlan
   ): Either[AmendmentDataFailure, AddZuoraRatePlan] =
     for {
-      guardianWeekly <- GuardianWeekly.getNewRatePlanCharges(
+      guardianWeekly <- GuardianWeeklyMigration.getNewRatePlanCharges(
         account,
         catalogue,
         ratePlan.ratePlanCharges

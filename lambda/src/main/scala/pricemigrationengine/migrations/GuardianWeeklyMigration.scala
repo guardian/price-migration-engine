@@ -22,8 +22,8 @@ object BillingPeriod extends Enumeration {
 
   We see how many days in the echo-legacy plan are currently being charged, i.e.: has a price over 0, then retrieve the corresponding rate plan for the number of days needed.
  */
-case class GuardianWeekly(productRatePlan: ZuoraProductRatePlan, chargePairs: Seq[RatePlanChargePair])
-object GuardianWeekly {
+case class GuardianWeeklyMigration(productRatePlan: ZuoraProductRatePlan, chargePairs: Seq[RatePlanChargePair])
+object GuardianWeeklyMigration {
   // we need to know:
   // billingPeriod - monthly, quarterly, annually
   // Whether it should change to Domestic or ROW
@@ -33,7 +33,7 @@ object GuardianWeekly {
       account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
       ratePlanCharges: Seq[ZuoraRatePlanCharge]
-  ): Either[AmendmentDataFailure, GuardianWeekly] = {
+  ): Either[AmendmentDataFailure, GuardianWeeklyMigration] = {
     val billingPeriod = ratePlanCharges.head.billingPeriod match {
       case Some(value) =>
         value match {
@@ -53,7 +53,7 @@ object GuardianWeekly {
     def fetchPlan(
         currentCharges: Seq[ZuoraRatePlanCharge],
         ratePlanName: String
-    ): Either[AmendmentDataFailure, GuardianWeekly] = {
+    ): Either[AmendmentDataFailure, GuardianWeeklyMigration] = {
       val newRatePlan = guardianWeeklyRatePlans
         .find(_.name == ratePlanName)
         .find(_.productRatePlanCharges.head.billingPeriod == currentCharges.head.billingPeriod)
@@ -64,7 +64,7 @@ object GuardianWeekly {
             for ((chargeFromSub, catalogueCharge) <- currentCharges zip plan.productRatePlanCharges)
               yield RatePlanChargePair(chargeFromSub, catalogueCharge)
 
-          Right(GuardianWeekly(plan, chargePairs))
+          Right(GuardianWeeklyMigration(plan, chargePairs))
         case None =>
           Left(
             AmendmentDataFailure(
@@ -85,7 +85,7 @@ object GuardianWeekly {
     def aaaa(
         currency: Currency,
         ratePlanCharges: Seq[ZuoraRatePlanCharge]
-    ): Either[AmendmentDataFailure, GuardianWeekly] = {
+    ): Either[AmendmentDataFailure, GuardianWeeklyMigration] = {
       if (ratePlanCharges.head.currency == "USD") {
         for {
           ratePlan <-

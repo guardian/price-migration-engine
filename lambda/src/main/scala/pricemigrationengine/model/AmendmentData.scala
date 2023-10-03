@@ -1,6 +1,6 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.migrations.{GuardianWeekly, Membership2023}
+import pricemigrationengine.migrations.{GuardianWeeklyMigration, Membership2023Migration}
 import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, productPricingMap}
 
 import java.time.LocalDate
@@ -260,7 +260,7 @@ object AmendmentData {
 
       pairs <-
         if (isZoneABC)
-          GuardianWeekly.getNewRatePlanCharges(account, catalogue, ratePlanCharges).map(_.chargePairs)
+          GuardianWeeklyMigration.getNewRatePlanCharges(account, catalogue, ratePlanCharges).map(_.chargePairs)
         else ratePlanChargePairs(catalogue, ratePlanCharges)
 
       currency <- pairs.headOption
@@ -307,11 +307,25 @@ object AmendmentData {
 
     MigrationType(cohortSpec) match {
       case Membership2023Monthlies =>
-        Membership2023.priceData(account, catalogue, subscription, invoiceList, nextServiceStartDate, cohortSpec)
+        Membership2023Migration.priceData(
+          account,
+          catalogue,
+          subscription,
+          invoiceList,
+          nextServiceStartDate,
+          cohortSpec
+        )
       case Membership2023Annuals =>
-        Membership2023.priceData(account, catalogue, subscription, invoiceList, nextServiceStartDate, cohortSpec)
+        Membership2023Migration.priceData(
+          account,
+          catalogue,
+          subscription,
+          invoiceList,
+          nextServiceStartDate,
+          cohortSpec
+        )
       case SupporterPlus2023V1V2MA =>
-        SupporterPlus2023V1V2.priceData(
+        SupporterPlus2023V1V2Migration.priceData(
           account,
           catalogue,
           subscription,
