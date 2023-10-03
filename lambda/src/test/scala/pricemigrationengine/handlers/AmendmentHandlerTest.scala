@@ -1,11 +1,11 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.{ZuoraRatePlanCharge, ZuoraSubscriptionUpdate, _}
+import pricemigrationengine.model._
 
 import java.time.{LocalDate, ZoneOffset}
 import pricemigrationengine.Fixtures
 import pricemigrationengine.handlers.AmendmentHandler.amendmentIsBeforeInstant
-import pricemigrationengine.migrations.Membership2023
+import pricemigrationengine.migrations.Membership2023Migration
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 
 class AmendmentHandlerTest extends munit.FunSuite {
@@ -95,7 +95,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
 
-    val update = Membership2023.updateOfRatePlansToCurrent_Monthlies(
+    val update = Membership2023Migration.updateOfRatePlansToCurrent_Monthlies(
       subscription,
       invoicePreview,
       effectiveDate: LocalDate
@@ -201,7 +201,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
 
-    val update = Membership2023.updateOfRatePlansToCurrent_Annuals(
+    val update = Membership2023Migration.updateOfRatePlansToCurrent_Annuals(
       subscription,
       invoicePreview,
       effectiveDate: LocalDate
@@ -307,7 +307,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
 
-    val update = Membership2023.updateOfRatePlansToCurrent_Annuals(
+    val update = Membership2023Migration.updateOfRatePlansToCurrent_Annuals(
       subscription,
       invoicePreview,
       effectiveDate: LocalDate
@@ -422,7 +422,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingPeriod = Some("Annual")
       )
 
-    val update = SupporterPlus2023V1V2.updateOfRatePlansToCurrent(
+    val update = SupporterPlus2023V1V2Migration.updateOfRatePlansToCurrent(
       item,
       subscription,
       invoicePreview,
@@ -548,7 +548,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingPeriod = Some("Month")
       )
 
-    val update = SupporterPlus2023V1V2.updateOfRatePlansToCurrent(
+    val update = SupporterPlus2023V1V2Migration.updateOfRatePlansToCurrent(
       item,
       subscription,
       invoicePreview,
@@ -676,7 +676,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingPeriod = Some("Annual")
       )
 
-    val update = SupporterPlus2023V1V2.updateOfRatePlansToCurrent(
+    val update = SupporterPlus2023V1V2Migration.updateOfRatePlansToCurrent(
       item,
       subscription,
       invoicePreview,
@@ -794,7 +794,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingPeriod = Some("Annual")
       )
 
-    val update = SupporterPlus2023V1V2.updateOfRatePlansToCurrent(
+    val update = SupporterPlus2023V1V2Migration.updateOfRatePlansToCurrent(
       item,
       subscription,
       invoicePreview,

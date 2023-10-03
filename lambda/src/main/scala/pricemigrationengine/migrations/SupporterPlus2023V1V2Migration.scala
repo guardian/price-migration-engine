@@ -4,7 +4,7 @@ import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, 
 import scala.math.BigDecimal.RoundingMode
 import java.time.LocalDate
 
-object SupporterPlus2023V1V2 {
+object SupporterPlus2023V1V2Migration {
 
   val newPriceMapMonthlies: Map[Currency, BigDecimal] = Map(
     "GBP" -> BigDecimal(10),

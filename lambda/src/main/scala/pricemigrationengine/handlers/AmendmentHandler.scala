@@ -170,7 +170,7 @@ object AmendmentHandler extends CohortHandler {
       update <- MigrationType(cohortSpec) match {
         case Membership2023Monthlies =>
           ZIO.fromEither(
-            Membership2023
+            Membership2023Migration
               .updateOfRatePlansToCurrent_Monthlies(
                 subscriptionBeforeUpdate,
                 invoicePreviewBeforeUpdate,
@@ -179,7 +179,7 @@ object AmendmentHandler extends CohortHandler {
           )
         case Membership2023Annuals =>
           ZIO.fromEither(
-            Membership2023
+            Membership2023Migration
               .updateOfRatePlansToCurrent_Annuals(
                 subscriptionBeforeUpdate,
                 invoicePreviewBeforeUpdate,
@@ -188,7 +188,7 @@ object AmendmentHandler extends CohortHandler {
           )
         case SupporterPlus2023V1V2MA =>
           ZIO.fromEither(
-            SupporterPlus2023V1V2
+            SupporterPlus2023V1V2Migration
               .updateOfRatePlansToCurrent(
                 item,
                 subscriptionBeforeUpdate,
