@@ -1,5 +1,6 @@
 package pricemigrationengine.model
 
+import pricemigrationengine.migrations.{GuardianWeekly, Membership2023}
 import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, productPricingMap}
 
 import java.time.LocalDate
