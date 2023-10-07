@@ -144,8 +144,14 @@ object AmendmentHandler extends CohortHandler {
   ): ZIO[Zuora, Failure, SuccessfulAmendmentResult] = {
 
     for {
+      subscriptionBeforeUpdate <- fetchSubscription(item)
 
-      _ <- checkMigrationRelevanceBasedOnLastAmendment(item).debug("check relevance")
+      _ <-
+        if (subscriptionBeforeUpdate.version > 1) {
+          checkMigrationRelevanceBasedOnLastAmendment(item).debug("check relevance")
+        } else {
+          ZIO.succeed(())
+        }
 
       startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
 
@@ -157,8 +163,6 @@ object AmendmentHandler extends CohortHandler {
           .orElseFail(AmendmentDataFailure(s"No estimated new price in $item"))
 
       invoicePreviewTargetDate = startDate.plusMonths(13)
-
-      subscriptionBeforeUpdate <- fetchSubscription(item)
 
       _ <- renewSubscriptionIfNeeded(subscriptionBeforeUpdate, startDate)
 

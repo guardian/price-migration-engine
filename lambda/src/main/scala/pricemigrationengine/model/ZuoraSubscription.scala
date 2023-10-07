@@ -7,6 +7,7 @@ import upickle.default._
 
 case class ZuoraSubscription(
     subscriptionNumber: String,
+    version: Int,
     customerAcceptanceDate: LocalDate,
     contractEffectiveDate: LocalDate,
     ratePlans: List[ZuoraRatePlan],
