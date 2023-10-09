@@ -104,7 +104,7 @@ object DigiSubs2023Migration {
     // Takes a subscription and return the active rate plan
     // This function is specific to the current Migration, eg: DigiSubs2023, so we can be effective in the look up of
     // that rate plan
-    subscription.ratePlans.filter(rp => rp.productName == "Digital Pack").headOption match {
+    subscription.ratePlans.find(_.productName == "Digital Pack") match {
       case None =>
         Left(AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} doesn't have any rate plan"))
       case Some(ratePlan) => Right(ratePlan)
