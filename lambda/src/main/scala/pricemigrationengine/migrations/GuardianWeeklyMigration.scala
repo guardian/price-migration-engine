@@ -11,11 +11,6 @@ import pricemigrationengine.model.{
   Currency
 }
 
-object BillingPeriod extends Enumeration {
-  type BillingPeriod = Value
-  val Month, Quarterly, Annual = Value
-}
-
 /*
   Echo Legacy rate plans have to be migrated to use newer rate plans such as Weekend, Everyday, Sixday, Saturday and Sunday.
   Migrating these is not as easy as mapping the current rateplan Id with the new one in the catalogue, so we are taking a separate approach here.

@@ -1,5 +1,6 @@
 package pricemigrationengine.handlers
 
+import pricemigrationengine.migrations.DigiSubs2023Migration
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model.{CohortSpec, _}
 import pricemigrationengine.services._
@@ -80,6 +81,7 @@ object EstimationHandler extends CohortHandler {
         Zuora
           .fetchSubscription(item.subscriptionName)
           .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
+      _ <- ZIO.fromEither(DigiSubs2023Migration.subscriptionShouldBeProcessed2(cohortSpec, subscription))
       account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
       invoicePreviewTargetDate = cohortSpec.earliestPriceMigrationStartDate.plusMonths(16)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
@@ -159,7 +161,7 @@ object EstimationHandler extends CohortHandler {
     } yield startDateLowerBound2.plusMonths(randomFactor)
   }
 
-  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     main(input).provideSome[Logging](
       EnvConfig.cohortTable.layer,
       EnvConfig.zuora.layer,
@@ -169,4 +171,5 @@ object EstimationHandler extends CohortHandler {
       CohortTableLive.impl(input),
       ZuoraLive.impl
     )
+  }
 }

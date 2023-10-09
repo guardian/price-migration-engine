@@ -36,6 +36,7 @@ object NotificationHandler extends CohortHandler {
       case Membership2023Monthlies => emailMaxNotificationLeadTime
       case Membership2023Annuals   => emailMaxNotificationLeadTime
       case SupporterPlus2023V1V2MA => emailMaxNotificationLeadTime
+      case DigiSubs2023            => emailMaxNotificationLeadTime
       case Legacy                  => letterMaxNotificationLeadTime
     }
   }
@@ -45,6 +46,7 @@ object NotificationHandler extends CohortHandler {
       case Membership2023Monthlies => emailMinNotificationLeadTime
       case Membership2023Annuals   => emailMinNotificationLeadTime
       case SupporterPlus2023V1V2MA => emailMinNotificationLeadTime
+      case DigiSubs2023            => emailMinNotificationLeadTime
       case Legacy                  => letterMinNotificationLeadTime
     }
   }
@@ -174,6 +176,7 @@ object NotificationHandler extends CohortHandler {
         case Membership2023Monthlies => true
         case Membership2023Annuals   => true
         case SupporterPlus2023V1V2MA => true
+        case DigiSubs2023            => true
         case Legacy                  => false
       }
       cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap(oldPrice, estimatedNewPrice, forceEstimated)}"
