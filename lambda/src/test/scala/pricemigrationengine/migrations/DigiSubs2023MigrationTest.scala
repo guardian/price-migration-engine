@@ -11,7 +11,6 @@ import pricemigrationengine.migrations.DigiSubs2023Migration.{
   priceData,
   subscriptionRatePlan,
   subscriptionRatePlanCharge,
-  subscriptionShouldBeProcessed1,
   updateOfRatePlansToCurrent
 }
 import pricemigrationengine.model.CohortTableFilter.SalesforcePriceRiceCreationComplete
@@ -117,20 +116,6 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
         currentTermPeriodType = None
       )
     )
-
-    val cohortSpec1 =
-      CohortSpec("migrationName", "brazeCampaignName", LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 2))
-    assertEquals(
-      subscriptionShouldBeProcessed1(cohortSpec1, subscription),
-      true
-    )
-
-    val cohortSpec2 =
-      CohortSpec("DigiSubs2023_Batch1", "brazeCampaignName", LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 2))
-    assertEquals(
-      subscriptionShouldBeProcessed1(cohortSpec2, subscription),
-      true
-    )
   }
 
   test("discounted test") {
@@ -232,20 +217,6 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
         currentTerm = None,
         currentTermPeriodType = None
       )
-    )
-
-    val cohortSpec1 =
-      CohortSpec("migrationName", "brazeCampaignName", LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 2))
-    assertEquals(
-      subscriptionShouldBeProcessed1(cohortSpec1, subscription),
-      true
-    )
-
-    val cohortSpec2 =
-      CohortSpec("DigiSubs2023_Batch1", "brazeCampaignName", LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 2))
-    assertEquals(
-      subscriptionShouldBeProcessed1(cohortSpec2, subscription),
-      false // false in this case DigiSubs2023_Batch1 with a discounted subscription
     )
   }
   test("thereIsEnoughNotificationLeadTime behaves correctly (supporter plus 2023)") {

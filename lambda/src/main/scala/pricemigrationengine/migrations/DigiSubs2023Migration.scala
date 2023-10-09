@@ -250,35 +250,4 @@ object DigiSubs2023Migration {
       currentTermPeriodType = None
     )
   }
-
-  // -------------------------------------------
-  // Migration Specific Requirements
-  // -------------------------------------------
-
-  def subscriptionShouldBeProcessed1(cohortSpec: CohortSpec, subscription: ZuoraSubscription): Boolean = {
-    MigrationType(cohortSpec) match {
-      case DigiSubs2023 => !subscriptionIsDiscounted(subscription)
-      case _            => true
-    }
-  }
-
-  def subscriptionShouldBeProcessed2(
-      cohortSpec: CohortSpec,
-      subscription: ZuoraSubscription
-  ): Either[AmendmentDataFailure, Unit] = {
-    if (DigiSubs2023Migration.subscriptionShouldBeProcessed1(cohortSpec, subscription)) {
-      Right(())
-    } else {
-      Left(
-        // We start with an AmendmentDataFailure and then we will move to CancelledSubscriptionFailure
-        AmendmentDataFailure(
-          s"[4b7fdd4b] subscription ${subscription.subscriptionNumber} is cancelled because of having been discounted"
-        )
-        //  CancelledSubscriptionFailure (
-        //  s"[4b7fdd4b] subscription ${item.subscriptionName} is cancelled because of having been discounted"
-        //  )
-      )
-    }
-  }
-
 }
