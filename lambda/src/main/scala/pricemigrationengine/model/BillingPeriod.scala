@@ -1,12 +1,16 @@
 package pricemigrationengine.model
 
-object BillingPeriod extends Enumeration {
-  type BillingPeriod = Value
-  val Month, Quarterly, Annual = Value
+sealed trait BillingPeriod
+object Monthly extends BillingPeriod
+object Quarterly extends BillingPeriod
+object Annual extends BillingPeriod
 
+// SemiAnnual will be added when the needs for it arises
+
+object BillingPeriod {
   def toString(period: BillingPeriod): String = {
     period match {
-      case Month     => "Month"
+      case Monthly   => "Month"
       case Quarterly => "Quarterly"
       case Annual    => "Annual"
     }
@@ -14,11 +18,11 @@ object BillingPeriod extends Enumeration {
 
   def fromString(period: String): BillingPeriod = {
     if (period == "Month") {
-      BillingPeriod.Month
+      Monthly
     } else if (period == "Quarterly") {
-      BillingPeriod.Quarterly
+      Quarterly
     } else if (period == "Annual") {
-      BillingPeriod.Annual
+      Annual
     } else {
       throw new Exception(s"could no recover BillingPeriod for period: ${period}")
     }

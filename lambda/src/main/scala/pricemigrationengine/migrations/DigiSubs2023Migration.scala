@@ -1,15 +1,17 @@
 package pricemigrationengine.migrations
-import pricemigrationengine.model.BillingPeriod.BillingPeriod
 import pricemigrationengine.model.{
   AddZuoraRatePlan,
   AmendmentDataFailure,
-  BillingPeriod,
+  Monthly,
   ChargeOverride,
+  BillingPeriod,
   CohortSpec,
   Currency,
   DigiSubs2023,
   Failure,
   MigrationType,
+  Annual,
+  Quarterly,
   PriceData,
   RemoveZuoraRatePlan,
   ZuoraRatePlan,
@@ -56,15 +58,15 @@ object DigiSubs2023Migration {
   )
 
   private val billingPeriodToRatePlanId: Map[BillingPeriod, TargetRatePlanDetails] = Map(
-    BillingPeriod.Month -> TargetRatePlanDetails(
+    Monthly -> TargetRatePlanDetails(
       "2c92a0fb4edd70c8014edeaa4eae220a",
       "2c92a0fb4edd70c9014edeaa50342192"
     ), // Digital Pack Monthly (rate plan) (old)
-    BillingPeriod.Quarterly -> TargetRatePlanDetails(
+    Quarterly -> TargetRatePlanDetails(
       "2c92a0fb4edd70c8014edeaa4e8521fe",
       "2c92a0fb4edd70c9014edeaa4fd42186"
     ), // Digital Pack Quarterly (rate plan) (old)
-    BillingPeriod.Annual -> TargetRatePlanDetails(
+    Annual -> TargetRatePlanDetails(
       "2c92a0fb4edd70c8014edeaa4e972204",
       "2c92a0fb4edd70c9014edeaa5001218c"
     ), // Digital Pack Annual (rate plan) (old)
@@ -79,18 +81,18 @@ object DigiSubs2023Migration {
       billingPeriod: BillingPeriod
   ): Either[AmendmentDataFailure, BigDecimal] = {
     billingPeriod match {
-      case BillingPeriod.Month =>
+      case Monthly =>
         priceMapMonthlies.get(currency) match {
           case None => Left(AmendmentDataFailure(s"Could not determine a new monthly price for currency: ${currency}"))
           case Some(price) => Right(price)
         }
-      case BillingPeriod.Quarterly =>
+      case Quarterly =>
         priceMapQuarterlies.get(currency) match {
           case None =>
             Left(AmendmentDataFailure(s"Could not determine a new quarterly price for currency: ${currency}"))
           case Some(price) => Right(price)
         }
-      case BillingPeriod.Annual =>
+      case Annual =>
         priceMapAnnuals.get(currency) match {
           case None => Left(AmendmentDataFailure(s"Could not determine a new annual price for currency: ${currency}"))
           case Some(price) => Right(price)
@@ -195,7 +197,7 @@ object DigiSubs2023Migration {
       billingPeriod <- getBillingPeriodFromRatePlanCharge(subscription, ratePlanCharge)
       oldPrice <- getPriceFromRatePlanCharge(subscription, ratePlanCharge)
       newPrice <- newPriceLookup(currency, billingPeriod)
-    } yield PriceData(currency, oldPrice, newPrice, billingPeriod.toString)
+    } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
   }
 
   def updateOfRatePlansToCurrent(
@@ -223,7 +225,7 @@ object DigiSubs2023Migration {
         case None =>
           Left(
             AmendmentDataFailure(
-              s"Could not extract ratePlan for billing period: ${billingPeriod.toString}"
+              s"Could not extract ratePlan for billing period: ${BillingPeriod.toString(billingPeriod)}"
             )
           )
         case Some(period) => Right(period)
@@ -234,7 +236,7 @@ object DigiSubs2023Migration {
           targetRatePlanDetails.ratePlanId,
           effectiveDate,
           List(
-            ChargeOverride(targetRatePlanDetails.ratePlanChargeId, billingPeriod.toString, newPrice)
+            ChargeOverride(targetRatePlanDetails.ratePlanChargeId, BillingPeriod.toString(billingPeriod), newPrice)
           )
         )
       ),

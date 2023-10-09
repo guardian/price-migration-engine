@@ -19,9 +19,9 @@ import pricemigrationengine.model.CohortTableFilter.SalesforcePriceRiceCreationC
 class DigiSubs2023MigrationTest extends munit.FunSuite {
   test("regular tests") {
 
-    assertEquals(newPriceLookup("GBP", BillingPeriod.Month).toOption.get, BigDecimal(14.99))
-    assertEquals(newPriceLookup("GBP", BillingPeriod.Quarterly).toOption.get, BigDecimal(44.94))
-    assertEquals(newPriceLookup("USD", BillingPeriod.Annual).toOption.get, BigDecimal(249))
+    assertEquals(newPriceLookup("GBP", Monthly).toOption.get, BigDecimal(14.99))
+    assertEquals(newPriceLookup("GBP", Quarterly).toOption.get, BigDecimal(44.94))
+    assertEquals(newPriceLookup("USD", Annual).toOption.get, BigDecimal(249))
 
     val account = Fixtures.accountFromJson("DigiSubs2023/regular/account.json")
     val catalogue = Fixtures.productCatalogueFromJson("DigiSubs2023/regular/catalogue.json")
