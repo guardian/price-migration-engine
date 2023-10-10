@@ -50,6 +50,7 @@ object Legacy extends MigrationType // refers to all migrations before membershi
 object Membership2023Monthlies extends MigrationType
 object Membership2023Annuals extends MigrationType
 object SupporterPlus2023V1V2MA extends MigrationType
+object DigiSubs2023 extends MigrationType
 
 object MigrationType {
   def apply(cohortSpec: CohortSpec): MigrationType = cohortSpec.cohortName match {
@@ -57,6 +58,7 @@ object MigrationType {
     case "Membership2023_Batch2" => Membership2023Monthlies
     case "Membership2023_Batch3" => Membership2023Annuals
     case "SupporterPlus2023V1V2" => SupporterPlus2023V1V2MA
+    case "DigiSubs2023_Batch1"   => DigiSubs2023
     case _                       => Legacy
   }
 }

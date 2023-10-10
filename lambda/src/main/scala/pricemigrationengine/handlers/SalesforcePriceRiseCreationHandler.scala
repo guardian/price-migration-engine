@@ -85,6 +85,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
         case Membership2023Monthlies => true
         case Membership2023Annuals   => true
         case SupporterPlus2023V1V2MA => true
+        case DigiSubs2023            => true
         case Legacy                  => false
       }
       SalesforcePriceRise(

@@ -1,6 +1,6 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.migrations.{GuardianWeeklyMigration, Membership2023Migration}
+import pricemigrationengine.migrations.{DigiSubs2023Migration, GuardianWeeklyMigration, Membership2023Migration}
 import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, productPricingMap}
 
 import java.time.LocalDate
@@ -332,6 +332,10 @@ object AmendmentData {
           invoiceList,
           nextServiceStartDate,
           cohortSpec
+        )
+      case DigiSubs2023 =>
+        DigiSubs2023Migration.priceData(
+          subscription
         )
       case _ => priceDataWithRatePlanMatching(account, catalogue, subscription, invoiceList, nextServiceStartDate)
     }

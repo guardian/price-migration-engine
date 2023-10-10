@@ -1,5 +1,6 @@
 package pricemigrationengine.handlers
 
+import pricemigrationengine.migrations.DigiSubs2023Migration
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 import pricemigrationengine.model._
 import pricemigrationengine.migrations._
@@ -199,6 +200,13 @@ object AmendmentHandler extends CohortHandler {
                 invoicePreviewBeforeUpdate,
                 startDate
               )
+          )
+        case DigiSubs2023 =>
+          ZIO.fromEither(
+            DigiSubs2023Migration.updateOfRatePlansToCurrent(
+              subscriptionBeforeUpdate,
+              startDate,
+            )
           )
         case Legacy =>
           ZIO.fromEither(

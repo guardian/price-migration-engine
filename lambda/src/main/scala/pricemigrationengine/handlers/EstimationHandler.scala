@@ -159,7 +159,7 @@ object EstimationHandler extends CohortHandler {
     } yield startDateLowerBound2.plusMonths(randomFactor)
   }
 
-  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     main(input).provideSome[Logging](
       EnvConfig.cohortTable.layer,
       EnvConfig.zuora.layer,
@@ -169,4 +169,5 @@ object EstimationHandler extends CohortHandler {
       CohortTableLive.impl(input),
       ZuoraLive.impl
     )
+  }
 }
