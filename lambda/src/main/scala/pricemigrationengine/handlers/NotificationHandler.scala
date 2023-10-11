@@ -143,7 +143,7 @@ object NotificationHandler extends CohortHandler {
       lastName <- requiredField(contact.LastName, "Contact.LastName")
       address <- MigrationType(cohortSpec) match {
         case SupporterPlus2023V1V2MA => ZIO.succeed(SalesforceAddress(None, None, None, None, None))
-        case _                       => targetAddress(contact)
+        case _                       => targetAddress(cohortSpec, contact)
       }
 
       street <- MigrationType(cohortSpec) match {
@@ -219,14 +219,23 @@ object NotificationHandler extends CohortHandler {
       _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete)
     } yield Successful
 
-  def targetAddress(contact: SalesforceContact): ZIO[Any, NotificationHandlerFailure, SalesforceAddress] =
-    (for {
-      billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
-      _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
-      _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
-    } yield billingAddress).orElse(
-      requiredField(contact.MailingAddress, "Contact.MailingAddress")
-    )
+  def targetAddress(
+      cohortSpec: CohortSpec,
+      contact: SalesforceContact
+  ): ZIO[Any, NotificationHandlerFailure, SalesforceAddress] = {
+    MigrationType(cohortSpec) match {
+      case DigiSubs2023 => ZIO.succeed(SalesforceAddress(None, None, None, None, None))
+      case _ => {
+        (for {
+          billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
+          _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
+          _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
+        } yield billingAddress).orElse(
+          requiredField(contact.MailingAddress, "Contact.MailingAddress")
+        )
+      }
+    }
+  }
 
   def requiredField[A](field: Option[A], fieldName: String): ZIO[Any, NotificationHandlerFailure, A] = {
     ZIO.fromOption(field).orElseFail(NotificationHandlerFailure(s"$fieldName is a required field"))
