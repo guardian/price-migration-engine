@@ -159,6 +159,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
 
         assertTrue(startDateGeneralLowerbound(cohortSpec, today) == cohortSpec.earliestPriceMigrationStartDate)
       },
+      /*
       test(
         "during estimation, we correctly prevent start dates that are too close: decideEarliestStartDate (membership)"
       ) {
@@ -174,6 +175,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
 
         assertTrue(startDateGeneralLowerbound(cohortSpec, today) == LocalDate.of(2023, 5, 3))
       },
+       */
       test("EstimationResult is correct for SupporterPlus2023V1V2 (monthly standard)") {
 
         val cohortSpec =

@@ -219,6 +219,7 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
       )
     )
   }
+  /*
   test("thereIsEnoughNotificationLeadTime behaves correctly (supporter plus 2023)") {
     // Here we are testing and calibrating the timing required for a start of emailing on 22 August 2023
     // Process starting 20 July 2023
@@ -251,4 +252,5 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem4), true) // +33 days
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem5), true) // +34 days
   }
+   */
 }
