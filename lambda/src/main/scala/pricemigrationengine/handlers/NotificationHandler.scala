@@ -225,7 +225,7 @@ object NotificationHandler extends CohortHandler {
   ): ZIO[Any, NotificationHandlerFailure, SalesforceAddress] = {
     MigrationType(cohortSpec) match {
       case DigiSubs2023 =>
-        ZIO.succeed(SalesforceAddress(Some("street"), Some("city"), Some("state"), Some("postalCode"), Some("country")))
+        ZIO.succeed(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some("")))
       case _ => {
         (for {
           billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
