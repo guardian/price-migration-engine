@@ -1,7 +1,9 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.{NotificationHandlerFailure, SalesforceAddress, SalesforceContact}
+import pricemigrationengine.model.{CohortSpec, NotificationHandlerFailure, SalesforceAddress, SalesforceContact}
 import zio.test._
+
+import java.time.LocalDate
 
 object NotificationHandlerSpec extends ZIOSpecDefault {
 
@@ -33,7 +35,8 @@ object NotificationHandlerSpec extends ZIOSpecDefault {
         OtherAddress = Some(billingAddress.copy(street = None)),
         MailingAddress = Some(mailingAddress)
       )
-      NotificationHandler.targetAddress(contact) map { address =>
+      val cohortSpec = CohortSpec("cohortName", "BrazeCampaignName", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 1, 1))
+      NotificationHandler.targetAddress(cohortSpec, contact) map { address =>
         assertTrue(address == mailingAddress)
       }
     },
@@ -48,7 +51,8 @@ object NotificationHandlerSpec extends ZIOSpecDefault {
         OtherAddress = Some(billingAddress.copy(city = None)),
         MailingAddress = Some(mailingAddress)
       )
-      NotificationHandler.targetAddress(contact) map { address =>
+      val cohortSpec = CohortSpec("cohortName", "BrazeCampaignName", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 1, 1))
+      NotificationHandler.targetAddress(cohortSpec, contact) map { address =>
         assertTrue(address == mailingAddress)
       }
     }
