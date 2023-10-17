@@ -36,9 +36,8 @@ object NotificationHandlerSpec extends ZIOSpecDefault {
         MailingAddress = Some(mailingAddress)
       )
       val cohortSpec = CohortSpec("cohortName", "BrazeCampaignName", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 1, 1))
-      NotificationHandler.targetAddress(cohortSpec, contact) map { address =>
-        assertTrue(address == mailingAddress)
-      }
+      val salesForceAddress = NotificationHandler.targetAddressE(cohortSpec, contact).toOption.get
+      assertTrue(salesForceAddress == mailingAddress)
     },
     test("should use mailing address if billing address has no city") {
       val contact = SalesforceContact(
@@ -52,9 +51,8 @@ object NotificationHandlerSpec extends ZIOSpecDefault {
         MailingAddress = Some(mailingAddress)
       )
       val cohortSpec = CohortSpec("cohortName", "BrazeCampaignName", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 1, 1))
-      NotificationHandler.targetAddress(cohortSpec, contact) map { address =>
-        assertTrue(address == mailingAddress)
-      }
+      val salesForceAddress = NotificationHandler.targetAddressE(cohortSpec, contact).toOption.get
+      assertTrue(salesForceAddress == mailingAddress)
     }
   )
 }
