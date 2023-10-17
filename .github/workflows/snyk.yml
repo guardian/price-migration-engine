@@ -10,9 +10,11 @@ on:
 jobs:
   security:
     runs-on: ubuntu-latest
-
+    permissions:
+      # required for all workflows
+      security-events: write
     steps:
-      - name: Checkout branch
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Update Snyk UI with current vulnerabilities
