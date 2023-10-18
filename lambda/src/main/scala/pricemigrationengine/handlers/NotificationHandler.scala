@@ -137,39 +137,18 @@ object NotificationHandler extends CohortHandler {
     for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
-      firstName <- requiredField(contact.FirstName, "Contact.FirstName").orElse(
-        requiredField(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation")
-      )
-      lastName <- requiredField(contact.LastName, "Contact.LastName")
-      address <- MigrationType(cohortSpec) match {
-        case SupporterPlus2023V1V2MA => ZIO.succeed(SalesforceAddress(None, None, None, None, None))
-        case _                       => targetAddress(cohortSpec, contact)
-      }
-
-      street <- MigrationType(cohortSpec) match {
-        case Membership2023Monthlies =>
-          requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
-        case Membership2023Annuals =>
-          requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
-        case SupporterPlus2023V1V2MA => ZIO.succeed("")
-        case _                       => requiredField(address.street, "Contact.OtherAddress.street")
-      }
+      firstName <- ZIO.fromEither(firstName(contact))
+      lastName <- ZIO.fromEither(requiredField(contact.LastName, "Contact.LastName"))
+      address <- ZIO.fromEither(address(cohortSpec, contact))
+      street <- ZIO.fromEither(street(cohortSpec, address: SalesforceAddress))
       postalCode = address.postalCode.getOrElse("")
-      country <- MigrationType(cohortSpec) match {
-        case Membership2023Monthlies =>
-          requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
-        case Membership2023Annuals =>
-          requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
-        case SupporterPlus2023V1V2MA =>
-          requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
-        case _ => requiredField(address.country, "Contact.OtherAddress.country")
-      }
-      oldPrice <- requiredField(cohortItem.oldPrice, "CohortItem.oldPrice")
-      estimatedNewPrice <- requiredField(cohortItem.estimatedNewPrice, "CohortItem.estimatedNewPrice")
-      startDate <- requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate")
-      billingPeriod <- requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod")
+      country <- ZIO.fromEither(country(cohortSpec, address))
+      oldPrice <- ZIO.fromEither(requiredField(cohortItem.oldPrice, "CohortItem.oldPrice"))
+      estimatedNewPrice <- ZIO.fromEither(requiredField(cohortItem.estimatedNewPrice, "CohortItem.estimatedNewPrice"))
+      startDate <- ZIO.fromEither(requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate"))
+      billingPeriod <- ZIO.fromEither(requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod"))
       paymentFrequency <- paymentFrequency(billingPeriod)
-      currencyISOCode <- requiredField(cohortItem.currency, "CohortItem.currency")
+      currencyISOCode <- ZIO.fromEither(requiredField(cohortItem.currency, "CohortItem.currency"))
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
 
       forceEstimated = MigrationType(cohortSpec) match {
@@ -219,27 +198,70 @@ object NotificationHandler extends CohortHandler {
       _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete)
     } yield Successful
 
+  def requiredField[A](field: Option[A], fieldName: String): Either[NotificationHandlerFailure, A] = {
+    field match {
+      case Some(value) => Right(value)
+      case None        => Left(NotificationHandlerFailure(s"$fieldName is a required field"))
+    }
+  }
+
   def targetAddress(
       cohortSpec: CohortSpec,
       contact: SalesforceContact
-  ): ZIO[Any, NotificationHandlerFailure, SalesforceAddress] = {
+  ): Either[NotificationHandlerFailure, SalesforceAddress] = {
     MigrationType(cohortSpec) match {
-      case DigiSubs2023 =>
-        ZIO.succeed(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some("")))
-      case _ => {
+      case DigiSubs2023 => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some("")))
+      case _ =>
         (for {
           billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
           _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
           _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
-        } yield billingAddress).orElse(
-          requiredField(contact.MailingAddress, "Contact.MailingAddress")
-        )
-      }
+        } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
     }
   }
 
-  def requiredField[A](field: Option[A], fieldName: String): ZIO[Any, NotificationHandlerFailure, A] = {
-    ZIO.fromOption(field).orElseFail(NotificationHandlerFailure(s"$fieldName is a required field"))
+  def firstName(contact: SalesforceContact): Either[NotificationHandlerFailure, String] = {
+    requiredField(contact.FirstName, "Contact.FirstName").left
+      .flatMap(_ => requiredField(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation"))
+  }
+
+  def address(
+      cohortSpec: CohortSpec,
+      contact: SalesforceContact
+  ): Either[NotificationHandlerFailure, SalesforceAddress] = {
+    MigrationType(cohortSpec) match {
+      case SupporterPlus2023V1V2MA => Right(SalesforceAddress(None, None, None, None, None))
+      case _                       => targetAddress(cohortSpec, contact)
+    }
+  }
+
+  def street(
+      cohortSpec: CohortSpec,
+      address: SalesforceAddress
+  ): Either[NotificationHandlerFailure, String] = {
+    MigrationType(cohortSpec) match {
+      case Membership2023Monthlies =>
+        requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
+      case Membership2023Annuals =>
+        requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
+      case SupporterPlus2023V1V2MA => Right("")
+      case _                       => requiredField(address.street, "Contact.OtherAddress.street")
+    }
+  }
+
+  def country(
+      cohortSpec: CohortSpec,
+      address: SalesforceAddress
+  ): Either[NotificationHandlerFailure, String] = {
+    MigrationType(cohortSpec) match {
+      case Membership2023Monthlies =>
+        requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
+      case Membership2023Annuals =>
+        requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
+      case SupporterPlus2023V1V2MA =>
+        requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
+      case _ => requiredField(address.country, "Contact.OtherAddress.country")
+    }
   }
 
   def logMissingEmailAddress(cohortItem: CohortItem, sfContact: SalesforceContact): ZIO[Logging, Nothing, Unit] = {
