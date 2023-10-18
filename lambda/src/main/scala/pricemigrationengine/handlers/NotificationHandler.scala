@@ -211,25 +211,18 @@ object NotificationHandler extends CohortHandler {
   ): Either[NotificationHandlerFailure, SalesforceAddress] = {
     MigrationType(cohortSpec) match {
       case DigiSubs2023 => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some("")))
-      case _ => {
-        val address = for {
+      case _ =>
+        (for {
           billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
           _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
           _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
-        } yield billingAddress
-        address.fold[Either[NotificationHandlerFailure, SalesforceAddress]](
-          _ => requiredField(contact.MailingAddress, "Contact.MailingAddress"),
-          x => Right(x)
-        )
-      }
+        } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
     }
   }
 
   def firstName(contact: SalesforceContact): Either[NotificationHandlerFailure, String] = {
-    requiredField(contact.FirstName, "Contact.FirstName").fold(
-      _ => requiredField(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation"),
-      x => Right(x)
-    )
+    requiredField(contact.FirstName, "Contact.FirstName").left
+      .flatMap(_ => requiredField(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation"))
   }
 
   def address(
