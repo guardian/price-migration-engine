@@ -1,0 +1,50 @@
+{
+  "basicInfo" : {
+    "id" : "ACCOUNT-ID",
+    "name" : "ACCOUNT-NAME",
+    "accountNumber" : "ACCOUNT-NUMBER",
+    "notes" : null,
+    "status" : "Active",
+    "crmId" : "ACCOUNT-NAME",
+    "batch" : "Batch1",
+    "invoiceTemplateId" : "2c92a0fb49377eae014951ca848e074b",
+    "communicationProfileId" : null,
+    "profileNumber" : null,
+    "purchaseOrderNumber" : null,
+    "customerServiceRepName" : null,
+    "IdentityId__c" : "108157219",
+    "sfContactId__c" : "0035I00000Yhj1XQAR",
+    "CCURN__c" : null,
+    "SpecialDeliveryInstructions__c" : null,
+    "NonStandardDataReason__c" : null,
+    "ProcessingAdvice__c" : "NoAdvice",
+    "CreatedRequestId__c" : "f4d76fec-a56b-aa98-0000-000000004086",
+    "RetryStatus__c" : null,
+    "salesRep" : null,
+    "summaryStatementTemplateId" : null,
+    "sequenceSetId" : null
+  },
+  "billingAndPayment" : {
+    "billCycleDay" : 17,
+    "currency" : "GBP",
+    "paymentTerm" : "Due Upon Receipt",
+    "paymentGateway" : "PayPal Express",
+    "paymentGatewayNumber" : "PG-00000006",
+    "defaultPaymentMethodId" : "DEFAULT-PAYMENT-METHOD-ID",
+    "invoiceDeliveryPrefsPrint" : false,
+    "invoiceDeliveryPrefsEmail" : true,
+    "autoPay" : true,
+    "additionalEmailAddresses" : [ ],
+    "paymentMethodCascadingConsent" : false
+  },
+  "metrics" : {
+    "balance" : 0.000000000,
+    "totalInvoiceBalance" : 0.000000000,
+    "creditBalance" : 0.000000000,
+    "contractedMrr" : 9.920000000
+  },
+  "billToContact" : null,
+  "soldToContact" : null,
+  "taxInfo" : null,
+  "success" : true
+}

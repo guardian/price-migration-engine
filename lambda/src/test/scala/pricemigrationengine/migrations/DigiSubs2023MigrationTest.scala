@@ -16,7 +16,7 @@ import pricemigrationengine.migrations.DigiSubs2023Migration.{
 import pricemigrationengine.model.CohortTableFilter.SalesforcePriceRiceCreationComplete
 
 class DigiSubs2023MigrationTest extends munit.FunSuite {
-  test("regular tests") {
+  test("monthly (1)") {
 
     assertEquals(newPriceLookup("GBP", Monthly).toOption.get, BigDecimal(14.99))
     assertEquals(newPriceLookup("GBP", Quarterly).toOption.get, BigDecimal(44.94))
@@ -118,7 +118,7 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     )
   }
 
-  test("discounted test") {
+  test("monthly (2) discounted") {
     // Here we are only going to check what is specific to discounted subscriptions
     // For instance we do not need to check currencyToNewPriceMonthlies, but we might want to check subscriptionRatePlan
     // considering that the initial implementation (which somehow assumed that there was only one rate plan on
@@ -250,5 +250,213 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem3), true) // +32 days
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem4), true) // +33 days
     assertEquals(thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem5), true) // +34 days
+  }
+  test("quarterly") {
+
+    assertEquals(newPriceLookup("GBP", Monthly).toOption.get, BigDecimal(14.99))
+    assertEquals(newPriceLookup("GBP", Quarterly).toOption.get, BigDecimal(44.94))
+    assertEquals(newPriceLookup("USD", Annual).toOption.get, BigDecimal(249))
+
+    val account = Fixtures.accountFromJson("DigiSubs2023/quarterly/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("DigiSubs2023/quarterly/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("DigiSubs2023/quarterly/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("DigiSubs2023/quarterly/invoice-preview.json")
+
+    val zuoraRatePlan1 = subscriptionRatePlan(subscription).toOption.get // If we fail here, that's part of the plan
+
+    assertEquals(
+      zuoraRatePlan1,
+      ZuoraRatePlan(
+        "8a128bc887fb31e501880408ec0e77de",
+        "Digital Pack",
+        "2c92a0fb4edd70c8014edeaa4e8521fe",
+        "Digital Pack Quarterly",
+        List(
+          ZuoraRatePlanCharge(
+            "2c92a0fb4edd70c9014edeaa4fd42186",
+            "Digital Pack Quarterly",
+            "C-00266638",
+            "GBP",
+            Some(35.95),
+            Some("Quarter"),
+            Some(LocalDate.of(2023, 11, 10)),
+            Some(LocalDate.of(2023, 8, 10)),
+            None,
+            Some("Subscription_End"),
+            None,
+            None,
+            Some("ChargeTriggerDay"),
+            Some("CustomerAcceptance"),
+            None,
+            None
+          )
+        ),
+        None
+      )
+    )
+
+    val ratePlanCharge1 = subscriptionRatePlanCharge(subscription, zuoraRatePlan1).toOption.get
+
+    assertEquals(
+      ratePlanCharge1,
+      ZuoraRatePlanCharge(
+        productRatePlanChargeId = "2c92a0fb4edd70c9014edeaa4fd42186",
+        name = "Digital Pack Quarterly",
+        number = "C-00266638",
+        currency = "GBP",
+        price = Some(35.95),
+        billingPeriod = Some("Quarter"),
+        chargedThroughDate = Some(LocalDate.of(2023, 11, 10)),
+        processedThroughDate = Some(LocalDate.of(2023, 8, 10)),
+        specificBillingPeriod = None,
+        endDateCondition = Some("Subscription_End"),
+        upToPeriodsType = None,
+        upToPeriods = None,
+        billingDay = Some("ChargeTriggerDay"),
+        triggerEvent = Some("CustomerAcceptance"),
+        triggerDate = None,
+        discountPercentage = None
+      )
+    )
+
+    val price = getPriceFromRatePlanCharge(subscription, ratePlanCharge1).toOption.get
+
+    assertEquals(price, BigDecimal(35.95))
+
+    assertEquals(
+      priceData(subscription).toOption.get,
+      PriceData("GBP", BigDecimal(35.95), BigDecimal(44.94), "Quarterly")
+    )
+
+    assertEquals(
+      updateOfRatePlansToCurrent(subscription, LocalDate.of(2024, 1, 1)).toOption.get,
+      ZuoraSubscriptionUpdate(
+        add = List(
+          AddZuoraRatePlan(
+            "2c92a0fb4edd70c8014edeaa4e8521fe", // Digital Pack Monthly (rate plan)
+            LocalDate.of(2024, 1, 1),
+            chargeOverrides = List(
+              ChargeOverride(
+                productRatePlanChargeId = "2c92a0fb4edd70c9014edeaa4fd42186",
+                billingPeriod = "Quarterly",
+                price = BigDecimal(44.94)
+              )
+            )
+          )
+        ), // "Digital Pack Monthly" rate plan
+        remove = List(
+          RemoveZuoraRatePlan(
+            "8a128bc887fb31e501880408ec0e77de",
+            LocalDate.of(2024, 1, 1)
+          )
+        ),
+        currentTerm = None,
+        currentTermPeriodType = None
+      )
+    )
+  }
+  test("annual") {
+
+    assertEquals(newPriceLookup("GBP", Monthly).toOption.get, BigDecimal(14.99))
+    assertEquals(newPriceLookup("GBP", Quarterly).toOption.get, BigDecimal(44.94))
+    assertEquals(newPriceLookup("USD", Annual).toOption.get, BigDecimal(249))
+
+    val account = Fixtures.accountFromJson("DigiSubs2023/annual/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("DigiSubs2023/annual/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("DigiSubs2023/annual/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("DigiSubs2023/annual/invoice-preview.json")
+
+    val zuoraRatePlan1 = subscriptionRatePlan(subscription).toOption.get // If we fail here, that's part of the plan
+
+    assertEquals(
+      zuoraRatePlan1,
+      ZuoraRatePlan(
+        "8a128ab58b7f7f47018b89a3dd7c3d04",
+        "Digital Pack",
+        "2c92a0fb4edd70c8014edeaa4e972204",
+        "Digital Pack Annual",
+        List(
+          ZuoraRatePlanCharge(
+            "2c92a0fb4edd70c9014edeaa5001218c",
+            "Digital Pack Annual",
+            "C-04065127",
+            "GBP",
+            Some(119.0),
+            Some("Annual"),
+            Some(LocalDate.of(2023, 11, 17)),
+            Some(LocalDate.of(2022, 11, 17)),
+            None,
+            Some("Subscription_End"),
+            None,
+            None,
+            Some("ChargeTriggerDay"),
+            Some("CustomerAcceptance"),
+            None,
+            None
+          )
+        ),
+        None
+      )
+    )
+
+    val ratePlanCharge1 = subscriptionRatePlanCharge(subscription, zuoraRatePlan1).toOption.get
+
+    assertEquals(
+      ratePlanCharge1,
+      ZuoraRatePlanCharge(
+        productRatePlanChargeId = "2c92a0fb4edd70c9014edeaa5001218c",
+        name = "Digital Pack Annual",
+        number = "C-04065127",
+        currency = "GBP",
+        price = Some(119.0),
+        billingPeriod = Some("Annual"),
+        chargedThroughDate = Some(LocalDate.of(2023, 11, 17)),
+        processedThroughDate = Some(LocalDate.of(2022, 11, 17)),
+        specificBillingPeriod = None,
+        endDateCondition = Some("Subscription_End"),
+        upToPeriodsType = None,
+        upToPeriods = None,
+        billingDay = Some("ChargeTriggerDay"),
+        triggerEvent = Some("CustomerAcceptance"),
+        triggerDate = None,
+        discountPercentage = None
+      )
+    )
+
+    val price = getPriceFromRatePlanCharge(subscription, ratePlanCharge1).toOption.get
+
+    assertEquals(price, BigDecimal(119.0))
+
+    assertEquals(
+      priceData(subscription).toOption.get,
+      PriceData("GBP", BigDecimal(119.0), BigDecimal(149), "Annual")
+    )
+
+    assertEquals(
+      updateOfRatePlansToCurrent(subscription, LocalDate.of(2024, 1, 1)).toOption.get,
+      ZuoraSubscriptionUpdate(
+        add = List(
+          AddZuoraRatePlan(
+            "2c92a0fb4edd70c8014edeaa4e972204", // Digital Pack Monthly (rate plan)
+            LocalDate.of(2024, 1, 1),
+            chargeOverrides = List(
+              ChargeOverride(
+                productRatePlanChargeId = "2c92a0fb4edd70c9014edeaa5001218c",
+                billingPeriod = "Annual",
+                price = BigDecimal(149)
+              )
+            )
+          )
+        ), // "Digital Pack Monthly" rate plan
+        remove = List(
+          RemoveZuoraRatePlan(
+            "8a128ab58b7f7f47018b89a3dd7c3d04",
+            LocalDate.of(2024, 1, 1)
+          )
+        ),
+        currentTerm = None,
+        currentTermPeriodType = None
+      )
+    )
   }
 }
