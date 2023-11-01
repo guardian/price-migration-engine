@@ -19,7 +19,7 @@ object BillingPeriod {
   def fromString(period: String): BillingPeriod = {
     if (period == "Month") {
       Monthly
-    } else if (period == "Quarterly") {
+    } else if (period == "Quarterly" || period == "Quarter") {
       Quarterly
     } else if (period == "Annual") {
       Annual
