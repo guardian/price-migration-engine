@@ -14,7 +14,6 @@ import pricemigrationengine.migrations.DigiSubs2023Migration.{
   updateOfRatePlansToCurrent
 }
 import pricemigrationengine.model.CohortTableFilter.SalesforcePriceRiceCreationComplete
-
 class DigiSubs2023MigrationTest extends munit.FunSuite {
   test("monthly (1)") {
 
