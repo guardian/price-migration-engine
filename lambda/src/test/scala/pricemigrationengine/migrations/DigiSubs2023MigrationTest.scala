@@ -14,18 +14,17 @@ import pricemigrationengine.migrations.DigiSubs2023Migration.{
   updateOfRatePlansToCurrent
 }
 import pricemigrationengine.model.CohortTableFilter.SalesforcePriceRiceCreationComplete
-
 class DigiSubs2023MigrationTest extends munit.FunSuite {
-  test("regular tests") {
+  test("monthly (1)") {
 
     assertEquals(newPriceLookup("GBP", Monthly).toOption.get, BigDecimal(14.99))
     assertEquals(newPriceLookup("GBP", Quarterly).toOption.get, BigDecimal(44.94))
     assertEquals(newPriceLookup("USD", Annual).toOption.get, BigDecimal(249))
 
-    val account = Fixtures.accountFromJson("DigiSubs2023/regular/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("DigiSubs2023/regular/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("DigiSubs2023/regular/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("DigiSubs2023/regular/invoice-preview.json")
+    val account = Fixtures.accountFromJson("DigiSubs2023/monthly/regular/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("DigiSubs2023/monthly/regular/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("DigiSubs2023/monthly/regular/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("DigiSubs2023/monthly/regular/invoice-preview.json")
 
     val zuoraRatePlan1 = subscriptionRatePlan(subscription).toOption.get // If we fail here, that's part of the plan
 
@@ -118,16 +117,16 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     )
   }
 
-  test("discounted test") {
+  test("monthly (2) discounted") {
     // Here we are only going to check what is specific to discounted subscriptions
     // For instance we do not need to check currencyToNewPriceMonthlies, but we might want to check subscriptionRatePlan
     // considering that the initial implementation (which somehow assumed that there was only one rate plan on
     // the subscription) was probably incorrect.
 
-    val account = Fixtures.accountFromJson("DigiSubs2023/discounted/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("DigiSubs2023/discounted/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("DigiSubs2023/discounted/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("DigiSubs2023/discounted/invoice-preview.json")
+    val account = Fixtures.accountFromJson("DigiSubs2023/monthly/discounted/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("DigiSubs2023/monthly/discounted/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("DigiSubs2023/monthly/discounted/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("DigiSubs2023/monthly/discounted/invoice-preview.json")
 
     val zuoraRatePlan1 = subscriptionRatePlan(subscription).toOption.get
 
@@ -221,7 +220,6 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
   }
   test("thereIsEnoughNotificationLeadTime behaves correctly (supporter plus 2023)") {
     // Here we are testing and calibrating the timing required for a start of emailing on 22 August 2023
-    // Process starting 20 July 2023
 
     val today = LocalDate.of(2023, 10, 9)
 
