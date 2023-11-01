@@ -218,7 +218,7 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
       )
     )
   }
-  test("thereIsEnoughNotificationLeadTime behaves correctly (supporter plus 2023)") {
+  test("thereIsEnoughNotificationLeadTime behaves correctly (DigiSubs2023_Batch2)") {
     // Here we are testing and calibrating the timing required for a start of emailing on 22 August 2023
 
     val today = LocalDate.of(2023, 10, 9)
