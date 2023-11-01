@@ -25,6 +25,7 @@ object MigrationType {
     case "Membership2023_Batch3" => Membership2023Annuals
     case "SupporterPlus2023V1V2" => SupporterPlus2023V1V2MA
     case "DigiSubs2023_Batch1"   => DigiSubs2023
+    case "DigiSubs2023_Batch2"   => DigiSubs2023
     case _                       => Legacy
   }
 }
