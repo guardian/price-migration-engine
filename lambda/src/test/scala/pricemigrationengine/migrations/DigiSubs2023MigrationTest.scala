@@ -26,7 +26,7 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("DigiSubs2023/monthly/regular/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("DigiSubs2023/monthly/regular/invoice-preview.json")
 
-    val zuoraRatePlan1 = subscriptionRatePlan(subscription).toOption.get // If we fail here, that's part of the plan
+    val zuoraRatePlan1 = subscriptionRatePlan(subscription).toOption.get
 
     assertEquals(
       zuoraRatePlan1,
@@ -260,7 +260,7 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("DigiSubs2023/quarterly/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("DigiSubs2023/quarterly/invoice-preview.json")
 
-    val zuoraRatePlan1 = subscriptionRatePlan(subscription).toOption.get // If we fail here, that's part of the plan
+    val zuoraRatePlan1 = subscriptionRatePlan(subscription).toOption.get
 
     assertEquals(
       zuoraRatePlan1,
@@ -364,7 +364,7 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("DigiSubs2023/annual/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("DigiSubs2023/annual/invoice-preview.json")
 
-    val zuoraRatePlan1 = subscriptionRatePlan(subscription).toOption.get // If we fail here, that's part of the plan
+    val zuoraRatePlan1 = subscriptionRatePlan(subscription).toOption.get
 
     assertEquals(
       zuoraRatePlan1,
