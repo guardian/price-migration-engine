@@ -1,0 +1,50 @@
+{
+  "basicInfo" : {
+    "id" : "ACCOUNT-ID",
+    "name" : "ACCOUNT-NUMBER",
+    "accountNumber" : "ACCOUNT-NUMBER",
+    "notes" : null,
+    "status" : "Active",
+    "crmId" : "0012000001NxJ97AAF",
+    "batch" : "Batch1",
+    "invoiceTemplateId" : "2c92a0fb49377eae014951ca848e074b",
+    "communicationProfileId" : "2c92a0f9456e27a4014570f3aed41be2",
+    "profileNumber" : "CP-00000001",
+    "purchaseOrderNumber" : null,
+    "customerServiceRepName" : null,
+    "IdentityId__c" : "ACCOUNT-IDENTITY-ID",
+    "sfContactId__c" : "ACCOUNT-SF-IDENTITY-ID",
+    "CCURN__c" : null,
+    "SpecialDeliveryInstructions__c" : null,
+    "NonStandardDataReason__c" : null,
+    "ProcessingAdvice__c" : null,
+    "CreatedRequestId__c" : null,
+    "RetryStatus__c" : null,
+    "salesRep" : null,
+    "summaryStatementTemplateId" : null,
+    "sequenceSetId" : null
+  },
+  "billingAndPayment" : {
+    "billCycleDay" : 10,
+    "currency" : "GBP",
+    "paymentTerm" : "Due Upon Receipt",
+    "paymentGateway" : "GoCardless",
+    "paymentGatewayNumber" : "PG-00000003",
+    "defaultPaymentMethodId" : "2c92a0fe55528f3201555addc89760dc",
+    "invoiceDeliveryPrefsPrint" : false,
+    "invoiceDeliveryPrefsEmail" : true,
+    "autoPay" : true,
+    "additionalEmailAddresses" : [ ],
+    "paymentMethodCascadingConsent" : false
+  },
+  "metrics" : {
+    "balance" : 0.000000000,
+    "totalInvoiceBalance" : 0.000000000,
+    "creditBalance" : 0.000000000,
+    "contractedMrr" : 11.980000000
+  },
+  "billToContact" : null,
+  "soldToContact" : null,
+  "taxInfo" : null,
+  "success" : true
+}

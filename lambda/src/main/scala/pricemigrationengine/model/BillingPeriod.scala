@@ -8,6 +8,10 @@ object Annual extends BillingPeriod
 // SemiAnnual will be added when the needs for it arises
 
 object BillingPeriod {
+
+  // Note that `toString . fromString` is not the identity function
+  // on the set { "Month", "Quarterly", "Quarter", "Annual" }
+
   def toString(period: BillingPeriod): String = {
     period match {
       case Monthly   => "Month"
@@ -19,7 +23,7 @@ object BillingPeriod {
   def fromString(period: String): BillingPeriod = {
     if (period == "Month") {
       Monthly
-    } else if (period == "Quarterly") {
+    } else if (period == "Quarterly" || period == "Quarter") {
       Quarterly
     } else if (period == "Annual") {
       Annual
