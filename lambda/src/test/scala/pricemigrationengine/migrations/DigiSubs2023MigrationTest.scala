@@ -323,7 +323,7 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
 
     assertEquals(
       priceData(subscription).toOption.get,
-      PriceData("GBP", BigDecimal(35.95), BigDecimal(44.94), "Quarterly")
+      PriceData("GBP", BigDecimal(35.95), BigDecimal(44.94), "Quarter")
     )
 
     assertEquals(
@@ -336,7 +336,7 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
             chargeOverrides = List(
               ChargeOverride(
                 productRatePlanChargeId = "2c92a0fb4edd70c9014edeaa4fd42186",
-                billingPeriod = "Quarterly",
+                billingPeriod = "Quarter",
                 price = BigDecimal(44.94)
               )
             )

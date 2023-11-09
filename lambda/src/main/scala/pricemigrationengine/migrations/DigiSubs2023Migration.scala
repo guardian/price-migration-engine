@@ -236,7 +236,11 @@ object DigiSubs2023Migration {
           targetRatePlanDetails.ratePlanId,
           effectiveDate,
           List(
-            ChargeOverride(targetRatePlanDetails.ratePlanChargeId, BillingPeriod.toString(billingPeriod), newPrice)
+            ChargeOverride(
+              targetRatePlanDetails.ratePlanChargeId,
+              BillingPeriod.toString(billingPeriod),
+              newPrice
+            )
           )
         )
       ),
