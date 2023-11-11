@@ -273,16 +273,9 @@ object NotificationHandler extends CohortHandler {
       .unit
   }
 
-  val paymentFrequencyMapping = Map(
-    "Month" -> "Monthly",
-    "Quarter" -> "Quarterly",
-    "Semi_Annual" -> "Semiannually",
-    "Annual" -> "Annually"
-  )
-
   private def paymentFrequency(billingPeriod: String) =
     ZIO
-      .fromOption(paymentFrequencyMapping.get(billingPeriod))
+      .fromOption(BillingPeriod.notificationPaymentFrequencyMapping.get(billingPeriod))
       .orElseFail(EmailSenderFailure(s"No payment frequency mapping found for billing period: $billingPeriod"))
 
   private def updateCohortItemStatus(subscriptionNumber: String, processingStage: CohortTableFilter) = {
