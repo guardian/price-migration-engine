@@ -9,13 +9,24 @@ object Annual extends BillingPeriod
 
 object BillingPeriod {
 
-  // Note that `toString . fromString` is not the identity function
-  // on the set { "Month", "Quarterly", "Quarter", "Annual" }
+  val notificationPaymentFrequencyMapping = Map(
+    // This map is used to convert a CohortItem's billingPeriod in to the user friendly representation in letters
+    // and emails.
+    "Month" -> "Monthly",
+    "Quarter" -> "Quarterly",
+    "Quarterly" -> "Quarterly",
+    "Semi_Annual" -> "Semiannually",
+    "Annual" -> "Annually"
+  )
 
   def toString(period: BillingPeriod): String = {
+    // For Zuora, the billingPeriod should be one of: Month, Quarter, Semi_Annual, Annual, Eighteen_Months,
+    // Two_Years, Three_Years, Five_Years, Specific_Months, Subscription_Term, Week, Specific_Weeks, Specific_Days
+
+    // We are only using Month, Quarter and Annual
     period match {
       case Monthly   => "Month"
-      case Quarterly => "Quarterly"
+      case Quarterly => "Quarter"
       case Annual    => "Annual"
     }
   }
@@ -24,6 +35,8 @@ object BillingPeriod {
     if (period == "Month") {
       Monthly
     } else if (period == "Quarterly" || period == "Quarter") {
+      // This function is used when reading a BillingPeriod from a CohortItem, and we have both
+      // strings, Quarterly and Quarter in the cohort tables.
       Quarterly
     } else if (period == "Annual") {
       Annual
