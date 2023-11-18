@@ -789,8 +789,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
         processingStage = NotificationSendDateWrittenToSalesforce,
         startDate = Some(LocalDate.of(2024, 6, 28)),
         currency = Some("GBP"),
-        oldPrice = Some(BigDecimal(120)),
-        estimatedNewPrice = Some(BigDecimal(120)),
+        oldPrice = Some(BigDecimal(120)), // Here we simulate the subscription having a £25 contribution
+        estimatedNewPrice = Some(BigDecimal(95)), // correct rate plan price for annual GBP
         billingPeriod = Some("Annual")
       )
 
