@@ -28,3 +28,6 @@ Resources:
           KeyType: HASH
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: TRUE
+      Tags:
+        - Key: devx-backup-enabled
+          Value: true
