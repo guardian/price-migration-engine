@@ -264,14 +264,14 @@ object SupporterPlus2023V1V2Migration {
     val chargeOverrides = for {
       currency <- item.currency
       price <- currencyToNewPrice("Annual", currency).toOption
-      estimatedPrice <- item.estimatedNewPrice
+      oldPrice <- item.oldPrice
     } yield {
-      if (estimatedPrice > price) {
+      if (oldPrice > price) {
         List(
           ChargeOverride(
             productRatePlanChargeId = "8a12892d85fc6df4018602451322287f", // Annual Contribution
             billingPeriod = "Annual",
-            price = estimatedPrice - price
+            price = oldPrice - price
           )
         )
       } else {
