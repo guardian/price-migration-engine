@@ -1,24 +1,5 @@
 package pricemigrationengine.migrations
-import pricemigrationengine.model.{
-  AddZuoraRatePlan,
-  AmendmentDataFailure,
-  Monthly,
-  ChargeOverride,
-  BillingPeriod,
-  CohortSpec,
-  Currency,
-  DigiSubs2023,
-  Failure,
-  MigrationType,
-  Annual,
-  Quarterly,
-  PriceData,
-  RemoveZuoraRatePlan,
-  ZuoraRatePlan,
-  ZuoraRatePlanCharge,
-  ZuoraSubscription,
-  ZuoraSubscriptionUpdate
-}
+import pricemigrationengine.model._
 
 import java.time.LocalDate
 
@@ -97,6 +78,7 @@ object DigiSubs2023Migration {
           case None => Left(AmendmentDataFailure(s"Could not determine a new annual price for currency: ${currency}"))
           case Some(price) => Right(price)
         }
+      case SemiAnnual => Left(AmendmentDataFailure(s"There are no defined semi-annual prices fro this migration"))
     }
   }
 

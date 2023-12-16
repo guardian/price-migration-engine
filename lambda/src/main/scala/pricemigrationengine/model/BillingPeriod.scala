@@ -3,6 +3,7 @@ package pricemigrationengine.model
 sealed trait BillingPeriod
 object Monthly extends BillingPeriod
 object Quarterly extends BillingPeriod
+object SemiAnnual extends BillingPeriod
 object Annual extends BillingPeriod
 
 // SemiAnnual will be added when the needs for it arises
@@ -25,9 +26,10 @@ object BillingPeriod {
 
     // We are only using Month, Quarter and Annual
     period match {
-      case Monthly   => "Month"
-      case Quarterly => "Quarter"
-      case Annual    => "Annual"
+      case Monthly    => "Month"
+      case Quarterly  => "Quarter"
+      case Annual     => "Annual"
+      case SemiAnnual => "Semi_Annual"
     }
   }
 
@@ -40,6 +42,8 @@ object BillingPeriod {
       Quarterly
     } else if (period == "Annual") {
       Annual
+    } else if (period == "Semi_Annual") {
+      SemiAnnual
     } else {
       throw new Exception(s"could no recover BillingPeriod for period: ${period}")
     }
