@@ -1,0 +1,12 @@
+SUBSCRIPTION-ID,Newspaper - Home Delivery,26/10/2012,Weekend+,Month
+SUBSCRIPTION-ID,Newspaper - Home Delivery,16/04/2016,Weekend,Quarter
+
+SUBSCRIPTION-ID,Newspaper - Subscription Card,08/12/2016,Weekend+,Month
+SUBSCRIPTION-ID,Newspaper - Subscription Card,20/01/2009,Weekend,Quarter
+SUBSCRIPTION-ID,Newspaper - Subscription Card,01/10/2009,Sixday,Semi-Annual
+SUBSCRIPTION-ID,Newspaper - Subscription Card,8/6/2009,Everyday,Annual
+
+SUBSCRIPTION-ID,Newspaper - Voucher Book,19/07/2020,Weekend+,Month
+SUBSCRIPTION-ID,Newspaper - Voucher Book,04/02/2009,Weekend+,Quarter
+SUBSCRIPTION-ID,Newspaper - Voucher Book,07/09/2009,Weekend+,Semi-Annual
+SUBSCRIPTION-ID,Newspaper - Voucher Book,11/02/2009,Weekend+,Annual
