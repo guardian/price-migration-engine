@@ -23,10 +23,12 @@ object NotificationHandler extends CohortHandler {
   // subscription if exiting the notification window and needs to be investigated and repaired before the deadline
   // of 30 days.
 
+  // The digital migrations' notification window is from -33 (included) to -31 (excluded)
+
   val letterMaxNotificationLeadTime = 49
   private val letterMinNotificationLeadTime = 35
 
-  // Membership migration
+  // Digital migrations (emails)
   // Notification period: -33 (included) to -31 (excluded) days
   private val emailMaxNotificationLeadTime = 33
   private val emailMinNotificationLeadTime = 31
@@ -37,6 +39,7 @@ object NotificationHandler extends CohortHandler {
       case Membership2023Annuals   => emailMaxNotificationLeadTime
       case SupporterPlus2023V1V2MA => emailMaxNotificationLeadTime
       case DigiSubs2023            => emailMaxNotificationLeadTime
+      case Newspaper2024           => 40
       case Legacy                  => letterMaxNotificationLeadTime
     }
   }
@@ -47,6 +50,7 @@ object NotificationHandler extends CohortHandler {
       case Membership2023Annuals   => emailMinNotificationLeadTime
       case SupporterPlus2023V1V2MA => emailMinNotificationLeadTime
       case DigiSubs2023            => emailMinNotificationLeadTime
+      case Newspaper2024           => 35
       case Legacy                  => letterMinNotificationLeadTime
     }
   }
@@ -156,6 +160,7 @@ object NotificationHandler extends CohortHandler {
         case Membership2023Annuals   => true
         case SupporterPlus2023V1V2MA => true
         case DigiSubs2023            => true
+        case Newspaper2024           => true
         case Legacy                  => false
       }
       cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap(oldPrice, estimatedNewPrice, forceEstimated)}"

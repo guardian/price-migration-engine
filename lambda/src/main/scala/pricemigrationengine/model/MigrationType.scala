@@ -17,6 +17,7 @@ object Membership2023Monthlies extends MigrationType
 object Membership2023Annuals extends MigrationType
 object SupporterPlus2023V1V2MA extends MigrationType
 object DigiSubs2023 extends MigrationType
+object Newspaper2024 extends MigrationType
 
 object MigrationType {
   def apply(cohortSpec: CohortSpec): MigrationType = cohortSpec.cohortName match {
@@ -26,6 +27,7 @@ object MigrationType {
     case "SupporterPlus2023V1V2" => SupporterPlus2023V1V2MA
     case "DigiSubs2023_Batch1"   => DigiSubs2023
     case "DigiSubs2023_Batch2"   => DigiSubs2023
+    case "Newspaper2024"         => Newspaper2024
     case _                       => Legacy
   }
 }
