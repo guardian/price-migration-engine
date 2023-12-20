@@ -47,7 +47,11 @@ object EstimationHandler extends CohortHandler {
         case _: CancelledSubscriptionFailure =>
           val result = CancelledEstimationResult(item.subscriptionName)
           CohortTable.update(CohortItem.fromCancelledEstimationResult(result)).as(result)
-        case e => ZIO.fail(e)
+        case e => {
+          val result = CancelledEstimationResult(item.subscriptionName)
+          CohortTable.update(CohortItem.fromCancelledEstimationResult(result)).as(result)
+        }
+        // case e => ZIO.fail(e)
       },
       success = { result =>
         val cohortItemToWrite = MigrationType(cohortSpec) match {
