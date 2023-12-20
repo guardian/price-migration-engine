@@ -1,6 +1,5 @@
 package pricemigrationengine.migrations
 import pricemigrationengine.model._
-import pricemigrationengine.services.Zuora
 
 import java.time.LocalDate
 
