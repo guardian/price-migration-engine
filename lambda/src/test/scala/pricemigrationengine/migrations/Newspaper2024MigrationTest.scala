@@ -281,13 +281,62 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     val details = RatePlanDetails(ratePlan, "Weekend+", Monthly, "GBP", BigDecimal(31.99))
     assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
   }
-  /*
+
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-Quarterly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Quarterly/subscription.json")
     val productName = subscriptionToMigrationProductName(subscription).toOption.get
-    assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right("Weekend", Quarterly))
+    val ratePlanCharges = List(
+      ZuoraRatePlanCharge(
+        productRatePlanChargeId = "2c92a00870ec598001710740d325302c",
+        name = "Sunday",
+        number = "C-03619148",
+        currency = "GBP",
+        price = Some(34.47),
+        billingPeriod = Some("Quarter"),
+        chargedThroughDate = Some(LocalDate.of(2024, 1, 5)),
+        processedThroughDate = Some(LocalDate.of(2023, 10, 5)),
+        specificBillingPeriod = None,
+        endDateCondition = Some("Subscription_End"),
+        upToPeriodsType = None,
+        upToPeriods = None,
+        billingDay = Some("ChargeTriggerDay"),
+        triggerEvent = Some("CustomerAcceptance"),
+        triggerDate = None,
+        discountPercentage = None
+      ),
+      ZuoraRatePlanCharge(
+        productRatePlanChargeId = "2c92a00870ec598001710740d28e3024",
+        name = "Saturday",
+        number = "C-03619147",
+        currency = "GBP",
+        price = Some(34.5),
+        billingPeriod = Some("Quarter"),
+        chargedThroughDate = Some(LocalDate.of(2024, 1, 5)),
+        processedThroughDate = Some(LocalDate.of(2023, 10, 5)),
+        specificBillingPeriod = None,
+        endDateCondition = Some("Subscription_End"),
+        upToPeriodsType = None,
+        upToPeriods = None,
+        billingDay = Some("ChargeTriggerDay"),
+        triggerEvent = Some("CustomerAcceptance"),
+        triggerDate = None,
+        discountPercentage = None
+      )
+    )
+    val ratePlan =
+      ZuoraRatePlan(
+        "8a128f788af711af018afe4af2112e70",
+        "Newspaper Digital Voucher",
+        "2c92a00870ec598001710740d24b3022",
+        "Weekend",
+        ratePlanCharges,
+        Some("Add")
+      )
+    val details = RatePlanDetails(ratePlan, "Weekend", Quarterly, "GBP", BigDecimal(68.97))
+    assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
   }
+  /*
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-SemiAnnual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-SemiAnnual/subscription.json")
