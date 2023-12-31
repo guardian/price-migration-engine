@@ -904,12 +904,10 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/subscription.json")
     assertEquals(subscriptionToNewPrice(subscription), Some(BigDecimal(40.99)))
   }
-  /*
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperHomeDelivery-Quarterly") {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Quarterly/subscription.json")
     assertEquals(subscriptionToNewPrice(subscription), Some(BigDecimal(95.97)))
   }
-
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-Monthly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Monthly/subscription.json")
@@ -930,7 +928,6 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Annual/subscription.json")
     assertEquals(subscriptionToNewPrice(subscription), Some(BigDecimal(779.88)))
   }
-
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-Monthly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Monthly/subscription.json")
@@ -951,7 +948,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Annual/subscription.json")
     assertEquals(subscriptionToNewPrice(subscription), Some(BigDecimal(419.88)))
   }
-   */
+
   // -- price data -------------------------------------------------------
 
   test("Newspaper2024Migration | price data is correct | NewspaperHomeDelivery-Monthly") {
