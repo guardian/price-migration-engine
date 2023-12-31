@@ -681,25 +681,91 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     val details = RatePlanDetails(ratePlan, "Weekend+", Monthly, "GBP", BigDecimal(31.99))
     assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
   }
-  /*
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-Quarterly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Quarterly/subscription.json")
     val productName = subscriptionToMigrationProductName(subscription).toOption.get
-    assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right("Weekend+", Quarterly))
+    val ratePlanCharges = List(
+      ZuoraRatePlanCharge(
+        productRatePlanChargeId = "2c92a0ff56fe33f5015709b8fc4d5617",
+        name = "Sunday",
+        number = "C-02640789",
+        currency = "GBP",
+        price = Some(32.97),
+        billingPeriod = Some("Quarter"),
+        chargedThroughDate = Some(LocalDate.of(2024, 1, 26)),
+        processedThroughDate = Some(LocalDate.of(2023, 10, 26)),
+        specificBillingPeriod = None,
+        endDateCondition = Some("Subscription_End"),
+        upToPeriodsType = None,
+        upToPeriods = None,
+        billingDay = Some("ChargeTriggerDay"),
+        triggerEvent = Some("CustomerAcceptance"),
+        triggerDate = None,
+        discountPercentage = None
+      ),
+      ZuoraRatePlanCharge(
+        productRatePlanChargeId = "2c92a0fe56fe33ff015709bb986636d8",
+        name = "Digipack",
+        number = "C-02640788",
+        currency = "GBP",
+        price = Some(30.0),
+        billingPeriod = Some("Quarter"),
+        chargedThroughDate = Some(LocalDate.of(2024, 1, 26)),
+        processedThroughDate = Some(LocalDate.of(2023, 10, 26)),
+        specificBillingPeriod = None,
+        endDateCondition = Some("Subscription_End"),
+        upToPeriodsType = None,
+        upToPeriods = None,
+        billingDay = Some("ChargeTriggerDay"),
+        triggerEvent = Some("CustomerAcceptance"),
+        triggerDate = None,
+        discountPercentage = None
+      ),
+      ZuoraRatePlanCharge(
+        productRatePlanChargeId = "2c92a0fd56fe26b601570432f4e33d17",
+        name = "Saturday",
+        number = "C-02640787",
+        currency = "GBP",
+        price = Some(33.0),
+        billingPeriod = Some("Quarter"),
+        chargedThroughDate = Some(LocalDate.of(2024, 1, 26)),
+        processedThroughDate = Some(LocalDate.of(2023, 10, 26)),
+        specificBillingPeriod = None,
+        endDateCondition = Some("Subscription_End"),
+        upToPeriodsType = None,
+        upToPeriods = None,
+        billingDay = Some("ChargeTriggerDay"),
+        triggerEvent = Some("CustomerAcceptance"),
+        triggerDate = None,
+        discountPercentage = None
+      )
+    )
+    val ratePlan =
+      ZuoraRatePlan(
+        "8a128e088b64d6f2018b6a75ba4958f8",
+        "Newspaper Voucher",
+        "2c92a0fd56fe26b60157040cdd323f76",
+        "Weekend+",
+        ratePlanCharges,
+        Some("Add")
+      )
+    val details = RatePlanDetails(ratePlan, "Weekend+", Quarterly, "GBP", BigDecimal(95.97))
+    assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
   }
-  test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-SemiAnnual") {
-    val subscription =
-      Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-SemiAnnual/subscription.json")
-    val productName = subscriptionToMigrationProductName(subscription).toOption.get
-    assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right("Weekend+", SemiAnnual))
-  }
-  test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-Annual") {
-    val subscription =
-      Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Annual/subscription.json")
-    val productName = subscriptionToMigrationProductName(subscription).toOption.get
-    assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right("Weekend+", Annual))
-  }
+  /*
+test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-SemiAnnual") {
+  val subscription =
+    Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-SemiAnnual/subscription.json")
+  val productName = subscriptionToMigrationProductName(subscription).toOption.get
+  assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right("Weekend+", SemiAnnual))
+}
+test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-Annual") {
+  val subscription =
+    Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Annual/subscription.json")
+  val productName = subscriptionToMigrationProductName(subscription).toOption.get
+  assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right("Weekend+", Annual))
+}
    */
 
   // -- prices -------------------------------------------------------
