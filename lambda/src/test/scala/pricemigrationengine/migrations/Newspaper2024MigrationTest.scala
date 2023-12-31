@@ -961,14 +961,14 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     val priceData = PriceData("GBP", BigDecimal(83.97), BigDecimal(95.97), "Quarter")
     assertEquals(Newspaper2024Migration.priceData(subscription), Right(priceData))
   }
+  test("Newspaper2024Migration | price data is correct | NewspaperSubscriptionCard-Monthly") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Monthly/subscription.json")
+    val priceData = PriceData("GBP", BigDecimal(31.99), BigDecimal(34.99), "Month")
+    assertEquals(Newspaper2024Migration.priceData(subscription), Right(priceData))
+  }
   /*
-test("Newspaper2024Migration | price data is correct | NewspaperSubscriptionCard-Monthly") {
-  val subscription =
-    Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Monthly/subscription.json")
-  val priceData = PriceData("GBP", BigDecimal(40.99), BigDecimal(40.99), "Monthly")
-  assertEquals(Newspaper2024Migration.priceData(subscription), Right(priceData))
-}
-test("Newspaper2024Migration | price data is correct | NewspaperSubscriptionCard-Quarterly") {
+  test("Newspaper2024Migration | price data is correct | NewspaperSubscriptionCard-Quarterly") {
   val subscription =
     Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Quarterly/subscription.json")
   val priceData = PriceData("GBP", BigDecimal(40.99), BigDecimal(40.99), "Monthly")
