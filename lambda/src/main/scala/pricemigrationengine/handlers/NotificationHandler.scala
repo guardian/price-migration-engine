@@ -6,6 +6,7 @@ import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
+import pricemigrationengine.migrations.Newspaper2024Migration
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -23,35 +24,29 @@ object NotificationHandler extends CohortHandler {
   // subscription if exiting the notification window and needs to be investigated and repaired before the deadline
   // of 30 days.
 
-  // The digital migrations' notification window is from -33 (included) to -31 (excluded)
-
   val letterMaxNotificationLeadTime = 49
-  private val letterMinNotificationLeadTime = 35
 
-  // Digital migrations (emails)
-  // Notification period: -33 (included) to -31 (excluded) days
-  private val emailMaxNotificationLeadTime = 33
-  private val emailMinNotificationLeadTime = 31
+  // The digital migrations' notification window is from -33 (included) to -31 (excluded)
 
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case Membership2023Monthlies => emailMaxNotificationLeadTime
-      case Membership2023Annuals   => emailMaxNotificationLeadTime
-      case SupporterPlus2023V1V2MA => emailMaxNotificationLeadTime
-      case DigiSubs2023            => emailMaxNotificationLeadTime
-      case Newspaper2024           => 40
-      case Legacy                  => letterMaxNotificationLeadTime
+      case Membership2023Monthlies => 33
+      case Membership2023Annuals   => 33
+      case SupporterPlus2023V1V2MA => 33
+      case DigiSubs2023            => 33
+      case Newspaper2024           => Newspaper2024Migration.maxLeadTime
+      case Legacy                  => 49
     }
   }
 
   def minLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case Membership2023Monthlies => emailMinNotificationLeadTime
-      case Membership2023Annuals   => emailMinNotificationLeadTime
-      case SupporterPlus2023V1V2MA => emailMinNotificationLeadTime
-      case DigiSubs2023            => emailMinNotificationLeadTime
-      case Newspaper2024           => 35
-      case Legacy                  => letterMinNotificationLeadTime
+      case Membership2023Monthlies => 31
+      case Membership2023Annuals   => 31
+      case SupporterPlus2023V1V2MA => 31
+      case DigiSubs2023            => 31
+      case Newspaper2024           => Newspaper2024Migration.minLeadTime
+      case Legacy                  => 35
     }
   }
 

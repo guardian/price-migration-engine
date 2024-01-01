@@ -1,7 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.handlers.NotificationHandler.thereIsEnoughNotificationLeadTime
-import pricemigrationengine.handlers.NotificationHandler.letterMaxNotificationLeadTime
+import pricemigrationengine.handlers.NotificationHandler._
 import pricemigrationengine.TestLogging
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
@@ -199,7 +198,9 @@ class NotificationHandlerTest extends munit.FunSuite {
   test("guLettersNotificationLeadTime should be at least 49 days") {
     // "Should be at least 49 days", but for invariance we test against the
     // usual value of exactly 49
-    assert(letterMaxNotificationLeadTime == 49)
+    val cohortSpec =
+      CohortSpec("LegacyPrintProductName", brazeCampaignName, LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
+    assert(maxLeadTime(cohortSpec) == 49)
   }
 
   test("NotificationHandler should get records from cohort table and SF and send Email with the data") {

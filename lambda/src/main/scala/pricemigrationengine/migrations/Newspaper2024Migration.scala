@@ -5,6 +5,9 @@ import java.time.LocalDate
 
 object Newspaper2024Migration {
 
+  val maxLeadTime = 40
+  val minLeadTime = 35
+
   /*
     Correspondence between product names in Salesforce versus Zuora
 
@@ -17,6 +20,9 @@ object Newspaper2024Migration {
     -----------------------------------------------------------------
    */
 
+  // RatePlanDetails was introduced to help properly test the data gathering to build the PriceData
+  // It turned out to be particularly useful for testing that the logic was correct
+  // It is currently limited to Newspaper2024Migration, but could be generalised to other (future) migrations
   case class RatePlanDetails(
       ratePlan: ZuoraRatePlan,
       ratePlanName: String,
@@ -24,6 +30,13 @@ object Newspaper2024Migration {
       currency: String,
       currentPrice: BigDecimal
   )
+
+  // We have an unusual scheduling for this migration and Newspaper2024BatchId is used to
+  // decide the correct start date for each subscription.
+  sealed trait Newspaper2024BatchId
+  object MonthliesPart1 extends Newspaper2024BatchId // First batch of monthlies
+  object MonthliesPart2 extends Newspaper2024BatchId // Second batch of monthlies
+  object MoreThanMonthlies extends Newspaper2024BatchId // Quarterlies, Semi-Annuals and Annuals
 
   private val newspaperHomeDeliveryPricesMonthly: Map[String, BigDecimal] = Map(
     "Everyday" -> BigDecimal(78.99),
@@ -253,6 +266,83 @@ object Newspaper2024Migration {
       oldPrice,
       newPrice,
       BillingPeriod.toString(ratePlanDetails.billingPeriod)
+    )
+  }
+
+  def subscriptionToBatchId(subscription: ZuoraSubscription): Either[String, Newspaper2024BatchId] = {
+    val ratePlanDetails = (for {
+      productName <- subscriptionToMigrationProductName(subscription)
+      ratePlanDetails <- subscriptionToRatePlanDetails(subscription, productName)
+    } yield ratePlanDetails)
+
+    ratePlanDetails match {
+      case Left(message) => Left(message)
+      case Right(ratePlanDetails) => {
+        ratePlanDetails.billingPeriod match {
+          case Monthly => {
+            val ratePlan = ratePlanDetails.ratePlan
+            ratePlan.ratePlanCharges.toList match {
+              case Nil => Left("")
+              case rpc :: _ => {
+                val monthIndex = rpc.chargedThroughDate.getOrElse(LocalDate.of(2024, 1, 1)).getDayOfMonth
+                if (monthIndex <= 20) {
+                  Right(MonthliesPart2)
+                } else {
+                  Right(MonthliesPart1)
+                }
+              }
+            }
+          }
+          case _ => Right(MoreThanMonthlies)
+        }
+      }
+    }
+  }
+
+  def batchIdToEarliestMigrationStartDate(batchId: Newspaper2024BatchId): LocalDate = {
+    batchId match {
+      case MonthliesPart1    => LocalDate.of(2024, 2, 21) // 21 Feb 2024
+      case MonthliesPart2    => LocalDate.of(2024, 3, 18) // 18 March 2024
+      case MoreThanMonthlies => LocalDate.of(2024, 2, 1) // 1 Feb 2024
+    }
+  }
+
+  def subscriptionToEarliestMigrationStartDate(subscription: ZuoraSubscription): LocalDate = {
+    subscriptionToBatchId(subscription) match {
+      case Right(bid)   => batchIdToEarliestMigrationStartDate(bid)
+      case Left(string) => LocalDate.of(2024, 4, 1)
+      // Default date to avoid returning a more complex value than a LocalDate
+    }
+  }
+
+  def startDateGeneralLowerbound(
+      cohortSpec: CohortSpec,
+      today: LocalDate,
+      subscription: ZuoraSubscription
+  ): LocalDate = {
+
+    // Technically the startDateGeneralLowerbound is a function of the cohort spec and the notification min time.
+    // The cohort spec carries the lowest date we specify there can be a price migration, and the notification min
+    // time ensures the legally required lead time for customer communication. The max of those two dates is the date
+    // from which we can realistically perform a price increase. With that said, other policies can apply, for
+    // instance:
+    // - The one year policy, which demand that we do not price rise customers during the subscription first year
+    // - The spread: a mechanism, used for monthlies, by which we do not let a large number of monthlies migrate
+    //   during a single month.
+
+    // We expanded the signature of this function for the Newspaper2024 migration where that date was specific of
+    // the subscription due to its un-unusual scheduling. For Newspaper2024 we call a specific function from the
+    // migration support code.
+
+    val earliestPriceMigrationStartDate = subscriptionToEarliestMigrationStartDate(subscription)
+
+    def datesMax(date1: LocalDate, date2: LocalDate): LocalDate = if (date1.isBefore(date2)) date2 else date1
+
+    datesMax(
+      earliestPriceMigrationStartDate,
+      today.plusDays(
+        minLeadTime + 1
+      ) // +1 because we need to be strictly over minLeadTime days away. Exactly minLeadTime is not enough.
     )
   }
 }
