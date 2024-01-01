@@ -140,6 +140,8 @@ object Newspaper2024Migration {
   }
 
   def subscriptionToMigrationProductName(subscription: ZuoraSubscription): Either[String, String] = {
+    // We are doing a multi product migration. This function tries and retrieve the correct product given a
+    // subscription.
     val migrationProductNames = List("Newspaper Delivery", "Newspaper Digital Voucher", "Newspaper Voucher")
     val names = subscription.ratePlans
       .filter(ratePlan => ratePlan.lastChangeType == None || ratePlan.lastChangeType == Some("Add"))

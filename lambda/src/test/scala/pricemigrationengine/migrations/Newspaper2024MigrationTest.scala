@@ -42,7 +42,6 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Quarterly/subscription.json")
     assertEquals(subscriptionToMigrationProductName(subscription), Right("Newspaper Delivery"))
   }
-
   test("Newspaper2024Migration | migration product name is correct | NewspaperSubscriptionCard-Monthly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Monthly/subscription.json")
@@ -62,7 +61,6 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Annual/subscription.json")
     assertEquals(subscriptionToMigrationProductName(subscription), Right("Newspaper Digital Voucher"))
   }
-
   test("Newspaper2024Migration | migration product name is correct | NewspaperVoucherBook-Monthly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Monthly/subscription.json")
@@ -900,56 +898,88 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
 
   // -- prices -------------------------------------------------------
 
-  test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperHomeDelivery-Monthly") {
+  // I have added the name of the rate plan name to help manual checking against the original price matrix
+  // that the tests are correct.
+
+  test("Newspaper2024Migration | (subscription -> new price) lookup is correct | NewspaperHomeDelivery-Monthly") {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/subscription.json")
+    // rate plan name: Weekend+
     assertEquals(subscriptionToNewPrice(subscription), Some(BigDecimal(40.99)))
   }
-  test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperHomeDelivery-Quarterly") {
+  test("Newspaper2024Migration | (subscription -> new price) lookup is correct | NewspaperHomeDelivery-Quarterly") {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Quarterly/subscription.json")
+    // rate plan name: Weekend
     assertEquals(subscriptionToNewPrice(subscription), Some(BigDecimal(95.97)))
   }
-  test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-Monthly") {
+  test("Newspaper2024Migration | (subscription -> new price) lookup is correct | NewspaperSubscriptionCard-Monthly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Monthly/subscription.json")
+    // rate plan name: Weekend+
     assertEquals(subscriptionToNewPrice(subscription), Some(BigDecimal(34.99)))
   }
-  test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-Quarterly") {
+  test("Newspaper2024Migration | (subscription -> new price) lookup is correct | NewspaperSubscriptionCard-Quarterly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Quarterly/subscription.json")
+    // rate plan name: Weekend
     assertEquals(subscriptionToNewPrice(subscription), Some(BigDecimal(77.97)))
   }
-  test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-SemiAnnual") {
+  test(
+    "Newspaper2024Migration | (subscription -> new price) lookup is correct | NewspaperSubscriptionCard-SemiAnnual"
+  ) {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-SemiAnnual/subscription.json")
+    // rate plan name: Sixday
     assertEquals(subscriptionToNewPrice(subscription), Some(BigDecimal(341.94)))
   }
-  test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-Annual") {
+  test("Newspaper2024Migration | (subscription -> new price) lookup is correct | NewspaperSubscriptionCard-Annual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Annual/subscription.json")
+    // rate plan name: Everyday
     assertEquals(subscriptionToNewPrice(subscription), Some(BigDecimal(779.88)))
   }
-  test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-Monthly") {
+  test("Newspaper2024Migration | (subscription -> new price) lookup is correct | NewspaperVoucherBook-Monthly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Monthly/subscription.json")
+    // rate plan name: Weekend+
     assertEquals(subscriptionToNewPrice(subscription), Some(BigDecimal(34.99)))
   }
-  test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-Quarterly") {
+  test("Newspaper2024Migration | (subscription -> new price) lookup is correct | NewspaperVoucherBook-Quarterly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Quarterly/subscription.json")
+    // rate plan name: Weekend+
     assertEquals(subscriptionToNewPrice(subscription), Some(BigDecimal(104.97)))
   }
-  test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-SemiAnnual") {
+  test("Newspaper2024Migration | (subscription -> new price) lookup is correct | NewspaperVoucherBook-SemiAnnual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-SemiAnnual/subscription.json")
+    // rate plan name: Weekend+
     assertEquals(subscriptionToNewPrice(subscription), Some(BigDecimal(209.94)))
   }
-  test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-Annual") {
+  test("Newspaper2024Migration | (subscription -> new price) lookup is correct | NewspaperVoucherBook-Annual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Annual/subscription.json")
+    // rate plan name: Weekend+
     assertEquals(subscriptionToNewPrice(subscription), Some(BigDecimal(419.88)))
   }
 
   // -- price data -------------------------------------------------------
+
+  // I addition of the product and the billing period, which are both obvious from the name of the file
+  // to determine the price, we also need the rate pan name, which can be read from the RatePlanDetails.
+  // Here is the mapping
+  /*
+    | Product                                                 | Billing Period | Rate plan name | New price |
+    | Newspaper Home Delivery / Newspaper Delivery            | Monthly        | Weekend+       |  40.99    |
+    | Newspaper Home Delivery / Newspaper Delivery            | Quarterly      | Weekend        |  95.97    |
+    | Newspaper Subscription Card / Newspaper Digital Voucher | Monthly        | Weekend+       |  34.99    |
+    | Newspaper Subscription Card / Newspaper Digital Voucher | Quarterly      | Weekend        |  77.97    |
+    | Newspaper Subscription Card / Newspaper Digital Voucher | Semi Annual    | Sixday         | 341.94    |
+    | Newspaper Subscription Card / Newspaper Digital Voucher | Annual         | Everyday       | 779.88    |
+    | Newspaper Subscription Card / Newspaper Voucher         | Monthly        | Weekend+       |  34.99    |
+    | Newspaper Subscription Card / Newspaper Voucher         | Quarterly      | Weekend+       | 104.97    |
+    | Newspaper Subscription Card / Newspaper Voucher         | Semi Annual    | Weekend+       | 209.94    |
+    | Newspaper Subscription Card / Newspaper Voucher         | Annual         | Weekend+       | 419.88    |
+   */
 
   test("Newspaper2024Migration | price data is correct | NewspaperHomeDelivery-Monthly") {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/subscription.json")
