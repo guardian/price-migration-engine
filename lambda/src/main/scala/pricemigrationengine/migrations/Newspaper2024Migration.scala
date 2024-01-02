@@ -303,7 +303,7 @@ object Newspaper2024Migration {
     batchId match {
       case MonthliesPart1    => LocalDate.of(2024, 2, 21) // 21 Feb 2024
       case MonthliesPart2    => LocalDate.of(2024, 3, 18) // 18 March 2024
-      case MoreThanMonthlies => LocalDate.of(2024, 2, 1) // 1 Feb 2024
+      case MoreThanMonthlies => LocalDate.of(2024, 3, 1) // 1 March 2024
     }
   }
 
