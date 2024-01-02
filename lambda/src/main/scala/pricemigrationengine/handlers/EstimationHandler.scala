@@ -151,7 +151,7 @@ object EstimationHandler extends CohortHandler {
       MigrationType(cohortSpec) match {
         case Membership2023Monthlies => 1
         case Membership2023Annuals   => 1
-        case Newspaper2024           => 1
+        case Newspaper2024           => Newspaper2024Migration.startDateSpreadPeriod(subscription)
         case _                       => 3
       }
     } else 1

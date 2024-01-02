@@ -345,4 +345,17 @@ object Newspaper2024Migration {
       ) // +1 because we need to be strictly over minLeadTime days away. Exactly minLeadTime is not enough.
     )
   }
+
+  def startDateSpreadPeriod(subscription: ZuoraSubscription): Int = {
+    subscriptionToBatchId(subscription) match {
+      case Left(_) => 1
+      case Right(bid) =>
+        bid match {
+          case MonthliesPart1    => 1
+          case MonthliesPart2    => 2
+          case MoreThanMonthlies => 1
+        }
+    }
+  }
+
 }

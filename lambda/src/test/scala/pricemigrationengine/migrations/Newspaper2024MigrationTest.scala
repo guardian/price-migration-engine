@@ -1097,4 +1097,62 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Annual/subscription.json")
     assertEquals(Newspaper2024Migration.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
   }
+
+  // -- spread period -------------------------------------------------------
+
+  /*
+    The non monthlies will be resolving to 1, the Part 1 will be 1 and te Part 2 will be 2
+    NewspaperHomeDelivery-Monthly     -> processedThroughDate: 2023-06-22 -> MonthliesPart1
+    NewspaperSubscriptionCard-Monthly -> processedThroughDate: 2021-06-30 -> MonthliesPart1
+    NewspaperVoucherBook-Monthly      -> processedThroughDate: 2023-08-15 -> MonthliesPart2
+   */
+
+  test("Newspaper2024Migration | batchId is correct | NewspaperHomeDelivery-Monthly") {
+    val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/subscription.json")
+    assertEquals(startDateSpreadPeriod(subscription), 1)
+  }
+  test("Newspaper2024Migration | batchId is correct | NewspaperHomeDelivery-Quarterly") {
+    val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Quarterly/subscription.json")
+    assertEquals(startDateSpreadPeriod(subscription), 1)
+  }
+  test("Newspaper2024Migration | batchId is correct | NewspaperSubscriptionCard-Monthly") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Monthly/subscription.json")
+    assertEquals(startDateSpreadPeriod(subscription), 1)
+  }
+  test("Newspaper2024Migration | batchId is correct | NewspaperSubscriptionCard-Quarterly") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Quarterly/subscription.json")
+    assertEquals(startDateSpreadPeriod(subscription), 1)
+  }
+  test("Newspaper2024Migration | batchId is correct | NewspaperSubscriptionCard-SemiAnnual") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-SemiAnnual/subscription.json")
+    assertEquals(startDateSpreadPeriod(subscription), 1)
+  }
+  test("Newspaper2024Migration | batchId is correct | NewspaperSubscriptionCard-Annual") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Annual/subscription.json")
+    assertEquals(startDateSpreadPeriod(subscription), 1)
+  }
+  test("Newspaper2024Migration | batchId is correct | NewspaperVoucherBook-Monthly") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Monthly/subscription.json")
+    assertEquals(startDateSpreadPeriod(subscription), 2)
+  }
+  test("Newspaper2024Migration | batchId is correct | NewspaperVoucherBook-Quarterly") {
+    val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Quarterly/subscription.json")
+    assertEquals(startDateSpreadPeriod(subscription), 1)
+  }
+  test("Newspaper2024Migration | batchId is correct | NewspaperVoucherBook-SemiAnnual") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-SemiAnnual/subscription.json")
+    assertEquals(startDateSpreadPeriod(subscription), 1)
+  }
+  test("Newspaper2024Migration | batchId is correct | NewspaperVoucherBook-Annual") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Annual/subscription.json")
+    assertEquals(startDateSpreadPeriod(subscription), 1)
+  }
+
 }
