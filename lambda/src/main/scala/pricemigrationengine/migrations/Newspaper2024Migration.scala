@@ -44,7 +44,8 @@ object Newspaper2024Migration {
       thursday: Option[BigDecimal],
       friday: Option[BigDecimal],
       saturday: Option[BigDecimal],
-      sunday: Option[BigDecimal]
+      sunday: Option[BigDecimal],
+      digitalPack: Option[BigDecimal]
   )
 
   val newspaperHomeDeliveryMonthlyPrices: Map[String, BigDecimal] = Map(
@@ -61,16 +62,106 @@ object Newspaper2024Migration {
   )
 
   val newspaperHomeDeliveryMonthlyPriceDistributions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(Some(BigDecimal(78.99)), None, None, None, None, None, None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Saturday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sunday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Saturday+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sunday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday" -> PriceDistribution(
+      monday = Some(BigDecimal(10.24)),
+      tuesday = Some(BigDecimal(10.24)),
+      wednesday = Some(BigDecimal(10.24)),
+      thursday = Some(BigDecimal(10.24)),
+      friday = Some(BigDecimal(10.24)),
+      saturday = Some(BigDecimal(13.89)),
+      sunday = Some(BigDecimal(13.90)),
+      digitalPack = None,
+    ),
+    "Sixday" -> PriceDistribution(
+      monday = Some(BigDecimal(10.85)),
+      tuesday = Some(BigDecimal(10.85)),
+      wednesday = Some(BigDecimal(10.85)),
+      thursday = Some(BigDecimal(10.85)),
+      friday = Some(BigDecimal(10.85)),
+      saturday = Some(BigDecimal(14.74)),
+      sunday = None,
+      digitalPack = None,
+    ),
+    "Weekend" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(15.99)),
+      Some(BigDecimal(16.00)),
+      None
+    ),
+    "Saturday" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(19.99)),
+      None,
+    ),
+    "Sunday" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(19.99)),
+      None,
+    ),
+    "Everyday+" -> PriceDistribution(
+      monday = Some(BigDecimal(10.24)),
+      tuesday = Some(BigDecimal(10.24)),
+      wednesday = Some(BigDecimal(10.24)),
+      thursday = Some(BigDecimal(10.24)),
+      friday = Some(BigDecimal(10.24)),
+      saturday = Some(BigDecimal(13.89)),
+      sunday = Some(BigDecimal(13.90)),
+      digitalPack = Some(BigDecimal(2.00)),
+    ),
+    "Sixday+" -> PriceDistribution(
+      monday = Some(BigDecimal(10.85)),
+      tuesday = Some(BigDecimal(10.85)),
+      wednesday = Some(BigDecimal(10.85)),
+      thursday = Some(BigDecimal(10.85)),
+      friday = Some(BigDecimal(10.85)),
+      saturday = Some(BigDecimal(14.74)),
+      sunday = None,
+      digitalPack = Some(BigDecimal(2.00)),
+    ),
+    "Weekend+" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(15.99)),
+      Some(BigDecimal(16.00)),
+      digitalPack = Some(BigDecimal(9.00)),
+    ),
+    "Saturday+" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(19.99)),
+      digitalPack = Some(BigDecimal(11.00)),
+    ),
+    "Sunday+" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(19.99)),
+      digitalPack = Some(BigDecimal(11.00)),
+    ),
   )
 
   val newspaperHomeDeliveryQuarterlyPrices: Map[String, BigDecimal] = Map(
@@ -82,11 +173,11 @@ object Newspaper2024Migration {
   )
 
   val newspaperHomeDeliveryQuarterlyPriceDistributions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Saturday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sunday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Saturday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Sunday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
   )
 
   val newspaperSubscriptionCardMonthlyPrices: Map[String, BigDecimal] = Map(
@@ -103,16 +194,106 @@ object Newspaper2024Migration {
   )
 
   val newspaperSubscriptionCardMonthlyPriceDistributions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Saturday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sunday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Saturday+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sunday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday" -> PriceDistribution(
+      monday = Some(BigDecimal(8.42)),
+      tuesday = Some(BigDecimal(8.42)),
+      wednesday = Some(BigDecimal(8.42)),
+      thursday = Some(BigDecimal(8.42)),
+      friday = Some(BigDecimal(8.42)),
+      saturday = Some(BigDecimal(11.44)),
+      sunday = Some(BigDecimal(11.45)),
+      digitalPack = None,
+    ),
+    "Sixday" -> PriceDistribution(
+      monday = Some(BigDecimal(8.96)),
+      tuesday = Some(BigDecimal(8.96)),
+      wednesday = Some(BigDecimal(8.96)),
+      thursday = Some(BigDecimal(8.96)),
+      friday = Some(BigDecimal(8.96)),
+      saturday = Some(BigDecimal(12.19)),
+      sunday = None,
+      digitalPack = None,
+    ),
+    "Weekend" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(12.99)),
+      Some(BigDecimal(13.00)),
+      None
+    ),
+    "Saturday" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(14.99)),
+      None,
+    ),
+    "Sunday" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(14.99)),
+      digitalPack = None,
+    ),
+    "Everyday+" -> PriceDistribution(
+      monday = Some(BigDecimal(8.42)),
+      tuesday = Some(BigDecimal(8.42)),
+      wednesday = Some(BigDecimal(8.42)),
+      thursday = Some(BigDecimal(8.42)),
+      friday = Some(BigDecimal(8.42)),
+      saturday = Some(BigDecimal(11.44)),
+      sunday = Some(BigDecimal(11.45)),
+      digitalPack = Some(BigDecimal(2.00)),
+    ),
+    "Sixday+" -> PriceDistribution(
+      monday = Some(BigDecimal(8.96)),
+      tuesday = Some(BigDecimal(8.96)),
+      wednesday = Some(BigDecimal(8.96)),
+      thursday = Some(BigDecimal(8.96)),
+      friday = Some(BigDecimal(8.96)),
+      saturday = Some(BigDecimal(12.19)),
+      sunday = None,
+      digitalPack = Some(BigDecimal(2.00)),
+    ),
+    "Weekend+" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(12.99)),
+      Some(BigDecimal(13.00)),
+      digitalPack = Some(BigDecimal(9.00)),
+    ),
+    "Saturday+" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(14.99)),
+      digitalPack = Some(BigDecimal(11.00)),
+    ),
+    "Sunday+" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(14.99)),
+      digitalPack = Some(BigDecimal(11.00)),
+    ),
   )
 
   val newspaperSubscriptionCardQuarterlyPrices: Map[String, BigDecimal] = Map(
@@ -124,11 +305,11 @@ object Newspaper2024Migration {
   )
 
   val newspaperSubscriptionCardQuarterlyPriceDistributions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
   )
 
   val newspaperSubscriptionCardSemiAnnualPrices: Map[String, BigDecimal] = Map(
@@ -138,9 +319,9 @@ object Newspaper2024Migration {
   )
 
   val newspaperSubscriptionCardSemiAnnualPriceDistributions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
   )
 
   val newspaperSubscriptionCardAnnualPrices: Map[String, BigDecimal] = Map(
@@ -150,9 +331,9 @@ object Newspaper2024Migration {
   )
 
   val newspaperSubscriptionCardAnnualPriceDistributions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
   )
 
   val newspaperVoucherBookMonthlyPrices: Map[String, BigDecimal] = Map(
@@ -169,16 +350,106 @@ object Newspaper2024Migration {
   )
 
   val newspaperVoucherBookMonthlyPriceDistibutions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Saturday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sunday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Saturday+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sunday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday" -> PriceDistribution(
+      monday = Some(BigDecimal(8.42)),
+      tuesday = Some(BigDecimal(8.42)),
+      wednesday = Some(BigDecimal(8.42)),
+      thursday = Some(BigDecimal(8.42)),
+      friday = Some(BigDecimal(8.42)),
+      saturday = Some(BigDecimal(11.44)),
+      sunday = Some(BigDecimal(11.45)),
+      digitalPack = None,
+    ),
+    "Sixday" -> PriceDistribution(
+      monday = Some(BigDecimal(8.96)),
+      tuesday = Some(BigDecimal(8.96)),
+      wednesday = Some(BigDecimal(8.96)),
+      thursday = Some(BigDecimal(8.96)),
+      friday = Some(BigDecimal(8.96)),
+      saturday = Some(BigDecimal(12.19)),
+      sunday = None,
+      digitalPack = None,
+    ),
+    "Weekend" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(12.99)),
+      Some(BigDecimal(13.00)),
+      None
+    ),
+    "Saturday" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(14.99)),
+      None,
+    ),
+    "Sunday" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(14.99)),
+      digitalPack = None,
+    ),
+    "Everyday+" -> PriceDistribution(
+      monday = Some(BigDecimal(8.42)),
+      tuesday = Some(BigDecimal(8.42)),
+      wednesday = Some(BigDecimal(8.42)),
+      thursday = Some(BigDecimal(8.42)),
+      friday = Some(BigDecimal(8.42)),
+      saturday = Some(BigDecimal(11.44)),
+      sunday = Some(BigDecimal(11.45)),
+      digitalPack = Some(BigDecimal(2.00)),
+    ),
+    "Sixday+" -> PriceDistribution(
+      monday = Some(BigDecimal(8.96)),
+      tuesday = Some(BigDecimal(8.96)),
+      wednesday = Some(BigDecimal(8.96)),
+      thursday = Some(BigDecimal(8.96)),
+      friday = Some(BigDecimal(8.96)),
+      saturday = Some(BigDecimal(12.19)),
+      sunday = None,
+      digitalPack = Some(BigDecimal(2.00)),
+    ),
+    "Weekend+" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(12.99)),
+      Some(BigDecimal(13.00)),
+      digitalPack = Some(BigDecimal(9.00)),
+    ),
+    "Saturday+" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(14.99)),
+      digitalPack = Some(BigDecimal(11.00)),
+    ),
+    "Sunday+" -> PriceDistribution(
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(BigDecimal(14.99)),
+      digitalPack = Some(BigDecimal(11.00)),
+    ),
   )
 
   val newspaperVoucherBookQuarterlyPrices: Map[String, BigDecimal] = Map(
@@ -192,13 +463,13 @@ object Newspaper2024Migration {
   )
 
   val newspaperVoucherBookQuarterlyPriceDistibutions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sunday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Sunday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
   )
 
   val newspaperVoucherBookSemiAnnualPrices: Map[String, BigDecimal] = Map(
@@ -212,13 +483,13 @@ object Newspaper2024Migration {
   )
 
   val newspaperVoucherBookSemiAnnualPriceDistributions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sunday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Sunday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
   )
 
   val newspaperVoucherBookAnnualPrices: Map[String, BigDecimal] = Map(
@@ -231,12 +502,12 @@ object Newspaper2024Migration {
   )
 
   val newspaperVoucherBookAnnualPriceDistributions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None),
-    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
   )
 
   def priceLookup(product: String, billingPeriod: BillingPeriod, ratePlanName: String): Option[BigDecimal] = {
