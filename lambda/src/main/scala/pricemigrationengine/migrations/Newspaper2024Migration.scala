@@ -37,8 +37,17 @@ object Newspaper2024Migration {
   object MonthliesPart1 extends Newspaper2024BatchId // First batch of monthlies
   object MonthliesPart2 extends Newspaper2024BatchId // Second batch of monthlies
   object MoreThanMonthlies extends Newspaper2024BatchId // Quarterlies, Semi-Annuals and Annuals
+  case class PriceDistribution(
+      monday: Option[BigDecimal],
+      tuesday: Option[BigDecimal],
+      wednesday: Option[BigDecimal],
+      thursday: Option[BigDecimal],
+      friday: Option[BigDecimal],
+      saturday: Option[BigDecimal],
+      sunday: Option[BigDecimal]
+  )
 
-  private val newspaperHomeDeliveryPricesMonthly: Map[String, BigDecimal] = Map(
+  val newspaperHomeDeliveryMonthlyPrices: Map[String, BigDecimal] = Map(
     "Everyday" -> BigDecimal(78.99),
     "Sixday" -> BigDecimal(68.99),
     "Weekend" -> BigDecimal(31.99),
@@ -51,7 +60,20 @@ object Newspaper2024Migration {
     "Sunday+" -> BigDecimal(30.99),
   )
 
-  private val newspaperHomeDeliveryPricesQuarterly: Map[String, BigDecimal] = Map(
+  val newspaperHomeDeliveryMonthlyPriceDistributions: Map[String, PriceDistribution] = Map(
+    "Everyday" -> PriceDistribution(Some(BigDecimal(78.99)), None, None, None, None, None, None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Saturday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sunday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Saturday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sunday+" -> PriceDistribution(None, None, None, None, None, None, None),
+  )
+
+  val newspaperHomeDeliveryQuarterlyPrices: Map[String, BigDecimal] = Map(
     "Everyday" -> BigDecimal(236.97),
     "Sixday" -> BigDecimal(206.97),
     "Weekend" -> BigDecimal(95.97),
@@ -59,7 +81,15 @@ object Newspaper2024Migration {
     "Sunday" -> BigDecimal(59.97),
   )
 
-  private val newspaperSubscriptionCardMonthly: Map[String, BigDecimal] = Map(
+  val newspaperHomeDeliveryQuarterlyPriceDistributions: Map[String, PriceDistribution] = Map(
+    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Saturday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sunday" -> PriceDistribution(None, None, None, None, None, None, None),
+  )
+
+  val newspaperSubscriptionCardMonthlyPrices: Map[String, BigDecimal] = Map(
     "Everyday" -> BigDecimal(64.99),
     "Sixday" -> BigDecimal(56.99),
     "Weekend" -> BigDecimal(25.99),
@@ -72,7 +102,20 @@ object Newspaper2024Migration {
     "Sunday+" -> BigDecimal(25.99),
   )
 
-  private val newspaperSubscriptionCardQuarterly: Map[String, BigDecimal] = Map(
+  val newspaperSubscriptionCardMonthlyPriceDistributions: Map[String, PriceDistribution] = Map(
+    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Saturday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sunday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Saturday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sunday+" -> PriceDistribution(None, None, None, None, None, None, None),
+  )
+
+  val newspaperSubscriptionCardQuarterlyPrices: Map[String, BigDecimal] = Map(
     "Everyday" -> BigDecimal(194.97),
     "Sixday" -> BigDecimal(170.97),
     "Weekend" -> BigDecimal(77.97),
@@ -80,19 +123,39 @@ object Newspaper2024Migration {
     "Sixday+" -> BigDecimal(176.97),
   )
 
-  private val newspaperSubscriptionCardSemiAnnual: Map[String, BigDecimal] = Map(
+  val newspaperSubscriptionCardQuarterlyPriceDistributions: Map[String, PriceDistribution] = Map(
+    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None),
+  )
+
+  val newspaperSubscriptionCardSemiAnnualPrices: Map[String, BigDecimal] = Map(
     "Everyday" -> BigDecimal(389.94),
     "Sixday" -> BigDecimal(341.94),
     "Everyday+" -> BigDecimal(401.94),
   )
 
-  private val newspaperSubscriptionCardAnnual: Map[String, BigDecimal] = Map(
+  val newspaperSubscriptionCardSemiAnnualPriceDistributions: Map[String, PriceDistribution] = Map(
+    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None),
+  )
+
+  val newspaperSubscriptionCardAnnualPrices: Map[String, BigDecimal] = Map(
     "Everyday" -> BigDecimal(779.88),
     "Sixday" -> BigDecimal(683.88),
     "Weekend" -> BigDecimal(311.88),
   )
 
-  private val newspaperVoucherBookMonthly: Map[String, BigDecimal] = Map(
+  val newspaperSubscriptionCardAnnualPriceDistributions: Map[String, PriceDistribution] = Map(
+    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
+  )
+
+  val newspaperVoucherBookMonthlyPrices: Map[String, BigDecimal] = Map(
     "Everyday" -> BigDecimal(64.99),
     "Sixday" -> BigDecimal(56.99),
     "Weekend" -> BigDecimal(25.99),
@@ -105,7 +168,20 @@ object Newspaper2024Migration {
     "Sunday+" -> BigDecimal(25.99),
   )
 
-  private val newspaperVoucherBookQuarterly: Map[String, BigDecimal] = Map(
+  val newspaperVoucherBookMonthlyPriceDistibutions: Map[String, PriceDistribution] = Map(
+    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Saturday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sunday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Saturday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sunday+" -> PriceDistribution(None, None, None, None, None, None, None),
+  )
+
+  val newspaperVoucherBookQuarterlyPrices: Map[String, BigDecimal] = Map(
     "Everyday" -> BigDecimal(194.97),
     "Sixday" -> BigDecimal(170.97),
     "Weekend" -> BigDecimal(77.97),
@@ -115,7 +191,17 @@ object Newspaper2024Migration {
     "Sunday+" -> BigDecimal(77.97),
   )
 
-  private val newspaperVoucherBookSemiAnnual: Map[String, BigDecimal] = Map(
+  val newspaperVoucherBookQuarterlyPriceDistibutions: Map[String, PriceDistribution] = Map(
+    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sunday+" -> PriceDistribution(None, None, None, None, None, None, None),
+  )
+
+  val newspaperVoucherBookSemiAnnualPrices: Map[String, BigDecimal] = Map(
     "Everyday" -> BigDecimal(389.94),
     "Sixday" -> BigDecimal(341.94),
     "Weekend" -> BigDecimal(155.94),
@@ -125,7 +211,17 @@ object Newspaper2024Migration {
     "Sunday+" -> BigDecimal(155.94),
   )
 
-  private val newspaperVoucherBookAnnual: Map[String, BigDecimal] = Map(
+  val newspaperVoucherBookSemiAnnualPriceDistributions: Map[String, PriceDistribution] = Map(
+    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sunday+" -> PriceDistribution(None, None, None, None, None, None, None),
+  )
+
+  val newspaperVoucherBookAnnualPrices: Map[String, BigDecimal] = Map(
     "Everyday" -> BigDecimal(779.88),
     "Sixday" -> BigDecimal(683.88),
     "Weekend" -> BigDecimal(311.88),
@@ -134,22 +230,43 @@ object Newspaper2024Migration {
     "Weekend+" -> BigDecimal(419.88),
   )
 
+  val newspaperVoucherBookAnnualPriceDistributions: Map[String, PriceDistribution] = Map(
+    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None),
+    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None),
+  )
+
   def priceLookup(product: String, billingPeriod: BillingPeriod, ratePlanName: String): Option[BigDecimal] = {
     val empty: Map[String, BigDecimal] = Map()
     val priceMap = (product, billingPeriod) match {
-      case ("Newspaper Delivery", Monthly)           => newspaperHomeDeliveryPricesMonthly
-      case ("Newspaper Delivery", Quarterly)         => newspaperHomeDeliveryPricesQuarterly
-      case ("Newspaper Digital Voucher", Monthly)    => newspaperSubscriptionCardMonthly
-      case ("Newspaper Digital Voucher", Quarterly)  => newspaperSubscriptionCardQuarterly
-      case ("Newspaper Digital Voucher", SemiAnnual) => newspaperSubscriptionCardSemiAnnual
-      case ("Newspaper Digital Voucher", Annual)     => newspaperSubscriptionCardAnnual
-      case ("Newspaper Voucher", Monthly)            => newspaperVoucherBookMonthly
-      case ("Newspaper Voucher", Quarterly)          => newspaperVoucherBookQuarterly
-      case ("Newspaper Voucher", SemiAnnual)         => newspaperVoucherBookSemiAnnual
-      case ("Newspaper Voucher", Annual)             => newspaperVoucherBookAnnual
+      case ("Newspaper Delivery", Monthly)           => newspaperHomeDeliveryMonthlyPrices
+      case ("Newspaper Delivery", Quarterly)         => newspaperHomeDeliveryQuarterlyPrices
+      case ("Newspaper Digital Voucher", Monthly)    => newspaperSubscriptionCardMonthlyPrices
+      case ("Newspaper Digital Voucher", Quarterly)  => newspaperSubscriptionCardQuarterlyPrices
+      case ("Newspaper Digital Voucher", SemiAnnual) => newspaperSubscriptionCardSemiAnnualPrices
+      case ("Newspaper Digital Voucher", Annual)     => newspaperSubscriptionCardAnnualPrices
+      case ("Newspaper Voucher", Monthly)            => newspaperVoucherBookMonthlyPrices
+      case ("Newspaper Voucher", Quarterly)          => newspaperVoucherBookQuarterlyPrices
+      case ("Newspaper Voucher", SemiAnnual)         => newspaperVoucherBookSemiAnnualPrices
+      case ("Newspaper Voucher", Annual)             => newspaperVoucherBookAnnualPrices
       case _                                         => empty
     }
     priceMap.get(ratePlanName)
+  }
+
+  def priceDistributionToPrice(distribution: PriceDistribution): BigDecimal = {
+    List(
+      distribution.monday.getOrElse(BigDecimal(0)),
+      distribution.tuesday.getOrElse(BigDecimal(0)),
+      distribution.wednesday.getOrElse(BigDecimal(0)),
+      distribution.thursday.getOrElse(BigDecimal(0)),
+      distribution.friday.getOrElse(BigDecimal(0)),
+      distribution.saturday.getOrElse(BigDecimal(0)),
+      distribution.sunday.getOrElse(BigDecimal(0))
+    ).foldLeft(BigDecimal(0))((sum, item) => sum + item)
   }
 
   def subscriptionToMigrationProductName(subscription: ZuoraSubscription): Either[String, String] = {
