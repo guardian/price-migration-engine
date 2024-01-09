@@ -3,7 +3,7 @@
   "invoiceItems" : [ {
     "id" : "f7e98a12d89c48fe9e6919ede265518e",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a12829d8c6d5110018c741dccdb1bb2",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-02-24",
     "serviceEndDate" : "2024-08-23",
@@ -23,7 +23,7 @@
   }, {
     "id" : "47ed1fe71eb7427cb37f1a48bebf0b99",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a12829d8c6d5110018c741dccdb1bb2",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-08-24",
     "serviceEndDate" : "2025-02-23",
@@ -43,7 +43,7 @@
   }, {
     "id" : "545b9752244342c295fb011e94ba42d2",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a12829d8c6d5110018c741dccdb1bb2",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-02-24",
     "serviceEndDate" : "2024-08-23",
@@ -63,7 +63,7 @@
   }, {
     "id" : "15b8b9540fc742a6817ab5ad18281a50",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a12829d8c6d5110018c741dccdb1bb2",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-08-24",
     "serviceEndDate" : "2025-02-23",
@@ -83,7 +83,7 @@
   }, {
     "id" : "51cc77a004ae40e9b39af53aa03eab8c",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a12829d8c6d5110018c741dccdb1bb2",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-02-24",
     "serviceEndDate" : "2024-08-23",
@@ -103,7 +103,7 @@
   }, {
     "id" : "d4065093d11248d5841c7c965d8cec8a",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a12829d8c6d5110018c741dccdb1bb2",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-08-24",
     "serviceEndDate" : "2025-02-23",
