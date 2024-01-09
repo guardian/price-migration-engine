@@ -3,7 +3,7 @@
   "invoiceItems" : [ {
     "id" : "5c810dc89f204eccace0b69a3dc6aef3",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a1294d38c6d6b68018c7411acc0108d",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-01-05",
     "serviceEndDate" : "2024-04-04",
@@ -23,7 +23,7 @@
   }, {
     "id" : "b7192f1a8aa24bae8883ad77b13deb8c",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a1294d38c6d6b68018c7411acc0108d",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-04-05",
     "serviceEndDate" : "2024-07-04",
@@ -43,7 +43,7 @@
   }, {
     "id" : "b3df49931b35421e8887d6f826133a07",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a1294d38c6d6b68018c7411acc0108d",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-07-05",
     "serviceEndDate" : "2024-10-04",
@@ -63,7 +63,7 @@
   }, {
     "id" : "1a3ae9a5bc4d4e3195f2075e611cf4f6",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a1294d38c6d6b68018c7411acc0108d",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-10-05",
     "serviceEndDate" : "2025-01-04",
@@ -83,7 +83,7 @@
   }, {
     "id" : "3d209d8c4e3a4c69b934fefdb7ab6fa7",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a1294d38c6d6b68018c7411acc0108d",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2025-01-05",
     "serviceEndDate" : "2025-04-04",
@@ -103,7 +103,7 @@
   }, {
     "id" : "51491ef7156d488f9fb064a690f8e6a3",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a1294d38c6d6b68018c7411acc0108d",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-01-05",
     "serviceEndDate" : "2024-04-04",
@@ -123,7 +123,7 @@
   }, {
     "id" : "2c89ed970b5e42eeb637a7d53a72c8ca",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a1294d38c6d6b68018c7411acc0108d",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-04-05",
     "serviceEndDate" : "2024-07-04",
@@ -143,7 +143,7 @@
   }, {
     "id" : "875caae43e8744f480fbdd6dfbc5ef7f",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a1294d38c6d6b68018c7411acc0108d",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-07-05",
     "serviceEndDate" : "2024-10-04",
@@ -163,7 +163,7 @@
   }, {
     "id" : "83f29ad7b0c540bfa3d3b8d082776b97",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a1294d38c6d6b68018c7411acc0108d",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-10-05",
     "serviceEndDate" : "2025-01-04",
@@ -183,7 +183,7 @@
   }, {
     "id" : "808546b792e64afaad9a207ec550a380",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a1294d38c6d6b68018c7411acc0108d",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2025-01-05",
     "serviceEndDate" : "2025-04-04",
