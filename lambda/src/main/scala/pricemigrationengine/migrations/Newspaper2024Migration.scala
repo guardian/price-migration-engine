@@ -20,33 +20,40 @@ object Newspaper2024Migration {
     -----------------------------------------------------------------
    */
 
-  // RatePlanDetails was introduced to help properly test the data gathering to build the PriceData
-  // It turned out to be particularly useful for testing that the logic was correct
-  // It is currently limited to Newspaper2024Migration, but could be generalised to other (future) migrations
-  case class RatePlanDetails(
-      ratePlan: ZuoraRatePlan,
-      ratePlanName: String,
-      billingPeriod: BillingPeriod,
-      currency: String,
-      currentPrice: BigDecimal
-  )
+  /*
+    The pricing system, explained (Part 1):
 
-  // We have an unusual scheduling for this migration and Newspaper2024BatchId is used to
-  // decide the correct start date for each subscription.
-  sealed trait Newspaper2024BatchId
-  object MonthliesPart1 extends Newspaper2024BatchId // First batch of monthlies
-  object MonthliesPart2 extends Newspaper2024BatchId // Second batch of monthlies
-  object MoreThanMonthlies extends Newspaper2024BatchId // Quarterlies, Semi-Annuals and Annuals
-  case class PriceDistribution(
-      monday: Option[BigDecimal],
-      tuesday: Option[BigDecimal],
-      wednesday: Option[BigDecimal],
-      thursday: Option[BigDecimal],
-      friday: Option[BigDecimal],
-      saturday: Option[BigDecimal],
-      sunday: Option[BigDecimal],
-      digitalPack: Option[BigDecimal]
-  )
+    The pricing for the Newspaper2024 migration was given as a price matrix, which was essentially a map
+    (product, billingPeriod, ratePlanName) -> price
+
+    For instance, for product "Newspaper - Home Delivery" (aka "Newspaper Delivery"), there are two possible frequencies:
+    "Month" and "Quarter". Considering "Month", we then have 10 possible rate plans: "Everyday". "Sixday", "Weekend",
+    "Saturday", "Sunday", and their "+" (digipack) equivalent: "Everyday+". "Sixday+", "Weekend+",
+    "Saturday+", "Sunday+". According to the matrix ("Newspaper - Home Delivery", "Month", "Everyday") evaluates to £78.99
+
+    The entire price matrix is implemented in the variables
+
+        - newspaperHomeDeliveryMonthlyPrices
+        - newspaperHomeDeliveryQuarterlyPrices
+
+        - newspaperSubscriptionCardMonthlyPrices
+        - newspaperSubscriptionCardQuarterlyPrices
+        - newspaperSubscriptionCardSemiAnnualPrices
+        - newspaperSubscriptionCardAnnualPrices
+
+        - newspaperVoucherBookMonthlyPrices
+        - newspaperVoucherBookQuarterlyPrices
+        - newspaperVoucherBookSemiAnnualPrices
+        - newspaperVoucherBookAnnualPrices
+
+    And the price given by the function
+        priceLookup(product: String, billingPeriod: BillingPeriod, ratePlanName: String): Option[BigDecimal]
+
+    Those prices are mostly used during the estimation process andhelp define the "new price" of a subscription.
+
+    ps: If you want a copy of the price matrix, ask Pascal or somebody from marketing.
+
+   */
 
   val newspaperHomeDeliveryMonthlyPrices: Map[String, BigDecimal] = Map(
     "Everyday" -> BigDecimal(78.99),
@@ -60,6 +67,203 @@ object Newspaper2024Migration {
     "Saturday+" -> BigDecimal(30.99),
     "Sunday+" -> BigDecimal(30.99),
   )
+
+  val newspaperHomeDeliveryQuarterlyPrices: Map[String, BigDecimal] = Map(
+    "Everyday" -> BigDecimal(236.97),
+    "Sixday" -> BigDecimal(206.97),
+    "Weekend" -> BigDecimal(95.97),
+    "Saturday" -> BigDecimal(59.97),
+    "Sunday" -> BigDecimal(59.97),
+  )
+
+  val newspaperSubscriptionCardMonthlyPrices: Map[String, BigDecimal] = Map(
+    "Everyday" -> BigDecimal(64.99),
+    "Sixday" -> BigDecimal(56.99),
+    "Weekend" -> BigDecimal(25.99),
+    "Saturday" -> BigDecimal(14.99),
+    "Sunday" -> BigDecimal(14.99),
+    "Everyday+" -> BigDecimal(66.99),
+    "Sixday+" -> BigDecimal(58.99),
+    "Weekend+" -> BigDecimal(34.99),
+    "Saturday+" -> BigDecimal(25.99),
+    "Sunday+" -> BigDecimal(25.99),
+  )
+
+  val newspaperSubscriptionCardQuarterlyPrices: Map[String, BigDecimal] = Map(
+    "Everyday" -> BigDecimal(194.97),
+    "Sixday" -> BigDecimal(170.97),
+    "Weekend" -> BigDecimal(77.97),
+    "Everyday+" -> BigDecimal(200.97),
+    "Sixday+" -> BigDecimal(176.97),
+  )
+
+  val newspaperSubscriptionCardSemiAnnualPrices: Map[String, BigDecimal] = Map(
+    "Everyday" -> BigDecimal(389.94),
+    "Sixday" -> BigDecimal(341.94),
+    "Everyday+" -> BigDecimal(401.94),
+  )
+
+  val newspaperSubscriptionCardAnnualPrices: Map[String, BigDecimal] = Map(
+    "Everyday" -> BigDecimal(779.88),
+    "Sixday" -> BigDecimal(683.88),
+    "Weekend" -> BigDecimal(311.88),
+  )
+
+  val newspaperVoucherBookMonthlyPrices: Map[String, BigDecimal] = Map(
+    "Everyday" -> BigDecimal(64.99),
+    "Sixday" -> BigDecimal(56.99),
+    "Weekend" -> BigDecimal(25.99),
+    "Saturday" -> BigDecimal(14.99),
+    "Sunday" -> BigDecimal(14.99),
+    "Everyday+" -> BigDecimal(66.99),
+    "Sixday+" -> BigDecimal(58.99),
+    "Weekend+" -> BigDecimal(34.99),
+    "Saturday+" -> BigDecimal(25.99),
+    "Sunday+" -> BigDecimal(25.99),
+  )
+
+  val newspaperVoucherBookQuarterlyPrices: Map[String, BigDecimal] = Map(
+    "Everyday" -> BigDecimal(194.97),
+    "Sixday" -> BigDecimal(170.97),
+    "Weekend" -> BigDecimal(77.97),
+    "Everyday+" -> BigDecimal(200.97),
+    "Sixday+" -> BigDecimal(176.97),
+    "Weekend+" -> BigDecimal(104.97),
+    "Sunday+" -> BigDecimal(77.97),
+  )
+
+  val newspaperVoucherBookSemiAnnualPrices: Map[String, BigDecimal] = Map(
+    "Everyday" -> BigDecimal(389.94),
+    "Sixday" -> BigDecimal(341.94),
+    "Weekend" -> BigDecimal(155.94),
+    "Everyday+" -> BigDecimal(401.94),
+    "Sixday+" -> BigDecimal(353.94),
+    "Weekend+" -> BigDecimal(209.94),
+    "Sunday+" -> BigDecimal(155.94),
+  )
+
+  val newspaperVoucherBookAnnualPrices: Map[String, BigDecimal] = Map(
+    "Everyday" -> BigDecimal(779.88),
+    "Sixday" -> BigDecimal(683.88),
+    "Weekend" -> BigDecimal(311.88),
+    "Everyday+" -> BigDecimal(803.88),
+    "Sixday+" -> BigDecimal(707.88),
+    "Weekend+" -> BigDecimal(419.88),
+  )
+
+  def priceLookup(product: String, billingPeriod: BillingPeriod, ratePlanName: String): Option[BigDecimal] = {
+    val empty: Map[String, BigDecimal] = Map()
+    val priceMap = (product, billingPeriod) match {
+      case ("Newspaper Delivery", Monthly)           => newspaperHomeDeliveryMonthlyPrices
+      case ("Newspaper Delivery", Quarterly)         => newspaperHomeDeliveryQuarterlyPrices
+      case ("Newspaper Digital Voucher", Monthly)    => newspaperSubscriptionCardMonthlyPrices
+      case ("Newspaper Digital Voucher", Quarterly)  => newspaperSubscriptionCardQuarterlyPrices
+      case ("Newspaper Digital Voucher", SemiAnnual) => newspaperSubscriptionCardSemiAnnualPrices
+      case ("Newspaper Digital Voucher", Annual)     => newspaperSubscriptionCardAnnualPrices
+      case ("Newspaper Voucher", Monthly)            => newspaperVoucherBookMonthlyPrices
+      case ("Newspaper Voucher", Quarterly)          => newspaperVoucherBookQuarterlyPrices
+      case ("Newspaper Voucher", SemiAnnual)         => newspaperVoucherBookSemiAnnualPrices
+      case ("Newspaper Voucher", Annual)             => newspaperVoucherBookAnnualPrices
+      case _                                         => empty
+    }
+    priceMap.get(ratePlanName)
+  }
+
+  /*
+    The pricing system, explained (Part 2):
+
+    Things would be quite simple if the price from the pricing matrix was the only charge on the rate plan, but that is
+    not the case. For instance in the case of `("Newspaper - Home Delivery", "Month", "Everyday") -> £78.99`
+    the price actually breakdown in the following charges
+
+        monday    -> 10.24
+        tuesday   -> 10.24
+        wednesday -> 10.24
+        thursday  -> 10.24
+        friday    -> 10.24
+        saturday  -> 13.89
+        sunday    -> 13.90
+
+    Note that the value per day is not constant (the value for saturday and sunday is higher), but the important things
+    is that the sum 10.24 + 10.24 + 10.24 + 10.24 + 10.24 + 13.89 + 13.90 is what we had in the price matrix: 78.99
+
+    The digipack variant is also spread down per day but in addition has a value for digipack. Therefore
+    `("Newspaper - Home Delivery", "Month", "Everyday+")` breaks down as the following charges
+
+        monday    -> 10.24
+        tuesday   -> 10.24
+        wednesday -> 10.24
+        thursday  -> 10.24
+        friday    -> 10.24
+        saturday  -> 13.89
+        sunday    -> 13.90
+        digiPack  -> 2.00
+
+    which leads to the 80.99 we have in the price matrix.
+
+    To encapsulate this information, we use `case class PriceDistribution`
+
+   */
+
+  case class PriceDistribution(
+      monday: Option[BigDecimal],
+      tuesday: Option[BigDecimal],
+      wednesday: Option[BigDecimal],
+      thursday: Option[BigDecimal],
+      friday: Option[BigDecimal],
+      saturday: Option[BigDecimal],
+      sunday: Option[BigDecimal],
+      digitalPack: Option[BigDecimal]
+  )
+
+  /*
+    The pricing system, explained (Part 3):
+
+    In Part 1 we have seen the price matrix and how it's encoded and queried and in Part 2 we have seen
+    the PriceDistribution, an in particular the price distribution for `("Newspaper - Home Delivery", "Month", "Everyday")`
+
+    That price distribution is found in Zuora. We have a product catalogue definition for `("Newspaper - Home Delivery", "Month", "Everyday")`,
+    and in fact we have a catalogue definition for any `("Newspaper - Home Delivery", "Month", *)`, but we do not have
+    a product catalogue entry of `("Newspaper - Home Delivery", "Quarter", *)`
+
+    The prices for `("Newspaper - Home Delivery", "Quarter", "Everyday")` are 3 times the prices of the month(ly),
+    therefore:
+        monday    -> 30.72
+        tuesday   -> 30.72
+        wednesday -> 30.72
+        thursday  -> 30.72
+        friday    -> 30.72
+        saturday  -> 41.67
+        sunday    -> 41.70
+
+        which sums to 30.72 + 30.72 + 30.72 + 30.72 + 30.72 + 41.67 + 41.70 = 236.97, which is the price we find in
+        the price matrix for `("Newspaper - Home Delivery", "Quarter", "Everyday")`.
+
+    Unlike te case of newspaperHomeDeliveryMonthlyPriceDistributions, aka `("Newspaper - Home Delivery", "Month", "Everyday")`,
+    where we had to look up the rate plan charges in the Zuora product catalogue and hardcode the values in a PriceDistribution,
+    in the case of `("Newspaper - Home Delivery", "Quarter", "Everyday")`, the price distribution has not been hard coded
+    (mostly to reduce the risk of human error and typos) and is derived from the month version simply by multiplying it by
+    3. For this we have the function `priceDistributionMultiplier(pd: PriceDistribution, multiplier: Int)`
+
+    The general pattern is therefore to have hard coded price distributions for the monthly rate plans, and to use the
+    multiplier to derive the quarterly, semi-annual and annual price distributions
+
+   */
+
+  def priceDistributionMultiplier(pd: PriceDistribution, multiplier: Int): PriceDistribution = {
+    def mult(bd: Option[BigDecimal]): Option[BigDecimal] = bd.map(bd => bd * BigDecimal(multiplier))
+
+    PriceDistribution(
+      monday = mult(pd.monday),
+      tuesday = mult(pd.tuesday),
+      wednesday = mult(pd.wednesday),
+      thursday = mult(pd.thursday),
+      friday = mult(pd.friday),
+      saturday = mult(pd.saturday),
+      sunday = mult(pd.sunday),
+      digitalPack = mult(pd.digitalPack)
+    )
+  }
 
   val newspaperHomeDeliveryMonthlyPriceDistributions: Map[String, PriceDistribution] = Map(
     "Everyday" -> PriceDistribution(
@@ -164,33 +368,12 @@ object Newspaper2024Migration {
     ),
   )
 
-  val newspaperHomeDeliveryQuarterlyPrices: Map[String, BigDecimal] = Map(
-    "Everyday" -> BigDecimal(236.97),
-    "Sixday" -> BigDecimal(206.97),
-    "Weekend" -> BigDecimal(95.97),
-    "Saturday" -> BigDecimal(59.97),
-    "Sunday" -> BigDecimal(59.97),
-  )
-
   val newspaperHomeDeliveryQuarterlyPriceDistributions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Saturday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Sunday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-  )
-
-  val newspaperSubscriptionCardMonthlyPrices: Map[String, BigDecimal] = Map(
-    "Everyday" -> BigDecimal(64.99),
-    "Sixday" -> BigDecimal(56.99),
-    "Weekend" -> BigDecimal(25.99),
-    "Saturday" -> BigDecimal(14.99),
-    "Sunday" -> BigDecimal(14.99),
-    "Everyday+" -> BigDecimal(66.99),
-    "Sixday+" -> BigDecimal(58.99),
-    "Weekend+" -> BigDecimal(34.99),
-    "Saturday+" -> BigDecimal(25.99),
-    "Sunday+" -> BigDecimal(25.99),
+    "Everyday" -> priceDistributionMultiplier(newspaperHomeDeliveryMonthlyPriceDistributions("Everyday"), 3),
+    "Sixday" -> priceDistributionMultiplier(newspaperHomeDeliveryMonthlyPriceDistributions("Sixday"), 3),
+    "Weekend" -> priceDistributionMultiplier(newspaperHomeDeliveryMonthlyPriceDistributions("Weekend"), 3),
+    "Saturday" -> priceDistributionMultiplier(newspaperHomeDeliveryMonthlyPriceDistributions("Saturday"), 3),
+    "Sunday" -> priceDistributionMultiplier(newspaperHomeDeliveryMonthlyPriceDistributions("Sunday"), 3),
   )
 
   val newspaperSubscriptionCardMonthlyPriceDistributions: Map[String, PriceDistribution] = Map(
@@ -296,57 +479,24 @@ object Newspaper2024Migration {
     ),
   )
 
-  val newspaperSubscriptionCardQuarterlyPrices: Map[String, BigDecimal] = Map(
-    "Everyday" -> BigDecimal(194.97),
-    "Sixday" -> BigDecimal(170.97),
-    "Weekend" -> BigDecimal(77.97),
-    "Everyday+" -> BigDecimal(200.97),
-    "Sixday+" -> BigDecimal(176.97),
-  )
-
   val newspaperSubscriptionCardQuarterlyPriceDistributions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-  )
-
-  val newspaperSubscriptionCardSemiAnnualPrices: Map[String, BigDecimal] = Map(
-    "Everyday" -> BigDecimal(389.94),
-    "Sixday" -> BigDecimal(341.94),
-    "Everyday+" -> BigDecimal(401.94),
+    "Everyday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Everyday"), 3),
+    "Sixday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Sixday"), 3),
+    "Weekend" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Weekend"), 3),
+    "Everyday+" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Everyday+"), 3),
+    "Sixday+" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Sixday+"), 3),
   )
 
   val newspaperSubscriptionCardSemiAnnualPriceDistributions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-  )
-
-  val newspaperSubscriptionCardAnnualPrices: Map[String, BigDecimal] = Map(
-    "Everyday" -> BigDecimal(779.88),
-    "Sixday" -> BigDecimal(683.88),
-    "Weekend" -> BigDecimal(311.88),
+    "Everyday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Everyday"), 6),
+    "Sixday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Sixday"), 6),
+    "Everyday+" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Everyday+"), 6),
   )
 
   val newspaperSubscriptionCardAnnualPriceDistributions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-  )
-
-  val newspaperVoucherBookMonthlyPrices: Map[String, BigDecimal] = Map(
-    "Everyday" -> BigDecimal(64.99),
-    "Sixday" -> BigDecimal(56.99),
-    "Weekend" -> BigDecimal(25.99),
-    "Saturday" -> BigDecimal(14.99),
-    "Sunday" -> BigDecimal(14.99),
-    "Everyday+" -> BigDecimal(66.99),
-    "Sixday+" -> BigDecimal(58.99),
-    "Weekend+" -> BigDecimal(34.99),
-    "Saturday+" -> BigDecimal(25.99),
-    "Sunday+" -> BigDecimal(25.99),
+    "Everyday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Everyday"), 12),
+    "Sixday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Sixday"), 12),
+    "Weekend" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Weekend"), 12),
   )
 
   val newspaperVoucherBookMonthlyPriceDistibutions: Map[String, PriceDistribution] = Map(
@@ -452,81 +602,43 @@ object Newspaper2024Migration {
     ),
   )
 
-  val newspaperVoucherBookQuarterlyPrices: Map[String, BigDecimal] = Map(
-    "Everyday" -> BigDecimal(194.97),
-    "Sixday" -> BigDecimal(170.97),
-    "Weekend" -> BigDecimal(77.97),
-    "Everyday+" -> BigDecimal(200.97),
-    "Sixday+" -> BigDecimal(176.97),
-    "Weekend+" -> BigDecimal(104.97),
-    "Sunday+" -> BigDecimal(77.97),
-  )
-
   val newspaperVoucherBookQuarterlyPriceDistibutions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Sunday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-  )
-
-  val newspaperVoucherBookSemiAnnualPrices: Map[String, BigDecimal] = Map(
-    "Everyday" -> BigDecimal(389.94),
-    "Sixday" -> BigDecimal(341.94),
-    "Weekend" -> BigDecimal(155.94),
-    "Everyday+" -> BigDecimal(401.94),
-    "Sixday+" -> BigDecimal(353.94),
-    "Weekend+" -> BigDecimal(209.94),
-    "Sunday+" -> BigDecimal(155.94),
+    "Everyday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Everyday"), 3),
+    "Sixday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sixday"), 3),
+    "Weekend" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Weekend"), 3),
+    "Everyday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Everyday+"), 3),
+    "Sixday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sixday+"), 3),
+    "Weekend+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Weekend+"), 3),
+    "Sunday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sunday+"), 3),
   )
 
   val newspaperVoucherBookSemiAnnualPriceDistributions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Sunday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-  )
-
-  val newspaperVoucherBookAnnualPrices: Map[String, BigDecimal] = Map(
-    "Everyday" -> BigDecimal(779.88),
-    "Sixday" -> BigDecimal(683.88),
-    "Weekend" -> BigDecimal(311.88),
-    "Everyday+" -> BigDecimal(803.88),
-    "Sixday+" -> BigDecimal(707.88),
-    "Weekend+" -> BigDecimal(419.88),
+    "Everyday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Everyday"), 6),
+    "Sixday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sixday"), 6),
+    "Weekend" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Weekend"), 6),
+    "Everyday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Everyday+"), 6),
+    "Sixday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sixday+"), 6),
+    "Weekend+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Weekend+"), 6),
+    "Sunday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sunday+"), 6),
   )
 
   val newspaperVoucherBookAnnualPriceDistributions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Sixday" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Weekend" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Everyday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Sixday+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
-    "Weekend+" -> PriceDistribution(None, None, None, None, None, None, None, digitalPack = None),
+    "Everyday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Everyday"), 12),
+    "Sixday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sixday"), 12),
+    "Weekend" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Weekend"), 12),
+    "Everyday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Everyday+"), 12),
+    "Sixday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sixday+"), 12),
+    "Weekend+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Weekend+"), 12),
   )
 
-  def priceLookup(product: String, billingPeriod: BillingPeriod, ratePlanName: String): Option[BigDecimal] = {
-    val empty: Map[String, BigDecimal] = Map()
-    val priceMap = (product, billingPeriod) match {
-      case ("Newspaper Delivery", Monthly)           => newspaperHomeDeliveryMonthlyPrices
-      case ("Newspaper Delivery", Quarterly)         => newspaperHomeDeliveryQuarterlyPrices
-      case ("Newspaper Digital Voucher", Monthly)    => newspaperSubscriptionCardMonthlyPrices
-      case ("Newspaper Digital Voucher", Quarterly)  => newspaperSubscriptionCardQuarterlyPrices
-      case ("Newspaper Digital Voucher", SemiAnnual) => newspaperSubscriptionCardSemiAnnualPrices
-      case ("Newspaper Digital Voucher", Annual)     => newspaperSubscriptionCardAnnualPrices
-      case ("Newspaper Voucher", Monthly)            => newspaperVoucherBookMonthlyPrices
-      case ("Newspaper Voucher", Quarterly)          => newspaperVoucherBookQuarterlyPrices
-      case ("Newspaper Voucher", SemiAnnual)         => newspaperVoucherBookSemiAnnualPrices
-      case ("Newspaper Voucher", Annual)             => newspaperVoucherBookAnnualPrices
-      case _                                         => empty
-    }
-    priceMap.get(ratePlanName)
-  }
+  /*
+  The pricing system, explained (Part 4):
+
+  The last piece of the pricing puzzle is the following function that turns a PriceDistribution into a price
+  by summing the non None components. It's used in tests to ensure consistency between the price matrix and
+  the price distributions
+
+   */
 
   def priceDistributionToPrice(distribution: PriceDistribution): BigDecimal = {
     List(
@@ -539,6 +651,26 @@ object Newspaper2024Migration {
       distribution.sunday.getOrElse(BigDecimal(0))
     ).foldLeft(BigDecimal(0))((sum, item) => sum + item)
   }
+
+  // --------------------------------------------------------------------------------------------
+
+  // RatePlanDetails was introduced to help properly test the data gathering to build the PriceData
+  // It turned out to be particularly useful for testing that the logic was correct
+  // It is currently limited to Newspaper2024Migration, but could be generalised to other (future) migrations
+  case class RatePlanDetails(
+      ratePlan: ZuoraRatePlan,
+      ratePlanName: String,
+      billingPeriod: BillingPeriod,
+      currency: String,
+      currentPrice: BigDecimal
+  )
+
+  // We have an unusual scheduling for this migration and Newspaper2024BatchId is used to
+  // decide the correct start date for each subscription.
+  sealed trait Newspaper2024BatchId
+  object MonthliesPart1 extends Newspaper2024BatchId // First batch of monthlies
+  object MonthliesPart2 extends Newspaper2024BatchId // Second batch of monthlies
+  object MoreThanMonthlies extends Newspaper2024BatchId // Quarterlies, Semi-Annuals and Annuals
 
   def subscriptionToMigrationProductName(subscription: ZuoraSubscription): Either[String, String] = {
     // We are doing a multi product migration. This function tries and retrieve the correct product given a
