@@ -3,7 +3,7 @@
   "invoiceItems" : [ {
     "id" : "bc6396c27b8a485893166e8182b7b330",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a129b5d8c6d6b65018c741fca0f6f37",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-02-03",
     "serviceEndDate" : "2025-02-02",
@@ -23,7 +23,7 @@
   }, {
     "id" : "b3fe87f6f0aa4538b054bc8df82f72b5",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a129b5d8c6d6b65018c741fca0f6f37",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-02-03",
     "serviceEndDate" : "2025-02-02",
@@ -43,7 +43,7 @@
   }, {
     "id" : "faa3558959aa475793ef12c3731c8591",
     "subscriptionName" : "ACCOUNT-NUMBER",
-    "subscriptionId" : "8a129b5d8c6d6b65018c741fca0f6f37",
+    "subscriptionId" : "SUBSCRIPTION-ID",
     "subscriptionNumber" : "ACCOUNT-NUMBER",
     "serviceStartDate" : "2024-02-03",
     "serviceEndDate" : "2025-02-02",
