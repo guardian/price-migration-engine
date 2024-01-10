@@ -1155,11 +1155,42 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     assertEquals(startDateSpreadPeriod(subscription), 1)
   }
 
-  // -- compatibility between Prices and Price Distributionss -------------------------------------------------------
+  // -- compatibility between Prices and Price Distributions ----------------------------------------------------------
 
   // Here we are checking the consistency between prices and price distributions
-  val x1 = newspaperHomeDeliveryMonthlyPrices.get("Everyday").get
-  val x2 = priceDistributionToPrice(newspaperHomeDeliveryMonthlyPriceDistributions.get("Everyday").get)
+  // This section perform a check of the form
 
-  assertEquals(x1, x2)
+  assertEquals(
+    newspaperHomeDeliveryMonthlyPrices.get("Everyday").get,
+    priceDistributionToPrice(newspaperHomeDeliveryMonthlyPriceDistributions.get("Everyday").get)
+  )
+
+  // For each combination (price mapper, rate plan name)
+  // Note that the list of available rate plan names is dependent on the mapper itself, therefore both are specified
+
+  List(
+    (
+      newspaperHomeDeliveryMonthlyPrices,
+      List(
+        "Everyday",
+        "Sixday",
+        "Weekend",
+        "Saturday",
+        "Sunday",
+        "Everyday+",
+        "Sixday+",
+        "Weekend+",
+        "Saturday+",
+        "Sunday+"
+      )
+    )
+  ).foreach { case (mapper: Map[String, BigDecimal], ratePlanNames: List[String]) =>
+    ratePlanNames.foreach { ratePlanName =>
+      assertEquals(
+        newspaperHomeDeliveryMonthlyPrices.get(ratePlanName).get,
+        priceDistributionToPrice(newspaperHomeDeliveryMonthlyPriceDistributions.get(ratePlanName).get)
+      )
+    }
+  }
+
 }

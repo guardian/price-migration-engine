@@ -648,7 +648,8 @@ object Newspaper2024Migration {
       distribution.thursday.getOrElse(BigDecimal(0)),
       distribution.friday.getOrElse(BigDecimal(0)),
       distribution.saturday.getOrElse(BigDecimal(0)),
-      distribution.sunday.getOrElse(BigDecimal(0))
+      distribution.sunday.getOrElse(BigDecimal(0)),
+      distribution.digitalPack.getOrElse(BigDecimal(0))
     ).foldLeft(BigDecimal(0))((sum, item) => sum + item)
   }
 
