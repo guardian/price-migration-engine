@@ -1165,12 +1165,14 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     priceDistributionToPrice(newspaperHomeDeliveryMonthlyPriceDistributions.get("Everyday").get)
   )
 
-  // For each combination (price mapper, rate plan name)
-  // Note that the list of available rate plan names is dependent on the mapper itself, therefore both are specified
+  // For each combination (price mapper, price distribution mapper, rate plan name)
+  // Note that the list of available rate plan names is dependent on the frequency itself, therefore both are specified
+  // We check both the monthly basic prices, but also the derivative prices computed by the price multiplier
 
   List(
     (
       newspaperHomeDeliveryMonthlyPrices,
+      newspaperHomeDeliveryMonthlyPriceDistributions,
       List(
         "Everyday",
         "Sixday",
@@ -1182,10 +1184,22 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         "Weekend+",
         "Saturday+",
         "Sunday+"
+      )
+    ),
+    (
+      newspaperHomeDeliveryQuarterlyPrices,
+      newspaperHomeDeliveryQuarterlyPriceDistributions,
+      List(
+        "Everyday",
+        "Sixday",
+        "Weekend",
+        "Saturday",
+        "Sunday"
       )
     ),
     (
       newspaperSubscriptionCardMonthlyPrices,
+      newspaperSubscriptionCardMonthlyPriceDistributions,
       List(
         "Everyday",
         "Sixday",
@@ -1200,7 +1214,37 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
       )
     ),
     (
+      newspaperSubscriptionCardQuarterlyPrices,
+      newspaperSubscriptionCardQuarterlyPriceDistributions,
+      List(
+        "Everyday",
+        "Sixday",
+        "Weekend",
+        "Everyday+",
+        "Sixday+"
+      )
+    ),
+    (
+      newspaperSubscriptionCardSemiAnnualPrices,
+      newspaperSubscriptionCardSemiAnnualPriceDistributions,
+      List(
+        "Everyday",
+        "Sixday",
+        "Everyday+"
+      )
+    ),
+    (
+      newspaperSubscriptionCardAnnualPrices,
+      newspaperSubscriptionCardAnnualPriceDistributions,
+      List(
+        "Everyday",
+        "Sixday",
+        "Weekend"
+      )
+    ),
+    (
       newspaperVoucherBookMonthlyPrices,
+      newspaperVoucherBookMonthlyPriceDistibutions,
       List(
         "Everyday",
         "Sixday",
@@ -1213,14 +1257,53 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         "Saturday+",
         "Sunday+"
       )
-    )
-  ).foreach { case (mapper: Map[String, BigDecimal], ratePlanNames: List[String]) =>
-    ratePlanNames.foreach { ratePlanName =>
-      assertEquals(
-        newspaperHomeDeliveryMonthlyPrices.get(ratePlanName).get,
-        priceDistributionToPrice(newspaperHomeDeliveryMonthlyPriceDistributions.get(ratePlanName).get)
+    ),
+    (
+      newspaperVoucherBookQuarterlyPrices,
+      newspaperVoucherBookQuarterlyPriceDistibutions,
+      List(
+        "Everyday",
+        "Sixday",
+        "Weekend",
+        "Everyday+",
+        "Sixday+",
+        "Weekend+",
+        "Sunday+"
       )
-    }
+    ),
+    (
+      newspaperVoucherBookSemiAnnualPrices,
+      newspaperVoucherBookSemiAnnualPriceDistributions,
+      List(
+        "Everyday",
+        "Sixday",
+        "Weekend",
+        "Everyday+",
+        "Sixday+",
+        "Weekend+",
+        "Sunday+"
+      )
+    ),
+    (
+      newspaperVoucherBookAnnualPrices,
+      newspaperVoucherBookAnnualPriceDistributions,
+      List(
+        "Everyday",
+        "Sixday",
+        "Weekend",
+        "Everyday+",
+        "Sixday+",
+        "Weekend+",
+      )
+    )
+  ).foreach {
+    case (mapper1: Map[String, BigDecimal], mapper2: Map[String, PriceDistribution], ratePlanNames: List[String]) =>
+      ratePlanNames.foreach { ratePlanName =>
+        assertEquals(
+          mapper1(ratePlanName),
+          priceDistributionToPrice(mapper2(ratePlanName))
+        )
+      }
   }
 
 }
