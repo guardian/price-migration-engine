@@ -1183,6 +1183,36 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         "Saturday+",
         "Sunday+"
       )
+    ),
+    (
+      newspaperSubscriptionCardMonthlyPrices,
+      List(
+        "Everyday",
+        "Sixday",
+        "Weekend",
+        "Saturday",
+        "Sunday",
+        "Everyday+",
+        "Sixday+",
+        "Weekend+",
+        "Saturday+",
+        "Sunday+"
+      )
+    ),
+    (
+      newspaperVoucherBookMonthlyPrices,
+      List(
+        "Everyday",
+        "Sixday",
+        "Weekend",
+        "Saturday",
+        "Sunday",
+        "Everyday+",
+        "Sixday+",
+        "Weekend+",
+        "Saturday+",
+        "Sunday+"
+      )
     )
   ).foreach { case (mapper: Map[String, BigDecimal], ratePlanNames: List[String]) =>
     ratePlanNames.foreach { ratePlanName =>
