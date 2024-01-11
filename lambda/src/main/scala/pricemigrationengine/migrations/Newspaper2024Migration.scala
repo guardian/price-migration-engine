@@ -632,13 +632,37 @@ object Newspaper2024Migration {
   )
 
   /*
-  The pricing system, explained (Part 4):
+    The pricing system, explained (Part 4):
 
-  The last piece of the pricing puzzle is the following function that turns a PriceDistribution into a price
-  by summing the non None components. It's used in tests to ensure consistency between the price matrix and
-  the price distributions
+    The last pieces of the pricing puzzle are
 
+    1. A function that perform price distribution lookups
+
+    2. A function that turns a PriceDistribution into a price by summing the non None components. It's used in
+    tests to ensure consistency between the price matrix and the price distributions
    */
+
+  def priceDistributionLookup(
+      product: String,
+      billingPeriod: BillingPeriod,
+      ratePlanName: String
+  ): Option[PriceDistribution] = {
+    val empty: Map[String, PriceDistribution] = Map()
+    val priceMap = (product, billingPeriod) match {
+      case ("Newspaper Delivery", Monthly)           => newspaperHomeDeliveryMonthlyPriceDistributions
+      case ("Newspaper Delivery", Quarterly)         => newspaperHomeDeliveryQuarterlyPriceDistributions
+      case ("Newspaper Digital Voucher", Monthly)    => newspaperSubscriptionCardMonthlyPriceDistributions
+      case ("Newspaper Digital Voucher", Quarterly)  => newspaperSubscriptionCardQuarterlyPriceDistributions
+      case ("Newspaper Digital Voucher", SemiAnnual) => newspaperSubscriptionCardSemiAnnualPriceDistributions
+      case ("Newspaper Digital Voucher", Annual)     => newspaperSubscriptionCardAnnualPriceDistributions
+      case ("Newspaper Voucher", Monthly)            => newspaperVoucherBookMonthlyPriceDistibutions
+      case ("Newspaper Voucher", Quarterly)          => newspaperVoucherBookQuarterlyPriceDistibutions
+      case ("Newspaper Voucher", SemiAnnual)         => newspaperVoucherBookSemiAnnualPriceDistributions
+      case ("Newspaper Voucher", Annual)             => newspaperVoucherBookAnnualPriceDistributions
+      case _                                         => empty
+    }
+    priceMap.get(ratePlanName)
+  }
 
   def priceDistributionToPrice(distribution: PriceDistribution): BigDecimal = {
     List(
@@ -877,6 +901,20 @@ object Newspaper2024Migration {
           case MoreThanMonthlies => 1
         }
     }
+  }
+
+  // Amendment supporting functions
+
+  def subscriptionToNewPriceDistribution(subscription: ZuoraSubscription): Option[PriceDistribution] = {
+    for {
+      productName <- subscriptionToMigrationProductName(subscription).toOption
+      ratePlanDetails <- subscriptionToRatePlanDetails(subscription, productName).toOption
+      priceDistribution <- priceDistributionLookup(
+        productName,
+        ratePlanDetails.billingPeriod,
+        ratePlanDetails.ratePlanName
+      )
+    } yield priceDistribution
   }
 
 }
