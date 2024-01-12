@@ -65,14 +65,29 @@ object NotificationHandler extends CohortHandler {
   def main(
       cohortSpec: CohortSpec
   ): ZIO[Logging with CohortTable with SalesforceClient with EmailSender, Failure, HandlerOutput] = {
-    for {
-      today <- Clock.currentDateTime.map(_.toLocalDate)
-      count <- CohortTable
-        .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
-        .mapZIO(item => sendNotification(cohortSpec)(item, today))
-        .runFold(0) { (sum, count) => sum + count }
-      _ <- Logging.info(s"Successfully sent $count price rise notifications")
-    } yield HandlerOutput(isComplete = true)
+    cohortSpec.cohortName match {
+      case "Newspaper2024" => {
+        for {
+          today <- Clock.currentDateTime.map(_.toLocalDate)
+          count <- CohortTable
+            .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+            .take(1)
+            .mapZIO(item => sendNotification(cohortSpec)(item, today))
+            .runFold(0) { (sum, count) => sum + count }
+          _ <- Logging.info(s"Successfully sent $count price rise notifications")
+        } yield HandlerOutput(isComplete = true)
+      }
+      case _ => {
+        for {
+          today <- Clock.currentDateTime.map(_.toLocalDate)
+          count <- CohortTable
+            .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+            .mapZIO(item => sendNotification(cohortSpec)(item, today))
+            .runFold(0) { (sum, count) => sum + count }
+          _ <- Logging.info(s"Successfully sent $count price rise notifications")
+        } yield HandlerOutput(isComplete = true)
+      }
+    }
   }
 
   def sendNotification(cohortSpec: CohortSpec)(
@@ -310,21 +325,16 @@ object NotificationHandler extends CohortHandler {
     } yield 0
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    input.cohortName match {
-      case "Newspaper2024" => ZIO.succeed(HandlerOutput(isComplete = true))
-      case _ => {
-        main(input).provideSome[Logging](
-          EnvConfig.salesforce.layer,
-          EnvConfig.cohortTable.layer,
-          EnvConfig.emailSender.layer,
-          EnvConfig.stage.layer,
-          DynamoDBClientLive.impl,
-          DynamoDBZIOLive.impl,
-          CohortTableLive.impl(input),
-          SalesforceClientLive.impl,
-          EmailSenderLive.impl
-        )
-      }
-    }
+    main(input).provideSome[Logging](
+      EnvConfig.salesforce.layer,
+      EnvConfig.cohortTable.layer,
+      EnvConfig.emailSender.layer,
+      EnvConfig.stage.layer,
+      DynamoDBClientLive.impl,
+      DynamoDBZIOLive.impl,
+      CohortTableLive.impl(input),
+      SalesforceClientLive.impl,
+      EmailSenderLive.impl
+    )
   }
 }
