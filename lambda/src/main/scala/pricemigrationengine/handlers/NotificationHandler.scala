@@ -253,6 +253,10 @@ object NotificationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       address: SalesforceAddress
   ): Either[NotificationHandlerFailure, String] = {
+    // The country is usually a required field, this came from the old print migrations. It was
+    // not required for the 2023 digital migrations. Although technically required for
+    // the 2024 print migration, "United Kingdom" can be substituted for missing values considering
+    // that we are only delivery in the UK.
     MigrationType(cohortSpec) match {
       case Membership2023Monthlies =>
         requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
@@ -260,7 +264,8 @@ object NotificationHandler extends CohortHandler {
         requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
       case SupporterPlus2023V1V2MA =>
         requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
-      case _ => requiredField(address.country, "Contact.OtherAddress.country")
+      case Newspaper2024 => Right(address.country.getOrElse("United Kingdom"))
+      case _             => requiredField(address.country, "Contact.OtherAddress.country")
     }
   }
 
