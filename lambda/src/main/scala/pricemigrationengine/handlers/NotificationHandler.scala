@@ -65,29 +65,14 @@ object NotificationHandler extends CohortHandler {
   def main(
       cohortSpec: CohortSpec
   ): ZIO[Logging with CohortTable with SalesforceClient with EmailSender, Failure, HandlerOutput] = {
-    cohortSpec.cohortName match {
-      case "Newspaper2024" => {
-        for {
-          today <- Clock.currentDateTime.map(_.toLocalDate)
-          count <- CohortTable
-            .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
-            .take(1)
-            .mapZIO(item => sendNotification(cohortSpec)(item, today))
-            .runFold(0) { (sum, count) => sum + count }
-          _ <- Logging.info(s"Successfully sent $count price rise notifications")
-        } yield HandlerOutput(isComplete = true)
-      }
-      case _ => {
-        for {
-          today <- Clock.currentDateTime.map(_.toLocalDate)
-          count <- CohortTable
-            .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
-            .mapZIO(item => sendNotification(cohortSpec)(item, today))
-            .runFold(0) { (sum, count) => sum + count }
-          _ <- Logging.info(s"Successfully sent $count price rise notifications")
-        } yield HandlerOutput(isComplete = true)
-      }
-    }
+    for {
+      today <- Clock.currentDateTime.map(_.toLocalDate)
+      count <- CohortTable
+        .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+        .mapZIO(item => sendNotification(cohortSpec)(item, today))
+        .runFold(0) { (sum, count) => sum + count }
+      _ <- Logging.info(s"Successfully sent $count price rise notifications")
+    } yield HandlerOutput(isComplete = true)
   }
 
   def sendNotification(cohortSpec: CohortSpec)(
