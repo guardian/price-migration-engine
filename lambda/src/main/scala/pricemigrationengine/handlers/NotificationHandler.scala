@@ -6,7 +6,7 @@ import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
-import pricemigrationengine.migrations.Newspaper2024Migration
+import pricemigrationengine.migrations._
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -34,7 +34,7 @@ object NotificationHandler extends CohortHandler {
       case Membership2023Annuals   => 33
       case SupporterPlus2023V1V2MA => 33
       case DigiSubs2023            => 33
-      case Newspaper2024           => Newspaper2024Migration.maxLeadTime
+      case Newspaper2024           => Newspaper2024MigrationStaticData.maxLeadTime
       case Legacy                  => 49
     }
   }
@@ -45,7 +45,7 @@ object NotificationHandler extends CohortHandler {
       case Membership2023Annuals   => 31
       case SupporterPlus2023V1V2MA => 31
       case DigiSubs2023            => 31
-      case Newspaper2024           => Newspaper2024Migration.minLeadTime
+      case Newspaper2024           => Newspaper2024MigrationStaticData.minLeadTime
       case Legacy                  => 35
     }
   }

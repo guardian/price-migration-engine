@@ -3,10 +3,12 @@ import pricemigrationengine.model._
 
 import java.time.LocalDate
 
-object Newspaper2024Migration {
-
+object Newspaper2024MigrationStaticData {
   val maxLeadTime = 40
   val minLeadTime = 35
+}
+
+object Newspaper2024Migration {
 
   /*
     Correspondence between product names in Salesforce versus Zuora
@@ -886,7 +888,7 @@ object Newspaper2024Migration {
     datesMax(
       earliestPriceMigrationStartDate,
       today.plusDays(
-        minLeadTime + 1
+        Newspaper2024MigrationStaticData.minLeadTime + 1
       ) // +1 because we need to be strictly over minLeadTime days away. Exactly minLeadTime is not enough.
     )
   }
