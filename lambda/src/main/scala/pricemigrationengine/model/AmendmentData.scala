@@ -4,7 +4,7 @@ import pricemigrationengine.migrations.{
   DigiSubs2023Migration,
   GuardianWeeklyMigration,
   Membership2023Migration,
-  Newspaper2024Migration
+  Newspaper2024MigrationEstimation
 }
 import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, productPricingMap}
 
@@ -343,7 +343,7 @@ object AmendmentData {
           subscription
         )
       case Newspaper2024 =>
-        Newspaper2024Migration.priceData(
+        Newspaper2024MigrationEstimation.priceData(
           subscription
         )
       case Legacy => priceDataWithRatePlanMatching(account, catalogue, subscription, invoiceList, nextServiceStartDate)

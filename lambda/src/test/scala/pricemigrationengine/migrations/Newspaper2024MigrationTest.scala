@@ -5,7 +5,7 @@ import pricemigrationengine.model._
 import java.time.LocalDate
 import pricemigrationengine.Fixtures
 import pricemigrationengine.handlers.NotificationHandler.thereIsEnoughNotificationLeadTime
-import pricemigrationengine.migrations.Newspaper2024Migration._
+import pricemigrationengine.migrations.Newspaper2024MigrationEstimation._
 import pricemigrationengine.model.CohortTableFilter.SalesforcePriceRiceCreationComplete
 
 /*
@@ -990,60 +990,60 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
   test("Newspaper2024Migration | price data is correct | NewspaperHomeDelivery-Monthly") {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(33.76), BigDecimal(40.99), "Month")
-    assertEquals(Newspaper2024Migration.priceData(subscription), Right(priceData))
+    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperHomeDelivery-Quarterly") {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Quarterly/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(83.97), BigDecimal(95.97), "Quarter")
-    assertEquals(Newspaper2024Migration.priceData(subscription), Right(priceData))
+    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperSubscriptionCard-Monthly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Monthly/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(31.99), BigDecimal(34.99), "Month")
-    assertEquals(Newspaper2024Migration.priceData(subscription), Right(priceData))
+    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperSubscriptionCard-Quarterly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Quarterly/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(68.97), BigDecimal(77.97), "Quarter")
-    assertEquals(Newspaper2024Migration.priceData(subscription), Right(priceData))
+    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperSubscriptionCard-SemiAnnual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-SemiAnnual/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(287.94), BigDecimal(341.94), "Semi_Annual")
-    assertEquals(Newspaper2024Migration.priceData(subscription), Right(priceData))
+    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperSubscriptionCard-Annual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Annual/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(731.88), BigDecimal(779.88), "Annual")
-    assertEquals(Newspaper2024Migration.priceData(subscription), Right(priceData))
+    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperVoucherBook-Monthly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Monthly/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(31.99), BigDecimal(34.99), "Month")
-    assertEquals(Newspaper2024Migration.priceData(subscription), Right(priceData))
+    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperVoucherBook-Quarterly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Quarterly/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(95.97), BigDecimal(104.97), "Quarter")
-    assertEquals(Newspaper2024Migration.priceData(subscription), Right(priceData))
+    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperVoucherBook-SemiAnnual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-SemiAnnual/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(191.94), BigDecimal(209.94), "Semi_Annual")
-    assertEquals(Newspaper2024Migration.priceData(subscription), Right(priceData))
+    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperVoucherBook-Annual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Annual/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(383.88), BigDecimal(419.88), "Annual")
-    assertEquals(Newspaper2024Migration.priceData(subscription), Right(priceData))
+    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
   }
 
   // -- subscription to batch Id -------------------------------------------------------
@@ -1057,51 +1057,51 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
 
   test("Newspaper2024Migration | batchId is correct | NewspaperHomeDelivery-Monthly") {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/subscription.json")
-    assertEquals(Newspaper2024Migration.subscriptionToBatchId(subscription), Right(MonthliesPart1))
+    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MonthliesPart1))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperHomeDelivery-Quarterly") {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Quarterly/subscription.json")
-    assertEquals(Newspaper2024Migration.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
+    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperSubscriptionCard-Monthly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Monthly/subscription.json")
-    assertEquals(Newspaper2024Migration.subscriptionToBatchId(subscription), Right(MonthliesPart1))
+    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MonthliesPart1))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperSubscriptionCard-Quarterly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Quarterly/subscription.json")
-    assertEquals(Newspaper2024Migration.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
+    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperSubscriptionCard-SemiAnnual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-SemiAnnual/subscription.json")
-    assertEquals(Newspaper2024Migration.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
+    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperSubscriptionCard-Annual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Annual/subscription.json")
-    assertEquals(Newspaper2024Migration.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
+    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperVoucherBook-Monthly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Monthly/subscription.json")
-    assertEquals(Newspaper2024Migration.subscriptionToBatchId(subscription), Right(MonthliesPart2))
+    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MonthliesPart2))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperVoucherBook-Quarterly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Quarterly/subscription.json")
-    assertEquals(Newspaper2024Migration.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
+    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperVoucherBook-SemiAnnual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-SemiAnnual/subscription.json")
-    assertEquals(Newspaper2024Migration.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
+    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperVoucherBook-Annual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Annual/subscription.json")
-    assertEquals(Newspaper2024Migration.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
+    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
   }
 
   // -- spread period -------------------------------------------------------
