@@ -234,21 +234,4 @@ object Newspaper2024MigrationEstimation {
         }
     }
   }
-
-  // Amendment supporting functions
-
-  def subscriptionToNewPriceDistribution(
-      subscription: ZuoraSubscription
-  ): Option[Newspaper2024MigrationStaticData.PriceDistribution] = {
-    for {
-      productName <- subscriptionToMigrationProductName(subscription).toOption
-      ratePlanDetails <- subscriptionToRatePlanDetails(subscription, productName).toOption
-      priceDistribution <- Newspaper2024MigrationStaticData.priceDistributionLookup(
-        productName,
-        ratePlanDetails.billingPeriod,
-        ratePlanDetails.ratePlanName
-      )
-    } yield priceDistribution
-  }
-
 }
