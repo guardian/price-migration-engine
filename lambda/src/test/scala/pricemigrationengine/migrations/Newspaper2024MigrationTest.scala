@@ -1307,7 +1307,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
   ).foreach {
     case (
           mapper1: Map[String, BigDecimal],
-          mapper2: Map[String, Newspaper2024MigrationStaticData.PriceDistribution],
+          mapper2: Map[String, Newspaper2024MigrationStaticData.RatePlanCharges2024],
           ratePlanNames: List[String]
         ) =>
       ratePlanNames.foreach { ratePlanName =>

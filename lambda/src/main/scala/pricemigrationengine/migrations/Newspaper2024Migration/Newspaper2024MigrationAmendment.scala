@@ -6,7 +6,7 @@ import java.time.LocalDate
 
 object Newspaper2024MigrationAmendment {
 
-  def subscriptionToNewPriceDistribution(subscription: ZuoraSubscription): Option[PriceDistribution] = {
+  def subscriptionToNewPriceDistribution(subscription: ZuoraSubscription): Option[RatePlanCharges2024] = {
     for {
       productName <- Newspaper2024MigrationEstimation.subscriptionToMigrationProductName(subscription).toOption
       ratePlanDetails <- Newspaper2024MigrationEstimation
@@ -21,7 +21,7 @@ object Newspaper2024MigrationAmendment {
   }
 
   def priceDistributionToChargeOverrides(
-      distribution: PriceDistribution,
+      distribution: RatePlanCharges2024,
       billingPeriod: String
   ): List[ChargeOverride] = {
     List(

@@ -206,7 +206,7 @@ object Newspaper2024MigrationStaticData {
     To encapsulate this information, we use `case class PriceDistribution`
    */
 
-  case class PriceDistribution(
+  case class RatePlanCharges2024(
       monday: Option[BigDecimal],
       tuesday: Option[BigDecimal],
       wednesday: Option[BigDecimal],
@@ -250,10 +250,10 @@ object Newspaper2024MigrationStaticData {
     multiplier to derive the quarterly, semi-annual and annual price distributions.
    */
 
-  def priceDistributionMultiplier(pd: PriceDistribution, multiplier: Int): PriceDistribution = {
+  def priceDistributionMultiplier(pd: RatePlanCharges2024, multiplier: Int): RatePlanCharges2024 = {
     def mult(bd: Option[BigDecimal]): Option[BigDecimal] = bd.map(bd => bd * BigDecimal(multiplier))
 
-    PriceDistribution(
+    RatePlanCharges2024(
       monday = mult(pd.monday),
       tuesday = mult(pd.tuesday),
       wednesday = mult(pd.wednesday),
@@ -265,8 +265,8 @@ object Newspaper2024MigrationStaticData {
     )
   }
 
-  val newspaperHomeDeliveryMonthlyPriceDistributions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(
+  val newspaperHomeDeliveryMonthlyPriceDistributions: Map[String, RatePlanCharges2024] = Map(
+    "Everyday" -> RatePlanCharges2024(
       monday = Some(BigDecimal(10.24)),
       tuesday = Some(BigDecimal(10.24)),
       wednesday = Some(BigDecimal(10.24)),
@@ -276,7 +276,7 @@ object Newspaper2024MigrationStaticData {
       sunday = Some(BigDecimal(13.90)),
       digitalPack = None,
     ),
-    "Sixday" -> PriceDistribution(
+    "Sixday" -> RatePlanCharges2024(
       monday = Some(BigDecimal(10.85)),
       tuesday = Some(BigDecimal(10.85)),
       wednesday = Some(BigDecimal(10.85)),
@@ -286,7 +286,7 @@ object Newspaper2024MigrationStaticData {
       sunday = None,
       digitalPack = None,
     ),
-    "Weekend" -> PriceDistribution(
+    "Weekend" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -296,7 +296,7 @@ object Newspaper2024MigrationStaticData {
       Some(BigDecimal(16.00)),
       None
     ),
-    "Saturday" -> PriceDistribution(
+    "Saturday" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -306,7 +306,7 @@ object Newspaper2024MigrationStaticData {
       Some(BigDecimal(19.99)),
       None,
     ),
-    "Sunday" -> PriceDistribution(
+    "Sunday" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -316,7 +316,7 @@ object Newspaper2024MigrationStaticData {
       Some(BigDecimal(19.99)),
       None,
     ),
-    "Everyday+" -> PriceDistribution(
+    "Everyday+" -> RatePlanCharges2024(
       monday = Some(BigDecimal(10.24)),
       tuesday = Some(BigDecimal(10.24)),
       wednesday = Some(BigDecimal(10.24)),
@@ -326,7 +326,7 @@ object Newspaper2024MigrationStaticData {
       sunday = Some(BigDecimal(13.90)),
       digitalPack = Some(BigDecimal(2.00)),
     ),
-    "Sixday+" -> PriceDistribution(
+    "Sixday+" -> RatePlanCharges2024(
       monday = Some(BigDecimal(10.85)),
       tuesday = Some(BigDecimal(10.85)),
       wednesday = Some(BigDecimal(10.85)),
@@ -336,7 +336,7 @@ object Newspaper2024MigrationStaticData {
       sunday = None,
       digitalPack = Some(BigDecimal(2.00)),
     ),
-    "Weekend+" -> PriceDistribution(
+    "Weekend+" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -346,7 +346,7 @@ object Newspaper2024MigrationStaticData {
       Some(BigDecimal(16.00)),
       digitalPack = Some(BigDecimal(9.00)),
     ),
-    "Saturday+" -> PriceDistribution(
+    "Saturday+" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -356,7 +356,7 @@ object Newspaper2024MigrationStaticData {
       Some(BigDecimal(19.99)),
       digitalPack = Some(BigDecimal(11.00)),
     ),
-    "Sunday+" -> PriceDistribution(
+    "Sunday+" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -368,7 +368,7 @@ object Newspaper2024MigrationStaticData {
     ),
   )
 
-  val newspaperHomeDeliveryQuarterlyPriceDistributions: Map[String, PriceDistribution] = Map(
+  val newspaperHomeDeliveryQuarterlyPriceDistributions: Map[String, RatePlanCharges2024] = Map(
     "Everyday" -> priceDistributionMultiplier(newspaperHomeDeliveryMonthlyPriceDistributions("Everyday"), 3),
     "Sixday" -> priceDistributionMultiplier(newspaperHomeDeliveryMonthlyPriceDistributions("Sixday"), 3),
     "Weekend" -> priceDistributionMultiplier(newspaperHomeDeliveryMonthlyPriceDistributions("Weekend"), 3),
@@ -376,8 +376,8 @@ object Newspaper2024MigrationStaticData {
     "Sunday" -> priceDistributionMultiplier(newspaperHomeDeliveryMonthlyPriceDistributions("Sunday"), 3),
   )
 
-  val newspaperSubscriptionCardMonthlyPriceDistributions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(
+  val newspaperSubscriptionCardMonthlyPriceDistributions: Map[String, RatePlanCharges2024] = Map(
+    "Everyday" -> RatePlanCharges2024(
       monday = Some(BigDecimal(8.42)),
       tuesday = Some(BigDecimal(8.42)),
       wednesday = Some(BigDecimal(8.42)),
@@ -387,7 +387,7 @@ object Newspaper2024MigrationStaticData {
       sunday = Some(BigDecimal(11.45)),
       digitalPack = None,
     ),
-    "Sixday" -> PriceDistribution(
+    "Sixday" -> RatePlanCharges2024(
       monday = Some(BigDecimal(8.96)),
       tuesday = Some(BigDecimal(8.96)),
       wednesday = Some(BigDecimal(8.96)),
@@ -397,7 +397,7 @@ object Newspaper2024MigrationStaticData {
       sunday = None,
       digitalPack = None,
     ),
-    "Weekend" -> PriceDistribution(
+    "Weekend" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -407,7 +407,7 @@ object Newspaper2024MigrationStaticData {
       Some(BigDecimal(13.00)),
       None
     ),
-    "Saturday" -> PriceDistribution(
+    "Saturday" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -417,7 +417,7 @@ object Newspaper2024MigrationStaticData {
       Some(BigDecimal(14.99)),
       None,
     ),
-    "Sunday" -> PriceDistribution(
+    "Sunday" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -427,7 +427,7 @@ object Newspaper2024MigrationStaticData {
       Some(BigDecimal(14.99)),
       digitalPack = None,
     ),
-    "Everyday+" -> PriceDistribution(
+    "Everyday+" -> RatePlanCharges2024(
       monday = Some(BigDecimal(8.42)),
       tuesday = Some(BigDecimal(8.42)),
       wednesday = Some(BigDecimal(8.42)),
@@ -437,7 +437,7 @@ object Newspaper2024MigrationStaticData {
       sunday = Some(BigDecimal(11.45)),
       digitalPack = Some(BigDecimal(2.00)),
     ),
-    "Sixday+" -> PriceDistribution(
+    "Sixday+" -> RatePlanCharges2024(
       monday = Some(BigDecimal(8.96)),
       tuesday = Some(BigDecimal(8.96)),
       wednesday = Some(BigDecimal(8.96)),
@@ -447,7 +447,7 @@ object Newspaper2024MigrationStaticData {
       sunday = None,
       digitalPack = Some(BigDecimal(2.00)),
     ),
-    "Weekend+" -> PriceDistribution(
+    "Weekend+" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -457,7 +457,7 @@ object Newspaper2024MigrationStaticData {
       Some(BigDecimal(13.00)),
       digitalPack = Some(BigDecimal(9.00)),
     ),
-    "Saturday+" -> PriceDistribution(
+    "Saturday+" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -467,7 +467,7 @@ object Newspaper2024MigrationStaticData {
       Some(BigDecimal(14.99)),
       digitalPack = Some(BigDecimal(11.00)),
     ),
-    "Sunday+" -> PriceDistribution(
+    "Sunday+" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -479,7 +479,7 @@ object Newspaper2024MigrationStaticData {
     ),
   )
 
-  val newspaperSubscriptionCardQuarterlyPriceDistributions: Map[String, PriceDistribution] = Map(
+  val newspaperSubscriptionCardQuarterlyPriceDistributions: Map[String, RatePlanCharges2024] = Map(
     "Everyday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Everyday"), 3),
     "Sixday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Sixday"), 3),
     "Weekend" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Weekend"), 3),
@@ -487,20 +487,20 @@ object Newspaper2024MigrationStaticData {
     "Sixday+" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Sixday+"), 3),
   )
 
-  val newspaperSubscriptionCardSemiAnnualPriceDistributions: Map[String, PriceDistribution] = Map(
+  val newspaperSubscriptionCardSemiAnnualPriceDistributions: Map[String, RatePlanCharges2024] = Map(
     "Everyday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Everyday"), 6),
     "Sixday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Sixday"), 6),
     "Everyday+" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Everyday+"), 6),
   )
 
-  val newspaperSubscriptionCardAnnualPriceDistributions: Map[String, PriceDistribution] = Map(
+  val newspaperSubscriptionCardAnnualPriceDistributions: Map[String, RatePlanCharges2024] = Map(
     "Everyday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Everyday"), 12),
     "Sixday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Sixday"), 12),
     "Weekend" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Weekend"), 12),
   )
 
-  val newspaperVoucherBookMonthlyPriceDistibutions: Map[String, PriceDistribution] = Map(
-    "Everyday" -> PriceDistribution(
+  val newspaperVoucherBookMonthlyPriceDistibutions: Map[String, RatePlanCharges2024] = Map(
+    "Everyday" -> RatePlanCharges2024(
       monday = Some(BigDecimal(8.42)),
       tuesday = Some(BigDecimal(8.42)),
       wednesday = Some(BigDecimal(8.42)),
@@ -510,7 +510,7 @@ object Newspaper2024MigrationStaticData {
       sunday = Some(BigDecimal(11.45)),
       digitalPack = None,
     ),
-    "Sixday" -> PriceDistribution(
+    "Sixday" -> RatePlanCharges2024(
       monday = Some(BigDecimal(8.96)),
       tuesday = Some(BigDecimal(8.96)),
       wednesday = Some(BigDecimal(8.96)),
@@ -520,7 +520,7 @@ object Newspaper2024MigrationStaticData {
       sunday = None,
       digitalPack = None,
     ),
-    "Weekend" -> PriceDistribution(
+    "Weekend" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -530,7 +530,7 @@ object Newspaper2024MigrationStaticData {
       Some(BigDecimal(13.00)),
       None
     ),
-    "Saturday" -> PriceDistribution(
+    "Saturday" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -540,7 +540,7 @@ object Newspaper2024MigrationStaticData {
       Some(BigDecimal(14.99)),
       None,
     ),
-    "Sunday" -> PriceDistribution(
+    "Sunday" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -550,7 +550,7 @@ object Newspaper2024MigrationStaticData {
       Some(BigDecimal(14.99)),
       digitalPack = None,
     ),
-    "Everyday+" -> PriceDistribution(
+    "Everyday+" -> RatePlanCharges2024(
       monday = Some(BigDecimal(8.42)),
       tuesday = Some(BigDecimal(8.42)),
       wednesday = Some(BigDecimal(8.42)),
@@ -560,7 +560,7 @@ object Newspaper2024MigrationStaticData {
       sunday = Some(BigDecimal(11.45)),
       digitalPack = Some(BigDecimal(2.00)),
     ),
-    "Sixday+" -> PriceDistribution(
+    "Sixday+" -> RatePlanCharges2024(
       monday = Some(BigDecimal(8.96)),
       tuesday = Some(BigDecimal(8.96)),
       wednesday = Some(BigDecimal(8.96)),
@@ -570,7 +570,7 @@ object Newspaper2024MigrationStaticData {
       sunday = None,
       digitalPack = Some(BigDecimal(2.00)),
     ),
-    "Weekend+" -> PriceDistribution(
+    "Weekend+" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -580,7 +580,7 @@ object Newspaper2024MigrationStaticData {
       Some(BigDecimal(13.00)),
       digitalPack = Some(BigDecimal(9.00)),
     ),
-    "Saturday+" -> PriceDistribution(
+    "Saturday+" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -590,7 +590,7 @@ object Newspaper2024MigrationStaticData {
       Some(BigDecimal(14.99)),
       digitalPack = Some(BigDecimal(11.00)),
     ),
-    "Sunday+" -> PriceDistribution(
+    "Sunday+" -> RatePlanCharges2024(
       None,
       None,
       None,
@@ -602,7 +602,7 @@ object Newspaper2024MigrationStaticData {
     ),
   )
 
-  val newspaperVoucherBookQuarterlyPriceDistibutions: Map[String, PriceDistribution] = Map(
+  val newspaperVoucherBookQuarterlyPriceDistibutions: Map[String, RatePlanCharges2024] = Map(
     "Everyday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Everyday"), 3),
     "Sixday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sixday"), 3),
     "Weekend" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Weekend"), 3),
@@ -612,7 +612,7 @@ object Newspaper2024MigrationStaticData {
     "Sunday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sunday+"), 3),
   )
 
-  val newspaperVoucherBookSemiAnnualPriceDistributions: Map[String, PriceDistribution] = Map(
+  val newspaperVoucherBookSemiAnnualPriceDistributions: Map[String, RatePlanCharges2024] = Map(
     "Everyday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Everyday"), 6),
     "Sixday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sixday"), 6),
     "Weekend" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Weekend"), 6),
@@ -622,7 +622,7 @@ object Newspaper2024MigrationStaticData {
     "Sunday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sunday+"), 6),
   )
 
-  val newspaperVoucherBookAnnualPriceDistributions: Map[String, PriceDistribution] = Map(
+  val newspaperVoucherBookAnnualPriceDistributions: Map[String, RatePlanCharges2024] = Map(
     "Everyday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Everyday"), 12),
     "Sixday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sixday"), 12),
     "Weekend" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Weekend"), 12),
@@ -646,8 +646,8 @@ object Newspaper2024MigrationStaticData {
       product: String,
       billingPeriod: BillingPeriod,
       ratePlanName: String
-  ): Option[PriceDistribution] = {
-    val empty: Map[String, PriceDistribution] = Map()
+  ): Option[RatePlanCharges2024] = {
+    val empty: Map[String, RatePlanCharges2024] = Map()
     val priceMap = (product, billingPeriod) match {
       case ("Newspaper Delivery", Monthly)           => newspaperHomeDeliveryMonthlyPriceDistributions
       case ("Newspaper Delivery", Quarterly)         => newspaperHomeDeliveryQuarterlyPriceDistributions
@@ -664,7 +664,7 @@ object Newspaper2024MigrationStaticData {
     priceMap.get(ratePlanName)
   }
 
-  def priceDistributionToPrice(distribution: PriceDistribution): BigDecimal = {
+  def priceDistributionToPrice(distribution: RatePlanCharges2024): BigDecimal = {
     List(
       distribution.monday.getOrElse(BigDecimal(0)),
       distribution.tuesday.getOrElse(BigDecimal(0)),
