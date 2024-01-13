@@ -16,15 +16,35 @@ object AmendmentHandler extends CohortHandler {
   // TODO: move to config
   private val batchSize = 100
 
-  private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
-    for {
-      catalogue <- Zuora.fetchProductCatalogue
-      count <- CohortTable
-        .fetch(NotificationSendDateWrittenToSalesforce, None)
-        .take(batchSize)
-        .mapZIO(item => amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
-        .runCount
-    } yield HandlerOutput(isComplete = count < batchSize)
+  private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] = {
+    cohortSpec.cohortName match {
+      case "Newspaper2024" => {
+        for {
+          catalogue <- Zuora.fetchProductCatalogue
+          count <- CohortTable
+            .fetch(NotificationSendDateWrittenToSalesforce, None)
+            .take(1)
+            .mapZIO(item =>
+              amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
+            )
+            .runCount
+        } yield HandlerOutput(isComplete = count < batchSize)
+      }
+      case _ => {
+        for {
+          catalogue <- Zuora.fetchProductCatalogue
+          count <- CohortTable
+            .fetch(NotificationSendDateWrittenToSalesforce, None)
+            .take(batchSize)
+            .mapZIO(item =>
+              amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
+            )
+            .runCount
+        } yield HandlerOutput(isComplete = count < batchSize)
+      }
+    }
+
+  }
 
   private def amend(
       cohortSpec: CohortSpec,
@@ -270,19 +290,14 @@ object AmendmentHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    input.cohortName match {
-      case "Newspaper2024" => ZIO.succeed(HandlerOutput(isComplete = true))
-      case _ => {
-        main(input).provideSome[Logging](
-          EnvConfig.cohortTable.layer,
-          EnvConfig.zuora.layer,
-          EnvConfig.stage.layer,
-          DynamoDBZIOLive.impl,
-          DynamoDBClientLive.impl,
-          CohortTableLive.impl(input),
-          ZuoraLive.impl
-        )
-      }
-    }
+    main(input).provideSome[Logging](
+      EnvConfig.cohortTable.layer,
+      EnvConfig.zuora.layer,
+      EnvConfig.stage.layer,
+      DynamoDBZIOLive.impl,
+      DynamoDBClientLive.impl,
+      CohortTableLive.impl(input),
+      ZuoraLive.impl
+    )
   }
 }
