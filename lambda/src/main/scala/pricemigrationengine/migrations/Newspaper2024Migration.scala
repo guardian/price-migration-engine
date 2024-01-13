@@ -4,11 +4,9 @@ import pricemigrationengine.model._
 import java.time.LocalDate
 
 object Newspaper2024MigrationStaticData {
+
   val maxLeadTime = 40
   val minLeadTime = 35
-}
-
-object Newspaper2024Migration {
 
   /*
     Correspondence between product names in Salesforce versus Zuora
@@ -204,7 +202,6 @@ object Newspaper2024Migration {
     which leads to the 80.99 we have in the price matrix.
 
     To encapsulate this information, we use `case class PriceDistribution`
-
    */
 
   case class PriceDistribution(
@@ -248,8 +245,7 @@ object Newspaper2024Migration {
     3. For this we have the function `priceDistributionMultiplier(pd: PriceDistribution, multiplier: Int)`
 
     The general pattern is therefore to have hard coded price distributions for the monthly rate plans, and to use the
-    multiplier to derive the quarterly, semi-annual and annual price distributions
-
+    multiplier to derive the quarterly, semi-annual and annual price distributions.
    */
 
   def priceDistributionMultiplier(pd: PriceDistribution, multiplier: Int): PriceDistribution = {
@@ -634,14 +630,14 @@ object Newspaper2024Migration {
   )
 
   /*
-    The pricing system, explained (Part 4):
+  The pricing system, explained (Part 4):
 
-    The last pieces of the pricing puzzle are
+  The last pieces of the pricing puzzle are
 
-    1. A function that perform price distribution lookups
+  1. A function that perform price distribution lookups
 
-    2. A function that turns a PriceDistribution into a price by summing the non None components. It's used in
-    tests to ensure consistency between the price matrix and the price distributions
+  2. A function that turns a PriceDistribution into a price by summing the non None components. It's used in
+  tests to ensure consistency between the price matrix and the price distributions
    */
 
   def priceDistributionLookup(
@@ -678,6 +674,10 @@ object Newspaper2024Migration {
       distribution.digitalPack.getOrElse(BigDecimal(0))
     ).foldLeft(BigDecimal(0))((sum, item) => sum + item)
   }
+
+}
+
+object Newspaper2024Migration {
 
   // --------------------------------------------------------------------------------------------
 
@@ -779,7 +779,11 @@ object Newspaper2024Migration {
     for {
       productName <- subscriptionToMigrationProductName(subscription).toOption
       ratePlanDetails <- subscriptionToRatePlanDetails(subscription, productName).toOption
-      price <- priceLookup(productName, ratePlanDetails.billingPeriod, ratePlanDetails.ratePlanName)
+      price <- Newspaper2024MigrationStaticData.priceLookup(
+        productName,
+        ratePlanDetails.billingPeriod,
+        ratePlanDetails.ratePlanName
+      )
     } yield price
   }
 
@@ -907,11 +911,13 @@ object Newspaper2024Migration {
 
   // Amendment supporting functions
 
-  def subscriptionToNewPriceDistribution(subscription: ZuoraSubscription): Option[PriceDistribution] = {
+  def subscriptionToNewPriceDistribution(
+      subscription: ZuoraSubscription
+  ): Option[Newspaper2024MigrationStaticData.PriceDistribution] = {
     for {
       productName <- subscriptionToMigrationProductName(subscription).toOption
       ratePlanDetails <- subscriptionToRatePlanDetails(subscription, productName).toOption
-      priceDistribution <- priceDistributionLookup(
+      priceDistribution <- Newspaper2024MigrationStaticData.priceDistributionLookup(
         productName,
         ratePlanDetails.billingPeriod,
         ratePlanDetails.ratePlanName
