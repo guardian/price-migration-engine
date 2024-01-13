@@ -10,7 +10,8 @@ object Newspaper2024MigrationEstimation {
   // RatePlanDetails was introduced to help properly test the data gathering to build the PriceData
   // It turned out to be particularly useful for testing that the logic was correct
   // It is currently limited to Newspaper2024Migration, but could be generalised to other (future) migrations
-  case class RatePlanDetails2024(
+  case class SubscriptionData2024(
+      productName: String,
       ratePlan: ZuoraRatePlan,
       ratePlanName: String,
       billingPeriod: BillingPeriod,
@@ -60,10 +61,9 @@ object Newspaper2024MigrationEstimation {
     } yield ratePlanCharge.currency
   }
 
-  def subscriptionToRatePlanDetails(
-      subscription: ZuoraSubscription,
-      productName: String
-  ): Either[String, RatePlanDetails2024] = {
+  def subscriptionToSubscriptionData2024(subscription: ZuoraSubscription): Either[String, SubscriptionData2024] = {
+    val productName =
+      subscriptionToMigrationProductName(subscription).toOption.getOrElse("") // empty string will cause error 93a21a48
     val ratePlans = {
       subscription.ratePlans
         .filter(ratePlan => ratePlan.productName == productName)
@@ -83,12 +83,13 @@ object Newspaper2024MigrationEstimation {
             (price: BigDecimal, ratePlanCharge: ZuoraRatePlanCharge) =>
               price + ratePlanCharge.price.getOrElse(BigDecimal(0))
           )
-        } yield RatePlanDetails2024(
-          ratePlan,
-          ratePlan.ratePlanName,
-          billingPeriod,
-          currency,
-          currentPrice
+        } yield SubscriptionData2024(
+          productName = productName,
+          ratePlan = ratePlan,
+          ratePlanName = ratePlan.ratePlanName,
+          billingPeriod = billingPeriod,
+          currency = currency,
+          currentPrice = currentPrice
         )) match {
           case Some(data) => Right(data)
           case _ => Left(s"[error: 0e218c37] Could not determine billing period for subscription ${subscription}")
@@ -101,14 +102,25 @@ object Newspaper2024MigrationEstimation {
     }
   }
 
+  /*
+
+    case class SubscriptionData2024(
+      productName: String,
+      ratePlan: ZuoraRatePlan,
+      ratePlanName: String,
+      billingPeriod: BillingPeriod,
+      currency: String,
+      currentPrice: BigDecimal
+  )
+   */
+
   def subscriptionToNewPrice(subscription: ZuoraSubscription): Option[BigDecimal] = {
     for {
-      productName <- subscriptionToMigrationProductName(subscription).toOption
-      ratePlanDetails <- subscriptionToRatePlanDetails(subscription, productName).toOption
+      data2024 <- subscriptionToSubscriptionData2024(subscription).toOption
       price <- Newspaper2024MigrationStaticData.priceLookup(
-        productName,
-        ratePlanDetails.billingPeriod,
-        ratePlanDetails.ratePlanName
+        data2024.productName,
+        data2024.billingPeriod,
+        data2024.ratePlanName
       )
     } yield price
   }
@@ -134,22 +146,20 @@ object Newspaper2024MigrationEstimation {
     }
 
     for {
-      productName <- transform2[String](subscriptionToMigrationProductName(subscription))
-      ratePlanDetails <- transform2[RatePlanDetails2024](subscriptionToRatePlanDetails(subscription, productName))
-      oldPrice = ratePlanDetails.currentPrice
+      data2024 <- transform2[SubscriptionData2024](subscriptionToSubscriptionData2024(subscription))
+      oldPrice = data2024.currentPrice
       newPrice <- transform1[BigDecimal](subscriptionToNewPrice(subscription))
     } yield PriceData(
-      ratePlanDetails.currency,
+      data2024.currency,
       oldPrice,
       newPrice,
-      BillingPeriod.toString(ratePlanDetails.billingPeriod)
+      BillingPeriod.toString(data2024.billingPeriod)
     )
   }
 
   def subscriptionToBatchId(subscription: ZuoraSubscription): Either[String, Newspaper2024BatchId] = {
     val ratePlanDetails = (for {
-      productName <- subscriptionToMigrationProductName(subscription)
-      ratePlanDetails <- subscriptionToRatePlanDetails(subscription, productName)
+      ratePlanDetails <- subscriptionToSubscriptionData2024(subscription)
     } yield ratePlanDetails)
 
     ratePlanDetails match {

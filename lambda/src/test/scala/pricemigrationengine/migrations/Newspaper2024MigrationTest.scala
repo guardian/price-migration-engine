@@ -91,7 +91,6 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
 
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperHomeDelivery-Monthly") {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/subscription.json")
-    val productName = subscriptionToMigrationProductName(subscription).toOption.get
     val ratePlanCharges = List(
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0ff560d311b0156136ba11539ae",
@@ -157,12 +156,19 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         None
       )
-    val details = RatePlanDetails2024(ratePlan, "Weekend+", Monthly, "GBP", BigDecimal(33.76)) // sum of the prices
-    assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
+    val details =
+      SubscriptionData2024(
+        "Newspaper Delivery",
+        ratePlan,
+        "Weekend+",
+        Monthly,
+        "GBP",
+        BigDecimal(33.76)
+      ) // sum of the prices
+    assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperHomeDelivery-Quarterly") {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Quarterly/subscription.json")
-    val productName = subscriptionToMigrationProductName(subscription).toOption.get
     val ratePlanCharges = List(
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0fd5614305c01561dc88fb875d0",
@@ -210,13 +216,13 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = RatePlanDetails2024(ratePlan, "Weekend", Quarterly, "GBP", BigDecimal(83.97))
-    assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
+    val details =
+      SubscriptionData2024("Newspaper Delivery", ratePlan, "Weekend", Quarterly, "GBP", BigDecimal(83.97))
+    assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-Monthly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Monthly/subscription.json")
-    val productName = subscriptionToMigrationProductName(subscription).toOption.get
     val ratePlanCharges = List(
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740c7132efe",
@@ -282,13 +288,13 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = RatePlanDetails2024(ratePlan, "Weekend+", Monthly, "GBP", BigDecimal(31.99))
-    assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
+    val details =
+      SubscriptionData2024("Newspaper Digital Voucher", ratePlan, "Weekend+", Monthly, "GBP", BigDecimal(31.99))
+    assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-Quarterly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Quarterly/subscription.json")
-    val productName = subscriptionToMigrationProductName(subscription).toOption.get
     val ratePlanCharges = List(
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740d325302c",
@@ -336,13 +342,13 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = RatePlanDetails2024(ratePlan, "Weekend", Quarterly, "GBP", BigDecimal(68.97))
-    assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
+    val details =
+      SubscriptionData2024("Newspaper Digital Voucher", ratePlan, "Weekend", Quarterly, "GBP", BigDecimal(68.97))
+    assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-SemiAnnual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-SemiAnnual/subscription.json")
-    val productName = subscriptionToMigrationProductName(subscription).toOption.get
     val ratePlanCharges = List(
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740cd6e2fa2",
@@ -462,13 +468,13 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = RatePlanDetails2024(ratePlan, "Sixday", SemiAnnual, "GBP", BigDecimal(287.94))
-    assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
+    val details =
+      SubscriptionData2024("Newspaper Digital Voucher", ratePlan, "Sixday", SemiAnnual, "GBP", BigDecimal(287.94))
+    assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-Annual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Annual/subscription.json")
-    val productName = subscriptionToMigrationProductName(subscription).toOption.get
     val ratePlanCharges = List(
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740c9d72f61",
@@ -606,17 +612,17 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = RatePlanDetails2024(ratePlan, "Everyday", Annual, "GBP", BigDecimal(731.88))
+    val details =
+      SubscriptionData2024("Newspaper Digital Voucher", ratePlan, "Everyday", Annual, "GBP", BigDecimal(731.88))
     assertEquals(
       details.currentPrice,
-      subscriptionToRatePlanDetails(subscription, productName).toOption.get.currentPrice
+      subscriptionToSubscriptionData2024(subscription).toOption.get.currentPrice
     )
-    assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
+    assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-Monthly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Monthly/subscription.json")
-    val productName = subscriptionToMigrationProductName(subscription).toOption.get
     val ratePlanCharges = List(
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0ff56fe33f5015709b8fc4d5617",
@@ -682,13 +688,12 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         None
       )
-    val details = RatePlanDetails2024(ratePlan, "Weekend+", Monthly, "GBP", BigDecimal(31.99))
-    assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
+    val details = SubscriptionData2024("Newspaper Voucher", ratePlan, "Weekend+", Monthly, "GBP", BigDecimal(31.99))
+    assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-Quarterly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Quarterly/subscription.json")
-    val productName = subscriptionToMigrationProductName(subscription).toOption.get
     val ratePlanCharges = List(
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0ff56fe33f5015709b8fc4d5617",
@@ -754,13 +759,12 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = RatePlanDetails2024(ratePlan, "Weekend+", Quarterly, "GBP", BigDecimal(95.97))
-    assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
+    val details = SubscriptionData2024("Newspaper Voucher", ratePlan, "Weekend+", Quarterly, "GBP", BigDecimal(95.97))
+    assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-SemiAnnual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-SemiAnnual/subscription.json")
-    val productName = subscriptionToMigrationProductName(subscription).toOption.get
     val ratePlanCharges = List(
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0ff56fe33f5015709b8fc4d5617",
@@ -826,13 +830,12 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = RatePlanDetails2024(ratePlan, "Weekend+", SemiAnnual, "GBP", BigDecimal(191.94))
-    assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
+    val details = SubscriptionData2024("Newspaper Voucher", ratePlan, "Weekend+", SemiAnnual, "GBP", BigDecimal(191.94))
+    assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-Annual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Annual/subscription.json")
-    val productName = subscriptionToMigrationProductName(subscription).toOption.get
     val ratePlanCharges = List(
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0ff56fe33f5015709b8fc4d5617",
@@ -898,8 +901,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = RatePlanDetails2024(ratePlan, "Weekend+", Annual, "GBP", BigDecimal(383.88))
-    assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
+    val details = SubscriptionData2024("Newspaper Voucher", ratePlan, "Weekend+", Annual, "GBP", BigDecimal(383.88))
+    assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
 
   // -- prices -------------------------------------------------------

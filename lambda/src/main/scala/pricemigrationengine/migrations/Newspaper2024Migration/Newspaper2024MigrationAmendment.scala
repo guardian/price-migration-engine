@@ -8,14 +8,13 @@ object Newspaper2024MigrationAmendment {
 
   def subscriptionToNewPriceDistribution(subscription: ZuoraSubscription): Option[ChargeDistribution2024] = {
     for {
-      productName <- Newspaper2024MigrationEstimation.subscriptionToMigrationProductName(subscription).toOption
-      ratePlanDetails <- Newspaper2024MigrationEstimation
-        .subscriptionToRatePlanDetails(subscription, productName)
+      data2024 <- Newspaper2024MigrationEstimation
+        .subscriptionToSubscriptionData2024(subscription)
         .toOption
       priceDistribution <- Newspaper2024MigrationStaticData.priceDistributionLookup(
-        productName,
-        ratePlanDetails.billingPeriod,
-        ratePlanDetails.ratePlanName
+        data2024.productName,
+        data2024.billingPeriod,
+        data2024.ratePlanName
       )
     } yield priceDistribution
   }
