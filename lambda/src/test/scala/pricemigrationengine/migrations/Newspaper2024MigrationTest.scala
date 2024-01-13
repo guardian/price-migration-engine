@@ -157,7 +157,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         None
       )
-    val details = RatePlanDetails(ratePlan, "Weekend+", Monthly, "GBP", BigDecimal(33.76)) // sum of the prices
+    val details = RatePlanDetails2024(ratePlan, "Weekend+", Monthly, "GBP", BigDecimal(33.76)) // sum of the prices
     assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperHomeDelivery-Quarterly") {
@@ -210,7 +210,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = RatePlanDetails(ratePlan, "Weekend", Quarterly, "GBP", BigDecimal(83.97))
+    val details = RatePlanDetails2024(ratePlan, "Weekend", Quarterly, "GBP", BigDecimal(83.97))
     assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-Monthly") {
@@ -282,7 +282,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = RatePlanDetails(ratePlan, "Weekend+", Monthly, "GBP", BigDecimal(31.99))
+    val details = RatePlanDetails2024(ratePlan, "Weekend+", Monthly, "GBP", BigDecimal(31.99))
     assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-Quarterly") {
@@ -336,7 +336,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = RatePlanDetails(ratePlan, "Weekend", Quarterly, "GBP", BigDecimal(68.97))
+    val details = RatePlanDetails2024(ratePlan, "Weekend", Quarterly, "GBP", BigDecimal(68.97))
     assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-SemiAnnual") {
@@ -462,7 +462,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = RatePlanDetails(ratePlan, "Sixday", SemiAnnual, "GBP", BigDecimal(287.94))
+    val details = RatePlanDetails2024(ratePlan, "Sixday", SemiAnnual, "GBP", BigDecimal(287.94))
     assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-Annual") {
@@ -606,7 +606,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = RatePlanDetails(ratePlan, "Everyday", Annual, "GBP", BigDecimal(731.88))
+    val details = RatePlanDetails2024(ratePlan, "Everyday", Annual, "GBP", BigDecimal(731.88))
     assertEquals(
       details.currentPrice,
       subscriptionToRatePlanDetails(subscription, productName).toOption.get.currentPrice
@@ -682,7 +682,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         None
       )
-    val details = RatePlanDetails(ratePlan, "Weekend+", Monthly, "GBP", BigDecimal(31.99))
+    val details = RatePlanDetails2024(ratePlan, "Weekend+", Monthly, "GBP", BigDecimal(31.99))
     assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-Quarterly") {
@@ -754,7 +754,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = RatePlanDetails(ratePlan, "Weekend+", Quarterly, "GBP", BigDecimal(95.97))
+    val details = RatePlanDetails2024(ratePlan, "Weekend+", Quarterly, "GBP", BigDecimal(95.97))
     assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-SemiAnnual") {
@@ -826,7 +826,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = RatePlanDetails(ratePlan, "Weekend+", SemiAnnual, "GBP", BigDecimal(191.94))
+    val details = RatePlanDetails2024(ratePlan, "Weekend+", SemiAnnual, "GBP", BigDecimal(191.94))
     assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-Annual") {
@@ -898,7 +898,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = RatePlanDetails(ratePlan, "Weekend+", Annual, "GBP", BigDecimal(383.88))
+    val details = RatePlanDetails2024(ratePlan, "Weekend+", Annual, "GBP", BigDecimal(383.88))
     assertEquals(subscriptionToRatePlanDetails(subscription, productName), Right(details))
   }
 

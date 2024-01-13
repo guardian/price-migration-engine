@@ -10,7 +10,7 @@ object Newspaper2024MigrationEstimation {
   // RatePlanDetails was introduced to help properly test the data gathering to build the PriceData
   // It turned out to be particularly useful for testing that the logic was correct
   // It is currently limited to Newspaper2024Migration, but could be generalised to other (future) migrations
-  case class RatePlanDetails(
+  case class RatePlanDetails2024(
       ratePlan: ZuoraRatePlan,
       ratePlanName: String,
       billingPeriod: BillingPeriod,
@@ -63,7 +63,7 @@ object Newspaper2024MigrationEstimation {
   def subscriptionToRatePlanDetails(
       subscription: ZuoraSubscription,
       productName: String
-  ): Either[String, RatePlanDetails] = {
+  ): Either[String, RatePlanDetails2024] = {
     val ratePlans = {
       subscription.ratePlans
         .filter(ratePlan => ratePlan.productName == productName)
@@ -83,7 +83,7 @@ object Newspaper2024MigrationEstimation {
             (price: BigDecimal, ratePlanCharge: ZuoraRatePlanCharge) =>
               price + ratePlanCharge.price.getOrElse(BigDecimal(0))
           )
-        } yield RatePlanDetails(
+        } yield RatePlanDetails2024(
           ratePlan,
           ratePlan.ratePlanName,
           billingPeriod,
@@ -135,7 +135,7 @@ object Newspaper2024MigrationEstimation {
 
     for {
       productName <- transform2[String](subscriptionToMigrationProductName(subscription))
-      ratePlanDetails <- transform2[RatePlanDetails](subscriptionToRatePlanDetails(subscription, productName))
+      ratePlanDetails <- transform2[RatePlanDetails2024](subscriptionToRatePlanDetails(subscription, productName))
       oldPrice = ratePlanDetails.currentPrice
       newPrice <- transform1[BigDecimal](subscriptionToNewPrice(subscription))
     } yield PriceData(
