@@ -163,7 +163,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         "Weekend+",
         Monthly,
         "GBP",
-        BigDecimal(33.76)
+        BigDecimal(33.76),
+        "2c92a0ff560d311b0156136b9f5c3968"
       ) // sum of the prices
     assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
@@ -217,7 +218,15 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         Some("Add")
       )
     val details =
-      SubscriptionData2024("Newspaper Delivery", ratePlan, "Weekend", Quarterly, "GBP", BigDecimal(83.97))
+      SubscriptionData2024(
+        "Newspaper Delivery",
+        ratePlan,
+        "Weekend",
+        Quarterly,
+        "GBP",
+        BigDecimal(83.97),
+        "2c92a0fd5614305c01561dc88f3275be"
+      )
     assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-Monthly") {
@@ -289,7 +298,15 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         Some("Add")
       )
     val details =
-      SubscriptionData2024("Newspaper Digital Voucher", ratePlan, "Weekend+", Monthly, "GBP", BigDecimal(31.99))
+      SubscriptionData2024(
+        "Newspaper Digital Voucher",
+        ratePlan,
+        "Weekend+",
+        Monthly,
+        "GBP",
+        BigDecimal(31.99),
+        "2c92a00870ec598001710740c6672ee7"
+      )
     assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-Quarterly") {
@@ -343,7 +360,15 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         Some("Add")
       )
     val details =
-      SubscriptionData2024("Newspaper Digital Voucher", ratePlan, "Weekend", Quarterly, "GBP", BigDecimal(68.97))
+      SubscriptionData2024(
+        "Newspaper Digital Voucher",
+        ratePlan,
+        "Weekend",
+        Quarterly,
+        "GBP",
+        BigDecimal(68.97),
+        "2c92a00870ec598001710740d24b3022"
+      )
     assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-SemiAnnual") {
@@ -469,7 +494,15 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         Some("Add")
       )
     val details =
-      SubscriptionData2024("Newspaper Digital Voucher", ratePlan, "Sixday", SemiAnnual, "GBP", BigDecimal(287.94))
+      SubscriptionData2024(
+        "Newspaper Digital Voucher",
+        ratePlan,
+        "Sixday",
+        SemiAnnual,
+        "GBP",
+        BigDecimal(287.94),
+        "2c92a00870ec598001710740ca532f69"
+      )
     assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperSubscriptionCard-Annual") {
@@ -613,11 +646,15 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         Some("Add")
       )
     val details =
-      SubscriptionData2024("Newspaper Digital Voucher", ratePlan, "Everyday", Annual, "GBP", BigDecimal(731.88))
-    assertEquals(
-      details.currentPrice,
-      subscriptionToSubscriptionData2024(subscription).toOption.get.currentPrice
-    )
+      SubscriptionData2024(
+        "Newspaper Digital Voucher",
+        ratePlan,
+        "Everyday",
+        Annual,
+        "GBP",
+        BigDecimal(731.88),
+        "2c92a00870ec598001710740c78d2f13"
+      )
     assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-Monthly") {
@@ -688,7 +725,15 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         None
       )
-    val details = SubscriptionData2024("Newspaper Voucher", ratePlan, "Weekend+", Monthly, "GBP", BigDecimal(31.99))
+    val details = SubscriptionData2024(
+      "Newspaper Voucher",
+      ratePlan,
+      "Weekend+",
+      Monthly,
+      "GBP",
+      BigDecimal(31.99),
+      "2c92a0fd56fe26b60157040cdd323f76"
+    )
     assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-Quarterly") {
@@ -759,7 +804,16 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = SubscriptionData2024("Newspaper Voucher", ratePlan, "Weekend+", Quarterly, "GBP", BigDecimal(95.97))
+    val details =
+      SubscriptionData2024(
+        "Newspaper Voucher",
+        ratePlan,
+        "Weekend+",
+        Quarterly,
+        "GBP",
+        BigDecimal(95.97),
+        "2c92a0fd56fe26b60157040cdd323f76"
+      )
     assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-SemiAnnual") {
@@ -830,7 +884,16 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = SubscriptionData2024("Newspaper Voucher", ratePlan, "Weekend+", SemiAnnual, "GBP", BigDecimal(191.94))
+    val details =
+      SubscriptionData2024(
+        "Newspaper Voucher",
+        ratePlan,
+        "Weekend+",
+        SemiAnnual,
+        "GBP",
+        BigDecimal(191.94),
+        "2c92a0fd56fe26b60157040cdd323f76"
+      )
     assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
   test("Newspaper2024Migration | Rate plan name determination is correct | NewspaperVoucherBook-Annual") {
@@ -901,7 +964,15 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         ratePlanCharges,
         Some("Add")
       )
-    val details = SubscriptionData2024("Newspaper Voucher", ratePlan, "Weekend+", Annual, "GBP", BigDecimal(383.88))
+    val details = SubscriptionData2024(
+      "Newspaper Voucher",
+      ratePlan,
+      "Weekend+",
+      Annual,
+      "GBP",
+      BigDecimal(383.88),
+      "2c92a0fd56fe26b60157040cdd323f76"
+    )
     assertEquals(subscriptionToSubscriptionData2024(subscription), Right(details))
   }
 

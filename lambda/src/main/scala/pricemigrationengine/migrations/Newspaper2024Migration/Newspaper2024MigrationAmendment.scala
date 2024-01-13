@@ -1,4 +1,5 @@
 package pricemigrationengine.migrations
+import pricemigrationengine.migrations.Newspaper2024MigrationEstimation.SubscriptionData2024
 import pricemigrationengine.migrations.Newspaper2024MigrationStaticData._
 import pricemigrationengine.model._
 
@@ -6,7 +7,7 @@ import java.time.LocalDate
 
 object Newspaper2024MigrationAmendment {
 
-  def subscriptionToNewPriceDistribution(subscription: ZuoraSubscription): Option[ChargeDistribution2024] = {
+  def subscriptionToNewChargeDistribution2024(subscription: ZuoraSubscription): Option[ChargeDistribution2024] = {
     for {
       data2024 <- Newspaper2024MigrationEstimation
         .subscriptionToSubscriptionData2024(subscription)
@@ -19,7 +20,7 @@ object Newspaper2024MigrationAmendment {
     } yield priceDistribution
   }
 
-  def priceDistributionToChargeOverrides(
+  def chargeDistributionToChargeOverrides(
       distribution: ChargeDistribution2024,
       billingPeriod: String
   ): List[ChargeOverride] = {
@@ -46,30 +47,41 @@ object Newspaper2024MigrationAmendment {
       effectiveDate: LocalDate,
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
 
-    val product = "Newspaper Delivery"
-    val ratePlanName = "EveryDay"
-    val ratePlanId = Newspaper2024MigrationStaticData.ratePlanIdLookUp(product, ratePlanName).get
-    val distribution = subscriptionToNewPriceDistribution(subscription).get
-    val billingPeriod = "Month"
+    def transform1[T](option: Option[T]): Either[AmendmentDataFailure, T] = {
+      option match {
+        case None                 => Left(AmendmentDataFailure("error"))
+        case Some(ratePlanCharge) => Right(ratePlanCharge)
+      }
+    }
 
-    Right(
-      ZuoraSubscriptionUpdate(
-        add = List(
-          AddZuoraRatePlan(
-            productRatePlanId = ratePlanId,
-            contractEffectiveDate = effectiveDate,
-            chargeOverrides = priceDistributionToChargeOverrides(distribution, billingPeriod)
-          )
-        ),
-        remove = List(
-          RemoveZuoraRatePlan(
-            ratePlanId = ratePlanId,
-            effectiveDate
-          )
-        ),
-        currentTerm = None,
-        currentTermPeriodType = None
+    def transform2[T](data: Either[String, T]): Either[AmendmentDataFailure, T] = {
+      data match {
+        case Left(string) => Left(AmendmentDataFailure(string))
+        case Right(t)     => Right(t)
+      }
+    }
+
+    for {
+      data2024 <- transform2[SubscriptionData2024](
+        Newspaper2024MigrationEstimation.subscriptionToSubscriptionData2024(subscription)
       )
+      chargeDistribution <- transform1[ChargeDistribution2024](subscriptionToNewChargeDistribution2024(subscription))
+    } yield ZuoraSubscriptionUpdate(
+      add = List(
+        AddZuoraRatePlan(
+          productRatePlanId = data2024.targetRatePlanId,
+          contractEffectiveDate = effectiveDate,
+          chargeOverrides = chargeDistributionToChargeOverrides(chargeDistribution, data2024.billingPeriod.toString)
+        )
+      ),
+      remove = List(
+        RemoveZuoraRatePlan(
+          ratePlanId = data2024.ratePlan.id,
+          effectiveDate
+        )
+      ),
+      currentTerm = None,
+      currentTermPeriodType = None
     )
   }
 }

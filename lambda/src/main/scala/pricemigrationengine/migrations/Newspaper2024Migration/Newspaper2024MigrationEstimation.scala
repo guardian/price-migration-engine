@@ -16,7 +16,8 @@ object Newspaper2024MigrationEstimation {
       ratePlanName: String,
       billingPeriod: BillingPeriod,
       currency: String,
-      currentPrice: BigDecimal
+      currentPrice: BigDecimal,
+      targetRatePlanId: String,
   )
 
   // We have an unusual scheduling for this migration and Newspaper2024BatchId is used to
@@ -62,8 +63,7 @@ object Newspaper2024MigrationEstimation {
   }
 
   def subscriptionToSubscriptionData2024(subscription: ZuoraSubscription): Either[String, SubscriptionData2024] = {
-    val productName =
-      subscriptionToMigrationProductName(subscription).toOption.getOrElse("") // empty string will cause error 93a21a48
+    val productName = subscriptionToMigrationProductName(subscription).toOption.get
     val ratePlans = {
       subscription.ratePlans
         .filter(ratePlan => ratePlan.productName == productName)
@@ -83,16 +83,18 @@ object Newspaper2024MigrationEstimation {
             (price: BigDecimal, ratePlanCharge: ZuoraRatePlanCharge) =>
               price + ratePlanCharge.price.getOrElse(BigDecimal(0))
           )
+          targetRatePlanId <- Newspaper2024MigrationStaticData.ratePlanIdLookUp(productName, ratePlan.ratePlanName)
         } yield SubscriptionData2024(
           productName = productName,
           ratePlan = ratePlan,
           ratePlanName = ratePlan.ratePlanName,
           billingPeriod = billingPeriod,
           currency = currency,
-          currentPrice = currentPrice
+          currentPrice = currentPrice,
+          targetRatePlanId = targetRatePlanId
         )) match {
           case Some(data) => Right(data)
-          case _ => Left(s"[error: 0e218c37] Could not determine billing period for subscription ${subscription}")
+          case _ => Left(s"[error: 0e218c37] Could not determine SubscriptionData2024 for subscription ${subscription}")
         }
       }
       case _ =>
