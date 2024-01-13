@@ -209,7 +209,12 @@ object AmendmentHandler extends CohortHandler {
             )
           )
         case Newspaper2024 =>
-          ZIO.fail(AmendmentDataFailure("Newspaper2024 is not implemented yet"))
+          ZIO.fromEither(
+            Newspaper2024MigrationAmendment.subscriptionToZuoraSubscriptionUpdate(
+              subscriptionBeforeUpdate,
+              startDate,
+            )
+          )
         case Legacy =>
           ZIO.fromEither(
             ZuoraSubscriptionUpdate
