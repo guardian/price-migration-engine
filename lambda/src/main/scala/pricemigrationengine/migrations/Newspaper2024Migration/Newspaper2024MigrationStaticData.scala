@@ -206,15 +206,17 @@ object Newspaper2024MigrationStaticData {
     To encapsulate this information, we use `case class PriceDistribution`
    */
 
-  case class RatePlanCharges2024(
-      monday: Option[BigDecimal],
-      tuesday: Option[BigDecimal],
-      wednesday: Option[BigDecimal],
-      thursday: Option[BigDecimal],
-      friday: Option[BigDecimal],
-      saturday: Option[BigDecimal],
-      sunday: Option[BigDecimal],
-      digitalPack: Option[BigDecimal]
+  case class IndividualCharge2024(chargeId: String, Price: BigDecimal)
+
+  case class ChargeDistribution2024(
+      monday: Option[IndividualCharge2024],
+      tuesday: Option[IndividualCharge2024],
+      wednesday: Option[IndividualCharge2024],
+      thursday: Option[IndividualCharge2024],
+      friday: Option[IndividualCharge2024],
+      saturday: Option[IndividualCharge2024],
+      sunday: Option[IndividualCharge2024],
+      digitalPack: Option[IndividualCharge2024]
   )
 
   /*
@@ -250,385 +252,388 @@ object Newspaper2024MigrationStaticData {
     multiplier to derive the quarterly, semi-annual and annual price distributions.
    */
 
-  def priceDistributionMultiplier(pd: RatePlanCharges2024, multiplier: Int): RatePlanCharges2024 = {
-    def mult(bd: Option[BigDecimal]): Option[BigDecimal] = bd.map(bd => bd * BigDecimal(multiplier))
-
-    RatePlanCharges2024(
-      monday = mult(pd.monday),
-      tuesday = mult(pd.tuesday),
-      wednesday = mult(pd.wednesday),
-      thursday = mult(pd.thursday),
-      friday = mult(pd.friday),
-      saturday = mult(pd.saturday),
-      sunday = mult(pd.sunday),
-      digitalPack = mult(pd.digitalPack)
+  def chargeDistributionMultiplier(
+      chargeDistribution: ChargeDistribution2024,
+      multiplier: Int
+  ): ChargeDistribution2024 = {
+    def mult(ic: IndividualCharge2024, multiplier: Int): IndividualCharge2024 =
+      IndividualCharge2024(ic.chargeId, ic.Price * BigDecimal(multiplier))
+    ChargeDistribution2024(
+      monday = chargeDistribution.monday.map(ic => mult(ic, multiplier)),
+      tuesday = chargeDistribution.tuesday.map(ic => mult(ic, multiplier)),
+      wednesday = chargeDistribution.wednesday.map(ic => mult(ic, multiplier)),
+      thursday = chargeDistribution.thursday.map(ic => mult(ic, multiplier)),
+      friday = chargeDistribution.friday.map(ic => mult(ic, multiplier)),
+      saturday = chargeDistribution.saturday.map(ic => mult(ic, multiplier)),
+      sunday = chargeDistribution.sunday.map(ic => mult(ic, multiplier)),
+      digitalPack = chargeDistribution.digitalPack.map(ic => mult(ic, multiplier))
     )
   }
 
-  val newspaperHomeDeliveryMonthlyPriceDistributions: Map[String, RatePlanCharges2024] = Map(
-    "Everyday" -> RatePlanCharges2024(
-      monday = Some(BigDecimal(10.24)),
-      tuesday = Some(BigDecimal(10.24)),
-      wednesday = Some(BigDecimal(10.24)),
-      thursday = Some(BigDecimal(10.24)),
-      friday = Some(BigDecimal(10.24)),
-      saturday = Some(BigDecimal(13.89)),
-      sunday = Some(BigDecimal(13.90)),
+  val newspaperHomeDeliveryMonthlyChargeDistributionsMap: Map[String, ChargeDistribution2024] = Map(
+    "Everyday" -> ChargeDistribution2024(
+      monday = Some(IndividualCharge2024("chargeId", BigDecimal(10.24))),
+      tuesday = Some(IndividualCharge2024("chargeId", BigDecimal(10.24))),
+      wednesday = Some(IndividualCharge2024("chargeId", BigDecimal(10.24))),
+      thursday = Some(IndividualCharge2024("chargeId", BigDecimal(10.24))),
+      friday = Some(IndividualCharge2024("chargeId", BigDecimal(10.24))),
+      saturday = Some(IndividualCharge2024("chargeId", BigDecimal(13.89))),
+      sunday = Some(IndividualCharge2024("chargeId", BigDecimal(13.90))),
       digitalPack = None,
     ),
-    "Sixday" -> RatePlanCharges2024(
-      monday = Some(BigDecimal(10.85)),
-      tuesday = Some(BigDecimal(10.85)),
-      wednesday = Some(BigDecimal(10.85)),
-      thursday = Some(BigDecimal(10.85)),
-      friday = Some(BigDecimal(10.85)),
-      saturday = Some(BigDecimal(14.74)),
+    "Sixday" -> ChargeDistribution2024(
+      monday = Some(IndividualCharge2024("chargeId", BigDecimal(10.85))),
+      tuesday = Some(IndividualCharge2024("chargeId", BigDecimal(10.85))),
+      wednesday = Some(IndividualCharge2024("chargeId", BigDecimal(10.85))),
+      thursday = Some(IndividualCharge2024("chargeId", BigDecimal(10.85))),
+      friday = Some(IndividualCharge2024("chargeId", BigDecimal(10.85))),
+      saturday = Some(IndividualCharge2024("chargeId", BigDecimal(14.74))),
       sunday = None,
       digitalPack = None,
     ),
-    "Weekend" -> RatePlanCharges2024(
+    "Weekend" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(15.99)),
-      Some(BigDecimal(16.00)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(15.99))),
+      Some(IndividualCharge2024("chargeId", BigDecimal(16.00))),
       None
     ),
-    "Saturday" -> RatePlanCharges2024(
+    "Saturday" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(19.99)),
-      None,
-    ),
-    "Sunday" -> RatePlanCharges2024(
-      None,
-      None,
-      None,
-      None,
-      None,
-      None,
-      Some(BigDecimal(19.99)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(19.99))),
       None,
     ),
-    "Everyday+" -> RatePlanCharges2024(
-      monday = Some(BigDecimal(10.24)),
-      tuesday = Some(BigDecimal(10.24)),
-      wednesday = Some(BigDecimal(10.24)),
-      thursday = Some(BigDecimal(10.24)),
-      friday = Some(BigDecimal(10.24)),
-      saturday = Some(BigDecimal(13.89)),
-      sunday = Some(BigDecimal(13.90)),
-      digitalPack = Some(BigDecimal(2.00)),
+    "Sunday" -> ChargeDistribution2024(
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some(IndividualCharge2024("chargeId", BigDecimal(19.99))),
+      None,
     ),
-    "Sixday+" -> RatePlanCharges2024(
-      monday = Some(BigDecimal(10.85)),
-      tuesday = Some(BigDecimal(10.85)),
-      wednesday = Some(BigDecimal(10.85)),
-      thursday = Some(BigDecimal(10.85)),
-      friday = Some(BigDecimal(10.85)),
-      saturday = Some(BigDecimal(14.74)),
+    "Everyday+" -> ChargeDistribution2024(
+      monday = Some(IndividualCharge2024("chargeId", BigDecimal(10.24))),
+      tuesday = Some(IndividualCharge2024("chargeId", BigDecimal(10.24))),
+      wednesday = Some(IndividualCharge2024("chargeId", BigDecimal(10.24))),
+      thursday = Some(IndividualCharge2024("chargeId", BigDecimal(10.24))),
+      friday = Some(IndividualCharge2024("chargeId", BigDecimal(10.24))),
+      saturday = Some(IndividualCharge2024("chargeId", BigDecimal(13.89))),
+      sunday = Some(IndividualCharge2024("chargeId", BigDecimal(13.90))),
+      digitalPack = Some(IndividualCharge2024("chargeId", BigDecimal(2.00))),
+    ),
+    "Sixday+" -> ChargeDistribution2024(
+      monday = Some(IndividualCharge2024("chargeId", BigDecimal(10.85))),
+      tuesday = Some(IndividualCharge2024("chargeId", BigDecimal(10.85))),
+      wednesday = Some(IndividualCharge2024("chargeId", BigDecimal(10.85))),
+      thursday = Some(IndividualCharge2024("chargeId", BigDecimal(10.85))),
+      friday = Some(IndividualCharge2024("chargeId", BigDecimal(10.85))),
+      saturday = Some(IndividualCharge2024("chargeId", BigDecimal(14.74))),
       sunday = None,
-      digitalPack = Some(BigDecimal(2.00)),
+      digitalPack = Some(IndividualCharge2024("chargeId", BigDecimal(2.00))),
     ),
-    "Weekend+" -> RatePlanCharges2024(
+    "Weekend+" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(15.99)),
-      Some(BigDecimal(16.00)),
-      digitalPack = Some(BigDecimal(9.00)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(15.99))),
+      Some(IndividualCharge2024("chargeId", BigDecimal(16.00))),
+      digitalPack = Some(IndividualCharge2024("chargeId", BigDecimal(9.00))),
     ),
-    "Saturday+" -> RatePlanCharges2024(
+    "Saturday+" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(19.99)),
-      digitalPack = Some(BigDecimal(11.00)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(19.99))),
+      digitalPack = Some(IndividualCharge2024("chargeId", BigDecimal(11.00))),
     ),
-    "Sunday+" -> RatePlanCharges2024(
+    "Sunday+" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(19.99)),
-      digitalPack = Some(BigDecimal(11.00)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(19.99))),
+      digitalPack = Some(IndividualCharge2024("chargeId", BigDecimal(11.00))),
     ),
   )
 
-  val newspaperHomeDeliveryQuarterlyPriceDistributions: Map[String, RatePlanCharges2024] = Map(
-    "Everyday" -> priceDistributionMultiplier(newspaperHomeDeliveryMonthlyPriceDistributions("Everyday"), 3),
-    "Sixday" -> priceDistributionMultiplier(newspaperHomeDeliveryMonthlyPriceDistributions("Sixday"), 3),
-    "Weekend" -> priceDistributionMultiplier(newspaperHomeDeliveryMonthlyPriceDistributions("Weekend"), 3),
-    "Saturday" -> priceDistributionMultiplier(newspaperHomeDeliveryMonthlyPriceDistributions("Saturday"), 3),
-    "Sunday" -> priceDistributionMultiplier(newspaperHomeDeliveryMonthlyPriceDistributions("Sunday"), 3),
+  val newspaperHomeDeliveryQuarterlyChargeDistributionsMap: Map[String, ChargeDistribution2024] = Map(
+    "Everyday" -> chargeDistributionMultiplier(newspaperHomeDeliveryMonthlyChargeDistributionsMap("Everyday"), 3),
+    "Sixday" -> chargeDistributionMultiplier(newspaperHomeDeliveryMonthlyChargeDistributionsMap("Sixday"), 3),
+    "Weekend" -> chargeDistributionMultiplier(newspaperHomeDeliveryMonthlyChargeDistributionsMap("Weekend"), 3),
+    "Saturday" -> chargeDistributionMultiplier(newspaperHomeDeliveryMonthlyChargeDistributionsMap("Saturday"), 3),
+    "Sunday" -> chargeDistributionMultiplier(newspaperHomeDeliveryMonthlyChargeDistributionsMap("Sunday"), 3),
   )
 
-  val newspaperSubscriptionCardMonthlyPriceDistributions: Map[String, RatePlanCharges2024] = Map(
-    "Everyday" -> RatePlanCharges2024(
-      monday = Some(BigDecimal(8.42)),
-      tuesday = Some(BigDecimal(8.42)),
-      wednesday = Some(BigDecimal(8.42)),
-      thursday = Some(BigDecimal(8.42)),
-      friday = Some(BigDecimal(8.42)),
-      saturday = Some(BigDecimal(11.44)),
-      sunday = Some(BigDecimal(11.45)),
+  val newspaperSubscriptionCardMonthlyChargeDistributionsMap: Map[String, ChargeDistribution2024] = Map(
+    "Everyday" -> ChargeDistribution2024(
+      monday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      tuesday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      wednesday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      thursday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      friday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      saturday = Some(IndividualCharge2024("chargeId", BigDecimal(11.44))),
+      sunday = Some(IndividualCharge2024("chargeId", BigDecimal(11.45))),
       digitalPack = None,
     ),
-    "Sixday" -> RatePlanCharges2024(
-      monday = Some(BigDecimal(8.96)),
-      tuesday = Some(BigDecimal(8.96)),
-      wednesday = Some(BigDecimal(8.96)),
-      thursday = Some(BigDecimal(8.96)),
-      friday = Some(BigDecimal(8.96)),
-      saturday = Some(BigDecimal(12.19)),
+    "Sixday" -> ChargeDistribution2024(
+      monday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      tuesday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      wednesday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      thursday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      friday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      saturday = Some(IndividualCharge2024("chargeId", BigDecimal(12.19))),
       sunday = None,
       digitalPack = None,
     ),
-    "Weekend" -> RatePlanCharges2024(
+    "Weekend" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(12.99)),
-      Some(BigDecimal(13.00)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(12.99))),
+      Some(IndividualCharge2024("chargeId", BigDecimal(13.00))),
       None
     ),
-    "Saturday" -> RatePlanCharges2024(
+    "Saturday" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(14.99)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(14.99))),
       None,
     ),
-    "Sunday" -> RatePlanCharges2024(
+    "Sunday" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(14.99)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(14.99))),
       digitalPack = None,
     ),
-    "Everyday+" -> RatePlanCharges2024(
-      monday = Some(BigDecimal(8.42)),
-      tuesday = Some(BigDecimal(8.42)),
-      wednesday = Some(BigDecimal(8.42)),
-      thursday = Some(BigDecimal(8.42)),
-      friday = Some(BigDecimal(8.42)),
-      saturday = Some(BigDecimal(11.44)),
-      sunday = Some(BigDecimal(11.45)),
-      digitalPack = Some(BigDecimal(2.00)),
+    "Everyday+" -> ChargeDistribution2024(
+      monday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      tuesday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      wednesday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      thursday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      friday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      saturday = Some(IndividualCharge2024("chargeId", BigDecimal(11.44))),
+      sunday = Some(IndividualCharge2024("chargeId", BigDecimal(11.45))),
+      digitalPack = Some(IndividualCharge2024("chargeId", BigDecimal(2.00))),
     ),
-    "Sixday+" -> RatePlanCharges2024(
-      monday = Some(BigDecimal(8.96)),
-      tuesday = Some(BigDecimal(8.96)),
-      wednesday = Some(BigDecimal(8.96)),
-      thursday = Some(BigDecimal(8.96)),
-      friday = Some(BigDecimal(8.96)),
-      saturday = Some(BigDecimal(12.19)),
+    "Sixday+" -> ChargeDistribution2024(
+      monday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      tuesday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      wednesday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      thursday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      friday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      saturday = Some(IndividualCharge2024("chargeId", BigDecimal(12.19))),
       sunday = None,
-      digitalPack = Some(BigDecimal(2.00)),
+      digitalPack = Some(IndividualCharge2024("chargeId", BigDecimal(2.00))),
     ),
-    "Weekend+" -> RatePlanCharges2024(
+    "Weekend+" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(12.99)),
-      Some(BigDecimal(13.00)),
-      digitalPack = Some(BigDecimal(9.00)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(12.99))),
+      Some(IndividualCharge2024("chargeId", BigDecimal(13.00))),
+      digitalPack = Some(IndividualCharge2024("chargeId", BigDecimal(9.00))),
     ),
-    "Saturday+" -> RatePlanCharges2024(
+    "Saturday+" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(14.99)),
-      digitalPack = Some(BigDecimal(11.00)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(14.99))),
+      digitalPack = Some(IndividualCharge2024("chargeId", BigDecimal(11.00))),
     ),
-    "Sunday+" -> RatePlanCharges2024(
+    "Sunday+" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(14.99)),
-      digitalPack = Some(BigDecimal(11.00)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(14.99))),
+      digitalPack = Some(IndividualCharge2024("chargeId", BigDecimal(11.00))),
     ),
   )
 
-  val newspaperSubscriptionCardQuarterlyPriceDistributions: Map[String, RatePlanCharges2024] = Map(
-    "Everyday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Everyday"), 3),
-    "Sixday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Sixday"), 3),
-    "Weekend" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Weekend"), 3),
-    "Everyday+" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Everyday+"), 3),
-    "Sixday+" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Sixday+"), 3),
+  val newspaperSubscriptionCardQuarterlyChargeDistributionsMap: Map[String, ChargeDistribution2024] = Map(
+    "Everyday" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Everyday"), 3),
+    "Sixday" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Sixday"), 3),
+    "Weekend" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Weekend"), 3),
+    "Everyday+" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Everyday+"), 3),
+    "Sixday+" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Sixday+"), 3),
   )
 
-  val newspaperSubscriptionCardSemiAnnualPriceDistributions: Map[String, RatePlanCharges2024] = Map(
-    "Everyday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Everyday"), 6),
-    "Sixday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Sixday"), 6),
-    "Everyday+" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Everyday+"), 6),
+  val newspaperSubscriptionCardSemiAnnualChargeDistributionsMap: Map[String, ChargeDistribution2024] = Map(
+    "Everyday" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Everyday"), 6),
+    "Sixday" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Sixday"), 6),
+    "Everyday+" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Everyday+"), 6),
   )
 
-  val newspaperSubscriptionCardAnnualPriceDistributions: Map[String, RatePlanCharges2024] = Map(
-    "Everyday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Everyday"), 12),
-    "Sixday" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Sixday"), 12),
-    "Weekend" -> priceDistributionMultiplier(newspaperSubscriptionCardMonthlyPriceDistributions("Weekend"), 12),
+  val newspaperSubscriptionCardAnnualChargeDistributionsMap: Map[String, ChargeDistribution2024] = Map(
+    "Everyday" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Everyday"), 12),
+    "Sixday" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Sixday"), 12),
+    "Weekend" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Weekend"), 12),
   )
 
-  val newspaperVoucherBookMonthlyPriceDistibutions: Map[String, RatePlanCharges2024] = Map(
-    "Everyday" -> RatePlanCharges2024(
-      monday = Some(BigDecimal(8.42)),
-      tuesday = Some(BigDecimal(8.42)),
-      wednesday = Some(BigDecimal(8.42)),
-      thursday = Some(BigDecimal(8.42)),
-      friday = Some(BigDecimal(8.42)),
-      saturday = Some(BigDecimal(11.44)),
-      sunday = Some(BigDecimal(11.45)),
+  val newspaperVoucherBookMonthlChargeDistibutionsMap: Map[String, ChargeDistribution2024] = Map(
+    "Everyday" -> ChargeDistribution2024(
+      monday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      tuesday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      wednesday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      thursday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      friday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      saturday = Some(IndividualCharge2024("chargeId", BigDecimal(11.44))),
+      sunday = Some(IndividualCharge2024("chargeId", BigDecimal(11.45))),
       digitalPack = None,
     ),
-    "Sixday" -> RatePlanCharges2024(
-      monday = Some(BigDecimal(8.96)),
-      tuesday = Some(BigDecimal(8.96)),
-      wednesday = Some(BigDecimal(8.96)),
-      thursday = Some(BigDecimal(8.96)),
-      friday = Some(BigDecimal(8.96)),
-      saturday = Some(BigDecimal(12.19)),
+    "Sixday" -> ChargeDistribution2024(
+      monday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      tuesday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      wednesday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      thursday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      friday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      saturday = Some(IndividualCharge2024("chargeId", BigDecimal(12.19))),
       sunday = None,
       digitalPack = None,
     ),
-    "Weekend" -> RatePlanCharges2024(
+    "Weekend" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(12.99)),
-      Some(BigDecimal(13.00)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(12.99))),
+      Some(IndividualCharge2024("chargeId", BigDecimal(13.00))),
       None
     ),
-    "Saturday" -> RatePlanCharges2024(
+    "Saturday" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(14.99)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(14.99))),
       None,
     ),
-    "Sunday" -> RatePlanCharges2024(
+    "Sunday" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(14.99)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(14.99))),
       digitalPack = None,
     ),
-    "Everyday+" -> RatePlanCharges2024(
-      monday = Some(BigDecimal(8.42)),
-      tuesday = Some(BigDecimal(8.42)),
-      wednesday = Some(BigDecimal(8.42)),
-      thursday = Some(BigDecimal(8.42)),
-      friday = Some(BigDecimal(8.42)),
-      saturday = Some(BigDecimal(11.44)),
-      sunday = Some(BigDecimal(11.45)),
-      digitalPack = Some(BigDecimal(2.00)),
+    "Everyday+" -> ChargeDistribution2024(
+      monday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      tuesday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      wednesday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      thursday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      friday = Some(IndividualCharge2024("chargeId", BigDecimal(8.42))),
+      saturday = Some(IndividualCharge2024("chargeId", BigDecimal(11.44))),
+      sunday = Some(IndividualCharge2024("chargeId", BigDecimal(11.45))),
+      digitalPack = Some(IndividualCharge2024("chargeId", BigDecimal(2.00))),
     ),
-    "Sixday+" -> RatePlanCharges2024(
-      monday = Some(BigDecimal(8.96)),
-      tuesday = Some(BigDecimal(8.96)),
-      wednesday = Some(BigDecimal(8.96)),
-      thursday = Some(BigDecimal(8.96)),
-      friday = Some(BigDecimal(8.96)),
-      saturday = Some(BigDecimal(12.19)),
+    "Sixday+" -> ChargeDistribution2024(
+      monday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      tuesday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      wednesday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      thursday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      friday = Some(IndividualCharge2024("chargeId", BigDecimal(8.96))),
+      saturday = Some(IndividualCharge2024("chargeId", BigDecimal(12.19))),
       sunday = None,
-      digitalPack = Some(BigDecimal(2.00)),
+      digitalPack = Some(IndividualCharge2024("chargeId", BigDecimal(2.00))),
     ),
-    "Weekend+" -> RatePlanCharges2024(
+    "Weekend+" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(12.99)),
-      Some(BigDecimal(13.00)),
-      digitalPack = Some(BigDecimal(9.00)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(12.99))),
+      Some(IndividualCharge2024("chargeId", BigDecimal(13.00))),
+      digitalPack = Some(IndividualCharge2024("chargeId", BigDecimal(9.00))),
     ),
-    "Saturday+" -> RatePlanCharges2024(
+    "Saturday+" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(14.99)),
-      digitalPack = Some(BigDecimal(11.00)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(14.99))),
+      digitalPack = Some(IndividualCharge2024("chargeId", BigDecimal(11.00))),
     ),
-    "Sunday+" -> RatePlanCharges2024(
+    "Sunday+" -> ChargeDistribution2024(
       None,
       None,
       None,
       None,
       None,
       None,
-      Some(BigDecimal(14.99)),
-      digitalPack = Some(BigDecimal(11.00)),
+      Some(IndividualCharge2024("chargeId", BigDecimal(14.99))),
+      digitalPack = Some(IndividualCharge2024("chargeId", BigDecimal(11.00))),
     ),
   )
 
-  val newspaperVoucherBookQuarterlyPriceDistibutions: Map[String, RatePlanCharges2024] = Map(
-    "Everyday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Everyday"), 3),
-    "Sixday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sixday"), 3),
-    "Weekend" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Weekend"), 3),
-    "Everyday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Everyday+"), 3),
-    "Sixday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sixday+"), 3),
-    "Weekend+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Weekend+"), 3),
-    "Sunday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sunday+"), 3),
+  val newspaperVoucherBookQuarterlyChargeDistibutionsMap: Map[String, ChargeDistribution2024] = Map(
+    "Everyday" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday"), 3),
+    "Sixday" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday"), 3),
+    "Weekend" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend"), 3),
+    "Everyday+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday+"), 3),
+    "Sixday+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday+"), 3),
+    "Weekend+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend+"), 3),
+    "Sunday+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sunday+"), 3),
   )
 
-  val newspaperVoucherBookSemiAnnualPriceDistributions: Map[String, RatePlanCharges2024] = Map(
-    "Everyday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Everyday"), 6),
-    "Sixday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sixday"), 6),
-    "Weekend" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Weekend"), 6),
-    "Everyday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Everyday+"), 6),
-    "Sixday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sixday+"), 6),
-    "Weekend+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Weekend+"), 6),
-    "Sunday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sunday+"), 6),
+  val newspaperVoucherBookSemiAnnualChargeDistributionsMap: Map[String, ChargeDistribution2024] = Map(
+    "Everyday" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday"), 6),
+    "Sixday" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday"), 6),
+    "Weekend" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend"), 6),
+    "Everyday+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday+"), 6),
+    "Sixday+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday+"), 6),
+    "Weekend+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend+"), 6),
+    "Sunday+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sunday+"), 6),
   )
 
-  val newspaperVoucherBookAnnualPriceDistributions: Map[String, RatePlanCharges2024] = Map(
-    "Everyday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Everyday"), 12),
-    "Sixday" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sixday"), 12),
-    "Weekend" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Weekend"), 12),
-    "Everyday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Everyday+"), 12),
-    "Sixday+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Sixday+"), 12),
-    "Weekend+" -> priceDistributionMultiplier(newspaperVoucherBookMonthlyPriceDistibutions("Weekend+"), 12),
+  val newspaperVoucherBookAnnualChargeDistributionsMap: Map[String, ChargeDistribution2024] = Map(
+    "Everyday" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday"), 12),
+    "Sixday" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday"), 12),
+    "Weekend" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend"), 12),
+    "Everyday+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday+"), 12),
+    "Sixday+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday+"), 12),
+    "Weekend+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend+"), 12),
   )
 
   /*
@@ -646,34 +651,34 @@ object Newspaper2024MigrationStaticData {
       product: String,
       billingPeriod: BillingPeriod,
       ratePlanName: String
-  ): Option[RatePlanCharges2024] = {
-    val empty: Map[String, RatePlanCharges2024] = Map()
+  ): Option[ChargeDistribution2024] = {
+    val empty: Map[String, ChargeDistribution2024] = Map()
     val priceMap = (product, billingPeriod) match {
-      case ("Newspaper Delivery", Monthly)           => newspaperHomeDeliveryMonthlyPriceDistributions
-      case ("Newspaper Delivery", Quarterly)         => newspaperHomeDeliveryQuarterlyPriceDistributions
-      case ("Newspaper Digital Voucher", Monthly)    => newspaperSubscriptionCardMonthlyPriceDistributions
-      case ("Newspaper Digital Voucher", Quarterly)  => newspaperSubscriptionCardQuarterlyPriceDistributions
-      case ("Newspaper Digital Voucher", SemiAnnual) => newspaperSubscriptionCardSemiAnnualPriceDistributions
-      case ("Newspaper Digital Voucher", Annual)     => newspaperSubscriptionCardAnnualPriceDistributions
-      case ("Newspaper Voucher", Monthly)            => newspaperVoucherBookMonthlyPriceDistibutions
-      case ("Newspaper Voucher", Quarterly)          => newspaperVoucherBookQuarterlyPriceDistibutions
-      case ("Newspaper Voucher", SemiAnnual)         => newspaperVoucherBookSemiAnnualPriceDistributions
-      case ("Newspaper Voucher", Annual)             => newspaperVoucherBookAnnualPriceDistributions
+      case ("Newspaper Delivery", Monthly)           => newspaperHomeDeliveryMonthlyChargeDistributionsMap
+      case ("Newspaper Delivery", Quarterly)         => newspaperHomeDeliveryQuarterlyChargeDistributionsMap
+      case ("Newspaper Digital Voucher", Monthly)    => newspaperSubscriptionCardMonthlyChargeDistributionsMap
+      case ("Newspaper Digital Voucher", Quarterly)  => newspaperSubscriptionCardQuarterlyChargeDistributionsMap
+      case ("Newspaper Digital Voucher", SemiAnnual) => newspaperSubscriptionCardSemiAnnualChargeDistributionsMap
+      case ("Newspaper Digital Voucher", Annual)     => newspaperSubscriptionCardAnnualChargeDistributionsMap
+      case ("Newspaper Voucher", Monthly)            => newspaperVoucherBookMonthlChargeDistibutionsMap
+      case ("Newspaper Voucher", Quarterly)          => newspaperVoucherBookQuarterlyChargeDistibutionsMap
+      case ("Newspaper Voucher", SemiAnnual)         => newspaperVoucherBookSemiAnnualChargeDistributionsMap
+      case ("Newspaper Voucher", Annual)             => newspaperVoucherBookAnnualChargeDistributionsMap
       case _                                         => empty
     }
     priceMap.get(ratePlanName)
   }
 
-  def priceDistributionToPrice(distribution: RatePlanCharges2024): BigDecimal = {
+  def chargeDistributionToPrice(distribution: ChargeDistribution2024): BigDecimal = {
     List(
-      distribution.monday.getOrElse(BigDecimal(0)),
-      distribution.tuesday.getOrElse(BigDecimal(0)),
-      distribution.wednesday.getOrElse(BigDecimal(0)),
-      distribution.thursday.getOrElse(BigDecimal(0)),
-      distribution.friday.getOrElse(BigDecimal(0)),
-      distribution.saturday.getOrElse(BigDecimal(0)),
-      distribution.sunday.getOrElse(BigDecimal(0)),
-      distribution.digitalPack.getOrElse(BigDecimal(0))
+      distribution.monday.map(ic => ic.Price).getOrElse(BigDecimal(0)),
+      distribution.tuesday.map(ic => ic.Price).getOrElse(BigDecimal(0)),
+      distribution.wednesday.map(ic => ic.Price).getOrElse(BigDecimal(0)),
+      distribution.thursday.map(ic => ic.Price).getOrElse(BigDecimal(0)),
+      distribution.friday.map(ic => ic.Price).getOrElse(BigDecimal(0)),
+      distribution.saturday.map(ic => ic.Price).getOrElse(BigDecimal(0)),
+      distribution.sunday.map(ic => ic.Price).getOrElse(BigDecimal(0)),
+      distribution.digitalPack.map(ic => ic.Price).getOrElse(BigDecimal(0))
     ).foldLeft(BigDecimal(0))((sum, item) => sum + item)
   }
 

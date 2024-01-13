@@ -6,7 +6,7 @@ import java.time.LocalDate
 
 object Newspaper2024MigrationAmendment {
 
-  def subscriptionToNewPriceDistribution(subscription: ZuoraSubscription): Option[RatePlanCharges2024] = {
+  def subscriptionToNewPriceDistribution(subscription: ZuoraSubscription): Option[ChargeDistribution2024] = {
     for {
       productName <- Newspaper2024MigrationEstimation.subscriptionToMigrationProductName(subscription).toOption
       ratePlanDetails <- Newspaper2024MigrationEstimation
@@ -21,7 +21,7 @@ object Newspaper2024MigrationAmendment {
   }
 
   def priceDistributionToChargeOverrides(
-      distribution: RatePlanCharges2024,
+      distribution: ChargeDistribution2024,
       billingPeriod: String
   ): List[ChargeOverride] = {
     List(
@@ -33,11 +33,11 @@ object Newspaper2024MigrationAmendment {
       distribution.saturday,
       distribution.sunday,
       distribution.digitalPack,
-    ).flatten.map { price =>
+    ).flatten.map { individualCharge =>
       ChargeOverride(
-        productRatePlanChargeId = "ratePlanChargeId",
+        productRatePlanChargeId = individualCharge.chargeId,
         billingPeriod = billingPeriod,
-        price = price
+        price = individualCharge.Price
       )
     }
   }

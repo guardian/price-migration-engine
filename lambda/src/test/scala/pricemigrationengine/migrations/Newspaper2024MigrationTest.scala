@@ -1168,8 +1168,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
 
   assertEquals(
     Newspaper2024MigrationStaticData.newspaperHomeDeliveryMonthlyPrices.get("Everyday").get,
-    Newspaper2024MigrationStaticData.priceDistributionToPrice(
-      Newspaper2024MigrationStaticData.newspaperHomeDeliveryMonthlyPriceDistributions.get("Everyday").get
+    Newspaper2024MigrationStaticData.chargeDistributionToPrice(
+      Newspaper2024MigrationStaticData.newspaperHomeDeliveryMonthlyChargeDistributionsMap.get("Everyday").get
     )
   )
 
@@ -1180,7 +1180,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
   List(
     (
       Newspaper2024MigrationStaticData.newspaperHomeDeliveryMonthlyPrices,
-      Newspaper2024MigrationStaticData.newspaperHomeDeliveryMonthlyPriceDistributions,
+      Newspaper2024MigrationStaticData.newspaperHomeDeliveryMonthlyChargeDistributionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1196,7 +1196,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     ),
     (
       Newspaper2024MigrationStaticData.newspaperHomeDeliveryQuarterlyPrices,
-      Newspaper2024MigrationStaticData.newspaperHomeDeliveryQuarterlyPriceDistributions,
+      Newspaper2024MigrationStaticData.newspaperHomeDeliveryQuarterlyChargeDistributionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1207,7 +1207,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     ),
     (
       Newspaper2024MigrationStaticData.newspaperSubscriptionCardMonthlyPrices,
-      Newspaper2024MigrationStaticData.newspaperSubscriptionCardMonthlyPriceDistributions,
+      Newspaper2024MigrationStaticData.newspaperSubscriptionCardMonthlyChargeDistributionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1223,7 +1223,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     ),
     (
       Newspaper2024MigrationStaticData.newspaperSubscriptionCardQuarterlyPrices,
-      Newspaper2024MigrationStaticData.newspaperSubscriptionCardQuarterlyPriceDistributions,
+      Newspaper2024MigrationStaticData.newspaperSubscriptionCardQuarterlyChargeDistributionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1234,7 +1234,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     ),
     (
       Newspaper2024MigrationStaticData.newspaperSubscriptionCardSemiAnnualPrices,
-      Newspaper2024MigrationStaticData.newspaperSubscriptionCardSemiAnnualPriceDistributions,
+      Newspaper2024MigrationStaticData.newspaperSubscriptionCardSemiAnnualChargeDistributionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1243,7 +1243,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     ),
     (
       Newspaper2024MigrationStaticData.newspaperSubscriptionCardAnnualPrices,
-      Newspaper2024MigrationStaticData.newspaperSubscriptionCardAnnualPriceDistributions,
+      Newspaper2024MigrationStaticData.newspaperSubscriptionCardAnnualChargeDistributionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1252,7 +1252,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     ),
     (
       Newspaper2024MigrationStaticData.newspaperVoucherBookMonthlyPrices,
-      Newspaper2024MigrationStaticData.newspaperVoucherBookMonthlyPriceDistibutions,
+      Newspaper2024MigrationStaticData.newspaperVoucherBookMonthlChargeDistibutionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1268,7 +1268,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     ),
     (
       Newspaper2024MigrationStaticData.newspaperVoucherBookQuarterlyPrices,
-      Newspaper2024MigrationStaticData.newspaperVoucherBookQuarterlyPriceDistibutions,
+      Newspaper2024MigrationStaticData.newspaperVoucherBookQuarterlyChargeDistibutionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1281,7 +1281,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     ),
     (
       Newspaper2024MigrationStaticData.newspaperVoucherBookSemiAnnualPrices,
-      Newspaper2024MigrationStaticData.newspaperVoucherBookSemiAnnualPriceDistributions,
+      Newspaper2024MigrationStaticData.newspaperVoucherBookSemiAnnualChargeDistributionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1294,7 +1294,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     ),
     (
       Newspaper2024MigrationStaticData.newspaperVoucherBookAnnualPrices,
-      Newspaper2024MigrationStaticData.newspaperVoucherBookAnnualPriceDistributions,
+      Newspaper2024MigrationStaticData.newspaperVoucherBookAnnualChargeDistributionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1307,13 +1307,13 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
   ).foreach {
     case (
           mapper1: Map[String, BigDecimal],
-          mapper2: Map[String, Newspaper2024MigrationStaticData.RatePlanCharges2024],
+          mapper2: Map[String, Newspaper2024MigrationStaticData.ChargeDistribution2024],
           ratePlanNames: List[String]
         ) =>
       ratePlanNames.foreach { ratePlanName =>
         assertEquals(
           mapper1(ratePlanName),
-          Newspaper2024MigrationStaticData.priceDistributionToPrice(mapper2(ratePlanName))
+          Newspaper2024MigrationStaticData.chargeDistributionToPrice(mapper2(ratePlanName))
         )
       }
   }
