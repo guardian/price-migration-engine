@@ -55,6 +55,8 @@ object Newspaper2024MigrationStaticData {
 
    */
 
+  // case class RatePlanCharge2024(price: BigDecimal)
+
   val newspaperHomeDeliveryMonthlyPrices: Map[String, BigDecimal] = Map(
     "Everyday" -> BigDecimal(78.99),
     "Sixday" -> BigDecimal(68.99),
@@ -673,6 +675,44 @@ object Newspaper2024MigrationStaticData {
       distribution.sunday.getOrElse(BigDecimal(0)),
       distribution.digitalPack.getOrElse(BigDecimal(0))
     ).foldLeft(BigDecimal(0))((sum, item) => sum + item)
+  }
+
+  def ratePlanIdLookUp(product: String, rateplanName: String): Option[String] = {
+    (product, rateplanName) match {
+      case ("Newspaper Delivery", "EveryDay")  => Some("2c92a0fd560d13880156136b72e50f0c")
+      case ("Newspaper Delivery", "Sixday")    => Some("2c92a0ff560d311b0156136f2afe5315")
+      case ("Newspaper Delivery", "Weekend")   => Some("2c92a0fd5614305c01561dc88f3275be")
+      case ("Newspaper Delivery", "Saturday")  => Some("2c92a0fd5e1dcf0d015e3cb39d0a7ddb")
+      case ("Newspaper Delivery", "Sunday")    => Some("2c92a0ff5af9b657015b0fea5b653f81")
+      case ("Newspaper Delivery", "Everyday+") => Some("2c92a0fd560d132301560e43cf041a3c")
+      case ("Newspaper Delivery", "Sixday+")   => Some("2c92a0ff560d311b0156136b697438a9")
+      case ("Newspaper Delivery", "Weekend+")  => Some("2c92a0ff560d311b0156136b9f5c3968")
+      case ("Newspaper Delivery", "Saturday+") => Some("2c92a0ff6205708e01622484bb2c4613")
+      case ("Newspaper Delivery", "Sunday+")   => Some("2c92a0fd560d13880156136b8e490f8b")
+
+      case ("Newspaper Digital Voucher", "EveryDay")  => Some("2c92a00870ec598001710740c78d2f13")
+      case ("Newspaper Digital Voucher", "Sixday")    => Some("2c92a00870ec598001710740ca532f69")
+      case ("Newspaper Digital Voucher", "Weekend")   => Some("2c92a00870ec598001710740d24b3022")
+      case ("Newspaper Digital Voucher", "Saturday")  => Some("2c92a00870ec598001710740cdd02fbd")
+      case ("Newspaper Digital Voucher", "Sunday")    => Some("2c92a00870ec598001710740d0d83017")
+      case ("Newspaper Digital Voucher", "Everyday+") => Some("2c92a00870ec598001710740d3d03035")
+      case ("Newspaper Digital Voucher", "Sixday+")   => Some("2c92a00870ec598001710740c4582ead")
+      case ("Newspaper Digital Voucher", "Weekend+")  => Some("2c92a00870ec598001710740c6672ee7")
+      case ("Newspaper Digital Voucher", "Saturday+") => Some("2c92a00870ec598001710740ce702ff0")
+      case ("Newspaper Digital Voucher", "Sunday+")   => Some("2c92a00870ec598001710740cf9e3004")
+
+      case ("Newspaper Voucher", "EveryDay")  => Some("2c92a0fd56fe270b0157040dd79b35da")
+      case ("Newspaper Voucher", "Sixday")    => Some("2c92a0fd56fe270b0157040e42e536ef")
+      case ("Newspaper Voucher", "Weekend")   => Some("2c92a0ff56fe33f00157040f9a537f4b")
+      case ("Newspaper Voucher", "Saturday")  => Some("2c92a0fd6205707201621f9f6d7e0116")
+      case ("Newspaper Voucher", "Sunday")    => Some("2c92a0fe5af9a6b9015b0fe1ecc0116c")
+      case ("Newspaper Voucher", "Everyday+") => Some("2c92a0ff56fe33f50157040bbdcf3ae4")
+      case ("Newspaper Voucher", "Sixday+")   => Some("2c92a0fc56fe26ba0157040c5ea17f6a")
+      case ("Newspaper Voucher", "Weekend+")  => Some("2c92a0fd56fe26b60157040cdd323f76")
+      case ("Newspaper Voucher", "Saturday+") => Some("2c92a0fd6205707201621fa1350710e3")
+      case ("Newspaper Voucher", "Sunday+")   => Some("2c92a0fe56fe33ff0157040d4b824168")
+      case _                                  => None
+    }
   }
 
 }

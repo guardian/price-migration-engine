@@ -1,13 +1,12 @@
 package pricemigrationengine.migrations
+import pricemigrationengine.migrations.Newspaper2024MigrationStaticData._
 import pricemigrationengine.model._
 
 import java.time.LocalDate
 
 object Newspaper2024MigrationAmendment {
 
-  def subscriptionToNewPriceDistribution(
-      subscription: ZuoraSubscription
-  ): Option[Newspaper2024MigrationStaticData.PriceDistribution] = {
+  def subscriptionToNewPriceDistribution(subscription: ZuoraSubscription): Option[PriceDistribution] = {
     for {
       productName <- Newspaper2024MigrationEstimation.subscriptionToMigrationProductName(subscription).toOption
       ratePlanDetails <- Newspaper2024MigrationEstimation
@@ -21,35 +20,52 @@ object Newspaper2024MigrationAmendment {
     } yield priceDistribution
   }
 
+  def priceDistributionToChargeOverrides(
+      distribution: PriceDistribution,
+      billingPeriod: String
+  ): List[ChargeOverride] = {
+    List(
+      distribution.monday,
+      distribution.tuesday,
+      distribution.wednesday,
+      distribution.thursday,
+      distribution.friday,
+      distribution.saturday,
+      distribution.sunday,
+      distribution.digitalPack,
+    ).flatten.map { price =>
+      ChargeOverride(
+        productRatePlanChargeId = "ratePlanChargeId",
+        billingPeriod = billingPeriod,
+        price = price
+      )
+    }
+  }
+
   def subscriptionToZuoraSubscriptionUpdate(
       subscription: ZuoraSubscription,
       effectiveDate: LocalDate,
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
 
+    val product = "Newspaper Delivery"
+    val ratePlanName = "EveryDay"
+    val ratePlanId = Newspaper2024MigrationStaticData.ratePlanIdLookUp(product, ratePlanName).get
+    val distribution = subscriptionToNewPriceDistribution(subscription).get
+    val billingPeriod = "Month"
+
     Right(
       ZuoraSubscriptionUpdate(
         add = List(
           AddZuoraRatePlan(
-            productRatePlanId = "2c92a0fd560d13880156136b72e50f0c",
-            contractEffectiveDate = LocalDate.of(2024, 2, 23),
-            List(
-              ChargeOverride(
-                productRatePlanChargeId = "2c92a0fd560d13880156136b74780f3f",
-                billingPeriod = "Month",
-                BigDecimal(10.24)
-              ),
-              ChargeOverride(
-                productRatePlanChargeId = "2c92a0fd560d13880156136b74b80f47",
-                billingPeriod = "Month",
-                BigDecimal(13.89)
-              )
-            )
+            productRatePlanId = ratePlanId,
+            contractEffectiveDate = effectiveDate,
+            chargeOverrides = priceDistributionToChargeOverrides(distribution, billingPeriod)
           )
         ),
         remove = List(
           RemoveZuoraRatePlan(
-            ratePlanId = "2c92a0fd560d13880156136b72e50f0c",
-            LocalDate.of(2024, 2, 23)
+            ratePlanId = ratePlanId,
+            effectiveDate
           )
         ),
         currentTerm = None,
