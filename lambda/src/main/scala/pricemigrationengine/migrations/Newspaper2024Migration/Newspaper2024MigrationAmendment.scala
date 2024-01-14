@@ -71,7 +71,8 @@ object Newspaper2024MigrationAmendment {
         AddZuoraRatePlan(
           productRatePlanId = data2024.targetRatePlanId,
           contractEffectiveDate = effectiveDate,
-          chargeOverrides = chargeDistributionToChargeOverrides(chargeDistribution, data2024.billingPeriod.toString)
+          chargeOverrides =
+            chargeDistributionToChargeOverrides(chargeDistribution, BillingPeriod.toString(data2024.billingPeriod))
         )
       ),
       remove = List(

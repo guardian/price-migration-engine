@@ -4,9 +4,9 @@ import pricemigrationengine.model._
 
 import java.time.LocalDate
 import pricemigrationengine.Fixtures
-import pricemigrationengine.handlers.NotificationHandler.thereIsEnoughNotificationLeadTime
 import pricemigrationengine.migrations.Newspaper2024MigrationEstimation._
-import pricemigrationengine.model.CohortTableFilter.SalesforcePriceRiceCreationComplete
+import pricemigrationengine.migrations.Newspaper2024MigrationAmendment._
+import pricemigrationengine.migrations.Newspaper2024MigrationStaticData.{ChargeDistribution2024, IndividualCharge2024}
 
 /*
   Correspondence between product names in Salesforce versus Zuora
@@ -1055,10 +1055,10 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     | Newspaper Subscription Card / Newspaper Digital Voucher | Quarterly      | Weekend        |  77.97    |
     | Newspaper Subscription Card / Newspaper Digital Voucher | Semi Annual    | Sixday         | 341.94    |
     | Newspaper Subscription Card / Newspaper Digital Voucher | Annual         | Everyday       | 779.88    |
-    | Newspaper Subscription Card / Newspaper Voucher         | Monthly        | Weekend+       |  34.99    |
-    | Newspaper Subscription Card / Newspaper Voucher         | Quarterly      | Weekend+       | 104.97    |
-    | Newspaper Subscription Card / Newspaper Voucher         | Semi Annual    | Weekend+       | 209.94    |
-    | Newspaper Subscription Card / Newspaper Voucher         | Annual         | Weekend+       | 419.88    |
+    | Newspaper Voucher Book / Newspaper Voucher              | Monthly        | Weekend+       |  34.99    |
+    | Newspaper Voucher Book / Newspaper Voucher              | Quarterly      | Weekend+       | 104.97    |
+    | Newspaper Voucher Book / Newspaper Voucher              | Semi Annual    | Weekend+       | 209.94    |
+    | Newspaper Voucher Book / Newspaper Voucher              | Annual         | Weekend+       | 419.88    |
    */
 
   test("Newspaper2024Migration | price data is correct | NewspaperHomeDelivery-Monthly") {
@@ -1390,6 +1390,233 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
           Newspaper2024MigrationStaticData.chargeDistributionToPrice(mapper2(ratePlanName))
         )
       }
+  }
+
+  // -- subscriptionToNewChargeDistribution2024 ------------------------------------------------------------------------
+
+  /*
+  | Product                                                 | Billing Period | Rate plan name | New price |
+  | Newspaper Home Delivery / Newspaper Delivery            | Monthly        | Weekend+       |  40.99    |
+  | Newspaper Home Delivery / Newspaper Delivery            | Quarterly      | Weekend        |  95.97    |
+  | Newspaper Subscription Card / Newspaper Digital Voucher | Monthly        | Weekend+       |  34.99    |
+  | Newspaper Subscription Card / Newspaper Digital Voucher | Quarterly      | Weekend        |  77.97    |
+  | Newspaper Subscription Card / Newspaper Digital Voucher | Semi Annual    | Sixday         | 341.94    |
+  | Newspaper Subscription Card / Newspaper Digital Voucher | Annual         | Everyday       | 779.88    |
+  | Newspaper Voucher Book / Newspaper Voucher              | Monthly        | Weekend+       |  34.99    |
+  | Newspaper Voucher Book / Newspaper Voucher              | Quarterly      | Weekend+       | 104.97    |
+  | Newspaper Voucher Book / Newspaper Voucher              | Semi Annual    | Weekend+       | 209.94    |
+  | Newspaper Voucher Book / Newspaper Voucher              | Annual         | Weekend+       | 419.88    |
+   */
+
+  test("Newspaper2024Migration | subscriptionToNewChargeDistribution2024 | NewspaperHomeDelivery-Monthly") {
+    val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/subscription.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/invoice-preview.json")
+    // val account = Fixtures.accountFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/account.json")
+    // val catalogue = Fixtures.productCatalogueFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/catalogue.json")
+    assertEquals(
+      subscriptionToNewChargeDistribution2024(subscription),
+      Some(
+        ChargeDistribution2024(
+          monday = None,
+          tuesday = None,
+          wednesday = None,
+          thursday = None,
+          friday = None,
+          saturday = Some(IndividualCharge2024("2c92a0ff560d311b0156136ba11539ae", BigDecimal(15.99))),
+          sunday = Some(IndividualCharge2024("2c92a0ff560d311b0156136ba0523996", BigDecimal(16.0))),
+          digitalPack = Some(IndividualCharge2024("2c92a0ff560d311b0156136b9fac3976", BigDecimal(9.0))),
+        )
+      )
+    )
+  }
+
+  test("Newspaper2024Migration | subscriptionToNewChargeDistribution2024 | NewspaperSubscriptionCard-Annual") {
+    val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Annual/subscription.json")
+    assertEquals(
+      subscriptionToNewChargeDistribution2024(subscription),
+      Some(
+        ChargeDistribution2024(
+          monday = Some(IndividualCharge2024("2c92a00870ec598001710740c7b82f1c", BigDecimal(101.04))),
+          tuesday = Some(IndividualCharge2024("2c92a00870ec598001710740c80f2f26", BigDecimal(101.04))),
+          wednesday = Some(IndividualCharge2024("2c92a00870ec598001710740c9802f59", BigDecimal(101.04))),
+          thursday = Some(IndividualCharge2024("2c92a00870ec598001710740c8c42f40", BigDecimal(101.04))),
+          friday = Some(IndividualCharge2024("2c92a00870ec598001710740c91d2f4d", BigDecimal(101.04))),
+          saturday = Some(IndividualCharge2024("2c92a00870ec598001710740c8652f37", BigDecimal(137.28))),
+          sunday = Some(IndividualCharge2024("2c92a00870ec598001710740c9d72f61", BigDecimal(137.40))),
+          digitalPack = None
+        )
+      )
+    )
+  }
+
+  test("Newspaper2024Migration | subscriptionToNewChargeDistribution2024 | NewspaperVoucherBook-Annual") {
+    val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Annual/subscription.json")
+    assertEquals(
+      subscriptionToNewChargeDistribution2024(subscription),
+      Some(
+        ChargeDistribution2024(
+          None,
+          None,
+          None,
+          None,
+          None,
+          saturday = Some(IndividualCharge2024("2c92a0fd56fe26b601570432f4e33d17", BigDecimal(155.88))),
+          sunday = Some(IndividualCharge2024("2c92a0ff56fe33f5015709b8fc4d5617", BigDecimal(156.0))),
+          digitalPack = Some(IndividualCharge2024("2c92a0fe56fe33ff015709bb986636d8", BigDecimal(108.0)))
+        )
+      )
+    )
+  }
+
+  // -- subscriptionToZuoraSubscriptionUpdate ------------------------------------------------------------------------
+
+  test("Newspaper2024Migration | subscriptionToZuoraSubscriptionUpdate | NewspaperHomeDelivery-Monthly") {
+    val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/subscription.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/invoice-preview.json")
+    // val account = Fixtures.accountFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/account.json")
+    // val catalogue = Fixtures.productCatalogueFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/catalogue.json")
+    assertEquals(
+      subscriptionToZuoraSubscriptionUpdate(subscription, LocalDate.of(2024, 3, 1)),
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(
+            AddZuoraRatePlan(
+              productRatePlanId = "2c92a0ff560d311b0156136b9f5c3968",
+              contractEffectiveDate = LocalDate.of(2024, 3, 1),
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0ff560d311b0156136ba11539ae",
+                  billingPeriod = "Month",
+                  price = BigDecimal(15.99)
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0ff560d311b0156136ba0523996",
+                  billingPeriod = "Month",
+                  price = BigDecimal(16.0)
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0ff560d311b0156136b9fac3976",
+                  billingPeriod = "Month",
+                  price = BigDecimal(9.0)
+                )
+              )
+            )
+          ),
+          remove = List(
+            RemoveZuoraRatePlan(
+              ratePlanId = "8a1280478c3a4e1d018c41aa77651cde",
+              LocalDate.of(2024, 3, 1)
+            )
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
+    )
+  }
+
+  test("Newspaper2024Migration | subscriptionToZuoraSubscriptionUpdate | NewspaperSubscriptionCard-Annual") {
+    val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Annual/subscription.json")
+    assertEquals(
+      subscriptionToZuoraSubscriptionUpdate(subscription, LocalDate.of(2024, 3, 1)),
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(
+            AddZuoraRatePlan(
+              productRatePlanId = "2c92a00870ec598001710740c78d2f13",
+              contractEffectiveDate = LocalDate.of(2024, 3, 1),
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a00870ec598001710740c7b82f1c",
+                  billingPeriod = "Annual",
+                  price = BigDecimal(101.04)
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a00870ec598001710740c80f2f26",
+                  billingPeriod = "Annual",
+                  price = BigDecimal(101.04)
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a00870ec598001710740c9802f59",
+                  billingPeriod = "Annual",
+                  price = BigDecimal(101.04)
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a00870ec598001710740c8c42f40",
+                  billingPeriod = "Annual",
+                  price = BigDecimal(101.04)
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a00870ec598001710740c91d2f4d",
+                  billingPeriod = "Annual",
+                  price = BigDecimal(101.04)
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a00870ec598001710740c8652f37",
+                  billingPeriod = "Annual",
+                  price = BigDecimal(137.28)
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a00870ec598001710740c9d72f61",
+                  billingPeriod = "Annual",
+                  price = BigDecimal(137.40)
+                )
+              )
+            )
+          ),
+          remove = List(
+            RemoveZuoraRatePlan(
+              ratePlanId = "8a128636884d1bc501885172384b76da",
+              LocalDate.of(2024, 3, 1)
+            )
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
+    )
+  }
+
+  test("Newspaper2024Migration | subscriptionToZuoraSubscriptionUpdate | NewspaperVoucherBook-Annual") {
+    val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Annual/subscription.json")
+    assertEquals(
+      subscriptionToZuoraSubscriptionUpdate(subscription, LocalDate.of(2024, 3, 1)),
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(
+            AddZuoraRatePlan(
+              productRatePlanId = "2c92a0fd56fe26b60157040cdd323f76",
+              contractEffectiveDate = LocalDate.of(2024, 3, 1),
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0fd56fe26b601570432f4e33d17",
+                  billingPeriod = "Annual",
+                  price = BigDecimal(155.88)
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0ff56fe33f5015709b8fc4d5617",
+                  billingPeriod = "Annual",
+                  price = BigDecimal(156.0)
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0fe56fe33ff015709bb986636d8",
+                  billingPeriod = "Annual",
+                  price = BigDecimal(108.0)
+                )
+              )
+            )
+          ),
+          remove = List(
+            RemoveZuoraRatePlan(
+              ratePlanId = "8a128f76860bed21018615f5f4ba4a40",
+              LocalDate.of(2024, 3, 1)
+            )
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
+    )
   }
 
 }
