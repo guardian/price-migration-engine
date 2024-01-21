@@ -292,10 +292,10 @@ object Newspaper2024MigrationStaticData {
 
   def chargeDistributionMultiplier(
       chargeDistribution: ChargeDistribution2024,
-      multiplier: Int
+      multiplier: BigDecimal
   ): ChargeDistribution2024 = {
-    def mult(ic: IndividualCharge2024, multiplier: Int): IndividualCharge2024 =
-      IndividualCharge2024(ic.chargeId, ic.Price * BigDecimal(multiplier))
+    def mult(ic: IndividualCharge2024, multiplier: BigDecimal): IndividualCharge2024 =
+      IndividualCharge2024(ic.chargeId, ic.Price * multiplier)
     ChargeDistribution2024(
       monday = chargeDistribution.monday.map(ic => mult(ic, multiplier)),
       tuesday = chargeDistribution.tuesday.map(ic => mult(ic, multiplier)),
@@ -412,11 +412,26 @@ object Newspaper2024MigrationStaticData {
   )
 
   val newspaperHomeDeliveryQuarterlyChargeDistributionsMap: Map[String, ChargeDistribution2024] = Map(
-    "Everyday" -> chargeDistributionMultiplier(newspaperHomeDeliveryMonthlyChargeDistributionsMap("Everyday"), 3),
-    "Sixday" -> chargeDistributionMultiplier(newspaperHomeDeliveryMonthlyChargeDistributionsMap("Sixday"), 3),
-    "Weekend" -> chargeDistributionMultiplier(newspaperHomeDeliveryMonthlyChargeDistributionsMap("Weekend"), 3),
-    "Saturday" -> chargeDistributionMultiplier(newspaperHomeDeliveryMonthlyChargeDistributionsMap("Saturday"), 3),
-    "Sunday" -> chargeDistributionMultiplier(newspaperHomeDeliveryMonthlyChargeDistributionsMap("Sunday"), 3),
+    "Everyday" -> chargeDistributionMultiplier(
+      newspaperHomeDeliveryMonthlyChargeDistributionsMap("Everyday"),
+      BigDecimal(3)
+    ),
+    "Sixday" -> chargeDistributionMultiplier(
+      newspaperHomeDeliveryMonthlyChargeDistributionsMap("Sixday"),
+      BigDecimal(3)
+    ),
+    "Weekend" -> chargeDistributionMultiplier(
+      newspaperHomeDeliveryMonthlyChargeDistributionsMap("Weekend"),
+      BigDecimal(3)
+    ),
+    "Saturday" -> chargeDistributionMultiplier(
+      newspaperHomeDeliveryMonthlyChargeDistributionsMap("Saturday"),
+      BigDecimal(3)
+    ),
+    "Sunday" -> chargeDistributionMultiplier(
+      newspaperHomeDeliveryMonthlyChargeDistributionsMap("Sunday"),
+      BigDecimal(3)
+    ),
   )
 
   val newspaperSubscriptionCardMonthlyChargeDistributionsMap: Map[String, ChargeDistribution2024] = Map(
@@ -523,23 +538,56 @@ object Newspaper2024MigrationStaticData {
   )
 
   val newspaperSubscriptionCardQuarterlyChargeDistributionsMap: Map[String, ChargeDistribution2024] = Map(
-    "Everyday" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Everyday"), 3),
-    "Sixday" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Sixday"), 3),
-    "Weekend" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Weekend"), 3),
-    "Everyday+" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Everyday+"), 3),
-    "Sixday+" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Sixday+"), 3),
+    "Everyday" -> chargeDistributionMultiplier(
+      newspaperSubscriptionCardMonthlyChargeDistributionsMap("Everyday"),
+      BigDecimal(3)
+    ),
+    "Sixday" -> chargeDistributionMultiplier(
+      newspaperSubscriptionCardMonthlyChargeDistributionsMap("Sixday"),
+      BigDecimal(3)
+    ),
+    "Weekend" -> chargeDistributionMultiplier(
+      newspaperSubscriptionCardMonthlyChargeDistributionsMap("Weekend"),
+      BigDecimal(3)
+    ),
+    "Everyday+" -> chargeDistributionMultiplier(
+      newspaperSubscriptionCardMonthlyChargeDistributionsMap("Everyday+"),
+      BigDecimal(3)
+    ),
+    "Sixday+" -> chargeDistributionMultiplier(
+      newspaperSubscriptionCardMonthlyChargeDistributionsMap("Sixday+"),
+      BigDecimal(3)
+    ),
   )
 
   val newspaperSubscriptionCardSemiAnnualChargeDistributionsMap: Map[String, ChargeDistribution2024] = Map(
-    "Everyday" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Everyday"), 6),
-    "Sixday" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Sixday"), 6),
-    "Everyday+" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Everyday+"), 6),
+    "Everyday" -> chargeDistributionMultiplier(
+      newspaperSubscriptionCardMonthlyChargeDistributionsMap("Everyday"),
+      BigDecimal(6)
+    ),
+    "Sixday" -> chargeDistributionMultiplier(
+      newspaperSubscriptionCardMonthlyChargeDistributionsMap("Sixday"),
+      BigDecimal(6)
+    ),
+    "Everyday+" -> chargeDistributionMultiplier(
+      newspaperSubscriptionCardMonthlyChargeDistributionsMap("Everyday+"),
+      BigDecimal(6)
+    ),
   )
 
   val newspaperSubscriptionCardAnnualChargeDistributionsMap: Map[String, ChargeDistribution2024] = Map(
-    "Everyday" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Everyday"), 12),
-    "Sixday" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Sixday"), 12),
-    "Weekend" -> chargeDistributionMultiplier(newspaperSubscriptionCardMonthlyChargeDistributionsMap("Weekend"), 12),
+    "Everyday" -> chargeDistributionMultiplier(
+      newspaperSubscriptionCardMonthlyChargeDistributionsMap("Everyday"),
+      BigDecimal(12)
+    ),
+    "Sixday" -> chargeDistributionMultiplier(
+      newspaperSubscriptionCardMonthlyChargeDistributionsMap("Sixday"),
+      BigDecimal(12)
+    ),
+    "Weekend" -> chargeDistributionMultiplier(
+      newspaperSubscriptionCardMonthlyChargeDistributionsMap("Weekend"),
+      BigDecimal(12)
+    ),
   )
 
   val newspaperVoucherBookMonthlChargeDistibutionsMap: Map[String, ChargeDistribution2024] = Map(
@@ -646,32 +694,83 @@ object Newspaper2024MigrationStaticData {
   )
 
   val newspaperVoucherBookQuarterlyChargeDistibutionsMap: Map[String, ChargeDistribution2024] = Map(
-    "Everyday" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday"), 3),
-    "Sixday" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday"), 3),
-    "Weekend" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend"), 3),
-    "Everyday+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday+"), 3),
-    "Sixday+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday+"), 3),
-    "Weekend+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend+"), 3),
-    "Sunday+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sunday+"), 3),
+    "Everyday" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday"),
+      BigDecimal(3)
+    ),
+    "Sixday" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday"), BigDecimal(3)),
+    "Weekend" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend"),
+      BigDecimal(3)
+    ),
+    "Everyday+" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday+"),
+      BigDecimal(3)
+    ),
+    "Sixday+" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday+"),
+      BigDecimal(3)
+    ),
+    "Weekend+" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend+"),
+      BigDecimal(3)
+    ),
+    "Sunday+" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Sunday+"),
+      BigDecimal(3)
+    ),
   )
 
   val newspaperVoucherBookSemiAnnualChargeDistributionsMap: Map[String, ChargeDistribution2024] = Map(
-    "Everyday" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday"), 6),
-    "Sixday" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday"), 6),
-    "Weekend" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend"), 6),
-    "Everyday+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday+"), 6),
-    "Sixday+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday+"), 6),
-    "Weekend+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend+"), 6),
-    "Sunday+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sunday+"), 6),
+    "Everyday" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday"),
+      BigDecimal(6)
+    ),
+    "Sixday" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday"), BigDecimal(6)),
+    "Weekend" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend"),
+      BigDecimal(6)
+    ),
+    "Everyday+" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday+"),
+      BigDecimal(6)
+    ),
+    "Sixday+" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday+"),
+      BigDecimal(6)
+    ),
+    "Weekend+" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend+"),
+      BigDecimal(6)
+    ),
+    "Sunday+" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Sunday+"),
+      BigDecimal(6)
+    ),
   )
 
   val newspaperVoucherBookAnnualChargeDistributionsMap: Map[String, ChargeDistribution2024] = Map(
-    "Everyday" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday"), 12),
-    "Sixday" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday"), 12),
-    "Weekend" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend"), 12),
-    "Everyday+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday+"), 12),
-    "Sixday+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday+"), 12),
-    "Weekend+" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend+"), 12),
+    "Everyday" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday"),
+      BigDecimal(12)
+    ),
+    "Sixday" -> chargeDistributionMultiplier(newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday"), BigDecimal(12)),
+    "Weekend" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend"),
+      BigDecimal(12)
+    ),
+    "Everyday+" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Everyday+"),
+      BigDecimal(12)
+    ),
+    "Sixday+" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Sixday+"),
+      BigDecimal(12)
+    ),
+    "Weekend+" -> chargeDistributionMultiplier(
+      newspaperVoucherBookMonthlChargeDistibutionsMap("Weekend+"),
+      BigDecimal(12)
+    ),
   )
 
   /*

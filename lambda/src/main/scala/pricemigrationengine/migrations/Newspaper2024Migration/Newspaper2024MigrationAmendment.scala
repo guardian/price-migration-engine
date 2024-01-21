@@ -8,6 +8,7 @@ import java.time.LocalDate
 object Newspaper2024MigrationAmendment {
 
   def subscriptionToNewChargeDistribution2024(subscription: ZuoraSubscription): Option[ChargeDistribution2024] = {
+    val priceCorrectionFactor = Newspaper2024MigrationPriceCapping.priceCorrectionFactor(subscription)
     for {
       data2024 <- Newspaper2024MigrationEstimation
         .subscriptionToSubscriptionData2024(subscription)
@@ -17,7 +18,7 @@ object Newspaper2024MigrationAmendment {
         data2024.billingPeriod,
         data2024.ratePlanName
       )
-    } yield priceDistribution
+    } yield chargeDistributionMultiplier(priceDistribution, priceCorrectionFactor)
   }
 
   def chargeDistributionToChargeOverrides(
