@@ -17,33 +17,14 @@ object AmendmentHandler extends CohortHandler {
   private val batchSize = 100
 
   private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] = {
-    cohortSpec.cohortName match {
-      case "Newspaper2024" => {
-        for {
-          catalogue <- Zuora.fetchProductCatalogue
-          count <- CohortTable
-            .fetch(NotificationSendDateWrittenToSalesforce, None)
-            .take(1)
-            .mapZIO(item =>
-              amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
-            )
-            .runCount
-        } yield HandlerOutput(isComplete = count < batchSize)
-      }
-      case _ => {
-        for {
-          catalogue <- Zuora.fetchProductCatalogue
-          count <- CohortTable
-            .fetch(NotificationSendDateWrittenToSalesforce, None)
-            .take(batchSize)
-            .mapZIO(item =>
-              amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
-            )
-            .runCount
-        } yield HandlerOutput(isComplete = count < batchSize)
-      }
-    }
-
+    for {
+      catalogue <- Zuora.fetchProductCatalogue
+      count <- CohortTable
+        .fetch(NotificationSendDateWrittenToSalesforce, None)
+        .take(batchSize)
+        .mapZIO(item => amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
+        .runCount
+    } yield HandlerOutput(isComplete = count < batchSize)
   }
 
   private def amend(
