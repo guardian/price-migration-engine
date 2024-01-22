@@ -158,7 +158,8 @@ object Estimation {
           case Monthly => {
             val ratePlan = ratePlanDetails.ratePlan
             ratePlan.ratePlanCharges.toList match {
-              case Nil => Left("")
+              case Nil =>
+                Left(s"Could not extract a rate plan charge for subscription: ${subscription.subscriptionNumber}")
               case rpc :: _ => {
                 val monthIndex = rpc.chargedThroughDate.getOrElse(LocalDate.of(2024, 1, 1)).getDayOfMonth
                 if (monthIndex <= 20) {
