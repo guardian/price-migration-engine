@@ -1,11 +1,7 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.migrations.{
-  DigiSubs2023Migration,
-  GuardianWeeklyMigration,
-  Membership2023Migration,
-  Newspaper2024MigrationEstimation
-}
+import pricemigrationengine.migrations.newspaper2024migration.Newspaper2024MigrationEstimation
+import pricemigrationengine.migrations.{DigiSubs2023Migration, GuardianWeeklyMigration, Membership2023Migration}
 import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, productPricingMap}
 
 import java.time.LocalDate

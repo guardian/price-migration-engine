@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.migrations.Newspaper2024MigrationEstimation
+import pricemigrationengine.migrations.newspaper2024migration.Newspaper2024MigrationEstimation
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._

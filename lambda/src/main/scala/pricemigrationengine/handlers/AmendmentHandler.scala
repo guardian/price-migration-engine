@@ -6,8 +6,8 @@ import pricemigrationengine.model._
 import pricemigrationengine.migrations._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
-
 import java.time.{LocalDate, LocalDateTime, ZoneOffset}
+import pricemigrationengine.migrations.newspaper2024migration.Newspaper2024MigrationAmendment
 
 /** Carries out price-rise amendments in Zuora.
   */

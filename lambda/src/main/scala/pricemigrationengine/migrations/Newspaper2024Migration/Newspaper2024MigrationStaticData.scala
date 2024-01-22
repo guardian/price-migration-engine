@@ -1,4 +1,4 @@
-package pricemigrationengine.migrations
+package pricemigrationengine.migrations.newspaper2024migration
 import pricemigrationengine.model._
 
 import java.time.LocalDate

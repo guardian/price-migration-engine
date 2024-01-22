@@ -6,7 +6,7 @@ import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
-import pricemigrationengine.migrations._
+import pricemigrationengine.migrations.newspaper2024migration.Newspaper2024MigrationStaticData
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
