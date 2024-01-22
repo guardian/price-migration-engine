@@ -147,33 +147,33 @@ object Estimation {
   }
 
   def subscriptionToBatchId(subscription: ZuoraSubscription): Either[String, Newspaper2024BatchId] = {
-    val ratePlanDetails = (for {
-      ratePlanDetails <- subscriptionToSubscriptionData2024(subscription)
-    } yield ratePlanDetails)
 
-    ratePlanDetails match {
-      case Left(message) => Left(message)
-      case Right(ratePlanDetails) => {
-        ratePlanDetails.billingPeriod match {
+    def ratePlanChargesToBatchId(list: List[ZuoraRatePlanCharge]): Either[String, Newspaper2024BatchId] = {
+      list match {
+        case Nil => Left(s"Could not extract a rate plan charge for subscription: ${subscription.subscriptionNumber}")
+        case rpc :: _ => {
+          val monthIndex = rpc.chargedThroughDate.getOrElse(LocalDate.of(2024, 1, 1)).getDayOfMonth
+          if (monthIndex <= 20) {
+            Right(MonthliesPart2)
+          } else {
+            Right(MonthliesPart1)
+          }
+        }
+      }
+    }
+
+    for {
+      subscriptionData <- subscriptionToSubscriptionData2024(subscription)
+      batchId <- {
+        subscriptionData.billingPeriod match {
           case Monthly => {
-            val ratePlan = ratePlanDetails.ratePlan
-            ratePlan.ratePlanCharges.toList match {
-              case Nil =>
-                Left(s"Could not extract a rate plan charge for subscription: ${subscription.subscriptionNumber}")
-              case rpc :: _ => {
-                val monthIndex = rpc.chargedThroughDate.getOrElse(LocalDate.of(2024, 1, 1)).getDayOfMonth
-                if (monthIndex <= 20) {
-                  Right(MonthliesPart2)
-                } else {
-                  Right(MonthliesPart1)
-                }
-              }
-            }
+            val ratePlan = subscriptionData.ratePlan
+            ratePlanChargesToBatchId(ratePlan.ratePlanCharges)
           }
           case _ => Right(MoreThanMonthlies)
         }
       }
-    }
+    } yield batchId
   }
 
   def batchIdToEarliestMigrationStartDate(batchId: Newspaper2024BatchId): LocalDate = {
