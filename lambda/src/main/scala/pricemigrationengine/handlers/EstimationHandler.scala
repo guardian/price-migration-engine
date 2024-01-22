@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.migrations.newspaper2024migration.Newspaper2024MigrationEstimation
+import pricemigrationengine.migrations.newspaper2024migration
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -147,7 +147,7 @@ object EstimationHandler extends CohortHandler {
       MigrationType(cohortSpec) match {
         case Membership2023Monthlies => 1
         case Membership2023Annuals   => 1
-        case Newspaper2024           => Newspaper2024MigrationEstimation.startDateSpreadPeriod(subscription)
+        case Newspaper2024           => newspaper2024migration.Estimation.startDateSpreadPeriod(subscription)
         case _                       => 3
       }
     } else 1
@@ -168,8 +168,9 @@ object EstimationHandler extends CohortHandler {
     // nature of that migration), which also takes the subscription.
 
     val startDateLowerBound1 = MigrationType(cohortSpec) match {
-      case Newspaper2024 => Newspaper2024MigrationEstimation.startDateGeneralLowerbound(cohortSpec, today, subscription)
-      case _             => startDateGeneralLowerbound(cohortSpec, today)
+      case Newspaper2024 =>
+        newspaper2024migration.Estimation.startDateGeneralLowerbound(cohortSpec, today, subscription)
+      case _ => startDateGeneralLowerbound(cohortSpec, today)
     }
 
     // We now respect the policy of not increasing members during their first year

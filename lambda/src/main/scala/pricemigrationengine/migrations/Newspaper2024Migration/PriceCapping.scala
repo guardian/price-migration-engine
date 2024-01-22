@@ -3,7 +3,7 @@ import pricemigrationengine.model._
 
 import java.time.LocalDate
 
-object Newspaper2024MigrationPriceCapping {
+object PriceCapping {
 
   // The engine has a notion of capping, but it would not work with this migration
   // Instead, Matt S. provided us with a list of subscriptions which need to be capped

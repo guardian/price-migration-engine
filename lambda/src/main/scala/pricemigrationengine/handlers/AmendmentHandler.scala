@@ -7,7 +7,7 @@ import pricemigrationengine.migrations._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import java.time.{LocalDate, LocalDateTime, ZoneOffset}
-import pricemigrationengine.migrations.newspaper2024migration.Newspaper2024MigrationAmendment
+import pricemigrationengine.migrations.newspaper2024migration
 
 /** Carries out price-rise amendments in Zuora.
   */
@@ -211,7 +211,7 @@ object AmendmentHandler extends CohortHandler {
           )
         case Newspaper2024 =>
           ZIO.fromEither(
-            Newspaper2024MigrationAmendment.subscriptionToZuoraSubscriptionUpdate(
+            newspaper2024migration.Amendment.subscriptionToZuoraSubscriptionUpdate(
               subscriptionBeforeUpdate,
               startDate,
             )

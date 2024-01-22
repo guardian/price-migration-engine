@@ -1,19 +1,19 @@
 package pricemigrationengine.migrations.newspaper2024migration
 import pricemigrationengine.model._
-import pricemigrationengine.migrations.newspaper2024migration.Newspaper2024MigrationStaticData._
-import pricemigrationengine.migrations.newspaper2024migration.Newspaper2024MigrationEstimation._
+import pricemigrationengine.migrations.newspaper2024migration.StaticData._
+import pricemigrationengine.migrations.newspaper2024migration.Estimation._
 
 import java.time.LocalDate
 
-object Newspaper2024MigrationAmendment {
+object Amendment {
 
   def subscriptionToNewChargeDistribution2024(subscription: ZuoraSubscription): Option[ChargeDistribution2024] = {
-    val priceCorrectionFactor = Newspaper2024MigrationPriceCapping.priceCorrectionFactor(subscription)
+    val priceCorrectionFactor = PriceCapping.priceCorrectionFactor(subscription)
     for {
-      data2024 <- Newspaper2024MigrationEstimation
+      data2024 <- Estimation
         .subscriptionToSubscriptionData2024(subscription)
         .toOption
-      priceDistribution <- Newspaper2024MigrationStaticData.priceDistributionLookup(
+      priceDistribution <- StaticData.priceDistributionLookup(
         data2024.productName,
         data2024.billingPeriod,
         data2024.ratePlanName
@@ -47,26 +47,9 @@ object Newspaper2024MigrationAmendment {
       subscription: ZuoraSubscription,
       effectiveDate: LocalDate,
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
-
-    def transform1[T](option: Option[T]): Either[AmendmentDataFailure, T] = {
-      option match {
-        case None                 => Left(AmendmentDataFailure("error"))
-        case Some(ratePlanCharge) => Right(ratePlanCharge)
-      }
-    }
-
-    def transform2[T](data: Either[String, T]): Either[AmendmentDataFailure, T] = {
-      data match {
-        case Left(string) => Left(AmendmentDataFailure(string))
-        case Right(t)     => Right(t)
-      }
-    }
-
     for {
-      data2024 <- transform2[SubscriptionData2024](
-        Newspaper2024MigrationEstimation.subscriptionToSubscriptionData2024(subscription)
-      )
-      chargeDistribution <- transform1[ChargeDistribution2024](subscriptionToNewChargeDistribution2024(subscription))
+      data2024 <- Estimation.subscriptionToSubscriptionData2024(subscription).left.map(AmendmentDataFailure)
+      chargeDistribution <- subscriptionToNewChargeDistribution2024(subscription).toRight(AmendmentDataFailure("error"))
     } yield ZuoraSubscriptionUpdate(
       add = List(
         AddZuoraRatePlan(

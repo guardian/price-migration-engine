@@ -1,19 +1,12 @@
 package pricemigrationengine.migrations
 
 import pricemigrationengine.model._
-
 import java.time.LocalDate
 import pricemigrationengine.Fixtures
-import pricemigrationengine.migrations.newspaper2024migration.Newspaper2024MigrationEstimation._
-import pricemigrationengine.migrations.newspaper2024migration.Newspaper2024MigrationAmendment._
-import pricemigrationengine.migrations.newspaper2024migration.{
-  Newspaper2024MigrationEstimation,
-  Newspaper2024MigrationStaticData
-}
-import pricemigrationengine.migrations.newspaper2024migration.Newspaper2024MigrationStaticData.{
-  ChargeDistribution2024,
-  IndividualCharge2024
-}
+import pricemigrationengine.migrations.newspaper2024migration.Estimation._
+import pricemigrationengine.migrations.newspaper2024migration.Amendment._
+import pricemigrationengine.migrations.newspaper2024migration.{Estimation, StaticData}
+import pricemigrationengine.migrations.newspaper2024migration.StaticData.{ChargeDistribution2024, IndividualCharge2024}
 
 /*
   Correspondence between product names in Salesforce versus Zuora
@@ -31,15 +24,15 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
 
   test("Newspaper2024Migration: Price lookup is correct") {
     assertEquals(
-      Newspaper2024MigrationStaticData.priceLookup("Newspaper Delivery", Monthly, "Weekend"),
+      StaticData.priceLookup("Newspaper Delivery", Monthly, "Weekend"),
       Some(BigDecimal(31.99))
     )
     assertEquals(
-      Newspaper2024MigrationStaticData.priceLookup("Newspaper Digital Voucher", Annual, "Sixday"),
+      StaticData.priceLookup("Newspaper Digital Voucher", Annual, "Sixday"),
       Some(BigDecimal(683.88))
     )
-    assertEquals(Newspaper2024MigrationStaticData.priceLookup("Newspaper Digital Voucher", Annual, "Sixday+"), None)
-    assertEquals(Newspaper2024MigrationStaticData.priceLookup("Non existent product", Annual, "Weekend"), None)
+    assertEquals(StaticData.priceLookup("Newspaper Digital Voucher", Annual, "Sixday+"), None)
+    assertEquals(StaticData.priceLookup("Non existent product", Annual, "Weekend"), None)
   }
 
   // -- product name -------------------------------------------------------
@@ -1071,60 +1064,60 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
   test("Newspaper2024Migration | price data is correct | NewspaperHomeDelivery-Monthly") {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(33.76), BigDecimal(40.99), "Month")
-    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
+    assertEquals(Estimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperHomeDelivery-Quarterly") {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Quarterly/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(83.97), BigDecimal(95.97), "Quarter")
-    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
+    assertEquals(Estimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperSubscriptionCard-Monthly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Monthly/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(31.99), BigDecimal(34.99), "Month")
-    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
+    assertEquals(Estimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperSubscriptionCard-Quarterly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Quarterly/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(68.97), BigDecimal(77.97), "Quarter")
-    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
+    assertEquals(Estimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperSubscriptionCard-SemiAnnual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-SemiAnnual/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(287.94), BigDecimal(341.94), "Semi_Annual")
-    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
+    assertEquals(Estimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperSubscriptionCard-Annual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Annual/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(731.88), BigDecimal(779.88), "Annual")
-    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
+    assertEquals(Estimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperVoucherBook-Monthly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Monthly/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(31.99), BigDecimal(34.99), "Month")
-    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
+    assertEquals(Estimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperVoucherBook-Quarterly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Quarterly/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(95.97), BigDecimal(104.97), "Quarter")
-    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
+    assertEquals(Estimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperVoucherBook-SemiAnnual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-SemiAnnual/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(191.94), BigDecimal(209.94), "Semi_Annual")
-    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
+    assertEquals(Estimation.priceData(subscription), Right(priceData))
   }
   test("Newspaper2024Migration | price data is correct | NewspaperVoucherBook-Annual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Annual/subscription.json")
     val priceData = PriceData("GBP", BigDecimal(383.88), BigDecimal(419.88), "Annual")
-    assertEquals(Newspaper2024MigrationEstimation.priceData(subscription), Right(priceData))
+    assertEquals(Estimation.priceData(subscription), Right(priceData))
   }
 
   // -- subscription to batch Id -------------------------------------------------------
@@ -1138,51 +1131,51 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
 
   test("Newspaper2024Migration | batchId is correct | NewspaperHomeDelivery-Monthly") {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/subscription.json")
-    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MonthliesPart1))
+    assertEquals(Estimation.subscriptionToBatchId(subscription), Right(MonthliesPart1))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperHomeDelivery-Quarterly") {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperHomeDelivery-Quarterly/subscription.json")
-    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
+    assertEquals(Estimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperSubscriptionCard-Monthly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Monthly/subscription.json")
-    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MonthliesPart1))
+    assertEquals(Estimation.subscriptionToBatchId(subscription), Right(MonthliesPart1))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperSubscriptionCard-Quarterly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Quarterly/subscription.json")
-    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
+    assertEquals(Estimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperSubscriptionCard-SemiAnnual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-SemiAnnual/subscription.json")
-    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
+    assertEquals(Estimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperSubscriptionCard-Annual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Annual/subscription.json")
-    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
+    assertEquals(Estimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperVoucherBook-Monthly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Monthly/subscription.json")
-    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MonthliesPart2))
+    assertEquals(Estimation.subscriptionToBatchId(subscription), Right(MonthliesPart2))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperVoucherBook-Quarterly") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Quarterly/subscription.json")
-    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
+    assertEquals(Estimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperVoucherBook-SemiAnnual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-SemiAnnual/subscription.json")
-    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
+    assertEquals(Estimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
   }
   test("Newspaper2024Migration | batchId is correct | NewspaperVoucherBook-Annual") {
     val subscription =
       Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Annual/subscription.json")
-    assertEquals(Newspaper2024MigrationEstimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
+    assertEquals(Estimation.subscriptionToBatchId(subscription), Right(MoreThanMonthlies))
   }
 
   // -- spread period -------------------------------------------------------
@@ -1248,9 +1241,9 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
   // This section perform a check of the form
 
   assertEquals(
-    Newspaper2024MigrationStaticData.newspaperHomeDeliveryMonthlyPrices.get("Everyday").get,
-    Newspaper2024MigrationStaticData.chargeDistributionToPrice(
-      Newspaper2024MigrationStaticData.newspaperHomeDeliveryMonthlyChargeDistributionsMap.get("Everyday").get
+    StaticData.newspaperHomeDeliveryMonthlyPrices.get("Everyday").get,
+    StaticData.chargeDistributionToPrice(
+      StaticData.newspaperHomeDeliveryMonthlyChargeDistributionsMap.get("Everyday").get
     )
   )
 
@@ -1260,8 +1253,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
 
   List(
     (
-      Newspaper2024MigrationStaticData.newspaperHomeDeliveryMonthlyPrices,
-      Newspaper2024MigrationStaticData.newspaperHomeDeliveryMonthlyChargeDistributionsMap,
+      StaticData.newspaperHomeDeliveryMonthlyPrices,
+      StaticData.newspaperHomeDeliveryMonthlyChargeDistributionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1276,8 +1269,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
       )
     ),
     (
-      Newspaper2024MigrationStaticData.newspaperHomeDeliveryQuarterlyPrices,
-      Newspaper2024MigrationStaticData.newspaperHomeDeliveryQuarterlyChargeDistributionsMap,
+      StaticData.newspaperHomeDeliveryQuarterlyPrices,
+      StaticData.newspaperHomeDeliveryQuarterlyChargeDistributionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1287,8 +1280,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
       )
     ),
     (
-      Newspaper2024MigrationStaticData.newspaperSubscriptionCardMonthlyPrices,
-      Newspaper2024MigrationStaticData.newspaperSubscriptionCardMonthlyChargeDistributionsMap,
+      StaticData.newspaperSubscriptionCardMonthlyPrices,
+      StaticData.newspaperSubscriptionCardMonthlyChargeDistributionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1303,8 +1296,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
       )
     ),
     (
-      Newspaper2024MigrationStaticData.newspaperSubscriptionCardQuarterlyPrices,
-      Newspaper2024MigrationStaticData.newspaperSubscriptionCardQuarterlyChargeDistributionsMap,
+      StaticData.newspaperSubscriptionCardQuarterlyPrices,
+      StaticData.newspaperSubscriptionCardQuarterlyChargeDistributionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1314,8 +1307,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
       )
     ),
     (
-      Newspaper2024MigrationStaticData.newspaperSubscriptionCardSemiAnnualPrices,
-      Newspaper2024MigrationStaticData.newspaperSubscriptionCardSemiAnnualChargeDistributionsMap,
+      StaticData.newspaperSubscriptionCardSemiAnnualPrices,
+      StaticData.newspaperSubscriptionCardSemiAnnualChargeDistributionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1323,8 +1316,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
       )
     ),
     (
-      Newspaper2024MigrationStaticData.newspaperSubscriptionCardAnnualPrices,
-      Newspaper2024MigrationStaticData.newspaperSubscriptionCardAnnualChargeDistributionsMap,
+      StaticData.newspaperSubscriptionCardAnnualPrices,
+      StaticData.newspaperSubscriptionCardAnnualChargeDistributionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1332,8 +1325,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
       )
     ),
     (
-      Newspaper2024MigrationStaticData.newspaperVoucherBookMonthlyPrices,
-      Newspaper2024MigrationStaticData.newspaperVoucherBookMonthlChargeDistibutionsMap,
+      StaticData.newspaperVoucherBookMonthlyPrices,
+      StaticData.newspaperVoucherBookMonthlChargeDistibutionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1348,8 +1341,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
       )
     ),
     (
-      Newspaper2024MigrationStaticData.newspaperVoucherBookQuarterlyPrices,
-      Newspaper2024MigrationStaticData.newspaperVoucherBookQuarterlyChargeDistibutionsMap,
+      StaticData.newspaperVoucherBookQuarterlyPrices,
+      StaticData.newspaperVoucherBookQuarterlyChargeDistibutionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1361,8 +1354,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
       )
     ),
     (
-      Newspaper2024MigrationStaticData.newspaperVoucherBookSemiAnnualPrices,
-      Newspaper2024MigrationStaticData.newspaperVoucherBookSemiAnnualChargeDistributionsMap,
+      StaticData.newspaperVoucherBookSemiAnnualPrices,
+      StaticData.newspaperVoucherBookSemiAnnualChargeDistributionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1374,8 +1367,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
       )
     ),
     (
-      Newspaper2024MigrationStaticData.newspaperVoucherBookAnnualPrices,
-      Newspaper2024MigrationStaticData.newspaperVoucherBookAnnualChargeDistributionsMap,
+      StaticData.newspaperVoucherBookAnnualPrices,
+      StaticData.newspaperVoucherBookAnnualChargeDistributionsMap,
       List(
         "Everyday",
         "Sixday",
@@ -1388,13 +1381,13 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
   ).foreach {
     case (
           mapper1: Map[String, BigDecimal],
-          mapper2: Map[String, Newspaper2024MigrationStaticData.ChargeDistribution2024],
+          mapper2: Map[String, StaticData.ChargeDistribution2024],
           ratePlanNames: List[String]
         ) =>
       ratePlanNames.foreach { ratePlanName =>
         assertEquals(
           mapper1(ratePlanName),
-          Newspaper2024MigrationStaticData.chargeDistributionToPrice(mapper2(ratePlanName))
+          StaticData.chargeDistributionToPrice(mapper2(ratePlanName))
         )
       }
   }

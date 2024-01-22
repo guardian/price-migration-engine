@@ -3,7 +3,7 @@ import pricemigrationengine.model._
 
 import java.time.LocalDate
 
-object Newspaper2024MigrationStaticData {
+object StaticData {
 
   val maxLeadTime = 40
   val minLeadTime = 35
