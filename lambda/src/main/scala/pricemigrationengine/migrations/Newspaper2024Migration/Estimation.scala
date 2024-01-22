@@ -27,12 +27,16 @@ object Estimation {
   object MonthliesPart2 extends Newspaper2024BatchId // Second batch of monthlies
   object MoreThanMonthlies extends Newspaper2024BatchId // Quarterlies, Semi-Annuals and Annuals
 
+  def ratePlanLastChangeTypeIsNoneOrAdd(ratePlan: ZuoraRatePlan): Boolean = {
+    ratePlan.lastChangeType == None || ratePlan.lastChangeType == Some("Add")
+  }
+
   def subscriptionToMigrationProductName(subscription: ZuoraSubscription): Either[String, String] = {
     // We are doing a multi product migration. This function tries and retrieve the correct product given a
     // subscription.
     val migrationProductNames = List("Newspaper Delivery", "Newspaper Digital Voucher", "Newspaper Voucher")
     val names = subscription.ratePlans
-      .filter(ratePlan => ratePlan.lastChangeType == None || ratePlan.lastChangeType == Some("Add"))
+      .filter(ratePlanLastChangeTypeIsNoneOrAdd)
       .map(ratePlan => ratePlan.productName)
       .filter(name => migrationProductNames.contains(name))
       .distinct
@@ -67,7 +71,7 @@ object Estimation {
     val ratePlans = {
       subscription.ratePlans
         .filter(ratePlan => ratePlan.productName == productName)
-        .filter(ratePlan => ratePlan.lastChangeType == None || ratePlan.lastChangeType == Some("Add"))
+        .filter(ratePlanLastChangeTypeIsNoneOrAdd)
         .distinct
     }
     ratePlans match {
