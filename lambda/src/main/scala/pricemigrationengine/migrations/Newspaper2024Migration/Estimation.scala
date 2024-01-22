@@ -224,13 +224,10 @@ object Estimation {
 
   def startDateSpreadPeriod(subscription: ZuoraSubscription): Int = {
     subscriptionToBatchId(subscription) match {
-      case Left(_) => 1
-      case Right(bid) =>
-        bid match {
-          case MonthliesPart1    => 1
-          case MonthliesPart2    => 2
-          case MoreThanMonthlies => 1
-        }
+      case Right(MonthliesPart1)    => 1
+      case Right(MonthliesPart2)    => 2
+      case Right(MoreThanMonthlies) => 1
+      case Left(_)                  => 1
     }
   }
 }
