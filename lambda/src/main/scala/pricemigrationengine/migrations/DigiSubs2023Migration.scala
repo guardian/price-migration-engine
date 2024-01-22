@@ -78,7 +78,7 @@ object DigiSubs2023Migration {
           case None => Left(AmendmentDataFailure(s"Could not determine a new annual price for currency: ${currency}"))
           case Some(price) => Right(price)
         }
-      case SemiAnnual => Left(AmendmentDataFailure(s"There are no defined semi-annual prices fro this migration"))
+      case SemiAnnual => Left(AmendmentDataFailure(s"There are no defined semi-annual prices for this migration"))
     }
   }
 
