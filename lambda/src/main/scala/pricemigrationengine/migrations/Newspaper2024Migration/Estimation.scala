@@ -29,7 +29,7 @@ object Estimation {
   object MoreThanMonthlies extends Newspaper2024BatchId // Quarterlies, Semi-Annuals and Annuals
 
   def ratePlanLastChangeTypeIsNoneOrAdd(ratePlan: ZuoraRatePlan): Boolean = {
-    ratePlan.lastChangeType == None || ratePlan.lastChangeType == Some("Add")
+    ratePlan.lastChangeType.isEmpty || ratePlan.lastChangeType.contains("Add")
   }
 
   def subscriptionToMigrationProductName(subscription: ZuoraSubscription): Either[String, String] = {
