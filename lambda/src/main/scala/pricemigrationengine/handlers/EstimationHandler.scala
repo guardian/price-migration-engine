@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.migrations.newspaper2024migration
+import pricemigrationengine.migrations.newspaper2024Migration
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -96,11 +96,11 @@ object EstimationHandler extends CohortHandler {
     } yield result
   }
 
-  def startDateGeneralLowerbound(
+  def startDateGeneralLowerBound(
       cohortSpec: CohortSpec,
       today: LocalDate
   ): LocalDate = {
-    // The startDateGeneralLowerbound is a function of the cohort spec and the notification min time.
+    // The startDateGeneralLowerBound is a function of the cohort spec and the notification min time.
     // The cohort spec carries the lowest date we specify there can be a price migration, and the notification min
     // time ensures the legally required lead time for customer communication. The max of those two dates is the date
     // from which we can realistically perform a price increase. With that said, other policies can apply, for
@@ -145,7 +145,7 @@ object EstimationHandler extends CohortHandler {
       MigrationType(cohortSpec) match {
         case Membership2023Monthlies => 1
         case Membership2023Annuals   => 1
-        case Newspaper2024           => newspaper2024migration.Estimation.startDateSpreadPeriod(subscription)
+        case Newspaper2024           => newspaper2024Migration.Estimation.startDateSpreadPeriod(subscription)
         case _                       => 3
       }
     } else 1
@@ -167,8 +167,8 @@ object EstimationHandler extends CohortHandler {
 
     val startDateLowerBound1 = MigrationType(cohortSpec) match {
       case Newspaper2024 =>
-        newspaper2024migration.Estimation.startDateGeneralLowerbound(cohortSpec, today, subscription)
-      case _ => startDateGeneralLowerbound(cohortSpec, today)
+        newspaper2024Migration.Estimation.startDateGeneralLowerbound(cohortSpec, today, subscription)
+      case _ => startDateGeneralLowerBound(cohortSpec, today)
     }
 
     // We now respect the policy of not increasing members during their first year

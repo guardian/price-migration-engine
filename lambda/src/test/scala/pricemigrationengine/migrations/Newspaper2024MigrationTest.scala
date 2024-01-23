@@ -3,10 +3,10 @@ package pricemigrationengine.migrations
 import pricemigrationengine.model._
 import java.time.LocalDate
 import pricemigrationengine.Fixtures
-import pricemigrationengine.migrations.newspaper2024migration.Estimation._
-import pricemigrationengine.migrations.newspaper2024migration.Amendment._
-import pricemigrationengine.migrations.newspaper2024migration.{Estimation, StaticData}
-import pricemigrationengine.migrations.newspaper2024migration.StaticData.{ChargeDistribution2024, IndividualCharge2024}
+import pricemigrationengine.migrations.newspaper2024Migration.Estimation._
+import pricemigrationengine.migrations.newspaper2024Migration.Amendment._
+import pricemigrationengine.migrations.newspaper2024Migration.{Estimation, StaticData}
+import pricemigrationengine.migrations.newspaper2024Migration.StaticData.{ChargeDistribution2024, IndividualCharge2024}
 
 /*
   Correspondence between product names in Salesforce versus Zuora

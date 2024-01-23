@@ -1,7 +1,7 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.Fixtures
-import pricemigrationengine.handlers.EstimationHandler.startDateGeneralLowerbound
+import pricemigrationengine.handlers.EstimationHandler.startDateGeneralLowerBound
 import pricemigrationengine.model.{CohortSpec, EstimationResult, SuccessfulEstimationResult}
 import zio.test._
 import pricemigrationengine.util.Date
@@ -143,7 +143,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         // (Today + 36 days) is after earliestPriceMigrationStartDate
         // The earliest start date needs to be 36 days ahead of today (35 days min time + 1) -> 2023-05-07
 
-        assertTrue(startDateGeneralLowerbound(cohortSpec, today) == LocalDate.of(2023, 5, 7))
+        assertTrue(startDateGeneralLowerBound(cohortSpec, today) == LocalDate.of(2023, 5, 7))
       },
       test(
         "during estimation, we correctly prevent start dates that are too close: decideEarliestStartDate (legacy case, part 2)"
@@ -157,7 +157,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         // earliestPriceMigrationStartDate is after (today + 36 days)
         // The earliest start date can be earliestPriceMigrationStartDate
 
-        assertTrue(startDateGeneralLowerbound(cohortSpec, today) == cohortSpec.earliestPriceMigrationStartDate)
+        assertTrue(startDateGeneralLowerBound(cohortSpec, today) == cohortSpec.earliestPriceMigrationStartDate)
       },
       test(
         "during estimation, we correctly prevent start dates that are too close: decideEarliestStartDate (membership)"
@@ -172,7 +172,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         // (Today + 32 days) is after earliestPriceMigrationStartDate
         // The earliest start date needs to be 32 days ahead of today -> 2023-05-05
 
-        assertTrue(startDateGeneralLowerbound(cohortSpec, today) == LocalDate.of(2023, 5, 3))
+        assertTrue(startDateGeneralLowerBound(cohortSpec, today) == LocalDate.of(2023, 5, 3))
       },
       test("EstimationResult is correct for SupporterPlus2023V1V2 (monthly standard)") {
 
