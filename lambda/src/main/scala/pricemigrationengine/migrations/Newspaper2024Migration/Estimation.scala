@@ -62,9 +62,7 @@ object Estimation {
   }
 
   def ratePlanToCurrency(ratePlan: ZuoraRatePlan): Option[String] = {
-    for {
-      ratePlanCharge <- ratePlan.ratePlanCharges.headOption
-    } yield ratePlanCharge.currency
+    ratePlan.ratePlanCharges.headOption.map(_.currency)
   }
 
   def subscriptionToSubscriptionData2024(subscription: ZuoraSubscription): Either[String, SubscriptionData2024] = {
