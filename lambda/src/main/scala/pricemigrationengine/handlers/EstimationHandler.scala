@@ -5,7 +5,7 @@ import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.{Clock, IO, Random, ZIO}
-
+import pricemigrationengine.util.Date
 import java.time.LocalDate
 
 /** Calculates start date and new price for a set of CohortItems.
@@ -96,8 +96,6 @@ object EstimationHandler extends CohortHandler {
     } yield result
   }
 
-  def datesMax(date1: LocalDate, date2: LocalDate): LocalDate = if (date1.isBefore(date2)) date2 else date1
-
   def startDateGeneralLowerbound(
       cohortSpec: CohortSpec,
       today: LocalDate
@@ -111,7 +109,7 @@ object EstimationHandler extends CohortHandler {
     // - The spread: a mechanism, used for monthlies, by which we do not let a large number of monthlies migrate
     //   during a single month.
 
-    datesMax(
+    Date.datesMax(
       cohortSpec.earliestPriceMigrationStartDate,
       today.plusDays(
         NotificationHandler.minLeadTime(cohortSpec: CohortSpec) + 1
@@ -123,7 +121,7 @@ object EstimationHandler extends CohortHandler {
   // and the customer's customerAcceptanceDate. Doing so we implement the policy of not increasing customers during
   // their first year.
   def oneYearPolicy(lowerbound: LocalDate, subscription: ZuoraSubscription): LocalDate = {
-    datesMax(lowerbound, subscription.customerAcceptanceDate.plusMonths(12))
+    Date.datesMax(lowerbound, subscription.customerAcceptanceDate.plusMonths(12))
   }
 
   // Determines whether the subscription is a monthly subscription

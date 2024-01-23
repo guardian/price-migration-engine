@@ -2,6 +2,7 @@ package pricemigrationengine.migrations.newspaper2024migration
 import pricemigrationengine.model._
 
 import java.time.LocalDate
+import pricemigrationengine.util.Date
 
 object Estimation {
 
@@ -217,9 +218,7 @@ object Estimation {
 
     val earliestPriceMigrationStartDate = subscriptionToEarliestMigrationStartDate(subscription)
 
-    def datesMax(date1: LocalDate, date2: LocalDate): LocalDate = if (date1.isBefore(date2)) date2 else date1
-
-    datesMax(
+    Date.datesMax(
       earliestPriceMigrationStartDate,
       today.plusDays(
         StaticData.minLeadTime + 1

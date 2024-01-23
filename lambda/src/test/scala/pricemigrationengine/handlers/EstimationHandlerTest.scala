@@ -1,10 +1,10 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.Fixtures
-import pricemigrationengine.handlers.EstimationHandler.{datesMax, startDateGeneralLowerbound}
+import pricemigrationengine.handlers.EstimationHandler.startDateGeneralLowerbound
 import pricemigrationengine.model.{CohortSpec, EstimationResult, SuccessfulEstimationResult}
 import zio.test._
-
+import pricemigrationengine.util.Date
 import java.time.{LocalDate, LocalDateTime, OffsetDateTime, ZoneOffset}
 
 object EstimationHandlerTest extends ZIOSpecDefault {
@@ -129,8 +129,8 @@ object EstimationHandlerTest extends ZIOSpecDefault {
       test("during estimation, we correctly prevent start dates that are too close: datesMax") {
         val date1 = LocalDate.of(2023, 4, 1)
         val date2 = LocalDate.of(2023, 4, 2)
-        assertTrue(datesMax(date1, date1) == date1)
-        assertTrue(datesMax(date1, date2) == date2)
+        assertTrue(Date.datesMax(date1, date1) == date1)
+        assertTrue(Date.datesMax(date1, date2) == date2)
       },
       test(
         "during estimation, we correctly prevent start dates that are too close: decideEarliestStartDate (legacy case, part 1)"
