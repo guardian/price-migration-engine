@@ -1623,7 +1623,6 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
 
   test("String Obfuscation") {
     assertEquals(StringObfuscation.obfuscate("A-Testing0"), "1&3esting4")
-    assertEquals(StringObfuscation.recover("1&3esting4"), "A-Testing0")
   }
 
 }

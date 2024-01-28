@@ -16,15 +16,4 @@ object StringObfuscation {
   }
 
   def obfuscate(s: String): String = s.toList.map(obfuscate).mkString("")
-
-  def recover(x: Char): Char = {
-    val index = string2.indexOf(x)
-    if (index >= 0) {
-      string1.charAt(index)
-    } else {
-      x
-    }
-  }
-
-  def recover(s: String): String = s.toList.map(recover).mkString("")
 }
