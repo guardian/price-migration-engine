@@ -1,4 +1,4 @@
-package pricemigrationengine.util
+package pricemigrationengine.migrations.newspaper2024Migration
 import java.time.LocalDate
 
 object StringObfuscation {

@@ -8,7 +8,7 @@ import pricemigrationengine.migrations.newspaper2024Migration.Estimation._
 import pricemigrationengine.migrations.newspaper2024Migration.Amendment._
 import pricemigrationengine.migrations.newspaper2024Migration.{Estimation, StaticData}
 import pricemigrationengine.migrations.newspaper2024Migration.StaticData.{ChargeDistribution2024, IndividualCharge2024}
-import pricemigrationengine.util.StringObfuscation
+import pricemigrationengine.migrations.newspaper2024Migration.StringObfuscation
 
 /*
   Correspondence between product names in Salesforce versus Zuora

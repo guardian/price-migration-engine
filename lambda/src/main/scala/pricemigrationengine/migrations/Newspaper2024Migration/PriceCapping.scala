@@ -1,6 +1,5 @@
 package pricemigrationengine.migrations.newspaper2024Migration
 import pricemigrationengine.model._
-import pricemigrationengine.util.StringObfuscation.obfuscate
 
 import java.time.LocalDate
 
@@ -866,6 +865,6 @@ object PriceCapping {
       "1&244AS097T" -> BigDecimal(0.83),
       "1&244S4TAT6" -> BigDecimal(0.83),
     )
-    mapping.getOrElse(obfuscate(subscription.subscriptionNumber), BigDecimal(1))
+    mapping.getOrElse(StringObfuscation.obfuscate(subscription.subscriptionNumber), BigDecimal(1))
   }
 }
