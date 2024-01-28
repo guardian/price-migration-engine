@@ -6,7 +6,7 @@ import java.time.LocalDate
 object PriceCapping {
 
   // The engine has a notion of capping, but it would not work with this migration
-  // Instead, Matt S. provided us with a list of subscriptions which need to be capped
+  // Instead, marketing provided us with a list of subscriptions which need to be capped
   // and the price correction factor. The price correction factor is 1 for all subscriptions
   // that are not being capped add is less than one for those that are being capped. It needs to
   // be applied consistently between the price estimation and the computation of the
