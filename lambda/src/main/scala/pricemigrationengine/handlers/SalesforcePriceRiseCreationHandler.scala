@@ -86,6 +86,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
         case Membership2023Annuals   => true
         case SupporterPlus2023V1V2MA => true
         case DigiSubs2023            => true
+        case Newspaper2024           => true
         case Legacy                  => false
       }
       SalesforcePriceRise(
@@ -99,7 +100,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
     }
   }
 
-  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     main(input).provideSome[Logging](
       EnvConfig.cohortTable.layer,
       EnvConfig.salesforce.layer,
@@ -109,4 +110,5 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
       CohortTableLive.impl(input),
       SalesforceClientLive.impl
     )
+  }
 }

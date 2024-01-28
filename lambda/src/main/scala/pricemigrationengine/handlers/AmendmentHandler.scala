@@ -6,8 +6,8 @@ import pricemigrationengine.model._
 import pricemigrationengine.migrations._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
-
 import java.time.{LocalDate, LocalDateTime, ZoneOffset}
+import pricemigrationengine.migrations.newspaper2024Migration
 
 /** Carries out price-rise amendments in Zuora.
   */
@@ -16,7 +16,7 @@ object AmendmentHandler extends CohortHandler {
   // TODO: move to config
   private val batchSize = 100
 
-  private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
+  private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] = {
     for {
       catalogue <- Zuora.fetchProductCatalogue
       count <- CohortTable
@@ -25,6 +25,7 @@ object AmendmentHandler extends CohortHandler {
         .mapZIO(item => amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
         .runCount
     } yield HandlerOutput(isComplete = count < batchSize)
+  }
 
   private def amend(
       cohortSpec: CohortSpec,
@@ -204,6 +205,13 @@ object AmendmentHandler extends CohortHandler {
         case DigiSubs2023 =>
           ZIO.fromEither(
             DigiSubs2023Migration.updateOfRatePlansToCurrent(
+              subscriptionBeforeUpdate,
+              startDate,
+            )
+          )
+        case Newspaper2024 =>
+          ZIO.fromEither(
+            newspaper2024Migration.Amendment.subscriptionToZuoraSubscriptionUpdate(
               subscriptionBeforeUpdate,
               startDate,
             )

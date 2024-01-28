@@ -6,6 +6,7 @@ import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
+import pricemigrationengine.migrations.newspaper2024Migration
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -24,30 +25,28 @@ object NotificationHandler extends CohortHandler {
   // of 30 days.
 
   val letterMaxNotificationLeadTime = 49
-  private val letterMinNotificationLeadTime = 35
 
-  // Membership migration
-  // Notification period: -33 (included) to -31 (excluded) days
-  private val emailMaxNotificationLeadTime = 33
-  private val emailMinNotificationLeadTime = 31
+  // The digital migrations' notification window is from -33 (included) to -31 (excluded)
 
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case Membership2023Monthlies => emailMaxNotificationLeadTime
-      case Membership2023Annuals   => emailMaxNotificationLeadTime
-      case SupporterPlus2023V1V2MA => emailMaxNotificationLeadTime
-      case DigiSubs2023            => emailMaxNotificationLeadTime
-      case Legacy                  => letterMaxNotificationLeadTime
+      case Membership2023Monthlies => 33
+      case Membership2023Annuals   => 33
+      case SupporterPlus2023V1V2MA => 33
+      case DigiSubs2023            => 33
+      case Newspaper2024           => newspaper2024Migration.StaticData.maxLeadTime
+      case Legacy                  => 49
     }
   }
 
   def minLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case Membership2023Monthlies => emailMinNotificationLeadTime
-      case Membership2023Annuals   => emailMinNotificationLeadTime
-      case SupporterPlus2023V1V2MA => emailMinNotificationLeadTime
-      case DigiSubs2023            => emailMinNotificationLeadTime
-      case Legacy                  => letterMinNotificationLeadTime
+      case Membership2023Monthlies => 31
+      case Membership2023Annuals   => 31
+      case SupporterPlus2023V1V2MA => 31
+      case DigiSubs2023            => 31
+      case Newspaper2024           => newspaper2024Migration.StaticData.minLeadTime
+      case Legacy                  => 35
     }
   }
 
@@ -156,6 +155,7 @@ object NotificationHandler extends CohortHandler {
         case Membership2023Annuals   => true
         case SupporterPlus2023V1V2MA => true
         case DigiSubs2023            => true
+        case Newspaper2024           => true
         case Legacy                  => false
       }
       cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap(oldPrice, estimatedNewPrice, forceEstimated)}"
@@ -253,6 +253,10 @@ object NotificationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       address: SalesforceAddress
   ): Either[NotificationHandlerFailure, String] = {
+    // The country is usually a required field, this came from the old print migrations. It was
+    // not required for the 2023 digital migrations. Although technically required for
+    // the 2024 print migration, "United Kingdom" can be substituted for missing values considering
+    // that we are only delivery in the UK.
     MigrationType(cohortSpec) match {
       case Membership2023Monthlies =>
         requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
@@ -260,7 +264,8 @@ object NotificationHandler extends CohortHandler {
         requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
       case SupporterPlus2023V1V2MA =>
         requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
-      case _ => requiredField(address.country, "Contact.OtherAddress.country")
+      case Newspaper2024 => Right(address.country.getOrElse("United Kingdom"))
+      case _             => requiredField(address.country, "Contact.OtherAddress.country")
     }
   }
 

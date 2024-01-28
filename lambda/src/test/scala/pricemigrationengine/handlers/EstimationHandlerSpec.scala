@@ -4,7 +4,7 @@ import pricemigrationengine.Fixtures.{invoiceListFromJson, subscriptionFromJson}
 import pricemigrationengine.handlers.EstimationHandler.{
   decideStartDateLowerboundWithRandomAddition,
   oneYearPolicy,
-  startDateGeneralLowerbound
+  startDateGeneralLowerBound
 }
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, NoPriceIncrease, ReadyForEstimation}
 import pricemigrationengine.model._
@@ -168,7 +168,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       // The cohort earliestMigrationStartDate is 2022-11-14 (2)
       // The max date of (1) and (2) is 2022-11-14 (3)
 
-      assert(startDateGeneralLowerbound(cohortSpec, today))(equalTo(LocalDate.of(2022, 12, 14)))
+      assert(startDateGeneralLowerBound(cohortSpec, today))(equalTo(LocalDate.of(2022, 12, 14)))
 
       // The subscription acceptance date is: 2021-11-15
       // The subscription acceptance date plus a year is 2022-11-15 (4)
