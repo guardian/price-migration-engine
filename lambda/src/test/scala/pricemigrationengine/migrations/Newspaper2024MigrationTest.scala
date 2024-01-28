@@ -1,12 +1,14 @@
 package pricemigrationengine.migrations
 
 import pricemigrationengine.model._
+
 import java.time.LocalDate
 import pricemigrationengine.Fixtures
 import pricemigrationengine.migrations.newspaper2024Migration.Estimation._
 import pricemigrationengine.migrations.newspaper2024Migration.Amendment._
 import pricemigrationengine.migrations.newspaper2024Migration.{Estimation, StaticData}
 import pricemigrationengine.migrations.newspaper2024Migration.StaticData.{ChargeDistribution2024, IndividualCharge2024}
+import pricemigrationengine.util.StringObfuscation
 
 /*
   Correspondence between product names in Salesforce versus Zuora
@@ -1617,6 +1619,11 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         )
       )
     )
+  }
+
+  test("String Obfuscation") {
+    assertEquals(StringObfuscation.obfuscate("A-Testing0"), "1&3esting4")
+    assertEquals(StringObfuscation.recover("1&3esting4"), "A-Testing0")
   }
 
 }
