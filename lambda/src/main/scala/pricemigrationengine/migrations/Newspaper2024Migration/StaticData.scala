@@ -654,8 +654,8 @@ object StaticData {
     "Sixday+" -> ChargeDistribution2024(
       monday = Some(IndividualCharge2024("2c92a0fe56fe33ff015704325d87494c", BigDecimal(8.96))),
       tuesday = Some(IndividualCharge2024("2c92a0ff56fe33f5015709cdedbd246b", BigDecimal(8.96))),
-      wednesday = Some(IndividualCharge2024(" 2c92a0fd56fe26b6015709ced61a032e", BigDecimal(8.96))),
-      thursday = Some(IndividualCharge2024(" 2c92a0fc56fe26ba015709cf4bbd3d1c", BigDecimal(8.96))),
+      wednesday = Some(IndividualCharge2024("2c92a0fd56fe26b6015709ced61a032e", BigDecimal(8.96))),
+      thursday = Some(IndividualCharge2024("2c92a0fc56fe26ba015709cf4bbd3d1c", BigDecimal(8.96))),
       friday = Some(IndividualCharge2024("2c92a0fd56fe26b6015709cfc1500a2e", BigDecimal(8.96))),
       saturday = Some(IndividualCharge2024("2c92a0fd56fe26b6015709d078df4a80", BigDecimal(12.19))),
       sunday = None,
