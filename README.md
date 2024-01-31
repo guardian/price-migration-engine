@@ -4,6 +4,8 @@
 
 The price migration engine is an orchestration engine used to perform controlled price migrations. It currently consists in a collection of lambdas designed to work together as a state machine.
 
+For a general introduction to the priciples of price migrations, see [price migrations from first principles](docs/price-migrations-from-first-principles.md)
+
 To set up a new cohort of subscriptions for price rise, see [cohort setup](docs/cohort-setup.md).
 
 See readme for:
