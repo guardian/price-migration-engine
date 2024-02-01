@@ -49,7 +49,7 @@ Let's actually have a look at 3 of those schools
 ```
 Alice School   | monthly                                   | 13th
 Bob School     | quarterly (January, April, July, October) | 20th
-Charles School | Annualy (March)                           | 23rd 
+Charles School | Annually (March)                           | 23rd 
 ```
 
 Alice school is paying monthly on the 13th, as before. Bob School is paying on quarterly basis, on the indicated months, and does so on the 20th on the months they are paying. Charles School pays annually on the 23rd or March.
