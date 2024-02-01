@@ -9,7 +9,7 @@ Imagine that you run a bakery, everyday you have clients coming in and purchasin
 Let's imagine that your price distribution per unit is
 
 ```
-croissant       : £1.0
+croissant       : £1.00
 pain au chocolat: £1.5
 pain au raisin  : £1.5
 ```
