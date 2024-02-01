@@ -66,7 +66,7 @@ Charles School | 23rd March 2028
 
 March 1st letter delivery means that you can't price rise Alice School on 13th March, so you will have to wait for the next monthly payment. In the case of Bob School the next billing date is April 20th, which is more than 30 days after receiving the letter. In the case of Charles School, 23rd March 2027 is too close because that's less than 30 days after the written notification, so you can only price rise them an entire year later, on 23rd March 2028.
 
-Anyway, your computer has correctly computed the billing date for each school and the letters and printed and hundreds of letters are sent on the same day.
+Anyway, your computer has correctly computed the billing date for each school and the letters are printed and hundreds of letters are sent on the same day.
 
 ### Your phone keeps ringing!
 
