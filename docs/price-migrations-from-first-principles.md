@@ -14,7 +14,7 @@ pain au chocolat: £1.5
 pain au raisin  : £1.5
 ```
 
-One day, you realise that you need to raise your prices, that your croissants are now going to be sold £1.2 each. This is fine, one morning before, opening time, you simply update the price in your price display inside the shop, and from that moment customers will be paying £1.2 for croissants. Your price distribution is now
+One day, you realise that you need to raise your prices, that your croissants are now going to be sold £1.2 each. This is fine, one morning, before opening time, you simply update the price in your price display inside the shop, and from that moment customers will be paying £1.2 for croissants. Your price distribution is now
 
 ```
 croissant       : £1.2
