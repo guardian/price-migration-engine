@@ -34,7 +34,7 @@ You need to raise the prices of your croissants again. This time the price will 
 
 Today is 31st Jan 2024. Alice School pays every month on the 13th. You need to follow the following sequence: tomorrow, 1st Feb 2024, you are going to deliver them a letter which says that from the 13th of March 2024, they will need to pay £1.3 a piece for croissants, which is going to raise their total from the current £4,800 to £5,200. 
 
-Why the 13th of March and not the 13th of Februrary ? The answer is that there must be at least 30 days between having received the letter and the price rise being effective. Therefore, the payment (as per the invoice that will be generated) on 13th Feb will be using the old price, the earliest you can apply the new price to them is the 13th of March.
+Why the 13th of March and not the 13th of February ? The answer is that there must be at least 30 days between having received the letter and the price rise being effective. Therefore, the payment (as per the invoice that will be generated) on 13th Feb will be using the old price, the earliest you can apply the new price to them is the 13th of March.
 
 Because of this requirement of notifying contracted customers, like Alice School, of any price rise at least 30 days in advance, note that for about 44 days (from the Jan 31st to March 13th), Alice school will effectively be paying less per unit than customers coming in the store.
 
