@@ -52,7 +52,7 @@ Bob School     | quarterly (January, April, July, October) | 20th
 Charles School | Annually (March)                           | 23rd 
 ```
 
-Alice school is paying monthly on the 13th, as before. Bob School is paying on quarterly basis, on the indicated months, and does so on the 20th on the months they are paying. Charles School pays annually on the 23rd or March.
+Alice school is paying monthly on the 13th, as before. Bob School is paying on quarterly basis, on the indicated months, and does so on the 20th on the months they are paying. Charles School pays annually on the 23rd of March.
 
 Today is March 1st 2027. You decide to price rise your croissants from £1.3 to £1.45. You still have the requirement to let all your customers know 30 days in advance of the coming price rise. So you print as many letters as you have customers and each letter tell them that there's going to be a price rise of croissants from £1.3 per unit to £1.45 per unit (how much each school needs to pay at each billing date depends on the billing frequency, and the delivery schedule and the volume they are ordering from you). The letter also indicates when the price rise will be effective. 
 
