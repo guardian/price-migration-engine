@@ -30,7 +30,7 @@ Alice School would like to contract you for croissants. After rigorous research,
 
 ### Second price rise
 
-You need to price rise your croissants again. This time the price will move from £1.2 to £1.3. As before you update your in-store prices and from that moment in-store customers will be paying £1.3 a piece. But what about your contract with Alice School ? You double check your contract with them and realise that you can price rise them, but you need to inform them 30 days in advance. 
+You need to raise the prices of your croissants again. This time the price will move from £1.2 to £1.3. As before you update your in-store prices and from that moment in-store customers will be paying £1.3 a piece. But what about your contract with Alice School ? You double check your contract with them and realise that you can raise their prices, but you need to inform them 30 days in advance. 
 
 Today is 31st Jan 2024. Alice School pays every month on the 13th. You need to follow the following sequence: tomorrow, 1st Feb 2024, you are going to deliver them a letter which says that from the 13th of March 2024, they will need to pay £1.3 a piece for croissants, which is going to raise their total from the current £4,800 to £5,200. 
 
