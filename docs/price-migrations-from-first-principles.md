@@ -82,7 +82,7 @@ One year later you need to do another price rise. This time you are going to rai
 
 Yes, occasionaly your phone rings, one every couple of days, but then you have all the time you need to properly talk to the calling School and, when relevant, to convince them not to cancel their subscriptions in exchange for a nice custom discount.
 
-### Multiple concurent price rises
+### Multiple concurrent price rises
 
 You now have a good method for rising your prices, and due to sharp increase in the cost of raw material, you decide that actually you could have multiple price rises running at the same time. So a month after having started to price rise your pains au raisin, you decide to price rise your pains au chocolat as well. 
 
