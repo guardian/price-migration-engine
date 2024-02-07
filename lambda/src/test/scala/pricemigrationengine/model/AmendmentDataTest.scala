@@ -805,7 +805,8 @@ class AmendmentDataTest extends munit.FunSuite {
             billingDay = Some("ChargeTriggerDay"),
             triggerEvent = Some("CustomerAcceptance"),
             triggerDate = None,
-            discountPercentage = None
+            discountPercentage = None,
+            originalOrderDate = Some(LocalDate.of(2023, 4, 1))
           )
         )
       )
@@ -871,7 +872,8 @@ class AmendmentDataTest extends munit.FunSuite {
             billingDay = Some("ChargeTriggerDay"),
             triggerEvent = Some("CustomerAcceptance"),
             triggerDate = None,
-            discountPercentage = None
+            discountPercentage = None,
+            originalOrderDate = Some(LocalDate.of(2023, 7, 3))
           )
         )
       )
@@ -937,7 +939,8 @@ class AmendmentDataTest extends munit.FunSuite {
             billingDay = Some("ChargeTriggerDay"),
             triggerEvent = Some("CustomerAcceptance"),
             triggerDate = None,
-            discountPercentage = None
+            discountPercentage = None,
+            originalOrderDate = Some(LocalDate.of(2023, 7, 2))
           )
         )
       )
@@ -999,7 +1002,8 @@ class AmendmentDataTest extends munit.FunSuite {
             billingDay = Some("ChargeTriggerDay"),
             triggerEvent = Some("CustomerAcceptance"),
             triggerDate = None,
-            discountPercentage = None
+            discountPercentage = None,
+            originalOrderDate = Some(LocalDate.of(2023, 4, 1))
           )
         ),
         lastChangeType = Some("Add")
@@ -1027,7 +1031,8 @@ class AmendmentDataTest extends munit.FunSuite {
           billingDay = Some("ChargeTriggerDay"),
           triggerEvent = Some("CustomerAcceptance"),
           triggerDate = None,
-          discountPercentage = None
+          discountPercentage = None,
+          originalOrderDate = Some(LocalDate.of(2023, 4, 1))
         )
       )
     )
@@ -1112,7 +1117,8 @@ class AmendmentDataTest extends munit.FunSuite {
             billingDay = Some("ChargeTriggerDay"),
             triggerEvent = Some("CustomerAcceptance"),
             triggerDate = None,
-            discountPercentage = None
+            discountPercentage = None,
+            originalOrderDate = Some(LocalDate.of(2023, 7, 3))
           )
         ),
         lastChangeType = None
@@ -1140,7 +1146,8 @@ class AmendmentDataTest extends munit.FunSuite {
           billingDay = Some("ChargeTriggerDay"),
           triggerEvent = Some("CustomerAcceptance"),
           triggerDate = None,
-          discountPercentage = None
+          discountPercentage = None,
+          originalOrderDate = Some(LocalDate.of(2023, 7, 3))
         )
       )
     )
@@ -1225,7 +1232,8 @@ class AmendmentDataTest extends munit.FunSuite {
             billingDay = Some("ChargeTriggerDay"),
             triggerEvent = Some("CustomerAcceptance"),
             triggerDate = None,
-            discountPercentage = None
+            discountPercentage = None,
+            originalOrderDate = Some(LocalDate.of(2023, 7, 2))
           )
         ),
         None
@@ -1253,7 +1261,8 @@ class AmendmentDataTest extends munit.FunSuite {
           billingDay = Some("ChargeTriggerDay"),
           triggerEvent = Some("CustomerAcceptance"),
           triggerDate = None,
-          discountPercentage = None
+          discountPercentage = None,
+          originalOrderDate = Some(LocalDate.of(2023, 7, 2))
         )
       )
     )
@@ -1338,7 +1347,8 @@ class AmendmentDataTest extends munit.FunSuite {
             billingDay = Some("ChargeTriggerDay"),
             triggerEvent = Some("CustomerAcceptance"),
             triggerDate = None,
-            discountPercentage = None
+            discountPercentage = None,
+            originalOrderDate = Some(LocalDate.of(2023, 6, 28))
           )
         ),
         None
@@ -1366,7 +1376,8 @@ class AmendmentDataTest extends munit.FunSuite {
           billingDay = Some("ChargeTriggerDay"),
           triggerEvent = Some("CustomerAcceptance"),
           triggerDate = None,
-          discountPercentage = None
+          discountPercentage = None,
+          originalOrderDate = Some(LocalDate.of(2023, 6, 28))
         )
       )
     )

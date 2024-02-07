@@ -110,7 +110,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2016, 10, 11))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0ff560d311b0156136ba0523996",
@@ -128,7 +129,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2016, 10, 11))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0ff560d311b0156136b9fac3976",
@@ -146,7 +148,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2016, 10, 11))
       )
     )
     val ratePlan =
@@ -189,7 +192,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2022, 6, 2))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0fd5614305c01561dc88f8975c8",
@@ -207,7 +211,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2022, 6, 2))
       )
     )
     val ratePlan =
@@ -251,7 +256,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2021, 6, 28))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740c6ce2ef1",
@@ -269,7 +275,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2021, 6, 28))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740c6872ee9",
@@ -287,7 +294,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2021, 6, 28))
       )
     )
     val ratePlan =
@@ -331,7 +339,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2022, 5, 29))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740d28e3024",
@@ -349,7 +358,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2022, 5, 29))
       )
     )
     val ratePlan =
@@ -393,7 +403,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2022, 8, 12))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740cd012f90",
@@ -411,7 +422,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2022, 8, 12))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740cc9b2f88",
@@ -429,7 +441,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2022, 8, 12))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740cc2c2f80",
@@ -447,7 +460,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2022, 8, 12))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740cbb32f77",
@@ -465,7 +479,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2022, 8, 12))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740cb4e2f6b",
@@ -483,7 +498,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2022, 8, 12))
       )
     )
     val ratePlan =
@@ -527,7 +543,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2023, 4, 5))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740c9802f59",
@@ -545,7 +562,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2023, 4, 5))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740c91d2f4d",
@@ -563,7 +581,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2023, 4, 5))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740c8c42f40",
@@ -581,7 +600,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2023, 4, 5))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740c8652f37",
@@ -599,7 +619,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2023, 4, 5))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740c80f2f26",
@@ -617,7 +638,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2023, 4, 5))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a00870ec598001710740c7b82f1c",
@@ -635,7 +657,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2023, 4, 5))
       )
     )
     val ratePlan =
@@ -679,7 +702,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2020, 7, 19))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0fe56fe33ff015709bb986636d8",
@@ -697,7 +721,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2020, 7, 19))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0fd56fe26b601570432f4e33d17",
@@ -715,7 +740,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2020, 7, 19))
       )
     )
     val ratePlan =
@@ -758,7 +784,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2020, 9, 19))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0fe56fe33ff015709bb986636d8",
@@ -776,7 +803,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2020, 9, 19))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0fd56fe26b601570432f4e33d17",
@@ -794,7 +822,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2020, 9, 19))
       )
     )
     val ratePlan =
@@ -838,7 +867,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2020, 7, 20))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0fe56fe33ff015709bb986636d8",
@@ -856,7 +886,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2020, 7, 20))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0fd56fe26b601570432f4e33d17",
@@ -874,7 +905,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2020, 7, 20))
       )
     )
     val ratePlan =
@@ -918,7 +950,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2020, 12, 28))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0fe56fe33ff015709bb986636d8",
@@ -936,7 +969,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2020, 12, 28))
       ),
       ZuoraRatePlanCharge(
         productRatePlanChargeId = "2c92a0fd56fe26b601570432f4e33d17",
@@ -954,7 +988,8 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2020, 12, 28))
       )
     )
     val ratePlan =

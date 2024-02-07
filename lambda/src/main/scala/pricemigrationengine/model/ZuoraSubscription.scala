@@ -54,7 +54,8 @@ case class ZuoraRatePlanCharge(
     billingDay: Option[String] = None,
     triggerEvent: Option[String] = None,
     triggerDate: Option[LocalDate] = None,
-    discountPercentage: Option[Double] = None
+    discountPercentage: Option[Double] = None,
+    originalOrderDate: Option[LocalDate] = None
 )
 
 object ZuoraRatePlanCharge {
