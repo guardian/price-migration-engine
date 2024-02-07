@@ -49,16 +49,6 @@ object AmendmentHandler extends CohortHandler {
           val result = ExpiringSubscriptionResult(item.subscriptionName)
           CohortTable.update(CohortItem.fromExpiringSubscriptionResult(result)).as(result)
         }
-        case _: IncompatibleAmendmentHistoryFailure => {
-          // See the preambule of the ZuoraSubscriptionAmendment case class for context about
-          // IncompatibleAmendmentHistory
-          // Note: At the moment we only have one CancelledAmendmentResult, it would be great one day
-          //       To indicate several cancellation conditions, for instance discriminate between
-          //       cancellations because the zuora subscription has been cancelled and cancellations
-          //       because of incompatible amendment history.s
-          val result = CancelledAmendmentResult(item.subscriptionName)
-          CohortTable.update(CohortItem.fromCancelledAmendmentResult(result)).as(result)
-        }
         case e => ZIO.fail(e)
       },
       success = { result =>
@@ -107,38 +97,6 @@ object AmendmentHandler extends CohortHandler {
     }
   }
 
-  def amendmentIsBeforeInstant(amendment: ZuoraSubscriptionAmendment, instant: java.time.Instant): Boolean = {
-    val amendmentDate = LocalDate.parse(amendment.bookingDate)
-    val estimationDate = LocalDateTime.ofInstant(instant, ZoneOffset.UTC).toLocalDate
-    amendmentDate.isBefore(estimationDate)
-  }
-
-  private def checkMigrationRelevanceBasedOnLastAmendment(item: CohortItem): ZIO[Zuora, Failure, Unit] = {
-    // See the preambule of the ZuoraSubscriptionAmendment case class for context
-
-    for {
-      amendment <- Zuora.fetchLastSubscriptionAmendment(item.subscriptionName) // $1
-      estimationInstant <- ZIO
-        .fromOption(item.whenEstimationDone)
-        .mapError(ex => AmendmentDataFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
-      result <-
-        if (amendmentIsBeforeInstant(amendment, estimationInstant)) {
-          ZIO.succeed(())
-        } else {
-          ZIO.fail(
-            IncompatibleAmendmentHistoryFailure(
-              s"[4f7589ea] Cohort item ${item} is being written for cancellation, during scheduled amendment, due to last amendment check failing; amendment: ${amendment}"
-            )
-          )
-        }
-    } yield result
-
-    // $1: The Zuora documentation
-    // https://www.zuora.com/developer/api-references/older-api/operation/GET_AmendmentsBySubscriptionID/
-    // specifies that a subscriptionId is to be provided, but it also works with a subscription number
-    // (aka subscription name for a cohort item).
-  }
-
   private def doAmendment(
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
@@ -147,13 +105,6 @@ object AmendmentHandler extends CohortHandler {
 
     for {
       subscriptionBeforeUpdate <- fetchSubscription(item)
-
-      _ <-
-        if (subscriptionBeforeUpdate.version > 1) {
-          checkMigrationRelevanceBasedOnLastAmendment(item).debug("check relevance")
-        } else {
-          ZIO.succeed(())
-        }
 
       startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
 

@@ -218,19 +218,6 @@ object ZuoraLive {
               response => ()
             )
           ) <* logging.info(s"renewed subscription ${subscriptionNumber}")
-
-        override def fetchLastSubscriptionAmendment(
-            subscriptionId: ZuoraSubscriptionId
-        ): ZIO[Any, ZuoraFetchFailure, ZuoraSubscriptionAmendment] =
-          get[ZuoraSubscriptionAmendment](s"amendments/subscriptions/$subscriptionId")
-            .mapError(e =>
-              ZuoraFetchFailure(s"ZuoraSubscriptionAmendment, subscriptionId: $subscriptionId: ${e.reason}")
-            )
-            .tapBoth(
-              e => logging.error(s"Failed to fetch ZuoraSubscriptionAmendment, subscriptionId: $subscriptionId: $e"),
-              _ => logging.info(s"Fetched ZuoraSubscriptionAmendment, subscriptionId: $subscriptionId")
-            )
-
       }
     )
 }

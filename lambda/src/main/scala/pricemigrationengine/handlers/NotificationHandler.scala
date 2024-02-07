@@ -7,6 +7,7 @@ import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
 import pricemigrationengine.migrations.newspaper2024Migration
+import pricemigrationengine.model.RateplansProbe
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -22,18 +23,20 @@ object NotificationHandler extends CohortHandler {
       EnvConfig.salesforce.layer,
       EnvConfig.cohortTable.layer,
       EnvConfig.emailSender.layer,
+      EnvConfig.zuora.layer,
       EnvConfig.stage.layer,
       DynamoDBClientLive.impl,
       DynamoDBZIOLive.impl,
       CohortTableLive.impl(input),
       SalesforceClientLive.impl,
-      EmailSenderLive.impl
+      EmailSenderLive.impl,
+      ZuoraLive.impl
     )
   }
 
   def main(
       cohortSpec: CohortSpec
-  ): ZIO[Logging with CohortTable with SalesforceClient with EmailSender, Failure, HandlerOutput] = {
+  ): ZIO[Logging with CohortTable with SalesforceClient with EmailSender with Zuora, Failure, HandlerOutput] = {
     for {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       count <- CohortTable
@@ -47,7 +50,7 @@ object NotificationHandler extends CohortHandler {
   def sendNotification(cohortSpec: CohortSpec)(
       cohortItem: CohortItem,
       today: LocalDate
-  ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging, Failure, Int] = {
+  ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging with Zuora, Failure, Int] = {
 
     // We are starting with a simple check. That the item's startDate is at least minLeadTime(cohortSpec) days away
     // from the current day. This will avoid headaches caused by letters not being sent early enough relatively to
@@ -55,6 +58,7 @@ object NotificationHandler extends CohortHandler {
 
     if (thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem)) {
       val result = for {
+        _ <- cohortItemRatePlansChecks(cohortItem)
         sfSubscription <-
           SalesforceClient
             .getSubscriptionByName(cohortItem.subscriptionName)
@@ -152,6 +156,53 @@ object NotificationHandler extends CohortHandler {
     } yield Successful
 
   // -------------------------------------------------------------------
+  // Subscription Rate Plan Checks
+
+  private def fetchSubscription(item: CohortItem): ZIO[Zuora, Failure, ZuoraSubscription] =
+    Zuora
+      .fetchSubscription(item.subscriptionName)
+      .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
+
+  private def subscriptionRatePlansCheck(
+      item: CohortItem,
+      subscription: ZuoraSubscription,
+      date: LocalDate
+  ): ZIO[CohortTable with Zuora, Failure, Unit] = {
+    RateplansProbe.probe(subscription: ZuoraSubscription, date) match {
+      case ShouldProceed => ZIO.succeed(())
+      case ShouldCancel => {
+        val result = CancelledAmendmentResult(item.subscriptionName)
+        ZIO.succeed(CohortTable.update(CohortItem.fromCancelledAmendmentResult(result)).as(result))
+      }
+      case IndeterminateConclusion =>
+        ZIO.fail(
+          RatePlansProbeFailure(
+            s"[4f7589ea] NotificationHandler probeRatePlans could not determine a probe outcome for cohort item ${item}. Please investigate."
+          )
+        )
+    }
+  }
+
+  private def cohortItemRatePlansChecks(item: CohortItem): ZIO[CohortTable with Zuora, Failure, Unit] = {
+    /*
+    for {
+      subscription <- fetchSubscription(item: CohortItem)
+      estimationInstant <- ZIO
+        .fromOption(item.whenEstimationDone)
+        .mapError(ex => AmendmentDataFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
+      result <- subscriptionRatePlansCheck(item, subscription, LocalDate.from(estimationInstant))
+    } yield result
+     */
+    for {
+      subscription <- fetchSubscription(item: CohortItem)
+      estimationInstant <- ZIO
+        .fromOption(item.whenEstimationDone)
+        .mapError(ex => AmendmentDataFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
+      result <- ZIO.succeed(())
+    } yield result
+  }
+
+  // -------------------------------------------------------------------
   // Notification Windows
 
   // For general information about the notification period see the docs/notification-periods.md
@@ -186,7 +237,7 @@ object NotificationHandler extends CohortHandler {
   }
 
   def thereIsEnoughNotificationLeadTime(cohortSpec: CohortSpec, today: LocalDate, cohortItem: CohortItem): Boolean = {
-    // To help with backward compatibility with existing tests, we apply this condition from 1st Dec 2022.
+    // To help with backward compatibility with existing tests, we apply this condition from 1st Dec 2020.
     if (today.isBefore(LocalDate.of(2020, 12, 1))) {
       true
     } else {
