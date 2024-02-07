@@ -17,49 +17,18 @@ object NotificationHandler extends CohortHandler {
   val Unsuccessful = 0
   val Cancelled_Status = "Cancelled"
 
-  // For general information about the notification period see the docs/notification-periods.md
-
-  // The standard notification period for letter products (where the notification is delivered by email)
-  // is -49 (included) to -35 (excluded) days. Legally the min is 30 days, but we set 35 days to alert if a
-  // subscription if exiting the notification window and needs to be investigated and repaired before the deadline
-  // of 30 days.
-
-  val letterMaxNotificationLeadTime = 49
-
-  // The digital migrations' notification window is from -33 (included) to -31 (excluded)
-
-  def maxLeadTime(cohortSpec: CohortSpec): Int = {
-    MigrationType(cohortSpec) match {
-      case Membership2023Monthlies => 33
-      case Membership2023Annuals   => 33
-      case SupporterPlus2023V1V2MA => 33
-      case DigiSubs2023            => 33
-      case Newspaper2024           => newspaper2024Migration.StaticData.maxLeadTime
-      case Legacy                  => 49
-    }
-  }
-
-  def minLeadTime(cohortSpec: CohortSpec): Int = {
-    MigrationType(cohortSpec) match {
-      case Membership2023Monthlies => 31
-      case Membership2023Annuals   => 31
-      case SupporterPlus2023V1V2MA => 31
-      case DigiSubs2023            => 31
-      case Newspaper2024           => newspaper2024Migration.StaticData.minLeadTime
-      case Legacy                  => 35
-    }
-  }
-
-  def thereIsEnoughNotificationLeadTime(cohortSpec: CohortSpec, today: LocalDate, cohortItem: CohortItem): Boolean = {
-    // To help with backward compatibility with existing tests, we apply this condition from 1st Dec 2022.
-    if (today.isBefore(LocalDate.of(2020, 12, 1))) {
-      true
-    } else {
-      cohortItem.startDate match {
-        case Some(sd) => today.plusDays(minLeadTime(cohortSpec)).isBefore(sd)
-        case _        => false
-      }
-    }
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
+    main(input).provideSome[Logging](
+      EnvConfig.salesforce.layer,
+      EnvConfig.cohortTable.layer,
+      EnvConfig.emailSender.layer,
+      EnvConfig.stage.layer,
+      DynamoDBClientLive.impl,
+      DynamoDBZIOLive.impl,
+      CohortTableLive.impl(input),
+      SalesforceClientLive.impl,
+      EmailSenderLive.impl
+    )
   }
 
   def main(
@@ -110,22 +79,6 @@ object NotificationHandler extends CohortHandler {
         )
       )
     }
-  }
-
-  def currencyISOtoSymbol(iso: String): ZIO[Any, Nothing, String] = {
-    ZIO.succeed(i18n.Currency.fromString(iso: String).map(_.identifier).getOrElse(""))
-  }
-
-  def dateStrToLocalDate(startDate: String): LocalDate = {
-    LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-  }
-
-  def emailUserFriendlyDateFormatter(startDate: LocalDate): String = {
-    startDate.format(DateTimeFormatter.ofPattern("d MMMM uuuu"));
-  }
-
-  def startDateConversion(startDate: String): String = {
-    emailUserFriendlyDateFormatter(dateStrToLocalDate(startDate: String))
   }
 
   def sendNotification(
@@ -197,6 +150,71 @@ object NotificationHandler extends CohortHandler {
 
       _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete)
     } yield Successful
+
+  // -------------------------------------------------------------------
+  // Notification Windows
+
+  // For general information about the notification period see the docs/notification-periods.md
+
+  // The standard notification period for letter products (where the notification is delivered by email)
+  // is -49 (included) to -35 (excluded) days. Legally the min is 30 days, but we set 35 days to alert if a
+  // subscription if exiting the notification window and needs to be investigated and repaired before the deadline
+  // of 30 days.
+
+  // The digital migrations' notification window is from -33 (included) to -31 (excluded)
+
+  def maxLeadTime(cohortSpec: CohortSpec): Int = {
+    MigrationType(cohortSpec) match {
+      case Membership2023Monthlies => 33
+      case Membership2023Annuals   => 33
+      case SupporterPlus2023V1V2MA => 33
+      case DigiSubs2023            => 33
+      case Newspaper2024           => newspaper2024Migration.StaticData.maxLeadTime
+      case Legacy                  => 49
+    }
+  }
+
+  def minLeadTime(cohortSpec: CohortSpec): Int = {
+    MigrationType(cohortSpec) match {
+      case Membership2023Monthlies => 31
+      case Membership2023Annuals   => 31
+      case SupporterPlus2023V1V2MA => 31
+      case DigiSubs2023            => 31
+      case Newspaper2024           => newspaper2024Migration.StaticData.minLeadTime
+      case Legacy                  => 35
+    }
+  }
+
+  def thereIsEnoughNotificationLeadTime(cohortSpec: CohortSpec, today: LocalDate, cohortItem: CohortItem): Boolean = {
+    // To help with backward compatibility with existing tests, we apply this condition from 1st Dec 2022.
+    if (today.isBefore(LocalDate.of(2020, 12, 1))) {
+      true
+    } else {
+      cohortItem.startDate match {
+        case Some(sd) => today.plusDays(minLeadTime(cohortSpec)).isBefore(sd)
+        case _        => false
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // Support Functions
+
+  def currencyISOtoSymbol(iso: String): ZIO[Any, Nothing, String] = {
+    ZIO.succeed(i18n.Currency.fromString(iso: String).map(_.identifier).getOrElse(""))
+  }
+
+  def dateStrToLocalDate(startDate: String): LocalDate = {
+    LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+  }
+
+  def emailUserFriendlyDateFormatter(startDate: LocalDate): String = {
+    startDate.format(DateTimeFormatter.ofPattern("d MMMM uuuu"));
+  }
+
+  def startDateConversion(startDate: String): String = {
+    emailUserFriendlyDateFormatter(dateStrToLocalDate(startDate: String))
+  }
 
   def requiredField[A](field: Option[A], fieldName: String): Either[NotificationHandlerFailure, A] = {
     field match {
@@ -313,18 +331,4 @@ object NotificationHandler extends CohortHandler {
           )
       _ <- Logging.error(s"Subscription $subscriptionName has been cancelled, price rise notification not sent")
     } yield 0
-
-  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    main(input).provideSome[Logging](
-      EnvConfig.salesforce.layer,
-      EnvConfig.cohortTable.layer,
-      EnvConfig.emailSender.layer,
-      EnvConfig.stage.layer,
-      DynamoDBClientLive.impl,
-      DynamoDBZIOLive.impl,
-      CohortTableLive.impl(input),
-      SalesforceClientLive.impl,
-      EmailSenderLive.impl
-    )
-  }
 }
