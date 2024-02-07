@@ -52,7 +52,8 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
             Some("ChargeTriggerDay"),
             Some("CustomerAcceptance"),
             None,
-            None
+            None,
+            originalOrderDate = Some(LocalDate.of(2016, 7, 5))
           )
         ),
         None
@@ -79,7 +80,8 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2016, 7, 5))
       )
     )
 
@@ -154,7 +156,8 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
             Some("ChargeTriggerDay"),
             Some("CustomerAcceptance"),
             None,
-            None
+            None,
+            originalOrderDate = Some(LocalDate.of(2023, 10, 3))
           )
         ),
         None
@@ -181,7 +184,8 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2023, 10, 3))
       )
     )
 
@@ -271,22 +275,23 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
         "Digital Pack Quarterly",
         List(
           ZuoraRatePlanCharge(
-            "2c92a0fb4edd70c9014edeaa4fd42186",
-            "Digital Pack Quarterly",
-            "C-00266638",
-            "GBP",
-            Some(35.95),
-            Some("Quarter"),
-            Some(LocalDate.of(2023, 11, 10)),
-            Some(LocalDate.of(2023, 8, 10)),
-            None,
-            Some("Subscription_End"),
-            None,
-            None,
-            Some("ChargeTriggerDay"),
-            Some("CustomerAcceptance"),
-            None,
-            None
+            productRatePlanChargeId = "2c92a0fb4edd70c9014edeaa4fd42186",
+            name = "Digital Pack Quarterly",
+            number = "C-00266638",
+            currency = "GBP",
+            price = Some(35.95),
+            billingPeriod = Some("Quarter"),
+            chargedThroughDate = Some(LocalDate.of(2023, 11, 10)),
+            processedThroughDate = Some(LocalDate.of(2023, 8, 10)),
+            specificBillingPeriod = None,
+            endDateCondition = Some("Subscription_End"),
+            upToPeriodsType = None,
+            upToPeriods = None,
+            billingDay = Some("ChargeTriggerDay"),
+            triggerEvent = Some("CustomerAcceptance"),
+            triggerDate = None,
+            discountPercentage = None,
+            originalOrderDate = Some(LocalDate.of(2016, 6, 16))
           )
         ),
         None
@@ -313,7 +318,8 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2016, 6, 16))
       )
     )
 
@@ -375,22 +381,23 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
         "Digital Pack Annual",
         List(
           ZuoraRatePlanCharge(
-            "2c92a0fb4edd70c9014edeaa5001218c",
-            "Digital Pack Annual",
-            "C-04065127",
-            "GBP",
-            Some(119.0),
-            Some("Annual"),
-            Some(LocalDate.of(2023, 11, 17)),
-            Some(LocalDate.of(2022, 11, 17)),
-            None,
-            Some("Subscription_End"),
-            None,
-            None,
-            Some("ChargeTriggerDay"),
-            Some("CustomerAcceptance"),
-            None,
-            None
+            productRatePlanChargeId = "2c92a0fb4edd70c9014edeaa5001218c",
+            name = "Digital Pack Annual",
+            number = "C-04065127",
+            currency = "GBP",
+            price = Some(119.0),
+            billingPeriod = Some("Annual"),
+            chargedThroughDate = Some(LocalDate.of(2023, 11, 17)),
+            processedThroughDate = Some(LocalDate.of(2022, 11, 17)),
+            specificBillingPeriod = None,
+            endDateCondition = Some("Subscription_End"),
+            upToPeriodsType = None,
+            upToPeriods = None,
+            billingDay = Some("ChargeTriggerDay"),
+            triggerEvent = Some("CustomerAcceptance"),
+            triggerDate = None,
+            discountPercentage = None,
+            originalOrderDate = Some(LocalDate.of(2022, 11, 1))
           )
         ),
         None
@@ -417,7 +424,8 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2022, 11, 1))
       )
     )
 

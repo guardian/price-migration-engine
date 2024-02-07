@@ -49,7 +49,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("ContractEffective"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2016, 11, 13))
       )
     )
 
@@ -87,7 +88,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
               billingDay = Some("ChargeTriggerDay"),
               triggerEvent = Some("ContractEffective"),
               triggerDate = None,
-              discountPercentage = None
+              discountPercentage = None,
+              originalOrderDate = Some(LocalDate.of(2016, 11, 13))
             )
           ),
           lastChangeType = None
@@ -155,7 +157,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("ContractEffective"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2017, 1, 20))
       )
     )
 
@@ -193,7 +196,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
               billingDay = Some("ChargeTriggerDay"),
               triggerEvent = Some("ContractEffective"),
               triggerDate = None,
-              discountPercentage = None
+              discountPercentage = None,
+              originalOrderDate = Some(LocalDate.of(2017, 1, 20))
             )
           ),
           lastChangeType = None
@@ -261,7 +265,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("ContractEffective"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2017, 1, 20))
       )
     )
 
@@ -299,7 +304,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
               billingDay = Some("ChargeTriggerDay"),
               triggerEvent = Some("ContractEffective"),
               triggerDate = None,
-              discountPercentage = None
+              discountPercentage = None,
+              originalOrderDate = Some(LocalDate.of(2017, 1, 20))
             )
           ),
           lastChangeType = None
@@ -365,7 +371,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2023, 4, 1))
       )
     )
 
@@ -403,7 +410,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
               billingDay = Some("ChargeTriggerDay"),
               triggerEvent = Some("CustomerAcceptance"),
               triggerDate = None,
-              discountPercentage = None
+              discountPercentage = None,
+              originalOrderDate = Some(LocalDate.of(2023, 4, 1))
             )
           ),
           lastChangeType = Some("Add")
@@ -486,7 +494,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2023, 7, 3))
       )
     )
 
@@ -524,7 +533,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
               billingDay = Some("ChargeTriggerDay"),
               triggerEvent = Some("CustomerAcceptance"),
               triggerDate = None,
-              discountPercentage = None
+              discountPercentage = None,
+              originalOrderDate = Some(LocalDate.of(2023, 7, 3))
             )
           ),
           lastChangeType = None
@@ -619,7 +629,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2023, 7, 2))
       )
     )
 
@@ -657,7 +668,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
               billingDay = Some("ChargeTriggerDay"),
               triggerEvent = Some("CustomerAcceptance"),
               triggerDate = None,
-              discountPercentage = None
+              discountPercentage = None,
+              originalOrderDate = Some(LocalDate.of(2023, 7, 2))
             )
           ),
           lastChangeType = None
@@ -737,7 +749,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingDay = Some("ChargeTriggerDay"),
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
-        discountPercentage = None
+        discountPercentage = None,
+        originalOrderDate = Some(LocalDate.of(2023, 6, 28))
       )
     )
 
@@ -775,7 +788,8 @@ class AmendmentHandlerTest extends munit.FunSuite {
               billingDay = Some("ChargeTriggerDay"),
               triggerEvent = Some("CustomerAcceptance"),
               triggerDate = None,
-              discountPercentage = None
+              discountPercentage = None,
+              originalOrderDate = Some(LocalDate.of(2023, 6, 28))
             )
           ),
           lastChangeType = None
