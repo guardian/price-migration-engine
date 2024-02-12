@@ -9,7 +9,7 @@ import com.gu.i18n
 import pricemigrationengine.migrations.newspaper2024Migration
 import pricemigrationengine.model.RateplansProbe
 
-import java.time.LocalDate
+import java.time.{LocalDate, ZoneId}
 import java.time.format.DateTimeFormatter
 
 object NotificationHandler extends CohortHandler {
@@ -184,21 +184,16 @@ object NotificationHandler extends CohortHandler {
   }
 
   private def cohortItemRatePlansChecks(item: CohortItem): ZIO[CohortTable with Zuora, Failure, Unit] = {
-    /*
     for {
       subscription <- fetchSubscription(item: CohortItem)
       estimationInstant <- ZIO
         .fromOption(item.whenEstimationDone)
         .mapError(ex => AmendmentDataFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
-      result <- subscriptionRatePlansCheck(item, subscription, LocalDate.from(estimationInstant))
-    } yield result
-     */
-    for {
-      subscription <- fetchSubscription(item: CohortItem)
-      estimationInstant <- ZIO
-        .fromOption(item.whenEstimationDone)
-        .mapError(ex => AmendmentDataFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
-      result <- ZIO.succeed(())
+      result <- subscriptionRatePlansCheck(
+        item,
+        subscription,
+        estimationInstant.atZone(ZoneId.of("Europe/London")).toLocalDate
+      )
     } yield result
   }
 
