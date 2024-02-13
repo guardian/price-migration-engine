@@ -147,3 +147,19 @@ It is also important to notice that the amendment step only happened after the u
 At this point the processing stage is `AmendmentComplete`.
 
 The last step is now another Salesforce update, where we inform Salesforce that the subscription in Zuora has been edited for price rise. Then the processing stage becomes `AmendmentWrittenToSalesforce`. This completes the price rise of subscription "S-00000003".
+
+### Cancellations
+
+As we have seen a cohort item / subscription can sleep for a long time before it is ready to move to notification process, but what happens if the subscription has been cancelled by the user in the meantime ?
+
+In such a case, the engine will detect that the subscription has been cancelled in Zuora and will move the cohort item to `Cancelled` processing stage
+
+```
+CohortItem(
+    subscriptionName  = "S-00000003"
+    processingStage   = "Cancelled"
+)
+```
+
+Once the cohort item is in `Cancelled` state the engine will no longer touch it. Alike `AmendmentWrittenToSalesforce`, `Cancelled` is a final state for a cohort item.
+
