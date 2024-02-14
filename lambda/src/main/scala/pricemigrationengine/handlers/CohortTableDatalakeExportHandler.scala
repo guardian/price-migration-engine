@@ -82,7 +82,8 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
           cohortItem.whenAmendmentDone.getOrElse(""),
           cohortItem.whenNotificationSent.getOrElse(""),
           cohortItem.whenNotificationSentWrittenToSalesforce.getOrElse(""),
-          cohortItem.whenAmendmentWrittenToSalesforce.getOrElse("")
+          cohortItem.whenAmendmentWrittenToSalesforce.getOrElse(""),
+          cohortItem.cancellationReason.getOrElse("")
         )
       )
       .mapError(ex => CohortTableDatalakeExportFailure(s"Failed to write CohortItem as CSV to s3: ${ex.getMessage}"))
@@ -107,7 +108,8 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
         "when_amendment_done",
         "when_notification_sent",
         "when_notification_sent_written_to_salesforce",
-        "when_amendment_written_to_salesforce"
+        "when_amendment_written_to_salesforce",
+        "cancellation_reason"
       )
     )
 
