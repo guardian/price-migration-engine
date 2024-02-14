@@ -176,7 +176,7 @@ object NotificationHandler extends CohortHandler {
           CohortTable
             .update(
               CohortItem
-                .fromCancelledAmendmentResult(result, "(cause: f5c291b0) Subscription was cancelled by RateplansProbe")
+                .fromCancelledAmendmentResult(result, "(cause: f5c291b0) Migration cancelled by RateplansProbe")
             )
             .as(result)
         )
