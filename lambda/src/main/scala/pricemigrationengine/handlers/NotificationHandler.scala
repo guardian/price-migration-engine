@@ -172,7 +172,14 @@ object NotificationHandler extends CohortHandler {
       case ShouldProceed => ZIO.succeed(())
       case ShouldCancel => {
         val result = CancelledAmendmentResult(item.subscriptionName)
-        ZIO.succeed(CohortTable.update(CohortItem.fromCancelledAmendmentResult(result)).as(result))
+        ZIO.succeed(
+          CohortTable
+            .update(
+              CohortItem
+                .fromCancelledAmendmentResult(result, "(cause: f5c291b0) Subscription was cancelled by RateplansProbe")
+            )
+            .as(result)
+        )
       }
       case IndeterminateConclusion =>
         ZIO.fail(

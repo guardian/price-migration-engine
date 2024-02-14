@@ -36,6 +36,8 @@ object CohortTableLive {
           whenNotificationSent <- getOptionalInstantFromResults(cohortItem, "whenNotificationSent")
           whenNotificationSentWrittenToSalesforce <-
             getOptionalInstantFromResults(cohortItem, "whenNotificationSentWrittenToSalesforce")
+          cancellationReason <-
+            getOptionalStringFromResults(cohortItem, "cancellationReason")
         } yield CohortItem(
           subscriptionName = subscriptionNumber,
           processingStage = processingStage,
@@ -51,7 +53,8 @@ object CohortTableLive {
           newSubscriptionId = newSubscriptionId,
           whenAmendmentDone = whenAmendmentDone,
           whenNotificationSent = whenNotificationSent,
-          whenNotificationSentWrittenToSalesforce = whenNotificationSentWrittenToSalesforce
+          whenNotificationSentWrittenToSalesforce = whenNotificationSentWrittenToSalesforce,
+          cancellationReason = cancellationReason
         )
       )
       .mapError(e => DynamoDBZIOError(e))
@@ -95,7 +98,8 @@ object CohortTableLive {
           ),
         cohortItem.whenAmendmentWrittenToSalesforce.map(instant =>
           instantFieldUpdate("whenAmendmentWrittenToSalesforce", instant)
-        )
+        ),
+        cohortItem.cancellationReason.map(reason => stringFieldUpdate("cancellationReason", reason))
       ).flatten.toMap.asJava
 
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =
@@ -161,13 +165,13 @@ object CohortTableLive {
             }
         }
 
-        override def update(result: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
+        override def update(cohortItem: CohortItem): ZIO[Any, CohortUpdateFailure, Unit] = {
           dynamoDbZio
-            .update(table = tableName, key = CohortTableKey(result.subscriptionName), value = result)
+            .update(table = tableName, key = CohortTableKey(cohortItem.subscriptionName), value = cohortItem)
             .mapError(error => CohortUpdateFailure(error.toString))
             .tapBoth(
               e => logging.error(s"Failed to update Cohort table: $e"),
-              _ => logging.info(s"Wrote $result to Cohort table")
+              _ => logging.info(s"Wrote ${cohortItem} to Cohort table")
             )
         }
 
