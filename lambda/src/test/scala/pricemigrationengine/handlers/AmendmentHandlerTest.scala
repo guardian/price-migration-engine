@@ -4,7 +4,6 @@ import pricemigrationengine.model._
 
 import java.time.{LocalDate, ZoneOffset}
 import pricemigrationengine.Fixtures
-import pricemigrationengine.handlers.AmendmentHandler.amendmentIsBeforeInstant
 import pricemigrationengine.migrations.Membership2023Migration
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 
@@ -838,36 +837,5 @@ class AmendmentHandlerTest extends munit.FunSuite {
         )
       )
     )
-  }
-
-  test("compare amendments and instants") {
-    val amendment = ZuoraSubscriptionAmendment("2023-09-17")
-
-    val date = LocalDate.parse(amendment.bookingDate)
-    // Checking that LocalDate.parse works as intended on a "YYYY-MM-DD"
-    assertEquals(date, LocalDate.of(2023, 9, 17))
-
-    val estimationInstant1 =
-      LocalDate.parse("2023-09-16").atStartOfDay(ZoneOffset.UTC).toInstant() // the day before
-    val estimationInstant2 =
-      LocalDate.parse("2023-09-17").atStartOfDay(ZoneOffset.UTC).toInstant() // the same day
-    val estimationInstant3 =
-      LocalDate.parse("2023-09-18").atStartOfDay(ZoneOffset.UTC).toInstant() // the day after
-
-    assertEquals(
-      amendmentIsBeforeInstant(amendment, estimationInstant1),
-      false
-    ) // false because amendment is on the 17th and estimation on the 16th
-
-    assertEquals(
-      amendmentIsBeforeInstant(amendment, estimationInstant2),
-      false
-    ) // false because isBefore is interpreted in the strict sense, so returns false on equality
-
-    assertEquals(
-      amendmentIsBeforeInstant(amendment, estimationInstant3),
-      true
-    ) // true because amendment is on the 17th and estimation on the 18th
-
   }
 }

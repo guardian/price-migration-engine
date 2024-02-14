@@ -124,6 +124,50 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
   }
 
+  private def createStubZuora() = {
+    ZLayer.succeed(
+      new Zuora {
+
+        override def fetchSubscription(subscriptionNumber: String): ZIO[Any, ZuoraFetchFailure, ZuoraSubscription] =
+          ZIO.succeed(
+            ZuoraSubscription(
+              subscriptionNumber = "subscriptionNumber",
+              version = 1,
+              customerAcceptanceDate = LocalDate.of(2024, 2, 7),
+              contractEffectiveDate = LocalDate.of(2024, 2, 7),
+              ratePlans = List(),
+              accountNumber = "accountNumber",
+              accountId = "accountId",
+              status = "Active",
+              termStartDate = LocalDate.of(2024, 2, 7),
+              termEndDate = LocalDate.of(2024, 2, 7)
+            )
+          )
+
+        override def fetchAccount(
+            accountNumber: String,
+            subscriptionNumber: String
+        ): ZIO[Any, ZuoraFetchFailure, ZuoraAccount] = ZIO.succeed(ZuoraAccount(SoldToContact("UK")))
+
+        override def fetchInvoicePreview(
+            accountId: String,
+            targetDate: LocalDate
+        ): ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList] = ZIO.succeed(ZuoraInvoiceList(List()))
+
+        override val fetchProductCatalogue: ZIO[Any, ZuoraFetchFailure, ZuoraProductCatalogue] =
+          ZIO.succeed(ZuoraProductCatalogue(Set(), None))
+
+        override def updateSubscription(
+            subscription: ZuoraSubscription,
+            update: ZuoraSubscriptionUpdate
+        ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId] = ZIO.succeed("ZuoraSubscriptionId")
+
+        override def renewSubscription(subscriptionNumber: String): ZIO[Any, ZuoraRenewalFailure, Unit] =
+          ZIO.succeed(())
+      }
+    )
+  }
+
   private def createStubEmailSender(sendMessages: ArrayBuffer[EmailMessage]) = {
     ZLayer.succeed(
       new EmailSender {
@@ -192,7 +236,8 @@ class NotificationHandlerTest extends munit.FunSuite {
       currency = Some(currency),
       oldPrice = Some(oldPrice),
       estimatedNewPrice = Some(estimatedNewPrice),
-      billingPeriod = Some(billingPeriod)
+      billingPeriod = Some(billingPeriod),
+      whenEstimationDone = Some(Instant.parse("2023-02-07T15:38:26Z"))
     )
 
   test("guLettersNotificationLeadTime should be at least 49 days") {
@@ -219,7 +264,7 @@ class NotificationHandlerTest extends munit.FunSuite {
           _ <- TestClock.setTime(currentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
-          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender ++ createStubZuora()
         )
       ),
       Success(HandlerOutput(isComplete = true))
@@ -293,7 +338,8 @@ class NotificationHandlerTest extends munit.FunSuite {
         currency = Some(currency),
         oldPrice = Some(oldPrice),
         estimatedNewPrice = Some(estimatedNewPrice),
-        billingPeriod = Some(billingPeriod)
+        billingPeriod = Some(billingPeriod),
+        whenEstimationDone = Some(Instant.parse("2023-02-07T15:38:26Z"))
       )
 
     val dataCurrentTime = Instant.parse("2023-03-29T07:00:00Z")
@@ -316,7 +362,7 @@ class NotificationHandlerTest extends munit.FunSuite {
           _ <- TestClock.setTime(dataCurrentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
-          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender ++ createStubZuora()
         )
       ),
       Success(HandlerOutput(isComplete = true))
@@ -385,7 +431,8 @@ class NotificationHandlerTest extends munit.FunSuite {
         currency = Some(currency),
         oldPrice = Some(oldPrice),
         estimatedNewPrice = Some(estimatedNewPrice),
-        billingPeriod = Some(billingPeriod)
+        billingPeriod = Some(billingPeriod),
+        whenEstimationDone = Some(Instant.parse("2023-02-07T15:38:26Z"))
       )
 
     val dataCurrentTime = Instant.parse("2023-03-29T07:00:00Z")
@@ -408,7 +455,7 @@ class NotificationHandlerTest extends munit.FunSuite {
           _ <- TestClock.setTime(dataCurrentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
-          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender ++ createStubZuora()
         )
       ),
       Success(HandlerOutput(isComplete = true))
@@ -478,7 +525,7 @@ class NotificationHandlerTest extends munit.FunSuite {
           _ <- TestClock.setTime(currentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
-          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender ++ createStubZuora()
         )
       ),
       Success(HandlerOutput(isComplete = true))
@@ -515,7 +562,7 @@ class NotificationHandlerTest extends munit.FunSuite {
           _ <- TestClock.setTime(currentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
-          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender ++ createStubZuora()
         )
       ),
       Success(HandlerOutput(isComplete = true))
@@ -544,7 +591,7 @@ class NotificationHandlerTest extends munit.FunSuite {
           _ <- TestClock.setTime(currentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
-          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender ++ createStubZuora()
         )
       ),
       Success(HandlerOutput(isComplete = true))
@@ -574,7 +621,7 @@ class NotificationHandlerTest extends munit.FunSuite {
           _ <- TestClock.setTime(currentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
-          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender ++ createStubZuora()
         )
       ),
       Success(HandlerOutput(isComplete = true))
@@ -605,7 +652,7 @@ class NotificationHandlerTest extends munit.FunSuite {
           _ <- TestClock.setTime(currentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
-          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender ++ createStubZuora()
         )
       ),
       Success(HandlerOutput(isComplete = true))
@@ -631,7 +678,7 @@ class NotificationHandlerTest extends munit.FunSuite {
           _ <- TestClock.setTime(currentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
-          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ failingStubEmailSender
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ failingStubEmailSender ++ createStubZuora()
         )
       ),
       Success(HandlerOutput(isComplete = true))
@@ -665,7 +712,7 @@ class NotificationHandlerTest extends munit.FunSuite {
           _ <- TestClock.setTime(currentTime)
           program <- NotificationHandler.main(cohortSpec)
         } yield program).provideLayer(
-          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender ++ createStubZuora()
         )
       ),
       Success(HandlerOutput(isComplete = true))
