@@ -6,7 +6,7 @@ import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
-import pricemigrationengine.migrations.newspaper2024Migration
+import pricemigrationengine.migrations.{DigiSubs2023Migration, Membership2023Migration, newspaper2024Migration}
 import pricemigrationengine.model.RateplansProbe
 
 import java.time.{LocalDate, ZoneId}
@@ -211,10 +211,10 @@ object NotificationHandler extends CohortHandler {
 
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case Membership2023Monthlies => 33
-      case Membership2023Annuals   => 33
-      case SupporterPlus2023V1V2MA => 33
-      case DigiSubs2023            => 33
+      case Membership2023Monthlies => Membership2023Migration.maxLeadTime
+      case Membership2023Annuals   => Membership2023Migration.maxLeadTime
+      case SupporterPlus2023V1V2MA => SupporterPlus2023V1V2Migration.maxLeadTime
+      case DigiSubs2023            => DigiSubs2023Migration.maxLeadTime
       case Newspaper2024           => newspaper2024Migration.StaticData.maxLeadTime
       case Legacy                  => 49
     }
@@ -222,10 +222,10 @@ object NotificationHandler extends CohortHandler {
 
   def minLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case Membership2023Monthlies => 31
-      case Membership2023Annuals   => 31
-      case SupporterPlus2023V1V2MA => 31
-      case DigiSubs2023            => 31
+      case Membership2023Monthlies => Membership2023Migration.minLeadTime
+      case Membership2023Annuals   => Membership2023Migration.minLeadTime
+      case SupporterPlus2023V1V2MA => SupporterPlus2023V1V2Migration.minLeadTime
+      case DigiSubs2023            => DigiSubs2023Migration.minLeadTime
       case Newspaper2024           => newspaper2024Migration.StaticData.minLeadTime
       case Legacy                  => 35
     }

@@ -24,6 +24,9 @@ import java.time.LocalDate
 
 object Membership2023Migration {
 
+  val maxLeadTime = 33
+  val minLeadTime = 31
+
   val priceMapMonthlies: Map[Currency, BigDecimal] = Map(
     "GBP" -> BigDecimal(7),
     "AUD" -> BigDecimal(14.99),
