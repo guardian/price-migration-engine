@@ -6,6 +6,9 @@ import java.time.LocalDate
 
 object SupporterPlus2023V1V2Migration {
 
+  val maxLeadTime = 33
+  val minLeadTime = 31
+
   val newPriceMapMonthlies: Map[Currency, BigDecimal] = Map(
     "GBP" -> BigDecimal(10),
     "AUD" -> BigDecimal(17),

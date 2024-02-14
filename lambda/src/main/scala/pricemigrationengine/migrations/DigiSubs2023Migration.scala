@@ -5,6 +5,9 @@ import java.time.LocalDate
 
 object DigiSubs2023Migration {
 
+  val maxLeadTime = 33
+  val minLeadTime = 31
+
   // -------------------------------------------
   // Support Data
   // -------------------------------------------
