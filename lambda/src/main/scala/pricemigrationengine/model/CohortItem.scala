@@ -21,7 +21,8 @@ case class CohortItem(
     whenAmendmentDone: Option[Instant] = None,
     whenNotificationSent: Option[Instant] = None,
     whenNotificationSentWrittenToSalesforce: Option[Instant] = None,
-    whenAmendmentWrittenToSalesforce: Option[Instant] = None
+    whenAmendmentWrittenToSalesforce: Option[Instant] = None,
+    cancellationReason: Option[String] = None
 )
 
 object CohortItem {
@@ -59,8 +60,12 @@ object CohortItem {
       whenAmendmentDone = Some(result.whenDone)
     )
 
-  def fromCancelledAmendmentResult(result: CancelledAmendmentResult): CohortItem =
-    CohortItem(result.subscriptionNumber, Cancelled)
+  def fromCancelledAmendmentResult(result: CancelledAmendmentResult, reason: String): CohortItem =
+    CohortItem(
+      result.subscriptionNumber,
+      processingStage = Cancelled,
+      cancellationReason = Some(reason)
+    )
 
   def fromExpiringSubscriptionResult(result: ExpiringSubscriptionResult): CohortItem =
     CohortItem(result.subscriptionNumber, Cancelled)

@@ -40,7 +40,11 @@ object AmendmentHandler extends CohortHandler {
           // Although it was given to us as a failure of `doAmendment`, the only effect of the database update, if it
           // is not recorded as a failure of `amend`, is to allow the processing to continue.
           val result = CancelledAmendmentResult(item.subscriptionName)
-          CohortTable.update(CohortItem.fromCancelledAmendmentResult(result)).as(result)
+          CohortTable
+            .update(
+              CohortItem.fromCancelledAmendmentResult(result, "(cause: 99727bf9) subscription was cancelled in Zuora")
+            )
+            .as(result)
         }
         case _: ExpiringSubscriptionFailure => {
           // `ExpiringSubscriptionFailure` happens when the subscription's end of effective period is before the

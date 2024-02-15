@@ -19,7 +19,7 @@ trait CohortTable {
 
   def create(cohortItem: CohortItem): IO[Failure, Unit]
 
-  def update(result: CohortItem): IO[CohortUpdateFailure, Unit]
+  def update(cohortItem: CohortItem): IO[CohortUpdateFailure, Unit]
 }
 
 object CohortTable {
@@ -36,6 +36,6 @@ object CohortTable {
   def create(subscription: CohortItem): ZIO[CohortTable, Failure, Unit] =
     ZIO.environmentWithZIO(_.get.create(subscription))
 
-  def update(result: CohortItem): ZIO[CohortTable, CohortUpdateFailure, Unit] =
-    ZIO.environmentWithZIO(_.get.update(result))
+  def update(cohortItem: CohortItem): ZIO[CohortTable, CohortUpdateFailure, Unit] =
+    ZIO.environmentWithZIO(_.get.update(cohortItem))
 }

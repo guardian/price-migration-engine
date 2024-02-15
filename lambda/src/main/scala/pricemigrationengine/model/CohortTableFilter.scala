@@ -30,8 +30,9 @@ object CohortTableFilter {
   }
 
   /*
-   * Status of a sub that has been cancelled since the price migration process began,
-   * so is ineligible for further processing.
+   * Status of a sub that has been cancelled since the price migration process began, or has
+   * undergone some amendments in Zuora that are incompatible with the price rise.
+   * We mark it as ineligible for further processing.
    */
   case object Cancelled extends CohortTableFilter { override val value: String = "Cancelled" }
 
