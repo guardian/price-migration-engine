@@ -35,6 +35,8 @@ object SalesforceClientLive {
   private val connTimeout = HttpOptions.connTimeout(timeout)
   private val readTimeout = HttpOptions.readTimeout(timeout)
 
+  private val salesforceApiPathPrefixToVersion = "services/data/v60.0"
+
   private def requestAsMessage(request: HttpRequest) =
     s"${request.method} ${request.url}"
 
@@ -87,14 +89,16 @@ object SalesforceClientLive {
             subscriptionName: String
         ): IO[SalesforceClientFailure, SalesforceSubscription] =
           sendRequestAndParseResponse[SalesforceSubscription](
-            Http(s"${auth.instance_url}/services/data/v43.0/sobjects/SF_Subscription__c/Name/$subscriptionName")
+            Http(
+              s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/SF_Subscription__c/Name/$subscriptionName"
+            )
               .header("Authorization", s"Bearer ${auth.access_token}")
               .method("GET")
           ).tap(subscription => logging.info(s"Successfully loaded: ${subscription.Name}"))
 
         override def getContact(contactId: String): IO[SalesforceClientFailure, SalesforceContact] =
           sendRequestAndParseResponse[SalesforceContact](
-            Http(s"${auth.instance_url}/services/data/v43.0/sobjects/Contact/$contactId")
+            Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Contact/$contactId")
               .header("Authorization", s"Bearer ${auth.access_token}")
               .method("GET")
           ).tap(contact => logging.info(s"Successfully loaded contact: ${contact.Id}"))
@@ -103,7 +107,7 @@ object SalesforceClientLive {
             priceRise: SalesforcePriceRise
         ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] =
           sendRequestAndParseResponse[SalesforcePriceRiseCreationResponse](
-            Http(s"${auth.instance_url}/services/data/v43.0/sobjects/Price_Rise__c/")
+            Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/")
               .postData(serialisePriceRise(priceRise))
               .header("Authorization", s"Bearer ${auth.access_token}")
               .header("Content-Type", "application/json")
@@ -114,7 +118,7 @@ object SalesforceClientLive {
             priceRise: SalesforcePriceRise
         ): IO[SalesforceClientFailure, Unit] = {
           sendRequest(
-            Http(s"${auth.instance_url}/services/data/v43.0/sobjects/Price_Rise__c/$priceRiseId")
+            Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/$priceRiseId")
               .postData(serialisePriceRise(priceRise))
               .method("PATCH")
               .header("Authorization", s"Bearer ${auth.access_token}")
