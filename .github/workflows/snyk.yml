@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - integrate-snyk-04b3775d90a0ef0e
   workflow_dispatch: 
 jobs:
   security:
