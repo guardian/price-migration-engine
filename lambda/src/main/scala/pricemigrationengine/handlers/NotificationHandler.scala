@@ -158,50 +158,47 @@ object NotificationHandler extends CohortHandler {
   // -------------------------------------------------------------------
   // Subscription Rate Plan Checks
 
-  private def fetchSubscription(item: CohortItem): ZIO[Zuora, Failure, ZuoraSubscription] =
-    Zuora
-      .fetchSubscription(item.subscriptionName)
-      .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
-
   private def subscriptionRatePlansCheck(
       item: CohortItem,
       subscription: ZuoraSubscription,
       date: LocalDate
   ): ZIO[CohortTable with Zuora, Failure, Unit] = {
-    RateplansProbe.probe(subscription: ZuoraSubscription, date) match {
-      case ShouldProceed => ZIO.succeed(())
-      case ShouldCancel => {
-        val result = CancelledAmendmentResult(item.subscriptionName)
-        ZIO.succeed(
-          CohortTable
-            .update(
-              CohortItem
-                .fromCancelledAmendmentResult(result, "(cause: f5c291b0) Migration cancelled by RateplansProbe")
-            )
-            .as(result)
-        )
-      }
-      case IndeterminateConclusion =>
-        ZIO.fail(
-          RatePlansProbeFailure(
-            s"[4f7589ea] NotificationHandler probeRatePlans could not determine a probe outcome for cohort item ${item}. Please investigate."
+    for {
+      _ <- RateplansProbe.probe(subscription: ZuoraSubscription, date) match {
+        case ShouldProceed => ZIO.succeed(())
+        case ShouldCancel =>
+          val result = CancelledAmendmentResult(item.subscriptionName)
+          for {
+            _ <- CohortTable
+              .update(
+                CohortItem
+                  .fromCancelledAmendmentResult(result, "(cause: f5c291b0) Migration cancelled by RateplansProbe")
+              )
+          } yield ZIO.fail(
+            RatePlansProbeFailure("(cause: f5c291b0) Migration cancelled by RateplansProbe")
           )
-        )
-    }
+        case IndeterminateConclusion =>
+          ZIO.fail(
+            RatePlansProbeFailure(
+              s"[4f7589ea] NotificationHandler probeRatePlans could not determine a probe outcome for cohort item ${item}. Please investigate."
+            )
+          )
+      }
+    } yield ()
   }
 
   private def cohortItemRatePlansChecks(item: CohortItem): ZIO[CohortTable with Zuora, Failure, Unit] = {
     for {
-      subscription <- fetchSubscription(item: CohortItem)
+      subscription <- Zuora.fetchSubscription(item.subscriptionName)
       estimationInstant <- ZIO
         .fromOption(item.whenEstimationDone)
         .mapError(ex => AmendmentDataFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
-      result <- subscriptionRatePlansCheck(
+      _ <- subscriptionRatePlansCheck(
         item,
         subscription,
         estimationInstant.atZone(ZoneId.of("Europe/London")).toLocalDate
       )
-    } yield result
+    } yield ()
   }
 
   // -------------------------------------------------------------------
