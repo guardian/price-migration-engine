@@ -95,7 +95,10 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
         Some(oldPrice),
         Some(PriceCap(oldPrice, estimatedNewPrice, forceEstimated)),
         Some(priceRiseDate),
-        Some(subscription.Id)
+        Some(subscription.Id),
+        Migration_Name__c = Some(cohortSpec.cohortName),
+        Migration_Status__c = Some("EstimationComplete"),
+        Cancellation_Reason__c = None
       )
     }
   }
