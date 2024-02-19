@@ -47,8 +47,8 @@ object CohortItem {
   def fromFailedEstimationResult(result: FailedEstimationResult): CohortItem =
     CohortItem(result.subscriptionNumber, EstimationFailed)
 
-  def fromCancelledEstimationResult(result: CancelledEstimationResult): CohortItem =
-    CohortItem(result.subscriptionNumber, Cancelled)
+  def fromCancelledEstimationResult(result: CancelledEstimationResult, reason: String): CohortItem =
+    CohortItem(result.subscriptionNumber, processingStage = Cancelled, cancellationReason = Some(reason))
 
   def fromSuccessfulAmendmentResult(result: SuccessfulAmendmentResult): CohortItem =
     CohortItem(
