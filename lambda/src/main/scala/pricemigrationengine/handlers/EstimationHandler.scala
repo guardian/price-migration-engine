@@ -47,7 +47,7 @@ object EstimationHandler extends CohortHandler {
           CohortTable.update(CohortItem.fromFailedEstimationResult(result)).as(result)
         case _: CancelledSubscriptionFailure =>
           val result = CancelledEstimationResult(item.subscriptionName)
-          CohortTable.update(CohortItem.fromCancelledEstimationResult(result)).as(result)
+          CohortTable.update(CohortItem.fromCancelledEstimationResult(result,s"(reason: b6829dd30) subscription ${item.subscriptionName} has been cancelled in Zuora")).as(result)
         case e => ZIO.fail(e)
       },
       success = { result =>
