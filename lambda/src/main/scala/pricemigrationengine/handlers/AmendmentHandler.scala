@@ -14,7 +14,7 @@ import pricemigrationengine.migrations.newspaper2024Migration
 object AmendmentHandler extends CohortHandler {
 
   // TODO: move to config
-  private val batchSize = 100
+  private val batchSize = 50
 
   private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] = {
     for {

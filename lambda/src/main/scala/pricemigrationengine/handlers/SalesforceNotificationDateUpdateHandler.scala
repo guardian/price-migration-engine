@@ -9,16 +9,17 @@ import java.time.{LocalDate, ZoneOffset}
 
 object SalesforceNotificationDateUpdateHandler extends CohortHandler {
 
-  val main: ZIO[Logging with CohortTable with SalesforceClient, Failure, HandlerOutput] =
+  def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with SalesforceClient, Failure, HandlerOutput] =
     for {
-      _ <- CohortTable.fetch(NotificationSendComplete, None).foreach(updateDateLetterSentInSF)
+      _ <- CohortTable.fetch(NotificationSendComplete, None).foreach(item => updateDateLetterSentInSF(cohortSpec, item))
     } yield HandlerOutput(isComplete = true)
 
   private def updateDateLetterSentInSF(
+      cohortSpec: CohortSpec,
       item: CohortItem
   ): ZIO[Logging with CohortTable with SalesforceClient, Failure, Unit] =
     for {
-      _ <- updateSalesforce(item)
+      _ <- updateSalesforce(cohortSpec, item)
         .tapBoth(
           e => Logging.error(s"Failed to write create Price_Rise in salesforce: $e"),
           result => Logging.info(s"SalesforcePriceRise result: $result")
@@ -35,10 +36,11 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
     } yield ()
 
   private def updateSalesforce(
+      cohortSpec: CohortSpec,
       cohortItem: CohortItem
   ): ZIO[SalesforceClient, Failure, Option[String]] = {
     for {
-      priceRise <- buildPriceRise(cohortItem)
+      priceRise <- buildPriceRise(cohortSpec, cohortItem)
       salesforcePriceRiseId <-
         ZIO
           .fromOption(cohortItem.salesforcePriceRiseId)
@@ -55,6 +57,7 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
   }
 
   def buildPriceRise(
+      cohortSpec: CohortSpec,
       cohortItem: CohortItem
   ): IO[SalesforcePriceRiseWriteFailure, SalesforcePriceRise] = {
     for {
@@ -63,12 +66,15 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
           .fromOption(cohortItem.whenNotificationSent)
           .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a whenEmailSent field"))
     } yield SalesforcePriceRise(
-      Date_Letter_Sent__c = Some(LocalDate.from(notificationSendTimestamp.atOffset(ZoneOffset.UTC)))
+      Date_Letter_Sent__c = Some(LocalDate.from(notificationSendTimestamp.atOffset(ZoneOffset.UTC))),
+      Migration_Name__c = Some(cohortSpec.cohortName),
+      Migration_Status__c = Some("NotificationSendComplete"),
+      Cancellation_Reason__c = None
     )
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    main.provideSome[Logging](
+    main(input).provideSome[Logging](
       EnvConfig.cohortTable.layer,
       EnvConfig.salesforce.layer,
       EnvConfig.stage.layer,
