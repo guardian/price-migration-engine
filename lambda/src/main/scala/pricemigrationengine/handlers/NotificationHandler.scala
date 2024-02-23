@@ -6,7 +6,12 @@ import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
-import pricemigrationengine.migrations.{DigiSubs2023Migration, Membership2023Migration, newspaper2024Migration}
+import pricemigrationengine.migrations.{
+  DigiSubs2023Migration,
+  LegacyMigrations,
+  Membership2023Migration,
+  newspaper2024Migration
+}
 import pricemigrationengine.model.RateplansProbe
 
 import java.time.{LocalDate, ZoneId}
@@ -115,7 +120,7 @@ object NotificationHandler extends CohortHandler {
         case Newspaper2024           => true
         case Legacy                  => false
       }
-      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${PriceCap(oldPrice, estimatedNewPrice, forceEstimated)}"
+      cappedEstimatedNewPriceWithCurrencySymbol = s"${currencySymbol}${LegacyMigrations.priceCap(oldPrice, estimatedNewPrice, forceEstimated)}"
 
       _ <- logMissingEmailAddress(cohortItem, contact)
 
