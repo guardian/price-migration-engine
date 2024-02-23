@@ -22,9 +22,8 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
   private val currency = "GBP"
   private val oldPrice = BigDecimal(10.00)
 
-  // To make the membership price rise test meaningful, this should actually be higher than the capped price.
   private val estimatedNewPrice = BigDecimal(15.00)
-  test("For membership test, we need the estimatedNewPrice to be higher than the capped price") {
+  test("For legacy migrations, we need the estimatedNewPrice to be higher than the capped price") {
     assert(LegacyMigrations.priceCap(oldPrice, estimatedNewPrice) < estimatedNewPrice)
   }
 
@@ -140,6 +139,8 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     assertEquals(createdPriceRises(0).SF_Subscription__c, Some(s"SubscritionId-$subscriptionName"))
     assertEquals(createdPriceRises(0).Buyer__c, Some(s"Buyer-$subscriptionName"))
     assertEquals(createdPriceRises(0).Current_Price_Today__c, Some(oldPrice))
+
+    // Cohort spec name "Name", causes a Legacy migration
     assertEquals(
       createdPriceRises(0).Guardian_Weekly_New_Price__c,
       Some(LegacyMigrations.priceCap(oldPrice, estimatedNewPrice))
@@ -335,6 +336,8 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     assertEquals(updatedPriceRises(0).SF_Subscription__c, Some(s"SubscritionId-$subscriptionName"))
     assertEquals(updatedPriceRises(0).Buyer__c, Some(s"Buyer-$subscriptionName"))
     assertEquals(updatedPriceRises(0).Current_Price_Today__c, Some(oldPrice))
+
+    // Cohort spec name "Name", causes a Legacy migration
     assertEquals(
       updatedPriceRises(0).Guardian_Weekly_New_Price__c,
       Some(LegacyMigrations.priceCap(oldPrice, estimatedNewPrice))

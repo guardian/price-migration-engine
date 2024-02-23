@@ -29,7 +29,7 @@ class NotificationHandlerTest extends munit.FunSuite {
 
   // The estimated new price is the price without cap
   private val estimatedNewPrice = BigDecimal(15.00)
-  test("For membership test, we need the estimatedNewPrice to be higher than the capped price") {
+  test("For legacy migrations, we need the estimatedNewPrice to be higher than the capped price") {
     assert(LegacyMigrations.priceCap(oldPrice, estimatedNewPrice) < estimatedNewPrice)
   }
 
