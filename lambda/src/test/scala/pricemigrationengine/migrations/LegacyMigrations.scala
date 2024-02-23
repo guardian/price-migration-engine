@@ -1,8 +1,6 @@
-package pricemigrationengine.model
+package pricemigrationengine.migrations
 
-import pricemigrationengine.migrations.LegacyMigrations
-
-class PriceCapTest extends munit.FunSuite {
+class LegacyMigrationsTest extends munit.FunSuite {
 
   test("The price capping works correctly") {
     val oldPrice = BigDecimal(100)
