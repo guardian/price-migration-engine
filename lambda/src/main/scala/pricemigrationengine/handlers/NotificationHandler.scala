@@ -19,6 +19,8 @@ import java.time.format.DateTimeFormatter
 
 object NotificationHandler extends CohortHandler {
 
+  private val batchSize = 150
+
   val Successful = 1
   val Unsuccessful = 0
   val Cancelled_Status = "Cancelled"
@@ -46,10 +48,11 @@ object NotificationHandler extends CohortHandler {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       count <- CohortTable
         .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+        .take(batchSize)
         .mapZIO(item => sendNotification(cohortSpec)(item, today))
         .runFold(0) { (sum, count) => sum + count }
       _ <- Logging.info(s"Successfully sent $count price rise notifications")
-    } yield HandlerOutput(isComplete = true)
+    } yield HandlerOutput(isComplete = count < batchSize)
   }
 
   def sendNotification(cohortSpec: CohortSpec)(

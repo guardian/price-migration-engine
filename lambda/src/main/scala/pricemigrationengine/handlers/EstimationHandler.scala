@@ -16,7 +16,6 @@ import java.time.LocalDate
   */
 object EstimationHandler extends CohortHandler {
 
-  // TODO: move to config
   private val batchSize = 150
 
   def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
