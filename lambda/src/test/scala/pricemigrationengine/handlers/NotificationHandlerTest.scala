@@ -2,6 +2,7 @@ package pricemigrationengine.handlers
 
 import pricemigrationengine.handlers.NotificationHandler._
 import pricemigrationengine.TestLogging
+import pricemigrationengine.migrations.LegacyMigrations
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
@@ -28,16 +29,15 @@ class NotificationHandlerTest extends munit.FunSuite {
 
   // The estimated new price is the price without cap
   private val estimatedNewPrice = BigDecimal(15.00)
-  test("For membership test, we need the estimatedNewPrice to be higher than the capped price") {
-    assert(PriceCap(oldPrice, estimatedNewPrice) < estimatedNewPrice)
+  test("For legacy migrations, we need the estimatedNewPrice to be higher than the capped price") {
+    assert(LegacyMigrations.priceCap(oldPrice, estimatedNewPrice) < estimatedNewPrice)
   }
 
-  // The price that is displayed to the customer is capped using the old price as base
-  private val cappedEstimatedNewPriceWithCurrencySymbolPrefix = "£12.00"
+  private val estimatedNewPriceWithCurrencySymbolPrefix = "£15.0"
 
-  // Membership variation
-  // Also, for some reasons we only have one "0" here
-  private val unCappedEstimatedNewPriceWithCurrencySymbolPrefix = "£15.0"
+  // Variation for Legacy migrations, where the price is capped to 10.00 * 1.2
+  // What decides whether we are in a Legacy is the cohort specs name
+  private val estimatedNewPriceWithCurrencySymbolPrefixLegacyVariation = "£12.00"
 
   private val sfSubscriptionId = "1234"
   private val buyerId = "buyer-1"
@@ -286,7 +286,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, lastName)
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount,
-      cappedEstimatedNewPriceWithCurrencySymbolPrefix
+      estimatedNewPriceWithCurrencySymbolPrefixLegacyVariation
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date,
@@ -384,7 +384,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, lastName)
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount,
-      unCappedEstimatedNewPriceWithCurrencySymbolPrefix
+      estimatedNewPriceWithCurrencySymbolPrefix
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date,
@@ -477,7 +477,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.last_name, lastName)
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.payment_amount,
-      unCappedEstimatedNewPriceWithCurrencySymbolPrefix
+      estimatedNewPriceWithCurrencySymbolPrefix
     )
     assertEquals(
       sentMessages(0).To.ContactAttributes.SubscriberAttributes.next_payment_date,
