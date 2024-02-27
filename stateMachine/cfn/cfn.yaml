@@ -291,7 +291,7 @@ Resources:
                 "Resource": "${NotifyingSubscribersLambdaArn}",
                 "InputPath": "$.cohortSpec",
                 "ResultPath": "$.result",
-                "Next": "UpdatingSalesforceWithNotifications",
+                "Next": "IsNotifyingSubscribersComplete",
                 "Retry": [
                   {
                     "ErrorEquals": [
@@ -304,6 +304,18 @@ Resources:
                     "BackoffRate": 2
                   }
                 ]
+              },
+              "IsNotifyingSubscribersComplete": {
+                "Type": "Choice",
+                "Comment": "Is the notification step complete?",
+                "Choices": [
+                  {
+                    "Variable": "$.result.isComplete",
+                    "BooleanEquals": false,
+                    "Next": "NotifyingSubscribers"
+                  }
+                ],
+                "Default": "UpdatingSalesforceWithNotifications"
               },
               "UpdatingSalesforceWithNotifications": {
                 "Type": "Task",
