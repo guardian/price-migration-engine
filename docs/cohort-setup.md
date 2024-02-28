@@ -53,7 +53,7 @@ A new cohort table will be created. The name of the table contains the stage and
 
 ## Running a test cohort
 
-See [subscription-numbers.csv](./lambda/src/test/resources/cohort-files/subscription-numbers.csv) for a small exmaple.
+See [subscription-numbers.csv](./lambda/src/test/resources/cohort-files/subscription-numbers.csv) for a small example.
 
 **Note on membership-workflow**
 
