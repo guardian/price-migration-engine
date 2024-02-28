@@ -28,7 +28,7 @@ There are two lambdas responsible for creating the dynamo table and uploading th
   - price-migration-engine-table-create-lambda-PROD, and
   - price-migration-engine-subscription-id-upload-lambda-PROD
 
-Do not forget to set the correct cohort specifications (see exmaple below, but use the right values for your migration), as input data for the lambdas before you click on `Test`
+Do not forget to set the correct cohort specifications (see example below, but use the right values for your migration), as input data for the lambdas before you click on `Test`
 
 ```
 {
