@@ -30,7 +30,7 @@ table.
 
 Add the following CSV files to the folder:
 
-* **subscription-numbers.csv**: A file holding line-separated subscription numbers for the price rise, which will typically be the result of a Salesforce report. More info in [ImportSubscriptionId.MD](./ImportSubscriptionId.MD) on this.
+* **subscription-numbers.csv**: A file holding line-separated subscription numbers for the price rise, which will typically be the result of a Salesforce report. More info in [importSubscriptionId.md](./importSubscriptionId.md) on this.
 
 ## 3. Run the state machine or lambda
 

@@ -64,7 +64,7 @@ The stages are as follows
 
 | Processing stage at start | Lambda | Description | Processing stage on completion |
 |---------|---|---|---|
-| N/A | SubscriptionIdUploadHandler | Initialises the items in the CohortTable for more details see:See [ImportSubscriptionId.MD](../ImportSubscriptionId.MD) | ReadyForEstimation |
+| N/A | SubscriptionIdUploadHandler | Initialises the items in the CohortTable for more details see:See [importSubscriptionId.md](./docs/importSubscriptionId.md) | ReadyForEstimation |
 | ReadyForEstimation | EstimationHandler | Uses Zuora to 'estimate' new price and start date of price rise | EstimationComplete |
 | EstimationComplete | SalesforcePriceRiseCreationHandler | Creates the prices rise object in SF so the estimated information is available to CSRs | SalesforcePriceRiceCreationComplete/Cancelled (if cancellation detected) |
 | SalesforcePriceRiceCreationComplete | NotificationHandler | Sends prices rise notification direct notification to customer via braze | NotificationSendProcessing (on failure)/NotificationSendComplete (on success) |
@@ -120,7 +120,7 @@ Note the above is different to the input JSON that the lambda admits
 
 ## Importing subscription id for a price migration
 
-See [ImportSubscriptionId.MD](../ImportSubscriptionId.MD)
+See [importSubscriptionId.md](./docs/importSubscriptionId.md)
 
 ## Configuration
 
