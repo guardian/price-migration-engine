@@ -26,9 +26,6 @@ This report contains the subscriptions that will be included in the price migrat
 - Click the export button
 - Make a note of the report file name
 
-# Download the subscription exclusions csv
-
-
 # Upload the report file to S3
 
 - Get the 'membership' credentials from [Janus](https://janus.gutools.co.uk/) and add them to your local environment
