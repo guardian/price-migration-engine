@@ -29,7 +29,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
     sourceLocation(cohortSpec).map(loc => loc.copy(key = s"${loc.key}/$sublocation"))
 
   private def importSourceLocation(cohortSpec: CohortSpec) =
-    sourceSublocation(cohortSpec, "salesforce-subscription-id-report.csv")
+    sourceSublocation(cohortSpec, "subscription-numbers.csv")
 
   def main(
       cohortSpec: CohortSpec

@@ -48,8 +48,8 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
 
       override def getObject(s3Location: S3Location): ZIO[Scope, S3Failure, InputStream] =
         s3Location match {
-          case S3Location("price-migration-engine-dev", "cohortName/salesforce-subscription-id-report.csv") =>
-            loadTestResource("/cohort-files/salesforce-subscription-id-report.csv")
+          case S3Location("price-migration-engine-dev", "cohortName/subscription-numbers.csv") =>
+            loadTestResource("/cohort-files/subscription-numbers.csv")
           case _ => ZIO.fail(S3Failure(s"Unexpected location: $s3Location"))
         }
 
