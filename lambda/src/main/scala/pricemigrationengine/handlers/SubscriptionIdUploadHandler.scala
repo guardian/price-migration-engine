@@ -31,9 +31,6 @@ object SubscriptionIdUploadHandler extends CohortHandler {
   private def importSourceLocation(cohortSpec: CohortSpec) =
     sourceSublocation(cohortSpec, "salesforce-subscription-id-report.csv")
 
-  private def exclusionSourceLocation(cohortSpec: CohortSpec) =
-    sourceSublocation(cohortSpec, "excluded-subscription-ids.csv")
-
   def main(
       cohortSpec: CohortSpec
   ): ZIO[CohortTable with S3 with StageConfig with Logging, Failure, HandlerOutput] =
@@ -41,7 +38,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       _ <-
         if (today.isBefore(cohortSpec.importStartDate))
-          Logging.info(s"No action.  Import start date ${cohortSpec.importStartDate} is in the future.").unit
+          Logging.info(s"No action. Import start date ${cohortSpec.importStartDate} is in the future.").unit
         else
           importCohortAndCleanUp(cohortSpec)
     } yield HandlerOutput(isComplete = true))
@@ -62,34 +59,14 @@ object SubscriptionIdUploadHandler extends CohortHandler {
       cohortSpec: CohortSpec
   ): ZIO[CohortTable with Logging with S3 with StageConfig, Failure, Unit] =
     ZIO.scoped(for {
-      exclusionsSrc <- exclusionSourceLocation(cohortSpec)
-      exclusionsManagedStream <- S3.getObject(exclusionsSrc)
-      exclusionStream <- exclusionsManagedStream
-      exclusions <- parseExclusions(exclusionStream)
-      _ <- Logging.info(s"Loaded excluded subscriptions: $exclusions")
       importSrc <- importSourceLocation(cohortSpec)
       subscriptionIdsManagedStream <- S3.getObject(importSrc)
       inclusionStream <- subscriptionIdsManagedStream
-      count <- writeSubscriptionIdsToCohortTable(inclusionStream, exclusions)
+      count <- writeSubscriptionIdsToCohortTable(inclusionStream)
       _ <- Logging.info(s"Wrote $count subscription ids to the cohort table")
     } yield ())
 
-  def parseExclusions(inputStream: InputStream): IO[SubscriptionIdUploadFailure, Set[String]] = {
-    ZIO
-      .attempt(
-        new CSVParser(new InputStreamReader(inputStream, "UTF-8"), csvFormat).getRecords.asScala
-          .map(_.get(0))
-          .toSet
-      )
-      .mapError { ex =>
-        SubscriptionIdUploadFailure(s"Failed to read and parse the exclusions file: $ex")
-      }
-  }
-
-  def writeSubscriptionIdsToCohortTable(
-      inputStream: InputStream,
-      exclusions: Set[String]
-  ): ZIO[CohortTable with Logging, Failure, Long] = {
+  def writeSubscriptionIdsToCohortTable(inputStream: InputStream): ZIO[CohortTable with Logging, Failure, Long] = {
     ZStream
       .fromJavaIterator(
         new CSVParser(new InputStreamReader(inputStream, "UTF-8"), csvFormat).iterator()
@@ -98,12 +75,6 @@ object SubscriptionIdUploadHandler extends CohortHandler {
         ex => SubscriptionIdUploadFailure(s"Failed to read subscription csv stream: $ex"),
         csvRecord => csvRecord.get(0)
       )
-      .filterZIO { subscriptionId =>
-        if (exclusions.contains(subscriptionId)) {
-          Logging.info(s"Filtering subscription $subscriptionId as it is in the exclusion file").as(false)
-        } else
-          ZIO.succeed(true)
-      }
       .mapZIO { subscriptionId =>
         ({
           CohortTable
