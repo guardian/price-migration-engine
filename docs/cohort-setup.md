@@ -26,12 +26,11 @@ Format is `yyyy-mm-dd`.
 ## 2. Source files
 
 Add a folder to the `price-migration-engine-prod` S3 bucket with the same name as the cohort in the cohort specification
-table. 
-Add two CSV files to the folder:
-* **salesforce-subscription-id-report.csv**: A file holding line-separated subscription numbers to be **included** in the 
-price rise, which will typically be the result of a Salesforce report. More info in [ImportSubscriptionId.MD](./ImportSubscriptionId.MD) on this. 
-* **excluded-subscription-ids.csv**: A file holding line-separated subscription numbers to be **excluded** from the price 
-rise.
+table.
+
+Add the following CSV files to the folder:
+
+* **subscription-numbers.csv**: A file holding line-separated subscription numbers for the price rise, which will typically be the result of a Salesforce report. More info in [ImportSubscriptionId.MD](./ImportSubscriptionId.MD) on this.
 
 ## 3. Run the state machine or lambda
 
@@ -54,7 +53,7 @@ A new cohort table will be created. The name of the table contains the stage and
 
 ## Running a test cohort
 
-See [salesforce-subscription-id-report.csv](./lambda/src/test/resources/salesforce-subscription-id-report.csv) for an example ID report. Upload a blank csv file for the excluded-subscription-ids.csv.
+See [subscription-numbers.csv](./lambda/src/test/resources/cohort-files/subscription-numbers.csv) for a small exmaple.
 
 **Note on membership-workflow**
 
