@@ -11,7 +11,7 @@ The process for uploading the subscription ids is as follows.
 
 ## Download subscription ids from salesforce
 
-See [salesforce-subscription-id-report.csv](./lambda/src/test/resources/salesforce-subscription-id-report.csv) for required format of the CSV file.
+See [subscription-numbers.csv](./lambda/src/test/resources/cohort-files/subscription-numbers.csv) for required format of the CSV file.
 **Note:** Although the salesforce report may contain many fields for each subscription, only the ID is required, and it is required as the first column of the CSV file, see the writeSubscriptionIdsToCohortTable function in SubscriptionIdUploadHandler.scala file for how it reads the CSV and creates a cohort item out of it.
 
 This report contains the subscriptions that will be included in the price migration process.
@@ -28,21 +28,13 @@ This report contains the subscriptions that will be included in the price migrat
 
 # Download the subscription exclusions csv
 
-Subscription ids in this file will be excluded from the price migration process.
-
-- Go to the 'Print Voucher - Price Migration Data' spreadsheet:
-  [https://docs.google.com/spreadsheets/d/1J4g_fn3DfSwfSljRg6HrBlLBV84BJWElCFGkunU4P0c/edit#gid=0](https://docs.google.com/spreadsheets/d/1J4g_fn3DfSwfSljRg6HrBlLBV84BJWElCFGkunU4P0c/edit#gid=0)
-- Click on the second 'C*** B*******' tab
-- Click File > Download > Comma Separated Values  
-- Make a note of the file name that is downloaded
 
 # Upload the report file to S3
 
 - Get the 'membership' credentials from [Janus](https://janus.gutools.co.uk/) and add them to your local environment
 - Copy the report csv file from above to the price migration engine s3 bucket
   ```bash
-   aws --profile membership s3 cp ~/Downloads/<salesforce report file name>.csv s3://price-migration-engine-prod/salesforce-subscription-id-report.csv
-   aws --profile membership s3 cp ~/Downloads/<exclusions file name>.csv s3://price-migration-engine-prod/excluded-subscription-ids.csv
+   aws --profile membership s3 cp ~/Downloads/<subscription numbers>.csv s3://price-migration-engine-prod/subscription-numbers.csv
   ``` 
 
 # Run the import lambda
