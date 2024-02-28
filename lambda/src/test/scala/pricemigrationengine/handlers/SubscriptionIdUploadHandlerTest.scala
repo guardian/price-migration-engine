@@ -48,10 +48,8 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
 
       override def getObject(s3Location: S3Location): ZIO[Scope, S3Failure, InputStream] =
         s3Location match {
-          case S3Location("price-migration-engine-dev", "cohortName/excluded-subscription-ids.csv") =>
-            loadTestResource("/cohort-files/excluded-subscription-ids.csv")
-          case S3Location("price-migration-engine-dev", "cohortName/salesforce-subscription-id-report.csv") =>
-            loadTestResource("/cohort-files/salesforce-subscription-id-report.csv")
+          case S3Location("price-migration-engine-dev", "cohortName/subscription-numbers.csv") =>
+            loadTestResource("/cohort-files/subscription-numbers.csv")
           case _ => ZIO.fail(S3Failure(s"Unexpected location: $s3Location"))
         }
 
@@ -81,8 +79,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
       ),
       Success(HandlerOutput(isComplete = true))
     )
-    assertEquals(subscriptionsWrittenToCohortTable.size, 2)
-    assertEquals(subscriptionsWrittenToCohortTable(0).subscriptionName, "subscriptionId1")
-    assertEquals(subscriptionsWrittenToCohortTable(1).subscriptionName, "subscriptionId3")
+    assertEquals(subscriptionsWrittenToCohortTable.size, 3)
+    assertEquals(subscriptionsWrittenToCohortTable(2).subscriptionName, "subscriptionId3")
   }
 }
