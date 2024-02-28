@@ -22,9 +22,20 @@ To upload from the terminal:
     cp /path/to/file/subscription-numbers.csv s3://price-migration-engine-prod/<migration name>/subscription-numbers.csv
   ``` 
 
-# Run the import lambda
+# Run the import lambdas
 
-- Navigate to the [price-migration-engine-subscription-id-upload-lambda-PROD](https://eu-west-1.console.aws.amazon.com/lambda/home?region=eu-west-1#/functions/price-migration-engine-subscription-id-upload-lambda-PROD?tab=configuration)
-lambda in the AWS console.
-- Click the 'Test' button
+There are two lambdas responsible for creating the dynamo table and uploading the subscription numbers. They are 
+  - price-migration-engine-table-create-lambda-PROD, and
+  - price-migration-engine-subscription-id-upload-lambda-PROD
+
+Do not forget to set the correct cohort specifications (see exmaple below, but use the right values for your migration), as input data for the lambdas before you click on `Test`
+
+```
+{
+    "cohortName":"migration-name",
+    "brazeCampaignName":"any name",
+    "importStartDate":"2024-02-01",
+    "earliestPriceMigrationStartDate":"2024-05-20" 
+}
+```
 
