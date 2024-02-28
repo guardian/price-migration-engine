@@ -3,41 +3,28 @@
 The price migration engine needs to be initialised with the ids for subscriptions that are going to have price rises 
 applied to them.
 
-The criteria for selecting the subscriptions to be migrated are set out here:
-
-https://docs.google.com/spreadsheets/d/1J4g_fn3DfSwfSljRg6HrBlLBV84BJWElCFGkunU4P0c/edit#gid=0
-
 The process for uploading the subscription ids is as follows.
 
-## Download subscription ids from salesforce
+## Getting the subscription numbers
 
-See [subscription-numbers.csv](./lambda/src/test/resources/cohort-files/subscription-numbers.csv) for required format of the CSV file.
-**Note:** Although the salesforce report may contain many fields for each subscription, only the ID is required, and it is required as the first column of the CSV file, see the writeSubscriptionIdsToCohortTable function in SubscriptionIdUploadHandler.scala file for how it reads the CSV and creates a cohort item out of it.
-
-This report contains the subscriptions that will be included in the price migration process.
-
-- Go to the salesforce report containing the subscrptions:
-  [https://gnmtouchpoint.my.salesforce.com/00O0J000007sJHs/e?retURL=%2F00O%3Ffcf%3D00B0J000008lXV2%26rolodexIndex%3D-1%26page%3D1](https://gnmtouchpoint.my.salesforce.com/00O0J000007sJHs/e?retURL=%2F00O%3Ffcf%3D00B0J000008lXV2%26rolodexIndex%3D-1%26page%3D1)
-- Click the 'run' button
-- Click the triangle icon in the top right of the screen and click 'Export'  
-- Click 'Details only'
-- Select CSV format
-- Select UTF-8 encoding
-- Click the export button
-- Make a note of the report file name
+It is possible to get the subscription numbers from Salesforce, but good practice is simply to ask marketing to generate the list. It is possible to have more than one field in the csv output but only the first column is going to be read and interpreted as the subscription number.
 
 # Upload the report file to S3
+
+One can either use the aws console or upload the file from the terminal using the aws command line tool. 
+
+To upload from the terminal:
 
 - Get the 'membership' credentials from [Janus](https://janus.gutools.co.uk/) and add them to your local environment
 - Copy the report csv file from above to the price migration engine s3 bucket
   ```bash
-   aws --profile membership s3 cp ~/Downloads/<subscription numbers>.csv s3://price-migration-engine-prod/subscription-numbers.csv
+  aws --profile membership s3 \
+    cp /path/to/file/subscription-numbers.csv s3://price-migration-engine-prod/<migration name>/subscription-numbers.csv
   ``` 
 
 # Run the import lambda
 
 - Navigate to the [price-migration-engine-subscription-id-upload-lambda-PROD](https://eu-west-1.console.aws.amazon.com/lambda/home?region=eu-west-1#/functions/price-migration-engine-subscription-id-upload-lambda-PROD?tab=configuration)
-lambda in the AWS console. 
+lambda in the AWS console.
 - Click the 'Test' button
 
-  
