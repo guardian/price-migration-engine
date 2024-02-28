@@ -17,10 +17,11 @@ To upload from the terminal:
 
 - Get the 'membership' credentials from [Janus](https://janus.gutools.co.uk/) and add them to your local environment
 - Copy the report csv file from above to the price migration engine s3 bucket
-  ```bash
-  aws --profile membership s3 \
-    cp /path/to/file/subscription-numbers.csv s3://price-migration-engine-prod/<migration name>/subscription-numbers.csv
-  ``` 
+
+```
+aws --profile membership s3 \
+  cp /path/to/file/subscription-numbers.csv s3://price-migration-engine-prod/<migration name>/subscription-numbers.csv
+```
 
 # Run the import lambdas
 
