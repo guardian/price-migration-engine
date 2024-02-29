@@ -48,7 +48,7 @@ object NotificationHandler extends CohortHandler {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       count <- CohortTable
         .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
-        .take(batchSize)
+        .take(1)
         .mapZIO(item => sendNotification(cohortSpec)(item, today))
         .runFold(0) { (sum, count) => sum + count }
       _ <- Logging.info(s"Successfully sent $count price rise notifications")
@@ -64,32 +64,24 @@ object NotificationHandler extends CohortHandler {
     // from the current day. This will avoid headaches caused by letters not being sent early enough relatively to
     // previously computed start dates, which can happen if, for argument sake, the engine is down for a few days.
 
-    if (thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem)) {
-      val result = for {
-        _ <- cohortItemRatePlansChecks(cohortItem)
-        sfSubscription <-
-          SalesforceClient
-            .getSubscriptionByName(cohortItem.subscriptionName)
-        count <-
-          if (sfSubscription.Status__c != Cancelled_Status) {
-            sendNotification(cohortSpec, cohortItem, sfSubscription)
-          } else {
-            putSubIntoCancelledStatus(cohortItem.subscriptionName)
-          }
-      } yield count
-      result.catchAll { failure =>
-        for {
-          _ <- Logging.error(
-            s"Subscription ${cohortItem.subscriptionName}: Failed to send price rise notification: $failure"
-          )
-        } yield Unsuccessful
-      }
-    } else {
-      ZIO.fail(
-        NotificationNotEnoughLeadTimeFailure(
-          s"[notification] The start date of item ${cohortItem.subscriptionName} (startDate: ${cohortItem.startDate}) is too close to today ${today}"
+    val result = for {
+      _ <- cohortItemRatePlansChecks(cohortItem)
+      sfSubscription <-
+        SalesforceClient
+          .getSubscriptionByName(cohortItem.subscriptionName)
+      count <-
+        if (sfSubscription.Status__c != Cancelled_Status) {
+          sendNotification(cohortSpec, cohortItem, sfSubscription)
+        } else {
+          putSubIntoCancelledStatus(cohortItem.subscriptionName)
+        }
+    } yield count
+    result.catchAll { failure =>
+      for {
+        _ <- Logging.error(
+          s"Subscription ${cohortItem.subscriptionName}: Failed to send price rise notification: $failure"
         )
-      )
+      } yield Unsuccessful
     }
   }
 
