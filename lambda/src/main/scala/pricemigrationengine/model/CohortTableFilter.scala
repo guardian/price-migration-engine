@@ -54,10 +54,6 @@ object CohortTableFilter {
 
   case object EstimationFailed extends CohortTableFilter { override val value: String = "EstimationFailed" }
 
-  case object NotificationSendProcessingOrError extends CohortTableFilter {
-    override val value: String = "NotificationSendProcessingOrError"
-  }
-
   case object AmendmentFailed extends CohortTableFilter { override val value: String = "AmendmentFailed" }
 
   // Set of all states.  Remember to update when adding a state.
@@ -72,7 +68,6 @@ object CohortTableFilter {
     NoPriceIncrease,
     NotificationSendComplete,
     NotificationSendDateWrittenToSalesforce,
-    NotificationSendProcessingOrError,
     ReadyForEstimation,
     SalesforcePriceRiceCreationComplete
   )

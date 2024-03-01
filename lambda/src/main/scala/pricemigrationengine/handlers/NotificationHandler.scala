@@ -65,7 +65,7 @@ object NotificationHandler extends CohortHandler {
     // previously computed start dates, which can happen if, for argument sake, the engine is down for a few days.
 
     if (thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem)) {
-      val result = for {
+      for {
         _ <- cohortItemRatePlansChecks(cohortItem)
         sfSubscription <-
           SalesforceClient
@@ -77,13 +77,6 @@ object NotificationHandler extends CohortHandler {
             putSubIntoCancelledStatus(cohortItem.subscriptionName)
           }
       } yield count
-      result.catchAll { failure =>
-        for {
-          _ <- Logging.error(
-            s"Subscription ${cohortItem.subscriptionName}: Failed to send price rise notification: $failure"
-          )
-        } yield Unsuccessful
-      }
     } else {
       ZIO.fail(
         NotificationNotEnoughLeadTimeFailure(
@@ -121,8 +114,6 @@ object NotificationHandler extends CohortHandler {
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)
-
-      _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendProcessingOrError)
 
       _ <- EmailSender.sendEmail(
         message = EmailMessage(
