@@ -59,38 +59,28 @@ object NotificationHandler extends CohortHandler {
       cohortItem: CohortItem,
       today: LocalDate
   ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging with Zuora, Failure, Int] = {
-
-    // We are starting with a simple check. That the item's startDate is at least minLeadTime(cohortSpec) days away
-    // from the current day. This will avoid headaches caused by letters not being sent early enough relatively to
-    // previously computed start dates, which can happen if, for argument sake, the engine is down for a few days.
-
-    if (thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem)) {
-      val result = for {
-        _ <- cohortItemRatePlansChecks(cohortItem)
-        sfSubscription <-
-          SalesforceClient
-            .getSubscriptionByName(cohortItem.subscriptionName)
-        count <-
-          if (sfSubscription.Status__c != Cancelled_Status) {
-            sendNotification(cohortSpec, cohortItem, sfSubscription)
-          } else {
-            putSubIntoCancelledStatus(cohortItem.subscriptionName)
-          }
-      } yield count
-      result.catchAll { failure =>
-        for {
-          _ <- Logging.error(
-            s"Subscription ${cohortItem.subscriptionName}: Failed to send price rise notification: $failure"
+    for {
+      _ <-
+        if (thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem)) {
+          ZIO.succeed(())
+        } else {
+          ZIO.fail(
+            NotificationNotEnoughLeadTimeFailure(
+              s"[notification] The start date of item ${cohortItem.subscriptionName} (startDate: ${cohortItem.startDate}) is too close to today ${today}"
+            )
           )
-        } yield Unsuccessful
-      }
-    } else {
-      ZIO.fail(
-        NotificationNotEnoughLeadTimeFailure(
-          s"[notification] The start date of item ${cohortItem.subscriptionName} (startDate: ${cohortItem.startDate}) is too close to today ${today}"
-        )
-      )
-    }
+        }
+      _ <- cohortItemRatePlansChecks(cohortItem)
+      sfSubscription <-
+        SalesforceClient
+          .getSubscriptionByName(cohortItem.subscriptionName)
+      count <-
+        if (sfSubscription.Status__c != Cancelled_Status) {
+          sendNotification(cohortSpec, cohortItem, sfSubscription)
+        } else {
+          putSubIntoCancelledStatus(cohortItem.subscriptionName)
+        }
+    } yield count
   }
 
   def sendNotification(
@@ -121,8 +111,6 @@ object NotificationHandler extends CohortHandler {
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)
-
-      _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendProcessingOrError)
 
       _ <- EmailSender.sendEmail(
         message = EmailMessage(
