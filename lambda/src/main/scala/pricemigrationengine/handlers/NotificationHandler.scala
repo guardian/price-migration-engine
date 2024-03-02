@@ -50,34 +50,33 @@ object NotificationHandler extends CohortHandler {
         .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
         .take(batchSize)
         .mapZIO(item => sendNotification(cohortSpec)(item, today))
-        .runFold(0) { (sum, count) => sum + count }
-      _ <- Logging.info(s"Successfully sent $count price rise notifications")
+        .runCount
     } yield HandlerOutput(isComplete = count < batchSize)
   }
 
   def sendNotification(cohortSpec: CohortSpec)(
       cohortItem: CohortItem,
       today: LocalDate
-  ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging with Zuora, Failure, Int] = {
+  ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging with Zuora, Failure, Unit] = {
     for {
       _ <- cohortItemRatePlansChecks(cohortItem)
       sfSubscription <-
         SalesforceClient
           .getSubscriptionByName(cohortItem.subscriptionName)
-      count <-
+      _ <-
         if (sfSubscription.Status__c != Cancelled_Status) {
           sendNotification(cohortSpec, cohortItem, sfSubscription)
         } else {
           putSubIntoCancelledStatus(cohortItem.subscriptionName)
         }
-    } yield count
+    } yield ()
   }
 
   def sendNotification(
       cohortSpec: CohortSpec,
       cohortItem: CohortItem,
       sfSubscription: SalesforceSubscription
-  ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging, Failure, Int] =
+  ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging, Failure, Unit] =
     for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
@@ -134,7 +133,7 @@ object NotificationHandler extends CohortHandler {
       )
 
       _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete)
-    } yield Successful
+    } yield ()
 
   // -------------------------------------------------------------------
   // Subscription Rate Plan Checks
