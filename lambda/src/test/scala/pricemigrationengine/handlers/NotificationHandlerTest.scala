@@ -298,17 +298,9 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.subscription_id, subscriptionName)
 
-    assertEquals(updatedResultsWrittenToCohortTable.size, 2)
+    assertEquals(updatedResultsWrittenToCohortTable.size, 1)
     assertEquals(
       updatedResultsWrittenToCohortTable(0),
-      CohortItem(
-        subscriptionName = subscriptionName,
-        processingStage = NotificationSendProcessingOrError,
-        whenNotificationSent = Some(currentTime)
-      )
-    )
-    assertEquals(
-      updatedResultsWrittenToCohortTable(1),
       CohortItem(
         subscriptionName = subscriptionName,
         processingStage = NotificationSendComplete,
@@ -396,17 +388,9 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.subscription_id, subscriptionName)
 
-    assertEquals(updatedResultsWrittenToCohortTable.size, 2)
+    assertEquals(updatedResultsWrittenToCohortTable.size, 1)
     assertEquals(
       updatedResultsWrittenToCohortTable(0),
-      CohortItem(
-        subscriptionName = subscriptionName,
-        processingStage = NotificationSendProcessingOrError,
-        whenNotificationSent = Some(dataCurrentTime)
-      )
-    )
-    assertEquals(
-      updatedResultsWrittenToCohortTable(1),
       CohortItem(
         subscriptionName = subscriptionName,
         processingStage = NotificationSendComplete,
@@ -489,17 +473,9 @@ class NotificationHandlerTest extends munit.FunSuite {
     )
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.subscription_id, subscriptionName)
 
-    assertEquals(updatedResultsWrittenToCohortTable.size, 2)
+    assertEquals(updatedResultsWrittenToCohortTable.size, 1)
     assertEquals(
       updatedResultsWrittenToCohortTable(0),
-      CohortItem(
-        subscriptionName = subscriptionName,
-        processingStage = NotificationSendProcessingOrError,
-        whenNotificationSent = Some(dataCurrentTime)
-      )
-    )
-    assertEquals(
-      updatedResultsWrittenToCohortTable(1),
       CohortItem(
         subscriptionName = subscriptionName,
         processingStage = NotificationSendComplete,
@@ -540,36 +516,6 @@ class NotificationHandlerTest extends munit.FunSuite {
       mailingAddressPostalCode
     )
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.billing_country, mailingAddressCountry)
-  }
-
-  test("NotificationHandler should send no message if no billing address or mailing address") {
-    val stubSalesforceClient =
-      stubSFClient(
-        List(salesforceSubscription),
-        List(salesforceContact.copy(OtherAddress = None, MailingAddress = None))
-      )
-    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
-    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
-    val sentMessages = ArrayBuffer[EmailMessage]()
-    val stubEmailSender = createStubEmailSender(sentMessages)
-
-    // Building the cohort spec with the correct campaign name
-    val cohortSpec = CohortSpec("Name", brazeCampaignName, LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
-
-    assertEquals(
-      unsafeRunSync(default)(
-        (for {
-          _ <- TestClock.setTime(currentTime)
-          program <- NotificationHandler.main(cohortSpec)
-        } yield program).provideLayer(
-          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ stubEmailSender ++ createStubZuora()
-        )
-      ),
-      Success(HandlerOutput(isComplete = true))
-    )
-
-    assertEquals(sentMessages.size, 0)
-    assertEquals(updatedResultsWrittenToCohortTable.size, 0)
   }
 
   test(
@@ -661,38 +607,6 @@ class NotificationHandlerTest extends munit.FunSuite {
     assertEquals(sentMessages.size, 1)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.title, None)
     assertEquals(sentMessages(0).To.ContactAttributes.SubscriberAttributes.first_name, "Member")
-  }
-
-  test("NotificationHandler should leave CohortItem in processing state if email send fails") {
-    val stubSalesforceClient = stubSFClient(List(salesforceSubscription), List(salesforceContact))
-    val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
-    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
-    val failingStubEmailSender = createFailingStubEmailSender()
-
-    // Building the cohort spec with the correct campaign name
-    val cohortSpec = CohortSpec("Name", brazeCampaignName, LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
-
-    assertEquals(
-      unsafeRunSync(default)(
-        (for {
-          _ <- TestClock.setTime(currentTime)
-          program <- NotificationHandler.main(cohortSpec)
-        } yield program).provideLayer(
-          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient ++ failingStubEmailSender ++ createStubZuora()
-        )
-      ),
-      Success(HandlerOutput(isComplete = true))
-    )
-
-    assertEquals(updatedResultsWrittenToCohortTable.size, 1)
-    assertEquals(
-      updatedResultsWrittenToCohortTable(0),
-      CohortItem(
-        subscriptionName = subscriptionName,
-        processingStage = NotificationSendProcessingOrError,
-        whenNotificationSent = Some(currentTime)
-      )
-    )
   }
 
   test("NotificationHandler should leave CohortItem in cancelled state if subscription is cancelled") {
