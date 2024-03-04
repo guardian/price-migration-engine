@@ -96,7 +96,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
 
-    val update = Membership2023Migration.updateOfRatePlansToCurrent_Monthlies(
+    val update = Membership2023Migration.zuoraUpdate_Monthlies(
       subscription,
       invoicePreview,
       effectiveDate: LocalDate
@@ -204,7 +204,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
 
-    val update = Membership2023Migration.updateOfRatePlansToCurrent_Annuals(
+    val update = Membership2023Migration.zuoraUpdate_Annuals(
       subscription,
       invoicePreview,
       effectiveDate: LocalDate
@@ -312,7 +312,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
       )
     )
 
-    val update = Membership2023Migration.updateOfRatePlansToCurrent_Annuals(
+    val update = Membership2023Migration.zuoraUpdate_Annuals(
       subscription,
       invoicePreview,
       effectiveDate: LocalDate
@@ -429,7 +429,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingPeriod = Some("Annual")
       )
 
-    val update = SupporterPlus2023V1V2Migration.updateOfRatePlansToCurrent(
+    val update = SupporterPlus2023V1V2Migration.zuoraUpdate(
       item,
       subscription,
       invoicePreview,
@@ -557,7 +557,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingPeriod = Some("Month")
       )
 
-    val update = SupporterPlus2023V1V2Migration.updateOfRatePlansToCurrent(
+    val update = SupporterPlus2023V1V2Migration.zuoraUpdate(
       item,
       subscription,
       invoicePreview,
@@ -687,7 +687,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingPeriod = Some("Annual")
       )
 
-    val update = SupporterPlus2023V1V2Migration.updateOfRatePlansToCurrent(
+    val update = SupporterPlus2023V1V2Migration.zuoraUpdate(
       item,
       subscription,
       invoicePreview,
@@ -807,7 +807,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
         billingPeriod = Some("Annual")
       )
 
-    val update = SupporterPlus2023V1V2Migration.updateOfRatePlansToCurrent(
+    val update = SupporterPlus2023V1V2Migration.zuoraUpdate(
       item,
       subscription,
       invoicePreview,

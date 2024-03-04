@@ -1513,7 +1513,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
     // val account = Fixtures.accountFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/account.json")
     // val catalogue = Fixtures.productCatalogueFromJson("Newspaper2024/NewspaperHomeDelivery-Monthly/catalogue.json")
     assertEquals(
-      subscriptionToZuoraSubscriptionUpdate(subscription, LocalDate.of(2024, 3, 1)),
+      zuoraUpdate(subscription, LocalDate.of(2024, 3, 1)),
       Right(
         ZuoraSubscriptionUpdate(
           add = List(
@@ -1555,7 +1555,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
   test("Newspaper2024Migration | subscriptionToZuoraSubscriptionUpdate | NewspaperSubscriptionCard-Annual") {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperSubscriptionCard-Annual/subscription.json")
     assertEquals(
-      subscriptionToZuoraSubscriptionUpdate(subscription, LocalDate.of(2024, 3, 1)),
+      zuoraUpdate(subscription, LocalDate.of(2024, 3, 1)),
       Right(
         ZuoraSubscriptionUpdate(
           add = List(
@@ -1617,7 +1617,7 @@ class Newspaper2024MigrationTest extends munit.FunSuite {
   test("Newspaper2024Migration | subscriptionToZuoraSubscriptionUpdate | NewspaperVoucherBook-Annual") {
     val subscription = Fixtures.subscriptionFromJson("Newspaper2024/NewspaperVoucherBook-Annual/subscription.json")
     assertEquals(
-      subscriptionToZuoraSubscriptionUpdate(subscription, LocalDate.of(2024, 3, 1)),
+      zuoraUpdate(subscription, LocalDate.of(2024, 3, 1)),
       Right(
         ZuoraSubscriptionUpdate(
           add = List(

@@ -298,7 +298,7 @@ object SupporterPlus2023V1V2Migration {
     }
   }
 
-  def updateOfRatePlansToCurrent(
+  def zuoraUpdate(
       item: CohortItem,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,

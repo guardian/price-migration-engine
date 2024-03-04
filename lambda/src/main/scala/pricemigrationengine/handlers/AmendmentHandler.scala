@@ -131,7 +131,7 @@ object AmendmentHandler extends CohortHandler {
         case Membership2023Monthlies =>
           ZIO.fromEither(
             Membership2023Migration
-              .updateOfRatePlansToCurrent_Monthlies(
+              .zuoraUpdate_Monthlies(
                 subscriptionBeforeUpdate,
                 invoicePreviewBeforeUpdate,
                 startDate
@@ -140,7 +140,7 @@ object AmendmentHandler extends CohortHandler {
         case Membership2023Annuals =>
           ZIO.fromEither(
             Membership2023Migration
-              .updateOfRatePlansToCurrent_Annuals(
+              .zuoraUpdate_Annuals(
                 subscriptionBeforeUpdate,
                 invoicePreviewBeforeUpdate,
                 startDate
@@ -149,7 +149,7 @@ object AmendmentHandler extends CohortHandler {
         case SupporterPlus2023V1V2MA =>
           ZIO.fromEither(
             SupporterPlus2023V1V2Migration
-              .updateOfRatePlansToCurrent(
+              .zuoraUpdate(
                 item,
                 subscriptionBeforeUpdate,
                 invoicePreviewBeforeUpdate,
@@ -158,14 +158,14 @@ object AmendmentHandler extends CohortHandler {
           )
         case DigiSubs2023 =>
           ZIO.fromEither(
-            DigiSubs2023Migration.updateOfRatePlansToCurrent(
+            DigiSubs2023Migration.zuoraUpdate(
               subscriptionBeforeUpdate,
               startDate,
             )
           )
         case Newspaper2024 =>
           ZIO.fromEither(
-            newspaper2024Migration.Amendment.subscriptionToZuoraSubscriptionUpdate(
+            newspaper2024Migration.Amendment.zuoraUpdate(
               subscriptionBeforeUpdate,
               startDate,
             )
@@ -173,7 +173,7 @@ object AmendmentHandler extends CohortHandler {
         case Legacy =>
           ZIO.fromEither(
             ZuoraSubscriptionUpdate
-              .updateOfRatePlansToCurrent(
+              .zuoraUpdate(
                 account,
                 catalogue,
                 subscriptionBeforeUpdate,

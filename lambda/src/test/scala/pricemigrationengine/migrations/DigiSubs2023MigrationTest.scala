@@ -11,7 +11,7 @@ import pricemigrationengine.migrations.DigiSubs2023Migration.{
   priceData,
   subscriptionRatePlan,
   subscriptionRatePlanCharge,
-  updateOfRatePlansToCurrent
+  zuoraUpdate
 }
 import pricemigrationengine.model.CohortTableFilter.SalesforcePriceRiceCreationComplete
 class DigiSubs2023MigrationTest extends munit.FunSuite {
@@ -92,7 +92,7 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     assertEquals(priceData(subscription).toOption.get, PriceData("GBP", BigDecimal(11.99), BigDecimal(14.99), "Month"))
 
     assertEquals(
-      updateOfRatePlansToCurrent(subscription, LocalDate.of(2024, 1, 1)).toOption.get,
+      zuoraUpdate(subscription, LocalDate.of(2024, 1, 1)).toOption.get,
       ZuoraSubscriptionUpdate(
         add = List(
           AddZuoraRatePlan(
@@ -196,7 +196,7 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     assertEquals(priceData(subscription).toOption.get, PriceData("GBP", BigDecimal(149.0), BigDecimal(149), "Annual"))
 
     assertEquals(
-      updateOfRatePlansToCurrent(subscription, LocalDate.of(2024, 1, 1)).toOption.get,
+      zuoraUpdate(subscription, LocalDate.of(2024, 1, 1)).toOption.get,
       ZuoraSubscriptionUpdate(
         add = List(
           AddZuoraRatePlan(
@@ -333,7 +333,7 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     )
 
     assertEquals(
-      updateOfRatePlansToCurrent(subscription, LocalDate.of(2024, 1, 1)).toOption.get,
+      zuoraUpdate(subscription, LocalDate.of(2024, 1, 1)).toOption.get,
       ZuoraSubscriptionUpdate(
         add = List(
           AddZuoraRatePlan(
@@ -439,7 +439,7 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     )
 
     assertEquals(
-      updateOfRatePlansToCurrent(subscription, LocalDate.of(2024, 1, 1)).toOption.get,
+      zuoraUpdate(subscription, LocalDate.of(2024, 1, 1)).toOption.get,
       ZuoraSubscriptionUpdate(
         add = List(
           AddZuoraRatePlan(

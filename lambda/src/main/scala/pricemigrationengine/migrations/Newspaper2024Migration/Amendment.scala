@@ -43,7 +43,7 @@ object Amendment {
     }
   }
 
-  def subscriptionToZuoraSubscriptionUpdate(
+  def zuoraUpdate(
       subscription: ZuoraSubscription,
       effectiveDate: LocalDate,
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
