@@ -9,8 +9,6 @@ import scala.math.BigDecimal.RoundingMode
 
 case class AmendmentData(startDate: LocalDate, priceData: PriceData)
 
-case class PriceData(currency: Currency, oldPrice: BigDecimal, newPrice: BigDecimal, billingPeriod: String)
-
 /** <p>Data used to estimate and report on price-rise amendments to subscriptions.</p>
   *
   * <p>The general approach here is to use a combination of Zuora invoice previews, subscriptions and the product
