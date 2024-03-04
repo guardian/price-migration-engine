@@ -128,7 +128,7 @@ object Membership2023Migration {
     }
   }
 
-  def updateOfRatePlansToCurrent_Monthlies(
+  def zuoraUpdate_Monthlies(
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       effectiveDate: LocalDate,
@@ -165,7 +165,7 @@ object Membership2023Migration {
     }
   }
 
-  def updateOfRatePlansToCurrent_Annuals(
+  def zuoraUpdate_Annuals(
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       effectiveDate: LocalDate,

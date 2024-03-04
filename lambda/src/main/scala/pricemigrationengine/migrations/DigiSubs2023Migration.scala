@@ -185,7 +185,7 @@ object DigiSubs2023Migration {
     } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
   }
 
-  def updateOfRatePlansToCurrent(
+  def zuoraUpdate(
       subscription: ZuoraSubscription,
       effectiveDate: LocalDate,
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {

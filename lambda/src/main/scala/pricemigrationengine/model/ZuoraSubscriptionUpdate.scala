@@ -30,7 +30,7 @@ object ZuoraSubscriptionUpdate {
     * billing period.
     */
 
-  def updateOfRatePlansToCurrent(
+  def zuoraUpdate(
       account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
