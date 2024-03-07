@@ -19,7 +19,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         for {
           _ <- TestClock.setTime(testTime1)
           _ <- TestRandom.feedInts(1)
-          earliestStartDate <- StartDates.decideStartDate(
+          earliestStartDate <- StartDates.startDateLowerBound(
             subscription = Fixtures.subscriptionFromJson("NewspaperVoucher/QuarterlyVoucher/Subscription.json"),
             invoicePreview = Fixtures.invoiceListFromJson("NewspaperVoucher/QuarterlyVoucher/InvoicePreview.json"),
             CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), absoluteEarliestStartDate),
@@ -32,7 +32,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         for {
           _ <- TestClock.setTime(testTime1)
           _ <- TestRandom.feedInts(1)
-          earliestStartDate <- StartDates.decideStartDate(
+          earliestStartDate <- StartDates.startDateLowerBound(
             subscription = Fixtures.subscriptionFromJson("NewspaperVoucher/Monthly/Subscription.json"),
             invoicePreview = Fixtures.invoiceListFromJson("NewspaperVoucher/Monthly/InvoicePreview.json"),
             CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), absoluteEarliestStartDate),

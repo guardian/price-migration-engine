@@ -90,7 +90,7 @@ object EstimationHandler extends CohortHandler {
       account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
       invoicePreviewTargetDate = cohortSpec.earliestPriceMigrationStartDate.plusMonths(16)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
-      startDateLowerBound <- StartDates.decideStartDate(
+      startDateLowerBound <- StartDates.startDateLowerBound(
         subscription,
         invoicePreview,
         cohortSpec,

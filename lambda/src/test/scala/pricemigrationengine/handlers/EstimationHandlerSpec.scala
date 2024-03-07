@@ -178,7 +178,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate <- StartDates.decideStartDate(subscription, invoiceList, cohortSpec, today)
+        startDate <- StartDates.startDateLowerBound(subscription, invoiceList, cohortSpec, today)
       } yield assert(startDate)(equalTo(LocalDate.of(2023, 1, 15)))
     },
     test("Start date is correct for subscription less than one year old (2)") {
@@ -188,7 +188,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate <- StartDates.decideStartDate(subscription, invoiceList, cohortSpec, today)
+        startDate <- StartDates.startDateLowerBound(subscription, invoiceList, cohortSpec, today)
       } yield assert(startDate)(equalTo(LocalDate.of(2023, 4, 26)))
     },
     test("Start date is correct for subscription less than one year old (3)") {
@@ -198,7 +198,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate <- StartDates.decideStartDate(subscription, invoiceList, cohortSpec, today)
+        startDate <- StartDates.startDateLowerBound(subscription, invoiceList, cohortSpec, today)
       } yield assert(startDate)(equalTo(LocalDate.of(2023, 1, 14)))
     },
     test("updates cohort table with EstimationComplete when data is complete") {
