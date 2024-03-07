@@ -63,6 +63,15 @@ object StartDates {
       .contains("Month")
   }
 
+  def lastPriceRiseDate(subscription: ZuoraSubscription): Option[LocalDate] = None
+
+  def lastPriceRiseDatePolicy(subscription: ZuoraSubscription, alpha: LocalDate): LocalDate = {
+    lastPriceRiseDate(subscription: ZuoraSubscription) match {
+      case None       => alpha
+      case Some(beta) => Date.datesMax(alpha, beta)
+    }
+  }
+
   // In legacy print product cases, we have spread the price rises over 3 months for monthly subscriptions, this is
   // the default behaviour. For annual subscriptions we are not applying any spread and defaulting to value 1.
   def decideSpreadPeriod(
@@ -97,11 +106,13 @@ object StartDates {
     // We now respect the policy of not increasing members during their first year
     val startDateLowerBound2 = oneYearPolicy(startDateLowerBound1, subscription)
 
+    val startDateLowerBound3 = lastPriceRiseDatePolicy(subscription, startDateLowerBound2)
+
     // Decide the spread period for this migration
     val spreadPeriod = decideSpreadPeriod(subscription, invoicePreview, cohortSpec)
 
     for {
       randomFactor <- Random.nextIntBetween(0, spreadPeriod)
-    } yield startDateLowerBound2.plusMonths(randomFactor)
+    } yield startDateLowerBound3.plusMonths(randomFactor)
   }
 }
