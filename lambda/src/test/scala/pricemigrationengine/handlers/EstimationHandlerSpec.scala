@@ -1,14 +1,10 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.Fixtures.{invoiceListFromJson, subscriptionFromJson}
-import pricemigrationengine.handlers.EstimationHandler.{
-  decideStartDateLowerboundWithRandomAddition,
-  oneYearPolicy,
-  startDateGeneralLowerBound
-}
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, NoPriceIncrease, ReadyForEstimation}
 import pricemigrationengine.model._
 import pricemigrationengine.service.{MockCohortTable, MockZuora}
+import pricemigrationengine.util.StartDates
 import zio._
 import zio.mock.Expectation._
 import zio.test.Assertion._
@@ -168,13 +164,13 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       // The cohort earliestMigrationStartDate is 2022-11-14 (2)
       // The max date of (1) and (2) is 2022-11-14 (3)
 
-      assert(startDateGeneralLowerBound(cohortSpec, today))(equalTo(LocalDate.of(2022, 12, 14)))
+      assert(StartDates.cohortSpecLowerBound(cohortSpec, today))(equalTo(LocalDate.of(2022, 12, 14)))
 
       // The subscription acceptance date is: 2021-11-15
       // The subscription acceptance date plus a year is 2022-11-15 (4)
       // The max date of (3) and (4) is 2022-11-15
 
-      assert(oneYearPolicy(LocalDate.of(2022, 12, 14), subscription: ZuoraSubscription))(
+      assert(StartDates.oneYearPolicy(LocalDate.of(2022, 12, 14), subscription: ZuoraSubscription))(
         equalTo(LocalDate.of(2022, 11, 15))
       )
 
@@ -182,7 +178,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate <- decideStartDateLowerboundWithRandomAddition(subscription, invoiceList, cohortSpec, today)
+        startDate <- StartDates.decideStartDate(subscription, invoiceList, cohortSpec, today)
       } yield assert(startDate)(equalTo(LocalDate.of(2023, 1, 15)))
     },
     test("Start date is correct for subscription less than one year old (2)") {
@@ -192,7 +188,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate <- decideStartDateLowerboundWithRandomAddition(subscription, invoiceList, cohortSpec, today)
+        startDate <- StartDates.decideStartDate(subscription, invoiceList, cohortSpec, today)
       } yield assert(startDate)(equalTo(LocalDate.of(2023, 4, 26)))
     },
     test("Start date is correct for subscription less than one year old (3)") {
@@ -202,7 +198,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
 
       for {
         _ <- TestClock.setTime(testTime1)
-        startDate <- decideStartDateLowerboundWithRandomAddition(subscription, invoiceList, cohortSpec, today)
+        startDate <- StartDates.decideStartDate(subscription, invoiceList, cohortSpec, today)
       } yield assert(startDate)(equalTo(LocalDate.of(2023, 1, 14)))
     },
     test("updates cohort table with EstimationComplete when data is complete") {

@@ -1,0 +1,106 @@
+package pricemigrationengine.util
+
+import pricemigrationengine.handlers.NotificationHandler
+import pricemigrationengine.migrations.newspaper2024Migration
+import pricemigrationengine.model.{
+  CohortSpec,
+  ConfigFailure,
+  Membership2023Annuals,
+  Membership2023Monthlies,
+  MigrationType,
+  Newspaper2024,
+  ZuoraInvoiceList,
+  ZuoraRatePlanCharge,
+  ZuoraSubscription
+}
+import zio.{IO, Random}
+
+import java.time.LocalDate
+
+/*
+  StartDates aggregate the utility functions required to compute the migration dates
+  also known as start data in a cohort item. They are the date the price migration
+  amendment are taking effect.
+ */
+
+object StartDates {
+
+  def cohortSpecLowerBound(
+      cohortSpec: CohortSpec,
+      today: LocalDate
+  ): LocalDate = {
+    // The startDateGeneralLowerBound is a function of the cohort spec and the notification min time.
+    // The cohort spec carries the lowest date we specify there can be a price migration, and the notification min
+    // time ensures the legally required lead time for customer communication. The max of those two dates is the date
+    // from which we can realistically perform a price increase. With that said, other policies can apply, for
+    // instance:
+    // - The one year policy, which demand that we do not price rise customers during the subscription first year
+    // - The spread: a mechanism, used for monthlies, by which we do not let a large number of monthlies migrate
+    //   during a single month.
+
+    Date.datesMax(
+      cohortSpec.earliestPriceMigrationStartDate,
+      today.plusDays(
+        NotificationHandler.minLeadTime(cohortSpec: CohortSpec) + 1
+      ) // +1 because we need to be strictly over minLeadTime days away. Exactly minLeadTime is not enough.
+    )
+  }
+
+  // This function takes a date and a subscription and returns the highest between that date
+  // and the customer's customerAcceptanceDate. Doing so we implement the policy of not increasing customers during
+  // their first year.
+  def oneYearPolicy(lowerbound: LocalDate, subscription: ZuoraSubscription): LocalDate = {
+    Date.datesMax(lowerbound, subscription.customerAcceptanceDate.plusMonths(12))
+  }
+
+  // Determines whether the subscription is a monthly subscription
+  // To do so, we simply check whether the billing period of a rate plan charge contains "Month"
+  def isMonthlySubscription(subscription: ZuoraSubscription, invoicePreview: ZuoraInvoiceList): Boolean = {
+    invoicePreview.invoiceItems
+      .flatMap(invoiceItem => ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toOption)
+      .flatMap(_.billingPeriod)
+      .headOption
+      .contains("Month")
+  }
+
+  // In legacy print product cases, we have spread the price rises over 3 months for monthly subscriptions, this is
+  // the default behaviour. For annual subscriptions we are not applying any spread and defaulting to value 1.
+  def decideSpreadPeriod(
+      subscription: ZuoraSubscription,
+      invoicePreview: ZuoraInvoiceList,
+      cohortSpec: CohortSpec
+  ): Int = {
+    if (isMonthlySubscription(subscription, invoicePreview)) {
+      MigrationType(cohortSpec) match {
+        case Membership2023Monthlies => 1
+        case Membership2023Annuals   => 1
+        case Newspaper2024           => newspaper2024Migration.Estimation.startDateSpreadPeriod(subscription)
+        case _                       => 3
+      }
+    } else 1
+  }
+
+  def decideStartDate(
+      subscription: ZuoraSubscription,
+      invoicePreview: ZuoraInvoiceList,
+      cohortSpec: CohortSpec,
+      today: LocalDate
+  ): IO[ConfigFailure, LocalDate] = {
+
+    val startDateLowerBound1 = MigrationType(cohortSpec) match {
+      case Newspaper2024 =>
+        newspaper2024Migration.Estimation.startDateGeneralLowerbound(cohortSpec, today, subscription)
+      case _ => cohortSpecLowerBound(cohortSpec, today)
+    }
+
+    // We now respect the policy of not increasing members during their first year
+    val startDateLowerBound2 = oneYearPolicy(startDateLowerBound1, subscription)
+
+    // Looking up the spread period for this migration
+    val spreadPeriod = decideSpreadPeriod(subscription, invoicePreview, cohortSpec)
+
+    for {
+      randomFactor <- Random.nextIntBetween(0, spreadPeriod)
+    } yield startDateLowerBound2.plusMonths(randomFactor)
+  }
+}
