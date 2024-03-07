@@ -27,7 +27,7 @@ case class CohortItem(
 
 object CohortItem {
 
-  def fromSuccessfulEstimationResult(result: SuccessfulEstimationResult): UIO[CohortItem] =
+  def fromSuccessfulEstimationResult(result: EstimationData): UIO[CohortItem] =
     for {
       thisInstant <- Clock.instant
     } yield CohortItem(
@@ -41,7 +41,7 @@ object CohortItem {
       whenEstimationDone = Some(thisInstant)
     )
 
-  def fromNoPriceIncreaseEstimationResult(result: SuccessfulEstimationResult): UIO[CohortItem] =
+  def fromNoPriceIncreaseEstimationResult(result: EstimationData): UIO[CohortItem] =
     fromSuccessfulEstimationResult(result).map(_.copy(processingStage = NoPriceIncrease))
 
   def fromFailedEstimationResult(result: FailedEstimationResult): CohortItem =

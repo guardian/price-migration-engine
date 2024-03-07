@@ -1,7 +1,7 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.Fixtures
-import pricemigrationengine.model.{CohortSpec, EstimationResult, SuccessfulEstimationResult}
+import pricemigrationengine.model.{CohortSpec, EstimationResult, EstimationData}
 import zio.test._
 import pricemigrationengine.util.{Date, StartDates}
 
@@ -57,7 +57,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
 
         assertTrue(
           estimationResult == Right(
-            SuccessfulEstimationResult("SUBSCRIPTION-NUMBER", LocalDate.of(2023, 5, 13), "GBP", 5, 7, "Month")
+            EstimationData("SUBSCRIPTION-NUMBER", LocalDate.of(2023, 5, 13), "GBP", 5, 7, "Month")
           )
         )
       },
@@ -82,7 +82,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         // date be postponed by a month (from LocalDate.of(2023, 5, 13) to LocalDate.of(2023, 6, 13)).
         assertTrue(
           estimationResult == Right(
-            SuccessfulEstimationResult("SUBSCRIPTION-NUMBER", LocalDate.of(2023, 6, 13), "GBP", 5, 7, "Month")
+            EstimationData("SUBSCRIPTION-NUMBER", LocalDate.of(2023, 6, 13), "GBP", 5, 7, "Month")
           )
         )
       },
@@ -102,7 +102,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
 
         assertTrue(
           estimationResult == Right(
-            SuccessfulEstimationResult("SUBSCRIPTION-NUMBER", LocalDate.of(2024, 1, 20), "GBP", 49, 75, "Annual")
+            EstimationData("SUBSCRIPTION-NUMBER", LocalDate.of(2024, 1, 20), "GBP", 49, 75, "Annual")
           )
         )
       },
@@ -122,7 +122,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
 
         assertTrue(
           estimationResult == Right(
-            SuccessfulEstimationResult("SUBSCRIPTION-NUMBER", LocalDate.of(2024, 1, 20), "USD", 69, 120, "Annual")
+            EstimationData("SUBSCRIPTION-NUMBER", LocalDate.of(2024, 1, 20), "USD", 69, 120, "Annual")
           )
         )
       },
@@ -195,7 +195,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
 
         assertTrue(
           estimationResult ==
-            SuccessfulEstimationResult(
+            EstimationData(
               subscriptionName = "SUBSCRIPTION-NUMBER",
               startDate = LocalDate.of(2023, 9, 1),
               currency = "GBP",
@@ -227,7 +227,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
 
         assertTrue(
           estimationResult ==
-            SuccessfulEstimationResult(
+            EstimationData(
               subscriptionName = "SUBSCRIPTION-NUMBER",
               startDate = LocalDate.of(2023, 9, 3),
               currency = "GBP",
@@ -258,7 +258,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
 
         assertTrue(
           estimationResult ==
-            SuccessfulEstimationResult(
+            EstimationData(
               subscriptionName = "SUBSCRIPTION-NUMBER",
               startDate = LocalDate.of(2024, 7, 2),
               currency = "USD",
@@ -290,7 +290,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
 
         assertTrue(
           estimationResult ==
-            SuccessfulEstimationResult(
+            EstimationData(
               subscriptionName = "SUBSCRIPTION-NUMBER",
               startDate = LocalDate.of(2024, 6, 28),
               currency = "GBP",
@@ -325,7 +325,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
 
         assertTrue(
           estimationResult ==
-            SuccessfulEstimationResult(
+            EstimationData(
               subscriptionName = "SUBSCRIPTION-NUMBER",
               startDate = LocalDate.of(2023, 9, 8),
               currency = "GBP",

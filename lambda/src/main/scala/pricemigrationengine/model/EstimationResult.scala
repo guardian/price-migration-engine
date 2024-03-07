@@ -4,7 +4,11 @@ import java.time.LocalDate
 
 trait EstimationResult
 
-case class SuccessfulEstimationResult(
+// EstimationData carries the metadata that is the result of the estimation step, and
+// that will be used to update the cohort item in the dynamo table. The two other outcome
+// of an estimation attempt are FailedEstimationResult and CancelledEstimationResult
+
+case class EstimationData(
     subscriptionName: String,
     startDate: LocalDate,
     currency: Currency,
@@ -12,6 +16,10 @@ case class SuccessfulEstimationResult(
     estimatedNewPrice: BigDecimal,
     billingPeriod: String
 ) extends EstimationResult
+
+case class FailedEstimationResult(subscriptionNumber: String, reason: String) extends EstimationResult
+
+case class CancelledEstimationResult(subscriptionNumber: String) extends EstimationResult
 
 object EstimationResult {
   def apply(
@@ -21,20 +29,17 @@ object EstimationResult {
       invoiceList: ZuoraInvoiceList,
       startDateLowerBound: LocalDate,
       cohortSpec: CohortSpec,
-  ): Either[AmendmentDataFailure, SuccessfulEstimationResult] = {
-    AmendmentData(account, catalogue, subscription, invoiceList, startDateLowerBound, cohortSpec) map { amendmentData =>
-      SuccessfulEstimationResult(
-        subscription.subscriptionNumber,
-        amendmentData.startDate,
-        amendmentData.priceData.currency,
-        amendmentData.priceData.oldPrice,
-        amendmentData.priceData.newPrice,
-        amendmentData.priceData.billingPeriod
-      )
-    }
+  ): Either[AmendmentDataFailure, EstimationData] = {
+    for {
+      startDate <- AmendmentData.nextServiceStartDate(invoiceList, subscription, startDateLowerBound)
+      priceData <- AmendmentData.priceData(account, catalogue, subscription, invoiceList, startDate, cohortSpec)
+    } yield EstimationData(
+      subscription.subscriptionNumber,
+      startDate,
+      priceData.currency,
+      priceData.oldPrice,
+      priceData.newPrice,
+      priceData.billingPeriod
+    )
   }
 }
-
-case class FailedEstimationResult(subscriptionNumber: String, reason: String) extends EstimationResult
-
-case class CancelledEstimationResult(subscriptionNumber: String) extends EstimationResult
