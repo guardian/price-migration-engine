@@ -29,7 +29,7 @@ object StartDates {
       cohortSpec: CohortSpec,
       today: LocalDate
   ): LocalDate = {
-    // The startDateGeneralLowerBound is a function of the cohort spec and the notification min time.
+    // This is a function of the cohort spec and the notification min time.
     // The cohort spec carries the lowest date we specify there can be a price migration, and the notification min
     // time ensures the legally required lead time for customer communication. The max of those two dates is the date
     // from which we can realistically perform a price increase. With that said, other policies can apply, for
