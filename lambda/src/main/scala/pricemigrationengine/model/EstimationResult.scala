@@ -4,6 +4,10 @@ import java.time.LocalDate
 
 trait EstimationResult
 
+// EstimationData carries the metadata that is the result of the estimation step, and
+// that will be used to update the cohort item in the dynamo table. The two other outcome
+// of an estimation attempt are FailedEstimationResult and CancelledEstimationResult
+
 case class EstimationData(
     subscriptionName: String,
     startDate: LocalDate,
@@ -26,15 +30,16 @@ object EstimationResult {
       startDateLowerBound: LocalDate,
       cohortSpec: CohortSpec,
   ): Either[AmendmentDataFailure, EstimationData] = {
-    AmendmentData(account, catalogue, subscription, invoiceList, startDateLowerBound, cohortSpec) map { amendmentData =>
-      EstimationData(
-        subscription.subscriptionNumber,
-        amendmentData.startDate,
-        amendmentData.priceData.currency,
-        amendmentData.priceData.oldPrice,
-        amendmentData.priceData.newPrice,
-        amendmentData.priceData.billingPeriod
-      )
-    }
+    for {
+      startDate <- AmendmentData.nextServiceStartDate(invoiceList, subscription, startDateLowerBound)
+      priceData <- AmendmentData.priceData(account, catalogue, subscription, invoiceList, startDate, cohortSpec)
+    } yield EstimationData(
+      subscription.subscriptionNumber,
+      startDate,
+      priceData.currency,
+      priceData.oldPrice,
+      priceData.newPrice,
+      priceData.billingPeriod
+    )
   }
 }
