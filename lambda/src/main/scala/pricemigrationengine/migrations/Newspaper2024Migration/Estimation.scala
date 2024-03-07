@@ -54,17 +54,6 @@ object Estimation {
     }
   }
 
-  def ratePlanToBillingPeriod(ratePlan: ZuoraRatePlan): Option[BillingPeriod] = {
-    for {
-      ratePlanCharge <- ratePlan.ratePlanCharges.headOption
-      billingPeriod <- ratePlanCharge.billingPeriod
-    } yield BillingPeriod.fromString(billingPeriod)
-  }
-
-  def ratePlanToCurrency(ratePlan: ZuoraRatePlan): Option[String] = {
-    ratePlan.ratePlanCharges.headOption.map(_.currency)
-  }
-
   def subscriptionToSubscriptionData2024(subscription: ZuoraSubscription): Either[String, SubscriptionData2024] = {
     val productName = subscriptionToMigrationProductName(subscription).toOption.get
     val ratePlans = {
@@ -80,8 +69,8 @@ object Estimation {
         )
       case ratePlan :: Nil => {
         (for {
-          billingPeriod <- ratePlanToBillingPeriod(ratePlan)
-          currency <- ratePlanToCurrency(ratePlan)
+          billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
+          currency <- ZuoraRatePlan.ratePlanToCurrency(ratePlan)
           currentPrice = ratePlan.ratePlanCharges.foldLeft(BigDecimal(0))(
             (price: BigDecimal, ratePlanCharge: ZuoraRatePlanCharge) =>
               price + ratePlanCharge.price.getOrElse(BigDecimal(0))
@@ -104,18 +93,6 @@ object Estimation {
     }
   }
 
-  /*
-
-    case class SubscriptionData2024(
-      productName: String,
-      ratePlan: ZuoraRatePlan,
-      ratePlanName: String,
-      billingPeriod: BillingPeriod,
-      currency: String,
-      currentPrice: BigDecimal
-  )
-   */
-
   def subscriptionToNewPrice(subscription: ZuoraSubscription): Option[BigDecimal] = {
     // The price correction factor is meant to be 1 except in the case of
     // subscriptions with capping in which case the correction factor will have been precomputed
@@ -134,9 +111,6 @@ object Estimation {
   def priceData(
       subscription: ZuoraSubscription,
   ): Either[AmendmentDataFailure, PriceData] = {
-
-    // PriceData(currency: Currency, oldPrice: BigDecimal, newPrice: BigDecimal, billingPeriod: String)
-
     for {
       data2024 <- subscriptionToSubscriptionData2024(subscription).left.map(AmendmentDataFailure)
       oldPrice = data2024.currentPrice
