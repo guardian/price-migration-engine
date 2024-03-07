@@ -1,10 +1,10 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.Fixtures
-import pricemigrationengine.handlers.EstimationHandler.startDateGeneralLowerBound
 import pricemigrationengine.model.{CohortSpec, EstimationResult, EstimationData}
 import zio.test._
-import pricemigrationengine.util.Date
+import pricemigrationengine.util.{Date, StartDates}
+
 import java.time.{LocalDate, LocalDateTime, OffsetDateTime, ZoneOffset}
 
 object EstimationHandlerTest extends ZIOSpecDefault {
@@ -19,7 +19,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         for {
           _ <- TestClock.setTime(testTime1)
           _ <- TestRandom.feedInts(1)
-          earliestStartDate <- EstimationHandler.decideStartDateLowerboundWithRandomAddition(
+          earliestStartDate <- StartDates.decideStartDate(
             subscription = Fixtures.subscriptionFromJson("NewspaperVoucher/QuarterlyVoucher/Subscription.json"),
             invoicePreview = Fixtures.invoiceListFromJson("NewspaperVoucher/QuarterlyVoucher/InvoicePreview.json"),
             CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), absoluteEarliestStartDate),
@@ -32,7 +32,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         for {
           _ <- TestClock.setTime(testTime1)
           _ <- TestRandom.feedInts(1)
-          earliestStartDate <- EstimationHandler.decideStartDateLowerboundWithRandomAddition(
+          earliestStartDate <- StartDates.decideStartDate(
             subscription = Fixtures.subscriptionFromJson("NewspaperVoucher/Monthly/Subscription.json"),
             invoicePreview = Fixtures.invoiceListFromJson("NewspaperVoucher/Monthly/InvoicePreview.json"),
             CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), absoluteEarliestStartDate),
@@ -143,7 +143,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         // (Today + 36 days) is after earliestPriceMigrationStartDate
         // The earliest start date needs to be 36 days ahead of today (35 days min time + 1) -> 2023-05-07
 
-        assertTrue(startDateGeneralLowerBound(cohortSpec, today) == LocalDate.of(2023, 5, 7))
+        assertTrue(StartDates.cohortSpecLowerBound(cohortSpec, today) == LocalDate.of(2023, 5, 7))
       },
       test(
         "during estimation, we correctly prevent start dates that are too close: decideEarliestStartDate (legacy case, part 2)"
@@ -157,7 +157,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         // earliestPriceMigrationStartDate is after (today + 36 days)
         // The earliest start date can be earliestPriceMigrationStartDate
 
-        assertTrue(startDateGeneralLowerBound(cohortSpec, today) == cohortSpec.earliestPriceMigrationStartDate)
+        assertTrue(StartDates.cohortSpecLowerBound(cohortSpec, today) == cohortSpec.earliestPriceMigrationStartDate)
       },
       test(
         "during estimation, we correctly prevent start dates that are too close: decideEarliestStartDate (membership)"
@@ -172,7 +172,7 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         // (Today + 32 days) is after earliestPriceMigrationStartDate
         // The earliest start date needs to be 32 days ahead of today -> 2023-05-05
 
-        assertTrue(startDateGeneralLowerBound(cohortSpec, today) == LocalDate.of(2023, 5, 3))
+        assertTrue(StartDates.cohortSpecLowerBound(cohortSpec, today) == LocalDate.of(2023, 5, 3))
       },
       test("EstimationResult is correct for SupporterPlus2023V1V2 (monthly standard)") {
 
