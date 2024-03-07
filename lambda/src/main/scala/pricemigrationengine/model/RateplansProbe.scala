@@ -68,7 +68,7 @@ object RateplansProbe {
     // are harmless and do not change the readiness of a subscription for price migration
     // We refer to those harmless rate plans as "trivial"
 
-    // AT the moment, we are filtering away "Discounts"
+    // At the moment, we are filtering away "Discounts"
     ratePlans.filter(ratePlan => ratePlan.productName != "Discounts")
   }
 
