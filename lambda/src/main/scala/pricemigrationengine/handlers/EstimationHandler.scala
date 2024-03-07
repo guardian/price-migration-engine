@@ -81,7 +81,7 @@ object EstimationHandler extends CohortHandler {
       item: CohortItem,
       cohortSpec: CohortSpec,
       today: LocalDate,
-  ): ZIO[Zuora, Failure, SuccessfulEstimationResult] = {
+  ): ZIO[Zuora, Failure, EstimationData] = {
     for {
       subscription <-
         Zuora
