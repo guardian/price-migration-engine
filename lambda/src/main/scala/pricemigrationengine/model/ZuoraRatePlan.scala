@@ -17,4 +17,15 @@ object ZuoraRatePlan {
 
   def ratePlan(subscription: ZuoraSubscription, ratePlanCharge: ZuoraRatePlanCharge): Option[ZuoraRatePlan] =
     subscription.ratePlans.find(_.ratePlanCharges.exists(_.number == ratePlanCharge.number))
+
+  def ratePlanToCurrency(ratePlan: ZuoraRatePlan): Option[String] = {
+    ratePlan.ratePlanCharges.headOption.map(_.currency)
+  }
+
+  def ratePlanToBillingPeriod(ratePlan: ZuoraRatePlan): Option[BillingPeriod] = {
+    for {
+      ratePlanCharge <- ratePlan.ratePlanCharges.headOption
+      billingPeriod <- ratePlanCharge.billingPeriod
+    } yield BillingPeriod.fromString(billingPeriod)
+  }
 }
