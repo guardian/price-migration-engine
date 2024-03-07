@@ -525,7 +525,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
       )
     assertEquals(
       estimationResult,
-      Right(SuccessfulEstimationResult("subNum", LocalDate.of(2022, 11, 12), "GBP", 30.00, 41.25, "Quarter"))
+      Right(EstimationData("subNum", LocalDate.of(2022, 11, 12), "GBP", 30.00, 41.25, "Quarter"))
     )
   }
 }

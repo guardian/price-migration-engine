@@ -4,7 +4,7 @@ import java.time.LocalDate
 
 trait EstimationResult
 
-case class SuccessfulEstimationResult(
+case class EstimationData(
     subscriptionName: String,
     startDate: LocalDate,
     currency: Currency,
@@ -12,6 +12,10 @@ case class SuccessfulEstimationResult(
     estimatedNewPrice: BigDecimal,
     billingPeriod: String
 ) extends EstimationResult
+
+case class FailedEstimationResult(subscriptionNumber: String, reason: String) extends EstimationResult
+
+case class CancelledEstimationResult(subscriptionNumber: String) extends EstimationResult
 
 object EstimationResult {
   def apply(
@@ -21,9 +25,9 @@ object EstimationResult {
       invoiceList: ZuoraInvoiceList,
       startDateLowerBound: LocalDate,
       cohortSpec: CohortSpec,
-  ): Either[AmendmentDataFailure, SuccessfulEstimationResult] = {
+  ): Either[AmendmentDataFailure, EstimationData] = {
     AmendmentData(account, catalogue, subscription, invoiceList, startDateLowerBound, cohortSpec) map { amendmentData =>
-      SuccessfulEstimationResult(
+      EstimationData(
         subscription.subscriptionNumber,
         amendmentData.startDate,
         amendmentData.priceData.currency,
@@ -34,7 +38,3 @@ object EstimationResult {
     }
   }
 }
-
-case class FailedEstimationResult(subscriptionNumber: String, reason: String) extends EstimationResult
-
-case class CancelledEstimationResult(subscriptionNumber: String) extends EstimationResult
