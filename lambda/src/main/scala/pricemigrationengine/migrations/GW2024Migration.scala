@@ -9,6 +9,7 @@ object GW2024Migration {
     "AUD" -> BigDecimal(40),
     "NZD" -> BigDecimal(50),
     "EUR" -> BigDecimal(26.5),
+    "ROW (USD)" -> BigDecimal(33)
   )
 
   val priceMapQuarterlies: Map[String, BigDecimal] = Map(
@@ -18,6 +19,7 @@ object GW2024Migration {
     "AUD" -> BigDecimal(120),
     "NZD" -> BigDecimal(150),
     "EUR" -> BigDecimal(79.5),
+    "ROW (USD)" -> BigDecimal(99)
   )
 
   val priceMapAnnuals: Map[String, BigDecimal] = Map(
@@ -27,6 +29,7 @@ object GW2024Migration {
     "AUD" -> BigDecimal(480),
     "NZD" -> BigDecimal(600),
     "EUR" -> BigDecimal(318),
+    "ROW (USD)" -> BigDecimal(396)
   )
 
 }
