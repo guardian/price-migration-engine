@@ -80,23 +80,24 @@ object StartDates {
     } else 1
   }
 
-  def decideStartDate(
+  def startDateLowerBound(
       subscription: ZuoraSubscription,
       invoicePreview: ZuoraInvoiceList,
       cohortSpec: CohortSpec,
       today: LocalDate
   ): IO[ConfigFailure, LocalDate] = {
 
+    // Lowerbound from to the cohort spec and the notification window's end
     val startDateLowerBound1 = MigrationType(cohortSpec) match {
       case Newspaper2024 =>
-        newspaper2024Migration.Estimation.startDateGeneralLowerbound(cohortSpec, today, subscription)
+        newspaper2024Migration.Estimation.startDateLowerbound(today, subscription)
       case _ => cohortSpecLowerBound(cohortSpec, today)
     }
 
     // We now respect the policy of not increasing members during their first year
     val startDateLowerBound2 = oneYearPolicy(startDateLowerBound1, subscription)
 
-    // Looking up the spread period for this migration
+    // Decide the spread period for this migration
     val spreadPeriod = decideSpreadPeriod(subscription, invoicePreview, cohortSpec)
 
     for {

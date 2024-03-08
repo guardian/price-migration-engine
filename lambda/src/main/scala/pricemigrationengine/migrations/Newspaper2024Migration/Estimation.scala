@@ -195,25 +195,10 @@ object Estimation {
     }
   }
 
-  def startDateGeneralLowerbound(
-      cohortSpec: CohortSpec,
+  def startDateLowerbound(
       today: LocalDate,
       subscription: ZuoraSubscription
   ): LocalDate = {
-
-    // Technically the startDateGeneralLowerbound is a function of the cohort spec and the notification min time.
-    // The cohort spec carries the lowest date we specify there can be a price migration, and the notification min
-    // time ensures the legally required lead time for customer communication. The max of those two dates is the date
-    // from which we can realistically perform a price increase. With that said, other policies can apply, for
-    // instance:
-    // - The one year policy, which demand that we do not price rise customers during the subscription first year
-    // - The spread: a mechanism, used for monthlies, by which we do not let a large number of monthlies migrate
-    //   during a single month.
-
-    // We expanded the signature of this function for the Newspaper2024 migration where that date was specific of
-    // the subscription due to its un-unusual scheduling. For Newspaper2024 we call a specific function from the
-    // migration support code.
-
     val earliestPriceMigrationStartDate = subscriptionToEarliestMigrationStartDate(subscription)
 
     Date.datesMax(
