@@ -33,7 +33,7 @@ And last, but not least, let's assume that today is 07th March 2024.
 
 ### A note on anniversaries.
 
-Imagine that you work for HR and are given the task of giving a gift of the thousands of people working for a company. You can only give to somebody their gift on their birthday. It's going to take you an entire year to do so. If today is the 7th of March 2024, then you will give gifts to a bunch of people today (all the people with a 7th of March birthday) and you will finish on the 6th of March 2025.
+Imagine that you work for HR and are given the task of giving a gift to the thousands of people working for a company. You can only give to somebody their gift on their birthday. It's going to take you an entire year to do so. If today is the 7th of March 2024, then you will give gifts to a bunch of people today (all the people with a 7th of March birthday) and you will finish on the 6th of March 2025.
 
 If you are then told to not use the yearly birthday, but simply the number of their birthdate, so for instance if somebody is born on Dec 23rd, you can give them their gift on 23rd of March. Then, it will take you one month to give all the gifts away. You will start today on 7th of March and will finish on 6th of April.
 
