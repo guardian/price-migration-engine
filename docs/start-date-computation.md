@@ -33,7 +33,7 @@ And last, but not least, let's assume that today is 07th March 2024.
 
 ### A note on anniversaries.
 
-Imagine that you work for HR and are given the task of giving a gift of the thousands of people working for a company. You can only give to somebody their gift on their birthday. It's going to take you an entire year to do so. If today is the 7th of March 2024, then you will give gifts to a bunch of people today (all the people with a 7th of March birthday) and you will finish on the 6th of March 2025.
+Imagine that you work for HR and are given the task of giving a gift to the thousands of people working for a company. You can only give to somebody their gift on their birthday. It's going to take you an entire year to do so. If today is the 7th of March 2024, then you will give gifts to a bunch of people today (all the people with a 7th of March birthday) and you will finish on the 6th of March 2025.
 
 If you are then told to not use the yearly birthday, but simply the number of their birthdate, so for instance if somebody is born on Dec 23rd, you can give them their gift on 23rd of March. Then, it will take you one month to give all the gifts away. You will start today on 7th of March and will finish on 6th of April.
 
@@ -55,13 +55,13 @@ With the above context and the explanation about spread periods, let's compute t
 
 Step 1: We know that the chosen date needs to be after the cohort spec's `earliestPriceMigrationStartDate`, meaning after `2024-05-20`. The date `2024-05-20` is our first lowerbound.
 
-Step 2: We know that the date needs to be after today plus the end of a notification period (otherwise the engine will alarm immediately). The notification period is `[-49, -36]`, so there should be at least 37 days between today and the chosen date. This means thay we have a lowerbound at `today + 37 days`, meaning `2024-03-07 + 37 days`, meaning `2024-04-13` (13th of April).
+Step 2: We know that the date needs to be after today plus the end of a notification period (otherwise the engine will alarm immediately). Remember we are using `2024-03-07` as "today". The notification period is `[-49, -36]`, so there should be at least 37 days between today and the chosen date. This means thay we have a lowerbound at `today + 37 days`, meaning `2024-03-07 + 37 days`, meaning `2024-04-13` (13th of April).
 
 Step 3: Our new lowerbound is the max of the two lowerbounds we have computed so far. `max(2024-05-20, 2024-04-13) = 2024-05-20`. So the start date should be after `2024-05-20`.
 
 Step 4: We now need to apply our 1 year anniversary policy. The subscription was created on 8th July 2023, meaning `2023-07-08`. We cannot price rise it before `2024-07-08`. Therefore our new lowerbound is `max(2024-05-20, 2024-07-08) = 2024-07-08`.
 
-Step 5: Our spread period is 3 months. Let's assume that the random choice returned 1, We now need to add a mmonth to our previously computed date, which is now `2024-08-08`. 
+Step 5: Our spread period is 3 months. Let's assume that the random choice returned 1, We now need to add a month to our previously computed date, which is now `2024-08-08`. 
 
 Step 5: We are now ready for the start date. The start date is the next available billing date after `2024-08-08`. Since we have a monthly sub paying on the 27th, the start date is `2024-08-27` 🗓️ 🎉
 
