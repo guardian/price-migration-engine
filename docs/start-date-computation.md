@@ -61,7 +61,7 @@ Step 3: Our new lowerbound is the max of the two lowerbounds we have computed so
 
 Step 4: We now need to apply our 1 year anniversary policy. The subscription was created on 8th July 2023, meaning `2023-07-08`. We cannot price rise it before `2024-07-08`. Therefore our new lowerbound is `max(2024-05-20, 2024-07-08) = 2024-07-08`.
 
-Step 5: Our spread period is 3 months. Let's assume that the random choice returned 1, We now need to add a mmonth to our previously computed date, which is now `2024-08-08`. 
+Step 5: Our spread period is 3 months. Let's assume that the random choice returned 1, We now need to add a month to our previously computed date, which is now `2024-08-08`. 
 
 Step 5: We are now ready for the start date. The start date is the next available billing date after `2024-08-08`. Since we have a monthly sub paying on the 27th, the start date is `2024-08-27` 🗓️ 🎉
 
