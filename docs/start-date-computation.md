@@ -55,7 +55,7 @@ With the above context and the explanation about spread periods, let's compute t
 
 Step 1: We know that the chosen date needs to be after the cohort spec's `earliestPriceMigrationStartDate`, meaning after `2024-05-20`. The date `2024-05-20` is our first lowerbound.
 
-Step 2: We know that the date needs to be after today plus the end of a notification period (otherwise the engine will alarm immediately). The notification period is `[-49, -36]`, so there should be at least 37 days between today and the chosen date. This means thay we have a lowerbound at `today + 37 days`, meaning `2024-03-07 + 37 days`, meaning `2024-04-13` (13th of April).
+Step 2: We know that the date needs to be after today plus the end of a notification period (otherwise the engine will alarm immediately). Remember we are using `2024-03-07` as "today". The notification period is `[-49, -36]`, so there should be at least 37 days between today and the chosen date. This means thay we have a lowerbound at `today + 37 days`, meaning `2024-03-07 + 37 days`, meaning `2024-04-13` (13th of April).
 
 Step 3: Our new lowerbound is the max of the two lowerbounds we have computed so far. `max(2024-05-20, 2024-04-13) = 2024-05-20`. So the start date should be after `2024-05-20`.
 
