@@ -1,7 +1,12 @@
 package pricemigrationengine.model
 
 import pricemigrationengine.migrations.newspaper2024Migration
-import pricemigrationengine.migrations.{DigiSubs2023Migration, GuardianWeeklyMigration, Membership2023Migration}
+import pricemigrationengine.migrations.{
+  DigiSubs2023Migration,
+  GuardianWeeklyMigration,
+  Membership2023Migration,
+  GW2024Migration
+}
 import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, productPricingMap}
 
 import java.time.LocalDate
@@ -283,27 +288,6 @@ object AmendmentData {
       cohortSpec: CohortSpec,
   ): Either[AmendmentDataFailure, PriceData] = {
 
-    /*
-      ------------------
-      Date: March 2023
-      Author: Pascal
-
-      With the introduction of the Membership price migration there is now two ways to compute PriceData: The old way,
-      implemented in priceDataWithRatePlanMatching, which was used for the more complex print subscriptions, and
-      a simplified way that we are going to apply to membership.
-
-      This split came from the fact that at the time these lines are written, it is not possible to find matching
-      product rate plan charges for the subscription rate plan charges because the previous, pre migration,
-      rate plan for the membership subscriptions have already been decommissioned, there by breaking the existing
-      algorithm.
-
-      ------------------
-      Date: July 2023
-      Author: Pascal
-
-      We are going to keep/use the same principle for Supporter Revenue V1 to V2 migration
-     */
-
     MigrationType(cohortSpec) match {
       case Membership2023Monthlies =>
         Membership2023Migration.priceData(
@@ -334,6 +318,10 @@ object AmendmentData {
         )
       case DigiSubs2023 =>
         DigiSubs2023Migration.priceData(
+          subscription
+        )
+      case GW2024 =>
+        GW2024Migration.priceData(
           subscription
         )
       case Newspaper2024 =>

@@ -10,7 +10,8 @@ import pricemigrationengine.migrations.{
   DigiSubs2023Migration,
   LegacyMigrations,
   Membership2023Migration,
-  newspaper2024Migration
+  newspaper2024Migration,
+  GW2024Migration
 }
 import pricemigrationengine.model.RateplansProbe
 
@@ -210,6 +211,7 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2023V1V2MA => SupporterPlus2023V1V2Migration.maxLeadTime
       case DigiSubs2023            => DigiSubs2023Migration.maxLeadTime
       case Newspaper2024           => newspaper2024Migration.StaticData.maxLeadTime
+      case GW2024                  => GW2024Migration.maxLeadTime
       case Legacy                  => 49
     }
   }
@@ -221,6 +223,7 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2023V1V2MA => SupporterPlus2023V1V2Migration.minLeadTime
       case DigiSubs2023            => DigiSubs2023Migration.minLeadTime
       case Newspaper2024           => newspaper2024Migration.StaticData.minLeadTime
+      case GW2024                  => GW2024Migration.minLeadTime
       case Legacy                  => 35
     }
   }

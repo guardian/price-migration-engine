@@ -1,6 +1,11 @@
 package pricemigrationengine.migrations
+import pricemigrationengine.model._
+
+import java.time.LocalDate
 
 object GW2024Migration {
+  val maxLeadTime = 49
+  val minLeadTime = 36
 
   val priceMapMonthlies: Map[String, BigDecimal] = Map(
     "GBP" -> BigDecimal(15),
@@ -29,4 +34,36 @@ object GW2024Migration {
     "EUR" -> BigDecimal(318),
   )
 
+  def updateOfRatePlansToCurrent(
+      subscription: ZuoraSubscription,
+      effectiveDate: LocalDate,
+  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+    for {
+      update <- Left(
+        AmendmentDataFailure(
+          s"TBD"
+        )
+      )
+    } yield update
+  }
+
+  def priceData(
+      subscription: ZuoraSubscription,
+  ): Either[AmendmentDataFailure, PriceData] = {
+
+    ???
+
+    /*
+    case class SuccessfulEstimationResult(
+    subscriptionName: String,
+    startDate: LocalDate,
+    currency: Currency,
+    oldPrice: BigDecimal,
+    estimatedNewPrice: BigDecimal,
+    billingPeriod: String
+) extends EstimationResult
+     */
+
+    // PriceData(currency: Currency, oldPrice: BigDecimal, newPrice: BigDecimal, billingPeriod: String)
+  }
 }
