@@ -53,20 +53,6 @@ object GW2024Migration {
   def priceData(
       subscription: ZuoraSubscription,
   ): Either[AmendmentDataFailure, PriceData] = {
-
     ???
-
-    /*
-    case class SuccessfulEstimationResult(
-    subscriptionName: String,
-    startDate: LocalDate,
-    currency: Currency,
-    oldPrice: BigDecimal,
-    estimatedNewPrice: BigDecimal,
-    billingPeriod: String
-) extends EstimationResult
-     */
-
-    // PriceData(currency: Currency, oldPrice: BigDecimal, newPrice: BigDecimal, billingPeriod: String)
   }
 }
