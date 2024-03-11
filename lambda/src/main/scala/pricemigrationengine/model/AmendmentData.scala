@@ -257,7 +257,7 @@ object AmendmentData {
     for {
       ratePlanCharges <- ratePlanChargesOrFail(subscription, invoiceItems)
       ratePlan <- ZuoraRatePlan
-        .ratePlan(subscription, ratePlanCharges.head)
+        .ratePlanChargeToMatchingRatePlan(subscription, ratePlanCharges.head)
         .toRight(AmendmentDataFailure(s"Failed to get RatePlan for charges: $ratePlanCharges"))
 
       isZoneABC = zoneABCPlanNames contains ratePlan.productName
@@ -322,7 +322,8 @@ object AmendmentData {
         )
       case GW2024 =>
         GW2024Migration.priceData(
-          subscription
+          subscription,
+          account
         )
       case Newspaper2024 =>
         newspaper2024Migration.Estimation.priceData(

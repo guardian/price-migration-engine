@@ -60,7 +60,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
 
     // And now that we have a ZuoraRatePlanCharge, we can use it to find a matching rate plans.
 
-    val ratePlans = ZuoraRatePlan.ratePlan(subscription, ratePlanCharges.head).toSeq
+    val ratePlans = ZuoraRatePlan.ratePlanChargeToMatchingRatePlan(subscription, ratePlanCharges.head).toSeq
 
     assertEquals(
       ratePlans,
@@ -168,7 +168,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
 
     // And now that we have a ZuoraRatePlanCharge, we can use it to find a matching rate plans.
 
-    val ratePlans = ZuoraRatePlan.ratePlan(subscription, ratePlanCharges.head).toSeq
+    val ratePlans = ZuoraRatePlan.ratePlanChargeToMatchingRatePlan(subscription, ratePlanCharges.head).toSeq
 
     assertEquals(
       ratePlans,
@@ -276,7 +276,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
 
     // And now that we have a ZuoraRatePlanCharge, we can use it to find a matching rate plans.
 
-    val ratePlans = ZuoraRatePlan.ratePlan(subscription, ratePlanCharges.head).toSeq
+    val ratePlans = ZuoraRatePlan.ratePlanChargeToMatchingRatePlan(subscription, ratePlanCharges.head).toSeq
 
     assertEquals(
       ratePlans,
@@ -382,7 +382,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
 
     // And now that we have a ZuoraRatePlanCharge, we can use it to find a matching rate plans.
 
-    val ratePlans = ZuoraRatePlan.ratePlan(subscription, ratePlanCharges.head).toSeq
+    val ratePlans = ZuoraRatePlan.ratePlanChargeToMatchingRatePlan(subscription, ratePlanCharges.head).toSeq
 
     assertEquals(
       ratePlans,
@@ -505,7 +505,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
 
     // And now that we have a ZuoraRatePlanCharge, we can use it to find a matching rate plans.
 
-    val ratePlans = ZuoraRatePlan.ratePlan(subscription, ratePlanCharges.head).toSeq
+    val ratePlans = ZuoraRatePlan.ratePlanChargeToMatchingRatePlan(subscription, ratePlanCharges.head).toSeq
 
     assertEquals(
       ratePlans,
@@ -640,7 +640,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
 
     // And now that we have a ZuoraRatePlanCharge, we can use it to find a matching rate plans.
 
-    val ratePlans = ZuoraRatePlan.ratePlan(subscription, ratePlanCharges.head).toSeq
+    val ratePlans = ZuoraRatePlan.ratePlanChargeToMatchingRatePlan(subscription, ratePlanCharges.head).toSeq
 
     assertEquals(
       ratePlans,
@@ -760,7 +760,7 @@ class AmendmentHandlerTest extends munit.FunSuite {
 
     // And now that we have a ZuoraRatePlanCharge, we can use it to find a matching rate plans.
 
-    val ratePlans = ZuoraRatePlan.ratePlan(subscription, ratePlanCharges.head).toSeq
+    val ratePlans = ZuoraRatePlan.ratePlanChargeToMatchingRatePlan(subscription, ratePlanCharges.head).toSeq
 
     assertEquals(
       ratePlans,
