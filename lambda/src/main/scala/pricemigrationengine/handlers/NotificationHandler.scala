@@ -8,7 +8,6 @@ import zio.{Clock, ZIO}
 import com.gu.i18n
 import pricemigrationengine.migrations.{
   DigiSubs2023Migration,
-  LegacyMigrations,
   Membership2023Migration,
   newspaper2024Migration,
   GW2024Migration
@@ -106,7 +105,7 @@ object NotificationHandler extends CohortHandler {
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
 
       cappedEstimatedNewPriceWithCurrencySymbol = MigrationType(cohortSpec) match {
-        case Legacy => s"${currencySymbol}${LegacyMigrations.priceCap(oldPrice, estimatedNewPrice)}"
+        case Legacy => s"${currencySymbol}${PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)}"
         case _      => s"${currencySymbol}${estimatedNewPrice}"
       }
 

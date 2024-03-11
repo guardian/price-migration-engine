@@ -1,6 +1,5 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.migrations.LegacyMigrations
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -95,7 +94,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
         Some(subscription.Name),
         Some(subscription.Buyer__c),
         Some(oldPrice),
-        Some(LegacyMigrations.priceCap(oldPrice, estimatedNewPrice, forceEstimated)),
+        Some(PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice, forceEstimated)),
         Some(priceRiseDate),
         Some(subscription.Id),
         Migration_Name__c = Some(cohortSpec.cohortName),
