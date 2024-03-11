@@ -67,10 +67,10 @@ object StartDates {
   // For the moment it stands as the canonical way of retrieving the optional previous price rise of a migration
   def lastPriceRiseDate(subscription: ZuoraSubscription): Option[LocalDate] = None
 
-  def lastPriceRiseDatePolicy(subscription: ZuoraSubscription, lowerbound1: LocalDate): LocalDate = {
+  def lastPriceRiseDatePolicy(subscription: ZuoraSubscription, lowerBound1: LocalDate): LocalDate = {
     lastPriceRiseDate(subscription: ZuoraSubscription) match {
-      case None              => lowerbound1
-      case Some(lowerbound2) => Date.datesMax(lowerbound1, lowerbound2)
+      case None              => lowerBound1
+      case Some(lowerBound2) => Date.datesMax(lowerBound1, lowerBound2)
     }
   }
 
@@ -98,7 +98,7 @@ object StartDates {
       today: LocalDate
   ): IO[ConfigFailure, LocalDate] = {
 
-    // Lowerbound from to the cohort spec and the notification window's end
+    // LowerBound from to the cohort spec and the notification window's end
     val startDateLowerBound1 = MigrationType(cohortSpec) match {
       case Newspaper2024 =>
         newspaper2024Migration.Estimation.startDateLowerbound(today, subscription)
@@ -108,6 +108,7 @@ object StartDates {
     // We now respect the policy of not increasing members during their first year
     val startDateLowerBound2 = oneYearPolicy(startDateLowerBound1, subscription)
 
+    // And the policy not to price rise a sub twice within 12 months of any possible price rise
     val startDateLowerBound3 = lastPriceRiseDatePolicy(subscription, startDateLowerBound2)
 
     // Decide the spread period for this migration
