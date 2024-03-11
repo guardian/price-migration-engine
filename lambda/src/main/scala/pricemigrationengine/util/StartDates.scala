@@ -63,12 +63,14 @@ object StartDates {
       .contains("Month")
   }
 
+  // This function is going to have a non trivial implementation from the Guardian Weekly 2024 migration.
+  // For the moment it stands as the canonical way of retrieving the optional previous price rise of a migration
   def lastPriceRiseDate(subscription: ZuoraSubscription): Option[LocalDate] = None
 
-  def lastPriceRiseDatePolicy(subscription: ZuoraSubscription, alpha: LocalDate): LocalDate = {
+  def lastPriceRiseDatePolicy(subscription: ZuoraSubscription, lowerbound1: LocalDate): LocalDate = {
     lastPriceRiseDate(subscription: ZuoraSubscription) match {
-      case None       => alpha
-      case Some(beta) => Date.datesMax(alpha, beta)
+      case None              => lowerbound1
+      case Some(lowerbound2) => Date.datesMax(lowerbound1, lowerbound2)
     }
   }
 
