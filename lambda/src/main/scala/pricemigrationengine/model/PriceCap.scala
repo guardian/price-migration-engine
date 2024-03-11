@@ -72,8 +72,11 @@ object PriceCap {
     (oldPrice * cap).min(newPrice)
   }
 
-  def priceCorrectionFactor(oldPrice: BigDecimal, newPrice: BigDecimal, cap: BigDecimal) =
-    (oldPrice * cap).toDouble / newPrice.toDouble
+  def priceCorrectionFactor(oldPrice: BigDecimal, newPrice: BigDecimal, cap: BigDecimal) = {
+    if (newPrice < oldPrice * cap) 1.0
+    else
+      (oldPrice * cap).toDouble / newPrice.toDouble
+  }
 
   def updateChargeOverride(chargeOverride: ChargeOverride, correctionFactor: Double): ChargeOverride = {
     chargeOverride.copy(price = chargeOverride.price * correctionFactor)

@@ -41,6 +41,15 @@ class LegacyMigrationsTest extends munit.FunSuite {
     )
   }
 
+  test("priceCorrectionFactor (trivial case)") {
+    // The new price is lower than the old price multiplied by the price cap multiplier.
+    // We expect a correction factor equal to 1, for price invariance
+    assertEquals(
+      PriceCap.priceCorrectionFactor(BigDecimal(50), BigDecimal(55), BigDecimal(1.2)),
+      1.0
+    )
+  }
+
   test("priceCorrectionFactor") {
     // The capped price is 50 * 1.2 = 60
     // The new price is 120, which wee need to multiply by 0.5 to get to the capped price
@@ -95,7 +104,41 @@ class LegacyMigrationsTest extends munit.FunSuite {
     )
   }
 
-  test("priceCapForAmendment") {
+  test("priceCapForAmendment (without correction)") {
+
+    val chargeOverride1 = ChargeOverride("productRatePlanChargeId", "Monthly", BigDecimal(25))
+    val chargeOverride2 = ChargeOverride("productRatePlanChargeId", "Monthly", BigDecimal(30))
+    val addZuoraRatePlan =
+      AddZuoraRatePlan("productRatePlanId", LocalDate.of(2024, 3, 11), List(chargeOverride1, chargeOverride2))
+    val zuoraUpdate = ZuoraSubscriptionUpdate(
+      add = List(addZuoraRatePlan),
+      remove = List(),
+      currentTerm = None,
+      currentTermPeriodType = None
+    )
+
+    // The charges in chargeOverride1, and chargeOverride2 were chosen to equal 55, the (uncapped) new price.
+
+    val oldPrice = BigDecimal(50)
+    val newPrice = BigDecimal(55)
+    val cap = BigDecimal(1.2)
+
+    // We expect a correction factor equal to 1, resulting in no change in the zuoraUpdate
+
+    assertEquals(
+      PriceCap.priceCorrectionFactor(oldPrice, newPrice, cap),
+      1.0
+    )
+
+    // With a correction factor of 0.5, we have 45 and 15 as corrected prices in the charges
+
+    assertEquals(
+      PriceCap.priceCapForAmendment(oldPrice, newPrice, cap, zuoraUpdate),
+      zuoraUpdate
+    )
+  }
+
+  test("priceCapForAmendment (with correction)") {
 
     val chargeOverride1 = ChargeOverride("productRatePlanChargeId", "Monthly", BigDecimal(90))
     val chargeOverride2 = ChargeOverride("productRatePlanChargeId", "Monthly", BigDecimal(30))
