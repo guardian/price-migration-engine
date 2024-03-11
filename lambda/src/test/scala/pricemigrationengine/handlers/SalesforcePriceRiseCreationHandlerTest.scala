@@ -1,7 +1,6 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.TestLogging
-import pricemigrationengine.migrations.LegacyMigrations
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -24,7 +23,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
 
   private val estimatedNewPrice = BigDecimal(15.00)
   test("For legacy migrations, we need the estimatedNewPrice to be higher than the capped price") {
-    assert(LegacyMigrations.priceCap(oldPrice, estimatedNewPrice) < estimatedNewPrice)
+    assert(PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice) < estimatedNewPrice)
   }
 
   private val currentTime = Instant.parse("2020-05-21T15:16:37Z")
@@ -143,7 +142,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     // Cohort spec name "Name", causes a Legacy migration
     assertEquals(
       createdPriceRises(0).Guardian_Weekly_New_Price__c,
-      Some(LegacyMigrations.priceCap(oldPrice, estimatedNewPrice))
+      Some(PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice))
     )
     assertEquals(createdPriceRises(0).Price_Rise_Date__c, Some(startDate))
 
@@ -340,7 +339,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     // Cohort spec name "Name", causes a Legacy migration
     assertEquals(
       updatedPriceRises(0).Guardian_Weekly_New_Price__c,
-      Some(LegacyMigrations.priceCap(oldPrice, estimatedNewPrice))
+      Some(PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice))
     )
     assertEquals(updatedPriceRises(0).Price_Rise_Date__c, Some(startDate))
 
