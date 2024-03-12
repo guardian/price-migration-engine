@@ -12,7 +12,6 @@ The engine as essentially three types of tests.
 
 3. Tests that require data from Zuora, more exactly bits of the Zuora data model (subscriptions, accounts, invoice previews and the product catalogue) that need to be deserialised into types of the engine and used in functions. They are particularly important when setting up a new migration because they help ensuring that the functions required for Estimation and Amendment for that migration return the right values. Those check are very important.
 
-
 ### Test fixtures
 
 Test fixtures are put in the directory `price-migration-engine/lambda/src/test/resources`. That directory as a bit of a structure, but not extremelly strongly enforced, so do what makes sense. For isntance the directory
@@ -74,7 +73,6 @@ curl -X GET \
 ```
 
 The subscription will be printed to the standard output (your terminal), just redirect to the file `subscription.json`. It should be pretty printed.
-
 
 ### Getting the account
 
@@ -161,4 +159,21 @@ The catalogue will be printed to the standard output (your terminal), just redir
 
 Depends on what need to be tested. Another answer is that it depends on how many subtle variations of subscription you have in your migrations. For instance the Newspaper2024 migration uses 10 different subscription in its tests. That was because it was a multi product migration, with novel functionalities and special features and each variation of product and billing period needed to be properly tested. The GW2024 migration needs 4 subscriptions. A standard one, one where the extended currenty is "ROW (USD)" (USD paying subscriptions not in the United States), one where the price capping is non trivial, and one where the new 1 year policy is non trivial.
 
- 
+### Removing personal information 
+
+Once you have downloaded the data from Zuora, there is a step you must perform before you commit the files to the code and that is removing the personal information. There are two ways to do this. 
+
+1. You can use one of the scripts Kelvin had written for that. For instance FixtureSubscriptionCleaner.scala.
+2. Rename some values manually (like Pascal does). 
+
+We we are going to explain the second method.
+
+Your objective is to hide the subscription id, for instance. In fact the data you probably want to obfuscate is
+
+1. The subscription's `id`, `accountId`, `accountNumber`, `accountName`, `subscriptionNumber`.
+2. The account.basicInfo's `id`, `name`, `accountNumber`, `crmId`
+3. I also completely nullify `account.billToContact` and `account.soldToContact`
+4. The invoice preview's `accountId`. 
+5. The invoice preview's `invoiceItems.subscriptionName`, `invoiceItems.subscriptionId`, `invoiceItems.subscriptionNumber`
+
+It doesn't matter which method you use to clean up the data, but don't forget to do it before commiting the files to source control.
