@@ -63,6 +63,17 @@ object StartDates {
       .contains("Month")
   }
 
+  // This function is going to have a non trivial implementation from the Guardian Weekly 2024 migration.
+  // For the moment it stands as the canonical way of retrieving the optional previous price rise of a migration
+  def lastPriceRiseDate(subscription: ZuoraSubscription): Option[LocalDate] = None
+
+  def lastPriceRiseDatePolicy(subscription: ZuoraSubscription, lowerBound1: LocalDate): LocalDate = {
+    lastPriceRiseDate(subscription: ZuoraSubscription) match {
+      case None              => lowerBound1
+      case Some(lowerBound2) => Date.datesMax(lowerBound1, lowerBound2)
+    }
+  }
+
   // In legacy print product cases, we have spread the price rises over 3 months for monthly subscriptions, this is
   // the default behaviour. For annual subscriptions we are not applying any spread and defaulting to value 1.
   def decideSpreadPeriod(
@@ -87,7 +98,7 @@ object StartDates {
       today: LocalDate
   ): IO[ConfigFailure, LocalDate] = {
 
-    // Lowerbound from to the cohort spec and the notification window's end
+    // LowerBound from to the cohort spec and the notification window's end
     val startDateLowerBound1 = MigrationType(cohortSpec) match {
       case Newspaper2024 =>
         newspaper2024Migration.Estimation.startDateLowerbound(today, subscription)
@@ -97,11 +108,14 @@ object StartDates {
     // We now respect the policy of not increasing members during their first year
     val startDateLowerBound2 = oneYearPolicy(startDateLowerBound1, subscription)
 
+    // And the policy not to price rise a sub twice within 12 months of any possible price rise
+    val startDateLowerBound3 = lastPriceRiseDatePolicy(subscription, startDateLowerBound2)
+
     // Decide the spread period for this migration
     val spreadPeriod = decideSpreadPeriod(subscription, invoicePreview, cohortSpec)
 
     for {
       randomFactor <- Random.nextIntBetween(0, spreadPeriod)
-    } yield startDateLowerBound2.plusMonths(randomFactor)
+    } yield startDateLowerBound3.plusMonths(randomFactor)
   }
 }
