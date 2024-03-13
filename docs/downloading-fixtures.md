@@ -4,7 +4,7 @@ This chapter explain the way to download and sanitize test fixtures from Zuora.
 
 ### Tests types
 
-The engine as essentially three types of tests. 
+The engine has essentially three types of tests. 
 
 1. Unit tests when we are testing specific (often) pure functions
 
