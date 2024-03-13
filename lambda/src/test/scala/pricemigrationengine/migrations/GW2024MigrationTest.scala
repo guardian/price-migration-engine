@@ -20,6 +20,8 @@ class GW2024MigrationTest extends munit.FunSuite {
     )
   }
 
+  // -------------------------------------
+
   test("Rate plan determination is correct (standard)") {
     val subscription = Fixtures.subscriptionFromJson("GW2024/standard/subscription.json")
     assertEquals(
@@ -57,6 +59,8 @@ class GW2024MigrationTest extends munit.FunSuite {
     )
   }
 
+  // -------------------------------------
+
   test("subscriptionToMigrationCurrency is correct (standard)") {
     val subscription = Fixtures.subscriptionFromJson("GW2024/standard/subscription.json")
     val account = Fixtures.accountFromJson("GW2024/standard/account.json")
@@ -75,7 +79,9 @@ class GW2024MigrationTest extends munit.FunSuite {
     )
   }
 
-  test("isROW is correct (USD paying from the US)") {
+  // -------------------------------------
+
+  test("isROW is correct (standard: USD paying from the US)") {
     val subscription = Fixtures.subscriptionFromJson("GW2024/standard/subscription.json")
     val account = Fixtures.accountFromJson("GW2024/standard/account.json")
     assertEquals(
@@ -84,7 +90,16 @@ class GW2024MigrationTest extends munit.FunSuite {
     )
   }
 
-  test("isROW is correct (USD paying from Hong Kong)") {
+  test("isROW is correct (row: USD paying from Hong Kong)") {
+    val subscription = Fixtures.subscriptionFromJson("GW2024/ROW-DomesticRatePlan/subscription.json")
+    val account = Fixtures.accountFromJson("GW2024/ROW-DomesticRatePlan/account.json")
+    assertEquals(
+      GW2024Migration.isROW(subscription, account),
+      Some(true)
+    )
+  }
+
+  test("isROW is correct (row: USD paying from United Arab Emirates)") {
     val subscription = Fixtures.subscriptionFromJson("GW2024/ROW-DomesticRatePlan/subscription.json")
     val account = Fixtures.accountFromJson("GW2024/ROW-DomesticRatePlan/account.json")
     assertEquals(
@@ -162,5 +177,4 @@ class GW2024MigrationTest extends munit.FunSuite {
       Right(PriceData("USD", BigDecimal(300), BigDecimal(396), "Annual"))
     )
   }
-
 }
