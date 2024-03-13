@@ -1,0 +1,25 @@
+{
+  "accountId" : "ACCOUNT-ID",
+  "invoiceItems" : [ {
+    "id" : "9067e75c3604477a839d1765e604fd93",
+    "subscriptionName" : "SUBSCRIPTION-NUMBER",
+    "subscriptionId" : "8a12829d8e312668018e37374db642d0",
+    "subscriptionNumber" : "SUBSCRIPTION-NUMBER",
+    "serviceStartDate" : "2024-06-26",
+    "serviceEndDate" : "2025-06-25",
+    "chargeAmount" : 300.000000000,
+    "chargeDescription" : "",
+    "chargeName" : "GW Oct 18 - Annual - Domestic",
+    "chargeNumber" : "C-02182036",
+    "chargeId" : "2c92a00872a817420172b6381ef24d32",
+    "productName" : "Guardian Weekly - Domestic",
+    "quantity" : 1,
+    "taxAmount" : 0.000000000,
+    "unitOfMeasure" : "",
+    "chargeDate" : "2024-03-13 09:49:15",
+    "chargeType" : "Recurring",
+    "processingType" : "Charge",
+    "appliedToItemId" : null
+  } ],
+  "success" : true
+}
