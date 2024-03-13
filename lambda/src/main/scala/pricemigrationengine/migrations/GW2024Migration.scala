@@ -115,6 +115,14 @@ object GW2024Migration {
     } yield price
   }
 
+  def subscriptionToLastPriceMigrationDate(subscription: ZuoraSubscription): Option[LocalDate] = {
+    for {
+      ratePlan <- subscriptionToMigrationRatePlan(subscription)
+      ratePlanCharge <- ratePlan.ratePlanCharges.headOption
+      date <- ratePlanCharge.originalOrderDate
+    } yield date
+  }
+
   def priceData(
       subscription: ZuoraSubscription,
       account: ZuoraAccount
