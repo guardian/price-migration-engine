@@ -1,0 +1,55 @@
+{
+  "basicInfo" : {
+    "id" : "ACCOUNT-ID",
+    "name" : "ACCOUNT-NUMBER",
+    "accountNumber" : "ACCOUNT-NUMBER",
+    "notes" : null,
+    "status" : "Active",
+    "crmId" : "0010J00001lS09LQAS",
+    "batch" : "Batch1",
+    "invoiceTemplateId" : "2c92a0fb49377eae014951ca848e074b",
+    "communicationProfileId" : "2c92a0f9456e27a4014570f3aed41be2",
+    "profileNumber" : "CP-00000001",
+    "purchaseOrderNumber" : null,
+    "customerServiceRepName" : null,
+    "ScrubbedOn__c" : null,
+    "IdentityId__c" : "SALESFORCE-IDENTITY-ID-C",
+    "sfContactId__c" : "SALESFORCE-CONTACT-ID-C",
+    "CCURN__c" : null,
+    "SpecialDeliveryInstructions__c" : null,
+    "NonStandardDataReason__c" : null,
+    "Scrubbed__c" : null,
+    "ProcessingAdvice__c" : null,
+    "CreatedRequestId__c" : null,
+    "RetryStatus__c" : null,
+    "salesRep" : null,
+    "summaryStatementTemplateId" : null,
+    "sequenceSetId" : null
+  },
+  "billingAndPayment" : {
+    "billCycleDay" : 13,
+    "currency" : "EUR",
+    "paymentTerm" : "Due Upon Receipt",
+    "paymentGateway" : "Stripe PaymentIntents GNM Membership",
+    "paymentGatewayNumber" : "PG-00000008",
+    "defaultPaymentMethodId" : "8a128f13806f8fa6018070a2548041e4",
+    "invoiceDeliveryPrefsPrint" : false,
+    "invoiceDeliveryPrefsEmail" : true,
+    "autoPay" : true,
+    "additionalEmailAddresses" : [ ],
+    "paymentMethodCascadingConsent" : false
+  },
+  "metrics" : {
+    "balance" : 0.000000000,
+    "currency" : "EUR",
+    "totalInvoiceBalance" : 0.000000000,
+    "creditBalance" : 0.000000000,
+    "contractedMrr" : 23.500000000
+  },
+  "billToContact" : null,
+  "soldToContact" : {
+    "country" : "Italy"
+  },
+  "taxInfo" : null,
+  "success" : true
+}
