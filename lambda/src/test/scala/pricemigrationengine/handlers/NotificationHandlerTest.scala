@@ -2,7 +2,6 @@ package pricemigrationengine.handlers
 
 import pricemigrationengine.handlers.NotificationHandler._
 import pricemigrationengine.TestLogging
-import pricemigrationengine.migrations.LegacyMigrations
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.EmailMessage
@@ -30,7 +29,7 @@ class NotificationHandlerTest extends munit.FunSuite {
   // The estimated new price is the price without cap
   private val estimatedNewPrice = BigDecimal(15.00)
   test("For legacy migrations, we need the estimatedNewPrice to be higher than the capped price") {
-    assert(LegacyMigrations.priceCap(oldPrice, estimatedNewPrice) < estimatedNewPrice)
+    assert(PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice) < estimatedNewPrice)
   }
 
   private val estimatedNewPriceWithCurrencySymbolPrefix = "£15.0"
