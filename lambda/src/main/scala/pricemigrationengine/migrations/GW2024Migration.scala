@@ -59,9 +59,15 @@ object GW2024Migration {
   // ------------------------------------------------
 
   def subscriptionToMigrationRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
-    // This function tends to be implemented in each migration and the main reason
-    // is that the name of the rate plan we are looking for is migration dependent
-    subscription.ratePlans.filter(rp => rp.ratePlanName == "GW Oct 18 - Annual - Domestic").headOption
+    val migrationRatePlanNames = List(
+      "GW Oct 18 - Monthly - Domestic",
+      "GW Oct 18 - Quarterly - Domestic",
+      "GW Oct 18 - Annual - Domestic",
+      "GW Oct 18 - Monthly - ROW",
+      "GW Oct 18 - Quarterly - ROW",
+      "GW Oct 18 - Annual - ROW"
+    )
+    subscription.ratePlans.find(rp => migrationRatePlanNames.contains(rp.ratePlanName))
   }
 
   def subscriptionToCurrency(
