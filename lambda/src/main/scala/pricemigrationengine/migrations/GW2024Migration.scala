@@ -45,11 +45,11 @@ object GW2024Migration {
     "ROW (USD)" -> BigDecimal(396)
   )
 
-  def getNewPrice1(billingPeriod: BillingPeriod, currency: Currency): Option[BigDecimal] = {
+  def getNewPrice(billingPeriod: BillingPeriod, extendedCurrency: Currency): Option[BigDecimal] = {
     billingPeriod match {
-      case Monthly   => priceMapMonthlies.get(currency)
-      case Quarterly => priceMapQuarterlies.get(currency)
-      case Annual    => priceMapAnnuals.get(currency)
+      case Monthly   => priceMapMonthlies.get(extendedCurrency)
+      case Quarterly => priceMapQuarterlies.get(extendedCurrency)
+      case Annual    => priceMapAnnuals.get(extendedCurrency)
       case _         => None
     }
   }
@@ -61,10 +61,10 @@ object GW2024Migration {
   def subscriptionToMigrationRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
     // This function tends to be implemented in each migration and the main reason
     // is that the name of the rate plan we are looking for is migration dependent
-    ???
+    subscription.ratePlans.filter(rp => rp.ratePlanName == "GW Oct 18 - Annual - Domestic").headOption
   }
 
-  def subscriptionToMigrationCurrency(
+  def subscriptionToCurrency(
       subscription: ZuoraSubscription,
       account: ZuoraAccount
   ): Option[Currency] = {
@@ -84,12 +84,12 @@ object GW2024Migration {
     }
   }
 
-  def subscriptionToMigrationExtendedCurrency(
+  def subscriptionToExtendedCurrency(
       subscription: ZuoraSubscription,
       account: ZuoraAccount
   ): Option[Currency] = {
     for {
-      currency <- subscriptionToMigrationCurrency(subscription, account)
+      currency <- subscriptionToCurrency(subscription, account)
       isROW <- isROW(subscription: ZuoraSubscription, account: ZuoraAccount)
     } yield if (isROW) "ROW (USD)" else currency
   }
@@ -101,11 +101,11 @@ object GW2024Migration {
     } yield billingPeriod
   }
 
-  def getNewPrice2(subscription: ZuoraSubscription, account: ZuoraAccount): Option[BigDecimal] = {
+  def getNewPrice(subscription: ZuoraSubscription, account: ZuoraAccount): Option[BigDecimal] = {
     for {
       billingPeriod <- subscriptionToBillingPeriod(subscription)
-      extendedCurrency <- subscriptionToMigrationExtendedCurrency(subscription, account)
-      price <- getNewPrice1(billingPeriod, extendedCurrency)
+      extendedCurrency <- subscriptionToExtendedCurrency(subscription, account)
+      price <- getNewPrice(billingPeriod, extendedCurrency)
     } yield price
   }
 
@@ -114,10 +114,10 @@ object GW2024Migration {
       account: ZuoraAccount
   ): Either[AmendmentDataFailure, PriceData] = {
     val priceDataOpt = for {
-      currency <- subscriptionToMigrationCurrency(subscription, account)
+      currency <- subscriptionToCurrency(subscription, account)
       ratePlan <- subscriptionToMigrationRatePlan(subscription)
       oldPrice = ZuoraRatePlan.ratePlanToRatePlanPrice(ratePlan)
-      newPrice <- getNewPrice2(subscription, account)
+      newPrice <- getNewPrice(subscription, account)
       billingPeriod <- subscriptionToBillingPeriod(subscription)
     } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {

@@ -47,7 +47,9 @@
     "contractedMrr" : 25.000000000
   },
   "billToContact" : null,
-  "soldToContact" : null,
+  "soldToContact" : {
+    "country" : "United States"
+  },
   "taxInfo" : null,
   "success" : true
 }
