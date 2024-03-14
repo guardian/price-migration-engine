@@ -199,7 +199,7 @@ class GW2024MigrationTest extends munit.FunSuite {
 
   // ------------------------------------
 
-  test("StartDate Policy (trivial case)") {
+  test("StartDate [no price rise within a year of the last price rise] policy (trivial case)") {
     val subscription = Fixtures.subscriptionFromJson("GW2024/standard/subscription.json")
     // The last price rise date for this subscription is LocalDate.of(2020, 6, 8)
     // That's more that a year ago at the time these lines are written (2024-03-13)
@@ -213,7 +213,7 @@ class GW2024MigrationTest extends munit.FunSuite {
     )
   }
 
-  test("StartDate Policy (non trivial case)") {
+  test("StartDate [no price rise within a year of the last price rise] policy (non trivial case)") {
     val subscription = Fixtures.subscriptionFromJson("GW2024/NotTwoPriceRisesWithinAYear/subscription.json")
     // The last price rise date for this subscription is LocalDate.of(2023, 7, 5)
     // That's less than a year ago at the time these lines are written (2024-03-13)
@@ -224,6 +224,37 @@ class GW2024MigrationTest extends munit.FunSuite {
     assertEquals(
       StartDates.noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, LocalDate.of(2024, 3, 13)),
       LocalDate.of(2024, 7, 5)
+    )
+  }
+
+  // ------------------------------------
+
+  test("EstimationResult") {
+    val subscription = Fixtures.subscriptionFromJson("GW2024/standard/subscription.json")
+    val invoicePreview =
+      Fixtures.invoiceListFromJson("GW2024/standard/invoice-preview.json")
+    val account = Fixtures.accountFromJson("GW2024/standard/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("GW2024/standard/catalogue.json")
+
+    val cohortSpec = CohortSpec("GW2024", "", LocalDate.of(2024, 1, 1), LocalDate.of(2024, 5, 20))
+
+    val startDateLowerBound = LocalDate.of(2025, 1, 1)
+
+    val estimationResult =
+      EstimationResult(account, catalogue, subscription, invoicePreview, startDateLowerBound, cohortSpec)
+
+    assertEquals(
+      estimationResult,
+      Right(
+        EstimationData(
+          subscriptionName = "SUBSCRIPTION-NUMBER",
+          startDate = LocalDate.of(2025, 6, 19),
+          currency = "USD",
+          oldPrice = BigDecimal(300.0),
+          estimatedNewPrice = BigDecimal(360),
+          billingPeriod = "Annual"
+        )
+      )
     )
   }
 }
