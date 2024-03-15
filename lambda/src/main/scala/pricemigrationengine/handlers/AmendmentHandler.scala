@@ -172,7 +172,7 @@ object AmendmentHandler extends CohortHandler {
           )
         case GW2024 =>
           ZIO.fromEither(
-            GW2024Migration.updateOfRatePlansToCurrent(
+            GW2024Migration.zuoraUpdate(
               subscriptionBeforeUpdate,
               startDate,
             )

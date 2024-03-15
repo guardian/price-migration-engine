@@ -141,7 +141,7 @@ object GW2024Migration {
     }
   }
 
-  def updateOfRatePlansToCurrent(
+  def zuoraUpdate(
       subscription: ZuoraSubscription,
       effectiveDate: LocalDate,
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
