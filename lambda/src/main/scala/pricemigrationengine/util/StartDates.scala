@@ -2,17 +2,7 @@ package pricemigrationengine.util
 
 import pricemigrationengine.handlers.NotificationHandler
 import pricemigrationengine.migrations.newspaper2024Migration
-import pricemigrationengine.model.{
-  CohortSpec,
-  ConfigFailure,
-  Membership2023Annuals,
-  Membership2023Monthlies,
-  MigrationType,
-  Newspaper2024,
-  ZuoraInvoiceList,
-  ZuoraRatePlanCharge,
-  ZuoraSubscription
-}
+import pricemigrationengine.model._
 import zio.{IO, Random}
 
 import java.time.LocalDate
@@ -24,6 +14,19 @@ import java.time.LocalDate
  */
 
 object StartDates {
+
+  // Determines whether the subscription is a monthly subscription
+  def isMonthlySubscription(subscription: ZuoraSubscription, invoicePreview: ZuoraInvoiceList): Boolean = {
+    invoicePreview.invoiceItems
+      .flatMap(invoiceItem => ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toOption)
+      .flatMap(_.billingPeriod)
+      .headOption
+      .contains("Month")
+  }
+
+  // This function returns the optional date of the last price rise.
+  // Will get a non trivial implementation in the GW2024 migration code
+  def lastPriceRiseDate(cohortSpec: CohortSpec, subscription: ZuoraSubscription): Option[LocalDate] = None
 
   def cohortSpecLowerBound(
       cohortSpec: CohortSpec,
@@ -46,32 +49,25 @@ object StartDates {
     )
   }
 
-  // This function takes a date and a subscription and returns the highest between that date
-  // and the customer's customerAcceptanceDate. Doing so we implement the policy of not increasing customers during
-  // their first year.
-  def oneYearPolicy(lowerbound: LocalDate, subscription: ZuoraSubscription): LocalDate = {
+  // This function implements the policy of not price rising a subscription within the first year of its existence.
+  def noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(
+      lowerbound: LocalDate,
+      subscription: ZuoraSubscription
+  ): LocalDate = {
     Date.datesMax(lowerbound, subscription.customerAcceptanceDate.plusMonths(12))
   }
 
-  // Determines whether the subscription is a monthly subscription
-  // To do so, we simply check whether the billing period of a rate plan charge contains "Month"
-  def isMonthlySubscription(subscription: ZuoraSubscription, invoicePreview: ZuoraInvoiceList): Boolean = {
-    invoicePreview.invoiceItems
-      .flatMap(invoiceItem => ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toOption)
-      .flatMap(_.billingPeriod)
-      .headOption
-      .contains("Month")
-  }
-
-  // This function is going to have a non trivial implementation from the Guardian Weekly 2024 migration.
-  // For the moment it stands as the canonical way of retrieving the optional previous price rise of a migration
-  def lastPriceRiseDate(subscription: ZuoraSubscription): Option[LocalDate] = None
-
-  def lastPriceRiseDatePolicy(subscription: ZuoraSubscription, lowerBound1: LocalDate): LocalDate = {
-    lastPriceRiseDate(subscription: ZuoraSubscription) match {
-      case None              => lowerBound1
-      case Some(lowerBound2) => Date.datesMax(lowerBound1, lowerBound2)
-    }
+  // This function implements the policy of not price rising a subscription less than a year after the optional
+  // last price rise.
+  def noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(
+      cohortSpec: CohortSpec,
+      subscription: ZuoraSubscription,
+      lowerBound1: LocalDate
+  ): LocalDate = {
+    Date.datesMax(
+      lowerBound1,
+      lastPriceRiseDate(cohortSpec, subscription).map(date => date.plusMonths(12)).getOrElse(lowerBound1)
+    )
   }
 
   // In legacy print product cases, we have spread the price rises over 3 months for monthly subscriptions, this is
@@ -106,10 +102,11 @@ object StartDates {
     }
 
     // We now respect the policy of not increasing members during their first year
-    val startDateLowerBound2 = oneYearPolicy(startDateLowerBound1, subscription)
+    val startDateLowerBound2 = noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(startDateLowerBound1, subscription)
 
     // And the policy not to price rise a sub twice within 12 months of any possible price rise
-    val startDateLowerBound3 = lastPriceRiseDatePolicy(subscription, startDateLowerBound2)
+    val startDateLowerBound3 =
+      noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, startDateLowerBound2)
 
     // Decide the spread period for this migration
     val spreadPeriod = decideSpreadPeriod(subscription, invoicePreview, cohortSpec)
