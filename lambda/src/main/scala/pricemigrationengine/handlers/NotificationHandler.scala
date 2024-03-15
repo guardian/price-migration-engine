@@ -8,9 +8,9 @@ import zio.{Clock, ZIO}
 import com.gu.i18n
 import pricemigrationengine.migrations.{
   DigiSubs2023Migration,
+  GW2024Migration,
   Membership2023Migration,
-  newspaper2024Migration,
-  GW2024Migration
+  newspaper2024Migration
 }
 import pricemigrationengine.model.RateplansProbe
 
