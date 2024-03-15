@@ -170,6 +170,13 @@ object AmendmentHandler extends CohortHandler {
               startDate,
             )
           )
+        case GW2024 =>
+          ZIO.fromEither(
+            GW2024Migration.zuoraUpdate(
+              subscriptionBeforeUpdate,
+              startDate,
+            )
+          )
         case Legacy =>
           ZIO.fromEither(
             ZuoraSubscriptionUpdate

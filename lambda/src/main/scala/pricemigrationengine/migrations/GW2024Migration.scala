@@ -1,6 +1,12 @@
 package pricemigrationengine.migrations
 
+import pricemigrationengine.model._
+import java.time.LocalDate
+
 object GW2024Migration {
+
+  val maxLeadTime = 49
+  val minLeadTime = 36
 
   val priceMapMonthlies: Map[String, BigDecimal] = Map(
     "GBP" -> BigDecimal(15),
@@ -32,4 +38,17 @@ object GW2024Migration {
     "ROW (USD)" -> BigDecimal(396)
   )
 
+  def priceData(
+      subscription: ZuoraSubscription,
+      account: ZuoraAccount
+  ): Either[AmendmentDataFailure, PriceData] = {
+    ???
+  }
+
+  def zuoraUpdate(
+      subscription: ZuoraSubscription,
+      effectiveDate: LocalDate,
+  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+    ???
+  }
 }
