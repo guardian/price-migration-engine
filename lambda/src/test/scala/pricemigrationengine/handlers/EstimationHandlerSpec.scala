@@ -170,7 +170,12 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       // The subscription acceptance date plus a year is 2022-11-15 (4)
       // The max date of (3) and (4) is 2022-11-15
 
-      assert(StartDates.oneYearPolicy(LocalDate.of(2022, 12, 14), subscription: ZuoraSubscription))(
+      assert(
+        StartDates.noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(
+          LocalDate.of(2022, 12, 14),
+          subscription: ZuoraSubscription
+        )
+      )(
         equalTo(LocalDate.of(2022, 11, 15))
       )
 
