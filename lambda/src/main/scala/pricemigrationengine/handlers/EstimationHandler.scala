@@ -103,18 +103,14 @@ object EstimationHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    MigrationType(input) match {
-      case GW2024 => ZIO.succeed(HandlerOutput(isComplete = true))
-      case _ =>
-        main(input).provideSome[Logging](
-          EnvConfig.cohortTable.layer,
-          EnvConfig.zuora.layer,
-          EnvConfig.stage.layer,
-          DynamoDBZIOLive.impl,
-          DynamoDBClientLive.impl,
-          CohortTableLive.impl(input),
-          ZuoraLive.impl
-        )
-    }
+    main(input).provideSome[Logging](
+      EnvConfig.cohortTable.layer,
+      EnvConfig.zuora.layer,
+      EnvConfig.stage.layer,
+      DynamoDBZIOLive.impl,
+      DynamoDBClientLive.impl,
+      CohortTableLive.impl(input),
+      ZuoraLive.impl
+    )
   }
 }
