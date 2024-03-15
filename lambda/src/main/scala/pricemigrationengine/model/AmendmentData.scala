@@ -1,7 +1,12 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.migrations.newspaper2024Migration
-import pricemigrationengine.migrations.{DigiSubs2023Migration, GuardianWeeklyMigration, Membership2023Migration}
+import pricemigrationengine.migrations.{
+  DigiSubs2023Migration,
+  GW2024Migration,
+  GuardianWeeklyMigration,
+  Membership2023Migration,
+  newspaper2024Migration
+}
 import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, productPricingMap}
 
 import java.time.LocalDate
@@ -339,6 +344,11 @@ object AmendmentData {
       case Newspaper2024 =>
         newspaper2024Migration.Estimation.priceData(
           subscription
+        )
+      case GW2024 =>
+        GW2024Migration.priceData(
+          subscription: ZuoraSubscription,
+          account: ZuoraAccount
         )
       case Legacy => priceDataWithRatePlanMatching(account, catalogue, subscription, invoiceList, nextServiceStartDate)
     }
