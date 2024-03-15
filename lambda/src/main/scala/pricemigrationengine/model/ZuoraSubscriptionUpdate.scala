@@ -44,7 +44,7 @@ object ZuoraSubscriptionUpdate {
       ratePlanCharge <- ZuoraRatePlanCharge.matchingRatePlanCharge(subscription, invoiceItem).toSeq
       price <- ratePlanCharge.price.toSeq
       if price > 0
-      ratePlan <- ZuoraRatePlan.ratePlan(subscription, ratePlanCharge).toSeq
+      ratePlan <- ZuoraRatePlan.ratePlanChargeToMatchingRatePlan(subscription, ratePlanCharge).toSeq
     } yield ratePlan).distinct
 
     if (activeRatePlans.isEmpty)
