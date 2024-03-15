@@ -133,10 +133,12 @@ object ZuoraLive {
             subscriptionNumber: String
         ): ZIO[Any, ZuoraFetchFailure, ZuoraAccount] =
           get[ZuoraAccount](s"accounts/$accountNumber")
-            .mapError(e => ZuoraFetchFailure(s"Subscription $subscriptionNumber: ${e.reason}"))
+            .mapError(e =>
+              ZuoraFetchFailure(s"Account ${accountNumber} for subscription $subscriptionNumber: ${e.reason}")
+            )
             .tapBoth(
-              e => logging.error(s"Failed to fetch subscription $subscriptionNumber: $e"),
-              _ => logging.info(s"Fetched subscription $subscriptionNumber")
+              e => logging.error(s"Failed to fetch account ${accountNumber} for subscription $subscriptionNumber: $e"),
+              _ => logging.info(s"Fetched account $accountNumber for subscription $subscriptionNumber")
             )
 
         // See https://www.zuora.com/developer/api-reference/#operation/POST_BillingPreviewRun
