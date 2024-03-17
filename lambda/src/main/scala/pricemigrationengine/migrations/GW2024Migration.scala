@@ -1,12 +1,10 @@
 package pricemigrationengine.migrations
 import pricemigrationengine.model.ZuoraRatePlan
 import pricemigrationengine.model._
+import pricemigrationengine.util._
 import pricemigrationengine.services.Zuora
 import zio.{Clock, IO, Random, ZIO}
 
-import java.time.LocalDate
-
-import pricemigrationengine.model._
 import java.time.LocalDate
 
 object GW2024Migration {
@@ -61,16 +59,24 @@ object GW2024Migration {
   // Data Extraction and Manipulation
   // ------------------------------------------------
 
-  def subscriptionToMigrationRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
+  def subscriptionToMigrationRatePlans(subscription: ZuoraSubscription): List[ZuoraRatePlan] = {
     val migrationRatePlanNames = List(
       "GW Oct 18 - Monthly - Domestic",
       "GW Oct 18 - Quarterly - Domestic",
       "GW Oct 18 - Annual - Domestic",
       "GW Oct 18 - Monthly - ROW",
       "GW Oct 18 - Quarterly - ROW",
-      "GW Oct 18 - Annual - ROW"
+      "GW Oct 18 - Annual - ROW",
+      "Guardian Weekly Quarterly",
+      "Guardian Weekly Annual",
+      "GW Oct 18 - 1 Year - Domestic",
+      "Guardian Weekly 1 Year",
     )
-    subscription.ratePlans.find(rp => migrationRatePlanNames.contains(rp.ratePlanName))
+    subscription.ratePlans.filter(rp => migrationRatePlanNames.contains(rp.ratePlanName))
+  }
+
+  def subscriptionToMigrationRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
+    subscriptionToMigrationRatePlans(subscription: ZuoraSubscription).headOption
   }
 
   def subscriptionToCurrency(
@@ -119,11 +125,12 @@ object GW2024Migration {
   }
 
   def subscriptionToLastPriceMigrationDate(subscription: ZuoraSubscription): Option[LocalDate] = {
-    for {
-      ratePlan <- subscriptionToMigrationRatePlan(subscription)
-      ratePlanCharge <- ratePlan.ratePlanCharges.headOption
-      date <- ratePlanCharge.originalOrderDate
-    } yield date
+    Some(
+      subscriptionToMigrationRatePlans(subscription)
+        .flatMap(ratePlan => ratePlan.ratePlanCharges)
+        .flatMap(rpc => rpc.originalOrderDate)
+        .foldLeft(LocalDate.of(2000, 1, 1))((acc, date) => Date.datesMax(acc, date))
+    )
   }
 
   def priceData(
