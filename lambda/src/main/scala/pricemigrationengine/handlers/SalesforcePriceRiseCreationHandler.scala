@@ -80,20 +80,20 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
           .fromOption(cohortItem.startDate)
           .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a startDate"))
     } yield {
-      val forceEstimated = MigrationType(cohortSpec) match {
-        case Membership2023Monthlies => true
-        case Membership2023Annuals   => true
-        case SupporterPlus2023V1V2MA => true
-        case DigiSubs2023            => true
-        case Newspaper2024           => true
-        case GW2024                  => true
-        case Legacy                  => false
+      val estimatedNewPriceWithOptionalCap = MigrationType(cohortSpec) match {
+        case Membership2023Monthlies => estimatedNewPrice
+        case Membership2023Annuals   => estimatedNewPrice
+        case SupporterPlus2023V1V2MA => estimatedNewPrice
+        case DigiSubs2023            => estimatedNewPrice
+        case Newspaper2024           => estimatedNewPrice
+        case GW2024                  => PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, 1.25)
+        case Legacy                  => PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)
       }
       SalesforcePriceRise(
         Some(subscription.Name),
         Some(subscription.Buyer__c),
         Some(oldPrice),
-        Some(PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice, forceEstimated)),
+        Some(estimatedNewPriceWithOptionalCap),
         Some(priceRiseDate),
         Some(subscription.Id),
         Migration_Name__c = Some(cohortSpec.cohortName),
@@ -104,18 +104,14 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    MigrationType(input) match {
-      case GW2024 => ZIO.succeed(HandlerOutput(isComplete = true))
-      case _ =>
-        main(input).provideSome[Logging](
-          EnvConfig.cohortTable.layer,
-          EnvConfig.salesforce.layer,
-          EnvConfig.stage.layer,
-          DynamoDBZIOLive.impl,
-          DynamoDBClientLive.impl,
-          CohortTableLive.impl(input),
-          SalesforceClientLive.impl
-        )
-    }
+    main(input).provideSome[Logging](
+      EnvConfig.cohortTable.layer,
+      EnvConfig.salesforce.layer,
+      EnvConfig.stage.layer,
+      DynamoDBZIOLive.impl,
+      DynamoDBClientLive.impl,
+      CohortTableLive.impl(input),
+      SalesforceClientLive.impl
+    )
   }
 }
