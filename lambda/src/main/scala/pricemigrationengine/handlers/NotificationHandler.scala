@@ -26,19 +26,23 @@ object NotificationHandler extends CohortHandler {
   val Cancelled_Status = "Cancelled"
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    main(input).provideSome[Logging](
-      EnvConfig.salesforce.layer,
-      EnvConfig.cohortTable.layer,
-      EnvConfig.emailSender.layer,
-      EnvConfig.zuora.layer,
-      EnvConfig.stage.layer,
-      DynamoDBClientLive.impl,
-      DynamoDBZIOLive.impl,
-      CohortTableLive.impl(input),
-      SalesforceClientLive.impl,
-      EmailSenderLive.impl,
-      ZuoraLive.impl
-    )
+    MigrationType(input) match {
+      case GW2024 => ZIO.succeed(HandlerOutput(isComplete = true))
+      case _ =>
+        main(input).provideSome[Logging](
+          EnvConfig.salesforce.layer,
+          EnvConfig.cohortTable.layer,
+          EnvConfig.emailSender.layer,
+          EnvConfig.zuora.layer,
+          EnvConfig.stage.layer,
+          DynamoDBClientLive.impl,
+          DynamoDBZIOLive.impl,
+          CohortTableLive.impl(input),
+          SalesforceClientLive.impl,
+          EmailSenderLive.impl,
+          ZuoraLive.impl
+        )
+    }
   }
 
   def main(
