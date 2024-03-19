@@ -80,7 +80,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
           .fromOption(cohortItem.startDate)
           .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a startDate"))
     } yield {
-      val estimatedNewPriceWithOptionalCap = MigrationType(cohortSpec) match {
+      val estimatedPriceWithOptionalCapping = MigrationType(cohortSpec) match {
         case Membership2023Monthlies => estimatedNewPrice
         case Membership2023Annuals   => estimatedNewPrice
         case SupporterPlus2023V1V2MA => estimatedNewPrice
@@ -93,7 +93,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
         Some(subscription.Name),
         Some(subscription.Buyer__c),
         Some(oldPrice),
-        Some(estimatedNewPriceWithOptionalCap),
+        Some(estimatedPriceWithOptionalCapping),
         Some(priceRiseDate),
         Some(subscription.Id),
         Migration_Name__c = Some(cohortSpec.cohortName),

@@ -43,14 +43,9 @@ object PriceCap {
   private val priceCappingMultiplier = 1.2 // old price + 20%
   def priceCapLegacy(
       oldPrice: BigDecimal,
-      estimatedNewPrice: BigDecimal,
-      forceEstimated: Boolean = false
+      estimatedNewPrice: BigDecimal
   ): BigDecimal = {
-    if (forceEstimated) {
-      estimatedNewPrice
-    } else {
-      List(estimatedNewPrice, oldPrice * priceCappingMultiplier).min
-    }
+    List(estimatedNewPrice, oldPrice * priceCappingMultiplier).min
   }
 
   // --------------------------------------------------------
