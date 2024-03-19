@@ -1,7 +1,7 @@
 package pricemigrationengine.util
 
 import pricemigrationengine.handlers.NotificationHandler
-import pricemigrationengine.migrations.newspaper2024Migration
+import pricemigrationengine.migrations.{GW2024Migration, newspaper2024Migration}
 import pricemigrationengine.model._
 import zio.{IO, Random}
 
@@ -25,9 +25,12 @@ object StartDates {
   }
 
   // This function returns the optional date of the last price rise.
-  // Will get a non trivial implementation in the GW2024 migration code
-  def lastPriceRiseDate(cohortSpec: CohortSpec, subscription: ZuoraSubscription): Option[LocalDate] = None
-
+  def lastPriceRiseDate(cohortSpec: CohortSpec, subscription: ZuoraSubscription): Option[LocalDate] = {
+    MigrationType(cohortSpec) match {
+      case GW2024 => GW2024Migration.subscriptionToLastPriceMigrationDate(subscription)
+      case _      => None
+    }
+  }
   def cohortSpecLowerBound(
       cohortSpec: CohortSpec,
       today: LocalDate

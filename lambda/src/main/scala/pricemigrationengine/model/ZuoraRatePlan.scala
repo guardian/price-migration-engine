@@ -31,4 +31,10 @@ object ZuoraRatePlan {
       billingPeriod <- ratePlanCharge.billingPeriod
     } yield BillingPeriod.fromString(billingPeriod)
   }
+
+  def ratePlanToRatePlanPrice(ratePlan: ZuoraRatePlan): BigDecimal = {
+    ratePlan.ratePlanCharges.foldLeft(BigDecimal(0))((price: BigDecimal, ratePlanCharge: ZuoraRatePlanCharge) =>
+      price + ratePlanCharge.price.getOrElse(BigDecimal(0))
+    )
+  }
 }
