@@ -6,19 +6,12 @@ import java.time.LocalDate
 
 class LegacyMigrationsTest extends munit.FunSuite {
 
-  test("The price legacy capping function works correctly (default)") {
+  test("The price legacy capping function works correctly") {
     val oldPrice = BigDecimal(100)
     val cappedPrice = BigDecimal(120)
     val uncappedPrice = BigDecimal(156)
     // Note the implicit price capping at 20%
     assertEquals(cappedPrice, PriceCap.priceCapLegacy(oldPrice, uncappedPrice))
-  }
-
-  test("The legacy price capping works correctly in case of force estimated") {
-    val oldPrice = BigDecimal(100)
-    val uncappedPrice = BigDecimal(156)
-    // Note the implicit price capping at 20%
-    assertEquals(uncappedPrice, PriceCap.priceCapLegacy(oldPrice, uncappedPrice, true))
   }
 
   test("priceCapNotification (no need to apply)") {
