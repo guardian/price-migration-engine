@@ -2,9 +2,6 @@ package pricemigrationengine.migrations
 import pricemigrationengine.model.ZuoraRatePlan
 import pricemigrationengine.model._
 import pricemigrationengine.util._
-import pricemigrationengine.services.Zuora
-import zio.{Clock, IO, Random, ZIO}
-
 import java.time.LocalDate
 
 object GW2024Migration {
