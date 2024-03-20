@@ -1,6 +1,6 @@
 # Coding Conventions
 
-The price migration engine doesn't have coding conventions per se. ZIO does a very good job at keeping sanity between pure and inpure code, and putting migration adhoc code into migration specific objects (the so called "modern" migrations) helps separating the general engine logic from specific requests. We also rely on the coding expertise of contributors to do the right thing (including breaking rules when needed).
+The price migration engine doesn't have coding conventions per se. ZIO does a very good job at keeping sanity between pure and impure code, and putting adhoc code into migration specific objects (the so called "modern" migrations) helps separate the general engine logic from specific requests. We also rely on the coding expertise of contributors to do the right thing (including breaking rules when needed).
 
 Wth that said, we have the following conventions
 
