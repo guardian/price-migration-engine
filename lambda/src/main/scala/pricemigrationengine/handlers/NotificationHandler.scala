@@ -109,8 +109,13 @@ object NotificationHandler extends CohortHandler {
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
 
       cappedEstimatedNewPriceWithCurrencySymbol = MigrationType(cohortSpec) match {
-        case Legacy => s"${currencySymbol}${PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)}"
-        case _      => s"${currencySymbol}${estimatedNewPrice}"
+        case Legacy                  => s"${currencySymbol}${PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)}"
+        case Membership2023Monthlies => s"${currencySymbol}${estimatedNewPrice}"
+        case Membership2023Annuals   => s"${currencySymbol}${estimatedNewPrice}"
+        case SupporterPlus2023V1V2MA => s"${currencySymbol}${estimatedNewPrice}"
+        case DigiSubs2023            => s"${currencySymbol}${estimatedNewPrice}"
+        case Newspaper2024           => s"${currencySymbol}${estimatedNewPrice}"
+        case GW2024                  => s"${currencySymbol}${estimatedNewPrice}"
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)

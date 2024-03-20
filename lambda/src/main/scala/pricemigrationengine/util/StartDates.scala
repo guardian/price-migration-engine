@@ -27,8 +27,13 @@ object StartDates {
   // This function returns the optional date of the last price rise.
   def lastPriceRiseDate(cohortSpec: CohortSpec, subscription: ZuoraSubscription): Option[LocalDate] = {
     MigrationType(cohortSpec) match {
-      case GW2024 => GW2024Migration.subscriptionToLastPriceMigrationDate(subscription)
-      case _      => None
+      case GW2024                  => GW2024Migration.subscriptionToLastPriceMigrationDate(subscription)
+      case SupporterPlus2023V1V2MA => None
+      case Membership2023Monthlies => None
+      case Membership2023Annuals   => None
+      case DigiSubs2023            => None
+      case Newspaper2024           => None
+      case Legacy                  => None
     }
   }
   def cohortSpecLowerBound(
@@ -85,7 +90,10 @@ object StartDates {
         case Membership2023Monthlies => 1
         case Membership2023Annuals   => 1
         case Newspaper2024           => newspaper2024Migration.Estimation.startDateSpreadPeriod(subscription)
-        case _                       => 3
+        case SupporterPlus2023V1V2MA => 3
+        case DigiSubs2023            => 3
+        case GW2024                  => 3
+        case Legacy                  => 3
       }
     } else 1
   }
@@ -101,7 +109,12 @@ object StartDates {
     val startDateLowerBound1 = MigrationType(cohortSpec) match {
       case Newspaper2024 =>
         newspaper2024Migration.Estimation.startDateLowerbound(today, subscription)
-      case _ => cohortSpecLowerBound(cohortSpec, today)
+      case SupporterPlus2023V1V2MA => cohortSpecLowerBound(cohortSpec, today)
+      case Membership2023Monthlies => cohortSpecLowerBound(cohortSpec, today)
+      case Membership2023Annuals   => cohortSpecLowerBound(cohortSpec, today)
+      case DigiSubs2023            => cohortSpecLowerBound(cohortSpec, today)
+      case GW2024                  => cohortSpecLowerBound(cohortSpec, today)
+      case Legacy                  => cohortSpecLowerBound(cohortSpec, today)
     }
 
     // We now respect the policy of not increasing members during their first year
