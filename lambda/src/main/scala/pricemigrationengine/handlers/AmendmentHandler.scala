@@ -96,7 +96,12 @@ object AmendmentHandler extends CohortHandler {
 
     MigrationType(cohortSpec) match {
       case SupporterPlus2023V1V2MA => false
-      case _                       => true
+      case Membership2023Monthlies => true
+      case Membership2023Annuals   => true
+      case DigiSubs2023            => true
+      case Newspaper2024           => true
+      case GW2024                  => true
+      case Legacy                  => true
     }
   }
 
