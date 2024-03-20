@@ -108,9 +108,14 @@ object NotificationHandler extends CohortHandler {
       currencyISOCode <- ZIO.fromEither(requiredField(cohortItem.currency, "CohortItem.currency"))
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
 
-      cappedEstimatedNewPriceWithCurrencySymbol = MigrationType(cohortSpec) match {
+      priceWithOptionalCappingWithCurrencySymbol = MigrationType(cohortSpec) match {
+        case Membership2023Monthlies => s"${currencySymbol}${estimatedNewPrice}"
+        case Membership2023Annuals   => s"${currencySymbol}${estimatedNewPrice}"
+        case SupporterPlus2023V1V2MA => s"${currencySymbol}${estimatedNewPrice}"
+        case DigiSubs2023            => s"${currencySymbol}${estimatedNewPrice}"
+        case Newspaper2024           => s"${currencySymbol}${estimatedNewPrice}"
+        case GW2024 => s"${currencySymbol}${PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, 1.25)}"
         case Legacy => s"${currencySymbol}${PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)}"
-        case _      => s"${currencySymbol}${estimatedNewPrice}"
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)
@@ -132,7 +137,7 @@ object NotificationHandler extends CohortHandler {
                 billing_postal_code = postalCode,
                 billing_state = address.state,
                 billing_country = country,
-                payment_amount = cappedEstimatedNewPriceWithCurrencySymbol,
+                payment_amount = priceWithOptionalCappingWithCurrencySymbol,
                 next_payment_date = startDateConversion(startDate),
                 payment_frequency = paymentFrequency,
                 subscription_id = cohortItem.subscriptionName,
