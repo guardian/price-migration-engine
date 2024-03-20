@@ -4,8 +4,7 @@ import pricemigrationengine.model._
 
 import java.time.LocalDate
 import pricemigrationengine.Fixtures
-import pricemigrationengine.migrations.GW2024Migration
-import pricemigrationengine.migrations.GW2024Migration
+import pricemigrationengine.handlers.NotificationHandler
 import pricemigrationengine.util.StartDates
 
 class GW2024MigrationTest extends munit.FunSuite {
@@ -257,5 +256,30 @@ class GW2024MigrationTest extends munit.FunSuite {
       )
     )
   }
+
+  // ------------------------------------
+  // Notification timetable
+
+  // Note that as part of the test, we purposely set CohortSpec's
+  // earliestPriceMigrationStartDate to Jan 1st
+
+  val cohortSpec = CohortSpec("GW2024", "", LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 1))
+
+  // The startDates in the dynamo table are spread from `2024-05-20` and `2025-05-19`
+
+  // Here are are going to test that the notifications are going to start on April 1st
+
+  // First let's ensure that the GW2024 start of notification window is at 49
+
+  assertEquals(GW2024Migration.maxLeadTime, 49)
+
+  // And that this is the value the Notification Handler itself thinks is right
+
+  assertEquals(NotificationHandler.maxLeadTime(cohortSpec), 49)
+
+  // Then let us make sure that for an items with a start date of exactly `2024-05-20`,
+  // April 1st is the first day that we get clearance for notification
+
+  assertEquals(LocalDate.of(2024, 4, 1).plusDays(49), LocalDate.of(2024, 5, 20))
 
 }
