@@ -96,7 +96,12 @@ object AmendmentHandler extends CohortHandler {
 
     MigrationType(cohortSpec) match {
       case SupporterPlus2023V1V2MA => false
-      case _                       => true
+      case Membership2023Monthlies => true
+      case Membership2023Annuals   => true
+      case DigiSubs2023            => true
+      case Newspaper2024           => true
+      case GW2024                  => true
+      case Legacy                  => true
     }
   }
 
@@ -170,6 +175,13 @@ object AmendmentHandler extends CohortHandler {
               startDate,
             )
           )
+        case GW2024 =>
+          ZIO.fromEither(
+            GW2024Migration.zuoraUpdate(
+              subscriptionBeforeUpdate,
+              startDate,
+            )
+          )
         case Legacy =>
           ZIO.fromEither(
             ZuoraSubscriptionUpdate
@@ -225,14 +237,18 @@ object AmendmentHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    main(input).provideSome[Logging](
-      EnvConfig.cohortTable.layer,
-      EnvConfig.zuora.layer,
-      EnvConfig.stage.layer,
-      DynamoDBZIOLive.impl,
-      DynamoDBClientLive.impl,
-      CohortTableLive.impl(input),
-      ZuoraLive.impl
-    )
+    MigrationType(input) match {
+      case GW2024 => ZIO.succeed(HandlerOutput(isComplete = true))
+      case _ =>
+        main(input).provideSome[Logging](
+          EnvConfig.cohortTable.layer,
+          EnvConfig.zuora.layer,
+          EnvConfig.stage.layer,
+          DynamoDBZIOLive.impl,
+          DynamoDBClientLive.impl,
+          CohortTableLive.impl(input),
+          ZuoraLive.impl
+        )
+    }
   }
 }

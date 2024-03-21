@@ -6,7 +6,12 @@ import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
-import pricemigrationengine.migrations.{DigiSubs2023Migration, Membership2023Migration, newspaper2024Migration}
+import pricemigrationengine.migrations.{
+  DigiSubs2023Migration,
+  GW2024Migration,
+  Membership2023Migration,
+  newspaper2024Migration
+}
 import pricemigrationengine.model.RateplansProbe
 
 import java.time.{LocalDate, ZoneId}
@@ -99,9 +104,14 @@ object NotificationHandler extends CohortHandler {
       currencyISOCode <- ZIO.fromEither(requiredField(cohortItem.currency, "CohortItem.currency"))
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
 
-      cappedEstimatedNewPriceWithCurrencySymbol = MigrationType(cohortSpec) match {
-        case Legacy => s"${currencySymbol}${PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)}"
-        case _      => s"${currencySymbol}${estimatedNewPrice}"
+      priceWithOptionalCappingWithCurrencySymbol = MigrationType(cohortSpec) match {
+        case Legacy                  => s"${currencySymbol}${PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)}"
+        case Membership2023Monthlies => s"${currencySymbol}${estimatedNewPrice}"
+        case Membership2023Annuals   => s"${currencySymbol}${estimatedNewPrice}"
+        case SupporterPlus2023V1V2MA => s"${currencySymbol}${estimatedNewPrice}"
+        case DigiSubs2023            => s"${currencySymbol}${estimatedNewPrice}"
+        case Newspaper2024           => s"${currencySymbol}${estimatedNewPrice}"
+        case GW2024 => s"${currencySymbol}${PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, 1.25)}"
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)
@@ -123,7 +133,7 @@ object NotificationHandler extends CohortHandler {
                 billing_postal_code = postalCode,
                 billing_state = address.state,
                 billing_country = country,
-                payment_amount = cappedEstimatedNewPriceWithCurrencySymbol,
+                payment_amount = priceWithOptionalCappingWithCurrencySymbol,
                 next_payment_date = startDateConversion(startDate),
                 payment_frequency = paymentFrequency,
                 subscription_id = cohortItem.subscriptionName,
@@ -205,6 +215,7 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2023V1V2MA => SupporterPlus2023V1V2Migration.maxLeadTime
       case DigiSubs2023            => DigiSubs2023Migration.maxLeadTime
       case Newspaper2024           => newspaper2024Migration.StaticData.maxLeadTime
+      case GW2024                  => GW2024Migration.maxLeadTime
       case Legacy                  => 49
     }
   }
@@ -216,6 +227,7 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2023V1V2MA => SupporterPlus2023V1V2Migration.minLeadTime
       case DigiSubs2023            => DigiSubs2023Migration.minLeadTime
       case Newspaper2024           => newspaper2024Migration.StaticData.minLeadTime
+      case GW2024                  => GW2024Migration.minLeadTime
       case Legacy                  => 35
     }
   }

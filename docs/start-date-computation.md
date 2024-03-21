@@ -59,9 +59,9 @@ Step 2: We know that the date needs to be after today plus the end of a notifica
 
 Step 3: Our new lowerbound is the max of the two lowerbounds we have computed so far. `max(2024-05-20, 2024-04-13) = 2024-05-20`. So the start date should be after `2024-05-20`.
 
-Step 4: We now need to apply our 1 year anniversary policy. The subscription was created on 8th July 2023, meaning `2023-07-08`. We cannot price rise it before `2024-07-08`. Therefore our new lowerbound is `max(2024-05-20, 2024-07-08) = 2024-07-08`.
+Step 4: We now need to apply our [no price rise during subscription first year] policy (not price rising a subscription less than a year after its creation). The subscription was created on 8th July 2023, meaning `2023-07-08`. We cannot price rise it before `2024-07-08`. Therefore our new lowerbound is `max(2024-05-20, 2024-07-08) = 2024-07-08`.
 
-Step 5: We then apply another year policy: not price rising a subscription twice within the same 12 months. (This is a policy that is mostly symbolically implemented in the code and has a non trivial evaluation only for the Guardian Weekly 2024, where we protect for subs from the Guardian Weekly 2022 migration from being price risen too soon.) In this case our sub is undergoing its first price rise, so the lowerbound remains to `2024-07-08`.
+Step 5: We then apply the [no price rise within a year of last price rise] (not price rising a subscription twice within the same 12 months). (This is a policy that is mostly symbolically implemented in the code and has a non trivial evaluation only for the Guardian Weekly 2024, where we protect for subs from the Guardian Weekly 2022 migration from being price risen too soon.) In this case our sub is undergoing its first price rise, so the lowerbound remains to `2024-07-08`.
 
 Step 6: Our spread period is 3 months. Let's assume that the random choice returned 1, We now need to add a month to our previously computed date, which is now `2024-08-08`. 
 

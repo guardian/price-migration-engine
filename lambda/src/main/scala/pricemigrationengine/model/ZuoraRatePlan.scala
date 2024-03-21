@@ -15,7 +15,10 @@ case class ZuoraRatePlan(
 object ZuoraRatePlan {
   implicit val rw: ReadWriter[ZuoraRatePlan] = macroRW
 
-  def ratePlan(subscription: ZuoraSubscription, ratePlanCharge: ZuoraRatePlanCharge): Option[ZuoraRatePlan] =
+  def ratePlanChargeToMatchingRatePlan(
+      subscription: ZuoraSubscription,
+      ratePlanCharge: ZuoraRatePlanCharge
+  ): Option[ZuoraRatePlan] =
     subscription.ratePlans.find(_.ratePlanCharges.exists(_.number == ratePlanCharge.number))
 
   def ratePlanToCurrency(ratePlan: ZuoraRatePlan): Option[String] = {
@@ -27,5 +30,11 @@ object ZuoraRatePlan {
       ratePlanCharge <- ratePlan.ratePlanCharges.headOption
       billingPeriod <- ratePlanCharge.billingPeriod
     } yield BillingPeriod.fromString(billingPeriod)
+  }
+
+  def ratePlanToRatePlanPrice(ratePlan: ZuoraRatePlan): BigDecimal = {
+    ratePlan.ratePlanCharges.foldLeft(BigDecimal(0))((price: BigDecimal, ratePlanCharge: ZuoraRatePlanCharge) =>
+      price + ratePlanCharge.price.getOrElse(BigDecimal(0))
+    )
   }
 }

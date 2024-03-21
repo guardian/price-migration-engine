@@ -8,6 +8,7 @@ The price migration engine is an orchestration engine used to perform controlled
 
 - [An introduction to the general principles of price migrations](docs/price-migrations-from-first-principles.md)
 - [The journey of a cohort item](docs/the-journey-of-a-cohort-item.md)
+- [Coding conventions](docs/coding-conventions.md)
 - [Notification windows](docs/notification-windows.md)
 - [The art of computing start dates](docs/start-date-computation.md)
 - [Downloading fixtures](docs/downloading-fixtures.md)
