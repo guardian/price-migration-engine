@@ -39,6 +39,22 @@ object GW2024Migration {
     "ROW (USD)" -> BigDecimal(396)
   )
 
+  val migrationRatePlanNames: List[String] = List(
+    "GW Oct 18 - Monthly - Domestic",
+    "GW Oct 18 - Quarterly - Domestic",
+    "GW Oct 18 - Annual - Domestic",
+    "GW Oct 18 - Monthly - ROW",
+    "GW Oct 18 - Quarterly - ROW",
+    "GW Oct 18 - Annual - ROW",
+    "Guardian Weekly Quarterly",
+    "Guardian Weekly Annual",
+    "Guardian Weekly 1 Year",
+  )
+
+  // ------------------------------------------------
+  // Data Extraction and Manipulation
+  // ------------------------------------------------
+
   def getNewPrice(billingPeriod: BillingPeriod, extendedCurrency: Currency): Option[BigDecimal] = {
     billingPeriod match {
       case Monthly   => priceMapMonthlies.get(extendedCurrency)
@@ -48,33 +64,35 @@ object GW2024Migration {
     }
   }
 
-  // ------------------------------------------------
-  // Data Extraction and Manipulation
-  // ------------------------------------------------
+  // Note about the difference between lastChangeTypeIsAdd and lastChangeTypeIsNotRemove
+  // Sadly `lastChangeType` is not always defined on all rate plans. The situation is:
+  //     - Not defined                    -> Active rate plan
+  //     - Defined and value is "Add"     -> Active rate plan
+  //     - Defined and value is "Removed" -> Non active rate plan
+
+  def lastChangeTypeIsAdd(ratePlan: ZuoraRatePlan): Boolean = {
+    ratePlan.lastChangeType.fold(false)(_ == "Add")
+  }
+
+  def lastChangeTypeIsNotRemove(ratePlan: ZuoraRatePlan): Boolean = {
+    ratePlan.lastChangeType.fold(true)(_ != "Remove")
+  }
 
   def subscriptionToMigrationRatePlans(subscription: ZuoraSubscription): List[ZuoraRatePlan] = {
-    val migrationRatePlanNames = List(
-      "GW Oct 18 - Monthly - Domestic",
-      "GW Oct 18 - Quarterly - Domestic",
-      "GW Oct 18 - Annual - Domestic",
-      "GW Oct 18 - Monthly - ROW",
-      "GW Oct 18 - Quarterly - ROW",
-      "GW Oct 18 - Annual - ROW",
-      "Guardian Weekly Quarterly",
-      "Guardian Weekly Annual",
-      "GW Oct 18 - 1 Year - Domestic",
-      "Guardian Weekly 1 Year",
-    )
-    subscription.ratePlans.filter(rp => migrationRatePlanNames.contains(rp.ratePlanName))
+    subscription.ratePlans
+      .filter(rp => lastChangeTypeIsNotRemove(rp))
+      .filter(rp => migrationRatePlanNames.contains(rp.ratePlanName))
   }
 
   def subscriptionToMigrationRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
-    subscriptionToMigrationRatePlans(subscription: ZuoraSubscription).headOption
+    subscriptionToMigrationRatePlans(subscription) match {
+      case rp :: Nil => Some(rp)
+      case _         => None
+    }
   }
 
   def subscriptionToCurrency(
-      subscription: ZuoraSubscription,
-      account: ZuoraAccount
+      subscription: ZuoraSubscription
   ): Option[Currency] = {
     for {
       ratePlan <- subscriptionToMigrationRatePlan(subscription)
@@ -84,8 +102,8 @@ object GW2024Migration {
 
   def isROW(subscription: ZuoraSubscription, account: ZuoraAccount): Option[Boolean] = {
     for {
-      ratePlan <- subscriptionToMigrationRatePlan(subscription: ZuoraSubscription)
-      currency <- ZuoraRatePlan.ratePlanToCurrency(ratePlan: ZuoraRatePlan)
+      ratePlan <- subscriptionToMigrationRatePlan(subscription)
+      currency <- ZuoraRatePlan.ratePlanToCurrency(ratePlan)
     } yield {
       val country = account.soldToContact.country
       currency == "USD" && country != "United States"
@@ -97,8 +115,8 @@ object GW2024Migration {
       account: ZuoraAccount
   ): Option[Currency] = {
     for {
-      currency <- subscriptionToCurrency(subscription, account)
-      isROW <- isROW(subscription: ZuoraSubscription, account: ZuoraAccount)
+      currency <- subscriptionToCurrency(subscription)
+      isROW <- isROW(subscription, account)
     } yield if (isROW) "ROW (USD)" else currency
   }
 
@@ -131,7 +149,7 @@ object GW2024Migration {
       account: ZuoraAccount
   ): Either[AmendmentDataFailure, PriceData] = {
     val priceDataOpt = for {
-      currency <- subscriptionToCurrency(subscription, account)
+      currency <- subscriptionToCurrency(subscription)
       ratePlan <- subscriptionToMigrationRatePlan(subscription)
       oldPrice = ZuoraRatePlan.ratePlanToRatePlanPrice(ratePlan)
       newPrice <- getNewPrice(subscription, account)
