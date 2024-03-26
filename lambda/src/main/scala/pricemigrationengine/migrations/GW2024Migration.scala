@@ -68,17 +68,35 @@ object GW2024Migration {
     }
   }
 
+  // Note about the difference between lastChangeTypeIsAdd and lastChangeTypeIsNotRemove
+  // Sadly `lastChangeType` is not always defined on all rate plans. The situation is:
+  //     - Not defined                    -> Active rate plan
+  //     - Defined and value is "Add"     -> Active rate plan
+  //     - Defined and value is "Removed" -> Non active rate plan
+
+  def lastChangeTypeIsAdd(ratePlan: ZuoraRatePlan): Boolean = {
+    ratePlan.lastChangeType.fold(false)(_ == "Add")
+  }
+
+  def lastChangeTypeIsNotRemove(ratePlan: ZuoraRatePlan): Boolean = {
+    ratePlan.lastChangeType.fold(true)(_ != "Remove")
+  }
+
   def subscriptionToMigrationRatePlans(subscription: ZuoraSubscription): List[ZuoraRatePlan] = {
-    subscription.ratePlans.filter(rp => migrationRatePlanNames.contains(rp.ratePlanName))
+    subscription.ratePlans
+      .filter(rp => lastChangeTypeIsNotRemove(rp))
+      .filter(rp => migrationRatePlanNames.contains(rp.ratePlanName))
   }
 
   def subscriptionToMigrationRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
-    subscriptionToMigrationRatePlans(subscription: ZuoraSubscription).headOption
+    subscriptionToMigrationRatePlans(subscription: ZuoraSubscription) match {
+      case rp :: Nil => Some(rp)
+      case _         => None
+    }
   }
 
   def subscriptionToCurrency(
-      subscription: ZuoraSubscription,
-      account: ZuoraAccount
+      subscription: ZuoraSubscription
   ): Option[Currency] = {
     for {
       ratePlan <- subscriptionToMigrationRatePlan(subscription)
@@ -101,8 +119,8 @@ object GW2024Migration {
       account: ZuoraAccount
   ): Option[Currency] = {
     for {
-      currency <- subscriptionToCurrency(subscription, account)
-      isROW <- isROW(subscription: ZuoraSubscription, account: ZuoraAccount)
+      currency <- subscriptionToCurrency(subscription)
+      isROW <- isROW(subscription, account)
     } yield if (isROW) "ROW (USD)" else currency
   }
 
@@ -148,7 +166,7 @@ object GW2024Migration {
       account: ZuoraAccount
   ): Either[AmendmentDataFailure, PriceData] = {
     val priceDataOpt = for {
-      currency <- subscriptionToCurrency(subscription, account)
+      currency <- subscriptionToCurrency(subscription)
       ratePlan <- subscriptionToMigrationRatePlan(subscription)
       oldPrice = ZuoraRatePlan.ratePlanToRatePlanPrice(ratePlan)
       newPrice <- getNewPrice(subscription, account)
@@ -161,16 +179,28 @@ object GW2024Migration {
     }
   }
 
-  def zUpdate(
+  def zuoraUpdate(
       subscription: ZuoraSubscription,
       effectiveDate: LocalDate,
       oldPrice: BigDecimal,
       estimatedNewPrice: BigDecimal
-  ): Option[ZuoraSubscriptionUpdate] = {
+  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
     for {
-      ratePlan <- subscriptionToMigrationRatePlan(subscription)
-      ratePlanChargeId <- zuoraRatePlanToRatePlanChargeId(ratePlan)
-      billingPeriod <- subscriptionToBillingPeriod(subscription)
+      ratePlan <- subscriptionToMigrationRatePlan(subscription).toRight(
+        AmendmentDataFailure(
+          s"[a4d99cf3] Could not determine the Zuora migration rate plan for subscription ${subscription.subscriptionNumber}"
+        )
+      )
+      ratePlanChargeId <- zuoraRatePlanToRatePlanChargeId(ratePlan).toRight(
+        AmendmentDataFailure(
+          s"[105f6c88] Could not determine the rate plan charge id for rate plan ${ratePlan}"
+        )
+      )
+      billingPeriod <- subscriptionToBillingPeriod(subscription).toRight(
+        AmendmentDataFailure(
+          s"[17469705] Could not determine the billing period for subscription ${subscription.subscriptionNumber}"
+        )
+      )
     } yield ZuoraSubscriptionUpdate(
       add = List(
         AddZuoraRatePlan(
@@ -194,22 +224,5 @@ object GW2024Migration {
       currentTerm = None,
       currentTermPeriodType = None
     )
-  }
-
-  def zuoraUpdate(
-      subscription: ZuoraSubscription,
-      effectiveDate: LocalDate,
-      oldPrice: BigDecimal,
-      estimatedNewPrice: BigDecimal
-  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
-    zUpdate(subscription, effectiveDate, oldPrice, estimatedNewPrice) match {
-      case None =>
-        Left(
-          AmendmentDataFailure(
-            s"Could not determine the Zuora update object for subscription ${subscription.subscriptionNumber}"
-          )
-        )
-      case Some(update) => Right(update)
-    }
   }
 }
