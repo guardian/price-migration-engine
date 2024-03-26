@@ -43,6 +43,22 @@ object GW2024Migration {
     "ROW (USD)" -> BigDecimal(396)
   )
 
+  val migrationRatePlanNames: List[String] = List(
+    "GW Oct 18 - Monthly - Domestic",
+    "GW Oct 18 - Quarterly - Domestic",
+    "GW Oct 18 - Annual - Domestic",
+    "GW Oct 18 - Monthly - ROW",
+    "GW Oct 18 - Quarterly - ROW",
+    "GW Oct 18 - Annual - ROW",
+    "Guardian Weekly Quarterly",
+    "Guardian Weekly Annual",
+    "Guardian Weekly 1 Year",
+  )
+
+  // ------------------------------------------------
+  // Data Extraction and Manipulation
+  // ------------------------------------------------
+
   def getNewPrice(billingPeriod: BillingPeriod, extendedCurrency: Currency): Option[BigDecimal] = {
     billingPeriod match {
       case Monthly   => priceMapMonthlies.get(extendedCurrency)
@@ -52,23 +68,7 @@ object GW2024Migration {
     }
   }
 
-  // ------------------------------------------------
-  // Data Extraction and Manipulation
-  // ------------------------------------------------
-
   def subscriptionToMigrationRatePlans(subscription: ZuoraSubscription): List[ZuoraRatePlan] = {
-    val migrationRatePlanNames = List(
-      "GW Oct 18 - Monthly - Domestic",
-      "GW Oct 18 - Quarterly - Domestic",
-      "GW Oct 18 - Annual - Domestic",
-      "GW Oct 18 - Monthly - ROW",
-      "GW Oct 18 - Quarterly - ROW",
-      "GW Oct 18 - Annual - ROW",
-      "Guardian Weekly Quarterly",
-      "Guardian Weekly Annual",
-      "GW Oct 18 - 1 Year - Domestic",
-      "Guardian Weekly 1 Year",
-    )
     subscription.ratePlans.filter(rp => migrationRatePlanNames.contains(rp.ratePlanName))
   }
 
@@ -130,6 +130,19 @@ object GW2024Migration {
     )
   }
 
+  def zuoraRatePlanToRatePlanChargeId(zuoraRatePlan: ZuoraRatePlan): Option[String] = {
+    // This function takes a zuoraRatePlan and returns the productRatePlanChargeId, assuming that there is
+    // only one of them, otherwise there is ambiguity and the subscription is ill formed and should be investigated
+    zuoraRatePlan.ratePlanCharges match {
+      case rpc :: Nil => Some(rpc.productRatePlanChargeId)
+      case _          => None
+    }
+  }
+
+  // ------------------------------------------------
+  // Primary Functions
+  // ------------------------------------------------
+
   def priceData(
       subscription: ZuoraSubscription,
       account: ZuoraAccount
@@ -148,16 +161,55 @@ object GW2024Migration {
     }
   }
 
+  def zUpdate(
+      subscription: ZuoraSubscription,
+      effectiveDate: LocalDate,
+      oldPrice: BigDecimal,
+      estimatedNewPrice: BigDecimal
+  ): Option[ZuoraSubscriptionUpdate] = {
+    for {
+      ratePlan <- subscriptionToMigrationRatePlan(subscription)
+      ratePlanChargeId <- zuoraRatePlanToRatePlanChargeId(ratePlan)
+      billingPeriod <- subscriptionToBillingPeriod(subscription)
+    } yield ZuoraSubscriptionUpdate(
+      add = List(
+        AddZuoraRatePlan(
+          productRatePlanId = ratePlan.productRatePlanId,
+          contractEffectiveDate = effectiveDate,
+          chargeOverrides = List(
+            ChargeOverride(
+              productRatePlanChargeId = ratePlanChargeId,
+              billingPeriod = BillingPeriod.toString(billingPeriod),
+              price = PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, 1.25)
+            )
+          )
+        )
+      ),
+      remove = List(
+        RemoveZuoraRatePlan(
+          ratePlanId = ratePlan.productRatePlanId,
+          contractEffectiveDate = effectiveDate
+        )
+      ),
+      currentTerm = None,
+      currentTermPeriodType = None
+    )
+  }
+
   def zuoraUpdate(
       subscription: ZuoraSubscription,
       effectiveDate: LocalDate,
+      oldPrice: BigDecimal,
+      estimatedNewPrice: BigDecimal
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
-    for {
-      update <- Left(
-        AmendmentDataFailure(
-          s"TBD"
+    zUpdate(subscription, effectiveDate, oldPrice, estimatedNewPrice) match {
+      case None =>
+        Left(
+          AmendmentDataFailure(
+            s"Could not determine the Zuora update object for subscription ${subscription.subscriptionNumber}"
+          )
         )
-      )
-    } yield update
+      case Some(update) => Right(update)
+    }
   }
 }
