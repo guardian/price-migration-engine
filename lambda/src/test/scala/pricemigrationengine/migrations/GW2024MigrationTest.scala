@@ -282,4 +282,80 @@ class GW2024MigrationTest extends munit.FunSuite {
 
   assertEquals(LocalDate.of(2024, 4, 1).plusDays(49), LocalDate.of(2024, 5, 20))
 
+  // ------------------------------------
+
+  test("zUpdate") {
+    val subscription = Fixtures.subscriptionFromJson("GW2024/standard/subscription.json")
+    assertEquals(
+      GW2024Migration.zUpdate(
+        subscription: ZuoraSubscription,
+        effectiveDate = LocalDate.of(2024, 5, 1),
+        oldPrice = BigDecimal(360),
+        estimatedNewPrice = BigDecimal(400) // estimated price below 360 * 1.25
+      ),
+      Some(
+        ZuoraSubscriptionUpdate(
+          add = List(
+            AddZuoraRatePlan(
+              productRatePlanId = "2c92a0fe6619b4b901661aa8e66c1692",
+              contractEffectiveDate = LocalDate.of(2024, 5, 1),
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0fe6619b4b901661aa8e6811695",
+                  billingPeriod = "Annual",
+                  price = BigDecimal(400) // the estimated price
+                )
+              )
+            )
+          ),
+          remove = List(
+            RemoveZuoraRatePlan(
+              ratePlanId = "2c92a0fe6619b4b901661aa8e66c1692",
+              contractEffectiveDate = LocalDate.of(2024, 5, 1)
+            )
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
+    )
+  }
+
+  test("zUpdate (with price capping)") {
+    val subscription = Fixtures.subscriptionFromJson("GW2024/standard/subscription.json")
+    assertEquals(
+      GW2024Migration.zUpdate(
+        subscription: ZuoraSubscription,
+        effectiveDate = LocalDate.of(2024, 5, 1),
+        oldPrice = BigDecimal(360),
+        estimatedNewPrice = BigDecimal(600) // estimated price above 360 * 1.25
+      ),
+      Some(
+        ZuoraSubscriptionUpdate(
+          add = List(
+            AddZuoraRatePlan(
+              productRatePlanId = "2c92a0fe6619b4b901661aa8e66c1692",
+              contractEffectiveDate = LocalDate.of(2024, 5, 1),
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "2c92a0fe6619b4b901661aa8e6811695",
+                  billingPeriod = "Annual",
+                  price = BigDecimal(450.00) // price capped at 360 * 1.25
+                )
+              )
+            )
+          ),
+          remove = List(
+            RemoveZuoraRatePlan(
+              ratePlanId = "2c92a0fe6619b4b901661aa8e66c1692",
+              contractEffectiveDate = LocalDate.of(2024, 5, 1)
+            )
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
+    )
+  }
+
 }
