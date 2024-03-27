@@ -39,6 +39,30 @@ object GW2024Migration {
     "ROW (USD)" -> BigDecimal(396)
   )
 
+  /*
+
+      Date: 27 March 2024
+      Author: Pascal
+
+      I have downloaded all the Zuora subscriptions using the subscription
+      numbers from the migration cohort ids and extracted the rate plan names. Found:
+
+      GW Oct 18 - Monthly - Domestic
+      GW Oct 18 - Quarterly - Domestic
+      GW Oct 18 - Annual - Domestic
+      GW Oct 18 - Monthly - ROW
+      GW Oct 18 - Quarterly - ROW
+      GW Oct 18 - Annual - ROW
+      Guardian Weekly Quarterly
+      Guardian Weekly Annual
+      Guardian Weekly 1 Year
+
+      It is not necessary to do this as part of preparing and writing the code for a migration,
+      but doing so gives us an exact list of the rate plan names that we are looking for
+      and this simplifies the extraction of the rate plan that is going to be upgraded for
+      each subscription.
+   */
+
   val migrationRatePlanNames: List[String] = List(
     "GW Oct 18 - Monthly - Domestic",
     "GW Oct 18 - Quarterly - Domestic",
@@ -85,10 +109,27 @@ object GW2024Migration {
   }
 
   def subscriptionToMigrationRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
-    subscriptionToMigrationRatePlans(subscription) match {
-      case rp :: Nil => Some(rp)
-      case _         => None
-    }
+    /*
+      Date: 27 March 2024.
+      Author: Pascal
+
+      In theory, this code is slightly incorrect, because the Zuora data model
+      doesn't prevent the presence of two active (non Discounts) rate plans with
+      distinct productRatePlanIds. Because of the way we compute subscriptionToMigrationRatePlans
+      using actual rate plan names, this would be two active rate plans from the list. This is
+      unlikely but not impossible.
+
+      For argument's sake, if the above special case ever happened, then this code would be selecting
+      and price rising only the first of such rate plans.
+
+      In practice I have downloaded all the subscriptions of this migration and checked that
+      they all have just one active productRatePlanId. (With that said, and sadly, the
+      actual JSON blob does sometimes have several instances of the rate rate plan. This is
+      not a problem though, because the ZuoraSubscriptionUpdate's RemoveZuoraRatePlan refers to
+      a productRatePlanId and not the rate plan's own id)
+     */
+
+    subscriptionToMigrationRatePlans(subscription).headOption
   }
 
   def subscriptionToCurrency(
