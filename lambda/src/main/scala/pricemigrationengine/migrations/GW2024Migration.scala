@@ -95,11 +95,11 @@ object GW2024Migration {
   //     - Defined and value is "Removed" -> Non active rate plan
 
   def lastChangeTypeIsAdd(ratePlan: ZuoraRatePlan): Boolean = {
-    ratePlan.lastChangeType.fold(false)(_ == "Add")
+    ratePlan.lastChangeType.contains("Add")
   }
 
   def lastChangeTypeIsNotRemove(ratePlan: ZuoraRatePlan): Boolean = {
-    ratePlan.lastChangeType.fold(true)(_ != "Remove")
+    !ratePlan.lastChangeType.contains("Remove")
   }
 
   def subscriptionToMigrationRatePlans(subscription: ZuoraSubscription): List[ZuoraRatePlan] = {
