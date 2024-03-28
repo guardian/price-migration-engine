@@ -9,7 +9,6 @@ import zio.{Clock, ZIO}
   */
 object SalesforceAmendmentUpdateHandler extends CohortHandler {
 
-  // TODO: move to config
   private val batchSize = 2000
   private def main(
       cohortSpec: CohortSpec

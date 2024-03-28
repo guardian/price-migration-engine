@@ -180,6 +180,8 @@ object AmendmentHandler extends CohortHandler {
             GW2024Migration.zuoraUpdate(
               subscriptionBeforeUpdate,
               startDate,
+              oldPrice,
+              estimatedNewPrice
             )
           )
         case Legacy =>
