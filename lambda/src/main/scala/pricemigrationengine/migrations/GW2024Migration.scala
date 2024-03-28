@@ -189,6 +189,19 @@ object GW2024Migration {
     )
   }
 
+  def zuoraRatePlanToRatePlanChargeId(zuoraRatePlan: ZuoraRatePlan): Option[String] = {
+    // This function takes a zuoraRatePlan and returns the productRatePlanChargeId, assuming that there is
+    // only one of them, otherwise there is ambiguity and the subscription is ill formed and should be investigated
+    zuoraRatePlan.ratePlanCharges match {
+      case rpc :: Nil => Some(rpc.productRatePlanChargeId)
+      case _          => None
+    }
+  }
+
+  // ------------------------------------------------
+  // Primary Functions
+  // ------------------------------------------------
+
   def priceData(
       subscription: ZuoraSubscription,
       account: ZuoraAccount
@@ -210,13 +223,47 @@ object GW2024Migration {
   def zuoraUpdate(
       subscription: ZuoraSubscription,
       effectiveDate: LocalDate,
+      oldPrice: BigDecimal,
+      estimatedNewPrice: BigDecimal
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
     for {
-      update <- Left(
+      ratePlan <- subscriptionToMigrationRatePlan(subscription).toRight(
         AmendmentDataFailure(
-          s"TBD"
+          s"[a4d99cf3] Could not determine the Zuora migration rate plan for subscription ${subscription.subscriptionNumber}"
         )
       )
-    } yield update
+      ratePlanChargeId <- zuoraRatePlanToRatePlanChargeId(ratePlan).toRight(
+        AmendmentDataFailure(
+          s"[105f6c88] Could not determine the rate plan charge id for rate plan ${ratePlan}"
+        )
+      )
+      billingPeriod <- subscriptionToBillingPeriod(subscription).toRight(
+        AmendmentDataFailure(
+          s"[17469705] Could not determine the billing period for subscription ${subscription.subscriptionNumber}"
+        )
+      )
+    } yield ZuoraSubscriptionUpdate(
+      add = List(
+        AddZuoraRatePlan(
+          productRatePlanId = ratePlan.productRatePlanId,
+          contractEffectiveDate = effectiveDate,
+          chargeOverrides = List(
+            ChargeOverride(
+              productRatePlanChargeId = ratePlanChargeId,
+              billingPeriod = BillingPeriod.toString(billingPeriod),
+              price = PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, 1.25)
+            )
+          )
+        )
+      ),
+      remove = List(
+        RemoveZuoraRatePlan(
+          ratePlanId = ratePlan.productRatePlanId,
+          contractEffectiveDate = effectiveDate
+        )
+      ),
+      currentTerm = None,
+      currentTermPeriodType = None
+    )
   }
 }
