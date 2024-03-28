@@ -43,6 +43,46 @@ object GW2024Migration {
     "ROW (USD)" -> BigDecimal(396)
   )
 
+  /*
+
+      Date: 27 March 2024
+      Author: Pascal
+
+      I have downloaded all the Zuora subscriptions using the subscription
+      numbers from the migration cohort ids and extracted the rate plan names. Found:
+
+      GW Oct 18 - Monthly - Domestic
+      GW Oct 18 - Quarterly - Domestic
+      GW Oct 18 - Annual - Domestic
+      GW Oct 18 - Monthly - ROW
+      GW Oct 18 - Quarterly - ROW
+      GW Oct 18 - Annual - ROW
+      Guardian Weekly Quarterly
+      Guardian Weekly Annual
+      Guardian Weekly 1 Year
+
+      It is not necessary to do this as part of preparing and writing the code for a migration,
+      but doing so gives us an exact list of the rate plan names that we are looking for
+      and this simplifies the extraction of the rate plan that is going to be upgraded for
+      each subscription.
+   */
+
+  val migrationRatePlanNames: List[String] = List(
+    "GW Oct 18 - Monthly - Domestic",
+    "GW Oct 18 - Quarterly - Domestic",
+    "GW Oct 18 - Annual - Domestic",
+    "GW Oct 18 - Monthly - ROW",
+    "GW Oct 18 - Quarterly - ROW",
+    "GW Oct 18 - Annual - ROW",
+    "Guardian Weekly Quarterly",
+    "Guardian Weekly Annual",
+    "Guardian Weekly 1 Year",
+  )
+
+  // ------------------------------------------------
+  // Data Extraction and Manipulation
+  // ------------------------------------------------
+
   def getNewPrice(billingPeriod: BillingPeriod, extendedCurrency: Currency): Option[BigDecimal] = {
     billingPeriod match {
       case Monthly   => priceMapMonthlies.get(extendedCurrency)
@@ -52,33 +92,52 @@ object GW2024Migration {
     }
   }
 
-  // ------------------------------------------------
-  // Data Extraction and Manipulation
-  // ------------------------------------------------
+  // Note about the difference between lastChangeTypeIsAdd and lastChangeTypeIsNotRemove
+  // Sadly `lastChangeType` is not always defined on all rate plans. The situation is:
+  //     - Not defined                    -> Active rate plan
+  //     - Defined and value is "Add"     -> Active rate plan
+  //     - Defined and value is "Removed" -> Non active rate plan
+
+  def lastChangeTypeIsAdd(ratePlan: ZuoraRatePlan): Boolean = {
+    ratePlan.lastChangeType.contains("Add")
+  }
+
+  def lastChangeTypeIsNotRemove(ratePlan: ZuoraRatePlan): Boolean = {
+    !ratePlan.lastChangeType.contains("Remove")
+  }
 
   def subscriptionToMigrationRatePlans(subscription: ZuoraSubscription): List[ZuoraRatePlan] = {
-    val migrationRatePlanNames = List(
-      "GW Oct 18 - Monthly - Domestic",
-      "GW Oct 18 - Quarterly - Domestic",
-      "GW Oct 18 - Annual - Domestic",
-      "GW Oct 18 - Monthly - ROW",
-      "GW Oct 18 - Quarterly - ROW",
-      "GW Oct 18 - Annual - ROW",
-      "Guardian Weekly Quarterly",
-      "Guardian Weekly Annual",
-      "GW Oct 18 - 1 Year - Domestic",
-      "Guardian Weekly 1 Year",
-    )
-    subscription.ratePlans.filter(rp => migrationRatePlanNames.contains(rp.ratePlanName))
+    subscription.ratePlans
+      .filter(rp => lastChangeTypeIsNotRemove(rp))
+      .filter(rp => migrationRatePlanNames.contains(rp.ratePlanName))
   }
 
   def subscriptionToMigrationRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
-    subscriptionToMigrationRatePlans(subscription: ZuoraSubscription).headOption
+    /*
+      Date: 27 March 2024.
+      Author: Pascal
+
+      In theory, this code is slightly incorrect, because the Zuora data model
+      doesn't prevent the presence of two active (non Discounts) rate plans with
+      distinct productRatePlanIds. Because of the way we compute subscriptionToMigrationRatePlans
+      using actual rate plan names, this would be two active rate plans from the list. This is
+      unlikely but not impossible.
+
+      For argument's sake, if the above special case ever happened, then this code would be selecting
+      and price rising only the first of such rate plans.
+
+      In practice I have downloaded all the subscriptions of this migration and checked that
+      they all have just one active productRatePlanId. (With that said, and sadly, the
+      actual JSON blob does sometimes have several instances of the rate rate plan. This is
+      not a problem though, because the ZuoraSubscriptionUpdate's RemoveZuoraRatePlan refers to
+      a productRatePlanId and not the rate plan's own id)
+     */
+
+    subscriptionToMigrationRatePlans(subscription).headOption
   }
 
   def subscriptionToCurrency(
-      subscription: ZuoraSubscription,
-      account: ZuoraAccount
+      subscription: ZuoraSubscription
   ): Option[Currency] = {
     for {
       ratePlan <- subscriptionToMigrationRatePlan(subscription)
@@ -88,8 +147,8 @@ object GW2024Migration {
 
   def isROW(subscription: ZuoraSubscription, account: ZuoraAccount): Option[Boolean] = {
     for {
-      ratePlan <- subscriptionToMigrationRatePlan(subscription: ZuoraSubscription)
-      currency <- ZuoraRatePlan.ratePlanToCurrency(ratePlan: ZuoraRatePlan)
+      ratePlan <- subscriptionToMigrationRatePlan(subscription)
+      currency <- ZuoraRatePlan.ratePlanToCurrency(ratePlan)
     } yield {
       val country = account.soldToContact.country
       currency == "USD" && country != "United States"
@@ -101,8 +160,8 @@ object GW2024Migration {
       account: ZuoraAccount
   ): Option[Currency] = {
     for {
-      currency <- subscriptionToCurrency(subscription, account)
-      isROW <- isROW(subscription: ZuoraSubscription, account: ZuoraAccount)
+      currency <- subscriptionToCurrency(subscription)
+      isROW <- isROW(subscription, account)
     } yield if (isROW) "ROW (USD)" else currency
   }
 
@@ -135,7 +194,7 @@ object GW2024Migration {
       account: ZuoraAccount
   ): Either[AmendmentDataFailure, PriceData] = {
     val priceDataOpt = for {
-      currency <- subscriptionToCurrency(subscription, account)
+      currency <- subscriptionToCurrency(subscription)
       ratePlan <- subscriptionToMigrationRatePlan(subscription)
       oldPrice = ZuoraRatePlan.ratePlanToRatePlanPrice(ratePlan)
       newPrice <- getNewPrice(subscription, account)

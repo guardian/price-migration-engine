@@ -22,6 +22,82 @@ class GW2024MigrationTest extends munit.FunSuite {
 
   // -------------------------------------
 
+  test("Rate plan (s) determination is correct (standard)") {
+    val subscription = Fixtures.subscriptionFromJson("GW2024/standard/subscription.json")
+    assertEquals(
+      GW2024Migration.subscriptionToMigrationRatePlans(subscription),
+      List(
+        ZuoraRatePlan(
+          id = "8a128d6988b434050188d210ef897dc2",
+          productName = "Guardian Weekly - Domestic",
+          productRatePlanId = "2c92a0fe6619b4b901661aa8e66c1692",
+          ratePlanName = "GW Oct 18 - Annual - Domestic",
+          ratePlanCharges = List(
+            ZuoraRatePlanCharge(
+              productRatePlanChargeId = "2c92a0fe6619b4b901661aa8e6811695",
+              name = "GW Oct 18 - Annual - Domestic",
+              number = "C-02169680",
+              currency = "USD",
+              price = Some(BigDecimal(300.0)),
+              billingPeriod = Some("Annual"),
+              chargedThroughDate = Some(LocalDate.of(2024, 6, 19)),
+              processedThroughDate = Some(LocalDate.of(2023, 6, 19)),
+              specificBillingPeriod = None,
+              endDateCondition = Some("Subscription_End"),
+              upToPeriodsType = None,
+              upToPeriods = None,
+              billingDay = Some("ChargeTriggerDay"),
+              triggerEvent = Some("CustomerAcceptance"),
+              triggerDate = None,
+              discountPercentage = None,
+              originalOrderDate = Some(LocalDate.of(2020, 6, 8))
+            )
+          ),
+          lastChangeType = Some("Add")
+        )
+      )
+    )
+  }
+
+  test("Rate plan (s) determination is correct (ROW-DomesticRatePlan)") {
+    val subscription = Fixtures.subscriptionFromJson("GW2024/ROW-DomesticRatePlan/subscription.json")
+    assertEquals(
+      GW2024Migration.subscriptionToMigrationRatePlans(subscription),
+      List(
+        ZuoraRatePlan(
+          id = "8a128d0788e11b350188f63ab4995f7a",
+          productName = "Guardian Weekly - Domestic",
+          productRatePlanId = "2c92a0fe6619b4b901661aa8e66c1692",
+          ratePlanName = "GW Oct 18 - Annual - Domestic",
+          ratePlanCharges = List(
+            ZuoraRatePlanCharge(
+              productRatePlanChargeId = "2c92a0fe6619b4b901661aa8e6811695",
+              name = "GW Oct 18 - Annual - Domestic",
+              number = "C-02182036",
+              currency = "USD",
+              price = Some(BigDecimal(300.0)),
+              billingPeriod = Some("Annual"),
+              chargedThroughDate = Some(LocalDate.of(2024, 6, 26)),
+              processedThroughDate = Some(LocalDate.of(2023, 6, 26)),
+              specificBillingPeriod = None,
+              endDateCondition = Some("Subscription_End"),
+              upToPeriodsType = None,
+              upToPeriods = None,
+              billingDay = Some("ChargeTriggerDay"),
+              triggerEvent = Some("CustomerAcceptance"),
+              triggerDate = None,
+              discountPercentage = None,
+              originalOrderDate = Some(LocalDate.of(2020, 6, 15))
+            )
+          ),
+          lastChangeType = None
+        )
+      )
+    )
+  }
+
+  // -------------------------------------
+
   test("Rate plan determination is correct (standard)") {
     val subscription = Fixtures.subscriptionFromJson("GW2024/standard/subscription.json")
     assertEquals(
@@ -59,13 +135,54 @@ class GW2024MigrationTest extends munit.FunSuite {
     )
   }
 
+  test("Rate plan determination is correct (ROW-DomesticRatePlan)") {
+    // This test is used to show the difference between lastChangeTypeIsAdd and lastChangeTypeIsNotRemove
+    // This is a subscription where `lastChangeType` is not defined, therefore lastChangeTypeIsAdd would not select it
+    // but lastChangeTypeIsNotRemove would
+
+    val subscription = Fixtures.subscriptionFromJson("GW2024/ROW-DomesticRatePlan/subscription.json")
+    assertEquals(
+      GW2024Migration.subscriptionToMigrationRatePlan(subscription),
+      Some(
+        ZuoraRatePlan(
+          id = "8a128d0788e11b350188f63ab4995f7a",
+          productName = "Guardian Weekly - Domestic",
+          productRatePlanId = "2c92a0fe6619b4b901661aa8e66c1692",
+          ratePlanName = "GW Oct 18 - Annual - Domestic",
+          ratePlanCharges = List(
+            ZuoraRatePlanCharge(
+              productRatePlanChargeId = "2c92a0fe6619b4b901661aa8e6811695",
+              name = "GW Oct 18 - Annual - Domestic",
+              number = "C-02182036",
+              currency = "USD",
+              price = Some(BigDecimal(300.0)),
+              billingPeriod = Some("Annual"),
+              chargedThroughDate = Some(LocalDate.of(2024, 6, 26)),
+              processedThroughDate = Some(LocalDate.of(2023, 6, 26)),
+              specificBillingPeriod = None,
+              endDateCondition = Some("Subscription_End"),
+              upToPeriodsType = None,
+              upToPeriods = None,
+              billingDay = Some("ChargeTriggerDay"),
+              triggerEvent = Some("CustomerAcceptance"),
+              triggerDate = None,
+              discountPercentage = None,
+              originalOrderDate = Some(LocalDate.of(2020, 6, 15))
+            )
+          ),
+          lastChangeType = None
+        )
+      )
+    )
+  }
+
   // -------------------------------------
 
   test("subscriptionToMigrationCurrency is correct (standard)") {
     val subscription = Fixtures.subscriptionFromJson("GW2024/standard/subscription.json")
     val account = Fixtures.accountFromJson("GW2024/standard/account.json")
     assertEquals(
-      GW2024Migration.subscriptionToCurrency(subscription, account),
+      GW2024Migration.subscriptionToCurrency(subscription),
       Some("USD")
     )
   }
@@ -74,7 +191,7 @@ class GW2024MigrationTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("GW2024/ROW-DomesticRatePlan/subscription.json")
     val account = Fixtures.accountFromJson("GW2024/ROW-DomesticRatePlan/account.json")
     assertEquals(
-      GW2024Migration.subscriptionToCurrency(subscription, account),
+      GW2024Migration.subscriptionToCurrency(subscription),
       Some("USD")
     )
   }
