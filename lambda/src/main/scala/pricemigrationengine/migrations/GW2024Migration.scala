@@ -190,12 +190,7 @@ object GW2024Migration {
   }
 
   def zuoraRatePlanToRatePlanChargeId(zuoraRatePlan: ZuoraRatePlan): Option[String] = {
-    // This function takes a zuoraRatePlan and returns the productRatePlanChargeId, assuming that there is
-    // only one of them, otherwise there is ambiguity and the subscription is ill formed and should be investigated
-    zuoraRatePlan.ratePlanCharges match {
-      case rpc :: Nil => Some(rpc.productRatePlanChargeId)
-      case _          => None
-    }
+    zuoraRatePlan.ratePlanCharges.map(rpc => rpc.productRatePlanChargeId).headOption
   }
 
   // ------------------------------------------------
