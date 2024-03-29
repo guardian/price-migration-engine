@@ -24,6 +24,9 @@ class GW2024MigrationTest extends munit.FunSuite {
 
   test("Rate plan (s) determination is correct (standard)") {
     val subscription = Fixtures.subscriptionFromJson("GW2024/standard/subscription.json")
+    // val account = Fixtures.accountFromJson("GW2024/standard/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("GW2024/standard/invoice-preview.json")
+    // val catalogue = Fixtures.productCatalogueFromJson("GW2024/standard/catalogue.json")
     assertEquals(
       GW2024Migration.subscriptionToMigrationRatePlans(subscription),
       List(
