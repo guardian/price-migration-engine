@@ -253,7 +253,7 @@ object GW2024Migration {
       ),
       remove = List(
         RemoveZuoraRatePlan(
-          ratePlanId = ratePlan.productRatePlanId,
+          ratePlanId = ratePlan.id,
           contractEffectiveDate = effectiveDate
         )
       ),

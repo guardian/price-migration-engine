@@ -428,7 +428,7 @@ class GW2024MigrationTest extends munit.FunSuite {
           ),
           remove = List(
             RemoveZuoraRatePlan(
-              ratePlanId = "2c92a0fe6619b4b901661aa8e66c1692",
+              ratePlanId = "8a128d6988b434050188d210ef897dc2",
               contractEffectiveDate = LocalDate.of(2024, 5, 1)
             )
           ),
@@ -465,7 +465,7 @@ class GW2024MigrationTest extends munit.FunSuite {
           ),
           remove = List(
             RemoveZuoraRatePlan(
-              ratePlanId = "2c92a0fe6619b4b901661aa8e66c1692",
+              ratePlanId = "8a128d6988b434050188d210ef897dc2",
               contractEffectiveDate = LocalDate.of(2024, 5, 1)
             )
           ),
