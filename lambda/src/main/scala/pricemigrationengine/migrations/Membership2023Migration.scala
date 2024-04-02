@@ -147,7 +147,11 @@ object Membership2023Migration {
     if (activeRatePlans.isEmpty)
       Left(AmendmentDataFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
     else if (activeRatePlans.size > 1)
-      Left(AmendmentDataFailure(s"Multiple rate plans to update: ${activeRatePlans.map(_.id)}"))
+      Left(
+        AmendmentDataFailure(
+          s"Multiple rate plans to update: ${activeRatePlans.map(_.id)} for subscription ${subscription.subscriptionNumber}"
+        )
+      )
     else {
 
       // At this point we know that we have exactly one activeRatePlans
@@ -184,7 +188,11 @@ object Membership2023Migration {
     if (activeRatePlans.isEmpty)
       Left(AmendmentDataFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
     else if (activeRatePlans.size > 1)
-      Left(AmendmentDataFailure(s"Multiple rate plans to update: ${activeRatePlans.map(_.id)}"))
+      Left(
+        AmendmentDataFailure(
+          s"Multiple rate plans to update: ${activeRatePlans.map(_.id)} for subscription ${subscription.subscriptionNumber}"
+        )
+      )
     else {
 
       // At this point we know that we have exactly one activeRatePlans
