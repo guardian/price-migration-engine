@@ -7,7 +7,6 @@ import zio.{Clock, IO, ZIO}
 
 object SalesforcePriceRiseCreationHandler extends CohortHandler {
 
-  // TODO: move to config
   private val batchSize = 1000
 
   private[handlers] def main(
