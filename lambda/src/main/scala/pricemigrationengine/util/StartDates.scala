@@ -36,6 +36,7 @@ object StartDates {
       case Legacy                  => None
     }
   }
+
   def cohortSpecLowerBound(
       cohortSpec: CohortSpec,
       today: LocalDate

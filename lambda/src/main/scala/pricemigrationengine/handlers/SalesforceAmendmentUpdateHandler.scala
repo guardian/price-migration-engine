@@ -9,7 +9,6 @@ import zio.{Clock, ZIO}
   */
 object SalesforceAmendmentUpdateHandler extends CohortHandler {
 
-  // TODO: move to config
   private val batchSize = 2000
   private def main(
       cohortSpec: CohortSpec
@@ -66,17 +65,13 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
       .toRight(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a newSubscriptionId field"))
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    MigrationType(input) match {
-      case GW2024 => ZIO.succeed(HandlerOutput(isComplete = true))
-      case _ =>
-        main(input).provideSome[Logging](
-          EnvConfig.cohortTable.layer,
-          EnvConfig.salesforce.layer,
-          EnvConfig.stage.layer,
-          DynamoDBZIOLive.impl,
-          DynamoDBClientLive.impl,
-          CohortTableLive.impl(input),
-          SalesforceClientLive.impl
-        )
-    }
+    main(input).provideSome[Logging](
+      EnvConfig.cohortTable.layer,
+      EnvConfig.salesforce.layer,
+      EnvConfig.stage.layer,
+      DynamoDBZIOLive.impl,
+      DynamoDBClientLive.impl,
+      CohortTableLive.impl(input),
+      SalesforceClientLive.impl
+    )
 }

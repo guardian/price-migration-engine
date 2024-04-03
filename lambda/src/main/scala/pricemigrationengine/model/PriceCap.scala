@@ -91,7 +91,6 @@ object PriceCap {
       cap: BigDecimal,
       zuoraUpdate: ZuoraSubscriptionUpdate
   ): ZuoraSubscriptionUpdate = {
-
     val shouldApplyCapping: Boolean = (oldPrice * cap) < newPrice
     if (shouldApplyCapping) {
       val correctionFactor = priceCorrectionFactor(oldPrice, newPrice, cap)
