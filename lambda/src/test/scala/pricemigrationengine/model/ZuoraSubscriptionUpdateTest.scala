@@ -7,7 +7,7 @@ import pricemigrationengine.Fixtures
 class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
 
   test("updateOfRatePlansToCurrent: updates correct rate plans on a standard monthly voucher sub") {
-    val fixtureSet = "NewspaperVoucher/Monthly"
+    val fixtureSet = "Migrations/Vouchers2022/Monthly"
     val date = LocalDate.of(2020, 5, 28)
     val update = ZuoraSubscriptionUpdate.zuoraUpdate(
       account = accountFromJson(s"$fixtureSet/Account.json"),
@@ -75,7 +75,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
   }
 
   test("updateOfRatePlansToCurrent: updates correct rate plans on a discounted monthly voucher sub") {
-    val fixtureSet = "NewspaperVoucher/MonthlyDiscounted"
+    val fixtureSet = "Migrations/Vouchers2022/MonthlyDiscounted"
     val date = LocalDate.of(2020, 6, 15)
     val update = ZuoraSubscriptionUpdate.zuoraUpdate(
       account = accountFromJson(s"$fixtureSet/Account.json"),
@@ -118,7 +118,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
   }
 
   test("updateOfRatePlansToCurrent: updates correct rate plans on a quarterly voucher sub") {
-    val fixtureSet = "NewspaperVoucher/QuarterlyVoucher"
+    val fixtureSet = "Migrations/Vouchers2022/QuarterlyVoucher"
     val date = LocalDate.of(2020, 7, 5)
     val update = ZuoraSubscriptionUpdate.zuoraUpdate(
       account = accountFromJson(s"$fixtureSet/Account.json"),
@@ -161,7 +161,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
   }
 
   test("updateOfRatePlansToCurrent: updates correct rate plans on a semi-annual voucher sub") {
-    val fixtureSet = "NewspaperVoucher/SemiAnnualVoucher"
+    val fixtureSet = "Migrations/Vouchers2022/SemiAnnualVoucher"
     val date = LocalDate.of(2020, 7, 13)
     val update = ZuoraSubscriptionUpdate.zuoraUpdate(
       account = accountFromJson(s"$fixtureSet/Account.json"),
@@ -224,7 +224,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
   }
 
   test("updateOfRatePlansToCurrent: updates correct rate plans on an annual voucher sub") {
-    val fixtureSet = "NewspaperVoucher/AnnualVoucher"
+    val fixtureSet = "Migrations/Vouchers2022/AnnualVoucher"
     val date = LocalDate.of(2020, 12, 7)
     val update = ZuoraSubscriptionUpdate.zuoraUpdate(
       account = accountFromJson(s"$fixtureSet/Account.json"),
@@ -267,7 +267,7 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
   }
 
   test("updateOfRatePlansToCurrent: extends term when term ends before effective date of update") {
-    val fixtureSet = "NewspaperVoucher/TermEndsEarly"
+    val fixtureSet = "Migrations/Vouchers2022/TermEndsEarly"
     val date = LocalDate.of(2020, 8, 5)
     val update = ZuoraSubscriptionUpdate.zuoraUpdate(
       account = accountFromJson(s"$fixtureSet/Account.json"),

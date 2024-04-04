@@ -21,10 +21,10 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     assertEquals(newPriceLookup("GBP", Quarterly).toOption.get, BigDecimal(44.94))
     assertEquals(newPriceLookup("USD", Annual).toOption.get, BigDecimal(249))
 
-    val account = Fixtures.accountFromJson("DigiSubs2023/monthly/regular/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("DigiSubs2023/monthly/regular/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("DigiSubs2023/monthly/regular/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("DigiSubs2023/monthly/regular/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/DigiSubs2023/monthly/regular/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Migrations/DigiSubs2023/monthly/regular/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Migrations/DigiSubs2023/monthly/regular/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/DigiSubs2023/monthly/regular/invoice-preview.json")
 
     val zuoraRatePlan1 = subscriptionRatePlan(subscription).toOption.get
 
@@ -125,10 +125,10 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     // considering that the initial implementation (which somehow assumed that there was only one rate plan on
     // the subscription) was probably incorrect.
 
-    val account = Fixtures.accountFromJson("DigiSubs2023/monthly/discounted/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("DigiSubs2023/monthly/discounted/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("DigiSubs2023/monthly/discounted/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("DigiSubs2023/monthly/discounted/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/DigiSubs2023/monthly/discounted/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Migrations/DigiSubs2023/monthly/discounted/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Migrations/DigiSubs2023/monthly/discounted/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/DigiSubs2023/monthly/discounted/invoice-preview.json")
 
     val zuoraRatePlan1 = subscriptionRatePlan(subscription).toOption.get
 
@@ -259,10 +259,10 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     assertEquals(newPriceLookup("GBP", Quarterly).toOption.get, BigDecimal(44.94))
     assertEquals(newPriceLookup("USD", Annual).toOption.get, BigDecimal(249))
 
-    val account = Fixtures.accountFromJson("DigiSubs2023/quarterly/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("DigiSubs2023/quarterly/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("DigiSubs2023/quarterly/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("DigiSubs2023/quarterly/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/DigiSubs2023/quarterly/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Migrations/DigiSubs2023/quarterly/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Migrations/DigiSubs2023/quarterly/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/DigiSubs2023/quarterly/invoice-preview.json")
 
     val zuoraRatePlan1 = subscriptionRatePlan(subscription).toOption.get
 
@@ -365,10 +365,10 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     assertEquals(newPriceLookup("GBP", Quarterly).toOption.get, BigDecimal(44.94))
     assertEquals(newPriceLookup("USD", Annual).toOption.get, BigDecimal(249))
 
-    val account = Fixtures.accountFromJson("DigiSubs2023/annual/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("DigiSubs2023/annual/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("DigiSubs2023/annual/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("DigiSubs2023/annual/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/DigiSubs2023/annual/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Migrations/DigiSubs2023/annual/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Migrations/DigiSubs2023/annual/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/DigiSubs2023/annual/invoice-preview.json")
 
     val zuoraRatePlan1 = subscriptionRatePlan(subscription).toOption.get
 

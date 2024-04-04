@@ -80,7 +80,7 @@ The cohort as a whole has a start date, which is set in the cohort spec. So for 
 
 We spread the dates out to reduce impact on our CSR's, because quite a few people cancel because of the price-rise, so if we spread it out we can reduce traffic of people calling our CSR's to cancel their subscription (you can't cancel subscriptions through manage.theguardian.com so customers are forced to phone in)
 
-2. We make sure the startDate of the new rate plan matches the start date of a future invoice. E.g.: [here is a test that generates the new startDate for a subscription:](./src/test/scala/pricemigrationengine/model/AmendmentDataTest.scala#L20-L26), it ensures the startDate is equal to the [serviceStartDate property on this invoice object:](./src/test/resources/NewspaperDelivery/Everyday+/InvoicePreview.json#L46-L66)
+2. We make sure the startDate of the new rate plan matches the start date of a future invoice. E.g.: [here is a test that generates the new startDate for a subscription:](./src/test/scala/pricemigrationengine/model/AmendmentDataTest.scala#L20-L26), it ensures the startDate is equal to the [serviceStartDate property on this invoice object:](./src/test/resources/Migrations/NewspaperDelivery/Everyday+/InvoicePreview.json#L46-L66)
 
 ### To run lambdas locally in Intellij
 
@@ -217,7 +217,7 @@ details.
 
 Subscriptions and InvoicePreviews from the Zuora API can contain sensitive data. We are therefore
 using [FixtureSubscriptionCleaner.scala](./src/test/scala/pricemigrationengine/FixtureSubscriptionCleaner.scala)
-and [FixtureInvoiceCleaner.scala](./src/test/scala/pricemigrationengine) to search and replace this data. They accept the file path within the resources folder as an argument, e.g.: `NewspaperDelivery/Everyday/Subscription.json`. There is no automated script to run these over the whole resources folder, so they must be run on each new file, the result will then be printed to the console and need to be manually copied into file. 
+and [FixtureInvoiceCleaner.scala](./src/test/scala/pricemigrationengine) to search and replace this data. They accept the file path within the resources folder as an argument, e.g.: `Migrations/NewspaperDelivery/Everyday/Subscription.json`. There is no automated script to run these over the whole resources folder, so they must be run on each new file, the result will then be printed to the console and need to be manually copied into file. 
 
 ## Inspecting and debugging processed subscriptions
 
