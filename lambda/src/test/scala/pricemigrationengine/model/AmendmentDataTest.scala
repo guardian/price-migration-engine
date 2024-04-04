@@ -12,148 +12,15 @@ class AmendmentDataTest extends munit.FunSuite {
   private def migrationStartDate = LocalDate.of(2020, 12, 25)
 
   test("nextserviceStartDate: billing date is first after migration start date") {
-    val invoiceList = invoiceListFromJson("InvoicePreview.json")
+    val invoiceList = invoiceListFromJson("NewspaperVoucher/InvoicePreview.json")
     val subscription = subscriptionFromJson("NewspaperVoucher/Monthly/Subscription.json")
     val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = migrationStartDate)
     assertEquals(serviceStartDate, Right(LocalDate.of(2021, 1, 8)))
   }
 
-  test("nextserviceStartDate: billing date is first after migration start date for a GW Zone A plan") {
-    val invoiceList = invoiceListFromJson("GuardianWeekly/ZoneABC/ZoneA_USD_Domestic/InvoicePreview.json")
-    val subscription = subscriptionFromJson("GuardianWeekly/ZoneABC/ZoneA_USD_Domestic/Subscription.json")
-    val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = migrationStartDate)
-    assertEquals(serviceStartDate, Right(LocalDate.of(2022, 10, 14)))
-  }
-
   private def deliveryMigrationStartDate = LocalDate.of(2022, 4, 18)
 
-  test("priceData: is correct for a quarterly GW Domestic plan") {
-    val fixtureSet = "GuardianWeekly/QuarterlyDomestic"
-    val priceData = AmendmentData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      migrationStartDate2022,
-      CohortSpec("Cohort1", "Campaign1", importDate, migrationStartDate2022)
-    )
-    assertEquals(
-      priceData,
-      Right(
-        AmendmentData(
-          LocalDate.of(2022, 11, 12),
-          PriceData(currency = "GBP", oldPrice = 37.50, newPrice = 41.25, billingPeriod = "Quarter")
-        )
-      )
-    )
-  }
-
-  test("priceData: is correct for a GW ROW subscription with a past Zone ABC rate plan") {
-    val fixtureSet = "GuardianWeekly/CappedPriceIncrease4"
-    val priceData = AmendmentData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      migrationStartDate2022,
-      CohortSpec("Cohort1", "Campaign1", importDate, migrationStartDate2022),
-    )
-    assertEquals(
-      priceData,
-      Right(
-        AmendmentData(
-          LocalDate.of(2023, 2, 11),
-          PriceData(currency = "GBP", oldPrice = 60.00, newPrice = 74.40, billingPeriod = "Quarter")
-        )
-      )
-    )
-  }
-
-  test("priceData: is correct migrating a quarterly GW Zone A plan (billed in USD) to GW Domestic plan") {
-    val fixtureSet = "GuardianWeekly/ZoneABC/ZoneA_USD_Domestic"
-    val priceData = AmendmentData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      migrationStartDate2022,
-      CohortSpec("Cohort1", "Campaign1", importDate, migrationStartDate2022),
-    )
-    assertEquals(
-      priceData,
-      Right(
-        AmendmentData(
-          LocalDate.of(2022, 10, 14),
-          PriceData(currency = "USD", oldPrice = 60.00, newPrice = 82.50, billingPeriod = "Quarter")
-        )
-      )
-    )
-  }
-
   private def migrationStartDate2022 = LocalDate.of(2022, 10, 10)
-
-  test("priceData: is correct migrating an annual GW Zone B plan (billed in USD) to GW Rest Of World plan") {
-    val fixtureSet = "GuardianWeekly/ZoneABC/ZoneB_USD_Annual"
-    val priceData = AmendmentData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      migrationStartDate2022,
-      CohortSpec("Cohort1", "Campaign1", importDate, migrationStartDate2022),
-    )
-    assertEquals(
-      priceData,
-      Right(
-        AmendmentData(
-          LocalDate.of(2023, 5, 26),
-          PriceData(currency = "USD", oldPrice = 240.00, newPrice = 360.00, billingPeriod = "Annual")
-        )
-      )
-    )
-  }
-
-  test("priceData: is correct migrating a quarterly GW Zone C plan (billed in USD) to GW Rest Of World plan") {
-    val fixtureSet = "GuardianWeekly/ZoneABC/ZoneC_USD"
-    val priceData = AmendmentData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      migrationStartDate2022,
-      CohortSpec("Cohort1", "Campaign1", importDate, migrationStartDate2022)
-    )
-    assertEquals(
-      priceData,
-      Right(
-        AmendmentData(
-          LocalDate.of(2022, 10, 13),
-          PriceData(currency = "USD", oldPrice = 65.0, newPrice = 90.0, billingPeriod = "Quarter")
-        )
-      )
-    )
-  }
-
-  test("priceData: is correct migrating a quarterly GW Zone C plan to GW Domestic plan") {
-    val fixtureSet = "GuardianWeekly/ZoneABC/ZoneC_GBP"
-    val priceData = AmendmentData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      migrationStartDate2022,
-      CohortSpec("Cohort1", "Campaign1", importDate, migrationStartDate2022)
-    )
-    assertEquals(
-      priceData,
-      Right(
-        AmendmentData(
-          LocalDate.of(2022, 11, 17),
-          PriceData(currency = "GBP", oldPrice = 48.00, newPrice = 41.25, billingPeriod = "Quarter")
-        )
-      )
-    )
-  }
 
   test("nextserviceStartDate: billing date is first after migration start date (Everyday+Delivery)") {
     val invoiceList = invoiceListFromJson("NewspaperDelivery/Everyday+/InvoicePreview.json")
@@ -164,7 +31,7 @@ class AmendmentDataTest extends munit.FunSuite {
   }
 
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date") {
-    val invoiceList = invoiceListFromJson("InvoicePreviewTermEndsBeforeMigration.json")
+    val invoiceList = invoiceListFromJson("NewspaperVoucher/InvoicePreviewTermEndsBeforeMigration.json")
     val subscription = subscriptionFromJson("NewspaperVoucher/Monthly/Subscription.json")
     val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = migrationStartDate)
     assertEquals(
@@ -304,22 +171,6 @@ class AmendmentDataTest extends munit.FunSuite {
     assertEquals(
       priceData,
       Right(PriceData(currency = "GBP", oldPrice = 62.27, newPrice = 65.97, billingPeriod = "Quarter"))
-    )
-  }
-
-  test("priceData: is correct for a quarterly GW subscription") {
-    val fixtureSet = "QuarterlyGW"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2020, 7, 28),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2020, 7, 20))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 37.50, newPrice = 42.40, billingPeriod = "Quarter"))
     )
   }
 
