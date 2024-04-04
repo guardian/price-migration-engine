@@ -505,10 +505,10 @@ class AmendmentDataTest extends munit.FunSuite {
     val cohortSpec =
       CohortSpec("Membership2023_Batch1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
 
-    val account = Fixtures.accountFromJson("Membership2023/Batch1/GBP/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch1/GBP/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch1/GBP/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch1/GBP/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch1/GBP/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch1/GBP/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch1/GBP/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch1/GBP/invoice-preview.json")
 
     val priceData =
       AmendmentData.priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2023, 1, 26), cohortSpec)
@@ -525,10 +525,10 @@ class AmendmentDataTest extends munit.FunSuite {
     val cohortSpec =
       CohortSpec("Membership2023_Batch1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
 
-    val account = Fixtures.accountFromJson("Membership2023/Batch1/AUD/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch1/AUD/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch1/AUD/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch1/AUD/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch1/AUD/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch1/AUD/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch1/AUD/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch1/AUD/invoice-preview.json")
 
     val priceData =
       AmendmentData.priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2023, 1, 26), cohortSpec)
@@ -543,10 +543,10 @@ class AmendmentDataTest extends munit.FunSuite {
     val cohortSpec =
       CohortSpec("Membership2023_Batch2", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 6, 1))
 
-    val account = Fixtures.accountFromJson("Membership2023/Batch1/GBP/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch1/GBP/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch1/GBP/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch1/GBP/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch1/GBP/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch1/GBP/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch1/GBP/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch1/GBP/invoice-preview.json")
 
     val priceData =
       AmendmentData.priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2023, 1, 26), cohortSpec)
@@ -561,10 +561,10 @@ class AmendmentDataTest extends munit.FunSuite {
     val cohortSpec =
       CohortSpec("Membership2023_Batch2", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 6, 1))
 
-    val account = Fixtures.accountFromJson("Membership2023/Batch1/AUD/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch1/AUD/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch1/AUD/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch1/AUD/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch1/AUD/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch1/AUD/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch1/AUD/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch1/AUD/invoice-preview.json")
 
     val priceData =
       AmendmentData.priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2023, 1, 26), cohortSpec)
@@ -579,10 +579,10 @@ class AmendmentDataTest extends munit.FunSuite {
     val cohortSpec =
       CohortSpec("Membership2023_Batch3", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 7, 1))
 
-    val account = Fixtures.accountFromJson("Membership2023/Batch3/GBP/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch3/GBP/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch3/GBP/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch3/GBP/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch3/GBP/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch3/GBP/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch3/GBP/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch3/GBP/invoice-preview.json")
 
     val priceData =
       AmendmentData.priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2024, 1, 20), cohortSpec)
@@ -597,10 +597,10 @@ class AmendmentDataTest extends munit.FunSuite {
     val cohortSpec =
       CohortSpec("Membership2023_Batch3", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 7, 1))
 
-    val account = Fixtures.accountFromJson("Membership2023/Batch3/USD/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch3/USD/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch3/USD/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch3/USD/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch3/USD/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch3/USD/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch3/USD/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch3/USD/invoice-preview.json")
 
     val priceData =
       AmendmentData.priceData(account, catalogue, subscription, invoicePreview, LocalDate.of(2024, 1, 20), cohortSpec)

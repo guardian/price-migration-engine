@@ -47,10 +47,10 @@ object EstimationHandlerTest extends ZIOSpecDefault {
           CohortSpec("Membership2023_Batch1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
         val startDate = cohortSpec.earliestPriceMigrationStartDate
 
-        val account = Fixtures.accountFromJson("Membership2023/Batch1/GBP/account.json")
-        val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch1/GBP/catalogue.json")
-        val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch1/GBP/subscription.json")
-        val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch1/GBP/invoice-preview.json")
+        val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch1/GBP/account.json")
+        val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch1/GBP/catalogue.json")
+        val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch1/GBP/subscription.json")
+        val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch1/GBP/invoice-preview.json")
 
         // In the test, the actual startDate and the cohort's cohortSpec earliestPriceMigrationStartDate are same (which is fine)
         val estimationResult = EstimationResult(account, catalogue, subscription, invoicePreview, startDate, cohortSpec)
@@ -69,10 +69,10 @@ object EstimationHandlerTest extends ZIOSpecDefault {
           CohortSpec("Membership2023_Batch2", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 6, 1))
         val startDate = cohortSpec.earliestPriceMigrationStartDate
 
-        val account = Fixtures.accountFromJson("Membership2023/Batch1/GBP/account.json")
-        val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch1/GBP/catalogue.json")
-        val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch1/GBP/subscription.json")
-        val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch1/GBP/invoice-preview.json")
+        val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch1/GBP/account.json")
+        val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch1/GBP/catalogue.json")
+        val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch1/GBP/subscription.json")
+        val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch1/GBP/invoice-preview.json")
 
         // In the test, the actual startDate and the cohort's cohortSpec earliestPriceMigrationStartDate are same (which is fine)
         val estimationResult = EstimationResult(account, catalogue, subscription, invoicePreview, startDate, cohortSpec)
@@ -93,10 +93,10 @@ object EstimationHandlerTest extends ZIOSpecDefault {
           CohortSpec("Membership2023_Batch3", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 7, 1))
         val startDate = cohortSpec.earliestPriceMigrationStartDate
 
-        val account = Fixtures.accountFromJson("Membership2023/Batch3/GBP/account.json")
-        val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch3/GBP/catalogue.json")
-        val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch3/GBP/subscription.json")
-        val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch3/GBP/invoice-preview.json")
+        val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch3/GBP/account.json")
+        val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch3/GBP/catalogue.json")
+        val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch3/GBP/subscription.json")
+        val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch3/GBP/invoice-preview.json")
 
         val estimationResult = EstimationResult(account, catalogue, subscription, invoicePreview, startDate, cohortSpec)
 
@@ -113,10 +113,10 @@ object EstimationHandlerTest extends ZIOSpecDefault {
           CohortSpec("Membership2023_Batch3", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 7, 1))
         val startDate = cohortSpec.earliestPriceMigrationStartDate
 
-        val account = Fixtures.accountFromJson("Membership2023/Batch3/USD/account.json")
-        val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch3/USD/catalogue.json")
-        val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch3/USD/subscription.json")
-        val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch3/USD/invoice-preview.json")
+        val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch3/USD/account.json")
+        val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch3/USD/catalogue.json")
+        val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch3/USD/subscription.json")
+        val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch3/USD/invoice-preview.json")
 
         val estimationResult = EstimationResult(account, catalogue, subscription, invoicePreview, startDate, cohortSpec)
 
