@@ -58,3 +58,12 @@ As part of setting up a migration you will want to run some of the lambdas on de
 
 The difference between the two is that the former is used to run specific lambdas and the latter used to run the state machine itself. They both carry the same information.
 
+## Downloading the Cohort Tables
+
+As part of preparing / running a migratition, it is often useful to run processes on the entire cohort table. It is not easy to query Dynamo tables directly but you can download the entirety of the records as JSON objects. Here is the command that Pascal has been using: (You only need the Janus credentials, also in this case given for the PriceMigration-PROD-GW2024 table)
+
+"""
+aws dynamodb scan --region eu-west-1 --table-name PriceMigration-PROD-GW2024 --select ALL_ATTRIBUTES --page-size 50000 --max-items 50000 --output json --profile membership > 02-data.json
+"""
+
+If the table that you are downloading has more than 50,000 items, and you want all of them, just update that number.
