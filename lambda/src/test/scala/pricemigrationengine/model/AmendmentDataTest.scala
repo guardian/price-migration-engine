@@ -31,7 +31,7 @@ class AmendmentDataTest extends munit.FunSuite {
   }
 
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date") {
-    val invoiceList = invoiceListFromJson("InvoicePreviewTermEndsBeforeMigration.json")
+    val invoiceList = invoiceListFromJson("NewspaperVoucher/InvoicePreviewTermEndsBeforeMigration.json")
     val subscription = subscriptionFromJson("NewspaperVoucher/Monthly/Subscription.json")
     val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = migrationStartDate)
     assertEquals(
