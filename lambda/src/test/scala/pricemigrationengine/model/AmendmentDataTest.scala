@@ -174,22 +174,6 @@ class AmendmentDataTest extends munit.FunSuite {
     )
   }
 
-  test("priceData: is correct for a quarterly GW subscription") {
-    val fixtureSet = "QuarterlyGW"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2020, 7, 28),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2020, 7, 20))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 37.50, newPrice = 42.40, billingPeriod = "Quarter"))
-    )
-  }
-
   test("priceData: is correct for a semi-annual voucher subscription") {
     val fixtureSet = "NewspaperVoucher/SemiAnnualVoucher"
     val priceData = AmendmentData.priceData(

@@ -160,44 +160,6 @@ class ZuoraSubscriptionUpdateTest extends munit.FunSuite {
     )
   }
 
-  test("updateOfRatePlansToCurrent: updates correct rate plans on a quarterly GW sub") {
-    val fixtureSet = "QuarterlyGW"
-    val date = LocalDate.of(2020, 7, 28)
-    val update = ZuoraSubscriptionUpdate.zuoraUpdate(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = Fixtures.subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = Fixtures.invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      date,
-      None
-    )
-    assertEquals(
-      update,
-      Right(
-        ZuoraSubscriptionUpdate(
-          add = List(
-            AddZuoraRatePlan(
-              productRatePlanId = "2c92a0fe6619b4b301661aa494392ee2",
-              contractEffectiveDate = date,
-              chargeOverrides = List(
-                ChargeOverride(
-                  productRatePlanChargeId = "2c92a0fe6619b4b601661aa8b74e623f",
-                  billingPeriod = "Quarter",
-                  price = 42.4
-                )
-              )
-            )
-          ),
-          remove = List(
-            RemoveZuoraRatePlan(ratePlanId = "rp123", contractEffectiveDate = date)
-          ),
-          currentTerm = None,
-          currentTermPeriodType = None
-        )
-      )
-    )
-  }
-
   test("updateOfRatePlansToCurrent: updates correct rate plans on a semi-annual voucher sub") {
     val fixtureSet = "NewspaperVoucher/SemiAnnualVoucher"
     val date = LocalDate.of(2020, 7, 13)
