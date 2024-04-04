@@ -33,3 +33,28 @@ We used the Guardian Weekly 2024 migration as a teaching opportunity and split t
 ## The membership-workflow update
 
 A PR needs to be made to register in membership-workflow the name of the campaign (or canvas) the migration will use for user communication. An example (for Newspaper2024) can be found [here](https://github.com/guardian/membership-workflow/pull/505).
+
+## Cohort Specs
+
+As part of setting up a migration you will want to run some of the lambdas on demand in the AWs console. For this you will need a cohort specs object, which is used as input. Here are the two versions of cohort specs for GW2024
+
+```
+{
+    "cohortName":"GW2024",
+    "brazeCampaignName":"SV_GW_PriceRise2024Email",
+    "importStartDate":"2024-02-01",
+    "earliestPriceMigrationStartDate":"2024-05-20"
+}
+
+{
+    "cohortSpec": {
+        "cohortName":"GW2024",
+        "brazeCampaignName":"SV_GW_PriceRise2024Email",
+        "importStartDate":"2024-02-01",
+        "earliestPriceMigrationStartDate":"2024-05-20"
+    }
+}
+```
+
+The difference between the two is that the former is used to run specific lambdas and the latter used to run the state machine itself. They both carry the same information.
+
