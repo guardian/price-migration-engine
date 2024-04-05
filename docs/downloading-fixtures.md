@@ -17,7 +17,7 @@ The engine has essentially three types of tests.
 Test fixtures are put in the directory `price-migration-engine/lambda/src/test/resources`. That directory as a bit of a structure, but not extremelly strongly enforced, so do what makes sense. For isntance the directory
 
 ```
-price-migration-engine/lambda/src/test/resources/DigiSubs2023/annual
+price-migration-engine/lambda/src/test/resources/Migrations/DigiSubs2023/annual
 ```
 
 contains the files related to an annual subscription for the `DigiSubs2023` migration. We have a library
@@ -29,13 +29,13 @@ import pricemigrationengine.Fixtures
 that we use for loading and unserializing these files. For instance the file
 
 ```
-price-migration-engine/lambda/src/test/resources/DigiSubs2023/annual/subscription.json
+price-migration-engine/lambda/src/test/resources/Migrations/DigiSubs2023/annual/subscription.json
 ```
 
 will be deserialised in to subscription with 
 
 ```
-Fixtures.subscriptionFromJson("DigiSubs2023/annual/subscription.json")
+Fixtures.subscriptionFromJson("Migrations/DigiSubs2023/annual/subscription.json")
 ```
 
 ### Zuora data download

@@ -12,10 +12,10 @@ class AmendmentHandlerTest extends munit.FunSuite {
 
     // This test is going to be used as discovery to reverse engineer the way `updateOfRatePlansToCurrent` works.
 
-    val account = Fixtures.accountFromJson("Membership2023/Batch1/GBP/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch1/GBP/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch1/GBP/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch1/GBP/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch1/GBP/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch1/GBP/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch1/GBP/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch1/GBP/invoice-preview.json")
 
     // The effective date must be a billing date
     val effectiveDate = LocalDate.of(2023, 5, 13) // monthly on the 13th
@@ -119,10 +119,10 @@ class AmendmentHandlerTest extends munit.FunSuite {
 
     // This test is going to be used as discovery to reverse engineer the way `updateOfRatePlansToCurrent` works.
 
-    val account = Fixtures.accountFromJson("Membership2023/Batch3/GBP/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch3/GBP/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch3/GBP/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch3/GBP/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch3/GBP/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch3/GBP/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch3/GBP/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch3/GBP/invoice-preview.json")
 
     // The effective date must be a billing date
     val effectiveDate = LocalDate.of(2024, 1, 20) // 2024-01-20
@@ -227,10 +227,10 @@ class AmendmentHandlerTest extends munit.FunSuite {
 
     // This test is going to be used as discovery to reverse engineer the way `updateOfRatePlansToCurrent` works.
 
-    val account = Fixtures.accountFromJson("Membership2023/Batch3/USD/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("Membership2023/Batch3/USD/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("Membership2023/Batch3/USD/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Membership2023/Batch3/USD/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch3/USD/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch3/USD/catalogue.json")
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch3/USD/subscription.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch3/USD/invoice-preview.json")
 
     // The effective date must be a billing date
     val effectiveDate = LocalDate.of(2024, 1, 20) // 2024-01-20
@@ -333,10 +333,13 @@ class AmendmentHandlerTest extends munit.FunSuite {
 
   test("SupporterPlus2023V1V2 Amendment (monthly standard)") {
 
-    val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/monthly-standard/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/monthly-standard/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/monthly-standard/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/monthly-standard/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/SupporterPlus2023V1V2/monthly-standard/account.json")
+    val catalogue =
+      Fixtures.productCatalogueFromJson("Migrations/SupporterPlus2023V1V2/monthly-standard/catalogue.json")
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2023V1V2/monthly-standard/subscription.json")
+    val invoicePreview =
+      Fixtures.invoiceListFromJson("Migrations/SupporterPlus2023V1V2/monthly-standard/invoice-preview.json")
 
     // The effective date must be a billing date
     // Here we get the next billing date according to the invoice preview.
@@ -454,10 +457,13 @@ class AmendmentHandlerTest extends munit.FunSuite {
 
   test("SupporterPlus2023V1V2 Amendment (monthly contribution)") {
 
-    val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/monthly-contribution/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/monthly-contribution/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/monthly-contribution/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/monthly-contribution/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/SupporterPlus2023V1V2/monthly-contribution/account.json")
+    val catalogue =
+      Fixtures.productCatalogueFromJson("Migrations/SupporterPlus2023V1V2/monthly-contribution/catalogue.json")
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2023V1V2/monthly-contribution/subscription.json")
+    val invoicePreview =
+      Fixtures.invoiceListFromJson("Migrations/SupporterPlus2023V1V2/monthly-contribution/invoice-preview.json")
 
     // The effective date must be a billing date
     // Here we get the next billing date according to the invoice preview.
@@ -591,10 +597,12 @@ class AmendmentHandlerTest extends munit.FunSuite {
 
   test("SupporterPlus2023V1V2 Amendment (annual standard)") {
 
-    val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/annual-standard/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/annual-standard/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/annual-standard/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/annual-standard/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/SupporterPlus2023V1V2/annual-standard/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Migrations/SupporterPlus2023V1V2/annual-standard/catalogue.json")
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2023V1V2/annual-standard/subscription.json")
+    val invoicePreview =
+      Fixtures.invoiceListFromJson("Migrations/SupporterPlus2023V1V2/annual-standard/invoice-preview.json")
 
     // The effective date must be a billing date
     // Here we get the next billing date according to the invoice preview.
@@ -712,10 +720,13 @@ class AmendmentHandlerTest extends munit.FunSuite {
 
   test("SupporterPlus2023V1V2 Amendment (annual contribution)") {
 
-    val account = Fixtures.accountFromJson("SupporterPlus2023V1V2/annual-contribution/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("SupporterPlus2023V1V2/annual-contribution/catalogue.json")
-    val subscription = Fixtures.subscriptionFromJson("SupporterPlus2023V1V2/annual-contribution/subscription.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("SupporterPlus2023V1V2/annual-contribution/invoice-preview.json")
+    val account = Fixtures.accountFromJson("Migrations/SupporterPlus2023V1V2/annual-contribution/account.json")
+    val catalogue =
+      Fixtures.productCatalogueFromJson("Migrations/SupporterPlus2023V1V2/annual-contribution/catalogue.json")
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2023V1V2/annual-contribution/subscription.json")
+    val invoicePreview =
+      Fixtures.invoiceListFromJson("Migrations/SupporterPlus2023V1V2/annual-contribution/invoice-preview.json")
 
     // The effective date must be a billing date
     // Here we get the next billing date according to the invoice preview.
