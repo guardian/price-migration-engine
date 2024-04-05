@@ -181,7 +181,8 @@ object AmendmentHandler extends CohortHandler {
               subscriptionBeforeUpdate,
               startDate,
               oldPrice,
-              estimatedNewPrice
+              estimatedNewPrice,
+              GW2024Migration.priceCap
             )
           )
         case Legacy =>

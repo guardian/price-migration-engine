@@ -111,7 +111,8 @@ object NotificationHandler extends CohortHandler {
         case SupporterPlus2023V1V2MA => s"${currencySymbol}${estimatedNewPrice}"
         case DigiSubs2023            => s"${currencySymbol}${estimatedNewPrice}"
         case Newspaper2024           => s"${currencySymbol}${estimatedNewPrice}"
-        case GW2024 => s"${currencySymbol}${PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, 1.25)}"
+        case GW2024 =>
+          s"${currencySymbol}${PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GW2024Migration.priceCap)}"
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)
