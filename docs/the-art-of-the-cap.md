@@ -102,5 +102,10 @@ The logic of this function is that we provide it with the information we have, t
 
 And this is why we needed to work with the uncapped price. The updated charged are computed by applying a correction factor to the product catalogue charges, but that correction factor is a function of the old price and the uncapped new price. If we only had the old price and the capped price we would not be able to compute the correction factor, and would not be able to construct a correct `ZuoraSubscriptionUpdate`.
 
+## Conclusion
 
+The above should provide a clear explanation of why PriceCap has those two functions, `priceCapForNotification` and `priceCapForAmendment`, and why their signatures are the way they are. Note that we did not use `priceCapForAmendment` in GW2024, because we used `priceCapForNotification` directly in the construction of `ZuoraSubscriptionUpdate` (which was possible because we only have one charge). In any case, and as long as the existing library presents itself thise way, if a migration needs capping, one must make sure that capping happens at these three places:
 
+1. The Estimation step.
+2. The Salesforce price rise creation step.
+3. The Amendment step.
