@@ -2,6 +2,9 @@ package pricemigrationengine.model
 
 object PriceCap {
 
+  // Directive:
+  // If you edit this file, please keep docs/the-art-of-the-cap.md up to date.
+
   // --------------------------------------------------------
   // Part 1
 
