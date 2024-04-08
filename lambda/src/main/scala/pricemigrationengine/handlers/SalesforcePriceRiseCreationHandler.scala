@@ -1,5 +1,6 @@
 package pricemigrationengine.handlers
 
+import pricemigrationengine.migrations.GW2024Migration
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -86,8 +87,8 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
         case SupporterPlus2023V1V2MA => estimatedNewPrice
         case DigiSubs2023            => estimatedNewPrice
         case Newspaper2024           => estimatedNewPrice
-        case GW2024                  => PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, 1.25)
-        case Legacy                  => PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)
+        case GW2024 => PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GW2024Migration.priceCap)
+        case Legacy => PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)
       }
       SalesforcePriceRise(
         Some(subscription.Name),

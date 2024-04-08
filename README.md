@@ -11,6 +11,7 @@ The price migration engine is an orchestration engine used to perform controlled
 - [Coding conventions](docs/coding-conventions.md)
 - [Notification windows](docs/notification-windows.md)
 - [The art of computing start dates](docs/start-date-computation.md)
+- [The art of the cap; or how to gracefully cap prices in the engine](docs/the-art-of-the-cap.md)
 - [Downloading fixtures](docs/downloading-fixtures.md)
 - [The migration implementation manual](docs/migration-implementation-manual.md)
 

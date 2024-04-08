@@ -409,7 +409,8 @@ class GW2024MigrationTest extends munit.FunSuite {
         subscription: ZuoraSubscription,
         effectiveDate = LocalDate.of(2024, 5, 1),
         oldPrice = BigDecimal(360),
-        estimatedNewPrice = BigDecimal(400) // estimated price below 360 * 1.25
+        estimatedNewPrice = BigDecimal(400), // estimated price below 360 * 1.25
+        GW2024Migration.priceCap
       ),
       Right(
         ZuoraSubscriptionUpdate(
@@ -446,7 +447,8 @@ class GW2024MigrationTest extends munit.FunSuite {
         subscription: ZuoraSubscription,
         effectiveDate = LocalDate.of(2024, 5, 1),
         oldPrice = BigDecimal(360),
-        estimatedNewPrice = BigDecimal(600) // estimated price above 360 * 1.25
+        estimatedNewPrice = BigDecimal(600), // estimated price above 360 * 1.25
+        GW2024Migration.priceCap
       ),
       Right(
         ZuoraSubscriptionUpdate(
@@ -475,5 +477,4 @@ class GW2024MigrationTest extends munit.FunSuite {
       )
     )
   }
-
 }

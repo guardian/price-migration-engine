@@ -1,7 +1,9 @@
 package pricemigrationengine.migrations
+import pricemigrationengine.model.PriceCap
 import pricemigrationengine.model.ZuoraRatePlan
 import pricemigrationengine.model._
 import pricemigrationengine.util._
+
 import java.time.LocalDate
 
 object GW2024Migration {
@@ -9,6 +11,8 @@ object GW2024Migration {
   // ------------------------------------------------
   // Static Data
   // ------------------------------------------------
+
+  val priceCap = 1.25
 
   val maxLeadTime = 49
   val minLeadTime = 36
@@ -219,7 +223,8 @@ object GW2024Migration {
       subscription: ZuoraSubscription,
       effectiveDate: LocalDate,
       oldPrice: BigDecimal,
-      estimatedNewPrice: BigDecimal
+      estimatedNewPrice: BigDecimal,
+      priceCap: BigDecimal
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
     for {
       ratePlan <- subscriptionToMigrationRatePlan(subscription).toRight(
@@ -246,7 +251,7 @@ object GW2024Migration {
             ChargeOverride(
               productRatePlanChargeId = ratePlanChargeId,
               billingPeriod = BillingPeriod.toString(billingPeriod),
-              price = PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, 1.25)
+              price = PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, priceCap)
             )
           )
         )
