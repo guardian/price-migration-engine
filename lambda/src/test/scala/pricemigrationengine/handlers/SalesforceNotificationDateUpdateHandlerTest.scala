@@ -16,7 +16,7 @@ import scala.collection.mutable.ArrayBuffer
 
 class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
   private val subscriptionName = "Sub-0001"
-  private val whenEmailSentDate = LocalDate.of(2020, 3, 23)
+  private val whenNotificationSentDate = LocalDate.of(2020, 3, 23)
   private val priceRiseId = "price-rise-id"
   private val currentTime = Instant.parse("2020-05-21T15:16:37Z")
 
@@ -76,7 +76,7 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
     )
   }
 
-  test("SalesforceNotificationDateUpdateHandler should write whenEmailSentWrittenToSalesforce to salesforce") {
+  test("SalesforceNotificationDateUpdateHandler should write whenNotificationSentWrittenToSalesforce to salesforce") {
     val updatedPriceRises = ArrayBuffer[SalesforcePriceRise]()
     val stubSalesforceClient = stubSFClient(updatedPriceRises)
     val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
@@ -88,7 +88,7 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
       subscriptionName = subscriptionName,
       processingStage = NotificationSendComplete,
       salesforcePriceRiseId = Some(priceRiseId),
-      whenNotificationSent = Some(whenEmailSentDate.atStartOfDay().toInstant(ZoneOffset.UTC))
+      whenNotificationSent = Some(whenNotificationSentDate.atStartOfDay().toInstant(ZoneOffset.UTC))
     )
 
     val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
@@ -112,7 +112,7 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
     assertEquals(updatedPriceRises(0).Current_Price_Today__c, None)
     assertEquals(updatedPriceRises(0).Guardian_Weekly_New_Price__c, None)
     assertEquals(updatedPriceRises(0).Price_Rise_Date__c, None)
-    assertEquals(updatedPriceRises(0).Date_Letter_Sent__c, Some(whenEmailSentDate))
+    assertEquals(updatedPriceRises(0).Date_Letter_Sent__c, Some(whenNotificationSentDate))
 
     assertEquals(updatedResultsWrittenToCohortTable.size, 1)
     assertEquals(
