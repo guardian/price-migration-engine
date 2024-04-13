@@ -64,7 +64,7 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
       notificationSendTimestamp <-
         ZIO
           .fromOption(cohortItem.whenNotificationSent)
-          .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a whenEmailSent field"))
+          .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a whenNotificationSent field"))
     } yield SalesforcePriceRise(
       Date_Letter_Sent__c = Some(LocalDate.from(notificationSendTimestamp.atOffset(ZoneOffset.UTC))),
       Migration_Name__c = Some(cohortSpec.cohortName),
