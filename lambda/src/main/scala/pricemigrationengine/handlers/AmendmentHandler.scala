@@ -52,6 +52,16 @@ object AmendmentHandler extends CohortHandler {
           val result = ExpiringSubscriptionResult(item.subscriptionName)
           CohortTable.update(CohortItem.fromExpiringSubscriptionResult(result)).as(result)
         }
+        case e: ZuoraUpdateFailure => {
+          // We are only interested in the ZuoraUpdateFailures corresponding to message
+          // "Operation failed due to a lock competition"
+          // We succeed them without cohort item update to be done later.
+          if (e.reason.contains("lock competition")) {
+            ZIO.succeed(AmendmentPreventedDueToLockResult(subscriptionNumber = item.subscriptionName))
+          } else {
+            ZIO.fail(e)
+          }
+        }
         case e => ZIO.fail(e)
       },
       success = { result =>

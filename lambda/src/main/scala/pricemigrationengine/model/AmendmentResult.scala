@@ -21,3 +21,7 @@ case class CancelledAmendmentResult(
 case class ExpiringSubscriptionResult(
     subscriptionNumber: String
 ) extends AmendmentResult
+
+case class AmendmentPreventedDueToLockResult(
+    subscriptionNumber: String
+) extends AmendmentResult
