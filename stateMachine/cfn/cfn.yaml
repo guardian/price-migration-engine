@@ -481,7 +481,7 @@ Resources:
       Statistic: Sum
       TreatMissingData: ignore
       AlarmActions:
-        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:supporter-revenue-engine
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-PROD
 
   CohortStateMachineAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -505,4 +505,4 @@ Resources:
       Statistic: Sum
       TreatMissingData: ignore
       AlarmActions:
-        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:supporter-revenue-engine
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:alarms-handler-topic-PROD
