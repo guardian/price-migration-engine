@@ -402,7 +402,7 @@ Resources:
           - PriceMigrationEngineTableCreateLambdaRole
           - Arn
       MemorySize: 1536
-      Runtime: java8.al2
+      Runtime: java11
       Timeout: 900
     DependsOn:
       - PriceMigrationEngineTableCreateLambdaRole
@@ -426,7 +426,7 @@ Resources:
           - PriceMigrationEngineSubscriptionIdUploadLambdaRole
           - Arn
       MemorySize: 1536
-      Runtime: java8.al2
+      Runtime: java11
       Timeout: 900
     DependsOn:
       - PriceMigrationEngineSubscriptionIdUploadLambdaRole
@@ -451,7 +451,7 @@ Resources:
           - PriceMigrationEngineEstimationLambdaRole
           - Arn
       MemorySize: 1536
-      Runtime: java8.al2
+      Runtime: java11
       Timeout: 900
     DependsOn:
       - PriceMigrationEngineEstimationLambdaRole
@@ -475,7 +475,7 @@ Resources:
           - PriceMigrationEngineSalesforcePriceCreationLambdaRole
           - Arn
       MemorySize: 1536
-      Runtime: java8.al2
+      Runtime: java11
       Timeout: 900
     DependsOn:
       - PriceMigrationEngineSalesforcePriceCreationLambdaRole
@@ -499,7 +499,7 @@ Resources:
           - PriceMigrationEngineAmendmentLambdaRole
           - Arn
       MemorySize: 1536
-      Runtime: java8.al2
+      Runtime: java11
       Timeout: 900
     DependsOn:
       - PriceMigrationEngineAmendmentLambdaRole
@@ -525,7 +525,7 @@ Resources:
           - PriceMigrationEngineNotificationLambdaRole
           - Arn
       MemorySize: 1536
-      Runtime: java8.al2
+      Runtime: java11
       Timeout: 900
     DependsOn:
       - PriceMigrationEngineNotificationLambdaRole
@@ -549,7 +549,7 @@ Resources:
           - PriceMigrationEngineSalesforceNotificationDateUpdateLambdaRole
           - Arn
       MemorySize: 1536
-      Runtime: java8.al2
+      Runtime: java11
       Timeout: 900
     DependsOn:
       - PriceMigrationEngineSalesforceNotificationDateUpdateLambdaRole
@@ -575,7 +575,7 @@ Resources:
           - PriceMigrationEngineSalesforceAmendmentUpdateLambdaRole
           - Arn
       MemorySize: 1536
-      Runtime: java8.al2
+      Runtime: java11
       Timeout: 900
 
   PriceMigrationEngineCohortTableDatalakeExportLambda:
@@ -598,7 +598,7 @@ Resources:
           - PriceMigrationEngineCohortTableDatalakeExportLambdaRole
           - Arn
       MemorySize: 1536
-      Runtime: java8.al2
+      Runtime: java11
       Timeout: 900
     DependsOn:
       - PriceMigrationEngineCohortTableDatalakeExportLambdaRole
