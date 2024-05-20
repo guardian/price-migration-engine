@@ -12,12 +12,12 @@ The price migration engine is an orchestration engine used to perform controlled
 - [Notification windows](docs/notification-windows.md)
 - [The art of computing start dates](docs/start-date-computation.md)
 - [The art of the cap; or how to gracefully cap prices in the engine](docs/the-art-of-the-cap.md)
-- [Downloading fixtures](docs/downloading-fixtures.md)
-- [The migration implementation manual](docs/migration-implementation-manual.md)
 
 ### Operations:
 
-To set up a new cohort of subscriptions for price rise, see [cohort setup](docs/cohort-setup.md).
+- [Set up a new cohort of subscriptions for price rise](docs/cohort-setup.md).
+- [The migration implementation manual](docs/migration-implementation-manual.md)
+- [Downloading fixtures](docs/downloading-fixtures.md)
 
 ### Further documentations:
 
