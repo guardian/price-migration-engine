@@ -77,7 +77,7 @@ object NotificationHandler extends CohortHandler {
         if (sfSubscription.Status__c != Cancelled_Status) {
           sendNotification(cohortSpec, cohortItem, sfSubscription)
         } else {
-          putSubIntoCancelledStatus(cohortItem.subscriptionName)
+          putSubIntoCancelledStatus(cohortSpec, cohortItem)
         }
     } yield ()
   }
@@ -367,16 +367,52 @@ object NotificationHandler extends CohortHandler {
     } yield ()
   }
 
-  def putSubIntoCancelledStatus(subscriptionName: String): ZIO[Logging with CohortTable, Failure, Int] =
+  private def buildPriceRise(
+      cohortSpec: CohortSpec,
+      cohortItem: CohortItem
+  ): Either[SalesforcePriceRiseWriteFailure, SalesforcePriceRise] = {
+    cohortItem.newSubscriptionId
+      .map(newSubscriptionId =>
+        SalesforcePriceRise(
+          Amended_Zuora_Subscription_Id__c = Some(newSubscriptionId),
+          Migration_Name__c = Some(cohortSpec.cohortName),
+          Migration_Status__c = Some("Cancellation"),
+          Cancellation_Reason__c = Some("Subscription has been cancelled in Zuora")
+        )
+      )
+      .toRight(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a newSubscriptionId field"))
+  }
+
+  def notifySalesforceOfCancelledStatus(
+      cohortSpec: CohortSpec,
+      cohortItem: CohortItem
+  ): ZIO[Logging with SalesforceClient, Failure, Unit] = {
+    for {
+      salesforcePriceRiseId <-
+        ZIO
+          .fromOption(cohortItem.salesforcePriceRiseId)
+          .orElseFail(SalesforcePriceRiseWriteFailure("salesforcePriceRiseId is required to update Salesforce"))
+      priceRise <- ZIO.fromEither(buildPriceRise(cohortSpec, cohortItem))
+      _ <- SalesforceClient.updatePriceRise(salesforcePriceRiseId, priceRise)
+    } yield ()
+  }
+
+  def putSubIntoCancelledStatus(
+      cohortSpec: CohortSpec,
+      cohortItem: CohortItem
+  ): ZIO[Logging with SalesforceClient with CohortTable, Failure, Int] =
     for {
       _ <-
         CohortTable
           .update(
             CohortItem(
-              subscriptionName = subscriptionName,
+              subscriptionName = cohortItem.subscriptionName,
               processingStage = Cancelled
             )
           )
-      _ <- Logging.error(s"Subscription $subscriptionName has been cancelled, price rise notification not sent")
+      _ <- notifySalesforceOfCancelledStatus(cohortSpec, cohortItem)
+      _ <- Logging.error(
+        s"Subscription ${cohortItem.subscriptionName} has been cancelled, price rise notification not sent"
+      )
     } yield 0
 }

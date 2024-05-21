@@ -111,7 +111,7 @@ class NotificationHandlerTest extends munit.FunSuite {
         override def updatePriceRise(
             priceRiseId: String,
             priceRise: SalesforcePriceRise
-        ): IO[SalesforceClientFailure, Unit] = ???
+        ): IO[SalesforceClientFailure, Unit] = ZIO.succeed(())
 
         override def getContact(
             contactId: String
@@ -612,7 +612,13 @@ class NotificationHandlerTest extends munit.FunSuite {
     val cancelledSubscription = salesforceSubscription.copy(Status__c = "Cancelled")
     val stubSalesforceClient = stubSFClient(List(cancelledSubscription), List(salesforceContact))
     val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
-    val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
+    val stubCohortTable = createStubCohortTable(
+      updatedResultsWrittenToCohortTable,
+      cohortItem.copy(
+        salesforcePriceRiseId = Option("salesforcePriceRiseId"),
+        newSubscriptionId = Option("newSubscriptionId")
+      )
+    )
     val sentMessages = ArrayBuffer[EmailMessage]()
     val stubEmailSender = createStubEmailSender(sentMessages)
 
