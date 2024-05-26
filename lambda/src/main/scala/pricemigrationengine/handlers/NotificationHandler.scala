@@ -373,23 +373,6 @@ object NotificationHandler extends CohortHandler {
     } yield ()
   }
 
-  private def buildPriceRiseForCancellation(
-      cohortSpec: CohortSpec,
-      cohortItem: CohortItem,
-      reason: Option[String]
-  ): Either[SalesforcePriceRiseWriteFailure, SalesforcePriceRise] = {
-    cohortItem.newSubscriptionId
-      .map(newSubscriptionId =>
-        SalesforcePriceRise(
-          Amended_Zuora_Subscription_Id__c = Some(newSubscriptionId),
-          Migration_Name__c = Some(cohortSpec.cohortName),
-          Migration_Status__c = Some("Cancellation"),
-          Cancellation_Reason__c = reason
-        )
-      )
-      .toRight(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a newSubscriptionId field"))
-  }
-
   def notifySalesforceOfCancelledStatus(
       cohortSpec: CohortSpec,
       cohortItem: CohortItem,
@@ -400,7 +383,11 @@ object NotificationHandler extends CohortHandler {
         ZIO
           .fromOption(cohortItem.salesforcePriceRiseId)
           .orElseFail(SalesforcePriceRiseWriteFailure("salesforcePriceRiseId is required to update Salesforce"))
-      priceRise <- ZIO.fromEither(buildPriceRiseForCancellation(cohortSpec, cohortItem, reason))
+      priceRise = SalesforcePriceRise(
+        Migration_Name__c = Some(cohortSpec.cohortName),
+        Migration_Status__c = Some("Cancellation"),
+        Cancellation_Reason__c = reason
+      )
       _ <- SalesforceClient.updatePriceRise(salesforcePriceRiseId, priceRise)
     } yield ()
   }
