@@ -17,7 +17,7 @@ case class SalesforcePriceRise(
 )
 
 // [1] The processing state of the cohort item at time of salesforce notification
-//     and "Cancellation", if the item is bout to or has been cancelled.
+//     and "Cancellation", if the item is about to or has been cancelled.
 
 // Note that Cancellation_Reason__c should remain withing 255 chars. This is a limitation
 // imposed by Salesforce which came during the initial
