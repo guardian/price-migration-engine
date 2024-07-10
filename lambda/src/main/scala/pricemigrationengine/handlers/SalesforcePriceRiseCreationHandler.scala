@@ -88,7 +88,8 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
         case DigiSubs2023            => estimatedNewPrice
         case Newspaper2024           => estimatedNewPrice
         case GW2024 => PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GW2024Migration.priceCap)
-        case Legacy => PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)
+        case SupporterPlus2024 => estimatedNewPrice
+        case Legacy            => PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)
       }
       SalesforcePriceRise(
         Some(subscription.Name),

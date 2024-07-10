@@ -5,7 +5,8 @@ import pricemigrationengine.migrations.{
   GuardianWeeklyMigration,
   Membership2023Migration,
   GW2024Migration,
-  newspaper2024Migration
+  newspaper2024Migration,
+  SupporterPlus2024Migration
 }
 import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, productPricingMap}
 
@@ -326,6 +327,11 @@ object AmendmentData {
         )
       case GW2024 =>
         GW2024Migration.priceData(
+          subscription: ZuoraSubscription,
+          account: ZuoraAccount
+        )
+      case SupporterPlus2024 =>
+        SupporterPlus2024Migration.priceData(
           subscription: ZuoraSubscription,
           account: ZuoraAccount
         )

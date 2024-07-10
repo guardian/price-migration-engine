@@ -111,6 +111,7 @@ object AmendmentHandler extends CohortHandler {
       case DigiSubs2023            => true
       case Newspaper2024           => true
       case GW2024                  => true
+      case SupporterPlus2024       => true
       case Legacy                  => true
     }
   }
@@ -193,6 +194,13 @@ object AmendmentHandler extends CohortHandler {
               oldPrice,
               estimatedNewPrice,
               GW2024Migration.priceCap
+            )
+          )
+        case SupporterPlus2024 =>
+          ZIO.fromEither(
+            SupporterPlus2024Migration.zuoraUpdate(
+              subscriptionBeforeUpdate,
+              startDate
             )
           )
         case Legacy =>

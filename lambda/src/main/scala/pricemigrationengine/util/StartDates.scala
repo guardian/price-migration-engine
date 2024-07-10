@@ -33,6 +33,7 @@ object StartDates {
       case Membership2023Annuals   => None
       case DigiSubs2023            => None
       case Newspaper2024           => None
+      case SupporterPlus2024       => None
       case Legacy                  => None
     }
   }
@@ -94,6 +95,7 @@ object StartDates {
         case SupporterPlus2023V1V2MA => 3
         case DigiSubs2023            => 3
         case GW2024                  => 3
+        case SupporterPlus2024       => 3
         case Legacy                  => 3
       }
     } else 1
@@ -115,6 +117,7 @@ object StartDates {
       case Membership2023Annuals   => cohortSpecLowerBound(cohortSpec, today)
       case DigiSubs2023            => cohortSpecLowerBound(cohortSpec, today)
       case GW2024                  => cohortSpecLowerBound(cohortSpec, today)
+      case SupporterPlus2024       => cohortSpecLowerBound(cohortSpec, today)
       case Legacy                  => cohortSpecLowerBound(cohortSpec, today)
     }
 
