@@ -73,14 +73,19 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
     )
   }
 
-  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    main(input).provideSome[Logging](
-      EnvConfig.cohortTable.layer,
-      EnvConfig.salesforce.layer,
-      EnvConfig.stage.layer,
-      DynamoDBZIOLive.impl,
-      DynamoDBClientLive.impl,
-      CohortTableLive.impl(input),
-      SalesforceClientLive.impl
-    )
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
+    MigrationType(input) match {
+      case SupporterPlus2024 => ZIO.succeed(HandlerOutput(isComplete = true))
+      case _ =>
+        main(input).provideSome[Logging](
+          EnvConfig.cohortTable.layer,
+          EnvConfig.salesforce.layer,
+          EnvConfig.stage.layer,
+          DynamoDBZIOLive.impl,
+          DynamoDBClientLive.impl,
+          CohortTableLive.impl(input),
+          SalesforceClientLive.impl
+        )
+    }
+  }
 }

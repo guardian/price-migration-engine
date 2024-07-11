@@ -257,14 +257,18 @@ object AmendmentHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    main(input).provideSome[Logging](
-      EnvConfig.cohortTable.layer,
-      EnvConfig.zuora.layer,
-      EnvConfig.stage.layer,
-      DynamoDBZIOLive.impl,
-      DynamoDBClientLive.impl,
-      CohortTableLive.impl(input),
-      ZuoraLive.impl
-    )
+    MigrationType(input) match {
+      case SupporterPlus2024 => ZIO.succeed(HandlerOutput(isComplete = true))
+      case _ =>
+        main(input).provideSome[Logging](
+          EnvConfig.cohortTable.layer,
+          EnvConfig.zuora.layer,
+          EnvConfig.stage.layer,
+          DynamoDBZIOLive.impl,
+          DynamoDBClientLive.impl,
+          CohortTableLive.impl(input),
+          ZuoraLive.impl
+        )
+    }
   }
 }
