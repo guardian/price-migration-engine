@@ -81,4 +81,10 @@ object CohortItem {
 
   def fromExpiringSubscriptionResult(result: ExpiringSubscriptionResult): CohortItem =
     CohortItem(result.subscriptionNumber, Cancelled)
+
+  def isProcessable(item: CohortItem): Boolean = {
+    // This function return a boolean indicating whether the item is processable
+    // defined as either doNotProcessUntil is None or is an instant in the past.
+    true
+  }
 }

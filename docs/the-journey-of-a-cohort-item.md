@@ -170,3 +170,16 @@ CohortItem(
 
 Once the cohort item is in `Cancelled` state the engine will no longer touch it. Alike `AmendmentWrittenToSalesforce`, `Cancelled` is a final state for a cohort item.
 
+### Processing Lambdas
+
+The price migration engine define a state machine which is linear. The lambdas fire in a given linear order (ocassionaly the same lambda fires more than once) For reference here is the other in which the lambda fire 
+
+- CohortTableCreationHandler
+- SubscriptionIdUploadHandler
+- EstimationHandler
+- SalesforcePriceRiseCreationHandler
+- NotificationHandler
+- SalesforceNotificationDateUpdateHandler
+- AmendmentHandler
+- SalesforceAmendmentUpdateHandler
+- CohortTableDatalakeExportHandler

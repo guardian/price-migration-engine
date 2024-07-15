@@ -24,6 +24,7 @@ object EstimationHandler extends CohortHandler {
       catalogue <- Zuora.fetchProductCatalogue
       count <- CohortTable
         .fetch(ReadyForEstimation, None)
+        .filter(item => CohortItem.isProcessable(item))
         .take(batchSize)
         .mapZIO(item =>
           estimate(catalogue, cohortSpec)(today, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
