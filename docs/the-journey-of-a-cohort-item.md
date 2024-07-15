@@ -6,7 +6,7 @@ In [Price migrations from first principles](./price-migrations-from-first-princi
 
 In the engine parlance a "cohort" is a set of subscription numbers that are part of a given price migration. Logically a "cohort item" would then be one of those numbers, but in fact it refers to a record in the Dynamo table where the engine maintains information about the price migration.
 
-One such cohort items seen in one of the Dynamo tables is shown below
+One such cohort item seen in one of the Dynamo tables is shown below
 
 ![](./the-journey-of-a-cohort-item/1707822328.png)
 
@@ -28,14 +28,9 @@ S-00000004
 etc..
 ``` 
 
-At this point we need to have decided a name for the migration. Let's imagine we called it Newspaper2024. We locate the `price-migration-engine-prod` S3 bucket and create a directory called `Newspaper2024` and put in it two files.
+At this point we need to have decided a name for the migration. Let's imagine we called it Newspaper2024. We locate the `price-migration-engine-prod` S3 bucket and create a directory called `Newspaper2024` in which we put a file called `subscription-numbers.csv`.
 
-- salesforce-subscription-id-report.csv , which contains the list of subscription numbers
-- excluded-subscription-ids.csv , an empty file
-
-(Note: we are soon going to change those conventions, because they are legacy names which have outstayed their welcome, this will come as a PR and this documentation will be updated, but at the time those lines are written, that's the convention.)
-
-The engine will not automagically pick up those files, it needs to be instructed to do so (this will not be covered here), but the effect of the Dynamo being created and the file having been loaded is that we now have a table with records and each record simply contains a subscription number.
+The engine will not automagically pick up the file, it needs to be instructed to do so (this will not be covered here), but the effect of the Dynamo table being created and the file having been loaded is that we now have a table with records and each record simply contains a subscription number.
 
 To help with understanding of the following steps let's use a (simplified) version of the CohortItem case class in the engine Scala Code
 
@@ -140,13 +135,25 @@ Then, the cohort item is going to.... sleep. It's going to sleep as long as it t
 
 Today is now `LocalDate.of(2024, 5, 10)` minus about 40 days. The engine sees a subscription in `SalesforcePriceRiceCreationComplete` stage ready to be user notified. The engine is going to perform a certain number of look ups and will send a message to a queue that will eventually be delivered to Braze (triggering the sending of an email, or sending an additional request to an external company for a letter to be printed and delivered).
 
-The message to the user is going to mention the start date and the new estimated new price. The engine then notifies Salesforce that the user has been notified (for record keeping) and then will perform the amendment in Zuora, meaning will update Zuora with the fact that the subscription in Zuora is price risen and that the price rise is taking effect on the date that had already been decided during the estimation step. Note that this is the first and only moment that the engine performs and write operation in Zuora during the entire price rise process of that subscription. 
+The message to the user is going to mention the start date and the new estimated new price. The outcome of this step is the subscription being put in processing stage `NotificationSendComplete`.
 
-It is also important to notice that the amendment step only happened after the user notification step. This is to avoid a situation where there would be a bug in the engine or even just a long outage and causing subscriptions to be price risen in Zuora without the users having (yet) been notified. That would be illegal and put the Guardian in hot water.
+Once the item is in `NotificationSendComplete` stage the SalesforceNotificationDateUpdatehandler lambda will fire up. This operation notifies Salesforce that the user has been notified (for record keeping) and puts the item in processing stage `NotificationSendDateWrittenToSalesforce`.
 
-At this point the processing stage is `AmendmentComplete`.
+The item now being in processing stage `NotificationSendDateWrittenToSalesforce` the engine will perform an amendment in Zuora, meaning will update Zuora with the fact that the subscription in Zuora is price risen and that the price rise is taking effect on the date that had already been decided during the Estimation step. Note that this is the first and only moment that the engine performs a write operation in Zuora during the entire price rise process of that subscription and puts the item in `AmendmentComplete`.
 
-The last step is now another Salesforce update, where we inform Salesforce that the subscription in Zuora has been edited for price rise. Then the processing stage becomes `AmendmentWrittenToSalesforce`. This completes the price rise of subscription "S-00000003".
+The next step is yet another Salesforce update, where we inform Salesforce that the subscription in Zuora has been edited for price rise. Then the processing stage becomes `AmendmentWrittenToSalesforce`. This completes the price rise of subscription "S-00000003".
+
+It is also important to notice that the amendment step only happened after the user notification step. This is a security to avoid a situation where there would be a bug in the engine or even just a long outage, causing subscriptions to be price risen in Zuora without the users having (yet) been notified. That would be illegal and put the Guardian in hot water.
+
+Last, but not least, this entire section, eg: moving through 
+
+- `SalesforcePriceRiceCreationComplete`
+- `NotificationSendComplete`
+- `NotificationSendDateWrittenToSalesforce`
+- `AmendmentComplete`
+- `AmendmentWrittenToSalesforce`
+
+happens the same day. Being independent steps it is possible to delay the next one of the sequence, but there is also value in letting in them complete the same day, so that is a customer calls a CRS, they see, in Zuora and Salesforce, an up-to-date view of what the engine was in the process of doing.
 
 ### Cancellations
 
