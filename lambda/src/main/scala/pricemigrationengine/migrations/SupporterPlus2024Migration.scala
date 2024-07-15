@@ -19,8 +19,10 @@ object SupporterPlus2024Migration {
   // Data Functions
   // ------------------------------------------------
 
+  def isInCancellationSave(subscription: ZuoraSubscription): Boolean = false
+
   // ------------------------------------------------
-  // Primary Functions
+  // Primary Interface
   // ------------------------------------------------
 
   def priceData(
