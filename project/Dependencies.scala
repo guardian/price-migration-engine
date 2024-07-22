@@ -14,7 +14,7 @@ object Dependencies {
   lazy val zioTest = "dev.zio" %% "zio-test" % zioVersion
   lazy val zioTestSbt = "dev.zio" %% "zio-test-sbt" % zioVersion
   lazy val zioMock = "dev.zio" %% "zio-mock" % "1.0.0-RC12"
-  lazy val upickle = "com.lihaoyi" %% "upickle" % "3.3.1"
+  lazy val upickle = "com.lihaoyi" %% "upickle" % "4.0.0"
   lazy val awsLambda = "com.amazonaws" % "aws-lambda-java-core" % "1.2.3"
   lazy val http = "org.scalaj" %% "scalaj-http" % "2.4.2"
   lazy val munit = "org.scalameta" %% "munit" % "1.0.0"
