@@ -12,8 +12,8 @@ object SupporterPlus2024Migration {
   // Static Data
   // ------------------------------------------------
 
-  val maxLeadTime = 49
-  val minLeadTime = 36
+  val maxLeadTime = 33
+  val minLeadTime = 31
 
   // ------------------------------------------------
   // Data Functions
