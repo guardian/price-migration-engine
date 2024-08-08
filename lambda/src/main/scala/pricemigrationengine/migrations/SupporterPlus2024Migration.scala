@@ -19,7 +19,9 @@ object SupporterPlus2024Migration {
   // Data Functions
   // ------------------------------------------------
 
-  def isInCancellationSave(subscription: ZuoraSubscription): Boolean = false
+  def isInCancellationSave(subscription: ZuoraSubscription): Boolean = {
+    subscription.ratePlans.exists(rp => rp.ratePlanName.contains("Cancellation Save Discount"))
+  }
 
   // ------------------------------------------------
   // Primary Interface
