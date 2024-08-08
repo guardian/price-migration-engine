@@ -34,7 +34,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     )
     assertEquals(
       SupporterPlus2024Migration.cancellationSaveEffectiveDate(subscriptionYes),
-      Some(LocalDate.of(2024, 6, 3))
+      Some(LocalDate.of(2024, 7, 5))
     )
   }
 }

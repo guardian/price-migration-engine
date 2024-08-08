@@ -33,7 +33,7 @@ object SupporterPlus2024Migration {
     for {
       ratePlan <- cancellationSaveRatePlan(subscription)
       charge <- ratePlan.ratePlanCharges.headOption
-      date <- charge.triggerDate
+      date <- charge.effectiveStartDate
     } yield date
   }
 
