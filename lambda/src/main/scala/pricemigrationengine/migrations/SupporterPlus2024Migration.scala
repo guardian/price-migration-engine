@@ -19,8 +19,22 @@ object SupporterPlus2024Migration {
   // Data Functions
   // ------------------------------------------------
 
+  // Cancellation Saves
+
+  def cancellationSaveRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
+    subscription.ratePlans.find(rp => rp.ratePlanName.contains("Cancellation Save Discount"))
+  }
+
   def isInCancellationSave(subscription: ZuoraSubscription): Boolean = {
-    subscription.ratePlans.exists(rp => rp.ratePlanName.contains("Cancellation Save Discount"))
+    cancellationSaveRatePlan(subscription: ZuoraSubscription).isDefined
+  }
+
+  def cancellationSaveEffectiveDate(subscription: ZuoraSubscription): Option[LocalDate] = {
+    for {
+      ratePlan <- cancellationSaveRatePlan(subscription)
+      charge <- ratePlan.ratePlanCharges.headOption
+      date <- charge.triggerDate
+    } yield date
   }
 
   // ------------------------------------------------
