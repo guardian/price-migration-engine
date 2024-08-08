@@ -53,7 +53,9 @@ class GW2024MigrationTest extends munit.FunSuite {
               triggerEvent = Some("CustomerAcceptance"),
               triggerDate = None,
               discountPercentage = None,
-              originalOrderDate = Some(LocalDate.of(2020, 6, 8))
+              originalOrderDate = Some(LocalDate.of(2020, 6, 8)),
+              effectiveStartDate = Some(LocalDate.of(2020, 6, 19)),
+              effectiveEndDate = Some(LocalDate.of(2024, 6, 19))
             )
           ),
           lastChangeType = Some("Add")
@@ -90,7 +92,9 @@ class GW2024MigrationTest extends munit.FunSuite {
               triggerEvent = Some("CustomerAcceptance"),
               triggerDate = None,
               discountPercentage = None,
-              originalOrderDate = Some(LocalDate.of(2020, 6, 15))
+              originalOrderDate = Some(LocalDate.of(2020, 6, 15)),
+              effectiveStartDate = Some(LocalDate.of(2020, 6, 26)),
+              effectiveEndDate = Some(LocalDate.of(2024, 6, 26))
             )
           ),
           lastChangeType = None
@@ -129,7 +133,9 @@ class GW2024MigrationTest extends munit.FunSuite {
               triggerEvent = Some("CustomerAcceptance"),
               triggerDate = None,
               discountPercentage = None,
-              originalOrderDate = Some(LocalDate.of(2020, 6, 8))
+              originalOrderDate = Some(LocalDate.of(2020, 6, 8)),
+              effectiveStartDate = Some(LocalDate.of(2020, 6, 19)),
+              effectiveEndDate = Some(LocalDate.of(2024, 6, 19))
             )
           ),
           lastChangeType = Some("Add")
@@ -170,7 +176,9 @@ class GW2024MigrationTest extends munit.FunSuite {
               triggerEvent = Some("CustomerAcceptance"),
               triggerDate = None,
               discountPercentage = None,
-              originalOrderDate = Some(LocalDate.of(2020, 6, 15))
+              originalOrderDate = Some(LocalDate.of(2020, 6, 15)),
+              effectiveStartDate = Some(LocalDate.of(2020, 6, 26)),
+              effectiveEndDate = Some(LocalDate.of(2024, 6, 26))
             )
           ),
           lastChangeType = None
