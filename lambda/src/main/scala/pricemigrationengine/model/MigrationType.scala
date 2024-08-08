@@ -19,6 +19,7 @@ object SupporterPlus2023V1V2MA extends MigrationType
 object DigiSubs2023 extends MigrationType
 object Newspaper2024 extends MigrationType
 object GW2024 extends MigrationType
+object SupporterPlus2024 extends MigrationType
 
 object MigrationType {
   def apply(cohortSpec: CohortSpec): MigrationType = cohortSpec.cohortName match {

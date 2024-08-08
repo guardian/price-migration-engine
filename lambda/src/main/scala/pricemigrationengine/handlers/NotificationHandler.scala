@@ -10,7 +10,8 @@ import pricemigrationengine.migrations.{
   DigiSubs2023Migration,
   GW2024Migration,
   Membership2023Migration,
-  newspaper2024Migration
+  newspaper2024Migration,
+  SupporterPlus2024Migration
 }
 import pricemigrationengine.model.RateplansProbe
 
@@ -26,19 +27,23 @@ object NotificationHandler extends CohortHandler {
   val Cancelled_Status = "Cancelled"
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    main(input).provideSome[Logging](
-      EnvConfig.salesforce.layer,
-      EnvConfig.cohortTable.layer,
-      EnvConfig.emailSender.layer,
-      EnvConfig.zuora.layer,
-      EnvConfig.stage.layer,
-      DynamoDBClientLive.impl,
-      DynamoDBZIOLive.impl,
-      CohortTableLive.impl(input),
-      SalesforceClientLive.impl,
-      EmailSenderLive.impl,
-      ZuoraLive.impl
-    )
+    MigrationType(input) match {
+      case SupporterPlus2024 => ZIO.succeed(HandlerOutput(isComplete = true))
+      case _ =>
+        main(input).provideSome[Logging](
+          EnvConfig.salesforce.layer,
+          EnvConfig.cohortTable.layer,
+          EnvConfig.emailSender.layer,
+          EnvConfig.zuora.layer,
+          EnvConfig.stage.layer,
+          DynamoDBClientLive.impl,
+          DynamoDBZIOLive.impl,
+          CohortTableLive.impl(input),
+          SalesforceClientLive.impl,
+          EmailSenderLive.impl,
+          ZuoraLive.impl
+        )
+    }
   }
 
   def main(
@@ -113,6 +118,7 @@ object NotificationHandler extends CohortHandler {
         case Newspaper2024           => s"${currencySymbol}${estimatedNewPrice}"
         case GW2024 =>
           s"${currencySymbol}${PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GW2024Migration.priceCap)}"
+        case SupporterPlus2024 => s"${currencySymbol}${estimatedNewPrice}"
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)
@@ -223,6 +229,7 @@ object NotificationHandler extends CohortHandler {
       case DigiSubs2023            => DigiSubs2023Migration.maxLeadTime
       case Newspaper2024           => newspaper2024Migration.StaticData.maxLeadTime
       case GW2024                  => GW2024Migration.maxLeadTime
+      case SupporterPlus2024       => SupporterPlus2024Migration.maxLeadTime
       case Legacy                  => 49
     }
   }
@@ -235,6 +242,7 @@ object NotificationHandler extends CohortHandler {
       case DigiSubs2023            => DigiSubs2023Migration.minLeadTime
       case Newspaper2024           => newspaper2024Migration.StaticData.minLeadTime
       case GW2024                  => GW2024Migration.minLeadTime
+      case SupporterPlus2024       => SupporterPlus2024Migration.minLeadTime
       case Legacy                  => 35
     }
   }

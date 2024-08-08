@@ -6,7 +6,7 @@ In this chapter, we explain how to implement a migration from scratch.
 
 In the chapter [Price migrations from first principles](https://github.com/guardian/price-migration-engine/blob/main/docs/price-migrations-from-first-principles.md) we have discovered why some commercial entities run price migrations. In this chapter I will be describing how we implement them at the Guardian. This description is almost entirely based on Pascal's experience in implementing and monitoring them, but if one day you are responsible for an implementation you may find easier to do things slightly differently.
 
-Price migrations are not P&E projects. They are Marketing led projects. Marketing, in collaboration with Finance, will anounce that a collection of subscriptions in Zuora, often corresponding to all subscriptions of a particular product (for instance, Guardian Weekly subscriptions) will need to be migrated. The price migration engine orchestrates that operation from a systems point of view, but this happens within the larger context of operations ran by Marketing.
+Price migrations are not P&E projects. They are Marketing led projects. Marketing, in collaboration with Finance, will announce that a collection of subscriptions in Zuora, often corresponding to all subscriptions of a particular product (for instance, Guardian Weekly subscriptions) will need to be migrated. The price migration engine orchestrates that operation from a systems point of view, but this happens within the larger context of operations ran by Marketing.
 
 ## The membership-workflow update
 
