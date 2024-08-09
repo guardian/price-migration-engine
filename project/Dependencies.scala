@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  private val zioVersion = "2.1.6"
+  private val zioVersion = "2.1.7"
   private val awsSdkVersion = "2.26.23"
 
   lazy val awsDynamoDb = "software.amazon.awssdk" % "dynamodb" % awsSdkVersion
@@ -19,5 +19,5 @@ object Dependencies {
   lazy val http = "org.scalaj" %% "scalaj-http" % "2.4.2"
   lazy val munit = "org.scalameta" %% "munit" % "1.0.0"
   lazy val commonsCsv = "org.apache.commons" % "commons-csv" % "1.11.0"
-  lazy val slf4jNop = "org.slf4j" % "slf4j-nop" % "2.0.13"
+  lazy val slf4jNop = "org.slf4j" % "slf4j-nop" % "2.0.14"
 }
