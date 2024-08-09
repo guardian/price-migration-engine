@@ -53,7 +53,9 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
             Some("CustomerAcceptance"),
             None,
             None,
-            originalOrderDate = Some(LocalDate.of(2016, 7, 5))
+            originalOrderDate = Some(LocalDate.of(2016, 7, 5)),
+            effectiveStartDate = Some(LocalDate.of(2016, 6, 28)),
+            effectiveEndDate = Some(LocalDate.of(2024, 6, 28)),
           )
         ),
         None
@@ -81,7 +83,9 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
         discountPercentage = None,
-        originalOrderDate = Some(LocalDate.of(2016, 7, 5))
+        originalOrderDate = Some(LocalDate.of(2016, 7, 5)),
+        effectiveStartDate = Some(LocalDate.of(2016, 6, 28)),
+        effectiveEndDate = Some(LocalDate.of(2024, 6, 28))
       )
     )
 
@@ -157,7 +161,9 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
             Some("CustomerAcceptance"),
             None,
             None,
-            originalOrderDate = Some(LocalDate.of(2023, 10, 3))
+            originalOrderDate = Some(LocalDate.of(2023, 10, 3)),
+            effectiveStartDate = Some(LocalDate.of(2023, 10, 19)),
+            effectiveEndDate = Some(LocalDate.of(2024, 10, 3))
           )
         ),
         None
@@ -185,7 +191,9 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
         discountPercentage = None,
-        originalOrderDate = Some(LocalDate.of(2023, 10, 3))
+        originalOrderDate = Some(LocalDate.of(2023, 10, 3)),
+        effectiveStartDate = Some(LocalDate.of(2023, 10, 19)),
+        effectiveEndDate = Some(LocalDate.of(2024, 10, 3))
       )
     )
 
@@ -291,7 +299,9 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
             triggerEvent = Some("CustomerAcceptance"),
             triggerDate = None,
             discountPercentage = None,
-            originalOrderDate = Some(LocalDate.of(2016, 6, 16))
+            originalOrderDate = Some(LocalDate.of(2016, 6, 16)),
+            effectiveStartDate = Some(LocalDate.of(2016, 5, 10)),
+            effectiveEndDate = Some(LocalDate.of(2024, 5, 10))
           )
         ),
         None
@@ -319,7 +329,9 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
         discountPercentage = None,
-        originalOrderDate = Some(LocalDate.of(2016, 6, 16))
+        originalOrderDate = Some(LocalDate.of(2016, 6, 16)),
+        effectiveStartDate = Some(LocalDate.of(2016, 5, 10)),
+        effectiveEndDate = Some(LocalDate.of(2024, 5, 10))
       )
     )
 
@@ -397,7 +409,9 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
             triggerEvent = Some("CustomerAcceptance"),
             triggerDate = None,
             discountPercentage = None,
-            originalOrderDate = Some(LocalDate.of(2022, 11, 1))
+            originalOrderDate = Some(LocalDate.of(2022, 11, 1)),
+            effectiveStartDate = Some(LocalDate.of(2022, 11, 17)),
+            effectiveEndDate = Some(LocalDate.of(2024, 11, 1))
           )
         ),
         None
@@ -425,7 +439,9 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
         triggerEvent = Some("CustomerAcceptance"),
         triggerDate = None,
         discountPercentage = None,
-        originalOrderDate = Some(LocalDate.of(2022, 11, 1))
+        originalOrderDate = Some(LocalDate.of(2022, 11, 1)),
+        effectiveStartDate = Some(LocalDate.of(2022, 11, 17)),
+        effectiveEndDate = Some(LocalDate.of(2024, 11, 1))
       )
     )
 
