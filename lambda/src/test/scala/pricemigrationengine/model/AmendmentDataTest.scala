@@ -660,7 +660,9 @@ class AmendmentDataTest extends munit.FunSuite {
             triggerEvent = Some("CustomerAcceptance"),
             triggerDate = None,
             discountPercentage = None,
-            originalOrderDate = Some(LocalDate.of(2023, 4, 1))
+            originalOrderDate = Some(LocalDate.of(2023, 4, 1)),
+            effectiveStartDate = Some(LocalDate.of(2023, 4, 1)),
+            effectiveEndDate = Some(LocalDate.of(2024, 7, 18))
           )
         )
       )
@@ -730,7 +732,9 @@ class AmendmentDataTest extends munit.FunSuite {
             triggerEvent = Some("CustomerAcceptance"),
             triggerDate = None,
             discountPercentage = None,
-            originalOrderDate = Some(LocalDate.of(2023, 7, 3))
+            originalOrderDate = Some(LocalDate.of(2023, 7, 3)),
+            effectiveStartDate = Some(LocalDate.of(2023, 7, 3)),
+            effectiveEndDate = Some(LocalDate.of(2024, 7, 3))
           )
         )
       )
@@ -799,7 +803,9 @@ class AmendmentDataTest extends munit.FunSuite {
             triggerEvent = Some("CustomerAcceptance"),
             triggerDate = None,
             discountPercentage = None,
-            originalOrderDate = Some(LocalDate.of(2023, 7, 2))
+            originalOrderDate = Some(LocalDate.of(2023, 7, 2)),
+            effectiveStartDate = Some(LocalDate.of(2023, 7, 2)),
+            effectiveEndDate = Some(LocalDate.of(2024, 7, 2))
           )
         )
       )
@@ -865,7 +871,9 @@ class AmendmentDataTest extends munit.FunSuite {
             triggerEvent = Some("CustomerAcceptance"),
             triggerDate = None,
             discountPercentage = None,
-            originalOrderDate = Some(LocalDate.of(2023, 4, 1))
+            originalOrderDate = Some(LocalDate.of(2023, 4, 1)),
+            effectiveStartDate = Some(LocalDate.of(2023, 4, 1)),
+            effectiveEndDate = Some(LocalDate.of(2024, 7, 18))
           )
         ),
         lastChangeType = Some("Add")
@@ -894,7 +902,9 @@ class AmendmentDataTest extends munit.FunSuite {
           triggerEvent = Some("CustomerAcceptance"),
           triggerDate = None,
           discountPercentage = None,
-          originalOrderDate = Some(LocalDate.of(2023, 4, 1))
+          originalOrderDate = Some(LocalDate.of(2023, 4, 1)),
+          effectiveStartDate = Some(LocalDate.of(2023, 4, 1)),
+          effectiveEndDate = Some(LocalDate.of(2024, 7, 18))
         )
       )
     )
@@ -983,7 +993,9 @@ class AmendmentDataTest extends munit.FunSuite {
             triggerEvent = Some("CustomerAcceptance"),
             triggerDate = None,
             discountPercentage = None,
-            originalOrderDate = Some(LocalDate.of(2023, 7, 3))
+            originalOrderDate = Some(LocalDate.of(2023, 7, 3)),
+            effectiveStartDate = Some(LocalDate.of(2023, 7, 3)),
+            effectiveEndDate = Some(LocalDate.of(2024, 7, 3))
           )
         ),
         lastChangeType = None
@@ -1012,7 +1024,9 @@ class AmendmentDataTest extends munit.FunSuite {
           triggerEvent = Some("CustomerAcceptance"),
           triggerDate = None,
           discountPercentage = None,
-          originalOrderDate = Some(LocalDate.of(2023, 7, 3))
+          originalOrderDate = Some(LocalDate.of(2023, 7, 3)),
+          effectiveStartDate = Some(LocalDate.of(2023, 7, 3)),
+          effectiveEndDate = Some(LocalDate.of(2024, 7, 3))
         )
       )
     )
@@ -1100,7 +1114,9 @@ class AmendmentDataTest extends munit.FunSuite {
             triggerEvent = Some("CustomerAcceptance"),
             triggerDate = None,
             discountPercentage = None,
-            originalOrderDate = Some(LocalDate.of(2023, 7, 2))
+            originalOrderDate = Some(LocalDate.of(2023, 7, 2)),
+            effectiveStartDate = Some(LocalDate.of(2023, 7, 2)),
+            effectiveEndDate = Some(LocalDate.of(2024, 7, 2))
           )
         ),
         None
@@ -1129,7 +1145,9 @@ class AmendmentDataTest extends munit.FunSuite {
           triggerEvent = Some("CustomerAcceptance"),
           triggerDate = None,
           discountPercentage = None,
-          originalOrderDate = Some(LocalDate.of(2023, 7, 2))
+          originalOrderDate = Some(LocalDate.of(2023, 7, 2)),
+          effectiveStartDate = Some(LocalDate.of(2023, 7, 2)),
+          effectiveEndDate = Some(LocalDate.of(2024, 7, 2))
         )
       )
     )
@@ -1218,7 +1236,9 @@ class AmendmentDataTest extends munit.FunSuite {
             triggerEvent = Some("CustomerAcceptance"),
             triggerDate = None,
             discountPercentage = None,
-            originalOrderDate = Some(LocalDate.of(2023, 6, 28))
+            originalOrderDate = Some(LocalDate.of(2023, 6, 28)),
+            effectiveStartDate = Some(LocalDate.of(2023, 6, 28)),
+            effectiveEndDate = Some(LocalDate.of(2024, 6, 28))
           )
         ),
         None
@@ -1247,7 +1267,9 @@ class AmendmentDataTest extends munit.FunSuite {
           triggerEvent = Some("CustomerAcceptance"),
           triggerDate = None,
           discountPercentage = None,
-          originalOrderDate = Some(LocalDate.of(2023, 6, 28))
+          originalOrderDate = Some(LocalDate.of(2023, 6, 28)),
+          effectiveStartDate = Some(LocalDate.of(2023, 6, 28)),
+          effectiveEndDate = Some(LocalDate.of(2024, 6, 28))
         )
       )
     )
