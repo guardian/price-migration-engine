@@ -35,11 +35,38 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       Some(LocalDate.of(2024, 7, 5))
     )
   }
-
-  test("Price Grid") {
+  test("Price Grid (Old)") {
     assertEquals(
-      SupporterPlus2024Migration.getPrice(Monthly, "USD"),
+      SupporterPlus2024Migration.getOldPrice(Monthly, "USD"),
+      Some(13.0)
+    )
+    assertEquals(
+      SupporterPlus2024Migration.getOldPrice(Annual, "EUR"),
+      Some(95.0)
+    )
+  }
+  test("Price Grid (New)") {
+    assertEquals(
+      SupporterPlus2024Migration.getNewPrice(Monthly, "USD"),
       Some(15.0)
+    )
+    assertEquals(
+      SupporterPlus2024Migration.getNewPrice(Annual, "EUR"),
+      Some(120.0)
+    )
+  }
+  test("extracting `Supporter Plus V2` rate plan") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.subscriptionRatePlan(subscription).isRight,
+      true
+    )
+  }
+  test("priceData") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.priceData(subscription),
+      Right(PriceData("AUD", 160.0, 200.0, "Annual"))
     )
   }
 

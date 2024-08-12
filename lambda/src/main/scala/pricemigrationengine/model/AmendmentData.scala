@@ -332,8 +332,7 @@ object AmendmentData {
         )
       case SupporterPlus2024 =>
         SupporterPlus2024Migration.priceData(
-          subscription: ZuoraSubscription,
-          account: ZuoraAccount
+          subscription: ZuoraSubscription
         )
       case Legacy => priceDataWithRatePlanMatching(account, catalogue, subscription, invoiceList, nextServiceStartDate)
     }
