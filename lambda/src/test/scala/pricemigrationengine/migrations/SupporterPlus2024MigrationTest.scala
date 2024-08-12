@@ -4,9 +4,7 @@ import pricemigrationengine.model._
 
 import java.time.LocalDate
 import pricemigrationengine.Fixtures
-import pricemigrationengine.handlers.NotificationHandler
 import pricemigrationengine.migrations.SupporterPlus2024Migration
-import pricemigrationengine.util.StartDates
 
 class SupporterPlus2024MigrationTest extends munit.FunSuite {
   test("isInCancellationSave") {
@@ -37,4 +35,12 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       Some(LocalDate.of(2024, 7, 5))
     )
   }
+
+  test("Price Grid") {
+    assertEquals(
+      SupporterPlus2024Migration.getPrice(Monthly, "USD"),
+      Some(15.0)
+    )
+  }
+
 }

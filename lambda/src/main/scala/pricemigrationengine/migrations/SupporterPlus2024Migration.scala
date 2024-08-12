@@ -15,9 +15,35 @@ object SupporterPlus2024Migration {
   val maxLeadTime = 33
   val minLeadTime = 31
 
+  val pricesMonthly: Map[String, Double] = Map(
+    "GBP" -> 12,
+    "USD" -> 15,
+    "CAD" -> 15,
+    "AUD" -> 20,
+    "NZD" -> 20,
+    "EUR" -> 12
+  )
+
+  val pricesAnnual: Map[String, Double] = Map(
+    "GBP" -> 120,
+    "USD" -> 150,
+    "CAD" -> 150,
+    "AUD" -> 200,
+    "NZD" -> 200,
+    "EUR" -> 120
+  )
+
   // ------------------------------------------------
   // Data Functions
   // ------------------------------------------------
+
+  def getPrice(billingPeriod: BillingPeriod, currency: String): Option[Double] = {
+    billingPeriod match {
+      case Monthly => pricesMonthly.get(currency)
+      case Annual  => pricesAnnual.get(currency)
+      case _       => None
+    }
+  }
 
   // Cancellation Saves
 
