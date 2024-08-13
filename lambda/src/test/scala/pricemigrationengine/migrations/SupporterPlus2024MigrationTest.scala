@@ -69,5 +69,35 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       Right(PriceData("AUD", 160.0, 200.0, "Annual"))
     )
   }
-
+  test("zuoraUpdate") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.zuoraUpdate(subscription, LocalDate.of(2019, 1, 1)),
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(
+            AddZuoraRatePlan(
+              productRatePlanId = "8a128ed885fc6ded01860228f77e3d5a",
+              contractEffectiveDate = LocalDate.of(2019, 1, 1),
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
+                  billingPeriod = "Annual",
+                  price = 120.0
+                )
+              )
+            )
+          ),
+          remove = List(
+            RemoveZuoraRatePlan(
+              ratePlanId = "8a12820a8c0ff963018c2504b9b75b25",
+              contractEffectiveDate = LocalDate.of(2019, 1, 1)
+            )
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
+    )
+  }
 }

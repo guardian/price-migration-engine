@@ -139,6 +139,48 @@ object SupporterPlus2024Migration {
   def zuoraUpdate(
       subscription: ZuoraSubscription,
       effectiveDate: LocalDate,
-  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = ???
-
+  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+    for {
+      ratePlan <- subscriptionRatePlan(subscription)
+      ratePlanChargeId <- ratePlan.ratePlanCharges
+        .map(rpc => rpc.productRatePlanChargeId)
+        .headOption
+        .toRight(
+          AmendmentDataFailure(
+            s"[1862ada1] Could not determine the billing period for subscription ${subscription.subscriptionNumber}"
+          )
+        )
+      billingPeriod <- ZuoraRatePlan
+        .ratePlanToBillingPeriod(ratePlan)
+        .toRight(
+          AmendmentDataFailure(
+            s"[17469705] Could not determine the billing period for subscription ${subscription.subscriptionNumber}"
+          )
+        )
+    } yield {
+      ZuoraSubscriptionUpdate(
+        add = List(
+          AddZuoraRatePlan(
+            productRatePlanId = ratePlan.productRatePlanId,
+            contractEffectiveDate = effectiveDate,
+            chargeOverrides = List(
+              ChargeOverride(
+                productRatePlanChargeId = ratePlanChargeId,
+                billingPeriod = BillingPeriod.toString(billingPeriod),
+                price = 120.0
+              )
+            )
+          )
+        ),
+        remove = List(
+          RemoveZuoraRatePlan(
+            ratePlanId = ratePlan.id,
+            contractEffectiveDate = effectiveDate
+          )
+        ),
+        currentTerm = None,
+        currentTermPeriodType = None
+      )
+    }
+  }
 }
