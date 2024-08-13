@@ -229,8 +229,14 @@ object SupporterPlus2023V1V2Migration {
       price <- currencyToNewPrice("Month", currency).toOption
       oldPrice <- item.oldPrice
     } yield {
+      val baseCharge = ChargeOverride(
+        productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba", // Monthly Base Charge
+        billingPeriod = "Month",
+        price = price
+      )
       if (oldPrice > price) {
         List(
+          baseCharge,
           ChargeOverride(
             productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270", // Monthly Contribution
             billingPeriod = "Month",
@@ -238,7 +244,7 @@ object SupporterPlus2023V1V2Migration {
           )
         )
       } else {
-        List()
+        List(baseCharge)
       }
     }
 
@@ -269,8 +275,14 @@ object SupporterPlus2023V1V2Migration {
       price <- currencyToNewPrice("Annual", currency).toOption
       oldPrice <- item.oldPrice
     } yield {
+      val baseCharge = ChargeOverride(
+        productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f", // Annual Base Charge
+        billingPeriod = "Annual",
+        price = price
+      )
       if (oldPrice > price) {
         List(
+          baseCharge,
           ChargeOverride(
             productRatePlanChargeId = "8a12892d85fc6df4018602451322287f", // Annual Contribution
             billingPeriod = "Annual",
@@ -278,7 +290,7 @@ object SupporterPlus2023V1V2Migration {
           )
         )
       } else {
-        List()
+        List(baseCharge)
       }
     }
 

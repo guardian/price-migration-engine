@@ -462,7 +462,19 @@ class AmendmentHandlerTest extends munit.FunSuite {
       update,
       Right(
         ZuoraSubscriptionUpdate(
-          add = List(AddZuoraRatePlan("8a128ed885fc6ded01860228f77e3d5a", LocalDate.of(2023, 8, 1))),
+          add = List(
+            AddZuoraRatePlan(
+              "8a128ed885fc6ded01860228f77e3d5a",
+              LocalDate.of(2023, 8, 1),
+              List(
+                ChargeOverride(
+                  productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
+                  billingPeriod = "Annual",
+                  price = 120
+                )
+              )
+            )
+          ),
           remove = List(RemoveZuoraRatePlan("8a129d388962fe000189679374ce42a1", LocalDate.of(2023, 8, 1))),
           currentTerm = None,
           currentTermPeriodType = None
@@ -600,6 +612,11 @@ class AmendmentHandlerTest extends munit.FunSuite {
               LocalDate.of(2023, 8, 3),
               chargeOverrides = List(
                 ChargeOverride(
+                  productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
+                  billingPeriod = "Month",
+                  price = 10
+                ),
+                ChargeOverride(
                   productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270",
                   billingPeriod = "Month",
                   price = 15
@@ -733,7 +750,19 @@ class AmendmentHandlerTest extends munit.FunSuite {
       update,
       Right(
         ZuoraSubscriptionUpdate(
-          add = List(AddZuoraRatePlan("8a128ed885fc6ded01860228f77e3d5a", LocalDate.of(2024, 7, 2))),
+          add = List(
+            AddZuoraRatePlan(
+              "8a128ed885fc6ded01860228f77e3d5a",
+              LocalDate.of(2024, 7, 2),
+              List(
+                ChargeOverride(
+                  productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
+                  billingPeriod = "Annual",
+                  price = 120
+                )
+              )
+            )
+          ),
           remove = List(RemoveZuoraRatePlan("8a128432890171d1018914866bee0e7f", LocalDate.of(2024, 7, 2))),
           currentTerm = None,
           currentTermPeriodType = None
@@ -862,6 +891,11 @@ class AmendmentHandlerTest extends munit.FunSuite {
               "8a128ed885fc6ded01860228f77e3d5a",
               LocalDate.of(2024, 6, 28),
               chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
+                  billingPeriod = "Annual",
+                  price = 95
+                ),
                 ChargeOverride(
                   productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
                   billingPeriod = "Annual",
