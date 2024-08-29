@@ -281,8 +281,22 @@ object NotificationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       contact: SalesforceContact
   ): Either[NotificationHandlerFailure, SalesforceAddress] = {
+    def targetAddressMembership2023(
+        contact: SalesforceContact
+    ): Either[NotificationHandlerFailure, SalesforceAddress] = {
+      (for {
+        billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
+        _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
+        _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
+      } yield billingAddress).left.flatMap(_ =>
+        Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some("")))
+      )
+    }
+
     MigrationType(cohortSpec) match {
-      case DigiSubs2023 => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some("")))
+      case DigiSubs2023            => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some("")))
+      case Membership2023Monthlies => targetAddressMembership2023(contact)
+      case Membership2023Annuals   => targetAddressMembership2023(contact)
       case _ =>
         (for {
           billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
