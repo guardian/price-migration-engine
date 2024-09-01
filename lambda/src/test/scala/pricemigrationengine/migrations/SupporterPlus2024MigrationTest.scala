@@ -285,7 +285,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       )
     )
   }
-  test("zuoraUpdate") {
+  test("zuoraUpdate (annual)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
     assertEquals(
       SupporterPlus2024Migration.zuoraUpdate(subscription, LocalDate.of(2024, 9, 9)),
