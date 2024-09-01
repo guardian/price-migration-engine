@@ -95,7 +95,7 @@ object StartDates {
         case SupporterPlus2023V1V2MA => 3
         case DigiSubs2023            => 3
         case GW2024                  => 3
-        case SupporterPlus2024       => 3
+        case SupporterPlus2024       => 1 // no spread for S+2024 monthlies
         case Legacy                  => 3
       }
     } else 1
