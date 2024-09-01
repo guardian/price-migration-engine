@@ -200,16 +200,101 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       Right(PriceData("AUD", 150.0, 200.0, "Annual"))
     )
   }
+
+  test("EstimationResult (monthly)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
+    val invoices = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2024/monthly/invoices.json")
+    val account = Fixtures.accountFromJson("Migrations/SupporterPlus2024/monthly/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Migrations/SupporterPlus2024/monthly/catalogue.json")
+
+    val cohortSpec = CohortSpec("SupporterPlus2024", "", LocalDate.of(2024, 8, 1), LocalDate.of(2024, 9, 9))
+
+    val startDateLowerBound = LocalDate.of(2024, 9, 9)
+
+    val estimationResult = EstimationResult(account, catalogue, subscription, invoices, startDateLowerBound, cohortSpec)
+
+    assertEquals(
+      estimationResult,
+      Right(
+        EstimationData(
+          subscriptionName = "SUBSCRIPTION-NUMBER",
+          startDate = LocalDate.of(2024, 9, 30),
+          currency = "GBP",
+          oldPrice = BigDecimal(10.0),
+          estimatedNewPrice = BigDecimal(12.0),
+          billingPeriod = "Month"
+        )
+      )
+    )
+  }
+
+  test("EstimationResult (annual)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
+    val invoices = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2024/annual/invoices.json")
+    val account = Fixtures.accountFromJson("Migrations/SupporterPlus2024/annual/account.json")
+    val catalogue = Fixtures.productCatalogueFromJson("Migrations/SupporterPlus2024/annual/catalogue.json")
+
+    val cohortSpec = CohortSpec("SupporterPlus2024", "", LocalDate.of(2024, 8, 1), LocalDate.of(2024, 9, 9))
+
+    val startDateLowerBound = LocalDate.of(2024, 9, 9)
+
+    val estimationResult = EstimationResult(account, catalogue, subscription, invoices, startDateLowerBound, cohortSpec)
+
+    assertEquals(
+      estimationResult,
+      Right(
+        EstimationData(
+          subscriptionName = "SUBSCRIPTION-NUMBER",
+          startDate = LocalDate.of(2024, 11, 11),
+          currency = "AUD",
+          oldPrice = BigDecimal(150.0),
+          estimatedNewPrice = BigDecimal(200.0),
+          billingPeriod = "Annual"
+        )
+      )
+    )
+  }
+  test("zuoraUpdate (monthly)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.zuoraUpdate(subscription, LocalDate.of(2024, 9, 9)),
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(
+            AddZuoraRatePlan(
+              productRatePlanId = "8a128ed885fc6ded018602296ace3eb8",
+              contractEffectiveDate = LocalDate.of(2024, 9, 9),
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
+                  billingPeriod = "Month",
+                  price = 120.0
+                )
+              )
+            )
+          ),
+          remove = List(
+            RemoveZuoraRatePlan(
+              ratePlanId = "8a12908b8dd07f56018de8f4950923b8",
+              contractEffectiveDate = LocalDate.of(2024, 9, 9)
+            )
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
+    )
+  }
   test("zuoraUpdate") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.zuoraUpdate(subscription, LocalDate.of(2019, 1, 1)),
+      SupporterPlus2024Migration.zuoraUpdate(subscription, LocalDate.of(2024, 9, 9)),
       Right(
         ZuoraSubscriptionUpdate(
           add = List(
             AddZuoraRatePlan(
               productRatePlanId = "8a128ed885fc6ded01860228f77e3d5a",
-              contractEffectiveDate = LocalDate.of(2019, 1, 1),
+              contractEffectiveDate = LocalDate.of(2024, 9, 9),
               chargeOverrides = List(
                 ChargeOverride(
                   productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
@@ -222,7 +307,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
           remove = List(
             RemoveZuoraRatePlan(
               ratePlanId = "8a12820a8c0ff963018c2504ba045b2f",
-              contractEffectiveDate = LocalDate.of(2019, 1, 1)
+              contractEffectiveDate = LocalDate.of(2024, 9, 9)
             )
           ),
           currentTerm = None,

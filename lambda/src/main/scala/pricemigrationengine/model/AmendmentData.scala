@@ -317,23 +317,10 @@ object AmendmentData {
           nextServiceStartDate,
           cohortSpec
         )
-      case DigiSubs2023 =>
-        DigiSubs2023Migration.priceData(
-          subscription
-        )
-      case Newspaper2024 =>
-        newspaper2024Migration.Estimation.priceData(
-          subscription
-        )
-      case GW2024 =>
-        GW2024Migration.priceData(
-          subscription: ZuoraSubscription,
-          account: ZuoraAccount
-        )
-      case SupporterPlus2024 =>
-        SupporterPlus2024Migration.priceData(
-          subscription: ZuoraSubscription
-        )
+      case DigiSubs2023      => DigiSubs2023Migration.priceData(subscription)
+      case Newspaper2024     => newspaper2024Migration.Estimation.priceData(subscription)
+      case GW2024            => GW2024Migration.priceData(subscription, account)
+      case SupporterPlus2024 => SupporterPlus2024Migration.priceData(subscription)
       case Legacy => priceDataWithRatePlanMatching(account, catalogue, subscription, invoiceList, nextServiceStartDate)
     }
   }

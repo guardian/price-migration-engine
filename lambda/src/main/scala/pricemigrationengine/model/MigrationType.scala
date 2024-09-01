@@ -31,6 +31,7 @@ object MigrationType {
     case "DigiSubs2023_Batch2"   => DigiSubs2023
     case "Newspaper2024"         => Newspaper2024
     case "GW2024"                => GW2024
+    case "SupporterPlus2024"     => SupporterPlus2024
     case _                       => Legacy
   }
 }
