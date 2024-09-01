@@ -57,9 +57,61 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
   }
   test("extracting `Supporter Plus V2` rate plan") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
+
+    val ratePlanCharge1 = ZuoraRatePlanCharge(
+      productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
+      name = "Supporter Plus Annual Charge",
+      number = "C-04674417",
+      currency = "AUD",
+      price = Some(160.0),
+      billingPeriod = Some("Annual"),
+      chargedThroughDate = Some(LocalDate.of(2023, 11, 11)),
+      processedThroughDate = Some(LocalDate.of(2023, 11, 11)),
+      specificBillingPeriod = None,
+      endDateCondition = Some("Subscription_End"),
+      upToPeriodsType = None,
+      upToPeriods = None,
+      billingDay = Some("ChargeTriggerDay"),
+      triggerEvent = Some("CustomerAcceptance"),
+      triggerDate = None,
+      discountPercentage = None,
+      originalOrderDate = Some(LocalDate.of(2023, 10, 9)),
+      effectiveStartDate = Some(LocalDate.of(2023, 11, 11)),
+      effectiveEndDate = Some(LocalDate.of(2023, 11, 11))
+    )
+    val ratePlanCharge2 = ZuoraRatePlanCharge(
+      productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
+      name = "Contribution",
+      number = "C-04674416",
+      currency = "AUD",
+      price = Some(0.0),
+      billingPeriod = Some("Annual"),
+      chargedThroughDate = Some(LocalDate.of(2023, 11, 11)),
+      processedThroughDate = Some(LocalDate.of(2023, 11, 11)),
+      specificBillingPeriod = None,
+      endDateCondition = Some("Subscription_End"),
+      upToPeriodsType = None,
+      upToPeriods = None,
+      billingDay = Some("ChargeTriggerDay"),
+      triggerEvent = Some("CustomerAcceptance"),
+      triggerDate = None,
+      discountPercentage = None,
+      originalOrderDate = Some(LocalDate.of(2023, 10, 9)),
+      effectiveStartDate = Some(LocalDate.of(2023, 11, 11)),
+      effectiveEndDate = Some(LocalDate.of(2023, 11, 11))
+    )
     assertEquals(
-      SupporterPlus2024Migration.subscriptionRatePlan(subscription).isRight,
-      true
+      SupporterPlus2024Migration.subscriptionRatePlan(subscription),
+      Right(
+        ZuoraRatePlan(
+          id = "8a12820a8c0ff963018c2504b9b75b25",
+          productName = "Supporter Plus",
+          productRatePlanId = "8a128ed885fc6ded01860228f77e3d5a",
+          ratePlanName = "Supporter Plus V2 - Annual",
+          ratePlanCharges = List(ratePlanCharge1, ratePlanCharge2),
+          lastChangeType = Some("Remove")
+        )
+      )
     )
   }
   test("priceData") {
