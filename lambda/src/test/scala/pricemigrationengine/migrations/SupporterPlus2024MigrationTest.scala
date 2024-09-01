@@ -192,6 +192,9 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     // The original subscription price is 160, the normal old price,
     // but I edited the annual/subscription.json it to 150 to make sure we
     // read the right price from the subscription.
+
+    // In this case we have the price from the subscription and the target price.
+
     assertEquals(
       SupporterPlus2024Migration.priceData(subscription),
       Right(PriceData("AUD", 150.0, 200.0, "Annual"))
