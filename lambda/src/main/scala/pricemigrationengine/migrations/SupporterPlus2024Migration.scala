@@ -93,23 +93,25 @@ object SupporterPlus2024Migration {
 
   // Subscription Data
 
-  def subscriptionRatePlan(subscription: ZuoraSubscription): Either[AmendmentDataFailure, ZuoraRatePlan] = {
-    subscription.ratePlans.find(rp => rp.ratePlanName.contains("Supporter Plus V2")) match {
+  def supporterPlusV2RatePlan(subscription: ZuoraSubscription): Either[AmendmentDataFailure, ZuoraRatePlan] = {
+    subscription.ratePlans.find(rp =>
+      rp.ratePlanName.contains("Supporter Plus V2") && rp.lastChangeType.contains("Add")
+    ) match {
       case None =>
         Left(
           AmendmentDataFailure(
-            s"Subscription ${subscription.subscriptionNumber} doesn't have any rate plan with pattern `Supporter Plus V2`"
+            s"Subscription ${subscription.subscriptionNumber} doesn't have any `Add`ed rate plan with pattern `Supporter Plus V2`"
           )
         )
       case Some(ratePlan) => Right(ratePlan)
     }
   }
 
-  def subscriptionRatePlanCharge(
+  def supporterPlusBaseRatePlanCharge(
       subscriptionNumber: String,
       ratePlan: ZuoraRatePlan
   ): Either[AmendmentDataFailure, ZuoraRatePlanCharge] = {
-    ratePlan.ratePlanCharges.headOption match {
+    ratePlan.ratePlanCharges.find(rpc => rpc.name.contains("Supporter Plus")) match {
       case None => {
         Left(
           AmendmentDataFailure(s"Subscription ${subscriptionNumber} has a rate plan, but with no charge")
@@ -127,11 +129,11 @@ object SupporterPlus2024Migration {
       subscription: ZuoraSubscription
   ): Either[AmendmentDataFailure, PriceData] = {
     for {
-      ratePlan <- subscriptionRatePlan(subscription)
+      ratePlan <- supporterPlusV2RatePlan(subscription)
       billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan).toRight(AmendmentDataFailure(""))
-      ratePlanCharge <- subscriptionRatePlanCharge(subscription.subscriptionNumber, ratePlan)
+      ratePlanCharge <- supporterPlusBaseRatePlanCharge(subscription.subscriptionNumber, ratePlan)
       currency = ratePlanCharge.currency
-      oldPrice <- getOldPrice(billingPeriod, currency).toRight(AmendmentDataFailure(""))
+      oldPrice <- ratePlanCharge.price.toRight(AmendmentDataFailure(""))
       newPrice <- getNewPrice(billingPeriod, currency).toRight(AmendmentDataFailure(""))
     } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
   }
@@ -141,7 +143,7 @@ object SupporterPlus2024Migration {
       effectiveDate: LocalDate,
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
     for {
-      ratePlan <- subscriptionRatePlan(subscription)
+      ratePlan <- supporterPlusV2RatePlan(subscription)
       ratePlanChargeId <- ratePlan.ratePlanCharges
         .map(rpc => rpc.productRatePlanChargeId)
         .headOption
