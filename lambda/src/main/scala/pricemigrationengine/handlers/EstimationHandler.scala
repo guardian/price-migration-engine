@@ -25,7 +25,7 @@ object EstimationHandler extends CohortHandler {
       count <- CohortTable
         .fetch(ReadyForEstimation, None)
         .filter(item => CohortItem.isProcessable(item))
-        .take(1)
+        .take(batchSize)
         .mapZIO(item =>
           estimate(catalogue, cohortSpec)(today, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
         )
