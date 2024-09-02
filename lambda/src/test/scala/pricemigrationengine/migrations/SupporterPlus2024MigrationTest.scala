@@ -58,6 +58,12 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
 
   // The monthly is GBP without a contribution [10, 0]
   // The annual is a AUD with contribution [160, 340]
+  // sub-without-LastChangeType is a EUR without a contribution [10, 0]
+  //   ... is meant to ensure that we know how to extract the rate plan if it doesn't carry a LastChangeType.
+  //   The story with LastChangeTypes is
+  //     - present with "Add"     : most recently added
+  //     - present with "Removed" : most recently removed
+  //     - not present            : most recently added
 
   test("extracting `Supporter Plus V2` rate plan (monthly)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
@@ -175,6 +181,69 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
           ratePlanName = "Supporter Plus V2 - Annual",
           ratePlanCharges = List(ratePlanCharge1, ratePlanCharge2),
           lastChangeType = Some("Add")
+        )
+      )
+    )
+  }
+  test("extracting `Supporter Plus V2` rate plan (sub-without-LastChangeType)") {
+    // The original subscription price is 160, the normal old price,
+    // but I edited the annual/subscription.json it to 150 to make sure we
+    // read the right price from the subscription.
+
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-without-LastChangeType/subscription.json")
+    val ratePlanCharge1 = ZuoraRatePlanCharge(
+      productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
+      name = "Supporter Plus Monthly Charge",
+      number = "C-05466358",
+      currency = "EUR",
+      price = Some(10.0),
+      billingPeriod = Some("Month"),
+      chargedThroughDate = Some(LocalDate.of(2024, 9, 5)),
+      processedThroughDate = Some(LocalDate.of(2024, 8, 5)),
+      specificBillingPeriod = None,
+      endDateCondition = Some("Subscription_End"),
+      upToPeriodsType = None,
+      upToPeriods = None,
+      billingDay = Some("ChargeTriggerDay"),
+      triggerEvent = Some("CustomerAcceptance"),
+      triggerDate = None,
+      discountPercentage = None,
+      originalOrderDate = Some(LocalDate.of(2024, 4, 5)),
+      effectiveStartDate = Some(LocalDate.of(2024, 4, 5)),
+      effectiveEndDate = Some(LocalDate.of(2025, 4, 5))
+    )
+    val ratePlanCharge2 = ZuoraRatePlanCharge(
+      productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270",
+      name = "Contribution",
+      number = "C-05466357",
+      currency = "EUR",
+      price = Some(0.0),
+      billingPeriod = Some("Month"),
+      chargedThroughDate = Some(LocalDate.of(2024, 9, 5)),
+      processedThroughDate = Some(LocalDate.of(2024, 8, 5)),
+      specificBillingPeriod = None,
+      endDateCondition = Some("Subscription_End"),
+      upToPeriodsType = None,
+      upToPeriods = None,
+      billingDay = Some("ChargeTriggerDay"),
+      triggerEvent = Some("CustomerAcceptance"),
+      triggerDate = None,
+      discountPercentage = None,
+      originalOrderDate = Some(LocalDate.of(2024, 4, 5)),
+      effectiveStartDate = Some(LocalDate.of(2024, 4, 5)),
+      effectiveEndDate = Some(LocalDate.of(2025, 4, 5))
+    )
+    assertEquals(
+      SupporterPlus2024Migration.supporterPlusV2RatePlan(subscription),
+      Right(
+        ZuoraRatePlan(
+          id = "8a12838d8ea33f0f018eaf3a06bd27ea",
+          productName = "Supporter Plus",
+          productRatePlanId = "8a128ed885fc6ded018602296ace3eb8",
+          ratePlanName = "Supporter Plus V2 - Monthly",
+          ratePlanCharges = List(ratePlanCharge1, ratePlanCharge2),
+          lastChangeType = None
         )
       )
     )

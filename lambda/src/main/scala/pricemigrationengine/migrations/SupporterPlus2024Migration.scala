@@ -95,7 +95,7 @@ object SupporterPlus2024Migration {
 
   def supporterPlusV2RatePlan(subscription: ZuoraSubscription): Either[AmendmentDataFailure, ZuoraRatePlan] = {
     subscription.ratePlans.find(rp =>
-      rp.ratePlanName.contains("Supporter Plus V2") && rp.lastChangeType.contains("Add")
+      rp.ratePlanName.contains("Supporter Plus V2") && !rp.lastChangeType.contains("Remove")
     ) match {
       case None =>
         Left(
