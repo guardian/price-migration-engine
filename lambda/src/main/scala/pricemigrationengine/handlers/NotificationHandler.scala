@@ -11,7 +11,7 @@ import pricemigrationengine.migrations.{
   GW2024Migration,
   Membership2023Migration,
   newspaper2024Migration,
-  SupporterPlus2024Migration
+  SupporterPlus2024Migration,
 }
 import pricemigrationengine.model.RateplansProbe
 
@@ -91,7 +91,7 @@ object NotificationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       cohortItem: CohortItem,
       sfSubscription: SalesforceSubscription
-  ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging, Failure, Unit] =
+  ): ZIO[Zuora with EmailSender with SalesforceClient with CohortTable with Logging, Failure, Unit] =
     for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
@@ -123,6 +123,12 @@ object NotificationHandler extends CohortHandler {
 
       _ <- logMissingEmailAddress(cohortItem, contact)
 
+      // Data for SupporterPlus2024
+      subscription <- Zuora.fetchSubscription(cohortItem.subscriptionName)
+      sp2024_contribution_amount <- ZIO.fromEither(sp2024_contribution_amount(cohortSpec, subscription))
+      sp2024_previous_combined_amount <- ZIO.fromEither(sp2024_previous_combined_amount(cohortSpec, subscription))
+      sp2024_new_combined_amount <- ZIO.fromEither(sp2024_new_combined_amount(cohortSpec, subscription))
+
       _ <- EmailSender.sendEmail(
         message = EmailMessage(
           EmailPayload(
@@ -144,7 +150,12 @@ object NotificationHandler extends CohortHandler {
                 next_payment_date = startDateConversion(startDate),
                 payment_frequency = paymentFrequency,
                 subscription_id = cohortItem.subscriptionName,
-                product_type = sfSubscription.Product_Type__c.getOrElse("")
+                product_type = sfSubscription.Product_Type__c.getOrElse(""),
+
+                // SupporterPlus 2024 extension
+                sp2024_contribution_amount = sp2024_contribution_amount,
+                sp2024_previous_combined_amount = sp2024_previous_combined_amount,
+                sp2024_new_combined_amount = sp2024_new_combined_amount,
               )
             )
           ),
@@ -433,5 +444,58 @@ object NotificationHandler extends CohortHandler {
         s"Subscription ${cohortItem.subscriptionName} has been cancelled, price rise notification not sent"
       )
     } yield ()
+  }
+
+  // -------------------------------------------------------------------
+  // Supporter Plus 2024 extra functions
+
+  /*
+    Date: September 2024
+    Author: Pascal
+    Comment Group: 602514a6-5e53
+
+    These functions have been added to implement the extra fields added to EmailPayloadSubscriberAttributes
+    as part of the set up of the SupporterPlus 2024 migration (see Comment Group: 602514a6-5e53)
+   */
+
+  def sp2024_contribution_amount(
+      cohortSpec: CohortSpec,
+      subscription: ZuoraSubscription
+  ): Either[Failure, Option[String]] = {
+    // nb: Going against Coding Directive #1, we do not need to over specify the match, because we are expecting
+    // a non trivial behavior only for SupporterPlus2024
+    MigrationType(cohortSpec) match {
+      case SupporterPlus2024 =>
+        SupporterPlus2024Migration.sp2024_contribution_amount(subscription).map(o => o.map(b => b.toString))
+      case _ => Right(None)
+    }
+  }
+
+  def sp2024_previous_combined_amount(
+      cohortSpec: CohortSpec,
+      subscription: ZuoraSubscription
+  ): Either[Failure, Option[String]] = {
+    // nb: Going against Coding Directive #1, we do not need to over specify the match, because we are expecting
+    // a non trivial behavior only for SupporterPlus2024
+    MigrationType(cohortSpec) match {
+      case SupporterPlus2024 =>
+        SupporterPlus2024Migration
+          .sp2024_previous_combined_amount(subscription)
+          .map(o => o.map(b => b.toString))
+      case _ => Right(None)
+    }
+  }
+
+  def sp2024_new_combined_amount(
+      cohortSpec: CohortSpec,
+      subscription: ZuoraSubscription
+  ): Either[Failure, Option[String]] = {
+    // nb: Going against Coding Directive #1, we do not need to over specify the match, because we are expecting
+    // a non trivial behavior only for SupporterPlus2024
+    MigrationType(cohortSpec) match {
+      case SupporterPlus2024 =>
+        SupporterPlus2024Migration.sp2024_new_combined_amount(subscription).map(o => o.map(b => b.toString))
+      case _ => Right(None)
+    }
   }
 }

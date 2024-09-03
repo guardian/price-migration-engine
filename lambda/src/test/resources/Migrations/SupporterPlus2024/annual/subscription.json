@@ -200,7 +200,7 @@
       "mrr" : 13.333333333,
       "dmrc" : 0.000000000,
       "tcv" : 0.000000000,
-      "dtcv" : -160.000000000,
+      "dtcv" : -150.000000000,
       "originalOrderDate" : "2023-10-09",
       "amendedByOrderOn" : "2023-12-01",
       "description" : "",
@@ -211,7 +211,7 @@
       "tiers" : null,
       "discountApplyDetails" : null,
       "pricingSummary" : "AUD160",
-      "price" : 160.000000000,
+      "price" : 150.000000000,
       "discountAmount" : null,
       "discountPercentage" : null
     }, {
@@ -354,8 +354,8 @@
       "specificEndDate" : null,
       "mrr" : 13.333333333,
       "dmrc" : 13.333333333,
-      "tcv" : 160.000000000,
-      "dtcv" : 160.000000000,
+      "tcv" : 150.000000000,
+      "dtcv" : 150.000000000,
       "originalOrderDate" : "2023-11-26",
       "amendedByOrderOn" : null,
       "description" : "",

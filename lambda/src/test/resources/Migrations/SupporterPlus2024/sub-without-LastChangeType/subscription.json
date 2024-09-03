@@ -29,7 +29,7 @@
   "renewalTerm" : 12,
   "renewalTermPeriodType" : "Month",
   "currency" : "EUR",
-  "contractedMrr" : 10.00,
+  "contractedMrr" : 6.00,
   "totalContractedValue" : 120.00,
   "notes" : null,
   "status" : "Active",
@@ -279,8 +279,8 @@
       "upToPeriodsType" : null,
       "upToPeriods" : null,
       "specificEndDate" : null,
-      "mrr" : 10.000000000,
-      "dmrc" : 10.000000000,
+      "mrr" : 6.000000000,
+      "dmrc" : 6.000000000,
       "tcv" : 120.000000000,
       "dtcv" : 120.000000000,
       "originalOrderDate" : "2024-04-05",
@@ -293,7 +293,7 @@
       "tiers" : null,
       "discountApplyDetails" : null,
       "pricingSummary" : "EUR10",
-      "price" : 10.000000000,
+      "price" : 6.000000000,
       "discountAmount" : null,
       "discountPercentage" : null
     }, {
@@ -364,7 +364,7 @@
       "tiers" : null,
       "discountApplyDetails" : null,
       "pricingSummary" : "EUR0",
-      "price" : 0.000000000,
+      "price" : 3.000000000,
       "discountAmount" : null,
       "discountPercentage" : null
     } ]

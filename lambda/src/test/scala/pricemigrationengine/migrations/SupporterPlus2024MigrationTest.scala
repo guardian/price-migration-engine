@@ -21,6 +21,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       true
     )
   }
+
   test("cancellationSaveEffectiveDate") {
     val subscriptionNo =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-with-cancellation-save/subscription-no.json")
@@ -35,6 +36,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       Some(LocalDate.of(2024, 7, 5))
     )
   }
+
   test("Price Grid (Old)") {
     assertEquals(
       SupporterPlus2024Migration.getOldPrice(Monthly, "USD"),
@@ -58,12 +60,13 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
 
   // The monthly is GBP without a contribution [10, 0]
   // The annual is a AUD with contribution [160, 340]
-  // sub-without-LastChangeType is a EUR without a contribution [10, 0]
+  // sub-without-LastChangeType is a EUR without a contribution [6, 0]
   //   ... is meant to ensure that we know how to extract the rate plan if it doesn't carry a LastChangeType.
   //   The story with LastChangeTypes is
   //     - present with "Add"     : most recently added
   //     - present with "Removed" : most recently removed
   //     - not present            : most recently added
+  // I also modified the base price from the original 10 to 6, to test the price capping.
 
   test("extracting `Supporter Plus V2` rate plan (monthly)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
@@ -197,7 +200,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       name = "Supporter Plus Monthly Charge",
       number = "C-05466358",
       currency = "EUR",
-      price = Some(10.0),
+      price = Some(6.0),
       billingPeriod = Some("Month"),
       chargedThroughDate = Some(LocalDate.of(2024, 9, 5)),
       processedThroughDate = Some(LocalDate.of(2024, 8, 5)),
@@ -218,7 +221,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       name = "Contribution",
       number = "C-05466357",
       currency = "EUR",
-      price = Some(0.0),
+      price = Some(3.0),
       billingPeriod = Some("Month"),
       chargedThroughDate = Some(LocalDate.of(2024, 9, 5)),
       processedThroughDate = Some(LocalDate.of(2024, 8, 5)),
@@ -248,6 +251,370 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       )
     )
   }
+
+  test("extracting `Supporter Plus V2` rate plan base charge (monthly)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.supporterPlusBaseRatePlanCharge(
+        subscription.subscriptionNumber,
+        SupporterPlus2024Migration.supporterPlusV2RatePlan(subscription).toOption.get
+      ),
+      Right(
+        ZuoraRatePlanCharge(
+          productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
+          name = "Supporter Plus Monthly Charge",
+          number = "C-04648407",
+          currency = "GBP",
+          price = Some(10.0),
+          billingPeriod = Some("Month"),
+          chargedThroughDate = Some(LocalDate.of(2024, 9, 30)),
+          processedThroughDate = Some(LocalDate.of(2024, 8, 30)),
+          specificBillingPeriod = None,
+          endDateCondition = Some("Subscription_End"),
+          upToPeriodsType = None,
+          upToPeriods = None,
+          billingDay = Some("ChargeTriggerDay"),
+          triggerEvent = Some("CustomerAcceptance"),
+          triggerDate = None,
+          discountPercentage = None,
+          originalOrderDate = Some(LocalDate.of(2023, 10, 1)),
+          effectiveStartDate = Some(LocalDate.of(2023, 9, 30)),
+          effectiveEndDate = Some(LocalDate.of(2025, 2, 27))
+        )
+      )
+    )
+  }
+  test("extracting `Supporter Plus V2` rate plan base charge (annual)") {
+    // The original subscription price is 160, the normal old price,
+    // but I edited the annual/subscription.json it to 150 to make sure we
+    // read the right price from the subscription.
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.supporterPlusBaseRatePlanCharge(
+        subscription.subscriptionNumber,
+        SupporterPlus2024Migration.supporterPlusV2RatePlan(subscription).toOption.get
+      ),
+      Right(
+        ZuoraRatePlanCharge(
+          productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
+          name = "Supporter Plus Annual Charge",
+          number = "C-04819663",
+          currency = "AUD",
+          price = Some(150.0),
+          billingPeriod = Some("Annual"),
+          chargedThroughDate = Some(LocalDate.of(2024, 11, 11)),
+          processedThroughDate = Some(LocalDate.of(2023, 11, 11)),
+          specificBillingPeriod = None,
+          endDateCondition = Some("Subscription_End"),
+          upToPeriodsType = None,
+          upToPeriods = None,
+          billingDay = Some("ChargeTriggerDay"),
+          triggerEvent = Some("CustomerAcceptance"),
+          triggerDate = None,
+          discountPercentage = None,
+          originalOrderDate = Some(LocalDate.of(2023, 11, 26)),
+          effectiveStartDate = Some(LocalDate.of(2023, 11, 11)),
+          effectiveEndDate = Some(LocalDate.of(2024, 11, 11))
+        )
+      )
+    )
+  }
+  test("extracting `Supporter Plus V2` rate plan base charge (sub-without-LastChangeType)") {
+    // The original subscription price is 160, the normal old price,
+    // but I edited the annual/subscription.json it to 150 to make sure we
+    // read the right price from the subscription.
+
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-without-LastChangeType/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.supporterPlusBaseRatePlanCharge(
+        subscription.subscriptionNumber,
+        SupporterPlus2024Migration.supporterPlusV2RatePlan(subscription).toOption.get
+      ),
+      Right(
+        ZuoraRatePlanCharge(
+          productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
+          name = "Supporter Plus Monthly Charge",
+          number = "C-05466358",
+          currency = "EUR",
+          price = Some(6.0),
+          billingPeriod = Some("Month"),
+          chargedThroughDate = Some(LocalDate.of(2024, 9, 5)),
+          processedThroughDate = Some(LocalDate.of(2024, 8, 5)),
+          specificBillingPeriod = None,
+          endDateCondition = Some("Subscription_End"),
+          upToPeriodsType = None,
+          upToPeriods = None,
+          billingDay = Some("ChargeTriggerDay"),
+          triggerEvent = Some("CustomerAcceptance"),
+          triggerDate = None,
+          discountPercentage = None,
+          originalOrderDate = Some(LocalDate.of(2024, 4, 5)),
+          effectiveStartDate = Some(LocalDate.of(2024, 4, 5)),
+          effectiveEndDate = Some(LocalDate.of(2025, 4, 5))
+        )
+      )
+    )
+  }
+
+  test("extracting `Supporter Plus V2` rate plan contribution charge (monthly)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.supporterPlusContributionRatePlanCharge(
+        subscription.subscriptionNumber,
+        SupporterPlus2024Migration.supporterPlusV2RatePlan(subscription).toOption.get
+      ),
+      Right(
+        ZuoraRatePlanCharge(
+          productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270",
+          name = "Contribution",
+          number = "C-04648406",
+          currency = "GBP",
+          price = Some(0.0),
+          billingPeriod = Some("Month"),
+          chargedThroughDate = Some(LocalDate.of(2024, 9, 30)),
+          processedThroughDate = Some(LocalDate.of(2024, 8, 30)),
+          specificBillingPeriod = None,
+          endDateCondition = Some("Subscription_End"),
+          upToPeriodsType = None,
+          upToPeriods = None,
+          billingDay = Some("ChargeTriggerDay"),
+          triggerEvent = Some("CustomerAcceptance"),
+          triggerDate = None,
+          discountPercentage = None,
+          originalOrderDate = Some(LocalDate.of(2023, 10, 1)),
+          effectiveStartDate = Some(LocalDate.of(2023, 9, 30)),
+          effectiveEndDate = Some(LocalDate.of(2025, 2, 27))
+        )
+      )
+    )
+  }
+  test("extracting `Supporter Plus V2` rate plan contribution charge (annual)") {
+    // The original subscription price is 160, the normal old price,
+    // but I edited the annual/subscription.json it to 150 to make sure we
+    // read the right price from the subscription.
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.supporterPlusContributionRatePlanCharge(
+        subscription.subscriptionNumber,
+        SupporterPlus2024Migration.supporterPlusV2RatePlan(subscription).toOption.get
+      ),
+      Right(
+        ZuoraRatePlanCharge(
+          productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
+          name = "Contribution",
+          number = "C-04819662",
+          currency = "AUD",
+          price = Some(340.0),
+          billingPeriod = Some("Annual"),
+          chargedThroughDate = Some(LocalDate.of(2024, 11, 11)),
+          processedThroughDate = Some(LocalDate.of(2023, 11, 11)),
+          specificBillingPeriod = None,
+          endDateCondition = Some("Subscription_End"),
+          upToPeriodsType = None,
+          upToPeriods = None,
+          billingDay = Some("ChargeTriggerDay"),
+          triggerEvent = Some("CustomerAcceptance"),
+          triggerDate = None,
+          discountPercentage = None,
+          originalOrderDate = Some(LocalDate.of(2023, 11, 26)),
+          effectiveStartDate = Some(LocalDate.of(2023, 11, 11)),
+          effectiveEndDate = Some(LocalDate.of(2024, 11, 11))
+        )
+      )
+    )
+  }
+  test("extracting `Supporter Plus V2` rate plan contribution charge (sub-without-LastChangeType)") {
+    // The original subscription price is 160, the normal old price,
+    // but I edited the annual/subscription.json it to 150 to make sure we
+    // read the right price from the subscription.
+
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-without-LastChangeType/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.supporterPlusContributionRatePlanCharge(
+        subscription.subscriptionNumber,
+        SupporterPlus2024Migration.supporterPlusV2RatePlan(subscription).toOption.get
+      ),
+      Right(
+        ZuoraRatePlanCharge(
+          productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270",
+          name = "Contribution",
+          number = "C-05466357",
+          currency = "EUR",
+          price = Some(3.0),
+          billingPeriod = Some("Month"),
+          chargedThroughDate = Some(LocalDate.of(2024, 9, 5)),
+          processedThroughDate = Some(LocalDate.of(2024, 8, 5)),
+          specificBillingPeriod = None,
+          endDateCondition = Some("Subscription_End"),
+          upToPeriodsType = None,
+          upToPeriods = None,
+          billingDay = Some("ChargeTriggerDay"),
+          triggerEvent = Some("CustomerAcceptance"),
+          triggerDate = None,
+          discountPercentage = None,
+          originalOrderDate = Some(LocalDate.of(2024, 4, 5)),
+          effectiveStartDate = Some(LocalDate.of(2024, 4, 5)),
+          effectiveEndDate = Some(LocalDate.of(2025, 4, 5))
+        )
+      )
+    )
+  }
+
+  test("sp2024_previous_base_amount (monthly)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.sp2024_previous_base_amount(subscription),
+      Right(
+        Some(BigDecimal(10))
+      )
+    )
+  }
+  test("sp2024_previous_base_amount (annual)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.sp2024_previous_base_amount(subscription),
+      Right(
+        Some(BigDecimal(150))
+      )
+    )
+  }
+  test("sp2024_previous_base_amount (sub-without-LastChangeType)") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-without-LastChangeType/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.sp2024_previous_base_amount(subscription),
+      Right(
+        Some(BigDecimal(6))
+      )
+    )
+  }
+
+  test("sp2024_new_base_amount (monthly)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.sp2024_new_base_amount(subscription),
+      Right(
+        Some(BigDecimal(12))
+      )
+    )
+  }
+  test("sp2024_new_base_amount (annual)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.sp2024_new_base_amount(subscription),
+      Right(
+        Some(
+          BigDecimal(150 * 1.27)
+        ) // the new price is 200, but it's too high (with the original 160, we would have been fine)
+      )
+    )
+  }
+  test("sp2024_new_base_amount (sub-without-LastChangeType)") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-without-LastChangeType/subscription.json")
+    // Below we make it explicit that we expect a 27% charge to be applied to the base charge as part of the price rise
+    val newBasePrice = 6 * 1.27
+    assertEquals(
+      SupporterPlus2024Migration.sp2024_new_base_amount(subscription),
+      Right(Some(BigDecimal(newBasePrice)))
+    )
+  }
+
+  test("sp2024_contribution_amount (monthly)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.sp2024_contribution_amount(subscription),
+      Right(
+        Some(BigDecimal(0))
+      )
+    )
+  }
+  test("sp2024_contribution_amount (annual)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.sp2024_contribution_amount(subscription),
+      Right(
+        Some(BigDecimal(340))
+      )
+    )
+  }
+  test("sp2024_contribution_amount (sub-without-LastChangeType)") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-without-LastChangeType/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.sp2024_contribution_amount(subscription),
+      Right(
+        Some(BigDecimal(3))
+      )
+    )
+  }
+
+  test("sp2024_previous_combined_amount (monthly)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.sp2024_previous_combined_amount(subscription),
+      Right(
+        Some(BigDecimal(10))
+      )
+    )
+  }
+  test("sp2024_previous_combined_amount (annual)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.sp2024_previous_combined_amount(subscription),
+      Right(
+        Some(BigDecimal(490))
+      )
+    )
+  }
+  test("sp2024_previous_combined_amount (sub-without-LastChangeType)") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-without-LastChangeType/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.sp2024_previous_combined_amount(subscription),
+      Right(
+        Some(BigDecimal(6 + 3))
+      )
+    )
+  }
+
+  test("sp2024_new_combined_amount (monthly)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.sp2024_new_combined_amount(subscription),
+      Right(
+        Some(BigDecimal(12))
+      )
+    )
+  }
+  test("sp2024_new_combined_amount (annual)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
+    val newCombinedAmount = 150 * 1.27 + 340
+    assertEquals(
+      SupporterPlus2024Migration.sp2024_new_combined_amount(subscription),
+      Right(
+        Some(BigDecimal(newCombinedAmount))
+      )
+    )
+  }
+  test("sp2024_new_combined_amount (sub-without-LastChangeType)") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-without-LastChangeType/subscription.json")
+
+    // Base price with a capping and the existing contribution
+    // And we are doing the rounding because floating point numbers are hard for computers.
+    val newCombinedAmount = BigDecimal(6 * 1.27 + 3).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+
+    assertEquals(
+      SupporterPlus2024Migration.sp2024_new_combined_amount(subscription),
+      Right(
+        Some(newCombinedAmount)
+      )
+    )
+  }
+
   test("priceData (monthly)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
     assertEquals(
@@ -296,7 +663,6 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       )
     )
   }
-
   test("EstimationResult (annual)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
     val invoices = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2024/annual/invoices.json")
@@ -323,6 +689,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       )
     )
   }
+
   test("zuoraUpdate (monthly)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
     assertEquals(

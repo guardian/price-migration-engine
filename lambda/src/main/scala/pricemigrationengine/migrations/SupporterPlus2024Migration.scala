@@ -1,8 +1,6 @@
 package pricemigrationengine.migrations
-import pricemigrationengine.model.PriceCap
 import pricemigrationengine.model.ZuoraRatePlan
 import pricemigrationengine.model._
-import pricemigrationengine.util._
 
 import java.time.LocalDate
 
@@ -55,6 +53,7 @@ object SupporterPlus2024Migration {
   // Data Functions
   // ------------------------------------------------
 
+  // ------------------------------------------------
   // Prices
 
   def getOldPrice(billingPeriod: BillingPeriod, currency: String): Option[Double] = {
@@ -73,6 +72,7 @@ object SupporterPlus2024Migration {
     }
   }
 
+  // ------------------------------------------------
   // Cancellation Saves
 
   def cancellationSaveRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
@@ -91,6 +91,7 @@ object SupporterPlus2024Migration {
     } yield date
   }
 
+  // ------------------------------------------------
   // Subscription Data
 
   def supporterPlusV2RatePlan(subscription: ZuoraSubscription): Either[AmendmentDataFailure, ZuoraRatePlan] = {
@@ -114,11 +115,99 @@ object SupporterPlus2024Migration {
     ratePlan.ratePlanCharges.find(rpc => rpc.name.contains("Supporter Plus")) match {
       case None => {
         Left(
-          AmendmentDataFailure(s"Subscription ${subscriptionNumber} has a rate plan, but with no charge")
+          AmendmentDataFailure(s"Subscription ${subscriptionNumber} has a rate plan (${ratePlan}), but with no charge")
         )
       }
       case Some(ratePlanCharge) => Right(ratePlanCharge)
     }
+  }
+
+  def supporterPlusContributionRatePlanCharge(
+      subscriptionNumber: String,
+      ratePlan: ZuoraRatePlan
+  ): Either[AmendmentDataFailure, ZuoraRatePlanCharge] = {
+    ratePlan.ratePlanCharges.find(rpc => rpc.name.contains("Contribution")) match {
+      case None => {
+        Left(
+          AmendmentDataFailure(s"Subscription ${subscriptionNumber} has a rate plan (${ratePlan}), but with no charge")
+        )
+      }
+      case Some(ratePlanCharge) => Right(ratePlanCharge)
+    }
+  }
+
+  // ------------------------------------------------
+  // Notification helpers
+
+  /*
+    Date: September 2024
+    Author: Pascal
+    Comment Group: 602514a6-5e53
+
+    These functions have been added to implement the extra fields added to EmailPayloadSubscriberAttributes
+    as part of the set up of the SupporterPlus 2024 migration (see Comment Group: 602514a6-5e53)
+   */
+
+  def sp2024_previous_base_amount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
+    for {
+      ratePlan <- supporterPlusV2RatePlan(subscription)
+      ratePlanCharge <- supporterPlusBaseRatePlanCharge(subscription.subscriptionNumber, ratePlan)
+    } yield ratePlanCharge.price
+  }
+
+  def sp2024_new_base_amount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
+    for {
+      ratePlan <- supporterPlusV2RatePlan(subscription)
+      billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan).toRight(AmendmentDataFailure(""))
+      ratePlanCharge <- supporterPlusBaseRatePlanCharge(subscription.subscriptionNumber, ratePlan)
+      currency = ratePlanCharge.currency
+      oldBaseAmountOpt <- sp2024_previous_base_amount(subscription)
+      oldBaseAmount <- oldBaseAmountOpt.toRight(
+        AmendmentDataFailure(
+          s"(error: 164d8f1c-6dc6) could not extract base amount for subscription ${subscription.subscriptionNumber}"
+        )
+      )
+      newPriceFromPriceGrid <- getNewPrice(billingPeriod, currency)
+        .map(BigDecimal(_))
+        .toRight(
+          AmendmentDataFailure(
+            s"(error: 611aedea-0478) could not getNewPrice for (billingPeriod, currency) and (${billingPeriod}, ${currency})"
+          )
+        )
+    } yield {
+      Some((oldBaseAmount * BigDecimal(1.27)).min(newPriceFromPriceGrid))
+    }
+  }
+
+  def sp2024_contribution_amount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
+    for {
+      ratePlan <- supporterPlusV2RatePlan(subscription)
+      ratePlanCharge <- supporterPlusContributionRatePlanCharge(subscription.subscriptionNumber, ratePlan)
+    } yield ratePlanCharge.price
+  }
+
+  def sp2024_previous_combined_amount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
+    for {
+      contributionAmountOpt <- sp2024_contribution_amount(subscription)
+      previousBaseAmountOpt <- sp2024_previous_base_amount(subscription)
+    } yield (
+      for {
+        contributionAmount <- contributionAmountOpt
+        previousBaseAmount <- previousBaseAmountOpt
+      } yield contributionAmount + previousBaseAmount
+    )
+  }
+
+  def sp2024_new_combined_amount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
+    for {
+      contributionAmountOpt <- sp2024_contribution_amount(subscription)
+      previousBaseAmountOpt <- sp2024_new_base_amount(subscription)
+    } yield (
+      for {
+        contributionAmount <- contributionAmountOpt
+        previousBaseAmount <- previousBaseAmountOpt
+      } yield contributionAmount + previousBaseAmount
+    )
   }
 
   // ------------------------------------------------
