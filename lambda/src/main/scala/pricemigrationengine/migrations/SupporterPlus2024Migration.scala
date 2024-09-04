@@ -210,6 +210,32 @@ object SupporterPlus2024Migration {
     )
   }
 
+  def hasNonTrivialContribution(subscription: ZuoraSubscription): Either[Failure, Boolean] = {
+    for {
+      amountOpt <- sp2024_contribution_amount(subscription: ZuoraSubscription)
+      amount <- amountOpt.toRight(
+        AmendmentDataFailure(
+          s"(error: 232760f5) could not extract contribution amount for subscription ${subscription.subscriptionNumber}"
+        )
+      )
+    } yield amount > 0
+  }
+
+  // -------------------------------------------------------------------
+  // Braze names
+
+  def brazeName(subscription: ZuoraSubscription): Either[Failure, String] = {
+    for {
+      status <- hasNonTrivialContribution(subscription: ZuoraSubscription)
+    } yield {
+      if (status) {
+        "SV_SP2_Contributors_PriceRise2024"
+      } else {
+        "SV_SP2_PriceRise2024"
+      }
+    }
+  }
+
   // ------------------------------------------------
   // Primary Interface
   // ------------------------------------------------

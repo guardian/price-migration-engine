@@ -7,6 +7,10 @@ import pricemigrationengine.Fixtures
 import pricemigrationengine.migrations.SupporterPlus2024Migration
 
 class SupporterPlus2024MigrationTest extends munit.FunSuite {
+
+  // -----------------------------------
+  // Cancellation saves
+
   test("isInCancellationSave") {
     val subscriptionNo =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-with-cancellation-save/subscription-no.json")
@@ -21,7 +25,6 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       true
     )
   }
-
   test("cancellationSaveEffectiveDate") {
     val subscriptionNo =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-with-cancellation-save/subscription-no.json")
@@ -36,6 +39,9 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       Some(LocalDate.of(2024, 7, 5))
     )
   }
+
+  // -----------------------------------
+  // Price Grid
 
   test("Price Grid (Old)") {
     assertEquals(
@@ -57,6 +63,9 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       Some(120.0)
     )
   }
+
+  // -----------------------------------
+  // Rate plans extraction
 
   // The monthly is GBP without a contribution [10, 0]
   // The annual is a AUD with contribution [160, 340]
@@ -462,6 +471,9 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     )
   }
 
+  // -----------------------------------
+  // Notification helpers sp2024_*
+
   test("sp2024_previous_base_amount (monthly)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
     assertEquals(
@@ -615,6 +627,9 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     )
   }
 
+  // -----------------------------------
+  // priceData
+
   test("priceData (monthly)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
     assertEquals(
@@ -636,6 +651,9 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       Right(PriceData("AUD", 150.0, 200.0, "Annual"))
     )
   }
+
+  // -----------------------------------
+  // EstimationResult
 
   test("EstimationResult (monthly)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
@@ -689,6 +707,27 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       )
     )
   }
+
+  // -----------------------------------
+  // braze names
+
+  test("brazeName (monthly)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.brazeName(subscription),
+      Right("SV_SP2_PriceRise2024")
+    )
+  }
+  test("brazeName (annual)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.brazeName(subscription),
+      Right("SV_SP2_Contributors_PriceRise2024")
+    )
+  }
+
+  // -----------------------------------
+  // zuoraUpdate
 
   test("zuoraUpdate (monthly)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")

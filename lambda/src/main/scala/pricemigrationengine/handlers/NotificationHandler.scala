@@ -129,6 +129,8 @@ object NotificationHandler extends CohortHandler {
       sp2024_previous_combined_amount <- ZIO.fromEither(sp2024_previous_combined_amount(cohortSpec, subscription))
       sp2024_new_combined_amount <- ZIO.fromEither(sp2024_new_combined_amount(cohortSpec, subscription))
 
+      brazeName <- ZIO.fromEither(brazeName(cohortSpec, subscription))
+
       _ <- EmailSender.sendEmail(
         message = EmailMessage(
           EmailPayload(
@@ -159,7 +161,7 @@ object NotificationHandler extends CohortHandler {
               )
             )
           ),
-          cohortSpec.brazeCampaignName,
+          brazeName,
           contact.Id,
           contact.IdentityID__c
         )
@@ -496,6 +498,27 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2024 =>
         SupporterPlus2024Migration.sp2024_new_combined_amount(subscription).map(o => o.map(b => b.toString))
       case _ => Right(None)
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // Braze names
+
+  // Note:
+
+  // This function was introduced in September 2024, when as part of SupporterPlus2024 we integrated two different
+  // email templates in Braze to serve communication to the users.
+
+  // Traditionally the name of the campaign or canvas has been part of the CohortSpec, making
+  // `cohortSpec.brazeCampaignName` the default carrier of this information, but in the case of SupporterPlus 2024
+  // we have two canvases and need to decide one depending on the structure of the subscription. Once
+  // SupporterPlus2024 finished, we may decide to go back to a simpler format, or keep that function, depending
+  // on the likelihood of Marketing adopting this variation in the future.
+
+  def brazeName(cohortSpec: CohortSpec, subscription: ZuoraSubscription): Either[Failure, String] = {
+    MigrationType(cohortSpec) match {
+      case SupporterPlus2024 => SupporterPlus2024Migration.brazeName(subscription)
+      case _                 => Right(cohortSpec.brazeCampaignName)
     }
   }
 }
