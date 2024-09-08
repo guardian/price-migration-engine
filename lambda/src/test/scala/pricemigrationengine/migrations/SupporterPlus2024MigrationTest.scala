@@ -477,7 +477,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
   test("sp2024_previous_base_amount (monthly)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.sp2024_previous_base_amount(subscription),
+      SupporterPlus2024Migration.previousBaseAmount(subscription),
       Right(
         Some(BigDecimal(10))
       )
@@ -486,7 +486,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
   test("sp2024_previous_base_amount (annual)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.sp2024_previous_base_amount(subscription),
+      SupporterPlus2024Migration.previousBaseAmount(subscription),
       Right(
         Some(BigDecimal(150))
       )
@@ -496,7 +496,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     val subscription =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-without-LastChangeType/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.sp2024_previous_base_amount(subscription),
+      SupporterPlus2024Migration.previousBaseAmount(subscription),
       Right(
         Some(BigDecimal(6))
       )
@@ -506,7 +506,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
   test("sp2024_new_base_amount (monthly)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.sp2024_new_base_amount(subscription),
+      SupporterPlus2024Migration.newBaseAmount(subscription),
       Right(
         Some(BigDecimal(12))
       )
@@ -515,7 +515,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
   test("sp2024_new_base_amount (annual)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.sp2024_new_base_amount(subscription),
+      SupporterPlus2024Migration.newBaseAmount(subscription),
       Right(
         Some(
           BigDecimal(150 * 1.27)
@@ -529,7 +529,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     // Below we make it explicit that we expect a 27% charge to be applied to the base charge as part of the price rise
     val newBasePrice = 6 * 1.27
     assertEquals(
-      SupporterPlus2024Migration.sp2024_new_base_amount(subscription),
+      SupporterPlus2024Migration.newBaseAmount(subscription),
       Right(Some(BigDecimal(newBasePrice)))
     )
   }
@@ -537,7 +537,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
   test("sp2024_contribution_amount (monthly)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.sp2024_contribution_amount(subscription),
+      SupporterPlus2024Migration.contributionAmount(subscription),
       Right(
         Some(BigDecimal(0))
       )
@@ -546,7 +546,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
   test("sp2024_contribution_amount (annual)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.sp2024_contribution_amount(subscription),
+      SupporterPlus2024Migration.contributionAmount(subscription),
       Right(
         Some(BigDecimal(340))
       )
@@ -556,7 +556,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     val subscription =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-without-LastChangeType/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.sp2024_contribution_amount(subscription),
+      SupporterPlus2024Migration.contributionAmount(subscription),
       Right(
         Some(BigDecimal(3))
       )
@@ -566,7 +566,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
   test("sp2024_previous_combined_amount (monthly)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.sp2024_previous_combined_amount(subscription),
+      SupporterPlus2024Migration.previousCombinedAmount(subscription),
       Right(
         Some(BigDecimal(10))
       )
@@ -575,7 +575,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
   test("sp2024_previous_combined_amount (annual)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.sp2024_previous_combined_amount(subscription),
+      SupporterPlus2024Migration.previousCombinedAmount(subscription),
       Right(
         Some(BigDecimal(490))
       )
@@ -585,7 +585,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     val subscription =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-without-LastChangeType/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.sp2024_previous_combined_amount(subscription),
+      SupporterPlus2024Migration.previousCombinedAmount(subscription),
       Right(
         Some(BigDecimal(6 + 3))
       )
@@ -595,7 +595,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
   test("sp2024_new_combined_amount (monthly)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.sp2024_new_combined_amount(subscription),
+      SupporterPlus2024Migration.newCombinedAmount(subscription),
       Right(
         Some(BigDecimal(12))
       )
@@ -605,7 +605,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
     val newCombinedAmount = 150 * 1.27 + 340
     assertEquals(
-      SupporterPlus2024Migration.sp2024_new_combined_amount(subscription),
+      SupporterPlus2024Migration.newCombinedAmount(subscription),
       Right(
         Some(BigDecimal(newCombinedAmount))
       )
@@ -620,7 +620,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     val newCombinedAmount = BigDecimal(6 * 1.27 + 3).setScale(2, BigDecimal.RoundingMode.HALF_UP)
 
     assertEquals(
-      SupporterPlus2024Migration.sp2024_new_combined_amount(subscription),
+      SupporterPlus2024Migration.newCombinedAmount(subscription),
       Right(
         Some(newCombinedAmount)
       )
@@ -741,7 +741,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
               contractEffectiveDate = LocalDate.of(2024, 9, 9),
               chargeOverrides = List(
                 ChargeOverride(
-                  productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
+                  productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba", // base plan charge Id
                   billingPeriod = "Month",
                   price = 120.0
                 )

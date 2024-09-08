@@ -148,20 +148,20 @@ object SupporterPlus2024Migration {
     as part of the set up of the SupporterPlus 2024 migration (see Comment Group: 602514a6-5e53)
    */
 
-  def sp2024_previous_base_amount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
+  def previousBaseAmount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
     for {
       ratePlan <- supporterPlusV2RatePlan(subscription)
       ratePlanCharge <- supporterPlusBaseRatePlanCharge(subscription.subscriptionNumber, ratePlan)
     } yield ratePlanCharge.price
   }
 
-  def sp2024_new_base_amount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
+  def newBaseAmount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
     for {
       ratePlan <- supporterPlusV2RatePlan(subscription)
       billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan).toRight(AmendmentDataFailure(""))
       ratePlanCharge <- supporterPlusBaseRatePlanCharge(subscription.subscriptionNumber, ratePlan)
       currency = ratePlanCharge.currency
-      oldBaseAmountOpt <- sp2024_previous_base_amount(subscription)
+      oldBaseAmountOpt <- previousBaseAmount(subscription)
       oldBaseAmount <- oldBaseAmountOpt.toRight(
         AmendmentDataFailure(
           s"(error: 164d8f1c-6dc6) could not extract base amount for subscription ${subscription.subscriptionNumber}"
@@ -179,17 +179,17 @@ object SupporterPlus2024Migration {
     }
   }
 
-  def sp2024_contribution_amount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
+  def contributionAmount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
     for {
       ratePlan <- supporterPlusV2RatePlan(subscription)
       ratePlanCharge <- supporterPlusContributionRatePlanCharge(subscription.subscriptionNumber, ratePlan)
     } yield ratePlanCharge.price
   }
 
-  def sp2024_previous_combined_amount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
+  def previousCombinedAmount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
     for {
-      contributionAmountOpt <- sp2024_contribution_amount(subscription)
-      previousBaseAmountOpt <- sp2024_previous_base_amount(subscription)
+      contributionAmountOpt <- contributionAmount(subscription)
+      previousBaseAmountOpt <- previousBaseAmount(subscription)
     } yield (
       for {
         contributionAmount <- contributionAmountOpt
@@ -198,10 +198,10 @@ object SupporterPlus2024Migration {
     )
   }
 
-  def sp2024_new_combined_amount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
+  def newCombinedAmount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
     for {
-      contributionAmountOpt <- sp2024_contribution_amount(subscription)
-      previousBaseAmountOpt <- sp2024_new_base_amount(subscription)
+      contributionAmountOpt <- contributionAmount(subscription)
+      previousBaseAmountOpt <- newBaseAmount(subscription)
     } yield (
       for {
         contributionAmount <- contributionAmountOpt
@@ -212,7 +212,7 @@ object SupporterPlus2024Migration {
 
   def hasNonTrivialContribution(subscription: ZuoraSubscription): Either[Failure, Boolean] = {
     for {
-      amountOpt <- sp2024_contribution_amount(subscription: ZuoraSubscription)
+      amountOpt <- contributionAmount(subscription: ZuoraSubscription)
       amount <- amountOpt.toRight(
         AmendmentDataFailure(
           s"(error: 232760f5) could not extract contribution amount for subscription ${subscription.subscriptionNumber}"
@@ -258,17 +258,13 @@ object SupporterPlus2024Migration {
       effectiveDate: LocalDate,
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
     for {
-      ratePlan <- supporterPlusV2RatePlan(subscription)
-      ratePlanChargeId <- ratePlan.ratePlanCharges
-        .map(rpc => rpc.productRatePlanChargeId)
-        .headOption
-        .toRight(
-          AmendmentDataFailure(
-            s"[1862ada1] Could not determine the billing period for subscription ${subscription.subscriptionNumber}"
-          )
-        )
+      existingRatePlan <- supporterPlusV2RatePlan(subscription)
+      existingBaseRatePlanCharge <- supporterPlusBaseRatePlanCharge(
+        subscription.subscriptionNumber,
+        existingRatePlan
+      )
       billingPeriod <- ZuoraRatePlan
-        .ratePlanToBillingPeriod(ratePlan)
+        .ratePlanToBillingPeriod(existingRatePlan)
         .toRight(
           AmendmentDataFailure(
             s"[17469705] Could not determine the billing period for subscription ${subscription.subscriptionNumber}"
@@ -278,11 +274,11 @@ object SupporterPlus2024Migration {
       ZuoraSubscriptionUpdate(
         add = List(
           AddZuoraRatePlan(
-            productRatePlanId = ratePlan.productRatePlanId,
+            productRatePlanId = existingRatePlan.productRatePlanId,
             contractEffectiveDate = effectiveDate,
             chargeOverrides = List(
               ChargeOverride(
-                productRatePlanChargeId = ratePlanChargeId,
+                productRatePlanChargeId = existingBaseRatePlanCharge.productRatePlanChargeId,
                 billingPeriod = BillingPeriod.toString(billingPeriod),
                 price = 120.0
               )
@@ -291,7 +287,7 @@ object SupporterPlus2024Migration {
         ),
         remove = List(
           RemoveZuoraRatePlan(
-            ratePlanId = ratePlan.id,
+            ratePlanId = existingRatePlan.id,
             contractEffectiveDate = effectiveDate
           )
         ),

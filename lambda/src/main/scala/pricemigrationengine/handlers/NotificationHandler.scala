@@ -125,9 +125,13 @@ object NotificationHandler extends CohortHandler {
 
       // Data for SupporterPlus2024
       subscription <- Zuora.fetchSubscription(cohortItem.subscriptionName)
-      sp2024_contribution_amount <- ZIO.fromEither(sp2024_contribution_amount(cohortSpec, subscription))
-      sp2024_previous_combined_amount <- ZIO.fromEither(sp2024_previous_combined_amount(cohortSpec, subscription))
-      sp2024_new_combined_amount <- ZIO.fromEither(sp2024_new_combined_amount(cohortSpec, subscription))
+      sp2024ContributionAmount <- ZIO.fromEither(sp2024ContributionAmount(cohortSpec, subscription))
+      sp2024PreviousCombinedAmount <- ZIO.fromEither(sp2024PreviousCombinedAmount(cohortSpec, subscription))
+      sp2024NewCombinedAmount <- ZIO.fromEither(sp2024NewCombinedAmount(cohortSpec, subscription))
+
+      sp2024ContributionAmountWithCurrencySymbol = Some(s"${currencySymbol}${sp2024ContributionAmount}")
+      sp2024PreviousCombinedAmountWithCurrencySymbol = Some(s"${currencySymbol}${sp2024PreviousCombinedAmount}")
+      sp2024NewCombinedAmountWithCurrencySymbol = Some(s"${currencySymbol}${sp2024NewCombinedAmount}")
 
       brazeName <- ZIO.fromEither(brazeName(cohortSpec, subscription))
 
@@ -148,16 +152,24 @@ object NotificationHandler extends CohortHandler {
                 billing_postal_code = postalCode,
                 billing_state = address.state,
                 billing_country = country,
-                payment_amount = priceWithOptionalCappingWithCurrencySymbol,
+                payment_amount = priceWithOptionalCappingWithCurrencySymbol, // [1]
                 next_payment_date = startDateConversion(startDate),
                 payment_frequency = paymentFrequency,
                 subscription_id = cohortItem.subscriptionName,
                 product_type = sfSubscription.Product_Type__c.getOrElse(""),
 
+                // -------------------------------------------------------------
+                // [1]
+                // (Comment group: 7992fa98)
+                // For SupporterPlus2024, we did not use that value. Instead we used the data provided by the
+                // extension below. That value was the new base price, but we needed a different data distribution
+                // to be able to fill the email template. That distribution is given by the next section.
+
                 // SupporterPlus 2024 extension
-                sp2024_contribution_amount = sp2024_contribution_amount,
-                sp2024_previous_combined_amount = sp2024_previous_combined_amount,
-                sp2024_new_combined_amount = sp2024_new_combined_amount,
+                sp2024_contribution_amount = sp2024ContributionAmountWithCurrencySymbol,
+                sp2024_previous_combined_amount = sp2024PreviousCombinedAmountWithCurrencySymbol,
+                sp2024_new_combined_amount = sp2024NewCombinedAmountWithCurrencySymbol
+                // -------------------------------------------------------------
               )
             )
           ),
@@ -460,7 +472,7 @@ object NotificationHandler extends CohortHandler {
     as part of the set up of the SupporterPlus 2024 migration (see Comment Group: 602514a6-5e53)
    */
 
-  def sp2024_contribution_amount(
+  def sp2024ContributionAmount(
       cohortSpec: CohortSpec,
       subscription: ZuoraSubscription
   ): Either[Failure, Option[String]] = {
@@ -468,12 +480,12 @@ object NotificationHandler extends CohortHandler {
     // a non trivial behavior only for SupporterPlus2024
     MigrationType(cohortSpec) match {
       case SupporterPlus2024 =>
-        SupporterPlus2024Migration.sp2024_contribution_amount(subscription).map(o => o.map(b => b.toString))
+        SupporterPlus2024Migration.contributionAmount(subscription).map(o => o.map(b => b.toString))
       case _ => Right(None)
     }
   }
 
-  def sp2024_previous_combined_amount(
+  def sp2024PreviousCombinedAmount(
       cohortSpec: CohortSpec,
       subscription: ZuoraSubscription
   ): Either[Failure, Option[String]] = {
@@ -482,13 +494,13 @@ object NotificationHandler extends CohortHandler {
     MigrationType(cohortSpec) match {
       case SupporterPlus2024 =>
         SupporterPlus2024Migration
-          .sp2024_previous_combined_amount(subscription)
+          .previousCombinedAmount(subscription)
           .map(o => o.map(b => b.toString))
       case _ => Right(None)
     }
   }
 
-  def sp2024_new_combined_amount(
+  def sp2024NewCombinedAmount(
       cohortSpec: CohortSpec,
       subscription: ZuoraSubscription
   ): Either[Failure, Option[String]] = {
@@ -496,7 +508,7 @@ object NotificationHandler extends CohortHandler {
     // a non trivial behavior only for SupporterPlus2024
     MigrationType(cohortSpec) match {
       case SupporterPlus2024 =>
-        SupporterPlus2024Migration.sp2024_new_combined_amount(subscription).map(o => o.map(b => b.toString))
+        SupporterPlus2024Migration.newCombinedAmount(subscription).map(o => o.map(b => b.toString))
       case _ => Right(None)
     }
   }
