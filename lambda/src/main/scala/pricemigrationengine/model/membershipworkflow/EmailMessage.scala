@@ -21,9 +21,9 @@ case class EmailPayloadSubscriberAttributes(
     product_type: String,
 
     // SupporterPlus 2024 extension (see comment below)
-    sp2024_contribution_amount: Option[String] = None,
-    sp2024_previous_combined_amount: Option[String] = None,
-    sp2024_new_combined_amount: Option[String] = None,
+    sp2024_contribution_amount: String = "",
+    sp2024_previous_combined_amount: String = "",
+    sp2024_new_combined_amount: String = "",
 )
 
 /*

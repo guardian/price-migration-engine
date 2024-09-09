@@ -189,9 +189,9 @@ object NotificationHandler extends CohortHandler {
                 // to be able to fill the email template. That distribution is given by the next section.
 
                 // SupporterPlus 2024 extension
-                sp2024_contribution_amount = sp2024ContributionAmountWithCurrencySymbolOpt,
-                sp2024_previous_combined_amount = sp2024PreviousCombinedAmountWithCurrencySymbolOpt,
-                sp2024_new_combined_amount = sp2024NewCombinedAmountWithCurrencySymbolOpt
+                sp2024_contribution_amount = sp2024ContributionAmountWithCurrencySymbolOpt.getOrElse(""),
+                sp2024_previous_combined_amount = sp2024PreviousCombinedAmountWithCurrencySymbolOpt.getOrElse(""),
+                sp2024_new_combined_amount = sp2024NewCombinedAmountWithCurrencySymbolOpt.getOrElse("")
                 // -------------------------------------------------------------
               )
             )
