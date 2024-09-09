@@ -23,19 +23,20 @@ case class CohortItem(
     whenNotificationSentWrittenToSalesforce: Option[Instant] = None,
     whenAmendmentWrittenToSalesforce: Option[Instant] = None,
     cancellationReason: Option[String] = None,
-    doNotProcessUntil: Option[Instant] = None // [18]
+    doNotProcessUntil: Option[LocalDate] = None // [18]
 )
 
 // [18]
 //
 // Date: July 2024
 // Author: Pascal
+// comment group: 6157ec78
 //
 // `doNotProcessUntil` was introduced in July 2024 as a simple way to support
 // the "cancellation saves" feature that has been introduced this month and affecting the
 // cancellation journey of Supporter Plus subscriptions.
 // The default value is `None`, and if a none trivial value is present it represents
-// the instant until when the item should be left alone and not being processed.
+// the date until when the item should be left alone and not being processed.
 
 object CohortItem {
 

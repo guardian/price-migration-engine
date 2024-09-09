@@ -4,7 +4,7 @@ import pricemigrationengine.model.PriceCap
 
 import java.time.LocalDate
 
-class LegacyMigrationsTest extends munit.FunSuite {
+class PriceCapTest extends munit.FunSuite {
 
   test("The price legacy capping function works correctly") {
     val oldPrice = BigDecimal(100)
