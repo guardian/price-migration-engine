@@ -145,13 +145,15 @@ object NotificationHandler extends CohortHandler {
       // ----------------------------------------------------
       // Data for SupporterPlus2024
       subscription <- Zuora.fetchSubscription(cohortItem.subscriptionName)
-      sp2024ContributionAmount <- ZIO.fromEither(sp2024ContributionAmount(cohortSpec, subscription))
-      sp2024PreviousCombinedAmount <- ZIO.fromEither(sp2024PreviousCombinedAmount(cohortSpec, subscription))
-      sp2024NewCombinedAmount <- ZIO.fromEither(sp2024NewCombinedAmount(cohortSpec, subscription))
+      sp2024ContributionAmountOpt <- ZIO.fromEither(sp2024ContributionAmount(cohortSpec, subscription))
+      sp2024PreviousCombinedAmountOpt <- ZIO.fromEither(sp2024PreviousCombinedAmount(cohortSpec, subscription))
+      sp2024NewCombinedAmountOpt <- ZIO.fromEither(sp2024NewCombinedAmount(cohortSpec, subscription))
 
-      sp2024ContributionAmountWithCurrencySymbol = Some(s"${currencySymbol}${sp2024ContributionAmount}")
-      sp2024PreviousCombinedAmountWithCurrencySymbol = Some(s"${currencySymbol}${sp2024PreviousCombinedAmount}")
-      sp2024NewCombinedAmountWithCurrencySymbol = Some(s"${currencySymbol}${sp2024NewCombinedAmount}")
+      sp2024ContributionAmountWithCurrencySymbolOpt = sp2024ContributionAmountOpt.map(a => s"${currencySymbol}${a}")
+      sp2024PreviousCombinedAmountWithCurrencySymbolOpt = sp2024PreviousCombinedAmountOpt.map(a =>
+        s"${currencySymbol}${a}"
+      )
+      sp2024NewCombinedAmountWithCurrencySymbolOpt = sp2024NewCombinedAmountOpt.map(a => s"${currencySymbol}${a}")
       // ----------------------------------------------------
 
       brazeName <- ZIO.fromEither(brazeName(cohortSpec, subscription))
@@ -187,9 +189,9 @@ object NotificationHandler extends CohortHandler {
                 // to be able to fill the email template. That distribution is given by the next section.
 
                 // SupporterPlus 2024 extension
-                sp2024_contribution_amount = sp2024ContributionAmountWithCurrencySymbol,
-                sp2024_previous_combined_amount = sp2024PreviousCombinedAmountWithCurrencySymbol,
-                sp2024_new_combined_amount = sp2024NewCombinedAmountWithCurrencySymbol
+                sp2024_contribution_amount = sp2024ContributionAmountWithCurrencySymbolOpt,
+                sp2024_previous_combined_amount = sp2024PreviousCombinedAmountWithCurrencySymbolOpt,
+                sp2024_new_combined_amount = sp2024NewCombinedAmountWithCurrencySymbolOpt
                 // -------------------------------------------------------------
               )
             )
