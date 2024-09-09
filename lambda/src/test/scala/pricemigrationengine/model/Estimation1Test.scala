@@ -1,7 +1,7 @@
 package pricemigrationengine.model
 
 import pricemigrationengine.model.CohortTableFilter
-import pricemigrationengine.model.Estimation
+import pricemigrationengine.model.Estimation1
 
 import java.time.{Instant, LocalDate}
 
@@ -31,7 +31,7 @@ class EstimationTest extends munit.FunSuite {
     )
     val today = LocalDate.of(2024, 9, 9)
     assertEquals(
-      Estimation.isProcessable(item, today),
+      Estimation1.isProcessable(item, today),
       true
     )
   }
@@ -43,7 +43,7 @@ class EstimationTest extends munit.FunSuite {
     )
     val today = LocalDate.of(2024, 9, 9)
     assertEquals(
-      Estimation.isProcessable(item, today),
+      Estimation1.isProcessable(item, today),
       false
     )
   }
@@ -55,7 +55,7 @@ class EstimationTest extends munit.FunSuite {
     )
     val today = LocalDate.of(2024, 9, 10)
     assertEquals(
-      Estimation.isProcessable(item, today),
+      Estimation1.isProcessable(item, today),
       true
     )
   }
@@ -67,7 +67,7 @@ class EstimationTest extends munit.FunSuite {
     )
     val today = LocalDate.of(2024, 9, 11)
     assertEquals(
-      Estimation.isProcessable(item, today),
+      Estimation1.isProcessable(item, today),
       true
     )
   }

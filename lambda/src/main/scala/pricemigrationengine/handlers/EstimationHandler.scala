@@ -1,6 +1,5 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.migrations.newspaper2024Migration
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -27,7 +26,7 @@ object EstimationHandler extends CohortHandler {
         .filter(item => CohortItem.isProcessable(item))
         .take(batchSize)
         .mapZIO(item =>
-          if (Estimation.isProcessable(item, today)) {
+          if (Estimation1.isProcessable(item, today)) {
             estimate(catalogue, cohortSpec)(today, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
           } else {
             ZIO.succeed(())

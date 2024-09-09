@@ -53,7 +53,7 @@ object NotificationHandler extends CohortHandler {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       count <- CohortTable
         .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
-        .take(batchSize)
+        .take(1)
         .mapZIO(item =>
           MigrationType(cohortSpec) match {
             case SupporterPlus2024 => {

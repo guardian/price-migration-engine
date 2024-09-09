@@ -2,7 +2,7 @@ package pricemigrationengine.model
 
 import java.time.LocalDate
 
-object Estimation {
+object Estimation1 {
   def isProcessable(item: CohortItem, today: LocalDate): Boolean = {
     // This function looks at the `doNotProcessUntil` attribute and returns whether the item
     // should go through the Estimation step. See comment group: 6157ec78
