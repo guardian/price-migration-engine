@@ -123,6 +123,7 @@ object NotificationHandler extends CohortHandler {
 
       _ <- logMissingEmailAddress(cohortItem, contact)
 
+      // ----------------------------------------------------
       // Data for SupporterPlus2024
       subscription <- Zuora.fetchSubscription(cohortItem.subscriptionName)
       sp2024ContributionAmount <- ZIO.fromEither(sp2024ContributionAmount(cohortSpec, subscription))
@@ -132,6 +133,7 @@ object NotificationHandler extends CohortHandler {
       sp2024ContributionAmountWithCurrencySymbol = Some(s"${currencySymbol}${sp2024ContributionAmount}")
       sp2024PreviousCombinedAmountWithCurrencySymbol = Some(s"${currencySymbol}${sp2024PreviousCombinedAmount}")
       sp2024NewCombinedAmountWithCurrencySymbol = Some(s"${currencySymbol}${sp2024NewCombinedAmount}")
+      // ----------------------------------------------------
 
       brazeName <- ZIO.fromEither(brazeName(cohortSpec, subscription))
 
