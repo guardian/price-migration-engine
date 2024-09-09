@@ -477,7 +477,8 @@ object NotificationHandler extends CohortHandler {
               processingStage = Cancelled
             )
           )
-      _ <- notifySalesforceOfCancelledStatus(cohortSpec, cohortItem, reason)
+      // _ <- notifySalesforceOfCancelledStatus(cohortSpec, cohortItem, reason)
+      // Todo: get this back
       _ <- Logging.error(
         s"Subscription ${cohortItem.subscriptionName} has been cancelled, price rise notification not sent"
       )
