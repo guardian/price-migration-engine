@@ -54,7 +54,30 @@ object NotificationHandler extends CohortHandler {
       count <- CohortTable
         .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
         .take(batchSize)
-        .mapZIO(item => sendNotification(cohortSpec)(item, today))
+        .mapZIO(item =>
+          MigrationType(cohortSpec) match {
+            case SupporterPlus2024 => {
+              for {
+                subscription <- Zuora.fetchSubscription(item.subscriptionName)
+                _ <-
+                  if (SupporterPlus2024Migration.isUnderActiveCancellationSave(subscription, today)) {
+                    CohortTable
+                      .update(
+                        CohortItem(
+                          subscriptionName = item.subscriptionName,
+                          processingStage = DoNotProcessUntil,
+                          doNotProcessUntil =
+                            Some(today.minusMonths(6)) // TODO: compute from the start of the cancellation, not today
+                        )
+                      )
+                  } else {
+                    sendNotification(cohortSpec)(item, today)
+                  }
+              } yield ()
+            }
+            case _ => sendNotification(cohortSpec)(item, today)
+          }
+        )
         .runCount
     } yield HandlerOutput(isComplete = count < batchSize)
   }

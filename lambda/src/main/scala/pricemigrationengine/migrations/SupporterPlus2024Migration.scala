@@ -91,6 +91,13 @@ object SupporterPlus2024Migration {
     } yield date
   }
 
+  def isUnderActiveCancellationSave(subscription: ZuoraSubscription, today: LocalDate): Boolean = {
+    cancellationSaveEffectiveDate(subscription: ZuoraSubscription) match {
+      case None       => false
+      case Some(date) => (date == today) || today.isBefore(date)
+    }
+  }
+
   // ------------------------------------------------
   // Subscription Data
 
