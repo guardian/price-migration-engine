@@ -1,7 +1,7 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.TestLogging
-import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
+import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiseCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import pricemigrationengine.util.Runner.unsafeRunSync
@@ -153,7 +153,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).processingStage,
-      SalesforcePriceRiceCreationComplete
+      SalesforcePriceRiseCreationComplete
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).salesforcePriceRiseId,
@@ -218,7 +218,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).processingStage,
-      SalesforcePriceRiceCreationComplete
+      SalesforcePriceRiseCreationComplete
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).salesforcePriceRiseId,
@@ -283,7 +283,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).processingStage,
-      SalesforcePriceRiceCreationComplete
+      SalesforcePriceRiseCreationComplete
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).salesforcePriceRiseId,
@@ -350,7 +350,7 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).processingStage,
-      SalesforcePriceRiceCreationComplete
+      SalesforcePriceRiseCreationComplete
     )
     assertEquals(
       updatedResultsWrittenToCohortTable(0).salesforcePriceRiseId,

@@ -13,7 +13,7 @@ import pricemigrationengine.migrations.DigiSubs2023Migration.{
   subscriptionRatePlanCharge,
   zuoraUpdate
 }
-import pricemigrationengine.model.CohortTableFilter.SalesforcePriceRiceCreationComplete
+import pricemigrationengine.model.CohortTableFilter.SalesforcePriceRiseCreationComplete
 class DigiSubs2023MigrationTest extends munit.FunSuite {
   test("monthly (1)") {
 
@@ -241,11 +241,11 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     val itemStartDate4 = LocalDate.of(2023, 11, 11) // +33 days (earliest start date for DigiSubs2023_Batch1)
     val itemStartDate5 = LocalDate.of(2023, 11, 12) // +34 days
 
-    val cohortItem1 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate1))
-    val cohortItem2 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate2))
-    val cohortItem3 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate3))
-    val cohortItem4 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate4))
-    val cohortItem5 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate5))
+    val cohortItem1 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate1))
+    val cohortItem2 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate2))
+    val cohortItem3 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate3))
+    val cohortItem4 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate4))
+    val cohortItem5 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate5))
 
     val cohortSpec =
       CohortSpec("DigiSubs2023_Batch1", "BrazeCampaignName", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 1, 1))
@@ -492,11 +492,11 @@ class DigiSubs2023MigrationTest extends munit.FunSuite {
     val itemStartDate4 = LocalDate.of(2023, 12, 9) // +33 days (earliest start date for DigiSubs2023_Batch2)
     val itemStartDate5 = LocalDate.of(2023, 12, 10) // +34 days
 
-    val cohortItem1 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate1))
-    val cohortItem2 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate2))
-    val cohortItem3 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate3))
-    val cohortItem4 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate4))
-    val cohortItem5 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate5))
+    val cohortItem1 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate1))
+    val cohortItem2 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate2))
+    val cohortItem3 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate3))
+    val cohortItem4 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate4))
+    val cohortItem5 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate5))
 
     val cohortSpec =
       CohortSpec("DigiSubs2023_Batch2", "BrazeCampaignName", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 1, 1))

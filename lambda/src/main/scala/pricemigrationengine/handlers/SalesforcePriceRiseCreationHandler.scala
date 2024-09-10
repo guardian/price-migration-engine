@@ -1,7 +1,7 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.migrations.GW2024Migration
-import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiceCreationComplete}
+import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiseCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.{Clock, IO, ZIO}
@@ -34,7 +34,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
       now <- Clock.instant
       salesforcePriceRiseCreationDetails = CohortItem(
         subscriptionName = item.subscriptionName,
-        processingStage = SalesforcePriceRiceCreationComplete,
+        processingStage = SalesforcePriceRiseCreationComplete,
         salesforcePriceRiseId = optionalNewPriceRiseId,
         whenSfShowEstimate = Some(now)
       )
