@@ -25,14 +25,14 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
           result => Logging.info(s"SalesforcePriceRise result: $result")
         )
       now <- Clock.instant
-      salesforcePriceRiseDetails = CohortItem(
+      newCohortItem = CohortItem(
         subscriptionName = item.subscriptionName,
         processingStage = NotificationSendDateWrittenToSalesforce,
         whenNotificationSentWrittenToSalesforce = Some(now)
       )
       _ <-
         CohortTable
-          .update(salesforcePriceRiseDetails)
+          .update(newCohortItem)
     } yield ()
 
   private def updateSalesforce(
@@ -74,18 +74,14 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    MigrationType(input) match {
-      case SupporterPlus2024 => ZIO.succeed(HandlerOutput(isComplete = true))
-      case _ =>
-        main(input).provideSome[Logging](
-          EnvConfig.cohortTable.layer,
-          EnvConfig.salesforce.layer,
-          EnvConfig.stage.layer,
-          DynamoDBZIOLive.impl,
-          DynamoDBClientLive.impl,
-          CohortTableLive.impl(input),
-          SalesforceClientLive.impl
-        )
-    }
+    main(input).provideSome[Logging](
+      EnvConfig.cohortTable.layer,
+      EnvConfig.salesforce.layer,
+      EnvConfig.stage.layer,
+      DynamoDBZIOLive.impl,
+      DynamoDBClientLive.impl,
+      CohortTableLive.impl(input),
+      SalesforceClientLive.impl
+    )
   }
 }
