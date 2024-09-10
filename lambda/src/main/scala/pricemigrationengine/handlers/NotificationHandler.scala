@@ -47,7 +47,7 @@ object NotificationHandler extends CohortHandler {
     for {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       count <- CohortTable
-        .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+        .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
         .take(batchSize)
         .mapZIO(item => sendNotification(cohortSpec)(item, today))
         .runCount
