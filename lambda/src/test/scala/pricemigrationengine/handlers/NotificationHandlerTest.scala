@@ -74,7 +74,7 @@ class NotificationHandlerTest extends munit.FunSuite {
             filter: CohortTableFilter,
             beforeDateInclusive: Option[LocalDate]
         ): ZStream[Any, CohortFetchFailure, CohortItem] = {
-          assertEquals(filter, SalesforcePriceRiceCreationComplete)
+          assertEquals(filter, SalesforcePriceRiseCreationComplete)
           ZStream(cohortItem)
         }
 
@@ -660,7 +660,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     val itemStartDate = LocalDate.of(2023, 5, 4)
 
     val cohortSpec = CohortSpec("CohortName", "BrazeCampaignName", LocalDate.of(2000, 1, 1), itemStartDate)
-    val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
+    val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate))
 
     // The two following dates are chosen to be after 1st Dec 2022, to hit the non trivial case of the check
     val date2 = LocalDate.of(2023, 3, 1)
@@ -683,7 +683,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     val itemStartDate = LocalDate.of(2023, 5, 4)
 
     val cohortSpec = CohortSpec("Membership2023_Batch1", "BrazeCampaignName", LocalDate.of(2000, 1, 1), itemStartDate)
-    val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
+    val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate))
 
     val date2 = LocalDate.of(2023, 3, 1) // true
     val date3 = LocalDate.of(2023, 4, 1) // 33 days to target, should true
@@ -703,7 +703,7 @@ class NotificationHandlerTest extends munit.FunSuite {
     val itemStartDate = LocalDate.of(2023, 6, 4)
 
     val cohortSpec = CohortSpec("Membership2023_Batch2", "BrazeCampaignName", LocalDate.of(2000, 1, 1), itemStartDate)
-    val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate))
+    val cohortItem = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate))
 
     val date2 = LocalDate.of(2023, 4, 1) // true
     val date3 = LocalDate.of(2023, 5, 1) // 34 days to target, should true
@@ -730,11 +730,11 @@ class NotificationHandlerTest extends munit.FunSuite {
     val itemStartDate4 = LocalDate.of(2023, 8, 7) // +33 days
     val itemStartDate5 = LocalDate.of(2023, 8, 8) // +34 days
 
-    val cohortItem1 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate1))
-    val cohortItem2 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate2))
-    val cohortItem3 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate3))
-    val cohortItem4 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate4))
-    val cohortItem5 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate5))
+    val cohortItem1 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate1))
+    val cohortItem2 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate2))
+    val cohortItem3 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate3))
+    val cohortItem4 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate4))
+    val cohortItem5 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate5))
 
     val cohortSpec =
       CohortSpec("Membership2023_Batch3", "BrazeCampaignName", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 1, 1))
@@ -758,11 +758,11 @@ class NotificationHandlerTest extends munit.FunSuite {
     val itemStartDate4 = LocalDate.of(2023, 8, 22) // +33 days
     val itemStartDate5 = LocalDate.of(2023, 8, 23) // +34 days
 
-    val cohortItem1 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate1))
-    val cohortItem2 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate2))
-    val cohortItem3 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate3))
-    val cohortItem4 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate4))
-    val cohortItem5 = CohortItem("subscriptionNumber", SalesforcePriceRiceCreationComplete, Some(itemStartDate5))
+    val cohortItem1 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate1))
+    val cohortItem2 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate2))
+    val cohortItem3 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate3))
+    val cohortItem4 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate4))
+    val cohortItem5 = CohortItem("subscriptionNumber", SalesforcePriceRiseCreationComplete, Some(itemStartDate5))
 
     val cohortSpec =
       CohortSpec("Membership2023_Batch3", "BrazeCampaignName", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 8, 22))

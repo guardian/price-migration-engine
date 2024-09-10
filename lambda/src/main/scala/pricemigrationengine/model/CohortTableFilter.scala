@@ -11,7 +11,7 @@ object CohortTableFilter {
 
   case object EstimationComplete extends CohortTableFilter { override val value: String = "EstimationComplete" }
 
-  case object SalesforcePriceRiceCreationComplete extends CohortTableFilter {
+  case object SalesforcePriceRiseCreationComplete extends CohortTableFilter {
     override val value: String = "SalesforcePriceRiseCreationComplete"
   }
 
@@ -71,7 +71,7 @@ object CohortTableFilter {
     NotificationSendComplete,
     NotificationSendDateWrittenToSalesforce,
     ReadyForEstimation,
-    SalesforcePriceRiceCreationComplete,
-    DoNotProcessUntil
+    SalesforcePriceRiseCreationComplete,
+    DoNotProcessUntil,
   )
 }

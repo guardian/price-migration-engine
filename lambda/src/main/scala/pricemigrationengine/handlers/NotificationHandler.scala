@@ -48,7 +48,7 @@ object NotificationHandler extends CohortHandler {
     for {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       count <- CohortTable
-        .fetch(SalesforcePriceRiceCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+        .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
         .take(batchSize)
         .mapZIO(item =>
           MigrationType(cohortSpec) match {
@@ -477,8 +477,7 @@ object NotificationHandler extends CohortHandler {
               processingStage = Cancelled
             )
           )
-      // _ <- notifySalesforceOfCancelledStatus(cohortSpec, cohortItem, reason)
-      // Todo: get this back
+      _ <- notifySalesforceOfCancelledStatus(cohortSpec, cohortItem, reason)
       _ <- Logging.error(
         s"Subscription ${cohortItem.subscriptionName} has been cancelled, price rise notification not sent"
       )
