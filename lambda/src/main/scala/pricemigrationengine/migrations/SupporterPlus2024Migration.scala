@@ -10,6 +10,8 @@ object SupporterPlus2024Migration {
   // Static Data
   // ------------------------------------------------
 
+  val priceCap = 1.27
+
   val maxLeadTime = 33
   val minLeadTime = 31
 
@@ -101,7 +103,7 @@ object SupporterPlus2024Migration {
   // ------------------------------------------------
   // Subscription Data
 
-  def supporterPlusV2RatePlan(subscription: ZuoraSubscription): Either[AmendmentDataFailure, ZuoraRatePlan] = {
+  def getSupporterPlusV2RatePlan(subscription: ZuoraSubscription): Either[AmendmentDataFailure, ZuoraRatePlan] = {
     subscription.ratePlans.find(rp =>
       rp.ratePlanName.contains("Supporter Plus V2") && !rp.lastChangeType.contains("Remove")
     ) match {
@@ -115,7 +117,7 @@ object SupporterPlus2024Migration {
     }
   }
 
-  def supporterPlusBaseRatePlanCharge(
+  def getSupporterPlusBaseRatePlanCharge(
       subscriptionNumber: String,
       ratePlan: ZuoraRatePlan
   ): Either[AmendmentDataFailure, ZuoraRatePlanCharge] = {
@@ -157,16 +159,16 @@ object SupporterPlus2024Migration {
 
   def previousBaseAmount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
     for {
-      ratePlan <- supporterPlusV2RatePlan(subscription)
-      ratePlanCharge <- supporterPlusBaseRatePlanCharge(subscription.subscriptionNumber, ratePlan)
+      ratePlan <- getSupporterPlusV2RatePlan(subscription)
+      ratePlanCharge <- getSupporterPlusBaseRatePlanCharge(subscription.subscriptionNumber, ratePlan)
     } yield ratePlanCharge.price
   }
 
   def newBaseAmount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
     for {
-      ratePlan <- supporterPlusV2RatePlan(subscription)
+      ratePlan <- getSupporterPlusV2RatePlan(subscription)
       billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan).toRight(AmendmentDataFailure(""))
-      ratePlanCharge <- supporterPlusBaseRatePlanCharge(subscription.subscriptionNumber, ratePlan)
+      ratePlanCharge <- getSupporterPlusBaseRatePlanCharge(subscription.subscriptionNumber, ratePlan)
       currency = ratePlanCharge.currency
       oldBaseAmountOpt <- previousBaseAmount(subscription)
       oldBaseAmount <- oldBaseAmountOpt.toRight(
@@ -188,7 +190,7 @@ object SupporterPlus2024Migration {
 
   def contributionAmount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
     for {
-      ratePlan <- supporterPlusV2RatePlan(subscription)
+      ratePlan <- getSupporterPlusV2RatePlan(subscription)
       ratePlanCharge <- supporterPlusContributionRatePlanCharge(subscription.subscriptionNumber, ratePlan)
     } yield ratePlanCharge.price
   }
@@ -251,9 +253,9 @@ object SupporterPlus2024Migration {
       subscription: ZuoraSubscription
   ): Either[AmendmentDataFailure, PriceData] = {
     for {
-      ratePlan <- supporterPlusV2RatePlan(subscription)
+      ratePlan <- getSupporterPlusV2RatePlan(subscription)
       billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan).toRight(AmendmentDataFailure(""))
-      ratePlanCharge <- supporterPlusBaseRatePlanCharge(subscription.subscriptionNumber, ratePlan)
+      ratePlanCharge <- getSupporterPlusBaseRatePlanCharge(subscription.subscriptionNumber, ratePlan)
       currency = ratePlanCharge.currency
       oldPrice <- ratePlanCharge.price.toRight(AmendmentDataFailure(""))
       newPrice <- getNewPrice(billingPeriod, currency).toRight(AmendmentDataFailure(""))
@@ -263,10 +265,13 @@ object SupporterPlus2024Migration {
   def zuoraUpdate(
       subscription: ZuoraSubscription,
       effectiveDate: LocalDate,
+      oldPrice: BigDecimal,
+      estimatedNewPrice: BigDecimal,
+      priceCap: BigDecimal
   ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
     for {
-      existingRatePlan <- supporterPlusV2RatePlan(subscription)
-      existingBaseRatePlanCharge <- supporterPlusBaseRatePlanCharge(
+      existingRatePlan <- getSupporterPlusV2RatePlan(subscription)
+      existingBaseRatePlanCharge <- getSupporterPlusBaseRatePlanCharge(
         subscription.subscriptionNumber,
         existingRatePlan
       )
@@ -287,7 +292,7 @@ object SupporterPlus2024Migration {
               ChargeOverride(
                 productRatePlanChargeId = existingBaseRatePlanCharge.productRatePlanChargeId,
                 billingPeriod = BillingPeriod.toString(billingPeriod),
-                price = 120.0
+                price = PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, priceCap)
               )
             )
           )

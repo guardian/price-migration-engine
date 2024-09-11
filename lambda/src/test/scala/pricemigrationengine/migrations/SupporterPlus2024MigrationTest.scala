@@ -122,7 +122,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       effectiveEndDate = Some(LocalDate.of(2025, 2, 27))
     )
     assertEquals(
-      SupporterPlus2024Migration.supporterPlusV2RatePlan(subscription),
+      SupporterPlus2024Migration.getSupporterPlusV2RatePlan(subscription),
       Right(
         ZuoraRatePlan(
           id = "8a12908b8dd07f56018de8f4950923b8",
@@ -184,7 +184,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       effectiveEndDate = Some(LocalDate.of(2024, 11, 11))
     )
     assertEquals(
-      SupporterPlus2024Migration.supporterPlusV2RatePlan(subscription),
+      SupporterPlus2024Migration.getSupporterPlusV2RatePlan(subscription),
       Right(
         ZuoraRatePlan(
           id = "8a12820a8c0ff963018c2504ba045b2f",
@@ -247,7 +247,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       effectiveEndDate = Some(LocalDate.of(2025, 4, 5))
     )
     assertEquals(
-      SupporterPlus2024Migration.supporterPlusV2RatePlan(subscription),
+      SupporterPlus2024Migration.getSupporterPlusV2RatePlan(subscription),
       Right(
         ZuoraRatePlan(
           id = "8a12838d8ea33f0f018eaf3a06bd27ea",
@@ -264,9 +264,9 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
   test("extracting `Supporter Plus V2` rate plan base charge (monthly)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.supporterPlusBaseRatePlanCharge(
+      SupporterPlus2024Migration.getSupporterPlusBaseRatePlanCharge(
         subscription.subscriptionNumber,
-        SupporterPlus2024Migration.supporterPlusV2RatePlan(subscription).toOption.get
+        SupporterPlus2024Migration.getSupporterPlusV2RatePlan(subscription).toOption.get
       ),
       Right(
         ZuoraRatePlanCharge(
@@ -299,9 +299,9 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     // read the right price from the subscription.
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.supporterPlusBaseRatePlanCharge(
+      SupporterPlus2024Migration.getSupporterPlusBaseRatePlanCharge(
         subscription.subscriptionNumber,
-        SupporterPlus2024Migration.supporterPlusV2RatePlan(subscription).toOption.get
+        SupporterPlus2024Migration.getSupporterPlusV2RatePlan(subscription).toOption.get
       ),
       Right(
         ZuoraRatePlanCharge(
@@ -336,9 +336,9 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     val subscription =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-without-LastChangeType/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.supporterPlusBaseRatePlanCharge(
+      SupporterPlus2024Migration.getSupporterPlusBaseRatePlanCharge(
         subscription.subscriptionNumber,
-        SupporterPlus2024Migration.supporterPlusV2RatePlan(subscription).toOption.get
+        SupporterPlus2024Migration.getSupporterPlusV2RatePlan(subscription).toOption.get
       ),
       Right(
         ZuoraRatePlanCharge(
@@ -371,7 +371,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     assertEquals(
       SupporterPlus2024Migration.supporterPlusContributionRatePlanCharge(
         subscription.subscriptionNumber,
-        SupporterPlus2024Migration.supporterPlusV2RatePlan(subscription).toOption.get
+        SupporterPlus2024Migration.getSupporterPlusV2RatePlan(subscription).toOption.get
       ),
       Right(
         ZuoraRatePlanCharge(
@@ -406,7 +406,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     assertEquals(
       SupporterPlus2024Migration.supporterPlusContributionRatePlanCharge(
         subscription.subscriptionNumber,
-        SupporterPlus2024Migration.supporterPlusV2RatePlan(subscription).toOption.get
+        SupporterPlus2024Migration.getSupporterPlusV2RatePlan(subscription).toOption.get
       ),
       Right(
         ZuoraRatePlanCharge(
@@ -443,7 +443,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     assertEquals(
       SupporterPlus2024Migration.supporterPlusContributionRatePlanCharge(
         subscription.subscriptionNumber,
-        SupporterPlus2024Migration.supporterPlusV2RatePlan(subscription).toOption.get
+        SupporterPlus2024Migration.getSupporterPlusV2RatePlan(subscription).toOption.get
       ),
       Right(
         ZuoraRatePlanCharge(
@@ -732,7 +732,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
   test("zuoraUpdate (monthly)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.zuoraUpdate(subscription, LocalDate.of(2024, 9, 9)),
+      SupporterPlus2024Migration.zuoraUpdate(subscription, LocalDate.of(2024, 9, 9), 10, 12, 1.27),
       Right(
         ZuoraSubscriptionUpdate(
           add = List(
@@ -743,7 +743,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
                 ChargeOverride(
                   productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba", // base plan charge Id
                   billingPeriod = "Month",
-                  price = 120.0
+                  price = 12.0
                 )
               )
             )
@@ -760,10 +760,10 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       )
     )
   }
-  test("zuoraUpdate (annual)") {
+  test("zuoraUpdate (annual, without capping)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.zuoraUpdate(subscription, LocalDate.of(2024, 9, 9)),
+      SupporterPlus2024Migration.zuoraUpdate(subscription, LocalDate.of(2024, 9, 9), 160, 200, 1.27),
       Right(
         ZuoraSubscriptionUpdate(
           add = List(
@@ -774,7 +774,38 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
                 ChargeOverride(
                   productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
                   billingPeriod = "Annual",
-                  price = 120.0
+                  price = 200.0
+                )
+              )
+            )
+          ),
+          remove = List(
+            RemoveZuoraRatePlan(
+              ratePlanId = "8a12820a8c0ff963018c2504ba045b2f",
+              contractEffectiveDate = LocalDate.of(2024, 9, 9)
+            )
+          ),
+          currentTerm = None,
+          currentTermPeriodType = None
+        )
+      )
+    )
+  }
+  test("zuoraUpdate (annual, with capping)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.zuoraUpdate(subscription, LocalDate.of(2024, 9, 9), 150, 200, 1.27),
+      Right(
+        ZuoraSubscriptionUpdate(
+          add = List(
+            AddZuoraRatePlan(
+              productRatePlanId = "8a128ed885fc6ded01860228f77e3d5a",
+              contractEffectiveDate = LocalDate.of(2024, 9, 9),
+              chargeOverrides = List(
+                ChargeOverride(
+                  productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
+                  billingPeriod = "Annual",
+                  price = 190.5
                 )
               )
             )

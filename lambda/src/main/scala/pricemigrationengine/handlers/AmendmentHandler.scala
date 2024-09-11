@@ -200,7 +200,10 @@ object AmendmentHandler extends CohortHandler {
           ZIO.fromEither(
             SupporterPlus2024Migration.zuoraUpdate(
               subscriptionBeforeUpdate,
-              startDate
+              startDate,
+              oldPrice,
+              estimatedNewPrice,
+              SupporterPlus2024Migration.priceCap
             )
           )
         case Legacy =>
