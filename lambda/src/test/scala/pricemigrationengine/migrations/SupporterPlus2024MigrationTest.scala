@@ -369,7 +369,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
   test("extracting `Supporter Plus V2` rate plan contribution charge (monthly)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.supporterPlusContributionRatePlanCharge(
+      SupporterPlus2024Migration.getSupporterPlusContributionRatePlanCharge(
         subscription.subscriptionNumber,
         SupporterPlus2024Migration.getSupporterPlusV2RatePlan(subscription).toOption.get
       ),
@@ -404,7 +404,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     // read the right price from the subscription.
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.supporterPlusContributionRatePlanCharge(
+      SupporterPlus2024Migration.getSupporterPlusContributionRatePlanCharge(
         subscription.subscriptionNumber,
         SupporterPlus2024Migration.getSupporterPlusV2RatePlan(subscription).toOption.get
       ),
@@ -441,7 +441,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     val subscription =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-without-LastChangeType/subscription.json")
     assertEquals(
-      SupporterPlus2024Migration.supporterPlusContributionRatePlanCharge(
+      SupporterPlus2024Migration.getSupporterPlusContributionRatePlanCharge(
         subscription.subscriptionNumber,
         SupporterPlus2024Migration.getSupporterPlusV2RatePlan(subscription).toOption.get
       ),
@@ -743,7 +743,12 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
                 ChargeOverride(
                   productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba", // base plan charge Id
                   billingPeriod = "Month",
-                  price = 12.0
+                  price = 12
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270", //  contribution charge Id
+                  billingPeriod = "Month",
+                  price = 0.0
                 )
               )
             )
@@ -775,6 +780,11 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
                   productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
                   billingPeriod = "Annual",
                   price = 200.0
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
+                  billingPeriod = "Annual",
+                  price = 340.0
                 )
               )
             )
@@ -806,6 +816,11 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
                   productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
                   billingPeriod = "Annual",
                   price = 190.5
+                ),
+                ChargeOverride(
+                  productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
+                  billingPeriod = "Annual",
+                  price = 340.0
                 )
               )
             )

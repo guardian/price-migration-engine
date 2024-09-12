@@ -131,7 +131,7 @@ object SupporterPlus2024Migration {
     }
   }
 
-  def supporterPlusContributionRatePlanCharge(
+  def getSupporterPlusContributionRatePlanCharge(
       subscriptionNumber: String,
       ratePlan: ZuoraRatePlan
   ): Either[AmendmentDataFailure, ZuoraRatePlanCharge] = {
@@ -191,7 +191,7 @@ object SupporterPlus2024Migration {
   def contributionAmount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
     for {
       ratePlan <- getSupporterPlusV2RatePlan(subscription)
-      ratePlanCharge <- supporterPlusContributionRatePlanCharge(subscription.subscriptionNumber, ratePlan)
+      ratePlanCharge <- getSupporterPlusContributionRatePlanCharge(subscription.subscriptionNumber, ratePlan)
     } yield ratePlanCharge.price
   }
 
@@ -275,6 +275,15 @@ object SupporterPlus2024Migration {
         subscription.subscriptionNumber,
         existingRatePlan
       )
+      existingContributionRatePlanCharge <- getSupporterPlusContributionRatePlanCharge(
+        subscription.subscriptionNumber,
+        existingRatePlan
+      )
+      existingContributionPrice <- existingContributionRatePlanCharge.price.toRight(
+        AmendmentDataFailure(
+          s"[22405076] Could not extract existing contribution price for subscription ${subscription.subscriptionNumber}"
+        )
+      )
       billingPeriod <- ZuoraRatePlan
         .ratePlanToBillingPeriod(existingRatePlan)
         .toRight(
@@ -282,6 +291,7 @@ object SupporterPlus2024Migration {
             s"[17469705] Could not determine the billing period for subscription ${subscription.subscriptionNumber}"
           )
         )
+
     } yield {
       ZuoraSubscriptionUpdate(
         add = List(
@@ -293,6 +303,11 @@ object SupporterPlus2024Migration {
                 productRatePlanChargeId = existingBaseRatePlanCharge.productRatePlanChargeId,
                 billingPeriod = BillingPeriod.toString(billingPeriod),
                 price = PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, priceCap)
+              ),
+              ChargeOverride(
+                productRatePlanChargeId = existingContributionRatePlanCharge.productRatePlanChargeId,
+                billingPeriod = BillingPeriod.toString(billingPeriod),
+                price = existingContributionPrice
               )
             )
           )
