@@ -111,7 +111,7 @@ object AmendmentHandler extends CohortHandler {
       case DigiSubs2023            => true
       case Newspaper2024           => true
       case GW2024                  => true
-      case SupporterPlus2024       => true
+      case SupporterPlus2024       => false
       case Legacy                  => true
     }
   }
