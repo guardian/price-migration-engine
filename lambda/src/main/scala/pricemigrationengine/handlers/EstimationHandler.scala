@@ -20,21 +20,25 @@ object EstimationHandler extends CohortHandler {
   def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
       today <- Clock.currentDateTime.map(_.toLocalDate)
+      _ <- monitorDoNotProcessUntil(today)
       catalogue <- Zuora.fetchProductCatalogue
       count <- CohortTable
         .fetch(ReadyForEstimation, None)
-        .filter(item => CohortItem.isProcessable(item))
         .take(batchSize)
         .mapZIO(item =>
-          if (Estimation1.isProcessable(item, today)) {
-            estimate(catalogue, cohortSpec)(today, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
-          } else {
-            ZIO.succeed(())
-          }
+          estimate(catalogue, cohortSpec)(today, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
         )
         .runCount
         .tapError(e => Logging.error(e.toString))
     } yield HandlerOutput(isComplete = count < batchSize)
+
+  def monitorDoNotProcessUntil(today: LocalDate): ZIO[Logging with CohortTable, CohortFetchFailure, Unit] = {
+    // This function migrates items in DoNotProcessUntil state, which has passed their
+    // expiration time, to ReadyForEstimation
+    CohortTable
+      .fetch(DoNotProcessUntil, None)
+      .foreach(item => Logging.info(item.toString))
+  }
 
   private[handlers] def estimate(
       catalogue: ZuoraProductCatalogue,

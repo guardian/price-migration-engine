@@ -1,11 +1,8 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.model.CohortTableFilter
-import pricemigrationengine.model.Estimation1
-
 import java.time.{Instant, LocalDate}
 
-class EstimationTest extends munit.FunSuite {
+class CohortItemTest extends munit.FunSuite {
   test("calibration (1)") {
     assertEquals(
       LocalDate.of(2024, 9, 9) == LocalDate.of(2024, 9, 9),
@@ -23,7 +20,7 @@ class EstimationTest extends munit.FunSuite {
       true
     )
   }
-  test("Estimation.isProcessable (with None)") {
+  test("CohortItem.isProcessable (other processingStage)") {
     val item = CohortItem(
       subscriptionName = "subscriptionName",
       processingStage = CohortTableFilter.ReadyForEstimation,
@@ -31,43 +28,55 @@ class EstimationTest extends munit.FunSuite {
     )
     val today = LocalDate.of(2024, 9, 9)
     assertEquals(
-      Estimation1.isProcessable(item, today),
+      CohortItem.isProcessable(item, today),
       true
     )
   }
-  test("Estimation.isProcessable (today before date)") {
+  test("CohortItem.isProcessable (DoNotProcessUntil, with no date set)") {
     val item = CohortItem(
       subscriptionName = "subscriptionName",
-      processingStage = CohortTableFilter.ReadyForEstimation,
+      processingStage = CohortTableFilter.DoNotProcessUntil,
+      doNotProcessUntil = None
+    )
+    val today = LocalDate.of(2024, 9, 9)
+    val exception = intercept[Exception] {
+      CohortItem.isProcessable(item, today)
+    }
+    assertEquals(exception.getMessage.contains("(error: 588b7698)"), true)
+  }
+  test("CohortItem.isProcessable (DoNotProcessUntil, today before date)") {
+    val item = CohortItem(
+      subscriptionName = "subscriptionName",
+      processingStage = CohortTableFilter.DoNotProcessUntil,
       doNotProcessUntil = Some(LocalDate.of(2024, 9, 10))
     )
     val today = LocalDate.of(2024, 9, 9)
     assertEquals(
-      Estimation1.isProcessable(item, today),
+      CohortItem.isProcessable(item, today),
       false
     )
   }
-  test("Estimation.isProcessable (today equals date)") {
+  test("CohortItem.isProcessable (DoNotProcessUntil, today equals date)") {
     val item = CohortItem(
       subscriptionName = "subscriptionName",
-      processingStage = CohortTableFilter.ReadyForEstimation,
+      processingStage = CohortTableFilter.DoNotProcessUntil,
       doNotProcessUntil = Some(LocalDate.of(2024, 9, 10))
     )
     val today = LocalDate.of(2024, 9, 10)
     assertEquals(
-      Estimation1.isProcessable(item, today),
+      CohortItem.isProcessable(item, today),
       true
     )
   }
-  test("Estimation.isProcessable (today after date)") {
+  test("CohortItem.isProcessable (DoNotProcessUntil, today after date)") {
     val item = CohortItem(
       subscriptionName = "subscriptionName",
-      processingStage = CohortTableFilter.ReadyForEstimation,
+      processingStage = CohortTableFilter.DoNotProcessUntil,
       doNotProcessUntil = Some(LocalDate.of(2024, 9, 10))
     )
     val today = LocalDate.of(2024, 9, 11)
     assertEquals(
-      Estimation1.isProcessable(item, today),
+      CohortItem.isProcessable(item, today),
       true
     )
   }

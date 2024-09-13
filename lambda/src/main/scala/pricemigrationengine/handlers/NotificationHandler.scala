@@ -63,7 +63,7 @@ object NotificationHandler extends CohortHandler {
                           subscriptionName = item.subscriptionName,
                           processingStage = DoNotProcessUntil,
                           doNotProcessUntil =
-                            Some(today.minusMonths(6)) // TODO: compute from the start of the cancellation, not today
+                            Some(today.plusMonths(6)) // TODO: compute from the start of the cancellation, not today
                         )
                       )
                   } else {
