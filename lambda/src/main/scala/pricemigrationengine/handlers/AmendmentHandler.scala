@@ -86,22 +86,8 @@ object AmendmentHandler extends CohortHandler {
   }
 
   private def shouldPerformFinalPriceCheck(cohortSpec: CohortSpec): Boolean = {
-    // Date: 8 Sept 2023
-    // This function is introduced as part of a multi stage update of the
-    // engine to detect and deal with situations where the final price is higher than the
-    // estimated new price, which has happened with Quarterly Guardian Weekly subscriptions
-    // The ultimate aim is to update the engine to deal with those situations automatically,
-    // but in this step we simply error and will alarm at the next occurrence of this situation.
-    // (see the code in `doAmendment`)
-
-    // When that situation occurs, a good course of action will be to
-    //    1. Revert the amendment in Zuora
-    //    2. Reset the cohort item in the dynamo table
-    //    3. Update the code to perform a negative charge back
-    //    4. Rerun the engine and check the item in Zuora
-
-    // Note that we do not apply the check to the SupporterPlus2023V1V2 migration
-    // where due to the way the prices are computed, the new price can be higher than the
+    // We do not apply the check to the SupporterPlus2023V1V2 migration, nor the SupporterPlus2024
+    // migration where, due to the way the prices are computed, the new price can be higher than the
     // estimated price (which wasn't including the extra contribution).
 
     MigrationType(cohortSpec) match {
