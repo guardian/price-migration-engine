@@ -2,7 +2,7 @@ package pricemigrationengine.migrations
 
 import pricemigrationengine.model.{
   AddZuoraRatePlan,
-  AmendmentDataFailure,
+  DataExtractionFailure,
   CohortSpec,
   Currency,
   Membership2023Annuals,
@@ -43,10 +43,10 @@ object Membership2023Migration {
     "USD" -> BigDecimal(120),
   )
 
-  def subscriptionRatePlan(subscription: ZuoraSubscription): Either[AmendmentDataFailure, ZuoraRatePlan] = {
+  def subscriptionRatePlan(subscription: ZuoraSubscription): Either[DataExtractionFailure, ZuoraRatePlan] = {
     subscription.ratePlans.headOption match {
       case None =>
-        Left(AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} doesn't have any rate plan"))
+        Left(DataExtractionFailure(s"Subscription ${subscription.subscriptionNumber} doesn't have any rate plan"))
       case Some(ratePlan) => Right(ratePlan)
     }
   }
@@ -54,13 +54,13 @@ object Membership2023Migration {
   def subscriptionRatePlanCharge(
       subscription: ZuoraSubscription,
       ratePlan: ZuoraRatePlan
-  ): Either[AmendmentDataFailure, ZuoraRatePlanCharge] = {
+  ): Either[DataExtractionFailure, ZuoraRatePlanCharge] = {
     ratePlan.ratePlanCharges.headOption match {
       case None => {
         // Although not enforced by the signature of the function, for this error message to make sense we expect that
         // the rate plan belongs to the currency
         Left(
-          AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} has a rate plan, but with no charge")
+          DataExtractionFailure(s"Subscription ${subscription.subscriptionNumber} has a rate plan, but with no charge")
         )
       }
       case Some(ratePlanCharge) => Right(ratePlanCharge)
@@ -70,13 +70,13 @@ object Membership2023Migration {
   def getOldPrice(
       subscription: ZuoraSubscription,
       ratePlanCharge: ZuoraRatePlanCharge
-  ): Either[AmendmentDataFailure, BigDecimal] = {
+  ): Either[DataExtractionFailure, BigDecimal] = {
     ratePlanCharge.price match {
       case None => {
         // Although not enforced by the signature of the function, for this error message to make sense we expect that
         // the rate plan charge belongs to the currency
         Left(
-          AmendmentDataFailure(
+          DataExtractionFailure(
             s"Subscription ${subscription.subscriptionNumber} has a rate plan charge, but with no currency"
           )
         )
@@ -85,16 +85,16 @@ object Membership2023Migration {
     }
   }
 
-  def currencyToNewPriceMonthlies(currency: String): Either[AmendmentDataFailure, BigDecimal] = {
+  def currencyToNewPriceMonthlies(currency: String): Either[DataExtractionFailure, BigDecimal] = {
     priceMapMonthlies.get(currency) match {
-      case None => Left(AmendmentDataFailure(s"Could not determine a new monthly price for currency: ${currency}"))
+      case None => Left(DataExtractionFailure(s"Could not determine a new monthly price for currency: ${currency}"))
       case Some(price) => Right(price)
     }
   }
 
-  def currencyToNewPriceAnnuals(currency: String): Either[AmendmentDataFailure, BigDecimal] = {
+  def currencyToNewPriceAnnuals(currency: String): Either[DataExtractionFailure, BigDecimal] = {
     priceMapAnnuals.get(currency) match {
-      case None => Left(AmendmentDataFailure(s"Could not determine a new annual price for currency: ${currency}"))
+      case None => Left(DataExtractionFailure(s"Could not determine a new annual price for currency: ${currency}"))
       case Some(price) => Right(price)
     }
   }
@@ -106,7 +106,7 @@ object Membership2023Migration {
       invoiceList: ZuoraInvoiceList,
       nextServiceDate: LocalDate,
       cohortSpec: CohortSpec
-  ): Either[AmendmentDataFailure, PriceData] = {
+  ): Either[DataExtractionFailure, PriceData] = {
     MigrationType(cohortSpec) match {
       case Membership2023Monthlies =>
         for {
@@ -124,7 +124,7 @@ object Membership2023Migration {
           oldPrice <- getOldPrice(subscription, ratePlanCharge)
           newPrice <- currencyToNewPriceAnnuals(currency: String)
         } yield PriceData(currency, oldPrice, newPrice, "Annual")
-      case _ => Left(AmendmentDataFailure(s"(error: 7ba45f10) Incorrect cohort spec for this function: ${cohortSpec}"))
+      case _ => Left(DataExtractionFailure(s"(error: 7ba45f10) Incorrect cohort spec for this function: ${cohortSpec}"))
     }
   }
 
@@ -132,7 +132,7 @@ object Membership2023Migration {
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       effectiveDate: LocalDate,
-  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+  ): Either[DataExtractionFailure, ZuoraSubscriptionUpdate] = {
 
     // This variant has a simpler signature than its classic counterpart.
 
@@ -145,10 +145,10 @@ object Membership2023Migration {
     } yield ratePlan).distinct
 
     if (activeRatePlans.isEmpty)
-      Left(AmendmentDataFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
+      Left(DataExtractionFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
     else if (activeRatePlans.size > 1)
       Left(
-        AmendmentDataFailure(
+        DataExtractionFailure(
           s"Multiple rate plans to update: ${activeRatePlans.map(_.id)} for subscription ${subscription.subscriptionNumber}"
         )
       )
@@ -173,7 +173,7 @@ object Membership2023Migration {
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       effectiveDate: LocalDate,
-  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+  ): Either[DataExtractionFailure, ZuoraSubscriptionUpdate] = {
 
     // This variant has a simpler signature than its classic counterpart.
 
@@ -186,10 +186,10 @@ object Membership2023Migration {
     } yield ratePlan).distinct
 
     if (activeRatePlans.isEmpty)
-      Left(AmendmentDataFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
+      Left(DataExtractionFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
     else if (activeRatePlans.size > 1)
       Left(
-        AmendmentDataFailure(
+        DataExtractionFailure(
           s"Multiple rate plans to update: ${activeRatePlans.map(_.id)} for subscription ${subscription.subscriptionNumber}"
         )
       )

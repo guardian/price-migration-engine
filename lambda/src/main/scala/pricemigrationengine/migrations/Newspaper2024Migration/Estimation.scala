@@ -110,11 +110,11 @@ object Estimation {
 
   def priceData(
       subscription: ZuoraSubscription,
-  ): Either[AmendmentDataFailure, PriceData] = {
+  ): Either[DataExtractionFailure, PriceData] = {
     for {
-      data2024 <- subscriptionToSubscriptionData2024(subscription).left.map(AmendmentDataFailure)
+      data2024 <- subscriptionToSubscriptionData2024(subscription).left.map(DataExtractionFailure)
       oldPrice = data2024.currentPrice
-      newPrice <- subscriptionToNewPrice(subscription).toRight(AmendmentDataFailure("error"))
+      newPrice <- subscriptionToNewPrice(subscription).toRight(DataExtractionFailure("error"))
     } yield PriceData(
       data2024.currency,
       oldPrice,

@@ -37,7 +37,7 @@ object ZuoraSubscriptionUpdate {
       invoiceList: ZuoraInvoiceList,
       effectiveDate: LocalDate,
       enforcedPrice: Option[BigDecimal]
-  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+  ): Either[DataExtractionFailure, ZuoraSubscriptionUpdate] = {
 
     val activeRatePlans = (for {
       invoiceItem <- ZuoraInvoiceItem.items(invoiceList, subscription, effectiveDate)
@@ -48,9 +48,9 @@ object ZuoraSubscriptionUpdate {
     } yield ratePlan).distinct
 
     if (activeRatePlans.isEmpty)
-      Left(AmendmentDataFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
+      Left(DataExtractionFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
     else if (activeRatePlans.size > 1)
-      Left(AmendmentDataFailure(s"Multiple rate plans to update: ${activeRatePlans.map(_.id)}"))
+      Left(DataExtractionFailure(s"Multiple rate plans to update: ${activeRatePlans.map(_.id)}"))
     else {
       val isZoneABC = activeRatePlans.filter(zoneABCPlanNames contains _.productName)
       val pricingData = productPricingMap(catalogue)
@@ -93,7 +93,7 @@ object AddZuoraRatePlan {
       enforcedPrice: Option[BigDecimal]
   )(
       ratePlan: ZuoraRatePlan
-  ): Either[AmendmentDataFailure, AddZuoraRatePlan] = {
+  ): Either[DataExtractionFailure, AddZuoraRatePlan] = {
     for {
       chargeOverrides <- ChargeOverride.fromRatePlan(pricingData, ratePlan, enforcedPrice)
     } yield AddZuoraRatePlan(
@@ -110,7 +110,7 @@ object AddZuoraRatePlan {
       enforcedPrice: Option[BigDecimal]
   )(
       ratePlan: ZuoraRatePlan
-  ): Either[AmendmentDataFailure, AddZuoraRatePlan] =
+  ): Either[DataExtractionFailure, AddZuoraRatePlan] =
     for {
       guardianWeekly <- GuardianWeeklyMigration.getNewRatePlanCharges(
         account,
@@ -156,7 +156,7 @@ object ChargeOverride {
       pricingData: ZuoraPricingData,
       ratePlan: ZuoraRatePlan,
       enforcedPrice: Option[BigDecimal]
-  ): Either[AmendmentDataFailure, Seq[ChargeOverride]] =
+  ): Either[DataExtractionFailure, Seq[ChargeOverride]] =
     (for {
       ratePlanCharge <- ratePlan.ratePlanCharges
       productRatePlanCharge <- pricingData.get(ratePlanCharge.productRatePlanChargeId).toSeq
@@ -167,20 +167,20 @@ object ChargeOverride {
       productRatePlanCharge: ZuoraProductRatePlanCharge,
       ratePlanCharge: ZuoraRatePlanCharge,
       enforcedPrice: Option[BigDecimal]
-  ): Either[AmendmentDataFailure, Option[ChargeOverride]] =
+  ): Either[DataExtractionFailure, Option[ChargeOverride]] =
     for {
       billingPeriod <- ratePlanCharge.billingPeriod.toRight(
-        AmendmentDataFailure(s"Rate plan charge ${ratePlanCharge.number} has no billing period")
+        DataExtractionFailure(s"Rate plan charge ${ratePlanCharge.number} has no billing period")
       )
       productRatePlanChargeBillingPeriod <- productRatePlanCharge.billingPeriod.toRight(
-        AmendmentDataFailure(s"Product rate plan charge ${ratePlanCharge.number} has no billing period")
+        DataExtractionFailure(s"Product rate plan charge ${ratePlanCharge.number} has no billing period")
       )
 
       productRatePlanChargePrice <- ZuoraPricing
         .pricing(productRatePlanCharge, ratePlanCharge.currency)
         .flatMap(_.price)
         .toRight(
-          AmendmentDataFailure(
+          DataExtractionFailure(
             s"Product rate plan charge ${productRatePlanCharge.id} has no price for currency ${ratePlanCharge.currency}"
           )
         )

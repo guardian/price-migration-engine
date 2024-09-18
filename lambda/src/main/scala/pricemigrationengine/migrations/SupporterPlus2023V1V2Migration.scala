@@ -27,10 +27,10 @@ object SupporterPlus2023V1V2Migration {
     "NZD" -> BigDecimal(160),
   )
 
-  def subscriptionRatePlan(subscription: ZuoraSubscription): Either[AmendmentDataFailure, ZuoraRatePlan] = {
+  def subscriptionRatePlan(subscription: ZuoraSubscription): Either[DataExtractionFailure, ZuoraRatePlan] = {
     subscription.ratePlans.filter(rp => rp.productName == "Supporter Plus").headOption match {
       case None =>
-        Left(AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} doesn't have any rate plan"))
+        Left(DataExtractionFailure(s"Subscription ${subscription.subscriptionNumber} doesn't have any rate plan"))
       case Some(ratePlan) => Right(ratePlan)
     }
   }
@@ -38,14 +38,14 @@ object SupporterPlus2023V1V2Migration {
   def subscriptionRatePlanCharges(
       subscription: ZuoraSubscription,
       ratePlan: ZuoraRatePlan
-  ): Either[AmendmentDataFailure, List[ZuoraRatePlanCharge]] = {
+  ): Either[DataExtractionFailure, List[ZuoraRatePlanCharge]] = {
 
     ratePlan.ratePlanCharges match {
       case Nil => {
         // Although not enforced by the signature of the function, for this error message to make sense we expect that
         // the rate plan belongs to the currency
         Left(
-          AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} has a rate plan, but with no charge")
+          DataExtractionFailure(s"Subscription ${subscription.subscriptionNumber} has a rate plan, but with no charge")
         )
       }
       case _ => Right(ratePlan.ratePlanCharges)
@@ -55,13 +55,13 @@ object SupporterPlus2023V1V2Migration {
   def getOldPrice(
       subscription: ZuoraSubscription,
       ratePlanCharges: List[ZuoraRatePlanCharge]
-  ): Either[AmendmentDataFailure, BigDecimal] = {
+  ): Either[DataExtractionFailure, BigDecimal] = {
     ratePlanCharges match {
       case Nil => {
         // Although not enforced by the signature of the function, for this error message to make sense we expect that
         // the rate plan charge belongs to the currency
         Left(
-          AmendmentDataFailure(
+          DataExtractionFailure(
             s"Subscription ${subscription.subscriptionNumber} has no rate plan charges"
           )
         )
@@ -72,21 +72,21 @@ object SupporterPlus2023V1V2Migration {
     }
   }
 
-  def currencyToNewPriceMonthlies(currency: String): Either[AmendmentDataFailure, BigDecimal] = {
+  def currencyToNewPriceMonthlies(currency: String): Either[DataExtractionFailure, BigDecimal] = {
     newPriceMapMonthlies.get(currency) match {
-      case None => Left(AmendmentDataFailure(s"Could not determine a new monthly price for currency: ${currency}"))
+      case None => Left(DataExtractionFailure(s"Could not determine a new monthly price for currency: ${currency}"))
       case Some(price) => Right(price)
     }
   }
 
-  def currencyToNewPriceAnnuals(currency: String): Either[AmendmentDataFailure, BigDecimal] = {
+  def currencyToNewPriceAnnuals(currency: String): Either[DataExtractionFailure, BigDecimal] = {
     newPriceMapAnnuals.get(currency) match {
-      case None => Left(AmendmentDataFailure(s"Could not determine a new annual price for currency: ${currency}"))
+      case None => Left(DataExtractionFailure(s"Could not determine a new annual price for currency: ${currency}"))
       case Some(price) => Right(price)
     }
   }
 
-  def currencyToNewPrice(billingP: String, currency: String): Either[AmendmentDataFailure, BigDecimal] = {
+  def currencyToNewPrice(billingP: String, currency: String): Either[DataExtractionFailure, BigDecimal] = {
     if (billingP == "Month") {
       currencyToNewPriceMonthlies(currency: String)
     } else {
@@ -105,23 +105,23 @@ object SupporterPlus2023V1V2Migration {
   def ratePlanCharge(
       subscription: ZuoraSubscription,
       invoiceItem: ZuoraInvoiceItem
-  ): Either[AmendmentDataFailure, ZuoraRatePlanCharge] =
+  ): Either[DataExtractionFailure, ZuoraRatePlanCharge] =
     ZuoraRatePlanCharge
       .matchingRatePlanCharge(subscription, invoiceItem)
       .filterOrElse(
         hasNotPriceAndDiscount,
-        AmendmentDataFailure(s"Rate plan charge '${invoiceItem.chargeNumber}' has price and discount")
+        DataExtractionFailure(s"Rate plan charge '${invoiceItem.chargeNumber}' has price and discount")
       )
 
   def ratePlanChargesOrFail(
       subscription: ZuoraSubscription,
       invoiceItems: Seq[ZuoraInvoiceItem]
-  ): Either[AmendmentDataFailure, Seq[ZuoraRatePlanCharge]] = {
+  ): Either[DataExtractionFailure, Seq[ZuoraRatePlanCharge]] = {
     val ratePlanCharges = invoiceItems.map(item => ratePlanCharge(subscription, item))
     val failures = ratePlanCharges.collect { case Left(failure) => failure }
 
     if (failures.isEmpty) Right(ratePlanCharges.collect { case Right(charge) => charge })
-    else Left(AmendmentDataFailure(failures.map(_.reason).mkString(", ")))
+    else Left(DataExtractionFailure(failures.map(_.reason).mkString(", ")))
   }
 
   def ratePlanChargePair(
@@ -137,7 +137,7 @@ object SupporterPlus2023V1V2Migration {
   def ratePlanChargePairs(
       catalogue: ZuoraProductCatalogue,
       ratePlanCharges: Seq[ZuoraRatePlanCharge]
-  ): Either[AmendmentDataFailure, Seq[RatePlanChargePair]] = {
+  ): Either[DataExtractionFailure, Seq[RatePlanChargePair]] = {
     /*
      * distinct because where a sub has a discount rate plan,
      * the same discount will appear against each product rate plan charge in the invoice preview.
@@ -147,7 +147,7 @@ object SupporterPlus2023V1V2Migration {
     if (failures.isEmpty) Right(pairs.collect { case Right(pricing) => pricing })
     else
       Left(
-        AmendmentDataFailure(
+        DataExtractionFailure(
           s"[SupporterPlus2023V1V2] Failed to find matching product rate plan charges for rate plan charges: ${failures.mkString(", ")}"
         )
       )
@@ -159,7 +159,7 @@ object SupporterPlus2023V1V2Migration {
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       nextServiceStartDate: LocalDate,
-  ): Either[AmendmentDataFailure, String] = {
+  ): Either[DataExtractionFailure, String] = {
     val invoiceItems = ZuoraInvoiceItem.items(invoiceList, subscription, nextServiceStartDate)
     for {
       ratePlanCharges <- ratePlanChargesOrFail(subscription, invoiceItems)
@@ -168,7 +168,7 @@ object SupporterPlus2023V1V2Migration {
         .filter(period => period.isDefined)
         .map(rpc => rpc.get)
         .headOption
-        .toRight(AmendmentDataFailure("Unknown billing period"))
+        .toRight(DataExtractionFailure("Unknown billing period"))
     } yield billingPeriod
   }
 
@@ -179,7 +179,7 @@ object SupporterPlus2023V1V2Migration {
       invoiceList: ZuoraInvoiceList,
       nextServiceDate: LocalDate,
       cohortSpec: CohortSpec
-  ): Either[AmendmentDataFailure, PriceData] = {
+  ): Either[DataExtractionFailure, PriceData] = {
     val result = (for {
       ratePlan <- subscriptionRatePlan(subscription)
       ratePlanCharges <- subscriptionRatePlanCharges(subscription, ratePlan)
@@ -200,7 +200,7 @@ object SupporterPlus2023V1V2Migration {
           // old rate plan charge plus whichever extra contribution the subscription was paying.
           // We would want to know about that and investigate.
           Left(
-            AmendmentDataFailure(
+            DataExtractionFailure(
               s"[SupporterPlus2023V1V2] Possibly incorrect pricing for subscription ${subscription.subscriptionNumber}. The new price, ${priceData.newPrice}, is higher than the old price, ${priceData.oldPrice}."
             )
           )
@@ -213,7 +213,7 @@ object SupporterPlus2023V1V2Migration {
       item: CohortItem,
       activeRatePlan: ZuoraRatePlan,
       effectiveDate: LocalDate,
-  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+  ): Either[DataExtractionFailure, ZuoraSubscriptionUpdate] = {
 
     /*
       So... the logic here, which is going to be similar for Annuals, is that we compare the estimated price
@@ -249,7 +249,7 @@ object SupporterPlus2023V1V2Migration {
     }
 
     chargeOverrides match {
-      case None => Left(AmendmentDataFailure(s"Could not compute charge overrides for item: ${item}"))
+      case None => Left(DataExtractionFailure(s"Could not compute charge overrides for item: ${item}"))
       case Some(charges) =>
         Right(
           ZuoraSubscriptionUpdate(
@@ -268,7 +268,7 @@ object SupporterPlus2023V1V2Migration {
       item: CohortItem,
       activeRatePlan: ZuoraRatePlan,
       effectiveDate: LocalDate,
-  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+  ): Either[DataExtractionFailure, ZuoraSubscriptionUpdate] = {
 
     val chargeOverrides = for {
       currency <- item.currency
@@ -295,7 +295,7 @@ object SupporterPlus2023V1V2Migration {
     }
 
     chargeOverrides match {
-      case None => Left(AmendmentDataFailure(""))
+      case None => Left(DataExtractionFailure(""))
       case Some(charges) =>
         Right(
           ZuoraSubscriptionUpdate(
@@ -315,7 +315,7 @@ object SupporterPlus2023V1V2Migration {
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       effectiveDate: LocalDate,
-  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+  ): Either[DataExtractionFailure, ZuoraSubscriptionUpdate] = {
 
     val activeRatePlans = (for {
       invoiceItem <- ZuoraInvoiceItem.items(invoiceList, subscription, effectiveDate)
@@ -326,9 +326,9 @@ object SupporterPlus2023V1V2Migration {
     } yield ratePlan).distinct
 
     if (activeRatePlans.isEmpty)
-      Left(AmendmentDataFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
+      Left(DataExtractionFailure(s"No rate plans to update for subscription ${subscription.subscriptionNumber}"))
     else if (activeRatePlans.size > 1)
-      Left(AmendmentDataFailure(s"Multiple rate plans to update: ${activeRatePlans.map(_.id)}"))
+      Left(DataExtractionFailure(s"Multiple rate plans to update: ${activeRatePlans.map(_.id)}"))
     else {
       // At this point we know that we have exactly one active rate plan
       val activeRatePlan = activeRatePlans.head
@@ -337,7 +337,7 @@ object SupporterPlus2023V1V2Migration {
         case Some("Annual") => updateOfRatePlanToCurrentAnnual(item, activeRatePlan, effectiveDate)
         case _ =>
           Left(
-            AmendmentDataFailure(
+            DataExtractionFailure(
               s"Unsupported billing period (expecting Month, Annual), got ${item.billingPeriod} from ${item}"
             )
           )
