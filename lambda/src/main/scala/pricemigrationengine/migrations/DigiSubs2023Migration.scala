@@ -63,35 +63,35 @@ object DigiSubs2023Migration {
   def newPriceLookup(
       currency: String,
       billingPeriod: BillingPeriod
-  ): Either[AmendmentDataFailure, BigDecimal] = {
+  ): Either[DataExtractionFailure, BigDecimal] = {
     billingPeriod match {
       case Monthly =>
         priceMapMonthlies.get(currency) match {
-          case None => Left(AmendmentDataFailure(s"Could not determine a new monthly price for currency: ${currency}"))
+          case None => Left(DataExtractionFailure(s"Could not determine a new monthly price for currency: ${currency}"))
           case Some(price) => Right(price)
         }
       case Quarterly =>
         priceMapQuarterlies.get(currency) match {
           case None =>
-            Left(AmendmentDataFailure(s"Could not determine a new quarterly price for currency: ${currency}"))
+            Left(DataExtractionFailure(s"Could not determine a new quarterly price for currency: ${currency}"))
           case Some(price) => Right(price)
         }
       case Annual =>
         priceMapAnnuals.get(currency) match {
-          case None => Left(AmendmentDataFailure(s"Could not determine a new annual price for currency: ${currency}"))
+          case None => Left(DataExtractionFailure(s"Could not determine a new annual price for currency: ${currency}"))
           case Some(price) => Right(price)
         }
-      case SemiAnnual => Left(AmendmentDataFailure(s"There are no defined semi-annual prices for this migration"))
+      case SemiAnnual => Left(DataExtractionFailure(s"There are no defined semi-annual prices for this migration"))
     }
   }
 
-  def subscriptionRatePlan(subscription: ZuoraSubscription): Either[AmendmentDataFailure, ZuoraRatePlan] = {
+  def subscriptionRatePlan(subscription: ZuoraSubscription): Either[DataExtractionFailure, ZuoraRatePlan] = {
     // Takes a subscription and return the active rate plan
     // This function is specific to the current Migration, eg: DigiSubs2023, so we can be effective in the look up of
     // that rate plan
     subscription.ratePlans.find(_.productName == "Digital Pack") match {
       case None =>
-        Left(AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} doesn't have any rate plan"))
+        Left(DataExtractionFailure(s"Subscription ${subscription.subscriptionNumber} doesn't have any rate plan"))
       case Some(ratePlan) => Right(ratePlan)
     }
   }
@@ -103,7 +103,7 @@ object DigiSubs2023Migration {
   def subscriptionRatePlanCharge(
       subscription: ZuoraSubscription,
       ratePlan: ZuoraRatePlan
-  ): Either[AmendmentDataFailure, ZuoraRatePlanCharge] = {
+  ): Either[DataExtractionFailure, ZuoraRatePlanCharge] = {
     // Takes a rate plan and return the active rate plan charges
     // Since it's migration specific we can be effective in the look up
     // Note that we also pass the subscription to the function in case we need to return a Failure object
@@ -112,7 +112,7 @@ object DigiSubs2023Migration {
         // Although not enforced by the signature of the function, for this error message to make sense we expect that
         // the rate plan belongs to the currency
         Left(
-          AmendmentDataFailure(s"Subscription ${subscription.subscriptionNumber} has a rate plan, but with no charge")
+          DataExtractionFailure(s"Subscription ${subscription.subscriptionNumber} has a rate plan, but with no charge")
         )
       }
       case Some(ratePlanCharge) => Right(ratePlanCharge)
@@ -122,13 +122,13 @@ object DigiSubs2023Migration {
   def getPriceFromRatePlanCharge(
       subscription: ZuoraSubscription,
       ratePlanCharge: ZuoraRatePlanCharge
-  ): Either[AmendmentDataFailure, BigDecimal] = {
+  ): Either[DataExtractionFailure, BigDecimal] = {
     // This function takes a rate plan charge and returns the price
     // We also pass the subscription in case we need to return a Failure object
     ratePlanCharge.price match {
       case None => {
         Left(
-          AmendmentDataFailure(
+          DataExtractionFailure(
             s"Subscription ${subscription.subscriptionNumber} has a rate plan charge, but with no currency"
           )
         )
@@ -140,13 +140,13 @@ object DigiSubs2023Migration {
   def getBillingPeriodFromRatePlanCharge(
       subscription: ZuoraSubscription,
       ratePlanCharge: ZuoraRatePlanCharge
-  ): Either[AmendmentDataFailure, BillingPeriod] = {
+  ): Either[DataExtractionFailure, BillingPeriod] = {
     // This function takes a rate plan charge and returns the price
     // We also pass the subscription in case we need to return a Failure object
     ratePlanCharge.billingPeriod match {
       case None => {
         Left(
-          AmendmentDataFailure(
+          DataExtractionFailure(
             s"Subscription ${subscription.subscriptionNumber} has a rate plan charge, but with no currency"
           )
         )
@@ -155,7 +155,9 @@ object DigiSubs2023Migration {
     }
   }
 
-  def getBillingPeriodFromSubscription(subscription: ZuoraSubscription): Either[AmendmentDataFailure, BillingPeriod] = {
+  def getBillingPeriodFromSubscription(
+      subscription: ZuoraSubscription
+  ): Either[DataExtractionFailure, BillingPeriod] = {
     for {
       ratePlan <- subscriptionRatePlan(subscription)
       ratePlanCharge <- subscriptionRatePlanCharge(subscription, ratePlan)
@@ -169,7 +171,7 @@ object DigiSubs2023Migration {
 
   def priceData(
       subscription: ZuoraSubscription,
-  ): Either[AmendmentDataFailure, PriceData] = {
+  ): Either[DataExtractionFailure, PriceData] = {
 
     // This function computes a
     // PriceData(currency: Currency, oldPrice: BigDecimal, newPrice: BigDecimal, billingPeriod: String)
@@ -188,7 +190,7 @@ object DigiSubs2023Migration {
   def zuoraUpdate(
       subscription: ZuoraSubscription,
       effectiveDate: LocalDate,
-  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+  ): Either[DataExtractionFailure, ZuoraSubscriptionUpdate] = {
 
     // This function essentially compute the data required for the amendment, it returns
     // a Either[..., ZuoraSubscriptionUpdate] which indicates the rate plans that are removed and the ones
@@ -209,7 +211,7 @@ object DigiSubs2023Migration {
       targetRatePlanDetails <- billingPeriodToRatePlanId.get(billingPeriod) match {
         case None =>
           Left(
-            AmendmentDataFailure(
+            DataExtractionFailure(
               s"Could not extract ratePlan for billing period: ${BillingPeriod.toString(billingPeriod)}"
             )
           )

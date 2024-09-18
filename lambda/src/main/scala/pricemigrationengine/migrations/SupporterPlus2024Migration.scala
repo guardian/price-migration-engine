@@ -167,7 +167,7 @@ object SupporterPlus2024Migration {
   def newBaseAmount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
     for {
       ratePlan <- getSupporterPlusV2RatePlan(subscription)
-      billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan).toRight(AmendmentDataFailure(""))
+      billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan).toRight(DataExtractionFailure(""))
       ratePlanCharge <- getSupporterPlusBaseRatePlanCharge(subscription.subscriptionNumber, ratePlan)
       currency = ratePlanCharge.currency
       oldBaseAmountOpt <- previousBaseAmount(subscription)
@@ -280,14 +280,14 @@ object SupporterPlus2024Migration {
         existingRatePlan
       )
       existingContributionPrice <- existingContributionRatePlanCharge.price.toRight(
-        AmendmentDataFailure(
+        DataExtractionFailure(
           s"[22405076] Could not extract existing contribution price for subscription ${subscription.subscriptionNumber}"
         )
       )
       billingPeriod <- ZuoraRatePlan
         .ratePlanToBillingPeriod(existingRatePlan)
         .toRight(
-          AmendmentDataFailure(
+          DataExtractionFailure(
             s"[17469705] Could not determine the billing period for subscription ${subscription.subscriptionNumber}"
           )
         )

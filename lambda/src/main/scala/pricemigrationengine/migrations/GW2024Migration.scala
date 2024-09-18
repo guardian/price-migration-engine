@@ -204,7 +204,7 @@ object GW2024Migration {
   def priceData(
       subscription: ZuoraSubscription,
       account: ZuoraAccount
-  ): Either[AmendmentDataFailure, PriceData] = {
+  ): Either[DataExtractionFailure, PriceData] = {
     val priceDataOpt = for {
       currency <- subscriptionToCurrency(subscription)
       ratePlan <- subscriptionToMigrationRatePlan(subscription)
@@ -215,7 +215,9 @@ object GW2024Migration {
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
       case None =>
-        Left(AmendmentDataFailure(s"Could not determine PriceData for subscription ${subscription.subscriptionNumber}"))
+        Left(
+          DataExtractionFailure(s"Could not determine PriceData for subscription ${subscription.subscriptionNumber}")
+        )
     }
   }
 
@@ -225,20 +227,20 @@ object GW2024Migration {
       oldPrice: BigDecimal,
       estimatedNewPrice: BigDecimal,
       priceCap: BigDecimal
-  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+  ): Either[DataExtractionFailure, ZuoraSubscriptionUpdate] = {
     for {
       ratePlan <- subscriptionToMigrationRatePlan(subscription).toRight(
-        AmendmentDataFailure(
+        DataExtractionFailure(
           s"[a4d99cf3] Could not determine the Zuora migration rate plan for subscription ${subscription.subscriptionNumber}"
         )
       )
       ratePlanChargeId <- zuoraRatePlanToRatePlanChargeId(ratePlan).toRight(
-        AmendmentDataFailure(
+        DataExtractionFailure(
           s"[105f6c88] Could not determine the rate plan charge id for rate plan ${ratePlan}"
         )
       )
       billingPeriod <- subscriptionToBillingPeriod(subscription).toRight(
-        AmendmentDataFailure(
+        DataExtractionFailure(
           s"[17469705] Could not determine the billing period for subscription ${subscription.subscriptionNumber}"
         )
       )

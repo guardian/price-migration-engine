@@ -3,7 +3,7 @@ package pricemigrationengine.migrations
 import pricemigrationengine.model.AmendmentData.RatePlanChargePair
 import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, newGuardianWeeklyRatePlans}
 import pricemigrationengine.model.{
-  AmendmentDataFailure,
+  DataExtractionFailure,
   ZuoraAccount,
   ZuoraProductCatalogue,
   ZuoraProductRatePlan,
@@ -28,17 +28,17 @@ object GuardianWeeklyMigration {
       account: ZuoraAccount,
       catalogue: ZuoraProductCatalogue,
       ratePlanCharges: Seq[ZuoraRatePlanCharge]
-  ): Either[AmendmentDataFailure, GuardianWeeklyMigration] = {
+  ): Either[DataExtractionFailure, GuardianWeeklyMigration] = {
     val billingPeriod = ratePlanCharges.head.billingPeriod match {
       case Some(value) =>
         value match {
           case "Quarter" => "Quarterly"
           case "Month"   => "Monthly"
           case "Annual"  => "Annual"
-          case default   => Left(AmendmentDataFailure(s"billingPeriod is $default for ratePlan"))
+          case default   => Left(DataExtractionFailure(s"billingPeriod is $default for ratePlan"))
         }
 
-      case None => Left(AmendmentDataFailure("billingPeriod is null for ratePlan"))
+      case None => Left(DataExtractionFailure("billingPeriod is null for ratePlan"))
     }
 
     val guardianWeeklyRatePlans =
@@ -48,7 +48,7 @@ object GuardianWeeklyMigration {
     def fetchPlan(
         currentCharges: Seq[ZuoraRatePlanCharge],
         ratePlanName: String
-    ): Either[AmendmentDataFailure, GuardianWeeklyMigration] = {
+    ): Either[DataExtractionFailure, GuardianWeeklyMigration] = {
       val newRatePlan = guardianWeeklyRatePlans
         .find(_.name == ratePlanName)
         .find(_.productRatePlanCharges.head.billingPeriod == currentCharges.head.billingPeriod)
@@ -62,7 +62,7 @@ object GuardianWeeklyMigration {
           Right(GuardianWeeklyMigration(plan, chargePairs))
         case None =>
           Left(
-            AmendmentDataFailure(
+            DataExtractionFailure(
               s"Failed to find new rate plan for Guardian Weekly sub: $ratePlanName, ratePlanCharges: ${ratePlanCharges.mkString(", ")}"
             )
           )
@@ -80,7 +80,7 @@ object GuardianWeeklyMigration {
     def aaaa(
         currency: Currency,
         ratePlanCharges: Seq[ZuoraRatePlanCharge]
-    ): Either[AmendmentDataFailure, GuardianWeeklyMigration] = {
+    ): Either[DataExtractionFailure, GuardianWeeklyMigration] = {
       if (ratePlanCharges.head.currency == "USD") {
         for {
           ratePlan <-

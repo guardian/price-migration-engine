@@ -46,10 +46,12 @@ object Amendment {
   def zuoraUpdate(
       subscription: ZuoraSubscription,
       effectiveDate: LocalDate,
-  ): Either[AmendmentDataFailure, ZuoraSubscriptionUpdate] = {
+  ): Either[DataExtractionFailure, ZuoraSubscriptionUpdate] = {
     for {
-      data2024 <- Estimation.subscriptionToSubscriptionData2024(subscription).left.map(AmendmentDataFailure)
-      chargeDistribution <- subscriptionToNewChargeDistribution2024(subscription).toRight(AmendmentDataFailure("error"))
+      data2024 <- Estimation.subscriptionToSubscriptionData2024(subscription).left.map(DataExtractionFailure)
+      chargeDistribution <- subscriptionToNewChargeDistribution2024(subscription).toRight(
+        DataExtractionFailure("Could not extract charge distribution")
+      )
     } yield ZuoraSubscriptionUpdate(
       add = List(
         AddZuoraRatePlan(

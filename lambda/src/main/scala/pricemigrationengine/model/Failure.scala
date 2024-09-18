@@ -7,6 +7,8 @@ sealed trait Failure {
 case class InputFailure(reason: String) extends Failure
 case class ConfigFailure(reason: String) extends Failure
 
+case class DataExtractionFailure(reason: String) extends Failure
+
 case class CohortStateMachineFailure(reason: String) extends Failure
 
 case class CohortSpecFetchFailure(reason: String) extends Failure
@@ -18,9 +20,6 @@ case class CohortFetchFailure(reason: String) extends Failure
 case class CohortCreateFailure(reason: String) extends Failure
 case class CohortItemAlreadyPresentFailure(reason: String) extends Failure
 case class CohortUpdateFailure(reason: String) extends Failure
-
-case class DataExtractionFailure(reason: String) extends Failure
-case class AmendmentDataFailure(reason: String) extends Failure
 
 case class ZuoraFailure(reason: String) extends Failure
 case class ZuoraFetchFailure(reason: String) extends Failure
