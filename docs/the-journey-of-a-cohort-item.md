@@ -1,6 +1,6 @@
 ## The journey of a cohort item
 
-In [Price migrations from first principles](./price-migrations-from-first-principles.md) we have seen what price migrations are and the general logic behind then. In this chapter let's have a closer look at the actual steps of a price migration following the journey of a cohort item in the engine.
+In [Price migrations from first principles](./price-migrations-from-first-principles.md) we have seen what price migrations are, and the general logic behind then. In this chapter let's have a closer look at the actual steps of a price migration following the journey of a cohort item in the engine.
 
 ### What is a cohort item ?
 
@@ -10,11 +10,11 @@ One such cohort item seen in one of the Dynamo tables is shown below
 
 ![](./the-journey-of-a-cohort-item/1707822328.png)
 
-The price migration may apply to a collection of subscriptions, but each subscription is price risen independently to the others, so to understand the logic of a migration we only need to follow the journey of one given subscription number.
+The price migration may apply to a collection of subscriptions, but each subscription is price risen independently to the others (and yes, a price migration could just have one subscription in it), so to understand the logic of a migration we only need to follow the journey of one given subscription number.
 
 ### Loading the subscription numbers and creating the Dynamo table.
 
-A price migration fundamentally need two ingredients 
+A price migration fundamentally need two ingredients:
 
 1. The engine has been updated with the required code to encode the specificities of the migration (for instance specific features we implemented for Newspaper2024)
 
@@ -66,7 +66,13 @@ CohortItem(
 
 In this stage the engine essentially is saying "I have recorded this subscription number and it's ready to be Estimated"
 
-### The Estimation Stage
+### The Estimation Stage (part 1)
+
+The first step of the Estimation stage is to run a maintenance function called `monitorDoNotProcessUntil` from the Estimation handler. This function requests items in processing stage `DoNotProcessUntil` and looks up the attribute `doNotProcessUntil`, which is a LocalDate, and check whether that date in in the past (or today). If that date is in the past, then the item is going to be migrated to processing stage `ReadyForEstimation`, otherwise the item is left untouched.
+
+The reason for the extistence of the `DoNotProcessUntil` processing stage is that it was the simplest way to handle the existence of cancellation saves and the business requirement to leave a subscription alone for a certain period of time (6 months) if, at notification state, the item carries a cancellation discount. If and when we observe such a thing, we put the item in processing stage `DoNotProcessUntil`, and then update the value of the attribute `doNotProcessUntil` to be the date until when the item needs to be left alone. On that future date (or shortly after) the item can be processed again and the way this happens is to move it to `ReadyForEstimation` waiting for it to be estimated (again).
+
+### The Estimation Stage (part 2)
 
 The estimation stage has several purposes, in fact 3 main purposes 
 
@@ -131,13 +137,19 @@ CohortItem(
 
 Then, the cohort item is going to.... sleep. It's going to sleep as long as it take for it to be at the start date minus about 40 days. This might take a few days or up to a year.
 
-### Notification and Amendment
+### Notification (part 1)
 
-Today is now `LocalDate.of(2024, 5, 10)` minus about 40 days. The engine sees a subscription in `SalesforcePriceRiceCreationComplete` stage ready to be user notified. The engine is going to perform a certain number of look ups and will send a message to a queue that will eventually be delivered to Braze (triggering the sending of an email, or sending an additional request to an external company for a letter to be printed and delivered).
+In the case of migration SupporterPlus2024, the first operation is to check whether the item is under an active cancellation save. By definition, an "active" cancellation save is a cancellation save that was issued less than 6 months ago. If the item is found in that state, its processing stage become `DoNotProcessUntil` and the value of `doNotProcessUntil` is updated to become the effective date of the cancelation save plus 6 months.
+
+### Notification (part 2)
+
+Today is now `LocalDate.of(2024, 5, 10)` minus about 40 days. The engine sees a subscription in `SalesforcePriceRiceCreationComplete` stage ready to be user notified. The engine is going to perform a certain number of lookups and will send a message to a queue that will eventually be delivered to Braze (triggering the sending of an email, or sending an additional request to an external company for a letter to be printed and delivered).
 
 The message to the user is going to mention the start date and the new estimated new price. The outcome of this step is the subscription being put in processing stage `NotificationSendComplete`.
 
 Once the item is in `NotificationSendComplete` stage the SalesforceNotificationDateUpdatehandler lambda will fire up. This operation notifies Salesforce that the user has been notified (for record keeping) and puts the item in processing stage `NotificationSendDateWrittenToSalesforce`.
+
+### Amendment
 
 The item now being in processing stage `NotificationSendDateWrittenToSalesforce` the engine will perform an amendment in Zuora, meaning will update Zuora with the fact that the subscription in Zuora is price risen and that the price rise is taking effect on the date that had already been decided during the Estimation step. Note that this is the first and only moment that the engine performs a write operation in Zuora during the entire price rise process of that subscription and puts the item in `AmendmentComplete`.
 

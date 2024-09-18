@@ -33,7 +33,7 @@ object EstimationHandler extends CohortHandler {
     } yield HandlerOutput(isComplete = count < batchSize)
 
   def monitorDoNotProcessUntil(today: LocalDate): ZIO[Logging with CohortTable, CohortFetchFailure, Unit] = {
-    // This function migrates items in DoNotProcessUntil state, which has passed their
+    // This function migrates items in DoNotProcessUntil state, which have passed their
     // expiration time, to ReadyForEstimation
     CohortTable
       .fetch(DoNotProcessUntil, None)
