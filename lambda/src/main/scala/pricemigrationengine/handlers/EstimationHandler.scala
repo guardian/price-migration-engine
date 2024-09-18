@@ -32,12 +32,34 @@ object EstimationHandler extends CohortHandler {
         .tapError(e => Logging.error(e.toString))
     } yield HandlerOutput(isComplete = count < batchSize)
 
-  def monitorDoNotProcessUntil(today: LocalDate): ZIO[Logging with CohortTable, CohortFetchFailure, Unit] = {
+  def monitorOne(today: LocalDate, item: CohortItem): ZIO[Logging with CohortTable, Failure, Unit] = {
+    for {
+      _ <-
+        if (CohortItem.isProcessable(item, today)) {
+          CohortTable
+            .update(
+              CohortItem(
+                subscriptionName = item.subscriptionName,
+                processingStage = ReadyForEstimation
+              )
+            )
+        } else { ZIO.succeed(()) }
+    } yield ()
+  }
+
+  def monitorDoNotProcessUntil(today: LocalDate): ZIO[Logging with CohortTable, Failure, Unit] = {
     // This function migrates items in DoNotProcessUntil state, which have passed their
     // expiration time, to ReadyForEstimation
-    CohortTable
-      .fetch(DoNotProcessUntil, None)
-      .foreach(item => Logging.info(item.toString))
+    for {
+      _ <- CohortTable
+        .fetch(DoNotProcessUntil, None)
+        .foreach { item =>
+          for {
+            _ <- Logging.info(s"item in DoNotShowUntil stage: ${item.toString}")
+            _ <- monitorOne(today, item)
+          } yield ()
+        }
+    } yield ()
   }
 
   private[handlers] def estimate(
