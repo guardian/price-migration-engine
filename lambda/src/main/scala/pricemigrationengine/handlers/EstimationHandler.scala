@@ -32,7 +32,7 @@ object EstimationHandler extends CohortHandler {
         .tapError(e => Logging.error(e.toString))
     } yield HandlerOutput(isComplete = count < batchSize)
 
-  def monitorDonotProcessUntilItem(today: LocalDate, item: CohortItem): ZIO[Logging with CohortTable, Failure, Unit] = {
+  def monitorDoNotProcessUntilItem(today: LocalDate, item: CohortItem): ZIO[Logging with CohortTable, Failure, Unit] = {
     for {
       _ <-
         if (CohortItem.isProcessable(item, today)) {
@@ -56,7 +56,7 @@ object EstimationHandler extends CohortHandler {
         .foreach { item =>
           for {
             _ <- Logging.info(s"item in DoNotShowUntil stage: ${item.toString}")
-            _ <- monitorDonotProcessUntilItem(today, item)
+            _ <- monitorDoNotProcessUntilItem(today, item)
           } yield ()
         }
     } yield ()

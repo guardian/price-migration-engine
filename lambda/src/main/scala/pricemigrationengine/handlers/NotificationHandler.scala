@@ -57,15 +57,7 @@ object NotificationHandler extends CohortHandler {
                 subscription <- Zuora.fetchSubscription(item.subscriptionName)
                 _ <-
                   if (SupporterPlus2024Migration.isUnderActiveCancellationSavePolicy(subscription, today)) {
-                    CohortTable
-                      .update(
-                        CohortItem(
-                          subscriptionName = item.subscriptionName,
-                          processingStage = DoNotProcessUntil,
-                          doNotProcessUntil =
-                            Some(today.plusMonths(6)) // TODO: compute from the start of the cancellation, not today
-                        )
-                      )
+                    updateItemToDoNotProcessUntil(item, subscription)
                   } else {
                     sendNotification(cohortSpec)(item, today)
                   }
@@ -76,6 +68,25 @@ object NotificationHandler extends CohortHandler {
         )
         .runCount
     } yield HandlerOutput(isComplete = count < batchSize)
+  }
+
+  def updateItemToDoNotProcessUntil(
+      item: CohortItem,
+      subscription: ZuoraSubscription
+  ): ZIO[CohortTable with Zuora, Failure, Unit] = {
+    for {
+      cancellationDate <- ZIO
+        .fromOption(SupporterPlus2024Migration.cancellationSaveDiscountEffectiveDate(subscription))
+        .orElseFail(DataExtractionFailure(s"Could not extract cancellation date for item ${item}"))
+      _ <- CohortTable
+        .update(
+          CohortItem(
+            subscriptionName = item.subscriptionName,
+            processingStage = DoNotProcessUntil,
+            doNotProcessUntil = Some(cancellationDate.plusMonths(6))
+          )
+        )
+    } yield ()
   }
 
   def sendNotification(cohortSpec: CohortSpec)(
@@ -247,7 +258,7 @@ object NotificationHandler extends CohortHandler {
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
       estimationInstant <- ZIO
         .fromOption(item.whenEstimationDone)
-        .mapError(ex => AmendmentDataFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
+        .mapError(ex => DataExtractionFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
       _ <- subscriptionRatePlansCheck(
         cohortSpec,
         item,

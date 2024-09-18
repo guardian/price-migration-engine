@@ -53,14 +53,14 @@ object AmendmentData {
       invoiceList: ZuoraInvoiceList,
       subscription: ZuoraSubscription,
       onOrAfter: LocalDate
-  ): Either[AmendmentDataFailure, LocalDate] =
+  ): Either[Failure, LocalDate] =
     ZuoraInvoiceItem
       .itemsForSubscription(invoiceList, subscription)
       .map(_.serviceStartDate)
       .sortBy(_.toEpochDay)
       .dropWhile(_.isBefore(onOrAfter))
       .headOption
-      .toRight(AmendmentDataFailure(s"Cannot determine next billing date on or after $onOrAfter from $invoiceList"))
+      .toRight(DataExtractionFailure(s"Cannot determine next billing date on or after $onOrAfter from $invoiceList"))
 
   def hasNotPriceAndDiscount(ratePlanCharge: ZuoraRatePlanCharge): Boolean =
     ratePlanCharge.price.isDefined ^ ratePlanCharge.discountPercentage.exists(_ > 0)
@@ -68,12 +68,12 @@ object AmendmentData {
   def ratePlanCharge(
       subscription: ZuoraSubscription,
       invoiceItem: ZuoraInvoiceItem
-  ): Either[AmendmentDataFailure, ZuoraRatePlanCharge] =
+  ): Either[Failure, ZuoraRatePlanCharge] =
     ZuoraRatePlanCharge
       .matchingRatePlanCharge(subscription, invoiceItem)
       .filterOrElse(
         hasNotPriceAndDiscount,
-        AmendmentDataFailure(s"Rate plan charge '${invoiceItem.chargeNumber}' has price and discount")
+        DataExtractionFailure(s"Rate plan charge '${invoiceItem.chargeNumber}' has price and discount")
       )
 
   def ratePlanChargesOrFail(
@@ -287,7 +287,7 @@ object AmendmentData {
       invoiceList: ZuoraInvoiceList,
       nextServiceStartDate: LocalDate,
       cohortSpec: CohortSpec,
-  ): Either[AmendmentDataFailure, PriceData] = {
+  ): Either[Failure, PriceData] = {
 
     MigrationType(cohortSpec) match {
       case Membership2023Monthlies =>
@@ -332,7 +332,7 @@ object AmendmentData {
       invoiceList: ZuoraInvoiceList,
       startDateLowerBound: LocalDate,
       cohortSpec: CohortSpec,
-  ): Either[AmendmentDataFailure, AmendmentData] = {
+  ): Either[Failure, AmendmentData] = {
     for {
       startDate <- nextServiceStartDate(invoiceList, subscription, startDateLowerBound)
       price <- priceData(account, catalogue, subscription, invoiceList, startDate, cohortSpec)
