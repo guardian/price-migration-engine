@@ -124,14 +124,14 @@ object AmendmentHandler extends CohortHandler {
     for {
       subscriptionBeforeUpdate <- fetchSubscription(item)
 
-      startDate <- ZIO.fromOption(item.startDate).orElseFail(AmendmentDataFailure(s"No start date in $item"))
+      startDate <- ZIO.fromOption(item.startDate).orElseFail(DataExtractionFailure(s"No start date in $item"))
 
-      oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(AmendmentDataFailure(s"No old price in $item"))
+      oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(DataExtractionFailure(s"No old price in $item"))
 
       estimatedNewPrice <-
         ZIO
           .fromOption(item.estimatedNewPrice)
-          .orElseFail(AmendmentDataFailure(s"No estimated new price in $item"))
+          .orElseFail(DataExtractionFailure(s"No estimated new price in $item"))
 
       invoicePreviewTargetDate = startDate.plusMonths(13)
 
@@ -228,7 +228,7 @@ object AmendmentHandler extends CohortHandler {
       _ <-
         if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec) && (newPrice > estimatedNewPrice)) {
           ZIO.fail(
-            AmendmentDataFailure(
+            DataExtractionFailure(
               s"[e9054daa] Item ${item} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice}"
             )
           )

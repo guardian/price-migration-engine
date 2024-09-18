@@ -193,7 +193,7 @@ object NotificationHandler extends CohortHandler {
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
       estimationInstant <- ZIO
         .fromOption(item.whenEstimationDone)
-        .mapError(ex => AmendmentDataFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
+        .mapError(ex => DataExtractionFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
       _ <- subscriptionRatePlansCheck(
         cohortSpec,
         item,
