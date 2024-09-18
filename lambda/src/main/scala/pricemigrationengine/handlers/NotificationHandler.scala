@@ -56,7 +56,7 @@ object NotificationHandler extends CohortHandler {
               for {
                 subscription <- Zuora.fetchSubscription(item.subscriptionName)
                 _ <-
-                  if (SupporterPlus2024Migration.isUnderActiveCancellationSave(subscription, today)) {
+                  if (SupporterPlus2024Migration.isUnderActiveCancellationSavePolicy(subscription, today)) {
                     CohortTable
                       .update(
                         CohortItem(

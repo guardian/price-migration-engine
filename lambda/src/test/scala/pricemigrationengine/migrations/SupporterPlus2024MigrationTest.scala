@@ -11,32 +11,54 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
   // -----------------------------------
   // Cancellation saves
 
-  test("isInCancellationSave") {
+  test("hasCancellationSaveDiscount") {
     val subscriptionNo =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-with-cancellation-save/subscription-no.json")
     val subscriptionYes =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-with-cancellation-save/subscription-yes.json")
     assertEquals(
-      SupporterPlus2024Migration.isInCancellationSave(subscriptionNo),
+      SupporterPlus2024Migration.hasCancellationSaveDiscount(subscriptionNo),
       false
     )
     assertEquals(
-      SupporterPlus2024Migration.isInCancellationSave(subscriptionYes),
+      SupporterPlus2024Migration.hasCancellationSaveDiscount(subscriptionYes),
       true
     )
   }
-  test("cancellationSaveEffectiveDate") {
+  test("cancellationSaveDiscountEffectiveDate") {
     val subscriptionNo =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-with-cancellation-save/subscription-no.json")
     val subscriptionYes =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-with-cancellation-save/subscription-yes.json")
     assertEquals(
-      SupporterPlus2024Migration.cancellationSaveEffectiveDate(subscriptionNo),
+      SupporterPlus2024Migration.cancellationSaveDiscountEffectiveDate(subscriptionNo),
       None
     )
     assertEquals(
-      SupporterPlus2024Migration.cancellationSaveEffectiveDate(subscriptionYes),
+      SupporterPlus2024Migration.cancellationSaveDiscountEffectiveDate(subscriptionYes),
       Some(LocalDate.of(2024, 7, 5))
+    )
+  }
+  test("isUnderActiveCancellationSavePolicy") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/sub-with-cancellation-save/subscription-yes.json")
+    // The cancellation dave effective date is LocalDate.of(2024, 7, 5)
+    // The cancellation save effective date plus 6 months is LocalDate.of(2025, 1, 5)
+    assertEquals(
+      SupporterPlus2024Migration.isUnderActiveCancellationSavePolicy(subscription, LocalDate.of(2024, 7, 5)),
+      true
+    )
+    assertEquals(
+      SupporterPlus2024Migration.isUnderActiveCancellationSavePolicy(subscription, LocalDate.of(2025, 1, 4)),
+      true
+    )
+    assertEquals(
+      SupporterPlus2024Migration.isUnderActiveCancellationSavePolicy(subscription, LocalDate.of(2025, 1, 5)),
+      false
+    )
+    assertEquals(
+      SupporterPlus2024Migration.isUnderActiveCancellationSavePolicy(subscription, LocalDate.of(2025, 1, 6)),
+      false
     )
   }
 

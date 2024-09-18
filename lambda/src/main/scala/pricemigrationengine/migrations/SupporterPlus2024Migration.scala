@@ -77,26 +77,26 @@ object SupporterPlus2024Migration {
   // ------------------------------------------------
   // Cancellation Saves
 
-  def cancellationSaveRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
+  def cancellationSaveDiscountRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
     subscription.ratePlans.find(rp => rp.ratePlanName.contains("Cancellation Save Discount"))
   }
 
-  def isInCancellationSave(subscription: ZuoraSubscription): Boolean = {
-    cancellationSaveRatePlan(subscription: ZuoraSubscription).isDefined
+  def hasCancellationSaveDiscount(subscription: ZuoraSubscription): Boolean = {
+    cancellationSaveDiscountRatePlan(subscription: ZuoraSubscription).isDefined
   }
 
-  def cancellationSaveEffectiveDate(subscription: ZuoraSubscription): Option[LocalDate] = {
+  def cancellationSaveDiscountEffectiveDate(subscription: ZuoraSubscription): Option[LocalDate] = {
     for {
-      ratePlan <- cancellationSaveRatePlan(subscription)
+      ratePlan <- cancellationSaveDiscountRatePlan(subscription)
       charge <- ratePlan.ratePlanCharges.headOption
       date <- charge.effectiveStartDate
     } yield date
   }
 
-  def isUnderActiveCancellationSave(subscription: ZuoraSubscription, today: LocalDate): Boolean = {
-    cancellationSaveEffectiveDate(subscription: ZuoraSubscription) match {
+  def isUnderActiveCancellationSavePolicy(subscription: ZuoraSubscription, today: LocalDate): Boolean = {
+    cancellationSaveDiscountEffectiveDate(subscription: ZuoraSubscription) match {
       case None       => false
-      case Some(date) => (date == today) || today.isBefore(date)
+      case Some(date) => today.isBefore(date.plusMonths(6))
     }
   }
 
