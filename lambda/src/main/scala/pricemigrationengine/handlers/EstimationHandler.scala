@@ -20,7 +20,7 @@ object EstimationHandler extends CohortHandler {
   def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
       today <- Clock.currentDateTime.map(_.toLocalDate)
-      _ <- monitorDoNotProcessUntil(today)
+      _ <- monitorDoNotProcessUntils(today)
       catalogue <- Zuora.fetchProductCatalogue
       count <- CohortTable
         .fetch(ReadyForEstimation, None)
@@ -32,7 +32,7 @@ object EstimationHandler extends CohortHandler {
         .tapError(e => Logging.error(e.toString))
     } yield HandlerOutput(isComplete = count < batchSize)
 
-  def monitorOne(today: LocalDate, item: CohortItem): ZIO[Logging with CohortTable, Failure, Unit] = {
+  def monitorDonotProcessUntilItem(today: LocalDate, item: CohortItem): ZIO[Logging with CohortTable, Failure, Unit] = {
     for {
       _ <-
         if (CohortItem.isProcessable(item, today)) {
@@ -47,7 +47,7 @@ object EstimationHandler extends CohortHandler {
     } yield ()
   }
 
-  def monitorDoNotProcessUntil(today: LocalDate): ZIO[Logging with CohortTable, Failure, Unit] = {
+  def monitorDoNotProcessUntils(today: LocalDate): ZIO[Logging with CohortTable, Failure, Unit] = {
     // This function migrates items in DoNotProcessUntil state, which have passed their
     // expiration time, to ReadyForEstimation
     for {
@@ -56,7 +56,7 @@ object EstimationHandler extends CohortHandler {
         .foreach { item =>
           for {
             _ <- Logging.info(s"item in DoNotShowUntil stage: ${item.toString}")
-            _ <- monitorOne(today, item)
+            _ <- monitorDonotProcessUntilItem(today, item)
           } yield ()
         }
     } yield ()
