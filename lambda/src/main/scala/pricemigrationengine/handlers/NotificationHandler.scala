@@ -418,8 +418,9 @@ object NotificationHandler extends CohortHandler {
         requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
       case SupporterPlus2023V1V2MA =>
         requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
-      case Newspaper2024 => Right(address.country.getOrElse("United Kingdom"))
-      case _             => requiredField(address.country, "Contact.OtherAddress.country")
+      case Newspaper2024     => Right(address.country.getOrElse("United Kingdom"))
+      case SupporterPlus2024 => Right(address.country.getOrElse(""))
+      case _                 => requiredField(address.country, "Contact.OtherAddress.country")
     }
   }
 
