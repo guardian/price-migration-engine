@@ -86,12 +86,11 @@ object AmendmentHandler extends CohortHandler {
   }
 
   private def shouldPerformFinalPriceCheck(cohortSpec: CohortSpec): Boolean = {
-    // We do not apply the check to the SupporterPlus2023V1V2 migration, nor the SupporterPlus2024
+    // We do not apply the check to the SupporterPlus2024
     // migration where, due to the way the prices are computed, the new price can be higher than the
     // estimated price (which wasn't including the extra contribution).
 
     MigrationType(cohortSpec) match {
-      case SupporterPlus2023V1V2MA => false
       case Membership2023Monthlies => true
       case Membership2023Annuals   => true
       case DigiSubs2023            => true
@@ -143,16 +142,6 @@ object AmendmentHandler extends CohortHandler {
           ZIO.fromEither(
             Membership2023Migration
               .zuoraUpdate_Annuals(
-                subscriptionBeforeUpdate,
-                invoicePreviewBeforeUpdate,
-                startDate
-              )
-          )
-        case SupporterPlus2023V1V2MA =>
-          ZIO.fromEither(
-            SupporterPlus2023V1V2Migration
-              .zuoraUpdate(
-                item,
                 subscriptionBeforeUpdate,
                 invoicePreviewBeforeUpdate,
                 startDate

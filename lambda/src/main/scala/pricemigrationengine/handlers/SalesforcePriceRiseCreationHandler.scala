@@ -84,7 +84,6 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
       val estimatedPriceWithOptionalCapping = MigrationType(cohortSpec) match {
         case Membership2023Monthlies => estimatedNewPrice
         case Membership2023Annuals   => estimatedNewPrice
-        case SupporterPlus2023V1V2MA => estimatedNewPrice
         case DigiSubs2023            => estimatedNewPrice
         case Newspaper2024           => estimatedNewPrice
         case GW2024 => PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GW2024Migration.priceCap)

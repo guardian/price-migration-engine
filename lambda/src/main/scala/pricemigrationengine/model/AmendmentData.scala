@@ -308,15 +308,6 @@ object AmendmentData {
           nextServiceStartDate,
           cohortSpec
         )
-      case SupporterPlus2023V1V2MA =>
-        SupporterPlus2023V1V2Migration.priceData(
-          account,
-          catalogue,
-          subscription,
-          invoiceList,
-          nextServiceStartDate,
-          cohortSpec
-        )
       case DigiSubs2023      => DigiSubs2023Migration.priceData(subscription)
       case Newspaper2024     => newspaper2024Migration.Estimation.priceData(subscription)
       case GW2024            => GW2024Migration.priceData(subscription, account)
