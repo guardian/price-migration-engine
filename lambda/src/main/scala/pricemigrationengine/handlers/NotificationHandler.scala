@@ -169,13 +169,10 @@ object NotificationHandler extends CohortHandler {
 
       sp2024ContributionAmountWithCurrencySymbol = supporterPlus2024NotificationData.contributionAmount
         .map(a => s"${currencySymbol}${a.toString()}")
-        .getOrElse("")
       sp2024PreviousCombinedAmountWithCurrencySymbol = supporterPlus2024NotificationData.previousCombinedAmount
         .map(a => s"${currencySymbol}${a.toString()}")
-        .getOrElse("")
       sp2024NewCombinedAmountWithCurrencySymbol = supporterPlus2024NotificationData.newCombinedAmount
         .map(a => s"${currencySymbol}${a.toString()}")
-        .getOrElse("")
       // ----------------------------------------------------
 
       brazeName <- brazeName(cohortSpec, cohortItem.subscriptionName)
