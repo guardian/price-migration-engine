@@ -133,7 +133,7 @@ object NotificationHandler extends CohortHandler {
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
       firstName <- ZIO.fromEither(firstName(contact))
       lastName <- ZIO.fromEither(requiredField(contact.LastName, "Contact.LastName"))
-      address <- ZIO.fromEither(address(cohortSpec, contact))
+      address <- ZIO.fromEither(targetAddress(cohortSpec, contact))
       street <- ZIO.fromEither(street(cohortSpec, address: SalesforceAddress))
       postalCode = address.postalCode.getOrElse("")
       country <- ZIO.fromEither(country(cohortSpec, address))
@@ -149,7 +149,6 @@ object NotificationHandler extends CohortHandler {
         case Legacy                  => s"${currencySymbol}${PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)}"
         case Membership2023Monthlies => s"${currencySymbol}${estimatedNewPrice}"
         case Membership2023Annuals   => s"${currencySymbol}${estimatedNewPrice}"
-        case SupporterPlus2023V1V2MA => s"${currencySymbol}${estimatedNewPrice}"
         case DigiSubs2023            => s"${currencySymbol}${estimatedNewPrice}"
         case Newspaper2024           => s"${currencySymbol}${estimatedNewPrice}"
         case GW2024 =>
@@ -292,7 +291,6 @@ object NotificationHandler extends CohortHandler {
     MigrationType(cohortSpec) match {
       case Membership2023Monthlies => Membership2023Migration.maxLeadTime
       case Membership2023Annuals   => Membership2023Migration.maxLeadTime
-      case SupporterPlus2023V1V2MA => SupporterPlus2023V1V2Migration.maxLeadTime
       case DigiSubs2023            => DigiSubs2023Migration.maxLeadTime
       case Newspaper2024           => newspaper2024Migration.StaticData.maxLeadTime
       case GW2024                  => GW2024Migration.maxLeadTime
@@ -305,7 +303,6 @@ object NotificationHandler extends CohortHandler {
     MigrationType(cohortSpec) match {
       case Membership2023Monthlies => Membership2023Migration.minLeadTime
       case Membership2023Annuals   => Membership2023Migration.minLeadTime
-      case SupporterPlus2023V1V2MA => SupporterPlus2023V1V2Migration.minLeadTime
       case DigiSubs2023            => DigiSubs2023Migration.minLeadTime
       case Newspaper2024           => newspaper2024Migration.StaticData.minLeadTime
       case GW2024                  => GW2024Migration.minLeadTime
@@ -387,16 +384,6 @@ object NotificationHandler extends CohortHandler {
       .flatMap(_ => requiredField(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation"))
   }
 
-  def address(
-      cohortSpec: CohortSpec,
-      contact: SalesforceContact
-  ): Either[NotificationHandlerFailure, SalesforceAddress] = {
-    MigrationType(cohortSpec) match {
-      case SupporterPlus2023V1V2MA => Right(SalesforceAddress(None, None, None, None, None))
-      case _                       => targetAddress(cohortSpec, contact)
-    }
-  }
-
   def street(
       cohortSpec: CohortSpec,
       address: SalesforceAddress
@@ -406,8 +393,7 @@ object NotificationHandler extends CohortHandler {
         requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
       case Membership2023Annuals =>
         requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
-      case SupporterPlus2023V1V2MA => Right("")
-      case _                       => requiredField(address.street, "Contact.OtherAddress.street")
+      case _ => requiredField(address.street, "Contact.OtherAddress.street")
     }
   }
 
@@ -423,8 +409,6 @@ object NotificationHandler extends CohortHandler {
       case Membership2023Monthlies =>
         requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
       case Membership2023Annuals =>
-        requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
-      case SupporterPlus2023V1V2MA =>
         requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
       case Newspaper2024     => Right(address.country.getOrElse("United Kingdom"))
       case SupporterPlus2024 => Right(address.country.getOrElse(""))

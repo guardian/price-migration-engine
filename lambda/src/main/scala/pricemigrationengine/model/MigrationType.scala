@@ -15,7 +15,6 @@ sealed trait MigrationType
 object Legacy extends MigrationType // refers to all migrations before membership 2023 and supporter 2023
 object Membership2023Monthlies extends MigrationType
 object Membership2023Annuals extends MigrationType
-object SupporterPlus2023V1V2MA extends MigrationType
 object DigiSubs2023 extends MigrationType
 object Newspaper2024 extends MigrationType
 object GW2024 extends MigrationType
@@ -26,7 +25,6 @@ object MigrationType {
     case "Membership2023_Batch1" => Membership2023Monthlies
     case "Membership2023_Batch2" => Membership2023Monthlies
     case "Membership2023_Batch3" => Membership2023Annuals
-    case "SupporterPlus2023V1V2" => SupporterPlus2023V1V2MA
     case "DigiSubs2023_Batch1"   => DigiSubs2023
     case "DigiSubs2023_Batch2"   => DigiSubs2023
     case "Newspaper2024"         => Newspaper2024
