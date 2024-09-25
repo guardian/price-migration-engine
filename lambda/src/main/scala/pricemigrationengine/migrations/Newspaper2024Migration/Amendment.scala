@@ -50,7 +50,7 @@ object Amendment {
     for {
       data2024 <- Estimation.subscriptionToSubscriptionData2024(subscription).left.map(DataExtractionFailure)
       chargeDistribution <- subscriptionToNewChargeDistribution2024(subscription).toRight(
-        DataExtractionFailure("error")
+        DataExtractionFailure("Could not extract charge distribution")
       )
     } yield ZuoraSubscriptionUpdate(
       add = List(

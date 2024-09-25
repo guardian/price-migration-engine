@@ -22,12 +22,19 @@ object PriceCap {
   // We have separate functions for determining the
   // estimated new price and for computing the adjusted ZuoraSubscriptionUpdate. Unlike the now obsolete part 1
   // We design those functions with the signature that is actually useful for price cap, where we will need to apply it
-  // 1. The notification handler, and
-  // 2. The SalesforcePriceRiseCreationHandler, and
-  // 3. The amendment handler
+  // 1. The SalesforcePriceRiseCreationHandler (priceCapForNotification), and
+  // 2. The notification handler (priceCapForNotification), and
+  // 3. The amendment handler (priceCapForAmendment)
 
   // Note: We should not apply capping during the estimation step and capped prices should not be written in the
   // migration dynamo tables !
+
+  // Note: These functions work better for simple price migrations where the subscription has one price
+  // that we update. In the case of SupporterPlus subscriptions, with their base price and extra optional
+  // contribution (see example of the SupporterPlus2024 price migration), the base price is price risen and
+  // capped, but the subscription price is the sum of that new price together with the contribution. In a
+  // case like that we just implemented the price capping in the migration code itself, without messing around
+  // with this code.
 
   def priceCapForNotification(oldPrice: BigDecimal, newPrice: BigDecimal, cap: BigDecimal): BigDecimal = {
     // The cap is the price cap expressed as a multiple of the old price. For instance for a price cap

@@ -29,7 +29,7 @@ object EstimationResult {
       invoiceList: ZuoraInvoiceList,
       startDateLowerBound: LocalDate,
       cohortSpec: CohortSpec,
-  ): Either[DataExtractionFailure, EstimationData] = {
+  ): Either[Failure, EstimationData] = {
     for {
       startDate <- AmendmentData.nextServiceStartDate(invoiceList, subscription, startDateLowerBound)
       priceData <- AmendmentData.priceData(account, catalogue, subscription, invoiceList, startDate, cohortSpec)

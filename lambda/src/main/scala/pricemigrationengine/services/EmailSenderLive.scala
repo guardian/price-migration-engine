@@ -60,7 +60,7 @@ object EmailSenderLive {
           )
         }
       _ <- logging.info(
-        s"Successfully sent email for sfContactId ${message.SfContactId} message id: ${result.messageId}"
+        s"Successfully sent email for sfContactId ${message.SfContactId} message id: ${result.messageId}, message: ${message}"
       )
     } yield ()
 

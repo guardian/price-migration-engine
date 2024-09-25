@@ -88,7 +88,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
       .runCount
   }
 
-  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     main(input).provideSome[Logging](
       EnvConfig.cohortTable.layer,
       EnvConfig.stage.layer,
@@ -97,4 +97,5 @@ object SubscriptionIdUploadHandler extends CohortHandler {
       CohortTableLive.impl(input),
       S3Live.impl
     )
+  }
 }

@@ -88,8 +88,18 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
         case DigiSubs2023            => estimatedNewPrice
         case Newspaper2024           => estimatedNewPrice
         case GW2024 => PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GW2024Migration.priceCap)
-        case Legacy => PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)
+        case SupporterPlus2024 => estimatedNewPrice // [1]
+        case Legacy            => PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)
       }
+      // [1]
+      // (Comment group: 7992fa98)
+
+      // This value wasn't actually used because we did that step using a Ruby script (we did not run the
+      // SalesforcePriceRiseCreationHandler from the AWS step function).
+      // The problem was that from the CohortItem we only had the old base price and the new base price
+      // but not the contribution component, and therefore we could not compute the total which is what
+      // we need to send to Salesforce.
+
       SalesforcePriceRise(
         Some(subscription.Name),
         Some(subscription.Buyer__c),
@@ -105,14 +115,22 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    main(input).provideSome[Logging](
-      EnvConfig.cohortTable.layer,
-      EnvConfig.salesforce.layer,
-      EnvConfig.stage.layer,
-      DynamoDBZIOLive.impl,
-      DynamoDBClientLive.impl,
-      CohortTableLive.impl(input),
-      SalesforceClientLive.impl
-    )
+    // (Comment group: 7992fa98)
+    // We are not running this lambda for SupporterPlus2024, because we, instead, used a Ruby script
+    // to perform the Salesforce price rise creation, due to the extra computation required to compute
+    // the correct price.
+    MigrationType(input) match {
+      case SupporterPlus2024 => ZIO.succeed(HandlerOutput(isComplete = true))
+      case _ =>
+        main(input).provideSome[Logging](
+          EnvConfig.cohortTable.layer,
+          EnvConfig.salesforce.layer,
+          EnvConfig.stage.layer,
+          DynamoDBZIOLive.impl,
+          DynamoDBClientLive.impl,
+          CohortTableLive.impl(input),
+          SalesforceClientLive.impl
+        )
+    }
   }
 }

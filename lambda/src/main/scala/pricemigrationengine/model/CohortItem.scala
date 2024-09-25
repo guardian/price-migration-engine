@@ -22,8 +22,21 @@ case class CohortItem(
     whenNotificationSent: Option[Instant] = None,
     whenNotificationSentWrittenToSalesforce: Option[Instant] = None,
     whenAmendmentWrittenToSalesforce: Option[Instant] = None,
-    cancellationReason: Option[String] = None
+    cancellationReason: Option[String] = None,
+    doNotProcessUntil: Option[LocalDate] = None // [18]
 )
+
+// [18]
+//
+// Date: July 2024
+// Author: Pascal
+// comment group: 6157ec78
+//
+// `doNotProcessUntil` was introduced in July 2024 as a simple way to support
+// the "cancellation saves" feature that has been introduced this month and affecting the
+// cancellation journey of Supporter Plus subscriptions.
+// The default value is `None`, and if a none trivial value is present it represents
+// the date until when the item should be left alone and not being processed.
 
 object CohortItem {
 
@@ -69,4 +82,18 @@ object CohortItem {
 
   def fromExpiringSubscriptionResult(result: ExpiringSubscriptionResult): CohortItem =
     CohortItem(result.subscriptionNumber, Cancelled)
+
+  def isProcessable(item: CohortItem, today: LocalDate): Boolean = {
+    // This function return a boolean indicating whether the item is processable
+    // defined as either doNotProcessUntil is None or is a date equal to today or in the past.
+    (item.processingStage != DoNotProcessUntil) || {
+      item.doNotProcessUntil match {
+        case None =>
+          throw new Exception(
+            s"(error: 588b7698) cohort item: ${item} is in DoNotProcessUntil stage but doesn't have a doNotProcessUntil attribute"
+          )
+        case Some(date) => date == today || today.isAfter(date)
+      }
+    }
+  }
 }

@@ -38,6 +38,7 @@ object CohortTableLive {
             getOptionalInstantFromResults(cohortItem, "whenNotificationSentWrittenToSalesforce")
           cancellationReason <-
             getOptionalStringFromResults(cohortItem, "cancellationReason")
+          doNotProcessUntil <- getOptionalDateFromResults(cohortItem, "doNotProcessUntil")
         } yield CohortItem(
           subscriptionName = subscriptionNumber,
           processingStage = processingStage,
@@ -54,7 +55,8 @@ object CohortTableLive {
           whenAmendmentDone = whenAmendmentDone,
           whenNotificationSent = whenNotificationSent,
           whenNotificationSentWrittenToSalesforce = whenNotificationSentWrittenToSalesforce,
-          cancellationReason = cancellationReason
+          cancellationReason = cancellationReason,
+          doNotProcessUntil = doNotProcessUntil
         )
       )
       .mapError(e => DynamoDBZIOError(e))
@@ -64,12 +66,9 @@ object CohortTableLive {
     cohortItem =>
       List(
         Option(stringFieldUpdate("processingStage", cohortItem.processingStage.value)),
-        cohortItem.startDate
-          .map(startDate => dateFieldUpdate("startDate", startDate)),
-        cohortItem.currency
-          .map(currency => stringFieldUpdate("currency", currency)),
-        cohortItem.oldPrice
-          .map(oldPrice => bigDecimalFieldUpdate("oldPrice", oldPrice)),
+        cohortItem.startDate.map(startDate => dateFieldUpdate("startDate", startDate)),
+        cohortItem.currency.map(currency => stringFieldUpdate("currency", currency)),
+        cohortItem.oldPrice.map(oldPrice => bigDecimalFieldUpdate("oldPrice", oldPrice)),
         cohortItem.estimatedNewPrice
           .map(estimatedNewPrice => bigDecimalFieldUpdate("estimatedNewPrice", estimatedNewPrice)),
         cohortItem.billingPeriod.map(billingPeriod => stringFieldUpdate("billingPeriod", billingPeriod)),
@@ -79,10 +78,8 @@ object CohortTableLive {
           .map(salesforcePriceRiseId => stringFieldUpdate("salesforcePriceRiseId", salesforcePriceRiseId)),
         cohortItem.whenSfShowEstimate
           .map(whenSfShowEstimate => instantFieldUpdate("whenSfShowEstimate", whenSfShowEstimate)),
-        cohortItem.startDate
-          .map(startDate => dateFieldUpdate("startDate", startDate)),
-        cohortItem.newPrice
-          .map(newPrice => bigDecimalFieldUpdate("newPrice", newPrice)),
+        cohortItem.startDate.map(startDate => dateFieldUpdate("startDate", startDate)),
+        cohortItem.newPrice.map(newPrice => bigDecimalFieldUpdate("newPrice", newPrice)),
         cohortItem.newSubscriptionId
           .map(newSubscriptionId => stringFieldUpdate("newSubscriptionId", newSubscriptionId)),
         cohortItem.whenAmendmentDone
@@ -99,7 +96,8 @@ object CohortTableLive {
         cohortItem.whenAmendmentWrittenToSalesforce.map(instant =>
           instantFieldUpdate("whenAmendmentWrittenToSalesforce", instant)
         ),
-        cohortItem.cancellationReason.map(reason => stringFieldUpdate("cancellationReason", reason))
+        cohortItem.cancellationReason.map(reason => stringFieldUpdate("cancellationReason", reason)),
+        cohortItem.doNotProcessUntil.map(date => dateFieldUpdate("doNotProcessUntil", date)),
       ).flatten.toMap.asJava
 
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =

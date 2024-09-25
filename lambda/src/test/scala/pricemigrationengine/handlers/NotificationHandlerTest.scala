@@ -23,7 +23,7 @@ class NotificationHandlerTest extends munit.FunSuite {
   private val startDateUserFriendlyFormat = "1 January 2020"
   private val currency = "GBP"
   private val billingPeriod = "Month"
-  private val billingPeriodInNotification = "Monthly"
+  private val billingPeriodInNotification = "monthly" // lowercase variation for the user communication
   private val oldPrice = BigDecimal(10.00)
 
   // The estimated new price is the price without cap

@@ -13,11 +13,11 @@ object BillingPeriod {
   val notificationPaymentFrequencyMapping = Map(
     // This map is used to convert a CohortItem's billingPeriod in to the user friendly representation in letters
     // and emails.
-    "Month" -> "Monthly",
-    "Quarter" -> "Quarterly",
-    "Quarterly" -> "Quarterly",
-    "Semi_Annual" -> "Semiannually",
-    "Annual" -> "Annually"
+    "Month" -> "monthly",
+    "Quarter" -> "quarterly",
+    "Quarterly" -> "quarterly",
+    "Semi_Annual" -> "semiannually",
+    "Annual" -> "annually"
   )
 
   def toString(period: BillingPeriod): String = {

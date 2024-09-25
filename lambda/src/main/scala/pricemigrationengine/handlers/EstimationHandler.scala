@@ -1,6 +1,5 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.migrations.newspaper2024Migration
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -21,6 +20,7 @@ object EstimationHandler extends CohortHandler {
   def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
       today <- Clock.currentDateTime.map(_.toLocalDate)
+      _ <- monitorDoNotProcessUntils(today)
       catalogue <- Zuora.fetchProductCatalogue
       count <- CohortTable
         .fetch(ReadyForEstimation, None)
@@ -31,6 +31,36 @@ object EstimationHandler extends CohortHandler {
         .runCount
         .tapError(e => Logging.error(e.toString))
     } yield HandlerOutput(isComplete = count < batchSize)
+
+  def monitorDoNotProcessUntilItem(today: LocalDate, item: CohortItem): ZIO[Logging with CohortTable, Failure, Unit] = {
+    for {
+      _ <-
+        if (CohortItem.isProcessable(item, today)) {
+          CohortTable
+            .update(
+              CohortItem(
+                subscriptionName = item.subscriptionName,
+                processingStage = ReadyForEstimation
+              )
+            )
+        } else { ZIO.succeed(()) }
+    } yield ()
+  }
+
+  def monitorDoNotProcessUntils(today: LocalDate): ZIO[Logging with CohortTable, Failure, Unit] = {
+    // This function migrates items in DoNotProcessUntil state, which have passed their
+    // expiration time, to ReadyForEstimation
+    for {
+      _ <- CohortTable
+        .fetch(DoNotProcessUntil, None)
+        .foreach { item =>
+          for {
+            _ <- Logging.info(s"item in DoNotShowUntil stage: ${item.toString}")
+            _ <- monitorDoNotProcessUntilItem(today, item)
+          } yield ()
+        }
+    } yield ()
+  }
 
   private[handlers] def estimate(
       catalogue: ZuoraProductCatalogue,

@@ -10,12 +10,19 @@ import pricemigrationengine.migrations.{
   DigiSubs2023Migration,
   GW2024Migration,
   Membership2023Migration,
-  newspaper2024Migration
+  newspaper2024Migration,
+  SupporterPlus2024Migration,
 }
 import pricemigrationengine.model.RateplansProbe
 
 import java.time.{LocalDate, ZoneId}
 import java.time.format.DateTimeFormatter
+
+case class SupporterPlus2024NotificationData(
+    contributionAmount: Option[BigDecimal],
+    previousCombinedAmount: Option[BigDecimal],
+    newCombinedAmount: Option[BigDecimal]
+)
 
 object NotificationHandler extends CohortHandler {
 
@@ -49,9 +56,43 @@ object NotificationHandler extends CohortHandler {
       count <- CohortTable
         .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
         .take(batchSize)
-        .mapZIO(item => sendNotification(cohortSpec)(item, today))
+        .mapZIO(item =>
+          MigrationType(cohortSpec) match {
+            case SupporterPlus2024 => {
+              for {
+                subscription <- Zuora.fetchSubscription(item.subscriptionName)
+                _ <-
+                  if (SupporterPlus2024Migration.isUnderActiveCancellationSavePolicy(subscription, today)) {
+                    updateItemToDoNotProcessUntil(item, subscription)
+                  } else {
+                    sendNotification(cohortSpec)(item, today)
+                  }
+              } yield ()
+            }
+            case _ => sendNotification(cohortSpec)(item, today)
+          }
+        )
         .runCount
     } yield HandlerOutput(isComplete = count < batchSize)
+  }
+
+  def updateItemToDoNotProcessUntil(
+      item: CohortItem,
+      subscription: ZuoraSubscription
+  ): ZIO[CohortTable with Zuora, Failure, Unit] = {
+    for {
+      cancellationDate <- ZIO
+        .fromOption(SupporterPlus2024Migration.cancellationSaveDiscountEffectiveDate(subscription))
+        .orElseFail(DataExtractionFailure(s"Could not extract cancellation date for item ${item}"))
+      _ <- CohortTable
+        .update(
+          CohortItem(
+            subscriptionName = item.subscriptionName,
+            processingStage = DoNotProcessUntil,
+            doNotProcessUntil = Some(cancellationDate.plusMonths(6))
+          )
+        )
+    } yield ()
   }
 
   def sendNotification(cohortSpec: CohortSpec)(
@@ -86,7 +127,7 @@ object NotificationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       cohortItem: CohortItem,
       sfSubscription: SalesforceSubscription
-  ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging, Failure, Unit] =
+  ): ZIO[Zuora with EmailSender with SalesforceClient with CohortTable with Logging, Failure, Unit] =
     for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
@@ -113,9 +154,28 @@ object NotificationHandler extends CohortHandler {
         case Newspaper2024           => s"${currencySymbol}${estimatedNewPrice}"
         case GW2024 =>
           s"${currencySymbol}${PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GW2024Migration.priceCap)}"
+        case SupporterPlus2024 => s"${currencySymbol}${estimatedNewPrice}"
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)
+
+      // ----------------------------------------------------
+      // Data for SupporterPlus2024
+
+      supporterPlus2024NotificationData <- buildSupporterPlus2024NotificationData(
+        cohortSpec,
+        cohortItem.subscriptionName
+      )
+
+      sp2024ContributionAmountWithCurrencySymbol = supporterPlus2024NotificationData.contributionAmount
+        .map(a => s"${currencySymbol}${a.toString()}")
+      sp2024PreviousCombinedAmountWithCurrencySymbol = supporterPlus2024NotificationData.previousCombinedAmount
+        .map(a => s"${currencySymbol}${a.toString()}")
+      sp2024NewCombinedAmountWithCurrencySymbol = supporterPlus2024NotificationData.newCombinedAmount
+        .map(a => s"${currencySymbol}${a.toString()}")
+      // ----------------------------------------------------
+
+      brazeName <- brazeName(cohortSpec, cohortItem.subscriptionName)
 
       _ <- EmailSender.sendEmail(
         message = EmailMessage(
@@ -134,15 +194,28 @@ object NotificationHandler extends CohortHandler {
                 billing_postal_code = postalCode,
                 billing_state = address.state,
                 billing_country = country,
-                payment_amount = priceWithOptionalCappingWithCurrencySymbol,
+                payment_amount = priceWithOptionalCappingWithCurrencySymbol, // [1]
                 next_payment_date = startDateConversion(startDate),
                 payment_frequency = paymentFrequency,
                 subscription_id = cohortItem.subscriptionName,
-                product_type = sfSubscription.Product_Type__c.getOrElse("")
+                product_type = sfSubscription.Product_Type__c.getOrElse(""),
+
+                // -------------------------------------------------------------
+                // [1]
+                // (Comment group: 7992fa98)
+                // For SupporterPlus2024, we did not use that value. Instead we used the data provided by the
+                // extension below. That value was the new base price, but we needed a different data distribution
+                // to be able to fill the email template. That distribution is given by the next section.
+
+                // SupporterPlus 2024 extension
+                sp2024_contribution_amount = sp2024ContributionAmountWithCurrencySymbol,
+                sp2024_previous_combined_amount = sp2024PreviousCombinedAmountWithCurrencySymbol,
+                sp2024_new_combined_amount = sp2024NewCombinedAmountWithCurrencySymbol
+                // -------------------------------------------------------------
               )
             )
           ),
-          cohortSpec.brazeCampaignName,
+          brazeName,
           contact.Id,
           contact.IdentityID__c
         )
@@ -223,6 +296,7 @@ object NotificationHandler extends CohortHandler {
       case DigiSubs2023            => DigiSubs2023Migration.maxLeadTime
       case Newspaper2024           => newspaper2024Migration.StaticData.maxLeadTime
       case GW2024                  => GW2024Migration.maxLeadTime
+      case SupporterPlus2024       => SupporterPlus2024Migration.maxLeadTime
       case Legacy                  => 49
     }
   }
@@ -235,6 +309,7 @@ object NotificationHandler extends CohortHandler {
       case DigiSubs2023            => DigiSubs2023Migration.minLeadTime
       case Newspaper2024           => newspaper2024Migration.StaticData.minLeadTime
       case GW2024                  => GW2024Migration.minLeadTime
+      case SupporterPlus2024       => SupporterPlus2024Migration.minLeadTime
       case Legacy                  => 35
     }
   }
@@ -281,7 +356,7 @@ object NotificationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       contact: SalesforceContact
   ): Either[NotificationHandlerFailure, SalesforceAddress] = {
-    def targetAddressMembership2023(
+    def testCompatibleEmptySalesforceAddress(
         contact: SalesforceContact
     ): Either[NotificationHandlerFailure, SalesforceAddress] = {
       (for {
@@ -294,9 +369,10 @@ object NotificationHandler extends CohortHandler {
     }
 
     MigrationType(cohortSpec) match {
-      case DigiSubs2023            => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some("")))
-      case Membership2023Monthlies => targetAddressMembership2023(contact)
-      case Membership2023Annuals   => targetAddressMembership2023(contact)
+      case DigiSubs2023            => testCompatibleEmptySalesforceAddress(contact)
+      case Membership2023Monthlies => testCompatibleEmptySalesforceAddress(contact)
+      case Membership2023Annuals   => testCompatibleEmptySalesforceAddress(contact)
+      case SupporterPlus2024       => testCompatibleEmptySalesforceAddress(contact)
       case _ =>
         (for {
           billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
@@ -350,8 +426,9 @@ object NotificationHandler extends CohortHandler {
         requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
       case SupporterPlus2023V1V2MA =>
         requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
-      case Newspaper2024 => Right(address.country.getOrElse("United Kingdom"))
-      case _             => requiredField(address.country, "Contact.OtherAddress.country")
+      case Newspaper2024     => Right(address.country.getOrElse("United Kingdom"))
+      case SupporterPlus2024 => Right(address.country.getOrElse(""))
+      case _                 => requiredField(address.country, "Contact.OtherAddress.country")
     }
   }
 
@@ -425,5 +502,55 @@ object NotificationHandler extends CohortHandler {
         s"Subscription ${cohortItem.subscriptionName} has been cancelled, price rise notification not sent"
       )
     } yield ()
+  }
+
+  // -------------------------------------------------------------------
+  // Supporter Plus 2024 extra function
+
+  def buildSupporterPlus2024NotificationData(
+      cohortSpec: CohortSpec,
+      subscriptionNumber: String
+  ): ZIO[Zuora, Failure, SupporterPlus2024NotificationData] = {
+    MigrationType(cohortSpec) match {
+      case SupporterPlus2024 => {
+        for {
+          subscription <- Zuora.fetchSubscription(subscriptionNumber)
+          contributionAmountOpt <- ZIO.fromEither(SupporterPlus2024Migration.contributionAmount(subscription))
+          previousCombinedAmountOpt <- ZIO.fromEither(SupporterPlus2024Migration.previousCombinedAmount(subscription))
+          newCombinedAmountOpt <- ZIO.fromEither(SupporterPlus2024Migration.newCombinedAmount(subscription))
+        } yield SupporterPlus2024NotificationData(
+          contributionAmount = contributionAmountOpt,
+          previousCombinedAmount = previousCombinedAmountOpt,
+          newCombinedAmount = newCombinedAmountOpt
+        )
+      }
+      case _ => ZIO.succeed(SupporterPlus2024NotificationData(None, None, None))
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // Braze names
+
+  // Note:
+
+  // This function was introduced in September 2024, when as part of SupporterPlus2024 we integrated two different
+  // email templates in Braze to serve communication to the users.
+
+  // Traditionally the name of the campaign or canvas has been part of the CohortSpec, making
+  // `cohortSpec.brazeCampaignName` the default carrier of this information, but in the case of SupporterPlus 2024
+  // we have two canvases and need to decide one depending on the structure of the subscription. Once
+  // SupporterPlus2024 finished, we may decide to go back to a simpler format, or keep that function, depending
+  // on the likelihood of Marketing adopting this variation in the future.
+
+  def brazeName(cohortSpec: CohortSpec, subscriptionNumber: String): ZIO[Zuora, Failure, String] = {
+    MigrationType(cohortSpec) match {
+      case SupporterPlus2024 => {
+        for {
+          subscription <- Zuora.fetchSubscription(subscriptionNumber)
+          bn <- ZIO.fromEither(SupporterPlus2024Migration.brazeName(subscription))
+        } yield bn
+      }
+      case _ => ZIO.succeed(cohortSpec.brazeCampaignName)
+    }
   }
 }

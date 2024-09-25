@@ -5,7 +5,8 @@ import pricemigrationengine.migrations.{
   GuardianWeeklyMigration,
   Membership2023Migration,
   GW2024Migration,
-  newspaper2024Migration
+  newspaper2024Migration,
+  SupporterPlus2024Migration
 }
 import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, productPricingMap}
 
@@ -52,7 +53,7 @@ object AmendmentData {
       invoiceList: ZuoraInvoiceList,
       subscription: ZuoraSubscription,
       onOrAfter: LocalDate
-  ): Either[DataExtractionFailure, LocalDate] =
+  ): Either[Failure, LocalDate] =
     ZuoraInvoiceItem
       .itemsForSubscription(invoiceList, subscription)
       .map(_.serviceStartDate)
@@ -67,7 +68,7 @@ object AmendmentData {
   def ratePlanCharge(
       subscription: ZuoraSubscription,
       invoiceItem: ZuoraInvoiceItem
-  ): Either[DataExtractionFailure, ZuoraRatePlanCharge] =
+  ): Either[Failure, ZuoraRatePlanCharge] =
     ZuoraRatePlanCharge
       .matchingRatePlanCharge(subscription, invoiceItem)
       .filterOrElse(
@@ -286,7 +287,7 @@ object AmendmentData {
       invoiceList: ZuoraInvoiceList,
       nextServiceStartDate: LocalDate,
       cohortSpec: CohortSpec,
-  ): Either[DataExtractionFailure, PriceData] = {
+  ): Either[Failure, PriceData] = {
 
     MigrationType(cohortSpec) match {
       case Membership2023Monthlies =>
@@ -316,19 +317,10 @@ object AmendmentData {
           nextServiceStartDate,
           cohortSpec
         )
-      case DigiSubs2023 =>
-        DigiSubs2023Migration.priceData(
-          subscription
-        )
-      case Newspaper2024 =>
-        newspaper2024Migration.Estimation.priceData(
-          subscription
-        )
-      case GW2024 =>
-        GW2024Migration.priceData(
-          subscription: ZuoraSubscription,
-          account: ZuoraAccount
-        )
+      case DigiSubs2023      => DigiSubs2023Migration.priceData(subscription)
+      case Newspaper2024     => newspaper2024Migration.Estimation.priceData(subscription)
+      case GW2024            => GW2024Migration.priceData(subscription, account)
+      case SupporterPlus2024 => SupporterPlus2024Migration.priceData(subscription)
       case Legacy => priceDataWithRatePlanMatching(account, catalogue, subscription, invoiceList, nextServiceStartDate)
     }
   }
@@ -340,7 +332,7 @@ object AmendmentData {
       invoiceList: ZuoraInvoiceList,
       startDateLowerBound: LocalDate,
       cohortSpec: CohortSpec,
-  ): Either[DataExtractionFailure, AmendmentData] = {
+  ): Either[Failure, AmendmentData] = {
     for {
       startDate <- nextServiceStartDate(invoiceList, subscription, startDateLowerBound)
       price <- priceData(account, catalogue, subscription, invoiceList, startDate, cohortSpec)

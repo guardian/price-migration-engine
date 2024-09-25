@@ -64,7 +64,7 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
       )
       .toRight(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a newSubscriptionId field"))
 
-  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
+  def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     main(input).provideSome[Logging](
       EnvConfig.cohortTable.layer,
       EnvConfig.salesforce.layer,
@@ -74,4 +74,5 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
       CohortTableLive.impl(input),
       SalesforceClientLive.impl
     )
+  }
 }
