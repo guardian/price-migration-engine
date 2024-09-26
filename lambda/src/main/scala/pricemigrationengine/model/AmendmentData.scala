@@ -293,7 +293,7 @@ object AmendmentData {
       case Newspaper2024     => newspaper2024Migration.Estimation.priceData(subscription)
       case GW2024            => GW2024Migration.priceData(subscription, account)
       case SupporterPlus2024 => SupporterPlus2024Migration.priceData(subscription)
-      case Legacy => priceDataWithRatePlanMatching(account, catalogue, subscription, invoiceList, nextServiceStartDate)
+      case Default => priceDataWithRatePlanMatching(account, catalogue, subscription, invoiceList, nextServiceStartDate)
     }
   }
 
