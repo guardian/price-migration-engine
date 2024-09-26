@@ -65,7 +65,7 @@ object Estimation {
     ratePlans match {
       case Nil =>
         Left(
-          s"[error 93a21a48] Subscription ${subscription.subscriptionNumber} was found to have zero newsPaperDeliveryRatePlans making determination of rate plan name impossible"
+          s"[error 93a21a48] Subscription ${subscription.subscriptionNumber} was found to have zero RatePlans making determination of rate plan name impossible"
         )
       case ratePlan :: Nil => {
         (for {
@@ -88,7 +88,7 @@ object Estimation {
       }
       case _ =>
         Left(
-          s"[error 93a21a48] Subscription ${subscription.subscriptionNumber} was found to have more than one newsPaperDeliveryRatePlans making determination of rate plan name impossible"
+          s"[error 93a21a48] Subscription ${subscription.subscriptionNumber} was found to have more than one RatePlans making determination of rate plan name impossible"
         )
     }
   }
