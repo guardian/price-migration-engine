@@ -31,7 +31,7 @@ object StartDates {
       case DigiSubs2023      => None
       case Newspaper2024     => None
       case SupporterPlus2024 => None
-      case Legacy            => None
+      case Default           => None
     }
   }
 
@@ -90,7 +90,7 @@ object StartDates {
         case DigiSubs2023      => 3
         case GW2024            => 3
         case SupporterPlus2024 => 1 // no spread for S+2024 monthlies
-        case Legacy            => 3
+        case Default           => 3
       }
     } else 1
   }
@@ -109,7 +109,7 @@ object StartDates {
       case DigiSubs2023      => cohortSpecLowerBound(cohortSpec, today)
       case GW2024            => cohortSpecLowerBound(cohortSpec, today)
       case SupporterPlus2024 => cohortSpecLowerBound(cohortSpec, today)
-      case Legacy            => cohortSpecLowerBound(cohortSpec, today)
+      case Default           => cohortSpecLowerBound(cohortSpec, today)
     }
 
     // We now respect the policy of not increasing members during their first year

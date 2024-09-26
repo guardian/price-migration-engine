@@ -145,7 +145,7 @@ object NotificationHandler extends CohortHandler {
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
 
       priceWithOptionalCappingWithCurrencySymbol = MigrationType(cohortSpec) match {
-        case Legacy        => s"${currencySymbol}${PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)}"
+        case Default       => s"${currencySymbol}${PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)}"
         case DigiSubs2023  => s"${currencySymbol}${estimatedNewPrice}"
         case Newspaper2024 => s"${currencySymbol}${estimatedNewPrice}"
         case GW2024 =>
@@ -290,7 +290,7 @@ object NotificationHandler extends CohortHandler {
       case Newspaper2024     => newspaper2024Migration.StaticData.maxLeadTime
       case GW2024            => GW2024Migration.maxLeadTime
       case SupporterPlus2024 => SupporterPlus2024Migration.maxLeadTime
-      case Legacy            => 49
+      case Default           => 49
     }
   }
 
@@ -300,7 +300,7 @@ object NotificationHandler extends CohortHandler {
       case Newspaper2024     => newspaper2024Migration.StaticData.minLeadTime
       case GW2024            => GW2024Migration.minLeadTime
       case SupporterPlus2024 => SupporterPlus2024Migration.minLeadTime
-      case Legacy            => 35
+      case Default           => 35
     }
   }
 
