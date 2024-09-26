@@ -91,13 +91,11 @@ object AmendmentHandler extends CohortHandler {
     // estimated price (which wasn't including the extra contribution).
 
     MigrationType(cohortSpec) match {
-      case Membership2023Monthlies => true
-      case Membership2023Annuals   => true
-      case DigiSubs2023            => true
-      case Newspaper2024           => true
-      case GW2024                  => true
-      case SupporterPlus2024       => false
-      case Legacy                  => true
+      case DigiSubs2023      => true
+      case Newspaper2024     => true
+      case GW2024            => true
+      case SupporterPlus2024 => false
+      case Legacy            => true
     }
   }
 
@@ -129,24 +127,6 @@ object AmendmentHandler extends CohortHandler {
         Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
 
       update <- MigrationType(cohortSpec) match {
-        case Membership2023Monthlies =>
-          ZIO.fromEither(
-            Membership2023Migration
-              .zuoraUpdate_Monthlies(
-                subscriptionBeforeUpdate,
-                invoicePreviewBeforeUpdate,
-                startDate
-              )
-          )
-        case Membership2023Annuals =>
-          ZIO.fromEither(
-            Membership2023Migration
-              .zuoraUpdate_Annuals(
-                subscriptionBeforeUpdate,
-                invoicePreviewBeforeUpdate,
-                startDate
-              )
-          )
         case DigiSubs2023 =>
           ZIO.fromEither(
             DigiSubs2023Migration.zuoraUpdate(

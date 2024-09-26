@@ -41,92 +41,6 @@ object EstimationHandlerTest extends ZIOSpecDefault {
           )
         } yield assertTrue(earliestStartDate == LocalDate.of(2020, 7, 2))
       },
-      test("membership estimations: Estimation uses uncapped price, Membership2023_Batch1") {
-
-        // The name of the cohort here is import to trigger the membership2023_Batch1 code path
-        val cohortSpec =
-          CohortSpec("Membership2023_Batch1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 5, 1))
-        val startDate = cohortSpec.earliestPriceMigrationStartDate
-
-        val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch1/GBP/account.json")
-        val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch1/GBP/catalogue.json")
-        val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch1/GBP/subscription.json")
-        val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch1/GBP/invoice-preview.json")
-
-        // In the test, the actual startDate and the cohort's cohortSpec earliestPriceMigrationStartDate are same (which is fine)
-        val estimationResult = EstimationResult(account, catalogue, subscription, invoicePreview, startDate, cohortSpec)
-
-        assertTrue(
-          estimationResult == Right(
-            EstimationData("SUBSCRIPTION-NUMBER", LocalDate.of(2023, 5, 13), "GBP", 5, 7, "Month")
-          )
-        )
-      },
-      test("membership estimations: Estimation uses uncapped price, Membership2023_Batch2") {
-        // Similar to the previous test (and in particular we do reuse Batch1's fixtures as they are structurally
-        // indistinguishable from Batch1), but shifting by a month for Batch2.
-
-        val cohortSpec =
-          CohortSpec("Membership2023_Batch2", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 6, 1))
-        val startDate = cohortSpec.earliestPriceMigrationStartDate
-
-        val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch1/GBP/account.json")
-        val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch1/GBP/catalogue.json")
-        val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch1/GBP/subscription.json")
-        val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch1/GBP/invoice-preview.json")
-
-        // In the test, the actual startDate and the cohort's cohortSpec earliestPriceMigrationStartDate are same (which is fine)
-        val estimationResult = EstimationResult(account, catalogue, subscription, invoicePreview, startDate, cohortSpec)
-
-        // Compared to Membership2023_Batch1, we move the earliest possible start date by a month,
-        // from LocalDate.of(2023, 5, 1) to LocalDate.of(2023, 6, 1) will result in the actual subscription start
-        // date be postponed by a month (from LocalDate.of(2023, 5, 13) to LocalDate.of(2023, 6, 13)).
-        assertTrue(
-          estimationResult == Right(
-            EstimationData("SUBSCRIPTION-NUMBER", LocalDate.of(2023, 6, 13), "GBP", 5, 7, "Month")
-          )
-        )
-      },
-      test("membership estimations: Estimation uses uncapped price, Membership2023_Batch3 (GBP)") {
-        // Batch 3 is the annual runs
-
-        val cohortSpec =
-          CohortSpec("Membership2023_Batch3", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 7, 1))
-        val startDate = cohortSpec.earliestPriceMigrationStartDate
-
-        val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch3/GBP/account.json")
-        val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch3/GBP/catalogue.json")
-        val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch3/GBP/subscription.json")
-        val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch3/GBP/invoice-preview.json")
-
-        val estimationResult = EstimationResult(account, catalogue, subscription, invoicePreview, startDate, cohortSpec)
-
-        assertTrue(
-          estimationResult == Right(
-            EstimationData("SUBSCRIPTION-NUMBER", LocalDate.of(2024, 1, 20), "GBP", 49, 75, "Annual")
-          )
-        )
-      },
-      test("membership estimations: Estimation uses uncapped price, Membership2023_Batch3 (USD)") {
-        // Batch 3 is the annual runs
-
-        val cohortSpec =
-          CohortSpec("Membership2023_Batch3", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2023, 7, 1))
-        val startDate = cohortSpec.earliestPriceMigrationStartDate
-
-        val account = Fixtures.accountFromJson("Migrations/Membership2023/Batch3/USD/account.json")
-        val catalogue = Fixtures.productCatalogueFromJson("Migrations/Membership2023/Batch3/USD/catalogue.json")
-        val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2023/Batch3/USD/subscription.json")
-        val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2023/Batch3/USD/invoice-preview.json")
-
-        val estimationResult = EstimationResult(account, catalogue, subscription, invoicePreview, startDate, cohortSpec)
-
-        assertTrue(
-          estimationResult == Right(
-            EstimationData("SUBSCRIPTION-NUMBER", LocalDate.of(2024, 1, 20), "USD", 69, 120, "Annual")
-          )
-        )
-      },
       test("during estimation, we correctly prevent start dates that are too close: datesMax") {
         val date1 = LocalDate.of(2023, 4, 1)
         val date2 = LocalDate.of(2023, 4, 2)
@@ -159,21 +73,6 @@ object EstimationHandlerTest extends ZIOSpecDefault {
         // The earliest start date can be earliestPriceMigrationStartDate
 
         assertTrue(StartDates.cohortSpecLowerBound(cohortSpec, today) == cohortSpec.earliestPriceMigrationStartDate)
-      },
-      test(
-        "during estimation, we correctly prevent start dates that are too close: decideEarliestStartDate (membership)"
-      ) {
-
-        val today = LocalDate.of(2023, 4, 1)
-        val cohortSpec =
-          CohortSpec("Membership2023_Batch1", "Campaign1", LocalDate.of(2000, 1, 1), LocalDate.of(2022, 5, 1))
-
-        // today is: 2023-04-01
-        // The Cohort's earliestPriceMigrationStartDate is 2022-05-01
-        // (Today + 32 days) is after earliestPriceMigrationStartDate
-        // The earliest start date needs to be 32 days ahead of today -> 2023-05-05
-
-        assertTrue(StartDates.cohortSpecLowerBound(cohortSpec, today) == LocalDate.of(2023, 5, 3))
       }
     )
   }

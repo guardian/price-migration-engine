@@ -9,7 +9,6 @@ import com.gu.i18n
 import pricemigrationengine.migrations.{
   DigiSubs2023Migration,
   GW2024Migration,
-  Membership2023Migration,
   newspaper2024Migration,
   SupporterPlus2024Migration,
 }
@@ -134,7 +133,7 @@ object NotificationHandler extends CohortHandler {
       firstName <- ZIO.fromEither(firstName(contact))
       lastName <- ZIO.fromEither(requiredField(contact.LastName, "Contact.LastName"))
       address <- ZIO.fromEither(targetAddress(cohortSpec, contact))
-      street <- ZIO.fromEither(street(cohortSpec, address: SalesforceAddress))
+      street <- ZIO.fromEither(requiredField(address.street, "Contact.OtherAddress.street"))
       postalCode = address.postalCode.getOrElse("")
       country <- ZIO.fromEither(country(cohortSpec, address))
       oldPrice <- ZIO.fromEither(requiredField(cohortItem.oldPrice, "CohortItem.oldPrice"))
@@ -146,11 +145,9 @@ object NotificationHandler extends CohortHandler {
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
 
       priceWithOptionalCappingWithCurrencySymbol = MigrationType(cohortSpec) match {
-        case Legacy                  => s"${currencySymbol}${PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)}"
-        case Membership2023Monthlies => s"${currencySymbol}${estimatedNewPrice}"
-        case Membership2023Annuals   => s"${currencySymbol}${estimatedNewPrice}"
-        case DigiSubs2023            => s"${currencySymbol}${estimatedNewPrice}"
-        case Newspaper2024           => s"${currencySymbol}${estimatedNewPrice}"
+        case Legacy        => s"${currencySymbol}${PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)}"
+        case DigiSubs2023  => s"${currencySymbol}${estimatedNewPrice}"
+        case Newspaper2024 => s"${currencySymbol}${estimatedNewPrice}"
         case GW2024 =>
           s"${currencySymbol}${PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GW2024Migration.priceCap)}"
         case SupporterPlus2024 => s"${currencySymbol}${estimatedNewPrice}"
@@ -289,25 +286,21 @@ object NotificationHandler extends CohortHandler {
 
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case Membership2023Monthlies => Membership2023Migration.maxLeadTime
-      case Membership2023Annuals   => Membership2023Migration.maxLeadTime
-      case DigiSubs2023            => DigiSubs2023Migration.maxLeadTime
-      case Newspaper2024           => newspaper2024Migration.StaticData.maxLeadTime
-      case GW2024                  => GW2024Migration.maxLeadTime
-      case SupporterPlus2024       => SupporterPlus2024Migration.maxLeadTime
-      case Legacy                  => 49
+      case DigiSubs2023      => DigiSubs2023Migration.maxLeadTime
+      case Newspaper2024     => newspaper2024Migration.StaticData.maxLeadTime
+      case GW2024            => GW2024Migration.maxLeadTime
+      case SupporterPlus2024 => SupporterPlus2024Migration.maxLeadTime
+      case Legacy            => 49
     }
   }
 
   def minLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case Membership2023Monthlies => Membership2023Migration.minLeadTime
-      case Membership2023Annuals   => Membership2023Migration.minLeadTime
-      case DigiSubs2023            => DigiSubs2023Migration.minLeadTime
-      case Newspaper2024           => newspaper2024Migration.StaticData.minLeadTime
-      case GW2024                  => GW2024Migration.minLeadTime
-      case SupporterPlus2024       => SupporterPlus2024Migration.minLeadTime
-      case Legacy                  => 35
+      case DigiSubs2023      => DigiSubs2023Migration.minLeadTime
+      case Newspaper2024     => newspaper2024Migration.StaticData.minLeadTime
+      case GW2024            => GW2024Migration.minLeadTime
+      case SupporterPlus2024 => SupporterPlus2024Migration.minLeadTime
+      case Legacy            => 35
     }
   }
 
@@ -366,10 +359,8 @@ object NotificationHandler extends CohortHandler {
     }
 
     MigrationType(cohortSpec) match {
-      case DigiSubs2023            => testCompatibleEmptySalesforceAddress(contact)
-      case Membership2023Monthlies => testCompatibleEmptySalesforceAddress(contact)
-      case Membership2023Annuals   => testCompatibleEmptySalesforceAddress(contact)
-      case SupporterPlus2024       => testCompatibleEmptySalesforceAddress(contact)
+      case DigiSubs2023      => testCompatibleEmptySalesforceAddress(contact)
+      case SupporterPlus2024 => testCompatibleEmptySalesforceAddress(contact)
       case _ =>
         (for {
           billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
@@ -384,19 +375,6 @@ object NotificationHandler extends CohortHandler {
       .flatMap(_ => requiredField(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation"))
   }
 
-  def street(
-      cohortSpec: CohortSpec,
-      address: SalesforceAddress
-  ): Either[NotificationHandlerFailure, String] = {
-    MigrationType(cohortSpec) match {
-      case Membership2023Monthlies =>
-        requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
-      case Membership2023Annuals =>
-        requiredField(address.street.fold(Some(""))(Some(_)), "Contact.OtherAddress.street")
-      case _ => requiredField(address.street, "Contact.OtherAddress.street")
-    }
-  }
-
   def country(
       cohortSpec: CohortSpec,
       address: SalesforceAddress
@@ -406,10 +384,6 @@ object NotificationHandler extends CohortHandler {
     // the 2024 print migration, "United Kingdom" can be substituted for missing values considering
     // that we are only delivery in the UK.
     MigrationType(cohortSpec) match {
-      case Membership2023Monthlies =>
-        requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
-      case Membership2023Annuals =>
-        requiredField(address.country.fold(Some("United Kingdom"))(Some(_)), "Contact.OtherAddress.country")
       case Newspaper2024     => Right(address.country.getOrElse("United Kingdom"))
       case SupporterPlus2024 => Right(address.country.getOrElse(""))
       case _                 => requiredField(address.country, "Contact.OtherAddress.country")
