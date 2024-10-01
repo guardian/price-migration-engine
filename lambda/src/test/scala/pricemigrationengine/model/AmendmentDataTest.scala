@@ -12,8 +12,8 @@ class AmendmentDataTest extends munit.FunSuite {
   private def migrationStartDate = LocalDate.of(2020, 12, 25)
 
   test("nextserviceStartDate: billing date is first after migration start date") {
-    val invoiceList = invoiceListFromJson("Migrations/Vouchers2022/InvoicePreview.json")
-    val subscription = subscriptionFromJson("Migrations/Vouchers2022/Monthly/Subscription.json")
+    val invoiceList = invoiceListFromJson("Core/AmendmentData/Misc/InvoicePreview.json")
+    val subscription = subscriptionFromJson("Handlers/EstimationHandler/Monthly/Subscription.json")
     val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = migrationStartDate)
     assertEquals(serviceStartDate, Right(LocalDate.of(2021, 1, 8)))
   }
@@ -23,16 +23,16 @@ class AmendmentDataTest extends munit.FunSuite {
   private def migrationStartDate2022 = LocalDate.of(2022, 10, 10)
 
   test("nextserviceStartDate: billing date is first after migration start date (Everyday+Delivery)") {
-    val invoiceList = invoiceListFromJson("Migrations/NewspaperDelivery/Everyday+/InvoicePreview.json")
-    val subscription = subscriptionFromJson("Migrations/NewspaperDelivery/Everyday+/Subscription.json")
+    val invoiceList = invoiceListFromJson("Core/AmendmentData/Everyday+/InvoicePreview.json")
+    val subscription = subscriptionFromJson("Core/AmendmentData/Everyday+/Subscription.json")
     val serviceStartDate =
       AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
     assertEquals(serviceStartDate, Right(LocalDate.of(2022, 4, 19)))
   }
 
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date") {
-    val invoiceList = invoiceListFromJson("Migrations/Vouchers2022/InvoicePreviewTermEndsBeforeMigration.json")
-    val subscription = subscriptionFromJson("Migrations/Vouchers2022/Monthly/Subscription.json")
+    val invoiceList = invoiceListFromJson("Core/AmendmentData/Misc/InvoicePreviewTermEndsBeforeMigration.json")
+    val subscription = subscriptionFromJson("Core/AmendmentData/Monthly/Subscription.json")
     val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = migrationStartDate)
     assertEquals(
       serviceStartDate.left.map(_.reason.take(79)),
@@ -41,8 +41,8 @@ class AmendmentDataTest extends munit.FunSuite {
   }
 
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date (SundayDelivery)") {
-    val invoiceList = invoiceListFromJson("Migrations/NewspaperDelivery/Sunday/InvoicePreview.json")
-    val subscription = subscriptionFromJson("Migrations/NewspaperDelivery/Sunday/Subscription.json")
+    val invoiceList = invoiceListFromJson("Core/AmendmentData/Sunday/InvoicePreview.json")
+    val subscription = subscriptionFromJson("Core/AmendmentData/Sunday/Subscription.json")
     val serviceStartDate =
       AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
     assertEquals(
@@ -52,157 +52,13 @@ class AmendmentDataTest extends munit.FunSuite {
   }
 
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date (SixdayDelivery)") {
-    val invoiceList = invoiceListFromJson("Migrations/NewspaperDelivery/Sixday/InvoicePreview.json")
-    val subscription = subscriptionFromJson("Migrations/NewspaperDelivery/Sixday/Subscription.json")
+    val invoiceList = invoiceListFromJson("Core/AmendmentData/Sixday/InvoicePreview.json")
+    val subscription = subscriptionFromJson("Core/AmendmentData/Sixday/Subscription.json")
     val serviceStartDate =
       AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
     assertEquals(
       serviceStartDate.left.map(_.reason.take(79)),
       Left("Cannot determine next billing date on or after 2022-04-18 from ZuoraInvoiceList")
-    )
-  }
-
-  test("priceData: is correct for a monthly voucher subscription") {
-    val fixtureSet = "Migrations/Vouchers2022/Monthly"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2020, 5, 28),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2020, 5, 28))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 47.62, newPrice = 52.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for a monthly discounted voucher subscription") {
-    val fixtureSet = "Migrations/Vouchers2022/MonthlyDiscounted"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2020, 6, 15),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2020, 6, 15))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 10.38, newPrice = 10.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for a non-taxable 25% discounted voucher subscription") {
-    val fixtureSet = "Migrations/Vouchers2022/Discount25%"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2020, 7, 16),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2020, 7, 16))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 15.57, newPrice = 16.49, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: ignores holiday-stop credits") {
-    val fixtureSet = "Migrations/Vouchers2022/HolidayCredited"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2020, 6, 4),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2020, 6, 4))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 41.12, newPrice = 44.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for a 25% discounted Everyday voucher subscription") {
-    val fixtureSet = "Migrations/Vouchers2022/EverydayDiscount25%"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2020, 6, 4),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2020, 6, 4))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 35.7, newPrice = 39.71, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for a manually-set percentage discounted voucher subscription") {
-    val fixtureSet = "Migrations/Vouchers2022/PercentageDiscount"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2020, 8, 8),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2020, 8, 8))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 8.09, newPrice = 8.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for a quarterly voucher subscription") {
-    val fixtureSet = "Migrations/Vouchers2022/QuarterlyVoucher"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2020, 7, 5),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2020, 7, 5))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 62.27, newPrice = 65.97, billingPeriod = "Quarter"))
-    )
-  }
-
-  test("priceData: is correct for a semi-annual voucher subscription") {
-    val fixtureSet = "Migrations/Vouchers2022/SemiAnnualVoucher"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2021, 1, 13),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2021, 1, 13))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 220.74, newPrice = 269.94, billingPeriod = "Semi_Annual"))
-    )
-  }
-
-  test("priceData: is correct for an annual voucher subscription") {
-    val fixtureSet = "Migrations/Vouchers2022/AnnualVoucher"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2020, 12, 7),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2020, 12, 7))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 249.08, newPrice = 263.88, billingPeriod = "Annual"))
     )
   }
 
@@ -218,26 +74,8 @@ class AmendmentDataTest extends munit.FunSuite {
     assertEquals(AmendmentData.roundDown(10.255).toDouble, 10.25)
   }
 
-  test("totalChargeAmount: is correct for a taxable product") {
-    val fixtureSet = "Migrations/Vouchers2022/Everyday+"
-    val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
-    val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
-    val serviceStartDate = LocalDate.of(2020, 6, 4)
-    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate)
-    assertEquals(totalChargeAmount, Right(BigDecimal(54.99)))
-  }
-
-  test("totalChargeAmount: is correct for a taxable product (delivery)") {
-    val fixtureSet = "Migrations/NewspaperDelivery/Everyday+"
-    val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
-    val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
-    val serviceStartDate = LocalDate.of(2022, 2, 19)
-    val totalChargeAmount = AmendmentData.totalChargeAmount(subscription, invoiceList, serviceStartDate)
-    assertEquals(totalChargeAmount, Right(BigDecimal(69.99)))
-  }
-
   test("totalChargeAmount: is correct for a discounted taxable product") {
-    val fixtureSet = "Migrations/Vouchers2022/Everyday+Discounted"
+    val fixtureSet = "Core/AmendmentData/Everyday+Discounted"
     val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
     val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
     val serviceStartDate = LocalDate.of(2020, 6, 9)
@@ -246,7 +84,7 @@ class AmendmentDataTest extends munit.FunSuite {
   }
 
   test("totalChargeAmount: is correct for a discounted non-taxable product") {
-    val fixtureSet = "Migrations/Vouchers2022/Discount25%"
+    val fixtureSet = "Core/AmendmentData/Discount25%"
     val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
     val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
     val serviceStartDate = LocalDate.of(2020, 7, 16)
@@ -255,7 +93,7 @@ class AmendmentDataTest extends munit.FunSuite {
   }
 
   test("totalChargeAmount: is correct for a discounted newspaper delivery taxable product (25%)") {
-    val fixtureSet = "Migrations/NewspaperDelivery/Waitrose25%Discount"
+    val fixtureSet = "Core/AmendmentData/Waitrose25%Discount"
     val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
     val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
     val serviceStartDate = LocalDate.of(2022, 6, 26)
@@ -264,7 +102,7 @@ class AmendmentDataTest extends munit.FunSuite {
   }
 
   test("totalChargeAmount: is correct for pre-2020 newspaper delivery taxable product") {
-    val fixtureSet = "Migrations/NewspaperDelivery/Pre2020SixDay"
+    val fixtureSet = "Core/AmendmentData/Pre2020SixDay"
     val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
     val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
     val serviceStartDate = LocalDate.of(2022, 4, 18)
@@ -323,181 +161,5 @@ class AmendmentDataTest extends munit.FunSuite {
       )
     )
     assertEquals(chargeAmount, Right(BigDecimal(0)))
-  }
-
-  test("priceData: is correct for a newspaper delivery (everyday+)") {
-    val fixtureSet = "Migrations/NewspaperDelivery/Everyday+"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2022, 2, 19),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2022, 2, 19))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 69.99, newPrice = 71.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for a newspaper delivery (everyday)") {
-    val fixtureSet = "Migrations/NewspaperDelivery/Everyday"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2022, 2, 11),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2022, 2, 11))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 67.99, newPrice = 69.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for a newspaper delivery (weekend)") {
-    val fixtureSet = "Migrations/NewspaperDelivery/Weekend"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2022, 2, 28),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2022, 2, 28))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 26.99, newPrice = 27.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for a newspaper delivery (sunday)") {
-    val fixtureSet = "Migrations/NewspaperDelivery/Sunday"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2022, 2, 28),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2022, 2, 28))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 16.99, newPrice = 17.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for a newspaper delivery (sixday+)") {
-    val fixtureSet = "Migrations/NewspaperDelivery/Sixday+"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2022, 3, 15),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2022, 3, 15))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 60.99, newPrice = 62.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for a newspaper delivery (sixday)") {
-    val fixtureSet = "Migrations/NewspaperDelivery/Sixday"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2022, 2, 19),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2022, 2, 19))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 57.99, newPrice = 59.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for a newspaper delivery (saturday)") {
-    val fixtureSet = "Migrations/NewspaperDelivery/Saturday"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2022, 2, 8),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2022, 2, 8))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 16.99, newPrice = 17.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for pre-2020 sixday newspaper delivery subscription (with past discounts)") {
-    val fixtureSet = "Migrations/NewspaperDelivery/Pre2020SixDay"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2022, 4, 18),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2022, 4, 18))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 54.12, newPrice = 59.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for pre-2020 sixday newspaper delivery (with past discounts) 2") {
-    val fixtureSet = "Migrations/NewspaperDelivery/Pre2020Sixday2"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2022, 4, 5),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2022, 4, 5))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 54.12, newPrice = 59.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for pre-2020 everyday newspaper delivery subscription") {
-    val fixtureSet = "Migrations/NewspaperDelivery/Pre2020Everyday"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2022, 6, 19),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2022, 6, 19))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 62.79, newPrice = 69.99, billingPeriod = "Month"))
-    )
-  }
-
-  test("priceData: is correct for a new (purchased after price rise) discounted newspaper delivery subscription") {
-    val fixtureSet = "Migrations/NewspaperDelivery/Waitrose25%Discount"
-    val priceData = AmendmentData.priceData(
-      account = accountFromJson(s"$fixtureSet/Account.json"),
-      catalogue = productCatalogueFromJson(s"$fixtureSet/Catalogue.json"),
-      subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
-      invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
-      LocalDate.of(2023, 1, 26),
-      CohortSpec("Cohort1", "Campaign1", importDate, LocalDate.of(2023, 1, 26))
-    )
-    assertEquals(
-      priceData,
-      Right(PriceData(currency = "GBP", oldPrice = 20.99, newPrice = 20.99, billingPeriod = "Month"))
-    )
   }
 }

@@ -42,7 +42,7 @@
               "pricing": [
                 {
                   "currency": "GBP",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -4337,7 +4337,7 @@
               "pricing": [
                 {
                   "currency": "USD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -4346,7 +4346,7 @@
                 },
                 {
                   "currency": "NZD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -4355,7 +4355,7 @@
                 },
                 {
                   "currency": "EUR",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -4364,7 +4364,7 @@
                 },
                 {
                   "currency": "GBP",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -4373,7 +4373,7 @@
                 },
                 {
                   "currency": "CAD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -4382,7 +4382,7 @@
                 },
                 {
                   "currency": "AUD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -4715,7 +4715,7 @@
               "pricing": [
                 {
                   "currency": "USD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -4724,7 +4724,7 @@
                 },
                 {
                   "currency": "NZD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -4733,7 +4733,7 @@
                 },
                 {
                   "currency": "EUR",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -4742,7 +4742,7 @@
                 },
                 {
                   "currency": "GBP",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -4751,7 +4751,7 @@
                 },
                 {
                   "currency": "CAD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -4760,7 +4760,7 @@
                 },
                 {
                   "currency": "AUD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -4845,7 +4845,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -4854,7 +4854,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -4863,7 +4863,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -4881,7 +4881,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -4890,7 +4890,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 }
               ],
@@ -4967,7 +4967,7 @@
               "pricing": [
                 {
                   "currency": "USD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -4976,7 +4976,7 @@
                 },
                 {
                   "currency": "NZD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -4985,7 +4985,7 @@
                 },
                 {
                   "currency": "EUR",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -4994,7 +4994,7 @@
                 },
                 {
                   "currency": "GBP",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5003,7 +5003,7 @@
                 },
                 {
                   "currency": "CAD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5012,7 +5012,7 @@
                 },
                 {
                   "currency": "AUD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5093,7 +5093,7 @@
               "pricing": [
                 {
                   "currency": "USD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5102,7 +5102,7 @@
                 },
                 {
                   "currency": "NZD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5111,7 +5111,7 @@
                 },
                 {
                   "currency": "EUR",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5120,7 +5120,7 @@
                 },
                 {
                   "currency": "GBP",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5129,7 +5129,7 @@
                 },
                 {
                   "currency": "CAD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5138,7 +5138,7 @@
                 },
                 {
                   "currency": "AUD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5203,7 +5203,7 @@
               "pricing": [
                 {
                   "currency": "USD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5212,7 +5212,7 @@
                 },
                 {
                   "currency": "NZD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5221,7 +5221,7 @@
                 },
                 {
                   "currency": "EUR",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5230,7 +5230,7 @@
                 },
                 {
                   "currency": "GBP",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5239,7 +5239,7 @@
                 },
                 {
                   "currency": "CAD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5248,7 +5248,7 @@
                 },
                 {
                   "currency": "AUD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5450,7 +5450,7 @@
               "pricing": [
                 {
                   "currency": "GBP",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5783,7 +5783,7 @@
               "pricing": [
                 {
                   "currency": "USD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5792,7 +5792,7 @@
                 },
                 {
                   "currency": "NZD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5801,7 +5801,7 @@
                 },
                 {
                   "currency": "EUR",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5810,7 +5810,7 @@
                 },
                 {
                   "currency": "GBP",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5819,7 +5819,7 @@
                 },
                 {
                   "currency": "CAD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5828,7 +5828,7 @@
                 },
                 {
                   "currency": "AUD",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -5989,7 +5989,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -5998,7 +5998,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -6007,7 +6007,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -6025,7 +6025,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -6034,7 +6034,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 }
               ],
@@ -6106,7 +6106,7 @@
               "pricing": [
                 {
                   "currency": "GBP",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -6182,7 +6182,7 @@
               "pricing": [
                 {
                   "currency": "GBP",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -6258,7 +6258,7 @@
               "pricing": [
                 {
                   "currency": "GBP",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -6343,7 +6343,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -6352,7 +6352,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -6361,7 +6361,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -6370,7 +6370,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -6379,7 +6379,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -6388,7 +6388,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 }
               ],
@@ -6460,7 +6460,7 @@
               "pricing": [
                 {
                   "currency": "GBP",
-                  "price": 0.000000000,
+                  "price": 0E-9,
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
@@ -8058,7 +8058,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -8067,7 +8067,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -8076,7 +8076,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -8094,7 +8094,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -8103,7 +8103,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 }
               ],
@@ -8310,7 +8310,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -8319,7 +8319,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -8328,7 +8328,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -8346,7 +8346,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -8355,7 +8355,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 }
               ],
@@ -8562,7 +8562,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -8571,7 +8571,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -8580,7 +8580,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -8598,7 +8598,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -8607,7 +8607,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 }
               ],
@@ -9967,7 +9967,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -9976,7 +9976,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -9985,7 +9985,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -10003,7 +10003,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -10012,7 +10012,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 }
               ],
@@ -10093,7 +10093,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -10102,7 +10102,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -10111,7 +10111,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -10129,7 +10129,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -10138,7 +10138,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 }
               ],
@@ -10219,7 +10219,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -10228,7 +10228,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -10237,7 +10237,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -10255,7 +10255,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 },
                 {
@@ -10264,7 +10264,7 @@
                   "tiers": null,
                   "includedUnits": null,
                   "overagePrice": null,
-                  "discountPercentage": 0.000000000,
+                  "discountPercentage": 0E-9,
                   "discountAmount": null
                 }
               ],

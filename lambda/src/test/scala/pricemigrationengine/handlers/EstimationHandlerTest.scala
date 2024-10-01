@@ -20,9 +20,10 @@ object EstimationHandlerTest extends ZIOSpecDefault {
           _ <- TestClock.setTime(testTime1)
           _ <- TestRandom.feedInts(1)
           earliestStartDate <- StartDates.startDateLowerBound(
-            subscription = Fixtures.subscriptionFromJson("Migrations/Vouchers2022/QuarterlyVoucher/Subscription.json"),
+            subscription =
+              Fixtures.subscriptionFromJson("Handlers/EstimationHandler/QuarterlyVoucher/Subscription.json"),
             invoicePreview =
-              Fixtures.invoiceListFromJson("Migrations/Vouchers2022/QuarterlyVoucher/InvoicePreview.json"),
+              Fixtures.invoiceListFromJson("Handlers/EstimationHandler/QuarterlyVoucher/InvoicePreview.json"),
             CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), absoluteEarliestStartDate),
             today
           )
@@ -34,8 +35,8 @@ object EstimationHandlerTest extends ZIOSpecDefault {
           _ <- TestClock.setTime(testTime1)
           _ <- TestRandom.feedInts(1)
           earliestStartDate <- StartDates.startDateLowerBound(
-            subscription = Fixtures.subscriptionFromJson("Migrations/Vouchers2022/Monthly/Subscription.json"),
-            invoicePreview = Fixtures.invoiceListFromJson("Migrations/Vouchers2022/Monthly/InvoicePreview.json"),
+            subscription = Fixtures.subscriptionFromJson("Handlers/EstimationHandler/Monthly/Subscription.json"),
+            invoicePreview = Fixtures.invoiceListFromJson("Handlers/EstimationHandler/Monthly/InvoicePreview.json"),
             CohortSpec("Cohort1", "Campaign1", LocalDate.of(2000, 1, 1), absoluteEarliestStartDate),
             today
           )

@@ -155,8 +155,8 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
 
   override def spec: Spec[TestEnvironment with Scope, Any] = suite("estimate")(
     test("Start date is correct for subscription less than one year old (1)") {
-      val invoiceList = invoiceListFromJson("Migrations/NewspaperDelivery/Sixday+/InvoicePreview.json")
-      val subscription = subscriptionFromJson("Migrations/NewspaperDelivery/Sixday+/Subscription.json")
+      val invoiceList = invoiceListFromJson("Handlers/EstimationHandler/Sixday+/InvoicePreview.json")
+      val subscription = subscriptionFromJson("Handlers/EstimationHandler/Sixday+/Subscription.json")
       val today = LocalDate.of(2022, 1, 1)
 
       // today is 2022-01-01
@@ -187,8 +187,8 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       } yield assert(startDate)(equalTo(LocalDate.of(2023, 1, 15)))
     },
     test("Start date is correct for subscription less than one year old (2)") {
-      val invoiceList = invoiceListFromJson("Migrations/NewspaperDelivery/Waitrose25%Discount/InvoicePreview.json")
-      val subscription = subscriptionFromJson("Migrations/NewspaperDelivery/Waitrose25%Discount/Subscription.json")
+      val invoiceList = invoiceListFromJson("Handlers/EstimationHandler/Waitrose25%Discount/InvoicePreview.json")
+      val subscription = subscriptionFromJson("Handlers/EstimationHandler/Waitrose25%Discount/Subscription.json")
       val today = LocalDate.of(2022, 1, 1)
 
       for {
@@ -197,8 +197,8 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
       } yield assert(startDate)(equalTo(LocalDate.of(2023, 4, 26)))
     },
     test("Start date is correct for subscription less than one year old (3)") {
-      val invoiceList = invoiceListFromJson("Migrations/NewspaperDelivery/Everyday/InvoicePreview.json")
-      val subscription = subscriptionFromJson("Migrations/NewspaperDelivery/Everyday/Subscription.json")
+      val invoiceList = invoiceListFromJson("Handlers/EstimationHandler/Everyday/InvoicePreview.json")
+      val subscription = subscriptionFromJson("Handlers/EstimationHandler/Everyday/Subscription.json")
       val today = LocalDate.of(2022, 1, 1)
 
       for {
