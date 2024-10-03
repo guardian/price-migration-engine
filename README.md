@@ -15,14 +15,13 @@ The price migration engine is an orchestration engine used to perform controlled
 
 ### Operations:
 
-- [Set up a new cohort of subscriptions for price rise](docs/cohort-setup.md).
+- [Set up a new cohort of subscriptions for price rise](docs/subscription-numbers-upload.md).
 - [The migration implementation manual](docs/migration-implementation-manual.md)
 - [Downloading fixtures](docs/downloading-fixtures.md)
+- [troubleshooting document](docs/troubleshooting.md)
 
 ### Further documentations:
 
 * [State machine](stateMachine/README.md).
 * [Lambdas](lambda/README.md).
 * [Data stores](dynamoDb/README.md).
-
-For production troubleshooting, see the [troubleshooting document](docs/troubleshooting.md)
