@@ -12,7 +12,7 @@ There are generally 3 types of errors:
 
 (1) Doesn't actually happen, we have very good test coverage, and in essence the engine's code doesn't have the complexity to allow hidden bugs to remain undiscovered for long.
 
-(2) Happens every so often; and usually the error message clearly indicates that Salesforce or Zuora were being momentarily unavailable. When this happens, it is often just enough to restart the lambda that has failed, and upon succesful run of the lambda just restart the state machine itself (to perform/finish the entire proccessing for the day).
+(2) Happens every so often; and usually the error message clearly indicates that Salesforce or Zuora were being momentarily unavailable. When this happens, it is often just enough to restart the lambda that has failed, and upon successful run of the lambda just restart the state machine itself (to perform/finish the entire processing for the day).
 
 (3) This happens when specific subscription data from Salesforce or Zuora are breaking some basic assumptions (missing data fields, data presented in a non standard way, etc.). When this happens, it should be enough to determine the data that was missing/different and modify the code, possibly adding further test fixtures.
 
