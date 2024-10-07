@@ -18,7 +18,7 @@ The price migration engine is an orchestration engine used to perform controlled
 - [Set up a new cohort of subscriptions for price rise](docs/subscription-numbers-upload.md).
 - [The migration implementation manual](docs/migration-implementation-manual.md)
 - [Downloading fixtures](docs/downloading-fixtures.md)
-- [troubleshooting document](docs/troubleshooting.md)
+- [Troubleshooting document](docs/troubleshooting.md)
 
 ### Further documentations:
 

@@ -1,60 +1,21 @@
 # Troubleshooting
 
-This document assumes there has been a failure either in the triggering lambda `price-migration-lambda-PROD` or
-the cohort state machine `price-migration-engine-cohort-steps-PROD`.
+### Introduction
 
-To find detail on the failure:
-1. Go to the cohort state machine `price-migration-engine-cohort-steps-PROD`.
-1. Find the failing execution.
-1. Open the cloudwatch link from the failing step.
+In virtue of Coding Directive #2 (see [coding directives](coding-directives.md)), the engine stops when an error occurs. Nowadays, when this happens, we receive a message on the P&E/Growth alarms channel. This is more likely to happen in the morning when the engine run at and a bit after 7am UTC.
 
-## General tips
+There are generally 3 types of errors:
 
-### Timeouts
+1. Genuine bugs in the code of the engine
+2. Network errors
+3. Incorrect/Missing data
 
-One cause of failure is a read or socket timeout in an API. [Restarting the failing state machine](#manually-starting-another-cohort-state-machine-execution) is the best way to deal with timeouts. If this doesn't work, check for a general failure in the API and try again later.
+(1) Doesn't actually happen, we have very good test coverage, and in essence the engine's code doesn't have the complexity to allow hidden bugs to remain undiscovered for long.
 
-If the cohort state machine fails, here are some suggestions depending on which step failed:
+(2) Happens every so often; and usually the error message clearly indicates that Salesforce or Zuora were being momentarily unavailable. When this happens, it is often just enough to restart the lambda that has failed, and upon succesful run of the lambda just restart the state machine itself (to perform/finish the entire proccessing for the day).
 
-## Step failures
+(3) This happens when specific subscription data from Salesforce or Zuora are breaking some basic assumptions (missing data fields, data presented in a non standard way, etc.). When this happens, it should be enough to determine the data that was missing/different and modify the code, possibly adding further test fixtures.
 
-### NotifyingSubscribers
+### Where does the engine log its data ?
 
-The most likely cause of a failure in this step is a missing country in the contact billing address. If this happens, the best solution is to fill in the country in the Salesforce record as it's usually quite obvious what it is.  Then [restart the state machine](#manually-starting-another-cohort-state-machine-execution).
-
-It may be that other required fields are missing in the contact billing address. The mailing address is used as a fallback if the billing address is missing entirely. If there are other missing fields and it's not obvious how to fix them up in Salesforce, the best solution is to [put the sub into the EstimationFailed holding state](#moving-a-subscription-into-a-holding-state) and [restart the state machine](#manually-starting-another-cohort-state-machine-execution).
-
-### Amending
-
-A failure here is possible when a subscription is in an unexpected state at the time when the amendment is applied. If the failure is caused by a bad subscription, the best action is to [put the sub into the AmendmentFailed holding state](#moving-a-subscription-into-a-holding-state) and then [restart the state machine](#manually-starting-another-cohort-state-machine-execution).
-
-## Interventions
-
-Any manual intervention that's required should be logged somewhere to see if it could be programmatically avoided in future.
-
-Here are the main possible interventions:
-
-## Manually starting another cohort state machine execution
-
-1. In the AWS console, find the state machine called `price-migration-engine-cohort-steps-PROD`.
-1. Open the execution that failed.
-1. Click `New execution` to kick-off an execution with the same input as the one that failed.
-
-## Moving a subscription into a holding state
-
-There are two holding states: `EstimationFailed` and `AmendmentFailed`. If a sub is in either of these states, it will be ignored for future processing. To move a sub into a holding state:
-
-1. Go to the DynamoDB table `PriceMigrationEnginePROD`
-1. Query using the partitioning key index for the subscription number.
-1. Change the `processingStage` attribute to either of the holding states, depending on where the failure occurred.
-
-## Manually restarting the triggering lambda
-
-This will start up a cohort state machine for each active cohort.
-
-:warning: **Check that there are no cohort state machines running before doing this! Running two state machines over the same DynamoDB table could lead to dirty reads.**
-
-1. Check state machine `price-migration-engine-cohort-steps-PROD`. If there are no running executions:
-1. In the AWS console, find the lambda called `price-migration-lambda-PROD` and `Test` it with a `null` input. The lambda should complete successfully in a few seconds.
-1. If you then look at the state machine called `price-migration-engine-cohort-steps-PROD`, you should see a new execution
-for each active cohort.
+In cloudwatch. Together with most supporter revenue system, the engine doesn't send log data to the ELk stack.
