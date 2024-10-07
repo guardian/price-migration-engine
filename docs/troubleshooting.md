@@ -2,7 +2,7 @@
 
 ### Introduction
 
-In virtue of Coding Directive #2 (see [coding directives](coding-directives.md)), the engine stops when an error occurs. Nowadays, when this happens, we receive a message on the P&E/Growth alarms channel. This is more likely to happen in the morning when the engine run at and a bit after 7am UTC.
+In virtue of Coding Directive #2 (see [coding directives](coding-directives.md)), the engine stops when an error occurs. Nowadays, when this happens, we receive a message on the P&E/Growth alarms channel. This is more likely to happen in the morning when the engine runs at, and a bit after, 7am UTC.
 
 There are generally 3 types of errors:
 
