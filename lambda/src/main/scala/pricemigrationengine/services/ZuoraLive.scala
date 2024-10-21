@@ -208,46 +208,10 @@ object ZuoraLive {
           )
         }
 
-        override def renewSubscription(subscriptionNumber: String): ZIO[Any, ZuoraRenewalFailure, Unit] = {
-
-          val triggerDates = List(
-            ZuoraRenewOrderPayloadOrderActionTriggerDate(
-              "ContractEffective",
-              LocalDate.of(2024, 10, 21)
-            ), // TODO: set correct date
-            ZuoraRenewOrderPayloadOrderActionTriggerDate(
-              "ServiceActivation",
-              LocalDate.of(2024, 10, 21)
-            ), // TODO: set correct date
-            ZuoraRenewOrderPayloadOrderActionTriggerDate(
-              "CustomerAcceptance",
-              LocalDate.of(2024, 10, 21)
-            ), // TODO: set correct date
-          )
-
-          val orderActions = List(
-            ZuoraRenewOrderPayloadOrderAction(
-              `type` = "RenewSubscription",
-              triggerDates = triggerDates
-            )
-          )
-
-          val subscriptions = List(
-            ZuoraRenewOrderPayloadSubscription(
-              subscriptionNumber = subscriptionNumber,
-              orderActions = orderActions
-            )
-          )
-
-          val processingOptions = ZuoraRenewOrderPayloadProcessingOptions(runBilling = false, collectPayment = false)
-
-          val payload = ZuoraRenewOrderPayload(
-            orderDate = LocalDate.of(2024, 10, 21), // TODO: set correct date
-            existingAccountNumber = "A01269270", // TODO: set correct account number
-            subscriptions = subscriptions,
-            processingOptions = processingOptions
-          )
-
+        override def renewSubscription(
+            subscriptionNumber: String,
+            payload: ZuoraRenewOrderPayload
+        ): ZIO[Any, ZuoraRenewalFailure, Unit] = {
           retry(
             post[Unit](
               path = s"orders",

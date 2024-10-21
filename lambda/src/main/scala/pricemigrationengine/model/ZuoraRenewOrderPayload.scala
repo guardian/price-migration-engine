@@ -79,4 +79,48 @@ case class ZuoraRenewOrderPayload(
 )
 object ZuoraRenewOrderPayload {
   implicit val rwZuoraRenewOrderPayload: ReadWriter[ZuoraRenewOrderPayload] = macroRW
+
+  def apply(
+      subscriptionNumber: String,
+      startDate: LocalDate,
+      accountNumber: String
+  ): ZuoraRenewOrderPayload = {
+    val triggerDates = List(
+      ZuoraRenewOrderPayloadOrderActionTriggerDate(
+        "ContractEffective",
+        startDate
+      ),
+      ZuoraRenewOrderPayloadOrderActionTriggerDate(
+        "ServiceActivation",
+        startDate
+      ),
+      ZuoraRenewOrderPayloadOrderActionTriggerDate(
+        "CustomerAcceptance",
+        startDate
+      ),
+    )
+
+    val orderActions = List(
+      ZuoraRenewOrderPayloadOrderAction(
+        `type` = "RenewSubscription",
+        triggerDates = triggerDates
+      )
+    )
+
+    val subscriptions = List(
+      ZuoraRenewOrderPayloadSubscription(
+        subscriptionNumber = subscriptionNumber,
+        orderActions = orderActions
+      )
+    )
+
+    val processingOptions = ZuoraRenewOrderPayloadProcessingOptions(runBilling = false, collectPayment = false)
+
+    ZuoraRenewOrderPayload(
+      orderDate = startDate,
+      existingAccountNumber = accountNumber,
+      subscriptions = subscriptions,
+      processingOptions = processingOptions
+    )
+  }
 }

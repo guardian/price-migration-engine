@@ -76,10 +76,12 @@ object AmendmentHandler extends CohortHandler {
 
   private def renewSubscriptionIfNeeded(
       subscription: ZuoraSubscription,
-      startDate: LocalDate
+      startDate: LocalDate,
+      account: ZuoraAccount
   ): ZIO[Zuora, Failure, Unit] = {
     if (subscription.termEndDate.isBefore(startDate)) {
-      Zuora.renewSubscription(subscription.subscriptionNumber)
+      val payload = ZuoraRenewOrderPayload(subscription.subscriptionNumber, startDate, account.basicInfo.accountNumber)
+      Zuora.renewSubscription(subscription.subscriptionNumber, payload)
     } else {
       ZIO.succeed(())
     }
@@ -119,9 +121,9 @@ object AmendmentHandler extends CohortHandler {
 
       invoicePreviewTargetDate = startDate.plusMonths(13)
 
-      _ <- renewSubscriptionIfNeeded(subscriptionBeforeUpdate, startDate)
-
       account <- Zuora.fetchAccount(subscriptionBeforeUpdate.accountNumber, subscriptionBeforeUpdate.subscriptionNumber)
+
+      _ <- renewSubscriptionIfNeeded(subscriptionBeforeUpdate, startDate, account)
 
       invoicePreviewBeforeUpdate <-
         Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)

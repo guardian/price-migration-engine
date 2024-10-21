@@ -146,7 +146,8 @@ class NotificationHandlerTest extends munit.FunSuite {
         override def fetchAccount(
             accountNumber: String,
             subscriptionNumber: String
-        ): ZIO[Any, ZuoraFetchFailure, ZuoraAccount] = ZIO.succeed(ZuoraAccount(SoldToContact("UK")))
+        ): ZIO[Any, ZuoraFetchFailure, ZuoraAccount] =
+          ZIO.succeed(ZuoraAccount(ZuoraAccountBasicInfo("12345"), SoldToContact("UK")))
 
         override def fetchInvoicePreview(
             accountId: String,
@@ -161,7 +162,10 @@ class NotificationHandlerTest extends munit.FunSuite {
             update: ZuoraSubscriptionUpdate
         ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId] = ZIO.succeed("ZuoraSubscriptionId")
 
-        override def renewSubscription(subscriptionNumber: String): ZIO[Any, ZuoraRenewalFailure, Unit] =
+        override def renewSubscription(
+            subscriptionNumber: String,
+            payload: ZuoraRenewOrderPayload
+        ): ZIO[Any, ZuoraRenewalFailure, Unit] =
           ZIO.succeed(())
       }
     )
