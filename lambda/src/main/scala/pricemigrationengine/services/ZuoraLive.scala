@@ -208,16 +208,59 @@ object ZuoraLive {
           )
         }
 
-        override def renewSubscription(subscriptionNumber: String): ZIO[Any, ZuoraRenewalFailure, Unit] =
+        override def renewSubscription(subscriptionNumber: String): ZIO[Any, ZuoraRenewalFailure, Unit] = {
+
+          val triggerDates = List(
+            ZuoraRenewOrderPayloadOrderActionTriggerDate(
+              "ContractEffective",
+              LocalDate.of(2024, 10, 21)
+            ), // TODO: set correct date
+            ZuoraRenewOrderPayloadOrderActionTriggerDate(
+              "ServiceActivation",
+              LocalDate.of(2024, 10, 21)
+            ), // TODO: set correct date
+            ZuoraRenewOrderPayloadOrderActionTriggerDate(
+              "CustomerAcceptance",
+              LocalDate.of(2024, 10, 21)
+            ), // TODO: set correct date
+          )
+
+          val orderActions = List(
+            ZuoraRenewOrderPayloadOrderAction(
+              `type` = "RenewSubscription",
+              triggerDates = triggerDates
+            )
+          )
+
+          val subscriptions = List(
+            ZuoraRenewOrderPayloadSubscription(
+              subscriptionNumber = subscriptionNumber,
+              orderActions = orderActions
+            )
+          )
+
+          val processingOptions = ZuoraRenewOrderPayloadProcessingOptions(runBilling = false, collectPayment = false)
+
+          val payload = ZuoraRenewOrderPayload(
+            orderDate = LocalDate.of(2024, 10, 21), // TODO: set correct date
+            existingAccountNumber = "A01269270", // TODO: set correct account number
+            subscriptions = subscriptions,
+            processingOptions = processingOptions
+          )
+
           retry(
-            put[Unit](
-              path = s"subscriptions/${subscriptionNumber}/renew",
-              body = "{}"
+            post[Unit](
+              path = s"v1/orders/",
+              body = write(payload)
             ).mapBoth(
-              e => ZuoraRenewalFailure(s"Failed to renew subscription number ${subscriptionNumber}"),
+              e =>
+                ZuoraRenewalFailure(
+                  s"Failed to renew subscription number ${subscriptionNumber} with payload: ${payload}"
+                ),
               response => ()
             )
           ) <* logging.info(s"renewed subscription ${subscriptionNumber}")
+        }
       }
     )
 }
