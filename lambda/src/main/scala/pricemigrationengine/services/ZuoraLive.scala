@@ -250,7 +250,7 @@ object ZuoraLive {
 
           retry(
             post[Unit](
-              path = s"v1/orders/",
+              path = s"orders",
               body = write(payload)
             ).mapBoth(
               e =>
