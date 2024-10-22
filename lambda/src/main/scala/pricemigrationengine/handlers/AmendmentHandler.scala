@@ -74,17 +74,13 @@ object AmendmentHandler extends CohortHandler {
       .fetchSubscription(item.subscriptionName)
       .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
 
-  private def renewSubscriptionIfNeeded(
+  private def renewSubscription(
       subscription: ZuoraSubscription,
       startDate: LocalDate,
       account: ZuoraAccount
   ): ZIO[Zuora, Failure, Unit] = {
-    if (subscription.termEndDate.isBefore(startDate)) {
-      val payload = ZuoraRenewOrderPayload(subscription.subscriptionNumber, startDate, account.basicInfo.accountNumber)
-      Zuora.renewSubscription(subscription.subscriptionNumber, payload)
-    } else {
-      ZIO.succeed(())
-    }
+    val payload = ZuoraRenewOrderPayload(subscription.subscriptionNumber, startDate, account.basicInfo.accountNumber)
+    Zuora.renewSubscription(subscription.subscriptionNumber, payload)
   }
 
   private def shouldPerformFinalPriceCheck(cohortSpec: CohortSpec): Boolean = {
@@ -123,7 +119,7 @@ object AmendmentHandler extends CohortHandler {
 
       account <- Zuora.fetchAccount(subscriptionBeforeUpdate.accountNumber, subscriptionBeforeUpdate.subscriptionNumber)
 
-      _ <- renewSubscriptionIfNeeded(subscriptionBeforeUpdate, startDate, account)
+      _ <- renewSubscription(subscriptionBeforeUpdate, startDate, account)
 
       invoicePreviewBeforeUpdate <-
         Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
