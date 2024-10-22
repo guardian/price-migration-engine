@@ -30,7 +30,7 @@ object AmendmentHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
-  ): ZIO[CohortTable with Zuora, Failure, AmendmentResult] =
+  ): ZIO[CohortTable with Zuora with Logging, Failure, AmendmentResult] =
     doAmendment(cohortSpec, catalogue, item).foldZIO(
       failure = {
         case _: CancelledSubscriptionFailure => {
@@ -78,9 +78,12 @@ object AmendmentHandler extends CohortHandler {
       subscription: ZuoraSubscription,
       startDate: LocalDate,
       account: ZuoraAccount
-  ): ZIO[Zuora, Failure, Unit] = {
+  ): ZIO[Zuora with Logging, Failure, Unit] = {
     val payload = ZuoraRenewOrderPayload(subscription.subscriptionNumber, startDate, account.basicInfo.accountNumber)
-    Zuora.renewSubscription(subscription.subscriptionNumber, payload)
+    for {
+      _ <- Logging.info(s"Renewing subscription ${subscription.subscriptionNumber} with payload $payload")
+      _ <- Zuora.renewSubscription(subscription.subscriptionNumber, payload)
+    } yield ()
   }
 
   private def shouldPerformFinalPriceCheck(cohortSpec: CohortSpec): Boolean = {
@@ -101,7 +104,7 @@ object AmendmentHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
-  ): ZIO[Zuora, Failure, SuccessfulAmendmentResult] = {
+  ): ZIO[Zuora with Logging, Failure, SuccessfulAmendmentResult] = {
 
     for {
       subscriptionBeforeUpdate <- fetchSubscription(item)
