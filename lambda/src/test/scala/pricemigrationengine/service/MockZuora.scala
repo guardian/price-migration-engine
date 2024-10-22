@@ -38,7 +38,8 @@ object MockZuora extends Mock[Zuora] {
           : ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId] =
         proxy(UpdateSubscription, subscription, update)
 
-      override def renewSubscription(subscriptionNumber: String): ZIO[Any, ZuoraRenewalFailure, Unit] =
+      override def renewSubscription(subscriptionNumber: String, payload: ZuoraRenewOrderPayload)
+          : ZIO[Any, ZuoraRenewalFailure, Unit] =
         proxy(RenewSubscription, subscriptionNumber)
     }
   })

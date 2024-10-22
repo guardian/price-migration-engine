@@ -30,7 +30,7 @@ object AmendmentHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
-  ): ZIO[CohortTable with Zuora, Failure, AmendmentResult] =
+  ): ZIO[CohortTable with Zuora with Logging, Failure, AmendmentResult] =
     doAmendment(cohortSpec, catalogue, item).foldZIO(
       failure = {
         case _: CancelledSubscriptionFailure => {
@@ -74,15 +74,16 @@ object AmendmentHandler extends CohortHandler {
       .fetchSubscription(item.subscriptionName)
       .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
 
-  private def renewSubscriptionIfNeeded(
+  private def renewSubscription(
       subscription: ZuoraSubscription,
-      startDate: LocalDate
-  ): ZIO[Zuora, Failure, Unit] = {
-    if (subscription.termEndDate.isBefore(startDate)) {
-      Zuora.renewSubscription(subscription.subscriptionNumber)
-    } else {
-      ZIO.succeed(())
-    }
+      startDate: LocalDate,
+      account: ZuoraAccount
+  ): ZIO[Zuora with Logging, Failure, Unit] = {
+    val payload = ZuoraRenewOrderPayload(subscription.subscriptionNumber, startDate, account.basicInfo.accountNumber)
+    for {
+      _ <- Logging.info(s"Renewing subscription ${subscription.subscriptionNumber} with payload $payload")
+      _ <- Zuora.renewSubscription(subscription.subscriptionNumber, payload)
+    } yield ()
   }
 
   private def shouldPerformFinalPriceCheck(cohortSpec: CohortSpec): Boolean = {
@@ -103,7 +104,7 @@ object AmendmentHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
-  ): ZIO[Zuora, Failure, SuccessfulAmendmentResult] = {
+  ): ZIO[Zuora with Logging, Failure, SuccessfulAmendmentResult] = {
 
     for {
       subscriptionBeforeUpdate <- fetchSubscription(item)
@@ -119,9 +120,9 @@ object AmendmentHandler extends CohortHandler {
 
       invoicePreviewTargetDate = startDate.plusMonths(13)
 
-      _ <- renewSubscriptionIfNeeded(subscriptionBeforeUpdate, startDate)
-
       account <- Zuora.fetchAccount(subscriptionBeforeUpdate.accountNumber, subscriptionBeforeUpdate.subscriptionNumber)
+
+      _ <- renewSubscription(subscriptionBeforeUpdate, subscriptionBeforeUpdate.termEndDate, account)
 
       invoicePreviewBeforeUpdate <-
         Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)

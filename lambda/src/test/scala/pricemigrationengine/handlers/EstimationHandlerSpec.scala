@@ -103,6 +103,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
   )
 
   private val account = ZuoraAccount(
+    basicInfo = ZuoraAccountBasicInfo("12345"),
     soldToContact = SoldToContact(
       country = "United States"
     )

@@ -208,16 +208,33 @@ object ZuoraLive {
           )
         }
 
-        override def renewSubscription(subscriptionNumber: String): ZIO[Any, ZuoraRenewalFailure, Unit] =
-          retry(
-            put[Unit](
-              path = s"subscriptions/${subscriptionNumber}/renew",
-              body = "{}"
-            ).mapBoth(
-              e => ZuoraRenewalFailure(s"Failed to renew subscription number ${subscriptionNumber}"),
-              response => ()
-            )
-          ) <* logging.info(s"renewed subscription ${subscriptionNumber}")
+        override def renewSubscription(
+            subscriptionNumber: String,
+            payload: ZuoraRenewOrderPayload
+        ): ZIO[Any, ZuoraRenewalFailure, Unit] = {
+
+          post[ZuoraRenewOrderResponse](
+            path = s"orders",
+            body = write(payload)
+          ).foldZIO(
+            failure = e =>
+              ZIO.fail(
+                ZuoraRenewalFailure(
+                  s"[06f5bd6f] subscription number: $subscriptionNumber, payload: ${payload}, reason: ${e.reason}"
+                )
+              ),
+            success = response =>
+              if (response.success) {
+                ZIO.succeed(())
+              } else {
+                ZIO.fail(
+                  ZuoraRenewalFailure(
+                    s"[bc532694] subscription number: $subscriptionNumber, payload: ${payload}, with answer ${response}"
+                  )
+                )
+              }
+          )
+        }
       }
     )
 }
