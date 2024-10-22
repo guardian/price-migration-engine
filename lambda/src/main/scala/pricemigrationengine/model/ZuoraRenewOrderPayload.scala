@@ -41,21 +41,21 @@ object ZuoraRenewOrderPayload {
 
   def apply(
       subscriptionNumber: String,
-      startDate: LocalDate,
+      effectDate: LocalDate,
       accountNumber: String
   ): ZuoraRenewOrderPayload = {
     val triggerDates = List(
       ZuoraRenewOrderPayloadOrderActionTriggerDate(
         "ContractEffective",
-        startDate
+        effectDate
       ),
       ZuoraRenewOrderPayloadOrderActionTriggerDate(
         "ServiceActivation",
-        startDate
+        effectDate
       ),
       ZuoraRenewOrderPayloadOrderActionTriggerDate(
         "CustomerAcceptance",
-        startDate
+        effectDate
       ),
     )
 
@@ -76,7 +76,7 @@ object ZuoraRenewOrderPayload {
     val processingOptions = ZuoraRenewOrderPayloadProcessingOptions(runBilling = false, collectPayment = false)
 
     ZuoraRenewOrderPayload(
-      orderDate = startDate,
+      orderDate = effectDate,
       existingAccountNumber = accountNumber,
       subscriptions = subscriptions,
       processingOptions = processingOptions
