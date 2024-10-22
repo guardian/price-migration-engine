@@ -109,6 +109,8 @@ object AmendmentHandler extends CohortHandler {
     for {
       subscriptionBeforeUpdate <- fetchSubscription(item)
 
+      _ <- Logging.info(s"subscription ${subscriptionBeforeUpdate}")
+
       startDate <- ZIO.fromOption(item.startDate).orElseFail(DataExtractionFailure(s"No start date in $item"))
 
       oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(DataExtractionFailure(s"No old price in $item"))
@@ -121,6 +123,8 @@ object AmendmentHandler extends CohortHandler {
       invoicePreviewTargetDate = startDate.plusMonths(13)
 
       account <- Zuora.fetchAccount(subscriptionBeforeUpdate.accountNumber, subscriptionBeforeUpdate.subscriptionNumber)
+
+      _ <- Logging.info(s"account ${account}")
 
       _ <- renewSubscription(subscriptionBeforeUpdate, startDate, account)
 
