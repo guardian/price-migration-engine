@@ -212,18 +212,28 @@ object ZuoraLive {
             subscriptionNumber: String,
             payload: ZuoraRenewOrderPayload
         ): ZIO[Any, ZuoraRenewalFailure, Unit] = {
-          retry(
-            post[Unit](
-              path = s"orders",
-              body = write(payload)
-            ).mapBoth(
-              e =>
+
+          post[ZuoraRenewOrderResponse](
+            path = s"orders",
+            body = write(payload)
+          ).foldZIO(
+            failure = e =>
+              ZIO.fail(
                 ZuoraRenewalFailure(
-                  s"Failed to renew subscription number ${subscriptionNumber} with payload: ${payload}"
-                ),
-              response => ()
-            )
-          ) <* logging.info(s"renewed subscription ${subscriptionNumber}")
+                  s"[06f5bd6f] subscription number: $subscriptionNumber, payload: ${payload}, reason: ${e.reason}"
+                )
+              ),
+            success = response =>
+              if (response.success) {
+                ZIO.succeed(())
+              } else {
+                ZIO.fail(
+                  ZuoraRenewalFailure(
+                    s"[bc532694] subscription number: $subscriptionNumber, payload: ${payload}, with answer ${response}"
+                  )
+                )
+              }
+          )
         }
       }
     )

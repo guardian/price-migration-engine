@@ -126,7 +126,7 @@ object AmendmentHandler extends CohortHandler {
 
       _ <- Logging.info(s"account ${account}")
 
-      _ <- renewSubscription(subscriptionBeforeUpdate, startDate, account)
+      _ <- renewSubscription(subscriptionBeforeUpdate, subscriptionBeforeUpdate.termEndDate, account)
 
       invoicePreviewBeforeUpdate <-
         Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
