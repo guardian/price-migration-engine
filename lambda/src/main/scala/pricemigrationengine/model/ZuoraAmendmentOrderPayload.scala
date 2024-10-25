@@ -7,91 +7,28 @@ import upickle.default._
 
 sealed trait ZuoraAmendmentOrderPayloadOrderAction
 object ZuoraAmendmentOrderPayloadOrderAction {
-  implicit val rw: ReadWriter[ZuoraAmendmentOrderPayloadOrderAction] = macroRW
+  implicit val w: Writer[ZuoraAmendmentOrderPayloadOrderAction] = Writer.merge(
+    macroW[ZuoraAmendmentOrderPayloadOrderActionAdd],
+    macroW[ZuoraAmendmentOrderPayloadOrderActionRemove]
+  )
 }
-
 case class ZuoraAmendmentOrderPayloadOrderActionTriggerDate(name: String, triggerDate: LocalDate)
 object ZuoraAmendmentOrderPayloadOrderActionTriggerDate {
-  implicit val rw: ReadWriter[ZuoraAmendmentOrderPayloadOrderActionTriggerDate] = macroRW
+  implicit val w: Writer[ZuoraAmendmentOrderPayloadOrderActionTriggerDate] = macroW
 }
 
 case class ZuoraAmendmentOrderPayloadOrderActionRemoveProduct(ratePlanId: String)
 object ZuoraAmendmentOrderPayloadOrderActionRemoveProduct {
-  implicit val rw: ReadWriter[ZuoraAmendmentOrderPayloadOrderActionRemoveProduct] = macroRW
+  implicit val w: Writer[ZuoraAmendmentOrderPayloadOrderActionRemoveProduct] = macroW
 }
 
 case class ZuoraAmendmentOrderPayloadOrderActionRemove(
+    `type`: String,
     triggerDates: List[ZuoraAmendmentOrderPayloadOrderActionTriggerDate],
     removeProduct: ZuoraAmendmentOrderPayloadOrderActionRemoveProduct
 ) extends ZuoraAmendmentOrderPayloadOrderAction
 object ZuoraAmendmentOrderPayloadOrderActionRemove {
-
-  /*
-
-  We are using a custom JSON serialisation for this class because the JSON serialisation provided by upickle
-  would produce:
-
-  {
-    "$type": "ZuoraAmendmentOrderPayloadOrderActionRemove",
-    "triggerDates": [
-      {
-        "name": "ContractEffective",
-        "triggerDate": "2024-11-26"
-      },
-      {
-        "name": "ServiceActivation",
-        "triggerDate": "2024-11-26"
-      },
-      {
-        "name": "CustomerAcceptance",
-        "triggerDate": "2024-11-26"
-      }
-    ],
-    "removeProduct": {
-      "ratePlanId": "8a128e208bdd4251018c0d5050970bd9"
-    }
-  }
-
-  whereas we want:
-
-  {
-    "type": "RemoveProduct",
-    "triggerDates": [
-      {
-        "name": "ContractEffective",
-        "triggerDate": "2024-11-26"
-      },
-      {
-        "name": "ServiceActivation",
-        "triggerDate": "2024-11-26"
-      },
-      {
-        "name": "CustomerAcceptance",
-        "triggerDate": "2024-11-26"
-      }
-    ],
-    "removeProduct": {
-      "ratePlanId": "8a128e208bdd4251018c0d5050970bd9"
-    }
-  }
-
-   */
-
-  implicit val rw: ReadWriter[ZuoraAmendmentOrderPayloadOrderActionRemove] = {
-    readwriter[ujson.Value].bimap[ZuoraAmendmentOrderPayloadOrderActionRemove](
-      action =>
-        ujson.Obj(
-          "type" -> ujson.Str("RemoveProduct"),
-          "triggerDates" -> writeJs(action.triggerDates),
-          "removeProduct" -> writeJs(action.removeProduct)
-        ),
-      json =>
-        ZuoraAmendmentOrderPayloadOrderActionRemove(
-          triggerDates = read[List[ZuoraAmendmentOrderPayloadOrderActionTriggerDate]](json("triggerDates")),
-          removeProduct = read[ZuoraAmendmentOrderPayloadOrderActionRemoveProduct](json("removeProduct"))
-        )
-    )
-  }
+  implicit val w: Writer[ZuoraAmendmentOrderPayloadOrderActionRemove] = macroW
 }
 
 case class ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
@@ -99,7 +36,7 @@ case class ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
     pricing: Map[String, Map[String, BigDecimal]]
 )
 object ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride {
-  implicit val rw: ReadWriter[ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride] = macroRW
+  implicit val w: Writer[ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride] = macroW
 }
 
 case class ZuoraAmendmentOrderPayloadOrderActionAddProduct(
@@ -107,115 +44,16 @@ case class ZuoraAmendmentOrderPayloadOrderActionAddProduct(
     chargeOverrides: List[ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride]
 )
 object ZuoraAmendmentOrderPayloadOrderActionAddProduct {
-  implicit val rw: ReadWriter[ZuoraAmendmentOrderPayloadOrderActionAddProduct] = macroRW
+  implicit val w: Writer[ZuoraAmendmentOrderPayloadOrderActionAddProduct] = macroW
 }
 
 case class ZuoraAmendmentOrderPayloadOrderActionAdd(
+    `type`: String,
     triggerDates: List[ZuoraAmendmentOrderPayloadOrderActionTriggerDate],
     addProduct: ZuoraAmendmentOrderPayloadOrderActionAddProduct
 ) extends ZuoraAmendmentOrderPayloadOrderAction
 object ZuoraAmendmentOrderPayloadOrderActionAdd {
-  /*
-
-  We are using a custom JSON serialisation for this class because the JSON serialisation provided by upickle
-would produce:
-
-  {
-    "$type": "ZuoraAmendmentOrderPayloadOrderActionAdd",
-    "triggerDates": [
-      {
-        "name": "ContractEffective",
-        "triggerDate": "2024-11-26"
-      },
-      {
-        "name": "ServiceActivation",
-        "triggerDate": "2024-11-26"
-      },
-      {
-        "name": "CustomerAcceptance",
-        "triggerDate": "2024-11-26"
-      }
-    ],
-    "addProduct": {
-      "productRatePlanId": "8a128ed885fc6ded018602296ace3eb8",
-      "chargeOverrides": [
-        {
-          "productRatePlanChargeId": "8a128ed885fc6ded018602296af13eba",
-          "pricing": {
-            "recurringFlatFee": {
-              "listPrice": 15
-            }
-          }
-        },
-        {
-          "productRatePlanChargeId": "8a128d7085fc6dec01860234cd075270",
-          "pricing": {
-            "recurringFlatFee": {
-              "listPrice": 0
-            }
-          }
-        }
-      ]
-    }
-  }
-
-  whereas we want:
-
-  {
-    "type": "AddProduct",
-    "triggerDates": [
-      {
-        "name": "ContractEffective",
-        "triggerDate": "2024-11-26"
-      },
-      {
-        "name": "ServiceActivation",
-        "triggerDate": "2024-11-26"
-      },
-      {
-        "name": "CustomerAcceptance",
-        "triggerDate": "2024-11-26"
-      }
-    ],
-    "addProduct": {
-      "productRatePlanId": "8a128ed885fc6ded018602296ace3eb8",
-      "chargeOverrides": [
-        {
-          "productRatePlanChargeId": "8a128ed885fc6ded018602296af13eba",
-          "pricing": {
-            "recurringFlatFee": {
-              "listPrice": 15
-            }
-          }
-        },
-        {
-          "productRatePlanChargeId": "8a128d7085fc6dec01860234cd075270",
-          "pricing": {
-            "recurringFlatFee": {
-              "listPrice": 0
-            }
-          }
-        }
-      ]
-    }
-  }
-
-   */
-  implicit val rw: ReadWriter[ZuoraAmendmentOrderPayloadOrderActionAdd] = {
-    readwriter[ujson.Value].bimap[ZuoraAmendmentOrderPayloadOrderActionAdd](
-      action =>
-        ujson.Obj(
-          "type" -> ujson.Str("AddProduct"),
-          "triggerDates" -> writeJs(action.triggerDates),
-          "addProduct" -> writeJs(action.addProduct)
-        ),
-      json =>
-        ZuoraAmendmentOrderPayloadOrderActionAdd(
-          triggerDates = read[List[ZuoraAmendmentOrderPayloadOrderActionTriggerDate]](json("triggerDates")),
-          addProduct = read[ZuoraAmendmentOrderPayloadOrderActionAddProduct](json("addProduct"))
-        )
-    )
-  }
+  implicit val w: Writer[ZuoraAmendmentOrderPayloadOrderActionAdd] = macroW
 }
 
 case class ZuoraAmendmentOrderPayloadSubscription(
@@ -223,12 +61,12 @@ case class ZuoraAmendmentOrderPayloadSubscription(
     orderActions: List[ZuoraAmendmentOrderPayloadOrderAction]
 )
 object ZuoraAmendmentOrderPayloadSubscription {
-  implicit val rw: ReadWriter[ZuoraAmendmentOrderPayloadSubscription] = macroRW
+  implicit val w: Writer[ZuoraAmendmentOrderPayloadSubscription] = macroW
 }
 
 case class ZuoraAmendmentOrderPayloadProcessingOptions(runBilling: Boolean, collectPayment: Boolean)
 object ZuoraAmendmentOrderPayloadProcessingOptions {
-  implicit val rw: ReadWriter[ZuoraAmendmentOrderPayloadProcessingOptions] = macroRW
+  implicit val w: Writer[ZuoraAmendmentOrderPayloadProcessingOptions] = macroW
 }
 
 case class ZuoraAmendmentOrderPayload(
@@ -238,7 +76,7 @@ case class ZuoraAmendmentOrderPayload(
     processingOptions: ZuoraAmendmentOrderPayloadProcessingOptions
 )
 object ZuoraAmendmentOrderPayload {
-  implicit val rw: ReadWriter[ZuoraAmendmentOrderPayload] = macroRW
+  implicit val w: Writer[ZuoraAmendmentOrderPayload] = macroW
 }
 
 case class ZuoraAmendmentOrderResponse(

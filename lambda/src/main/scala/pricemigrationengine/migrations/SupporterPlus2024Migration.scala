@@ -349,10 +349,12 @@ object SupporterPlus2024Migration {
       ZuoraAmendmentOrderPayloadOrderActionTriggerDate("CustomerAcceptance", effectDate)
     )
     val actionRemove = ZuoraAmendmentOrderPayloadOrderActionRemove(
+      `type` = "RemoveProduct",
       triggerDates = triggerDates,
       removeProduct = ZuoraAmendmentOrderPayloadOrderActionRemoveProduct(removeRatePlanId)
     )
     val actionAdd = ZuoraAmendmentOrderPayloadOrderActionAdd(
+      `type` = "AddProduct",
       triggerDates = triggerDates,
       addProduct = ZuoraAmendmentOrderPayloadOrderActionAddProduct(
         productRatePlanId = productRatePlanId,
