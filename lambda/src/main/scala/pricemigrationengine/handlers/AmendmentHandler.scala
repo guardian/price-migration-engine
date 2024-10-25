@@ -176,9 +176,15 @@ object AmendmentHandler extends CohortHandler {
           )
       }
 
+      _ <- Logging.info(s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with update ${update}")
+
       newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
 
       subscriptionAfterUpdate <- fetchSubscription(item)
+
+      _ <- Logging.info(
+        s"[72f444e3] The new subscription id from Zuora.updateSubscription is ${newSubscriptionId}, and the the id from the newly retrieved subscription is ${subscriptionAfterUpdate.id}"
+      )
 
       invoicePreviewAfterUpdate <-
         Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)
