@@ -323,4 +323,127 @@ object SupporterPlus2024Migration {
       )
     }
   }
+
+  /*
+{
+  "orderDate": "2024-10-24",
+  "existingAccountNumber": "A01955911",
+  "subscriptions": [
+    {
+      "subscriptionNumber": "A-S02019224",
+      "orderActions": [
+        {
+          "type": "RemoveProduct",
+          "triggerDates": [
+            {
+              "name": "ContractEffective",
+              "triggerDate": "2024-11-26"
+            },
+            {
+              "name": "ServiceActivation",
+              "triggerDate": "2024-11-26"
+            },
+            {
+              "name": "CustomerAcceptance",
+              "triggerDate": "2024-11-26"
+            }
+          ],
+          "removeProduct": {
+            "ratePlanId": "8a128e208bdd4251018c0d5050970bd9"
+          }
+        },
+        {
+          "type": "AddProduct",
+          "triggerDates": [
+            {
+              "name": "ContractEffective",
+              "triggerDate": "2024-11-26"
+            },
+            {
+              "name": "ServiceActivation",
+              "triggerDate": "2024-11-26"
+            },
+            {
+              "name": "CustomerAcceptance",
+              "triggerDate": "2024-11-26"
+            }
+          ],
+          "addProduct": {
+            "productRatePlanId": "8a128ed885fc6ded018602296ace3eb8",
+            "chargeOverrides": [
+              {
+                "productRatePlanChargeId": "8a128ed885fc6ded018602296af13eba",
+                "pricing": {
+                  "recurringFlatFee": {
+                    "listPrice": 15
+                  }
+                }
+              },
+              {
+                "productRatePlanChargeId": "8a128d7085fc6dec01860234cd075270",
+                "pricing": {
+                  "recurringFlatFee": {
+                    "listPrice": 0
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "processingOptions": {
+    "runBilling": false,
+    "collectPayment": false
+  }
+}
+   */
+
+  def amendmentOrdersPayload(
+      orderDate: LocalDate,
+      accountNumber: String,
+      subscriptionNumber: String,
+      effectDate: LocalDate,
+      removeRatePlanId: String,
+      newBaseAmount: BigDecimal,
+      newContributionAmount: BigDecimal
+  ): ZuoraAmendmentOrderPayload = {
+    val triggerDates = List(
+      ZuoraAmendmentOrderPayloadOrderActionTriggerDate("ContractEffective", effectDate),
+      ZuoraAmendmentOrderPayloadOrderActionTriggerDate("ServiceActivation", effectDate),
+      ZuoraAmendmentOrderPayloadOrderActionTriggerDate("CustomerAcceptance", effectDate)
+    )
+    val actionRemove = ZuoraAmendmentOrderPayloadOrderActionRemove(
+      triggerDates = triggerDates,
+      removeProduct = ZuoraAmendmentOrderPayloadOrderActionRemoveProduct(removeRatePlanId)
+    )
+    val actionAdd = ZuoraAmendmentOrderPayloadOrderActionAdd(
+      triggerDates = triggerDates,
+      addProduct = ZuoraAmendmentOrderPayloadOrderActionAddProduct(
+        productRatePlanId = "8a128ed885fc6ded018602296ace3eb8",
+        chargeOverrides = List(
+          ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
+            productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
+            pricing = Map("recurringFlatFee" -> Map("listPrice" -> newBaseAmount))
+          ),
+          ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
+            productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270",
+            pricing = Map("recurringFlatFee" -> Map("listPrice" -> newContributionAmount))
+          )
+        )
+      )
+    )
+    val orderActions = List(actionRemove, actionAdd)
+    val subscriptions = List(
+      ZuoraAmendmentOrderPayloadSubscription(subscriptionNumber, orderActions)
+    )
+    val processingOptions = ZuoraAmendmentOrderPayloadProcessingOptions(runBilling = false, collectPayment = false)
+    ZuoraAmendmentOrderPayload(
+      orderDate = orderDate,
+      existingAccountNumber = accountNumber,
+      subscriptions = subscriptions,
+      processingOptions = processingOptions
+    )
+  }
 }
