@@ -28,6 +28,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
 
   private val subscription1 = ZuoraSubscription(
     subscriptionNumber = "S1",
+    id = "I1",
     version = 4,
     accountNumber = "A9107",
     customerAcceptanceDate = LocalDate.of(2022, 1, 1),
@@ -66,6 +67,7 @@ object EstimationHandlerSpec extends ZIOSpecDefault {
 
   private val subscription2 = ZuoraSubscription(
     subscriptionNumber = "S1",
+    id = "I2",
     version = 4,
     accountNumber = "A9107",
     customerAcceptanceDate = LocalDate.of(2022, 1, 1),

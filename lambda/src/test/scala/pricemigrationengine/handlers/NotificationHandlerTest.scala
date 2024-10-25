@@ -131,6 +131,7 @@ class NotificationHandlerTest extends munit.FunSuite {
           ZIO.succeed(
             ZuoraSubscription(
               subscriptionNumber = "subscriptionNumber",
+              id = "id",
               version = 1,
               customerAcceptanceDate = LocalDate.of(2024, 2, 7),
               contractEffectiveDate = LocalDate.of(2024, 2, 7),
