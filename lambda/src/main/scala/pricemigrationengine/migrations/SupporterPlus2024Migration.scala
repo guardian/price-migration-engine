@@ -324,81 +324,12 @@ object SupporterPlus2024Migration {
     }
   }
 
-  /*
-{
-  "orderDate": "2024-10-24",
-  "existingAccountNumber": "A01955911",
-  "subscriptions": [
-    {
-      "subscriptionNumber": "A-S02019224",
-      "orderActions": [
-        {
-          "type": "RemoveProduct",
-          "triggerDates": [
-            {
-              "name": "ContractEffective",
-              "triggerDate": "2024-11-26"
-            },
-            {
-              "name": "ServiceActivation",
-              "triggerDate": "2024-11-26"
-            },
-            {
-              "name": "CustomerAcceptance",
-              "triggerDate": "2024-11-26"
-            }
-          ],
-          "removeProduct": {
-            "ratePlanId": "8a128e208bdd4251018c0d5050970bd9"
-          }
-        },
-        {
-          "type": "AddProduct",
-          "triggerDates": [
-            {
-              "name": "ContractEffective",
-              "triggerDate": "2024-11-26"
-            },
-            {
-              "name": "ServiceActivation",
-              "triggerDate": "2024-11-26"
-            },
-            {
-              "name": "CustomerAcceptance",
-              "triggerDate": "2024-11-26"
-            }
-          ],
-          "addProduct": {
-            "productRatePlanId": "8a128ed885fc6ded018602296ace3eb8",
-            "chargeOverrides": [
-              {
-                "productRatePlanChargeId": "8a128ed885fc6ded018602296af13eba",
-                "pricing": {
-                  "recurringFlatFee": {
-                    "listPrice": 15
-                  }
-                }
-              },
-              {
-                "productRatePlanChargeId": "8a128d7085fc6dec01860234cd075270",
-                "pricing": {
-                  "recurringFlatFee": {
-                    "listPrice": 0
-                  }
-                }
-              }
-            ]
-          }
-        }
-      ]
-    }
-  ],
-  "processingOptions": {
-    "runBilling": false,
-    "collectPayment": false
-  }
-}
-   */
+  // ------------------------------------------------
+  // Orders API Payloads
+  // ------------------------------------------------
+
+  // The two function below have same names but different signatures.
+  // The second one calls the first one.
 
   def amendmentOrdersPayload(
       orderDate: LocalDate,
@@ -406,6 +337,9 @@ object SupporterPlus2024Migration {
       subscriptionNumber: String,
       effectDate: LocalDate,
       removeRatePlanId: String,
+      productRatePlanId: String,
+      existingBaseProductRatePlanChargeId: String,
+      existingContributionRatePlanChargeId: String,
       newBaseAmount: BigDecimal,
       newContributionAmount: BigDecimal
   ): ZuoraAmendmentOrderPayload = {
@@ -421,14 +355,14 @@ object SupporterPlus2024Migration {
     val actionAdd = ZuoraAmendmentOrderPayloadOrderActionAdd(
       triggerDates = triggerDates,
       addProduct = ZuoraAmendmentOrderPayloadOrderActionAddProduct(
-        productRatePlanId = "8a128ed885fc6ded018602296ace3eb8",
+        productRatePlanId = productRatePlanId,
         chargeOverrides = List(
           ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
-            productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
+            productRatePlanChargeId = existingBaseProductRatePlanChargeId,
             pricing = Map("recurringFlatFee" -> Map("listPrice" -> newBaseAmount))
           ),
           ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
-            productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270",
+            productRatePlanChargeId = existingContributionRatePlanChargeId,
             pricing = Map("recurringFlatFee" -> Map("listPrice" -> newContributionAmount))
           )
         )
@@ -444,6 +378,45 @@ object SupporterPlus2024Migration {
       existingAccountNumber = accountNumber,
       subscriptions = subscriptions,
       processingOptions = processingOptions
+    )
+  }
+
+  def amendmentOrderPayload(
+      orderDate: LocalDate,
+      accountNumber: String,
+      subscriptionNumber: String,
+      effectDate: LocalDate,
+      subscription: ZuoraSubscription,
+      oldPrice: BigDecimal,
+      estimatedNewPrice: BigDecimal,
+      priceCap: BigDecimal
+  ): Either[Failure, ZuoraAmendmentOrderPayload] = {
+    for {
+      existingRatePlan <- getSupporterPlusV2RatePlan(subscription)
+      existingBaseRatePlanCharge <- getSupporterPlusBaseRatePlanCharge(
+        subscription.subscriptionNumber,
+        existingRatePlan
+      )
+      existingContributionRatePlanCharge <- getSupporterPlusContributionRatePlanCharge(
+        subscription.subscriptionNumber,
+        existingRatePlan
+      )
+      existingContributionPrice <- existingContributionRatePlanCharge.price.toRight(
+        DataExtractionFailure(
+          s"[e4e702b6] Could not extract existing contribution price for subscription ${subscription.subscriptionNumber}"
+        )
+      )
+    } yield amendmentOrdersPayload(
+      orderDate = orderDate,
+      accountNumber = accountNumber,
+      subscriptionNumber = subscriptionNumber,
+      effectDate = effectDate,
+      removeRatePlanId = existingRatePlan.id,
+      productRatePlanId = existingRatePlan.productRatePlanId,
+      existingBaseProductRatePlanChargeId = existingBaseRatePlanCharge.productRatePlanChargeId,
+      existingContributionRatePlanChargeId = existingContributionRatePlanCharge.productRatePlanChargeId,
+      newBaseAmount = PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, priceCap),
+      newContributionAmount = existingContributionPrice
     )
   }
 }

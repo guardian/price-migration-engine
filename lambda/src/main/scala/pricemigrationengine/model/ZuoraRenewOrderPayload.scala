@@ -40,9 +40,10 @@ object ZuoraRenewOrderPayload {
   implicit val rwZuoraRenewOrderPayload: ReadWriter[ZuoraRenewOrderPayload] = macroRW
 
   def apply(
+      orderDate: LocalDate,
       subscriptionNumber: String,
-      effectDate: LocalDate,
-      accountNumber: String
+      accountNumber: String,
+      effectDate: LocalDate
   ): ZuoraRenewOrderPayload = {
     val triggerDates = List(
       ZuoraRenewOrderPayloadOrderActionTriggerDate(
@@ -76,7 +77,7 @@ object ZuoraRenewOrderPayload {
     val processingOptions = ZuoraRenewOrderPayloadProcessingOptions(runBilling = false, collectPayment = false)
 
     ZuoraRenewOrderPayload(
-      orderDate = effectDate,
+      orderDate = orderDate,
       existingAccountNumber = accountNumber,
       subscriptions = subscriptions,
       processingOptions = processingOptions
