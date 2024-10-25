@@ -74,3 +74,12 @@ case class ZuoraAmendmentOrderPayload(
 object ZuoraAmendmentOrderPayload {
   implicit val rw: ReadWriter[ZuoraAmendmentOrderPayload] = macroRW
 }
+
+case class ZuoraAmendmentOrderResponse(
+    success: Boolean
+    // Be careful if you are considering extending this class because the answer's shape
+    // varies depending on whether the operation was successful or not.
+)
+object ZuoraAmendmentOrderResponse {
+  implicit val rw: ReadWriter[ZuoraAmendmentOrderResponse] = macroRW
+}

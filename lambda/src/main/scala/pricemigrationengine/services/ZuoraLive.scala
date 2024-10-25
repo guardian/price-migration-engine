@@ -208,11 +208,37 @@ object ZuoraLive {
           )
         }
 
+        override def applyAmendmentOrder(
+            subscription: ZuoraSubscription,
+            payload: ZuoraAmendmentOrderPayload
+        ): ZIO[Any, ZuoraOrderFailure, Unit] = {
+          post[ZuoraAmendmentOrderResponse](
+            path = s"orders",
+            body = write(payload)
+          ).foldZIO(
+            failure = e =>
+              ZIO.fail(
+                ZuoraOrderFailure(
+                  s"[f8569839] subscription number: ${subscription.subscriptionNumber}, payload: ${payload}, reason: ${e.reason}"
+                )
+              ),
+            success = response =>
+              if (response.success) {
+                ZIO.succeed(())
+              } else {
+                ZIO.fail(
+                  ZuoraOrderFailure(
+                    s"[bb6f22ef] subscription number: ${subscription.subscriptionNumber}, payload: ${payload}, with answer ${response}"
+                  )
+                )
+              }
+          )
+        }
+
         override def renewSubscription(
             subscriptionNumber: String,
             payload: ZuoraRenewOrderPayload
         ): ZIO[Any, ZuoraRenewalFailure, Unit] = {
-
           post[ZuoraRenewOrderResponse](
             path = s"orders",
             body = write(payload)
@@ -220,7 +246,7 @@ object ZuoraLive {
             failure = e =>
               ZIO.fail(
                 ZuoraRenewalFailure(
-                  s"[06f5bd6f] subscription number: $subscriptionNumber, payload: ${payload}, reason: ${e.reason}"
+                  s"[06f5bd6f] subscription number: ${subscriptionNumber}, payload: ${payload}, reason: ${e.reason}"
                 )
               ),
             success = response =>
@@ -229,7 +255,7 @@ object ZuoraLive {
               } else {
                 ZIO.fail(
                   ZuoraRenewalFailure(
-                    s"[bc532694] subscription number: $subscriptionNumber, payload: ${payload}, with answer ${response}"
+                    s"[bc532694] subscription number: ${subscriptionNumber}, payload: ${payload}, with answer ${response}"
                   )
                 )
               }
