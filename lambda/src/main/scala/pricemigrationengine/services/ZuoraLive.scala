@@ -228,7 +228,7 @@ object ZuoraLive {
               } else {
                 ZIO.fail(
                   ZuoraOrderFailure(
-                    s"[bb6f22ef] subscription number: ${subscription.subscriptionNumber}, payload: ${payload}, with answer ${response}"
+                    s"[bb6f22ef] subscription number: ${subscription.subscriptionNumber}, payload: ${payload}, serialised payload: ${write(payload)}, with answer ${response}"
                   )
                 )
               }
