@@ -1125,6 +1125,12 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     )
   }
   test("Correct JSON serialisation for ZuoraAmendmentOrderPayloadOrderActionRemove") {
+
+    // Here we are testing the natural serialization of the whole payload, by upickle.
+    // The purpose is to ensure that the model hierarchy leads to the same essential JSON structure.
+    // See comment cada56ad for more details on the structure and information about how we sanitize the JSON
+    // before we send it to Zuora.
+
     val data = ZuoraAmendmentOrderPayloadOrderActionRemove(
       `type` = "RemoveProduct",
       triggerDates = List(
@@ -1171,6 +1177,12 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     )
   }
   test("Correct JSON serialisation for ZuoraAmendmentOrderPayloadOrderActionAdd") {
+
+    // Here we are testing the natural serialization of the whole payload, by upickle.
+    // The purpose is to ensure that the model hierarchy leads to the same essential JSON structure.
+    // See comment cada56ad for more details on the structure and information about how we sanitize the JSON
+    // before we send it to Zuora.
+
     val data = ZuoraAmendmentOrderPayloadOrderActionAdd(
       `type` = "AddProduct",
       triggerDates = List(
@@ -1255,6 +1267,12 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
   test(
     "Correct JSON serialisation for ZuoraAmendmentOrderPayload using SupporterPlus2024Migration.amendmentOrdersPayload"
   ) {
+
+    // Here we are testing the natural serialization of the whole payload, by upickle.
+    // The purpose is to ensure that the model hierarchy leads to the same essential JSON structure.
+    // See comment cada56ad for more details on the structure and information about how we sanitize the JSON
+    // before we send it to Zuora.
+
     val data = SupporterPlus2024Migration.amendmentOrdersPayload(
       orderDate = LocalDate.of(2024, 10, 24),
       accountNumber = "A01955911",
