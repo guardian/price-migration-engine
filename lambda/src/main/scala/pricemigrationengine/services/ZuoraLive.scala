@@ -212,9 +212,18 @@ object ZuoraLive {
             subscription: ZuoraSubscription,
             payload: ZuoraAmendmentOrderPayload
         ): ZIO[Any, ZuoraOrderFailure, Unit] = {
+
+          def type_flush(str: String): String = {
+            str
+              .replace(""""$type":"ZuoraAmendmentOrderPayloadOrderActionAdd",""", "")
+              .replace(""""$type":"ZuoraAmendmentOrderPayloadOrderActionRemove",""", "")
+          }
+
+          val body = type_flush(write(payload))
+
           post[ZuoraAmendmentOrderResponse](
             path = s"orders",
-            body = write(payload)
+            body = type_flush(write(payload))
           ).foldZIO(
             failure = e =>
               ZIO.fail(
@@ -228,7 +237,7 @@ object ZuoraLive {
               } else {
                 ZIO.fail(
                   ZuoraOrderFailure(
-                    s"[bb6f22ef] subscription number: ${subscription.subscriptionNumber}, payload: ${payload}, serialised payload: ${write(payload)}, with answer ${response}"
+                    s"[bb6f22ef] subscription number: ${subscription.subscriptionNumber}, payload: ${payload}, serialised payload: ${body}, with answer ${response}"
                   )
                 )
               }
