@@ -134,9 +134,6 @@ object AmendmentHandler extends CohortHandler {
 
           _ <- renewSubscription(subscriptionBeforeUpdate, subscriptionBeforeUpdate.termEndDate, account)
 
-          invoicePreviewBeforeUpdate <-
-            Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
-
           update <- ZIO.fromEither(
             SupporterPlus2024Migration.zuoraUpdate(
               subscriptionBeforeUpdate,
