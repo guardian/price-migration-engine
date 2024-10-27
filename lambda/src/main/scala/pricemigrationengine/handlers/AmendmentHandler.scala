@@ -144,6 +144,10 @@ object AmendmentHandler extends CohortHandler {
             )
           )
 
+          _ <- Logging.info(
+            s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with update ${update}"
+          )
+
           newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
 
           subscriptionAfterUpdate <- fetchSubscription(item)
@@ -244,6 +248,10 @@ object AmendmentHandler extends CohortHandler {
                   )
               )
           }
+
+          _ <- Logging.info(
+            s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with update ${update}"
+          )
 
           newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
 
