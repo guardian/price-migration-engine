@@ -220,7 +220,7 @@ object ZuoraLive {
             failure = e =>
               ZIO.fail(
                 ZuoraRenewalFailure(
-                  s"[06f5bd6f] subscription number: $subscriptionNumber, payload: ${payload}, reason: ${e.reason}"
+                  s"[06f5bd6f] subscription number: ${subscriptionNumber}, payload: ${payload}, reason: ${e.reason}"
                 )
               ),
             success = response =>
@@ -229,7 +229,7 @@ object ZuoraLive {
               } else {
                 ZIO.fail(
                   ZuoraRenewalFailure(
-                    s"[bc532694] subscription number: $subscriptionNumber, payload: ${payload}, with answer ${response}"
+                    s"[bc532694] subscription number: ${subscriptionNumber}, payload: ${payload}, with answer ${response}"
                   )
                 )
               }
