@@ -290,7 +290,7 @@ object AmendmentHandler extends CohortHandler {
           oldPrice,
           newPrice,
           estimatedNewPrice,
-          newSubscriptionId,
+          subscriptionAfterUpdate.id,
           whenDone
         )
       }
