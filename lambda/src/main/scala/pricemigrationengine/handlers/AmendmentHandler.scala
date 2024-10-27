@@ -137,54 +137,15 @@ object AmendmentHandler extends CohortHandler {
           invoicePreviewBeforeUpdate <-
             Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
 
-          update <- MigrationType(cohortSpec) match {
-            case DigiSubs2023 =>
-              ZIO.fromEither(
-                DigiSubs2023Migration.zuoraUpdate(
-                  subscriptionBeforeUpdate,
-                  startDate,
-                )
-              )
-            case Newspaper2024 =>
-              ZIO.fromEither(
-                newspaper2024Migration.Amendment.zuoraUpdate(
-                  subscriptionBeforeUpdate,
-                  startDate,
-                )
-              )
-            case GW2024 =>
-              ZIO.fromEither(
-                GW2024Migration.zuoraUpdate(
-                  subscriptionBeforeUpdate,
-                  startDate,
-                  oldPrice,
-                  estimatedNewPrice,
-                  GW2024Migration.priceCap
-                )
-              )
-            case SupporterPlus2024 =>
-              ZIO.fromEither(
-                SupporterPlus2024Migration.zuoraUpdate(
-                  subscriptionBeforeUpdate,
-                  startDate,
-                  oldPrice,
-                  estimatedNewPrice,
-                  SupporterPlus2024Migration.priceCap
-                )
-              )
-            case Default =>
-              ZIO.fromEither(
-                ZuoraSubscriptionUpdate
-                  .zuoraUpdate(
-                    account,
-                    catalogue,
-                    subscriptionBeforeUpdate,
-                    invoicePreviewBeforeUpdate,
-                    startDate,
-                    Some(PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice))
-                  )
-              )
-          }
+          update <- ZIO.fromEither(
+            SupporterPlus2024Migration.zuoraUpdate(
+              subscriptionBeforeUpdate,
+              startDate,
+              oldPrice,
+              estimatedNewPrice,
+              SupporterPlus2024Migration.priceCap
+            )
+          )
 
           newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
 
