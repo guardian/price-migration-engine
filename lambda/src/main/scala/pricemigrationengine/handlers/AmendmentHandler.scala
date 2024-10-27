@@ -76,10 +76,10 @@ object AmendmentHandler extends CohortHandler {
 
   private def renewSubscription(
       subscription: ZuoraSubscription,
-      startDate: LocalDate,
+      effectDate: LocalDate,
       account: ZuoraAccount
   ): ZIO[Zuora with Logging, Failure, Unit] = {
-    val payload = ZuoraRenewOrderPayload(subscription.subscriptionNumber, startDate, account.basicInfo.accountNumber)
+    val payload = ZuoraRenewOrderPayload(subscription.subscriptionNumber, effectDate, account.basicInfo.accountNumber)
     for {
       _ <- Logging.info(s"Renewing subscription ${subscription.subscriptionNumber} with payload $payload")
       _ <- Zuora.renewSubscription(subscription.subscriptionNumber, payload)
