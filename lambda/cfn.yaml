@@ -383,6 +383,11 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !FindInMap [StageMap, !Ref Stage, BucketName]
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
 
   PriceMigrationEngineTableCreateLambda:
     Type: AWS::Lambda::Function
