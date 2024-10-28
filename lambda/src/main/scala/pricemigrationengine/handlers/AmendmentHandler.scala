@@ -76,10 +76,15 @@ object AmendmentHandler extends CohortHandler {
 
   private def renewSubscription(
       subscription: ZuoraSubscription,
-      startDate: LocalDate,
+      effectDate: LocalDate,
       account: ZuoraAccount
   ): ZIO[Zuora with Logging, Failure, Unit] = {
-    val payload = ZuoraRenewOrderPayload(subscription.subscriptionNumber, startDate, account.basicInfo.accountNumber)
+    val payload = ZuoraRenewOrderPayload(
+      LocalDate.now(),
+      subscription.subscriptionNumber,
+      account.basicInfo.accountNumber,
+      effectDate
+    )
     for {
       _ <- Logging.info(s"Renewing subscription ${subscription.subscriptionNumber} with payload $payload")
       _ <- Zuora.renewSubscription(subscription.subscriptionNumber, payload)
@@ -106,54 +111,30 @@ object AmendmentHandler extends CohortHandler {
       item: CohortItem
   ): ZIO[Zuora with Logging, Failure, SuccessfulAmendmentResult] = {
 
-    for {
-      subscriptionBeforeUpdate <- fetchSubscription(item)
+    MigrationType(cohortSpec) match {
+      case SupporterPlus2024 => {
+        for {
+          subscriptionBeforeUpdate <- fetchSubscription(item)
 
-      startDate <- ZIO.fromOption(item.startDate).orElseFail(DataExtractionFailure(s"No start date in $item"))
+          startDate <- ZIO.fromOption(item.startDate).orElseFail(DataExtractionFailure(s"No start date in $item"))
 
-      oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(DataExtractionFailure(s"No old price in $item"))
+          oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(DataExtractionFailure(s"No old price in $item"))
 
-      estimatedNewPrice <-
-        ZIO
-          .fromOption(item.estimatedNewPrice)
-          .orElseFail(DataExtractionFailure(s"No estimated new price in $item"))
+          estimatedNewPrice <-
+            ZIO
+              .fromOption(item.estimatedNewPrice)
+              .orElseFail(DataExtractionFailure(s"No estimated new price in $item"))
 
-      invoicePreviewTargetDate = startDate.plusMonths(13)
+          invoicePreviewTargetDate = startDate.plusMonths(13)
 
-      account <- Zuora.fetchAccount(subscriptionBeforeUpdate.accountNumber, subscriptionBeforeUpdate.subscriptionNumber)
-
-      _ <- renewSubscription(subscriptionBeforeUpdate, subscriptionBeforeUpdate.termEndDate, account)
-
-      invoicePreviewBeforeUpdate <-
-        Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
-
-      update <- MigrationType(cohortSpec) match {
-        case DigiSubs2023 =>
-          ZIO.fromEither(
-            DigiSubs2023Migration.zuoraUpdate(
-              subscriptionBeforeUpdate,
-              startDate,
-            )
+          account <- Zuora.fetchAccount(
+            subscriptionBeforeUpdate.accountNumber,
+            subscriptionBeforeUpdate.subscriptionNumber
           )
-        case Newspaper2024 =>
-          ZIO.fromEither(
-            newspaper2024Migration.Amendment.zuoraUpdate(
-              subscriptionBeforeUpdate,
-              startDate,
-            )
-          )
-        case GW2024 =>
-          ZIO.fromEither(
-            GW2024Migration.zuoraUpdate(
-              subscriptionBeforeUpdate,
-              startDate,
-              oldPrice,
-              estimatedNewPrice,
-              GW2024Migration.priceCap
-            )
-          )
-        case SupporterPlus2024 =>
-          ZIO.fromEither(
+
+          _ <- renewSubscription(subscriptionBeforeUpdate, subscriptionBeforeUpdate.termEndDate, account)
+
+          update <- ZIO.fromEither(
             SupporterPlus2024Migration.zuoraUpdate(
               subscriptionBeforeUpdate,
               startDate,
@@ -162,57 +143,155 @@ object AmendmentHandler extends CohortHandler {
               SupporterPlus2024Migration.priceCap
             )
           )
-        case Default =>
-          ZIO.fromEither(
-            ZuoraSubscriptionUpdate
-              .zuoraUpdate(
-                account,
-                catalogue,
-                subscriptionBeforeUpdate,
-                invoicePreviewBeforeUpdate,
-                startDate,
-                Some(PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice))
+
+          _ <- Logging.info(
+            s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with update ${update}"
+          )
+
+          newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
+
+          subscriptionAfterUpdate <- fetchSubscription(item)
+
+          invoicePreviewAfterUpdate <-
+            Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)
+
+          newPrice <-
+            ZIO.fromEither(
+              AmendmentData.totalChargeAmount(
+                subscriptionAfterUpdate,
+                invoicePreviewAfterUpdate,
+                startDate
               )
-          )
-      }
-
-      newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
-
-      subscriptionAfterUpdate <- fetchSubscription(item)
-
-      invoicePreviewAfterUpdate <-
-        Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)
-
-      newPrice <-
-        ZIO.fromEither(
-          AmendmentData.totalChargeAmount(
-            subscriptionAfterUpdate,
-            invoicePreviewAfterUpdate,
-            startDate
-          )
-        )
-
-      _ <-
-        if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec) && (newPrice > estimatedNewPrice)) {
-          ZIO.fail(
-            DataExtractionFailure(
-              s"[e9054daa] Item ${item} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice}"
             )
-          )
-        } else {
-          ZIO.succeed(())
-        }
 
-      whenDone <- Clock.instant
-    } yield SuccessfulAmendmentResult(
-      item.subscriptionName,
-      startDate,
-      oldPrice,
-      newPrice,
-      estimatedNewPrice,
-      newSubscriptionId,
-      whenDone
-    )
+          whenDone <- Clock.instant
+        } yield SuccessfulAmendmentResult(
+          item.subscriptionName,
+          startDate,
+          oldPrice,
+          newPrice,
+          estimatedNewPrice,
+          subscriptionAfterUpdate.id,
+          whenDone
+        )
+      }
+      case _ => {
+        for {
+          subscriptionBeforeUpdate <- fetchSubscription(item)
+
+          startDate <- ZIO.fromOption(item.startDate).orElseFail(DataExtractionFailure(s"No start date in $item"))
+
+          oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(DataExtractionFailure(s"No old price in $item"))
+
+          estimatedNewPrice <-
+            ZIO
+              .fromOption(item.estimatedNewPrice)
+              .orElseFail(DataExtractionFailure(s"No estimated new price in $item"))
+
+          invoicePreviewTargetDate = startDate.plusMonths(13)
+
+          account <- Zuora.fetchAccount(
+            subscriptionBeforeUpdate.accountNumber,
+            subscriptionBeforeUpdate.subscriptionNumber
+          )
+
+          _ <- renewSubscription(subscriptionBeforeUpdate, subscriptionBeforeUpdate.termEndDate, account)
+
+          invoicePreviewBeforeUpdate <-
+            Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
+
+          update <- MigrationType(cohortSpec) match {
+            case DigiSubs2023 =>
+              ZIO.fromEither(
+                DigiSubs2023Migration.zuoraUpdate(
+                  subscriptionBeforeUpdate,
+                  startDate,
+                )
+              )
+            case Newspaper2024 =>
+              ZIO.fromEither(
+                newspaper2024Migration.Amendment.zuoraUpdate(
+                  subscriptionBeforeUpdate,
+                  startDate,
+                )
+              )
+            case GW2024 =>
+              ZIO.fromEither(
+                GW2024Migration.zuoraUpdate(
+                  subscriptionBeforeUpdate,
+                  startDate,
+                  oldPrice,
+                  estimatedNewPrice,
+                  GW2024Migration.priceCap
+                )
+              )
+            case SupporterPlus2024 =>
+              ZIO.fromEither(
+                SupporterPlus2024Migration.zuoraUpdate(
+                  subscriptionBeforeUpdate,
+                  startDate,
+                  oldPrice,
+                  estimatedNewPrice,
+                  SupporterPlus2024Migration.priceCap
+                )
+              )
+            case Default =>
+              ZIO.fromEither(
+                ZuoraSubscriptionUpdate
+                  .zuoraUpdate(
+                    account,
+                    catalogue,
+                    subscriptionBeforeUpdate,
+                    invoicePreviewBeforeUpdate,
+                    startDate,
+                    Some(PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice))
+                  )
+              )
+          }
+
+          _ <- Logging.info(
+            s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with update ${update}"
+          )
+
+          newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
+
+          subscriptionAfterUpdate <- fetchSubscription(item)
+
+          invoicePreviewAfterUpdate <-
+            Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)
+
+          newPrice <-
+            ZIO.fromEither(
+              AmendmentData.totalChargeAmount(
+                subscriptionAfterUpdate,
+                invoicePreviewAfterUpdate,
+                startDate
+              )
+            )
+
+          _ <-
+            if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec) && (newPrice > estimatedNewPrice)) {
+              ZIO.fail(
+                DataExtractionFailure(
+                  s"[e9054daa] Item ${item} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice}"
+                )
+              )
+            } else {
+              ZIO.succeed(())
+            }
+
+          whenDone <- Clock.instant
+        } yield SuccessfulAmendmentResult(
+          item.subscriptionName,
+          startDate,
+          oldPrice,
+          newPrice,
+          estimatedNewPrice,
+          subscriptionAfterUpdate.id,
+          whenDone
+        )
+      }
+    }
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
