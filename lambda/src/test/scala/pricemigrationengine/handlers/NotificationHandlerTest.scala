@@ -163,6 +163,11 @@ class NotificationHandlerTest extends munit.FunSuite {
             update: ZuoraSubscriptionUpdate
         ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId] = ZIO.succeed("ZuoraSubscriptionId")
 
+        override def applyAmendmentOrder(
+            subscription: ZuoraSubscription,
+            payload: ZuoraAmendmentOrderPayload
+        ): ZIO[Any, ZuoraOrderFailure, Unit] = ZIO.succeed(())
+
         override def renewSubscription(
             subscriptionNumber: String,
             payload: ZuoraRenewOrderPayload

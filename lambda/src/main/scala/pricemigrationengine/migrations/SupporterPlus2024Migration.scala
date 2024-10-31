@@ -323,4 +323,102 @@ object SupporterPlus2024Migration {
       )
     }
   }
+
+  // ------------------------------------------------
+  // Orders API Payloads
+  // ------------------------------------------------
+
+  // The two function below have same names but different signatures.
+  // The second one calls the first one.
+
+  def amendmentOrdersPayload(
+      orderDate: LocalDate,
+      accountNumber: String,
+      subscriptionNumber: String,
+      effectDate: LocalDate,
+      removeRatePlanId: String,
+      productRatePlanId: String,
+      existingBaseProductRatePlanChargeId: String,
+      existingContributionRatePlanChargeId: String,
+      newBaseAmount: BigDecimal,
+      newContributionAmount: BigDecimal
+  ): ZuoraAmendmentOrderPayload = {
+    val triggerDates = List(
+      ZuoraAmendmentOrderPayloadOrderActionTriggerDate("ContractEffective", effectDate),
+      ZuoraAmendmentOrderPayloadOrderActionTriggerDate("ServiceActivation", effectDate),
+      ZuoraAmendmentOrderPayloadOrderActionTriggerDate("CustomerAcceptance", effectDate)
+    )
+    val actionRemove = ZuoraAmendmentOrderPayloadOrderActionRemove(
+      `type` = "RemoveProduct",
+      triggerDates = triggerDates,
+      removeProduct = ZuoraAmendmentOrderPayloadOrderActionRemoveProduct(removeRatePlanId)
+    )
+    val actionAdd = ZuoraAmendmentOrderPayloadOrderActionAdd(
+      `type` = "AddProduct",
+      triggerDates = triggerDates,
+      addProduct = ZuoraAmendmentOrderPayloadOrderActionAddProduct(
+        productRatePlanId = productRatePlanId,
+        chargeOverrides = List(
+          ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
+            productRatePlanChargeId = existingBaseProductRatePlanChargeId,
+            pricing = Map("recurringFlatFee" -> Map("listPrice" -> newBaseAmount))
+          ),
+          ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
+            productRatePlanChargeId = existingContributionRatePlanChargeId,
+            pricing = Map("recurringFlatFee" -> Map("listPrice" -> newContributionAmount))
+          )
+        )
+      )
+    )
+    val orderActions = List(actionRemove, actionAdd)
+    val subscriptions = List(
+      ZuoraAmendmentOrderPayloadSubscription(subscriptionNumber, orderActions)
+    )
+    val processingOptions = ZuoraAmendmentOrderPayloadProcessingOptions(runBilling = false, collectPayment = false)
+    ZuoraAmendmentOrderPayload(
+      orderDate = orderDate,
+      existingAccountNumber = accountNumber,
+      subscriptions = subscriptions,
+      processingOptions = processingOptions
+    )
+  }
+
+  def amendmentOrderPayload(
+      orderDate: LocalDate,
+      accountNumber: String,
+      subscriptionNumber: String,
+      effectDate: LocalDate,
+      subscription: ZuoraSubscription,
+      oldPrice: BigDecimal,
+      estimatedNewPrice: BigDecimal,
+      priceCap: BigDecimal
+  ): Either[Failure, ZuoraAmendmentOrderPayload] = {
+    for {
+      existingRatePlan <- getSupporterPlusV2RatePlan(subscription)
+      existingBaseRatePlanCharge <- getSupporterPlusBaseRatePlanCharge(
+        subscription.subscriptionNumber,
+        existingRatePlan
+      )
+      existingContributionRatePlanCharge <- getSupporterPlusContributionRatePlanCharge(
+        subscription.subscriptionNumber,
+        existingRatePlan
+      )
+      existingContributionPrice <- existingContributionRatePlanCharge.price.toRight(
+        DataExtractionFailure(
+          s"[e4e702b6] Could not extract existing contribution price for subscription ${subscription.subscriptionNumber}"
+        )
+      )
+    } yield amendmentOrdersPayload(
+      orderDate = orderDate,
+      accountNumber = accountNumber,
+      subscriptionNumber = subscriptionNumber,
+      effectDate = effectDate,
+      removeRatePlanId = existingRatePlan.id,
+      productRatePlanId = existingRatePlan.productRatePlanId,
+      existingBaseProductRatePlanChargeId = existingBaseRatePlanCharge.productRatePlanChargeId,
+      existingContributionRatePlanChargeId = existingContributionRatePlanCharge.productRatePlanChargeId,
+      newBaseAmount = PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, priceCap),
+      newContributionAmount = existingContributionPrice
+    )
+  }
 }
