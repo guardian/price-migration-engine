@@ -15,7 +15,7 @@ object MockZuora extends Mock[Zuora] {
   object FetchProductCatalogue extends Effect[Unit, ZuoraFetchFailure, ZuoraProductCatalogue]
   object UpdateSubscription
       extends Effect[(ZuoraSubscription, ZuoraSubscriptionUpdate), ZuoraUpdateFailure, ZuoraSubscriptionId]
-
+  object ApplyAmendmentOrder extends Effect[(ZuoraSubscription, ZuoraAmendmentOrderPayload), ZuoraOrderFailure, Unit]
   object RenewSubscription extends Effect[String, ZuoraRenewalFailure, Unit]
 
   val compose: URLayer[Proxy, Zuora] = ZLayer.fromZIO(ZIO.service[Proxy].map { proxy =>
@@ -37,6 +37,11 @@ object MockZuora extends Mock[Zuora] {
       override def updateSubscription(subscription: ZuoraSubscription, update: ZuoraSubscriptionUpdate)
           : ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId] =
         proxy(UpdateSubscription, subscription, update)
+
+      override def applyAmendmentOrder(
+          subscription: ZuoraSubscription,
+          payload: ZuoraAmendmentOrderPayload
+      ): ZIO[Any, ZuoraOrderFailure, Unit] = proxy(ApplyAmendmentOrder, subscription, payload)
 
       override def renewSubscription(subscriptionNumber: String, payload: ZuoraRenewOrderPayload)
           : ZIO[Any, ZuoraRenewalFailure, Unit] =

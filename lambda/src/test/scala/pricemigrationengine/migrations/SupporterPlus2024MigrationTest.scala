@@ -1,10 +1,10 @@
 package pricemigrationengine.migrations
 
 import pricemigrationengine.model._
+import upickle.default._
 
 import java.time.LocalDate
 import pricemigrationengine.Fixtures
-import pricemigrationengine.migrations.SupporterPlus2024Migration
 
 class SupporterPlus2024MigrationTest extends munit.FunSuite {
 
@@ -857,6 +857,511 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
           currentTermPeriodType = None
         )
       )
+    )
+  }
+
+  // -----------------------------------
+  // Orders API
+
+  test("amendmentOrderPayload (monthly)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.amendmentOrderPayload(
+        orderDate = LocalDate.of(2024, 10, 25),
+        accountNumber = "74bff0f2",
+        subscriptionNumber = subscription.subscriptionNumber,
+        effectDate = LocalDate.of(2024, 11, 27),
+        subscription = subscription,
+        oldPrice = 10,
+        estimatedNewPrice = 12,
+        priceCap = 1.27
+      ),
+      Right(
+        ZuoraAmendmentOrderPayload(
+          orderDate = LocalDate.of(2024, 10, 25),
+          existingAccountNumber = "74bff0f2",
+          subscriptions = List(
+            ZuoraAmendmentOrderPayloadSubscription(
+              subscriptionNumber = "SUBSCRIPTION-NUMBER",
+              orderActions = List(
+                ZuoraAmendmentOrderPayloadOrderActionRemove(
+                  `type` = "RemoveProduct",
+                  triggerDates = List(
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "ContractEffective",
+                      triggerDate = LocalDate.of(2024, 11, 27)
+                    ),
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "ServiceActivation",
+                      triggerDate = LocalDate.of(2024, 11, 27)
+                    ),
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "CustomerAcceptance",
+                      triggerDate = LocalDate.of(2024, 11, 27)
+                    )
+                  ),
+                  removeProduct = ZuoraAmendmentOrderPayloadOrderActionRemoveProduct(
+                    ratePlanId = "8a12908b8dd07f56018de8f4950923b8"
+                  )
+                ),
+                ZuoraAmendmentOrderPayloadOrderActionAdd(
+                  `type` = "AddProduct",
+                  triggerDates = List(
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "ContractEffective",
+                      triggerDate = LocalDate.of(2024, 11, 27)
+                    ),
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "ServiceActivation",
+                      triggerDate = LocalDate.of(2024, 11, 27)
+                    ),
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "CustomerAcceptance",
+                      triggerDate = LocalDate.of(2024, 11, 27)
+                    )
+                  ),
+                  addProduct = ZuoraAmendmentOrderPayloadOrderActionAddProduct(
+                    productRatePlanId = "8a128ed885fc6ded018602296ace3eb8",
+                    chargeOverrides = List(
+                      ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
+                        productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
+                        pricing = Map(
+                          "recurringFlatFee" -> Map(
+                            "listPrice" -> 12
+                          )
+                        )
+                      ),
+                      ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
+                        productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270",
+                        pricing = Map(
+                          "recurringFlatFee" -> Map(
+                            "listPrice" -> 0.0
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          processingOptions = ZuoraAmendmentOrderPayloadProcessingOptions(false, false)
+        )
+      )
+    )
+  }
+  test("amendmentOrderPayload (monthly), with artificial cap") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.amendmentOrderPayload(
+        orderDate = LocalDate.of(2024, 10, 25),
+        accountNumber = "74bff0f2",
+        subscriptionNumber = subscription.subscriptionNumber,
+        effectDate = LocalDate.of(2024, 11, 27),
+        subscription = subscription,
+        oldPrice = 10,
+        estimatedNewPrice = 12,
+        priceCap = 1.1
+      ),
+      Right(
+        ZuoraAmendmentOrderPayload(
+          orderDate = LocalDate.of(2024, 10, 25),
+          existingAccountNumber = "74bff0f2",
+          subscriptions = List(
+            ZuoraAmendmentOrderPayloadSubscription(
+              subscriptionNumber = "SUBSCRIPTION-NUMBER",
+              orderActions = List(
+                ZuoraAmendmentOrderPayloadOrderActionRemove(
+                  `type` = "RemoveProduct",
+                  triggerDates = List(
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "ContractEffective",
+                      triggerDate = LocalDate.of(2024, 11, 27)
+                    ),
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "ServiceActivation",
+                      triggerDate = LocalDate.of(2024, 11, 27)
+                    ),
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "CustomerAcceptance",
+                      triggerDate = LocalDate.of(2024, 11, 27)
+                    )
+                  ),
+                  removeProduct = ZuoraAmendmentOrderPayloadOrderActionRemoveProduct(
+                    ratePlanId = "8a12908b8dd07f56018de8f4950923b8"
+                  )
+                ),
+                ZuoraAmendmentOrderPayloadOrderActionAdd(
+                  `type` = "AddProduct",
+                  triggerDates = List(
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "ContractEffective",
+                      triggerDate = LocalDate.of(2024, 11, 27)
+                    ),
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "ServiceActivation",
+                      triggerDate = LocalDate.of(2024, 11, 27)
+                    ),
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "CustomerAcceptance",
+                      triggerDate = LocalDate.of(2024, 11, 27)
+                    )
+                  ),
+                  addProduct = ZuoraAmendmentOrderPayloadOrderActionAddProduct(
+                    productRatePlanId = "8a128ed885fc6ded018602296ace3eb8",
+                    chargeOverrides = List(
+                      ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
+                        productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
+                        pricing = Map(
+                          "recurringFlatFee" -> Map(
+                            "listPrice" -> 11
+                          )
+                        )
+                      ),
+                      ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
+                        productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270",
+                        pricing = Map(
+                          "recurringFlatFee" -> Map(
+                            "listPrice" -> 0.0
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          processingOptions = ZuoraAmendmentOrderPayloadProcessingOptions(false, false)
+        )
+      )
+    )
+  }
+  test("amendmentOrderPayload (annual, with capping)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
+    assertEquals(
+      SupporterPlus2024Migration.amendmentOrderPayload(
+        orderDate = LocalDate.of(2024, 9, 9),
+        accountNumber = "d4a7d0af",
+        subscriptionNumber = subscription.subscriptionNumber,
+        effectDate = LocalDate.of(2024, 10, 11),
+        subscription = subscription,
+        oldPrice = 150,
+        estimatedNewPrice = 200,
+        priceCap = 1.27
+      ),
+      Right(
+        ZuoraAmendmentOrderPayload(
+          orderDate = LocalDate.of(2024, 9, 9),
+          existingAccountNumber = "d4a7d0af",
+          subscriptions = List(
+            ZuoraAmendmentOrderPayloadSubscription(
+              subscriptionNumber = "SUBSCRIPTION-NUMBER",
+              orderActions = List(
+                ZuoraAmendmentOrderPayloadOrderActionRemove(
+                  `type` = "RemoveProduct",
+                  triggerDates = List(
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "ContractEffective",
+                      triggerDate = LocalDate.of(2024, 10, 11)
+                    ),
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "ServiceActivation",
+                      triggerDate = LocalDate.of(2024, 10, 11)
+                    ),
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "CustomerAcceptance",
+                      triggerDate = LocalDate.of(2024, 10, 11)
+                    )
+                  ),
+                  removeProduct = ZuoraAmendmentOrderPayloadOrderActionRemoveProduct(
+                    ratePlanId = "8a12820a8c0ff963018c2504ba045b2f"
+                  )
+                ),
+                ZuoraAmendmentOrderPayloadOrderActionAdd(
+                  `type` = "AddProduct",
+                  triggerDates = List(
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "ContractEffective",
+                      triggerDate = LocalDate.of(2024, 10, 11)
+                    ),
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "ServiceActivation",
+                      triggerDate = LocalDate.of(2024, 10, 11)
+                    ),
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "CustomerAcceptance",
+                      triggerDate = LocalDate.of(2024, 10, 11)
+                    )
+                  ),
+                  addProduct = ZuoraAmendmentOrderPayloadOrderActionAddProduct(
+                    productRatePlanId = "8a128ed885fc6ded01860228f77e3d5a",
+                    chargeOverrides = List(
+                      ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
+                        productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
+                        pricing = Map(
+                          "recurringFlatFee" -> Map(
+                            "listPrice" -> 190.50
+                          )
+                        )
+                      ),
+                      ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
+                        productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
+                        pricing = Map(
+                          "recurringFlatFee" -> Map(
+                            "listPrice" -> 340.0
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          processingOptions = ZuoraAmendmentOrderPayloadProcessingOptions(false, false)
+        )
+      )
+    )
+  }
+  test("Correct JSON serialisation for ZuoraAmendmentOrderPayloadOrderActionRemove") {
+
+    // Here we are testing the natural serialization of the whole payload, by upickle.
+    // The purpose is to ensure that the model hierarchy leads to the same essential JSON structure.
+    // See comment cada56ad for more details on the structure and information about how we sanitize the JSON
+    // before we send it to Zuora.
+
+    val data = ZuoraAmendmentOrderPayloadOrderActionRemove(
+      `type` = "RemoveProduct",
+      triggerDates = List(
+        ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+          name = "ContractEffective",
+          triggerDate = LocalDate.of(2024, 10, 11)
+        ),
+        ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+          name = "ServiceActivation",
+          triggerDate = LocalDate.of(2024, 10, 11)
+        ),
+        ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+          name = "CustomerAcceptance",
+          triggerDate = LocalDate.of(2024, 10, 11)
+        )
+      ),
+      removeProduct = ZuoraAmendmentOrderPayloadOrderActionRemoveProduct(
+        ratePlanId = "8a12820a8c0ff963018c2504ba045b2f"
+      )
+    )
+    assertEquals(
+      write(data, indent = 2),
+      """{
+        |  "$type": "ZuoraAmendmentOrderPayloadOrderActionRemove",
+        |  "type": "RemoveProduct",
+        |  "triggerDates": [
+        |    {
+        |      "name": "ContractEffective",
+        |      "triggerDate": "2024-10-11"
+        |    },
+        |    {
+        |      "name": "ServiceActivation",
+        |      "triggerDate": "2024-10-11"
+        |    },
+        |    {
+        |      "name": "CustomerAcceptance",
+        |      "triggerDate": "2024-10-11"
+        |    }
+        |  ],
+        |  "removeProduct": {
+        |    "ratePlanId": "8a12820a8c0ff963018c2504ba045b2f"
+        |  }
+        |}""".stripMargin
+    )
+  }
+  test("Correct JSON serialisation for ZuoraAmendmentOrderPayloadOrderActionAdd") {
+
+    // Here we are testing the natural serialization of the whole payload, by upickle.
+    // The purpose is to ensure that the model hierarchy leads to the same essential JSON structure.
+    // See comment cada56ad for more details on the structure and information about how we sanitize the JSON
+    // before we send it to Zuora.
+
+    val data = ZuoraAmendmentOrderPayloadOrderActionAdd(
+      `type` = "AddProduct",
+      triggerDates = List(
+        ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+          name = "ContractEffective",
+          triggerDate = LocalDate.of(2024, 10, 11)
+        ),
+        ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+          name = "ServiceActivation",
+          triggerDate = LocalDate.of(2024, 10, 11)
+        ),
+        ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+          name = "CustomerAcceptance",
+          triggerDate = LocalDate.of(2024, 10, 11)
+        )
+      ),
+      addProduct = ZuoraAmendmentOrderPayloadOrderActionAddProduct(
+        productRatePlanId = "8a128ed885fc6ded01860228f77e3d5a",
+        chargeOverrides = List(
+          ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
+            productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
+            pricing = Map(
+              "recurringFlatFee" -> Map(
+                "listPrice" -> 190.50
+              )
+            )
+          ),
+          ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
+            productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
+            pricing = Map(
+              "recurringFlatFee" -> Map(
+                "listPrice" -> 340.0
+              )
+            )
+          )
+        )
+      )
+    )
+    assertEquals(
+      write(data, indent = 2),
+      """{
+        |  "$type": "ZuoraAmendmentOrderPayloadOrderActionAdd",
+        |  "type": "AddProduct",
+        |  "triggerDates": [
+        |    {
+        |      "name": "ContractEffective",
+        |      "triggerDate": "2024-10-11"
+        |    },
+        |    {
+        |      "name": "ServiceActivation",
+        |      "triggerDate": "2024-10-11"
+        |    },
+        |    {
+        |      "name": "CustomerAcceptance",
+        |      "triggerDate": "2024-10-11"
+        |    }
+        |  ],
+        |  "addProduct": {
+        |    "productRatePlanId": "8a128ed885fc6ded01860228f77e3d5a",
+        |    "chargeOverrides": [
+        |      {
+        |        "productRatePlanChargeId": "8a128ed885fc6ded01860228f7cb3d5f",
+        |        "pricing": {
+        |          "recurringFlatFee": {
+        |            "listPrice": 190.5
+        |          }
+        |        }
+        |      },
+        |      {
+        |        "productRatePlanChargeId": "8a12892d85fc6df4018602451322287f",
+        |        "pricing": {
+        |          "recurringFlatFee": {
+        |            "listPrice": 340
+        |          }
+        |        }
+        |      }
+        |    ]
+        |  }
+        |}""".stripMargin
+    )
+  }
+  test(
+    "Correct JSON serialisation for ZuoraAmendmentOrderPayload using SupporterPlus2024Migration.amendmentOrdersPayload"
+  ) {
+
+    // Here we are testing the natural serialization of the whole payload, by upickle.
+    // The purpose is to ensure that the model hierarchy leads to the same essential JSON structure.
+    // See comment cada56ad for more details on the structure and information about how we sanitize the JSON
+    // before we send it to Zuora.
+
+    val data = SupporterPlus2024Migration.amendmentOrdersPayload(
+      orderDate = LocalDate.of(2024, 10, 24),
+      accountNumber = "A01955911",
+      subscriptionNumber = "A-S02019224",
+      effectDate = LocalDate.of(2024, 11, 26),
+      removeRatePlanId = "8a128e208bdd4251018c0d5050970bd9",
+      productRatePlanId = "8a128ed885fc6ded018602296ace3eb8",
+      existingBaseProductRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
+      existingContributionRatePlanChargeId = "8a128d7085fc6dec01860234cd075270",
+      newBaseAmount = 15,
+      newContributionAmount = 0
+    )
+    assertEquals(
+      write(data, indent = 2),
+      """{
+        |  "orderDate": "2024-10-24",
+        |  "existingAccountNumber": "A01955911",
+        |  "subscriptions": [
+        |    {
+        |      "subscriptionNumber": "A-S02019224",
+        |      "orderActions": [
+        |        {
+        |          "$type": "ZuoraAmendmentOrderPayloadOrderActionRemove",
+        |          "type": "RemoveProduct",
+        |          "triggerDates": [
+        |            {
+        |              "name": "ContractEffective",
+        |              "triggerDate": "2024-11-26"
+        |            },
+        |            {
+        |              "name": "ServiceActivation",
+        |              "triggerDate": "2024-11-26"
+        |            },
+        |            {
+        |              "name": "CustomerAcceptance",
+        |              "triggerDate": "2024-11-26"
+        |            }
+        |          ],
+        |          "removeProduct": {
+        |            "ratePlanId": "8a128e208bdd4251018c0d5050970bd9"
+        |          }
+        |        },
+        |        {
+        |          "$type": "ZuoraAmendmentOrderPayloadOrderActionAdd",
+        |          "type": "AddProduct",
+        |          "triggerDates": [
+        |            {
+        |              "name": "ContractEffective",
+        |              "triggerDate": "2024-11-26"
+        |            },
+        |            {
+        |              "name": "ServiceActivation",
+        |              "triggerDate": "2024-11-26"
+        |            },
+        |            {
+        |              "name": "CustomerAcceptance",
+        |              "triggerDate": "2024-11-26"
+        |            }
+        |          ],
+        |          "addProduct": {
+        |            "productRatePlanId": "8a128ed885fc6ded018602296ace3eb8",
+        |            "chargeOverrides": [
+        |              {
+        |                "productRatePlanChargeId": "8a128ed885fc6ded018602296af13eba",
+        |                "pricing": {
+        |                  "recurringFlatFee": {
+        |                    "listPrice": 15
+        |                  }
+        |                }
+        |              },
+        |              {
+        |                "productRatePlanChargeId": "8a128d7085fc6dec01860234cd075270",
+        |                "pricing": {
+        |                  "recurringFlatFee": {
+        |                    "listPrice": 0
+        |                  }
+        |                }
+        |              }
+        |            ]
+        |          }
+        |        }
+        |      ]
+        |    }
+        |  ],
+        |  "processingOptions": {
+        |    "runBilling": false,
+        |    "collectPayment": false
+        |  }
+        |}""".stripMargin
     )
   }
 }

@@ -208,11 +208,51 @@ object ZuoraLive {
           )
         }
 
+        override def applyAmendmentOrder(
+            subscription: ZuoraSubscription,
+            payload: ZuoraAmendmentOrderPayload
+        ): ZIO[Any, ZuoraOrderFailure, Unit] = {
+
+          // The existence of type_flush is explained in comment cada56ad.
+          // This is, for all intent and purpose a hack due to the way upickle deals with sealed traits
+          // and in a future change we will get rid of it, either by changing JSON library or coming up
+          // with the correct writers.
+
+          def type_flush(str: String): String = {
+            str
+              .replace(""""$type":"ZuoraAmendmentOrderPayloadOrderActionAdd",""", "")
+              .replace(""""$type":"ZuoraAmendmentOrderPayloadOrderActionRemove",""", "")
+          }
+
+          val body = type_flush(write(payload))
+
+          post[ZuoraAmendmentOrderResponse](
+            path = s"orders",
+            body = type_flush(write(payload))
+          ).foldZIO(
+            failure = e =>
+              ZIO.fail(
+                ZuoraOrderFailure(
+                  s"[f8569839] subscription number: ${subscription.subscriptionNumber}, payload: ${payload}, reason: ${e.reason}"
+                )
+              ),
+            success = response =>
+              if (response.success) {
+                ZIO.succeed(())
+              } else {
+                ZIO.fail(
+                  ZuoraOrderFailure(
+                    s"[bb6f22ef] subscription number: ${subscription.subscriptionNumber}, payload: ${payload}, serialised payload: ${body}, with answer ${response}"
+                  )
+                )
+              }
+          )
+        }
+
         override def renewSubscription(
             subscriptionNumber: String,
             payload: ZuoraRenewOrderPayload
         ): ZIO[Any, ZuoraRenewalFailure, Unit] = {
-
           post[ZuoraRenewOrderResponse](
             path = s"orders",
             body = write(payload)

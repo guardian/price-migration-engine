@@ -134,21 +134,24 @@ object AmendmentHandler extends CohortHandler {
 
           _ <- renewSubscription(subscriptionBeforeUpdate, subscriptionBeforeUpdate.termEndDate, account)
 
-          update <- ZIO.fromEither(
-            SupporterPlus2024Migration.zuoraUpdate(
-              subscriptionBeforeUpdate,
-              startDate,
-              oldPrice,
-              estimatedNewPrice,
-              SupporterPlus2024Migration.priceCap
+          order <- ZIO.fromEither(
+            SupporterPlus2024Migration.amendmentOrderPayload(
+              orderDate = LocalDate.now(),
+              accountNumber = account.basicInfo.accountNumber,
+              subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
+              effectDate = startDate,
+              subscription = subscriptionBeforeUpdate,
+              oldPrice = oldPrice,
+              estimatedNewPrice = estimatedNewPrice,
+              priceCap = SupporterPlus2024Migration.priceCap
             )
           )
 
           _ <- Logging.info(
-            s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with update ${update}"
+            s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
           )
 
-          newSubscriptionId <- Zuora.updateSubscription(subscriptionBeforeUpdate, update)
+          _ <- Zuora.applyAmendmentOrder(subscriptionBeforeUpdate, order)
 
           subscriptionAfterUpdate <- fetchSubscription(item)
 
