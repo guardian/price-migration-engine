@@ -96,4 +96,15 @@ object CohortItem {
       }
     }
   }
+
+  def billingPeriodToInt(period: String): Int = {
+    // This function is used to convert a CohortItem's billingPeriod in to the number of months
+    // that the billing period represents.
+    BillingPeriod.fromString(period) match {
+      case Monthly    => 1
+      case Quarterly  => 3
+      case SemiAnnual => 6
+      case Annual     => 12
+    }
+  }
 }

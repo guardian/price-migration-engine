@@ -83,12 +83,16 @@ object NotificationHandler extends CohortHandler {
       cancellationDate <- ZIO
         .fromOption(SupporterPlus2024Migration.cancellationSaveDiscountEffectiveDate(subscription))
         .orElseFail(DataExtractionFailure(s"Could not extract cancellation date for item ${item}"))
+      billingPeriod <- ZIO
+        .fromOption(item.billingPeriod)
+        .orElseFail(DataExtractionFailure(s"Could not extract billing period for item ${item}"))
+      months <- ZIO.succeed(CohortItem.billingPeriodToInt(billingPeriod))
       _ <- CohortTable
         .update(
           CohortItem(
             subscriptionName = item.subscriptionName,
             processingStage = DoNotProcessUntil,
-            doNotProcessUntil = Some(cancellationDate.plusMonths(6))
+            doNotProcessUntil = Some(cancellationDate.plusMonths(months * 2))
           )
         )
     } yield ()
