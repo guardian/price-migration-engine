@@ -79,14 +79,6 @@ object NotificationHandler extends CohortHandler {
       item: CohortItem,
       subscription: ZuoraSubscription
   ): ZIO[CohortTable with Zuora, Failure, Unit] = {
-    // Known keys for this mapping can be found in the BillingPeriod object
-    val mapping: Map[String, Int] = Map(
-      "Month" -> 1,
-      "Quarter" -> 4,
-      "Quarterly" -> 4,
-      "Semi_Annual" -> 6,
-      "Annual" -> 12
-    )
     for {
       cancellationDate <- ZIO
         .fromOption(SupporterPlus2024Migration.cancellationSaveDiscountEffectiveDate(subscription))
@@ -94,9 +86,7 @@ object NotificationHandler extends CohortHandler {
       billingPeriod <- ZIO
         .fromOption(item.billingPeriod)
         .orElseFail(DataExtractionFailure(s"Could not extract billing period for item ${item}"))
-      months <- ZIO
-        .fromOption(mapping.get(billingPeriod))
-        .orElseFail(DataExtractionFailure(s"Could not extract mapping value for billing period ${billingPeriod}"))
+      months <- ZIO.succeed(CohortItem.billingPeriodToInt(billingPeriod))
       _ <- CohortTable
         .update(
           CohortItem(
