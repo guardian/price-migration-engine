@@ -92,7 +92,7 @@ object NotificationHandler extends CohortHandler {
           CohortItem(
             subscriptionName = item.subscriptionName,
             processingStage = DoNotProcessUntil,
-            doNotProcessUntil = Some(cancellationDate.plusMonths(months * 2))
+            doNotProcessUntil = Some(cancellationDate.plusMonths(List(months * 2, 6).max))
           )
         )
     } yield ()
