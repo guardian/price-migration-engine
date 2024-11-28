@@ -25,6 +25,7 @@ case class ZuoraFailure(reason: String) extends Failure
 case class ZuoraFetchFailure(reason: String) extends Failure
 case class ZuoraUpdateFailure(reason: String) extends Failure
 case class ZuoraRenewalFailure(reason: String) extends Failure
+case class ZuoraOrderFailure(reason: String) extends Failure
 
 case class CancelledSubscriptionFailure(reason: String) extends Failure
 case class ExpiringSubscriptionFailure(reason: String) extends Failure
