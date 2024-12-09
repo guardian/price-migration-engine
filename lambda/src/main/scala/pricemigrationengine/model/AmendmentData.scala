@@ -1,7 +1,6 @@
 package pricemigrationengine.model
 
 import pricemigrationengine.migrations.{
-  DigiSubs2023Migration,
   GuardianWeeklyMigration,
   GW2024Migration,
   newspaper2024Migration,
@@ -289,7 +288,6 @@ object AmendmentData {
   ): Either[Failure, PriceData] = {
 
     MigrationType(cohortSpec) match {
-      case DigiSubs2023      => DigiSubs2023Migration.priceData(subscription)
       case Newspaper2024     => newspaper2024Migration.Estimation.priceData(subscription)
       case GW2024            => GW2024Migration.priceData(subscription, account)
       case SupporterPlus2024 => SupporterPlus2024Migration.priceData(subscription)

@@ -28,7 +28,6 @@ object StartDates {
   def lastPriceRiseDate(cohortSpec: CohortSpec, subscription: ZuoraSubscription): Option[LocalDate] = {
     MigrationType(cohortSpec) match {
       case GW2024            => GW2024Migration.subscriptionToLastPriceMigrationDate(subscription)
-      case DigiSubs2023      => None
       case Newspaper2024     => None
       case SupporterPlus2024 => None
       case Default           => None
@@ -87,7 +86,6 @@ object StartDates {
     if (isMonthlySubscription(subscription, invoicePreview)) {
       MigrationType(cohortSpec) match {
         case Newspaper2024     => newspaper2024Migration.Estimation.startDateSpreadPeriod(subscription)
-        case DigiSubs2023      => 3
         case GW2024            => 3
         case SupporterPlus2024 => 1 // no spread for S+2024 monthlies
         case Default           => 3
@@ -106,7 +104,6 @@ object StartDates {
     val startDateLowerBound1 = MigrationType(cohortSpec) match {
       case Newspaper2024 =>
         newspaper2024Migration.Estimation.startDateLowerbound(today, subscription)
-      case DigiSubs2023      => cohortSpecLowerBound(cohortSpec, today)
       case GW2024            => cohortSpecLowerBound(cohortSpec, today)
       case SupporterPlus2024 => cohortSpecLowerBound(cohortSpec, today)
       case Default           => cohortSpecLowerBound(cohortSpec, today)
