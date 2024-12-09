@@ -1,1 +1,0 @@
-We use `regular` for the standard subscription we are going to use to test all the migration basic functions and `discounted` for the discounted subscription that we are also using to test the detection of discounted subscriptions that need to be ignored.
