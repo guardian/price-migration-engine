@@ -1,6 +1,5 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.migrations.DigiSubs2023Migration
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 import pricemigrationengine.model._
 import pricemigrationengine.migrations._
@@ -97,7 +96,6 @@ object AmendmentHandler extends CohortHandler {
     // estimated price (which wasn't including the extra contribution).
 
     MigrationType(cohortSpec) match {
-      case DigiSubs2023      => true
       case Newspaper2024     => true
       case GW2024            => true
       case SupporterPlus2024 => false
@@ -204,13 +202,6 @@ object AmendmentHandler extends CohortHandler {
             Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
 
           update <- MigrationType(cohortSpec) match {
-            case DigiSubs2023 =>
-              ZIO.fromEither(
-                DigiSubs2023Migration.zuoraUpdate(
-                  subscriptionBeforeUpdate,
-                  startDate,
-                )
-              )
             case Newspaper2024 =>
               ZIO.fromEither(
                 newspaper2024Migration.Amendment.zuoraUpdate(
