@@ -24,18 +24,24 @@ object MockZuora extends Mock[Zuora] {
       override def fetchSubscription(subscriptionNumber: String): ZIO[Any, ZuoraFetchFailure, ZuoraSubscription] =
         proxy(FetchSubscription, subscriptionNumber)
 
-      override def fetchAccount(accountNumber: String, subscriptionNumber: String)
-          : ZIO[Any, ZuoraFetchFailure, ZuoraAccount] =
+      override def fetchAccount(
+          accountNumber: String,
+          subscriptionNumber: String
+      ): ZIO[Any, ZuoraFetchFailure, ZuoraAccount] =
         proxy(FetchAccount, accountNumber, subscriptionNumber)
 
-      override def fetchInvoicePreview(accountId: String, targetDate: LocalDate)
-          : ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList] = proxy(FetchInvoicePreview, accountId, targetDate)
+      override def fetchInvoicePreview(
+          accountId: String,
+          targetDate: LocalDate
+      ): ZIO[Any, ZuoraFetchFailure, ZuoraInvoiceList] = proxy(FetchInvoicePreview, accountId, targetDate)
 
       override val fetchProductCatalogue: ZIO[Any, ZuoraFetchFailure, ZuoraProductCatalogue] =
         proxy(FetchProductCatalogue)
 
-      override def updateSubscription(subscription: ZuoraSubscription, update: ZuoraSubscriptionUpdate)
-          : ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId] =
+      override def updateSubscription(
+          subscription: ZuoraSubscription,
+          update: ZuoraSubscriptionUpdate
+      ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId] =
         proxy(UpdateSubscription, subscription, update)
 
       override def applyAmendmentOrder(
@@ -43,8 +49,10 @@ object MockZuora extends Mock[Zuora] {
           payload: ZuoraAmendmentOrderPayload
       ): ZIO[Any, ZuoraOrderFailure, Unit] = proxy(ApplyAmendmentOrder, subscription, payload)
 
-      override def renewSubscription(subscriptionNumber: String, payload: ZuoraRenewOrderPayload)
-          : ZIO[Any, ZuoraRenewalFailure, Unit] =
+      override def renewSubscription(
+          subscriptionNumber: String,
+          payload: ZuoraRenewOrderPayload
+      ): ZIO[Any, ZuoraRenewalFailure, Unit] =
         proxy(RenewSubscription, subscriptionNumber)
     }
   })
