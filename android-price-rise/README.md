@@ -4,7 +4,21 @@ This directory contains a script for performing an Android price rise.
 
 Once a price rise has been done, you can migrate existing subscribers to the new price from the Google Play web console.
 
+### Preparations
+
+```
+$ nvm use
+$ yarn install
+```
+
+### Credentials
+
+The scripts require credentials for a Google service account to be stored in AWS Parameter Store.
+
+The Parameter Store key is configured in `./googleClient.ts`.
+
 ### `runPriceRise.ts`
+
 This script uses the [PATCH endpoint](https://developers.google.com/android-publisher/api-ref/rest/v3/monetization.subscriptions/patch) to change the prices.
 
 `FILE_PATH=/path/to/price-rise.csv yarn android-price-rise [--dry-run]`
@@ -17,9 +31,3 @@ It works as follows:
 The script outputs a CSV file listing every product_id/region that was updated.
 
 Use the `--dry-run` parameter to check the changes before running the script for real.
-
-
-### Credentials
-The scripts require credentials for a Google service account to be store in AWS Parameter Store.
-
-The Parameter Store key is configured in `./googleClient.ts`.
