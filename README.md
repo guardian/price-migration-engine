@@ -2,7 +2,12 @@
 
 # Price Migration Engine
 
-The price migration engine is an orchestration engine used to perform controlled price migrations. It currently consists in a collection of lambdas designed to work together as a state machine.
+The price migration engine is an orchestration engine used to perform controlled price migrations. 
+
+It currently consists in
+
+- A collection of lambdas designed to work together as a state machine
+- The TypeScript code required to run an Android price rise
 
 ### General Introduction to price migrations and the engine:
 
@@ -15,13 +20,18 @@ The price migration engine is an orchestration engine used to perform controlled
 
 ### Operations:
 
-- [Set up a new cohort of subscriptions for price rise](docs/subscription-numbers-upload.md).
-- [The migration implementation manual](docs/migration-implementation-manual.md)
-- [Downloading fixtures](docs/downloading-fixtures.md)
-- [Troubleshooting document](docs/troubleshooting.md)
+- Web Price Rises
+    - [Set up a new cohort of subscriptions for price rise](docs/subscription-numbers-upload.md).
+    - [The migration implementation manual](docs/migration-implementation-manual.md)
+    - [Downloading fixtures](docs/downloading-fixtures.md)
+    - [Troubleshooting document](docs/troubleshooting.md)
+
+- Android Price Rises
+    - [README](./android-price-rise/README.md)
+
 
 ### Further documentations:
 
-* [State machine](stateMachine/README.md).
-* [Lambdas](lambda/README.md).
-* [Data stores](dynamoDb/README.md).
+* [State machine](stateMachine/README.md)
+* [Lambdas](lambda/README.md)
+* [Data stores](dynamoDb/README.md)
