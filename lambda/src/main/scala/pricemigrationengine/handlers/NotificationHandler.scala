@@ -364,6 +364,7 @@ object NotificationHandler extends CohortHandler {
 
     MigrationType(cohortSpec) match {
       case SupporterPlus2024 => testCompatibleEmptySalesforceAddress(contact)
+      case SPV1V2E2025       => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))) // [1]
       case _ =>
         (for {
           billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
@@ -371,6 +372,8 @@ object NotificationHandler extends CohortHandler {
           _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
         } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
     }
+
+    // [1] We do not need an address for SPV1V2E2025
   }
 
   def firstName(contact: SalesforceContact): Either[NotificationHandlerFailure, String] = {
@@ -382,15 +385,18 @@ object NotificationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       address: SalesforceAddress
   ): Either[NotificationHandlerFailure, String] = {
+    MigrationType(cohortSpec) match {
+      case Newspaper2024     => Right(address.country.getOrElse("United Kingdom")) // [1]
+      case SupporterPlus2024 => Right(address.country.getOrElse(""))
+      case SPV1V2E2025       => Right(address.country.getOrElse(""))
+      case _                 => requiredField(address.country, "Contact.OtherAddress.country")
+    }
+
+    // [1]
     // The country is usually a required field, this came from the old print migrations. It was
     // not required for the 2023 digital migrations. Although technically required for
     // the 2024 print migration, "United Kingdom" can be substituted for missing values considering
     // that we are only delivery in the UK.
-    MigrationType(cohortSpec) match {
-      case Newspaper2024     => Right(address.country.getOrElse("United Kingdom"))
-      case SupporterPlus2024 => Right(address.country.getOrElse(""))
-      case _                 => requiredField(address.country, "Contact.OtherAddress.country")
-    }
   }
 
   def logMissingEmailAddress(cohortItem: CohortItem, sfContact: SalesforceContact): ZIO[Logging, Nothing, Unit] = {
@@ -511,7 +517,8 @@ object NotificationHandler extends CohortHandler {
           bn <- ZIO.fromEither(SupporterPlus2024Migration.brazeName(subscription))
         } yield bn
       }
-      case _ => ZIO.succeed(cohortSpec.brazeCampaignName)
+      case SPV1V2E2025 => ZIO.succeed(cohortSpec.brazeCampaignName)
+      case _           => ZIO.succeed(cohortSpec.brazeCampaignName)
     }
   }
 }
