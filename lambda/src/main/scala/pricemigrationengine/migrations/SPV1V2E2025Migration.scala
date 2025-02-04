@@ -52,6 +52,9 @@ object SPV1V2E2025Migration {
       // care what the prices before and after are. The split will be done for the Amendment step.
       // Note that the Estimation step has been updated to not perform the price
       // comparison check.
+
+      // Also not that the prices do not appear in the communication sent at the
+      // Notification step (it's only a change of terms and conditions)
       PriceData(currency, BigDecimal(0), BigDecimal(0), billingPeriod.toString)
     }
   }
