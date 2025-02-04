@@ -6,7 +6,12 @@ import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
-import pricemigrationengine.migrations.{GW2024Migration, newspaper2024Migration, SupporterPlus2024Migration}
+import pricemigrationengine.migrations.{
+  GW2024Migration,
+  SPV1V2E2025Migration,
+  SupporterPlus2024Migration,
+  newspaper2024Migration
+}
 import pricemigrationengine.model.RateplansProbe
 
 import java.time.{LocalDate, ZoneId}
@@ -149,6 +154,7 @@ object NotificationHandler extends CohortHandler {
         case GW2024 =>
           s"${currencySymbol}${PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GW2024Migration.priceCap)}"
         case SupporterPlus2024 => s"${currencySymbol}${estimatedNewPrice}"
+        case SPV1V2E2025       => s"${currencySymbol}${estimatedNewPrice}"
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)
@@ -277,16 +283,17 @@ object NotificationHandler extends CohortHandler {
 
   // The standard notification period for letter products (where the notification is delivered by email)
   // is -49 (included) to -35 (excluded) days. Legally the min is 30 days, but we set 35 days to alert if a
-  // subscription if exiting the notification window and needs to be investigated and repaired before the deadline
+  // subscription is exiting the notification window and needs to be investigated and repaired before the deadline
   // of 30 days.
 
-  // The digital migrations' notification window is from -33 (included) to -31 (excluded)
+  // The digital migrations' notification window is shorter considering that we send emails.
 
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
       case Newspaper2024     => newspaper2024Migration.StaticData.maxLeadTime
       case GW2024            => GW2024Migration.maxLeadTime
       case SupporterPlus2024 => SupporterPlus2024Migration.maxLeadTime
+      case SPV1V2E2025       => SPV1V2E2025Migration.maxLeadTime
       case Default           => 49
     }
   }
@@ -296,6 +303,7 @@ object NotificationHandler extends CohortHandler {
       case Newspaper2024     => newspaper2024Migration.StaticData.minLeadTime
       case GW2024            => GW2024Migration.minLeadTime
       case SupporterPlus2024 => SupporterPlus2024Migration.minLeadTime
+      case SPV1V2E2025       => SPV1V2E2025Migration.minLeadTime
       case Default           => 35
     }
   }
