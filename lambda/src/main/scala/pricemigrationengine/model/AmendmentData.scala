@@ -1,6 +1,12 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.migrations.{GW2024Migration, GuardianWeeklyMigration, SPV1V2E2025Migration, SupporterPlus2024Migration, newspaper2024Migration}
+import pricemigrationengine.migrations.{
+  GW2024Migration,
+  GuardianWeeklyMigration,
+  SPV1V2E2025Migration,
+  SupporterPlus2024Migration,
+  newspaper2024Migration
+}
 import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, productPricingMap}
 
 import java.time.LocalDate
