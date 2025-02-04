@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.{CohortSpec, Failure, HandlerOutput}
+import pricemigrationengine.model.{CohortSpec, Failure, HandlerOutput, MigrationType, SPV1V2E2025}
 import pricemigrationengine.services._
 import zio.ZIO
 
@@ -21,9 +21,13 @@ object CohortTableCreationHandler extends CohortHandler {
       .as(HandlerOutput(isComplete = true))
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    main(input).provideSome[Logging](
-      EnvConfig.stage.layer,
-      DynamoDBClientLive.impl,
-      CohortTableDdlLive.impl
-    )
+    MigrationType(input) match {
+      case SPV1V2E2025 => ZIO.succeed(HandlerOutput(isComplete = true))
+      case _ =>
+        main(input).provideSome[Logging](
+          EnvConfig.stage.layer,
+          DynamoDBClientLive.impl,
+          CohortTableDdlLive.impl
+        )
+    }
 }

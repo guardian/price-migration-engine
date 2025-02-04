@@ -10,8 +10,10 @@ object SPV1V2E2025Migration {
 
   def priceData(subscription: ZuoraSubscription): Either[Failure, PriceData] = ???
 
+  // This need to be implemented before the end of Feb 2025
   def zuoraUpdate(
       subscriptionBeforeUpdate: ZuoraSubscription,
       startDate: LocalDate
   ): Either[DataExtractionFailure, ZuoraSubscriptionUpdate] = ???
+
 }
