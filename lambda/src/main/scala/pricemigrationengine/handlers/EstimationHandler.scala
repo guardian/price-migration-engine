@@ -87,9 +87,15 @@ object EstimationHandler extends CohortHandler {
         case e => ZIO.fail(e)
       },
       success = { result =>
-        val cohortItemToWrite =
-          if (result.estimatedNewPrice <= result.oldPrice) CohortItem.fromNoPriceIncreaseEstimationResult(result)
-          else CohortItem.fromSuccessfulEstimationResult(result)
+        // We introduce MigrationType(cohortSpec) here because we do not want to do this
+        // price comparison for SPV1V2E2025, the two prices are going to be identical because
+        // It's not a price migration per se, just a subscription restructuration.
+        val cohortItemToWrite = MigrationType(cohortSpec) match {
+          case SPV1V2E2025 => CohortItem.fromSuccessfulEstimationResult(result)
+          case _ =>
+            if (result.estimatedNewPrice <= result.oldPrice) CohortItem.fromNoPriceIncreaseEstimationResult(result)
+            else CohortItem.fromSuccessfulEstimationResult(result)
+        }
 
         for {
           cohortItem <- cohortItemToWrite
@@ -125,14 +131,18 @@ object EstimationHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    main(input).provideSome[Logging](
-      EnvConfig.cohortTable.layer,
-      EnvConfig.zuora.layer,
-      EnvConfig.stage.layer,
-      DynamoDBZIOLive.impl,
-      DynamoDBClientLive.impl,
-      CohortTableLive.impl(input),
-      ZuoraLive.impl
-    )
+    MigrationType(input) match {
+      case SPV1V2E2025 => ZIO.succeed(HandlerOutput(isComplete = true))
+      case _ =>
+        main(input).provideSome[Logging](
+          EnvConfig.cohortTable.layer,
+          EnvConfig.zuora.layer,
+          EnvConfig.stage.layer,
+          DynamoDBZIOLive.impl,
+          DynamoDBClientLive.impl,
+          CohortTableLive.impl(input),
+          ZuoraLive.impl
+        )
+    }
   }
 }

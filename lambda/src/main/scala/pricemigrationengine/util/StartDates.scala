@@ -30,6 +30,7 @@ object StartDates {
       case GW2024            => GW2024Migration.subscriptionToLastPriceMigrationDate(subscription)
       case Newspaper2024     => None
       case SupporterPlus2024 => None
+      case SPV1V2E2025       => None
       case Default           => None
     }
   }
@@ -88,6 +89,7 @@ object StartDates {
         case Newspaper2024     => newspaper2024Migration.Estimation.startDateSpreadPeriod(subscription)
         case GW2024            => 3
         case SupporterPlus2024 => 1 // no spread for S+2024 monthlies
+        case SPV1V2E2025       => 1 // no spread for SPV1V2E2025 monthlies
         case Default           => 3
       }
     } else 1
@@ -106,6 +108,7 @@ object StartDates {
         newspaper2024Migration.Estimation.startDateLowerbound(today, subscription)
       case GW2024            => cohortSpecLowerBound(cohortSpec, today)
       case SupporterPlus2024 => cohortSpecLowerBound(cohortSpec, today)
+      case SPV1V2E2025       => cohortSpecLowerBound(cohortSpec, today)
       case Default           => cohortSpecLowerBound(cohortSpec, today)
     }
 
