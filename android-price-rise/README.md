@@ -33,6 +33,8 @@ It works as follows:
 
 The script outputs a CSV file listing every product_id/region that was updated.
 
+Note: When we ran the script for the Android price rise in Feb 2025, the `regionsVersion.version` needed to be updated from being `2022/02` to `2025/01`. It is possible that the version might need to be updated in the future.
+
 ### Running the script
 
 ```
