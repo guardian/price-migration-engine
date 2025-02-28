@@ -144,7 +144,7 @@ getClient()
                 .patch({
                   productId,
                   packageName,
-                  'regionsVersion.version': '2022/02',
+                  'regionsVersion.version': '2025/01',
                   updateMask: 'basePlans',
                   requestBody: {
                     productId,
