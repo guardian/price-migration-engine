@@ -38,6 +38,8 @@ Notes:
 
 - When we ran the scripts for the Android price rise in Feb 2025, the `regionsVersion.version` needed to be updated from being `2022/02` to `2025/01`. It is possible that the version might need to be updated in the future. If the script fails, the error message will indicate what value should be used.
 
+Note: There is an important difference between the two scripts. The first one can be run several times and sometimes you might have to do that if for instance the prices provided by Marketing are rejected (for being too high, or not having the right rounding, etc). But the second one cannot be reran after it has succeeded. Google doesn't allow the same product to be price rise within the same year.
+
 ### Preparations
 
 To connect to the play store, the script will be using credentials stored in AWS Parameter Store. So give yourself the following Janus credentials.
