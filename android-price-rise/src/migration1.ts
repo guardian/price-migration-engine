@@ -1,12 +1,4 @@
-/**
- * Script for changing the prices of android products.
- * Takes as input a CSV with product_id, region, currency, new price. See testPriceRise.csv for an example.
- *
- * Usage:
- * FILE_PATH=/path/to/price-rise.csv yarn run-price-rise [--dry-run]
- *
- * Outputs to a CSV with a row per product_id + region.
- */
+// Read the README.md for instructions on when and how to run this script.
 
 import fs from 'fs';
 import type { androidpublisher_v3 } from '@googleapis/androidpublisher';
@@ -17,14 +9,20 @@ import type { RegionPriceMap } from './parsePriceRiseCsv';
 
 const packageName = 'com.guardian';
 
-const filePath = process.env.FILE_PATH;
-if (!filePath) {
-  console.log('Missing FILE_PATH');
+const dataFilePath = process.env.INPUT_FILE_PATH;
+if (!dataFilePath) {
+  console.log('Missing INPUT_FILE_PATH');
+  process.exit(1);
+}
+
+const outputFilePath = process.env.OUTPUT_FILE_PATH;
+if (!outputFilePath) {
+  console.log('Missing OUTPUT_FILE_PATH');
   process.exit(1);
 }
 
 const DRY_RUN = process.argv.includes('--dry-run');
-const writeStream = fs.createWriteStream('price-rise-output.csv');
+const writeStream = fs.createWriteStream(outputFilePath);
 writeStream.write(
   'productId,regionCode,currency,oldPrice,newPrice,pcIncrease\n',
 );
@@ -32,7 +30,7 @@ if (DRY_RUN) {
   console.log('*****DRY RUN*****');
 }
 
-const priceRiseData = parsePriceRiseCsv(filePath);
+const priceRiseData = parsePriceRiseCsv(dataFilePath);
 
 const buildPrice = (
   currency: string,
@@ -50,10 +48,10 @@ const buildPrice = (
  * Fetch existing basePlan from google API.
  * This is because we have to send the entire basePlan object in the PATCH request later
  */
-const getCurrentBasePlan = (
+const getProductIdCurrentBasePlan = (
   client: androidpublisher_v3.Androidpublisher,
-  productId: string,
   packageName: string,
+  productId: string,
 ): Promise<androidpublisher_v3.Schema$BasePlan> =>
   client.monetization.subscriptions
     .get({ packageName, productId })
@@ -134,17 +132,18 @@ getClient()
           } regions`,
         );
 
-        return getCurrentBasePlan(client, productId, packageName)
+        return getProductIdCurrentBasePlan(client, packageName, productId)
           .then((currentBasePlan) => {
             return updatePrices(currentBasePlan, regionPriceMap, productId);
           })
           .then((updatedBasePlan: androidpublisher_v3.Schema$BasePlan) => {
             if (!DRY_RUN) {
+              // https://developers.google.com/android-publisher/api-ref/rest/v3/monetization.subscriptions/patch
               return client.monetization.subscriptions
                 .patch({
-                  productId,
                   packageName,
-                  'regionsVersion.version': '2022/02',
+                  productId,
+                  'regionsVersion.version': '2025/01',
                   updateMask: 'basePlans',
                   requestBody: {
                     productId,
