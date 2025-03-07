@@ -10,70 +10,6 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@aws/dynamodb-auto-marshaller@^0.7.1":
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/@aws/dynamodb-auto-marshaller/-/dynamodb-auto-marshaller-0.7.1.tgz#70676c056e4ecb798c08ec2e398a3d93e703858d"
-  integrity sha512-LeURlf6/avrfFo9+4Yht9J3CUTJ72yoBpm1FOUmlexuHNW4Ka61tG30w3ZDCXXXmCO2rG0k3ywAgNJEo3WPbyw==
-  dependencies:
-    tslib "^1.8.1"
-
-"@aws/dynamodb-batch-iterator@^0.7.1":
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/@aws/dynamodb-batch-iterator/-/dynamodb-batch-iterator-0.7.1.tgz#aa3062b2e7816ddb88ac64575a11476930c990e9"
-  integrity sha512-SdwBFnjN+ncIl+MOogTeEh1/C6O0jAcqD5YA3AujcH5JPWiMescKAefO4VQbgR0Q9ohcYcMnwL3q6mCdUpyJ9w==
-  dependencies:
-    tslib "^1.8.1"
-    utf8-bytes "^0.0.1"
-
-"@aws/dynamodb-data-mapper-annotations@^0.7.3":
-  version "0.7.3"
-  resolved "https://registry.yarnpkg.com/@aws/dynamodb-data-mapper-annotations/-/dynamodb-data-mapper-annotations-0.7.3.tgz#8c04598a1dd3ec1b69996020afebcecc6f2c41f7"
-  integrity sha512-RROw+6EIJd0bJsl/76wxfvDkv/irY9pfpp/VRlmEIVixKW2UtMqpni+Hs0XuBRtmGKGfFrWB2WGYiikSnfv4FA==
-  dependencies:
-    "@aws/dynamodb-auto-marshaller" "^0.7.1"
-    "@aws/dynamodb-data-mapper" "^0.7.3"
-    "@aws/dynamodb-data-marshaller" "^0.7.3"
-    reflect-metadata "^0.1.10"
-    tslib "^1.8.1"
-    uuid "^3.0.0"
-
-"@aws/dynamodb-data-mapper@^0.7.3":
-  version "0.7.3"
-  resolved "https://registry.yarnpkg.com/@aws/dynamodb-data-mapper/-/dynamodb-data-mapper-0.7.3.tgz#813aea68590017f27bc706989f8500a3c7869c3b"
-  integrity sha512-2DYHoF2jvO7L2TfwfJoTfdJz0M6qSVJ0wM0zQ97ehrTyVSz/yWDO3GqMA9jsUqf0fZl3CIItHBhiXdddsH5cpA==
-  dependencies:
-    "@aws/dynamodb-auto-marshaller" "^0.7.1"
-    "@aws/dynamodb-batch-iterator" "^0.7.1"
-    "@aws/dynamodb-data-marshaller" "^0.7.3"
-    "@aws/dynamodb-expressions" "^0.7.3"
-    "@aws/dynamodb-query-iterator" "^0.7.1"
-    tslib "^1.8.1"
-
-"@aws/dynamodb-data-marshaller@^0.7.3":
-  version "0.7.3"
-  resolved "https://registry.yarnpkg.com/@aws/dynamodb-data-marshaller/-/dynamodb-data-marshaller-0.7.3.tgz#6769362551c01396ab224840933432a9db701f5b"
-  integrity sha512-ea9PR19J2uY7lNSUo2bEcbfI8GiD0n66dISoBHZFrHjgCO2ao2P6UlyG/k0EMhr2zNzTWYNd08VYgTSYz5GBAA==
-  dependencies:
-    "@aws/dynamodb-auto-marshaller" "^0.7.1"
-    "@aws/dynamodb-expressions" "^0.7.3"
-    tslib "^1.8.1"
-    utf8-bytes "^0.0.1"
-
-"@aws/dynamodb-expressions@^0.7.3":
-  version "0.7.3"
-  resolved "https://registry.yarnpkg.com/@aws/dynamodb-expressions/-/dynamodb-expressions-0.7.3.tgz#abfda5dbda54f51c58a3bd038c710b7119fc8949"
-  integrity sha512-63vaCyNKmO8BE/JWlQ3DSFG+qCAWgO5MGif31E5CPdWKaBt5yBG5qnh5w5oFelKRK6/1M6cYKl/Yui08wimUig==
-  dependencies:
-    "@aws/dynamodb-auto-marshaller" "^0.7.1"
-    tslib "^1.8.1"
-
-"@aws/dynamodb-query-iterator@^0.7.1":
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/@aws/dynamodb-query-iterator/-/dynamodb-query-iterator-0.7.1.tgz#d43bbf7644cfee55de0aec273475d680a05f3981"
-  integrity sha512-x28lcgj2HDadxszYEwQjAJyGMrdy3aznLM2TSEeQxqCxKzFT1qewmKxgWSMslH+CiLuuqs9H1FaIwvP15b6UHQ==
-  dependencies:
-    tslib "^1.8.1"
-
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.25.9", "@babel/code-frame@^7.26.2":
   version "7.26.2"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.26.2.tgz#4b5fab97d33338eff916235055f0ebc21e573a85"
@@ -795,11 +731,6 @@
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@tsconfig/node16/-/node16-1.0.4.tgz#0b92dcc0cc1c81f6f306a381f28e31b1a56536e9"
   integrity sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==
-
-"@types/aws-lambda@8.10.147":
-  version "8.10.147"
-  resolved "https://registry.yarnpkg.com/@types/aws-lambda/-/aws-lambda-8.10.147.tgz#dc5c89aa32f47a9b35e52c32630545c83afa6f2f"
-  integrity sha512-nD0Z9fNIZcxYX5Mai2CTmFD7wX7UldCkW2ezCF8D1T5hdiLsnTWDGRpfRYntU6VjTdLQjOvyszru7I1c1oCQew==
 
 "@types/babel__core@^7.0.0", "@types/babel__core@^7.1.7":
   version "7.20.5"
@@ -5095,11 +5026,6 @@ rechoir@^0.8.0:
   dependencies:
     resolve "^1.20.0"
 
-reflect-metadata@^0.1.10:
-  version "0.1.14"
-  resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.14.tgz#24cf721fe60677146bb77eeb0e1f9dece3d65859"
-  integrity sha512-ZhYeb6nRaXCfhnndflDK8qI6ZQ/YcWZCISRAWICW9XYqMUwjZM9Z0DveWX/ABN01oxSHwVxKQmxeYZSsm0jh5A==
-
 reflect.getprototypeof@^1.0.6, reflect.getprototypeof@^1.0.9:
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/reflect.getprototypeof/-/reflect.getprototypeof-1.0.10.tgz#c629219e78a3316d8b604c765ef68996964e7bf9"
@@ -6087,11 +6013,6 @@ use@^3.1.0:
   resolved "https://registry.yarnpkg.com/use/-/use-3.1.1.tgz#d50c8cac79a19fbc20f2911f56eb973f4e10070f"
   integrity sha512-cwESVXlO3url9YWlFW/TA9cshCEhtu7IKJ/p5soJ/gGpj7vbvFrAY/eIioQ6Dw23KjZhYgiIo8HOs1nQ2vr/oQ==
 
-utf8-bytes@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/utf8-bytes/-/utf8-bytes-0.0.1.tgz#116b025448c9b500081cdfbf1f4d6c6c37d8837d"
-  integrity sha512-GifWmJAx2qAXT+lZLhbkWhBsy7pr6xWHiPWlVToDiELdWgZwt4Ogjf9tlgvKuALzTFR/d+EPQQI9ogJV3957Jg==
-
 util@^0.12.4:
   version "0.12.5"
   resolved "https://registry.yarnpkg.com/util/-/util-0.12.5.tgz#5f17a6059b73db61a875668781a1c2b136bd6fbc"
@@ -6107,11 +6028,6 @@ uuid@8.0.0:
   version "8.0.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.0.0.tgz#bc6ccf91b5ff0ac07bbcdbf1c7c4e150db4dbb6c"
   integrity sha512-jOXGuXZAWdsTH7eZLtyXMqUb9EcWMGZNbL9YcGBJl4MH4nrxHmZJhEHvyLFrkxo+28uLb/NYRcStH48fnD0Vzw==
-
-uuid@^3.0.0:
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.4.0.tgz#b23e4358afa8a202fe7a100af1f5f883f02007ee"
-  integrity sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==
 
 uuid@^8.3.0, uuid@^8.3.2:
   version "8.3.2"
