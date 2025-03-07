@@ -9,8 +9,8 @@ import type { RegionPriceMap } from './parsePriceRiseCsv';
 
 const packageName = 'com.guardian';
 
-const dataFilePath = process.env.INPUT_FILE_PATH;
-if (!dataFilePath) {
+const inputDataFilePath = process.env.INPUT_FILE_PATH;
+if (!inputDataFilePath) {
   console.log('Missing INPUT_FILE_PATH');
   process.exit(1);
 }
@@ -30,7 +30,7 @@ if (DRY_RUN) {
   console.log('*****DRY RUN*****');
 }
 
-const priceRiseData = parsePriceRiseCsv(dataFilePath);
+const priceRiseData = parsePriceRiseCsv(inputDataFilePath);
 
 const buildPrice = (
   currency: string,

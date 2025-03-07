@@ -4,7 +4,7 @@ This directory contains scripts for performing an Android price migration.
 
 We define a price migration as increasing the prices for new customers (this is sometimes called a "price increase"), and then increasing the prices of existing customers (sometimes called a "price rise")
 
-The file `migration1.ts` performs the price increase, and the file `migration2.ts` performs the price rise. They much be ran in that order and under the instructions of Marketing.
+The file `migration1.ts` performs the price increase, and the file `migration2.ts` performs the price rise. They must be ran in that order and under the instructions of Marketing.
 
 Marketing will also provide the data file that describes how the prices should increase. This file is a .csv file with the following data
 
