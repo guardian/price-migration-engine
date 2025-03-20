@@ -12,7 +12,7 @@ import scala.jdk.CollectionConverters._
 
 object SubscriptionIdUploadHandler extends CohortHandler {
 
-  private val csvFormat = CSVFormat.Builder.create().build()
+  private val csvFormat = CSVFormat.Builder.create().get()
 
   private def sourceLocation(cohortSpec: CohortSpec): ZIO[StageConfig, ConfigFailure, S3Location] =
     ZIO.service[StageConfig] map { stageConfig =>
@@ -69,7 +69,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
   def writeSubscriptionIdsToCohortTable(inputStream: InputStream): ZIO[CohortTable with Logging, Failure, Long] = {
     ZStream
       .fromJavaIterator(
-        new CSVParser(new InputStreamReader(inputStream, "UTF-8"), csvFormat).iterator()
+        CSVParser.parse(new InputStreamReader(inputStream, "UTF-8"), csvFormat).iterator()
       )
       .mapBoth(
         ex => SubscriptionIdUploadFailure(s"Failed to read subscription csv stream: $ex"),
