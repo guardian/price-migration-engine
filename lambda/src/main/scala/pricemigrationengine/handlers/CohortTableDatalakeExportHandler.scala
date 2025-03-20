@@ -15,7 +15,7 @@ import scala.util.Try
 
 object CohortTableDatalakeExportHandler extends CohortHandler {
 
-  private val csvFormat = CSVFormat.Builder.create().setHeader("").setQuoteMode(ALL).build()
+  private val csvFormat = CSVFormat.Builder.create().setHeader("").setQuoteMode(ALL).get()
   private val TempFileDirectory = "/tmp/"
 
   private[handlers] def main(cohortSpec: CohortSpec) =
@@ -119,7 +119,7 @@ object CohortTableDatalakeExportHandler extends CohortHandler {
         ZIO.attempt(
           new CSVPrinter(
             new OutputStreamWriter(outputStream, StandardCharsets.UTF_8.name()),
-            CSVFormat.Builder.create(csvFormat).setHeader(headers: _*).build()
+            CSVFormat.Builder.create(csvFormat).setHeader(headers: _*).get()
           )
         )
       )(printer => ZIO.succeed(printer.close(true)))
