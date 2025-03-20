@@ -6,7 +6,12 @@ import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
-import pricemigrationengine.migrations.{GW2024Migration, newspaper2024Migration, SupporterPlus2024Migration}
+import pricemigrationengine.migrations.{
+  GW2024Migration,
+  SPV1V2E2025Migration,
+  SupporterPlus2024Migration,
+  newspaper2024Migration
+}
 import pricemigrationengine.model.RateplansProbe
 
 import java.time.{LocalDate, ZoneId}
@@ -149,6 +154,7 @@ object NotificationHandler extends CohortHandler {
         case GW2024 =>
           s"${currencySymbol}${PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GW2024Migration.priceCap)}"
         case SupporterPlus2024 => s"${currencySymbol}${estimatedNewPrice}"
+        case SPV1V2E2025       => s"${currencySymbol}${estimatedNewPrice}"
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)
@@ -277,16 +283,17 @@ object NotificationHandler extends CohortHandler {
 
   // The standard notification period for letter products (where the notification is delivered by email)
   // is -49 (included) to -35 (excluded) days. Legally the min is 30 days, but we set 35 days to alert if a
-  // subscription if exiting the notification window and needs to be investigated and repaired before the deadline
+  // subscription is exiting the notification window and needs to be investigated and repaired before the deadline
   // of 30 days.
 
-  // The digital migrations' notification window is from -33 (included) to -31 (excluded)
+  // The digital migrations' notification window is shorter considering that we send emails.
 
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
       case Newspaper2024     => newspaper2024Migration.StaticData.maxLeadTime
       case GW2024            => GW2024Migration.maxLeadTime
       case SupporterPlus2024 => SupporterPlus2024Migration.maxLeadTime
+      case SPV1V2E2025       => SPV1V2E2025Migration.maxLeadTime
       case Default           => 49
     }
   }
@@ -296,6 +303,7 @@ object NotificationHandler extends CohortHandler {
       case Newspaper2024     => newspaper2024Migration.StaticData.minLeadTime
       case GW2024            => GW2024Migration.minLeadTime
       case SupporterPlus2024 => SupporterPlus2024Migration.minLeadTime
+      case SPV1V2E2025       => SPV1V2E2025Migration.minLeadTime
       case Default           => 35
     }
   }
@@ -356,6 +364,7 @@ object NotificationHandler extends CohortHandler {
 
     MigrationType(cohortSpec) match {
       case SupporterPlus2024 => testCompatibleEmptySalesforceAddress(contact)
+      case SPV1V2E2025       => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))) // [1]
       case _ =>
         (for {
           billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
@@ -363,6 +372,8 @@ object NotificationHandler extends CohortHandler {
           _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
         } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
     }
+
+    // [1] We do not need an address for SPV1V2E2025
   }
 
   def firstName(contact: SalesforceContact): Either[NotificationHandlerFailure, String] = {
@@ -374,15 +385,18 @@ object NotificationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       address: SalesforceAddress
   ): Either[NotificationHandlerFailure, String] = {
+    MigrationType(cohortSpec) match {
+      case Newspaper2024     => Right(address.country.getOrElse("United Kingdom")) // [1]
+      case SupporterPlus2024 => Right(address.country.getOrElse(""))
+      case SPV1V2E2025       => Right(address.country.getOrElse(""))
+      case _                 => requiredField(address.country, "Contact.OtherAddress.country")
+    }
+
+    // [1]
     // The country is usually a required field, this came from the old print migrations. It was
     // not required for the 2023 digital migrations. Although technically required for
     // the 2024 print migration, "United Kingdom" can be substituted for missing values considering
     // that we are only delivery in the UK.
-    MigrationType(cohortSpec) match {
-      case Newspaper2024     => Right(address.country.getOrElse("United Kingdom"))
-      case SupporterPlus2024 => Right(address.country.getOrElse(""))
-      case _                 => requiredField(address.country, "Contact.OtherAddress.country")
-    }
   }
 
   def logMissingEmailAddress(cohortItem: CohortItem, sfContact: SalesforceContact): ZIO[Logging, Nothing, Unit] = {
@@ -503,7 +517,8 @@ object NotificationHandler extends CohortHandler {
           bn <- ZIO.fromEither(SupporterPlus2024Migration.brazeName(subscription))
         } yield bn
       }
-      case _ => ZIO.succeed(cohortSpec.brazeCampaignName)
+      case SPV1V2E2025 => ZIO.succeed(cohortSpec.brazeCampaignName)
+      case _           => ZIO.succeed(cohortSpec.brazeCampaignName)
     }
   }
 }

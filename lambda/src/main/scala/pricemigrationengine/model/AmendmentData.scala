@@ -1,10 +1,11 @@
 package pricemigrationengine.model
 
 import pricemigrationengine.migrations.{
-  GuardianWeeklyMigration,
   GW2024Migration,
-  newspaper2024Migration,
-  SupporterPlus2024Migration
+  GuardianWeeklyMigration,
+  SPV1V2E2025Migration,
+  SupporterPlus2024Migration,
+  newspaper2024Migration
 }
 import pricemigrationengine.model.ZuoraProductCatalogue.{homeDeliveryRatePlans, productPricingMap}
 
@@ -291,6 +292,7 @@ object AmendmentData {
       case Newspaper2024     => newspaper2024Migration.Estimation.priceData(subscription)
       case GW2024            => GW2024Migration.priceData(subscription, account)
       case SupporterPlus2024 => SupporterPlus2024Migration.priceData(subscription)
+      case SPV1V2E2025       => SPV1V2E2025Migration.priceData(subscription)
       case Default => priceDataWithRatePlanMatching(account, catalogue, subscription, invoiceList, nextServiceStartDate)
     }
   }

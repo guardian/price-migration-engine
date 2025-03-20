@@ -85,6 +85,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
         case Newspaper2024 => estimatedNewPrice
         case GW2024        => PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GW2024Migration.priceCap)
         case SupporterPlus2024 => estimatedNewPrice // [1]
+        case SPV1V2E2025       => estimatedNewPrice
         case Default           => PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)
       }
       // [1]
@@ -117,6 +118,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
     // the correct price.
     MigrationType(input) match {
       case SupporterPlus2024 => ZIO.succeed(HandlerOutput(isComplete = true))
+      case SPV1V2E2025       => ZIO.succeed(HandlerOutput(isComplete = true))
       case _ =>
         main(input).provideSome[Logging](
           EnvConfig.cohortTable.layer,
