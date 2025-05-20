@@ -1,7 +1,7 @@
 package pricemigrationengine.util
 
 import pricemigrationengine.handlers.NotificationHandler
-import pricemigrationengine.migrations.{GW2024Migration, newspaper2024Migration}
+import pricemigrationengine.migrations.GW2024Migration
 import pricemigrationengine.model._
 import zio.{IO, Random}
 
@@ -28,9 +28,7 @@ object StartDates {
   def lastPriceRiseDate(cohortSpec: CohortSpec, subscription: ZuoraSubscription): Option[LocalDate] = {
     MigrationType(cohortSpec) match {
       case GW2024            => GW2024Migration.subscriptionToLastPriceMigrationDate(subscription)
-      case Newspaper2024     => None
       case SupporterPlus2024 => None
-      case Default           => None
     }
   }
 
@@ -85,10 +83,8 @@ object StartDates {
   ): Int = {
     if (isMonthlySubscription(subscription, invoicePreview)) {
       MigrationType(cohortSpec) match {
-        case Newspaper2024     => newspaper2024Migration.Estimation.startDateSpreadPeriod(subscription)
         case GW2024            => 3
         case SupporterPlus2024 => 1 // no spread for S+2024 monthlies
-        case Default           => 3
       }
     } else 1
   }
@@ -102,11 +98,8 @@ object StartDates {
 
     // LowerBound from to the cohort spec and the notification window's end
     val startDateLowerBound1 = MigrationType(cohortSpec) match {
-      case Newspaper2024 =>
-        newspaper2024Migration.Estimation.startDateLowerbound(today, subscription)
       case GW2024            => cohortSpecLowerBound(cohortSpec, today)
       case SupporterPlus2024 => cohortSpecLowerBound(cohortSpec, today)
-      case Default           => cohortSpecLowerBound(cohortSpec, today)
     }
 
     // We now respect the policy of not increasing members during their first year

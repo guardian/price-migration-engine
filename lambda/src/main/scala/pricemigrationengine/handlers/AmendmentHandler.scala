@@ -6,7 +6,6 @@ import pricemigrationengine.migrations._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import java.time.{LocalDate, LocalDateTime, ZoneOffset}
-import pricemigrationengine.migrations.newspaper2024Migration
 
 /** Carries out price-rise amendments in Zuora.
   */
@@ -96,10 +95,8 @@ object AmendmentHandler extends CohortHandler {
     // estimated price (which wasn't including the extra contribution).
 
     MigrationType(cohortSpec) match {
-      case Newspaper2024     => true
       case GW2024            => true
       case SupporterPlus2024 => false
-      case Default           => true
     }
   }
 
@@ -202,13 +199,6 @@ object AmendmentHandler extends CohortHandler {
             Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
 
           update <- MigrationType(cohortSpec) match {
-            case Newspaper2024 =>
-              ZIO.fromEither(
-                newspaper2024Migration.Amendment.zuoraUpdate(
-                  subscriptionBeforeUpdate,
-                  startDate,
-                )
-              )
             case GW2024 =>
               ZIO.fromEither(
                 GW2024Migration.zuoraUpdate(
@@ -228,18 +218,6 @@ object AmendmentHandler extends CohortHandler {
                   estimatedNewPrice,
                   SupporterPlus2024Migration.priceCap
                 )
-              )
-            case Default =>
-              ZIO.fromEither(
-                ZuoraSubscriptionUpdate
-                  .zuoraUpdate(
-                    account,
-                    catalogue,
-                    subscriptionBeforeUpdate,
-                    invoicePreviewBeforeUpdate,
-                    startDate,
-                    Some(PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice))
-                  )
               )
           }
 
