@@ -32,7 +32,7 @@ object EstimationResult {
   ): Either[Failure, EstimationData] = {
     for {
       startDate <- AmendmentData.nextServiceStartDate(invoiceList, subscription, startDateLowerBound)
-      priceData <- AmendmentData.priceData(account, catalogue, subscription, invoiceList, startDate, cohortSpec)
+      priceData <- AmendmentData.priceData(account, subscription, cohortSpec)
     } yield EstimationData(
       subscription.subscriptionNumber,
       startDate,

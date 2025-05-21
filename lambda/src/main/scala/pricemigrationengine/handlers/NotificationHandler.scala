@@ -6,7 +6,7 @@ import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
-import pricemigrationengine.migrations.{GW2024Migration, newspaper2024Migration, SupporterPlus2024Migration}
+import pricemigrationengine.migrations.{GW2024Migration, SupporterPlus2024Migration}
 import pricemigrationengine.model.RateplansProbe
 
 import java.time.{LocalDate, ZoneId}
@@ -144,8 +144,6 @@ object NotificationHandler extends CohortHandler {
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
 
       priceWithOptionalCappingWithCurrencySymbol = MigrationType(cohortSpec) match {
-        case Default       => s"${currencySymbol}${PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice)}"
-        case Newspaper2024 => s"${currencySymbol}${estimatedNewPrice}"
         case GW2024 =>
           s"${currencySymbol}${PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GW2024Migration.priceCap)}"
         case SupporterPlus2024 => s"${currencySymbol}${estimatedNewPrice}"
@@ -284,19 +282,15 @@ object NotificationHandler extends CohortHandler {
 
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case Newspaper2024     => newspaper2024Migration.StaticData.maxLeadTime
       case GW2024            => GW2024Migration.maxLeadTime
       case SupporterPlus2024 => SupporterPlus2024Migration.maxLeadTime
-      case Default           => 49
     }
   }
 
   def minLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case Newspaper2024     => newspaper2024Migration.StaticData.minLeadTime
       case GW2024            => GW2024Migration.minLeadTime
       case SupporterPlus2024 => SupporterPlus2024Migration.minLeadTime
-      case Default           => 35
     }
   }
 
@@ -379,7 +373,6 @@ object NotificationHandler extends CohortHandler {
     // the 2024 print migration, "United Kingdom" can be substituted for missing values considering
     // that we are only delivery in the UK.
     MigrationType(cohortSpec) match {
-      case Newspaper2024     => Right(address.country.getOrElse("United Kingdom"))
       case SupporterPlus2024 => Right(address.country.getOrElse(""))
       case _                 => requiredField(address.country, "Contact.OtherAddress.country")
     }
