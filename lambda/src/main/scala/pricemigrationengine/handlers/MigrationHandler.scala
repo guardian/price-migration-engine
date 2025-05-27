@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import pricemigrationengine.model.CohortSpec
 import pricemigrationengine.services._
-import pricemigrationengine.util.Runner.unsafeRun
+import pricemigrationengine.libs.Runner.unsafeRun
 import zio.{Clock, Runtime, ZIO, ZIOAppArgs, ZIOAppDefault}
 
 /** Executes price migration for active cohorts.

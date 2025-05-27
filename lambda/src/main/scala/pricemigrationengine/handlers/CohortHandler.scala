@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import com.amazonaws.services.lambda.runtime.{Context, RequestStreamHandler}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import pricemigrationengine.util.Runner.unsafeRun
+import pricemigrationengine.libs.Runner.unsafeRun
 import ujson.Readable
 import upickle.default.{read, stream}
 import zio.{Runtime, ZIO, ZIOAppArgs, ZIOAppDefault}

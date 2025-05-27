@@ -1,4 +1,4 @@
-package pricemigrationengine.util
+package pricemigrationengine.libs
 import java.time.LocalDate
 
 object Date {

@@ -1,4 +1,4 @@
-package pricemigrationengine.util
+package pricemigrationengine.libs
 
 import pricemigrationengine.handlers.NotificationHandler
 import pricemigrationengine.migrations.GW2024Migration

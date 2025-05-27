@@ -2,7 +2,7 @@ package pricemigrationengine.migrations
 import pricemigrationengine.model.PriceCap
 import pricemigrationengine.model.ZuoraRatePlan
 import pricemigrationengine.model._
-import pricemigrationengine.util._
+import pricemigrationengine.libs._
 
 import java.time.LocalDate
 

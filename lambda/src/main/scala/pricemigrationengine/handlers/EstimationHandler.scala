@@ -4,7 +4,7 @@ import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.{Clock, IO, Random, ZIO}
-import pricemigrationengine.util.{Date, StartDates}
+import pricemigrationengine.libs.{Date, StartDates}
 import java.time.LocalDate
 
 /** Calculates start date and new price for a set of CohortItems.
