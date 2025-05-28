@@ -1,4 +1,5 @@
 package pricemigrationengine.migrations
+import pricemigrationengine.libs.SubscriptionIntrospection2025
 import pricemigrationengine.model.PriceCap
 import pricemigrationengine.model.ZuoraRatePlan
 import pricemigrationengine.model._
@@ -70,6 +71,10 @@ object GuardianWeekly2025Migration {
     "USD" -> BigDecimal(432), // 396 to 432
   )
 
+  // ------------------------------------------------
+  // Helpers
+  // ------------------------------------------------
+
   def priceLookUp(
       localisation: SubscriptionLocatisation,
       billingPeriod: BillingPeriod,
@@ -95,34 +100,27 @@ object GuardianWeekly2025Migration {
     }
   }
 
-  // ------------------------------------------------
-  // Helper function
-  //
-  // They tend to be specific to a migration, I haven't managed to identify a general pattern,
-  // mostly because each migration is slightly different in its set up. With that said,
-  // it's easy to refurbish them from one migration to another.
-  //
-  // Their collective purpose is to help build the PriceData, so ultimately we need
-  // - the currency
-  // - the old price
-  // - the new price (here use the price grid)
-  // - the billing period
-  // ------------------------------------------------
-
-  def getCurrency(subscription: ZuoraSubscription): Option[String] = {
-    None
-  }
-
-  def getOldPrice(subscription: ZuoraSubscription): Option[BigDecimal] = {
-    None
-  }
-
-  def getNewPrice(subscription: ZuoraSubscription): Option[BigDecimal] = {
-    None
-  }
-
-  def getBillingPeriod(subscription: ZuoraSubscription): Option[BillingPeriod] = {
-    None
+  def determineSubscriptionLocalisation(
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      account: ZuoraAccount
+  ): Option[SubscriptionLocatisation] = {
+    for {
+      ratePlanChargeNumber <- SubscriptionIntrospection2025.invoicePreviewToChargeNumber(invoiceList)
+      ratePlan <- SubscriptionIntrospection2025.ratePlanChargeNumberToMatchingRatePlan(
+        subscription,
+        ratePlanChargeNumber
+      )
+      currency <- SubscriptionIntrospection2025.determineCurrency(ratePlan)
+    } yield {
+      val country = account.soldToContact.country
+      val isROW = currency == "USD" && country != "United States"
+      if (isROW) {
+        RestOfWorld
+      } else {
+        Domestic
+      }
+    }
   }
 
   // ------------------------------------------------
@@ -136,31 +134,31 @@ object GuardianWeekly2025Migration {
   // ------------------------------------------------
 
   def priceData(
-      subscription: ZuoraSubscription
-  ): Either[Failure, PriceData] = {
-
-    // -------------------------
-    // Note:
-    // Author: Pascal
-    // I prefer writing the helper functions to return an Option, because that feels more
-    // semantically natural, but the priceData function (this function), needs to return a Either.
-    // This explains the fact that we first build priceDataOpt: Option[PriceData] and then
-    // convert it into a Either[Failure, PriceData]
-    // -------------------------
-
-    val priceDataOpt = for {
-      currency <- getCurrency(subscription)
-      oldPrice <- getOldPrice(subscription)
-      newPrice <- getNewPrice(subscription)
-      billingPeriod <- getBillingPeriod(subscription)
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      account: ZuoraAccount
+  ): Either[DataExtractionFailure, PriceData] = {
+    val priceDataOpt: Option[PriceData] = for {
+      ratePlanChargeNumber <- SubscriptionIntrospection2025.invoicePreviewToChargeNumber(invoiceList)
+      ratePlan <- SubscriptionIntrospection2025.ratePlanChargeNumberToMatchingRatePlan(
+        subscription,
+        ratePlanChargeNumber
+      )
+      currency <- SubscriptionIntrospection2025.determineCurrency(ratePlan)
+      oldPrice = SubscriptionIntrospection2025.determineOldPrice(ratePlan)
+      localisation <- determineSubscriptionLocalisation(subscription, invoiceList, account)
+      billingPeriod <- SubscriptionIntrospection2025.determineBillingPeriod(ratePlan)
+      newPrice <- priceLookUp(
+        localisation,
+        billingPeriod: BillingPeriod,
+        currency: String
+      )
     } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
       case None =>
         Left(
-          DataExtractionFailure(
-            s"[94a95e00] Could not determine PriceData for subscription ${subscription.subscriptionNumber}"
-          )
+          DataExtractionFailure(s"Could not determine PriceData for subscription ${subscription.subscriptionNumber}")
         )
     }
   }
