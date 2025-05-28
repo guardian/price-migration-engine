@@ -7,10 +7,6 @@ import pricemigrationengine.libs._
 
 import java.time.LocalDate
 
-sealed trait SubscriptionLocatisation
-object Domestic extends SubscriptionLocatisation
-object RestOfWorld extends SubscriptionLocatisation
-
 object GuardianWeekly2025Migration {
 
   // ------------------------------------------------
@@ -76,7 +72,7 @@ object GuardianWeekly2025Migration {
   // ------------------------------------------------
 
   def priceLookUp(
-      localisation: SubscriptionLocatisation,
+      localisation: SubscriptionLocalisation,
       billingPeriod: BillingPeriod,
       currency: String
   ): Option[BigDecimal] = {
@@ -96,29 +92,6 @@ object GuardianWeekly2025Migration {
           case SemiAnnual => None
           case Annual     => pricesAnnualRestOfWorld.get(currency)
         }
-      }
-    }
-  }
-
-  def determineSubscriptionLocalisation(
-      subscription: ZuoraSubscription,
-      invoiceList: ZuoraInvoiceList,
-      account: ZuoraAccount
-  ): Option[SubscriptionLocatisation] = {
-    for {
-      ratePlanChargeNumber <- SubscriptionIntrospection2025.invoicePreviewToChargeNumber(invoiceList)
-      ratePlan <- SubscriptionIntrospection2025.ratePlanChargeNumberToMatchingRatePlan(
-        subscription,
-        ratePlanChargeNumber
-      )
-      currency <- SubscriptionIntrospection2025.determineCurrency(ratePlan)
-    } yield {
-      val country = account.soldToContact.country
-      val isROW = currency == "USD" && country != "United States"
-      if (isROW) {
-        RestOfWorld
-      } else {
-        Domestic
       }
     }
   }
@@ -146,7 +119,7 @@ object GuardianWeekly2025Migration {
       )
       currency <- SubscriptionIntrospection2025.determineCurrency(ratePlan)
       oldPrice = SubscriptionIntrospection2025.determineOldPrice(ratePlan)
-      localisation <- determineSubscriptionLocalisation(subscription, invoiceList, account)
+      localisation <- SubscriptionLocalisation.determineSubscriptionLocalisation(subscription, invoiceList, account)
       billingPeriod <- SubscriptionIntrospection2025.determineBillingPeriod(ratePlan)
       newPrice <- priceLookUp(
         localisation,

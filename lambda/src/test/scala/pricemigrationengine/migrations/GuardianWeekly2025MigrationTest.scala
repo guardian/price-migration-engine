@@ -1,6 +1,7 @@
 package pricemigrationengine.migrations
 
 import pricemigrationengine.model._
+import pricemigrationengine.libs._
 
 class GuardianWeekly2025MigrationTest extends munit.FunSuite {
 
