@@ -2,7 +2,7 @@ package pricemigrationengine.model
 
 import pricemigrationengine.TestLogging
 import pricemigrationengine.services._
-import pricemigrationengine.util.Runner.unsafeRunSync
+import pricemigrationengine.libs.Runner.unsafeRunSync
 import software.amazon.awssdk.services.dynamodb.model.AttributeAction.PUT
 import software.amazon.awssdk.services.dynamodb.model._
 import zio.Exit.Success

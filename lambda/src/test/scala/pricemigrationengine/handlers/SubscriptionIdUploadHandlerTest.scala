@@ -3,7 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.TestLogging
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import pricemigrationengine.util.Runner.unsafeRunSync
+import pricemigrationengine.libs.Runner.unsafeRunSync
 import software.amazon.awssdk.services.s3.model.{ObjectCannedACL, PutObjectResponse}
 import zio.Exit.Success
 import zio.Runtime.default

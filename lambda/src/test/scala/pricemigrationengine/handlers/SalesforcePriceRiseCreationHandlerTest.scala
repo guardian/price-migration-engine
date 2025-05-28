@@ -4,7 +4,7 @@ import pricemigrationengine.TestLogging
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiseCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import pricemigrationengine.util.Runner.unsafeRunSync
+import pricemigrationengine.libs.Runner.unsafeRunSync
 import zio.Exit.Success
 import zio.Runtime.default
 import zio.stream.ZStream
