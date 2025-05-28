@@ -5,7 +5,7 @@ import pricemigrationengine.model._
 import java.time.LocalDate
 import pricemigrationengine.Fixtures
 import pricemigrationengine.handlers.NotificationHandler
-import pricemigrationengine.util.StartDates
+import pricemigrationengine.libs.StartDates
 
 class GW2024MigrationTest extends munit.FunSuite {
 
