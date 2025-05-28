@@ -4,7 +4,7 @@ import pricemigrationengine.Fixtures
 import pricemigrationengine.model._
 import java.time.LocalDate
 
-// This module has its own fixtures at test/resources/utils/SubscriptionIntrospection2025/
+// This module has its own fixtures at test/resources/libs/SubscriptionIntrospection2025/
 
 // For the subscription, for instance subscription1, I added all the fixtures we usually
 // download for migrations:
