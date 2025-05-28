@@ -41,7 +41,7 @@
   },
   "billToContact" : null,
   "soldToContact" : {
-    "country" : "United States",
+    "country" : "United States"
   },
   "taxInfo" : null,
   "success" : true
