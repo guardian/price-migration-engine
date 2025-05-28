@@ -15,12 +15,6 @@ case class ZuoraRatePlan(
 object ZuoraRatePlan {
   implicit val rw: ReadWriter[ZuoraRatePlan] = macroRW
 
-  def ratePlanChargeToMatchingRatePlan(
-      subscription: ZuoraSubscription,
-      ratePlanCharge: ZuoraRatePlanCharge
-  ): Option[ZuoraRatePlan] =
-    subscription.ratePlans.find(_.ratePlanCharges.exists(_.number == ratePlanCharge.number))
-
   def ratePlanToCurrency(ratePlan: ZuoraRatePlan): Option[String] = {
     ratePlan.ratePlanCharges.headOption.map(_.currency)
   }

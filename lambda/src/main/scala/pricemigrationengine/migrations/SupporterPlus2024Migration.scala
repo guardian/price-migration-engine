@@ -262,68 +262,6 @@ object SupporterPlus2024Migration {
     } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
   }
 
-  def zuoraUpdate(
-      subscription: ZuoraSubscription,
-      effectiveDate: LocalDate,
-      oldPrice: BigDecimal,
-      estimatedNewPrice: BigDecimal,
-      priceCap: BigDecimal
-  ): Either[Failure, ZuoraSubscriptionUpdate] = {
-    for {
-      existingRatePlan <- getSupporterPlusV2RatePlan(subscription)
-      existingBaseRatePlanCharge <- getSupporterPlusBaseRatePlanCharge(
-        subscription.subscriptionNumber,
-        existingRatePlan
-      )
-      existingContributionRatePlanCharge <- getSupporterPlusContributionRatePlanCharge(
-        subscription.subscriptionNumber,
-        existingRatePlan
-      )
-      existingContributionPrice <- existingContributionRatePlanCharge.price.toRight(
-        DataExtractionFailure(
-          s"[22405076] Could not extract existing contribution price for subscription ${subscription.subscriptionNumber}"
-        )
-      )
-      billingPeriod <- ZuoraRatePlan
-        .ratePlanToBillingPeriod(existingRatePlan)
-        .toRight(
-          DataExtractionFailure(
-            s"[17469705] Could not determine the billing period for subscription ${subscription.subscriptionNumber}"
-          )
-        )
-
-    } yield {
-      ZuoraSubscriptionUpdate(
-        add = List(
-          AddZuoraRatePlan(
-            productRatePlanId = existingRatePlan.productRatePlanId,
-            contractEffectiveDate = effectiveDate,
-            chargeOverrides = List(
-              ChargeOverride(
-                productRatePlanChargeId = existingBaseRatePlanCharge.productRatePlanChargeId,
-                billingPeriod = BillingPeriod.toString(billingPeriod),
-                price = PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, priceCap)
-              ),
-              ChargeOverride(
-                productRatePlanChargeId = existingContributionRatePlanCharge.productRatePlanChargeId,
-                billingPeriod = BillingPeriod.toString(billingPeriod),
-                price = existingContributionPrice
-              )
-            )
-          )
-        ),
-        remove = List(
-          RemoveZuoraRatePlan(
-            ratePlanId = existingRatePlan.id,
-            contractEffectiveDate = effectiveDate
-          )
-        ),
-        currentTerm = None,
-        currentTermPeriodType = None
-      )
-    }
-  }
-
   // ------------------------------------------------
   // Orders API Payloads
   // ------------------------------------------------

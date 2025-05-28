@@ -1,6 +1,11 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.migrations.{GW2024Migration, SupporterPlus2024Migration}
+import pricemigrationengine.migrations.{
+  GW2024Migration,
+  GuardianWeekly2025Migration,
+  Newspaper2025Migration,
+  SupporterPlus2024Migration
+}
 import pricemigrationengine.model.ZuoraProductCatalogue.productPricingMap
 
 import java.time.LocalDate
@@ -123,10 +128,11 @@ object AmendmentData {
       subscription: ZuoraSubscription,
       cohortSpec: CohortSpec,
   ): Either[Failure, PriceData] = {
-
     MigrationType(cohortSpec) match {
-      case GW2024            => GW2024Migration.priceData(subscription, account)
-      case SupporterPlus2024 => SupporterPlus2024Migration.priceData(subscription)
+      case GW2024             => GW2024Migration.priceData(subscription, account)
+      case SupporterPlus2024  => SupporterPlus2024Migration.priceData(subscription)
+      case GuardianWeekly2025 => GuardianWeekly2025Migration.priceData(subscription)
+      case Newspaper2025      => Newspaper2025Migration.priceData(subscription)
     }
   }
 }

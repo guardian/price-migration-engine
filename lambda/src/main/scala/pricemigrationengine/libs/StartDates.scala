@@ -27,8 +27,10 @@ object StartDates {
   // This function returns the optional date of the last price rise.
   def lastPriceRiseDate(cohortSpec: CohortSpec, subscription: ZuoraSubscription): Option[LocalDate] = {
     MigrationType(cohortSpec) match {
-      case GW2024            => GW2024Migration.subscriptionToLastPriceMigrationDate(subscription)
-      case SupporterPlus2024 => None
+      case GW2024             => GW2024Migration.subscriptionToLastPriceMigrationDate(subscription)
+      case SupporterPlus2024  => None
+      case GuardianWeekly2025 => None // We are not applying this for GuardianWeekly2025
+      case Newspaper2025      => None // We are not applying this for GuardianWeekly2025
     }
   }
 
@@ -83,8 +85,10 @@ object StartDates {
   ): Int = {
     if (isMonthlySubscription(subscription, invoicePreview)) {
       MigrationType(cohortSpec) match {
-        case GW2024            => 3
-        case SupporterPlus2024 => 1 // no spread for S+2024 monthlies
+        case GW2024             => 3
+        case SupporterPlus2024  => 1 // no spread for S+2024 monthlies
+        case GuardianWeekly2025 => 1 // no spread for GuardianWeekly2025 monthlies
+        case Newspaper2025      => 1 // no spread for Newspaper2025 monthlies
       }
     } else 1
   }
@@ -98,8 +102,10 @@ object StartDates {
 
     // LowerBound from to the cohort spec and the notification window's end
     val startDateLowerBound1 = MigrationType(cohortSpec) match {
-      case GW2024            => cohortSpecLowerBound(cohortSpec, today)
-      case SupporterPlus2024 => cohortSpecLowerBound(cohortSpec, today)
+      case GW2024             => cohortSpecLowerBound(cohortSpec, today)
+      case SupporterPlus2024  => cohortSpecLowerBound(cohortSpec, today)
+      case GuardianWeekly2025 => cohortSpecLowerBound(cohortSpec, today)
+      case Newspaper2025      => cohortSpecLowerBound(cohortSpec, today)
     }
 
     // We now respect the policy of not increasing members during their first year
