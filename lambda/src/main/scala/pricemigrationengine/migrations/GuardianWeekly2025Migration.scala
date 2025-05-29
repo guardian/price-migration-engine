@@ -122,7 +122,29 @@ object GuardianWeekly2025Migration {
       invoiceList: ZuoraInvoiceList,
       account: ZuoraAccount
   ): Either[DataExtractionFailure, PriceData] = {
-    ???
+    val priceDataOpt: Option[PriceData] = for {
+      ratePlanChargeNumber <- SubscriptionIntrospection2025.invoicePreviewToChargeNumber(invoiceList)
+      ratePlan <- SubscriptionIntrospection2025.ratePlanChargeNumberToMatchingRatePlan(
+        subscription,
+        ratePlanChargeNumber
+      )
+      currency <- SubscriptionIntrospection2025.determineCurrency(ratePlan)
+      oldPrice = SubscriptionIntrospection2025.determineOldPrice(ratePlan)
+      localisation <- SubscriptionLocalisation.determineSubscriptionLocalisation(subscription, invoiceList, account)
+      billingPeriod <- SubscriptionIntrospection2025.determineBillingPeriod(ratePlan)
+      newPrice <- priceLookUp(
+        localisation,
+        billingPeriod: BillingPeriod,
+        currency: String
+      )
+    } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
+    priceDataOpt match {
+      case Some(pricedata) => Right(pricedata)
+      case None =>
+        Left(
+          DataExtractionFailure(s"Could not determine PriceData for subscription ${subscription.subscriptionNumber}")
+        )
+    }
   }
 
   def amendmentOrderPayload(

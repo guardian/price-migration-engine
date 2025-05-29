@@ -27,12 +27,15 @@ object StartDates {
   // This function returns the optional date of the last price rise.
   def lastPriceRiseDate(cohortSpec: CohortSpec, subscription: ZuoraSubscription): Option[LocalDate] = {
     MigrationType(cohortSpec) match {
-      case GW2024             => GW2024Migration.subscriptionToLastPriceMigrationDate(subscription)
-      case SupporterPlus2024  => None
-      case GuardianWeekly2025 => GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription) // [1]
-      case Newspaper2025      => Newspaper2025Migration.subscriptionToLastPriceMigrationDate(subscription) // [1]
+      case GW2024            => GW2024Migration.subscriptionToLastPriceMigrationDate(subscription)
+      case SupporterPlus2024 => None
+      case GuardianWeekly2025 =>
+        GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription) // [1]
+      case Newspaper2025 =>
+        Newspaper2025Migration.subscriptionToLastPriceMigrationDate(subscription) // [2]
     }
-    // [1] We are applying the one year since the last price migration policy for GuardianWeekly2025
+    // [1 & 2] We are applying the "one year since the last price migration" policy for
+    // GuardianWeekly2025 and Newspaper2025
   }
 
   def cohortSpecLowerBound(

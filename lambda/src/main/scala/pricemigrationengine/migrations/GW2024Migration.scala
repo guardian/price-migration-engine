@@ -131,10 +131,7 @@ object GW2024Migration {
       and price rising only the first of such rate plans.
 
       In practice I have downloaded all the subscriptions of this migration and checked that
-      they all have just one active productRatePlanId. (With that said, and sadly, the
-      actual JSON blob does sometimes have several instances of the rate rate plan. This is
-      not a problem though, because the ZuoraSubscriptionUpdate's RemoveZuoraRatePlan refers to
-      a productRatePlanId and not the rate plan's own id)
+      they all have just one active productRatePlanId.
      */
 
     subscriptionToMigrationRatePlans(subscription).headOption

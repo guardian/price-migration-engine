@@ -129,7 +129,6 @@ object AmendmentData {
       cohortSpec: CohortSpec,
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, PriceData] = {
-
     MigrationType(cohortSpec) match {
       case GW2024             => GW2024Migration.priceData(subscription, account)
       case SupporterPlus2024  => SupporterPlus2024Migration.priceData(subscription)
