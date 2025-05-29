@@ -94,6 +94,7 @@ object AmendmentHandler extends CohortHandler {
       case GW2024             => true
       case SupporterPlus2024  => false // [1]
       case GuardianWeekly2025 => true
+      case Newspaper2025      => true
     }
 
     // [1] We do not apply the check to the SupporterPlus2024 migration where, due to the way
@@ -143,6 +144,7 @@ object AmendmentHandler extends CohortHandler {
           )
         case SupporterPlus2024  => ZIO.fromEither(Left(ConfigFailure("[53d150d9] Incorrect doAmendment dispatch")))
         case GuardianWeekly2025 => ZIO.fromEither(Left(ConfigFailure("[4feb4a0e] Incorrect doAmendment dispatch")))
+        case Newspaper2025      => ZIO.fromEither(Left(ConfigFailure("[fd244e46] Incorrect doAmendment dispatch")))
       }
 
       _ <- Logging.info(
@@ -242,6 +244,19 @@ object AmendmentHandler extends CohortHandler {
               priceCap = GuardianWeekly2025Migration.priceCap
             )
           )
+        case Newspaper2025 =>
+          ZIO.fromEither(
+            Newspaper2025Migration.amendmentOrderPayload(
+              orderDate = LocalDate.now(),
+              accountNumber = account.basicInfo.accountNumber,
+              subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
+              effectDate = startDate,
+              subscription = subscriptionBeforeUpdate,
+              oldPrice = oldPrice,
+              estimatedNewPrice = estimatedNewPrice,
+              priceCap = Newspaper2025Migration.priceCap
+            )
+          )
       }
       _ <- Logging.info(
         s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
@@ -294,6 +309,12 @@ object AmendmentHandler extends CohortHandler {
           item: CohortItem
         )
       case GuardianWeekly2025 =>
+        doAmendment_ordersApi(
+          cohortSpec: CohortSpec,
+          catalogue: ZuoraProductCatalogue,
+          item: CohortItem
+        )
+      case Newspaper2025 =>
         doAmendment_ordersApi(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,

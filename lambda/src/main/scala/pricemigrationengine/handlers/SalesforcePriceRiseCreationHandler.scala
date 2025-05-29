@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.migrations.{GW2024Migration, GuardianWeekly2025Migration}
+import pricemigrationengine.migrations.{GW2024Migration, GuardianWeekly2025Migration, Newspaper2025Migration}
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiseCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -86,6 +86,8 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
         case SupporterPlus2024 => estimatedNewPrice // [1]
         case GuardianWeekly2025 =>
           PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GuardianWeekly2025Migration.priceCap)
+        case Newspaper2025 =>
+          PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, Newspaper2025Migration.priceCap)
       }
       // [1]
       // (Comment group: 7992fa98)
