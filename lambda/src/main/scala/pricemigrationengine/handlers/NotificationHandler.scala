@@ -6,7 +6,7 @@ import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
-import pricemigrationengine.migrations.{GW2024Migration, SupporterPlus2024Migration}
+import pricemigrationengine.migrations.{GW2024Migration, GuardianWeekly2025Migration, SupporterPlus2024Migration}
 import pricemigrationengine.model.RateplansProbe
 
 import java.time.{LocalDate, ZoneId}
@@ -147,6 +147,8 @@ object NotificationHandler extends CohortHandler {
         case GW2024 =>
           s"${currencySymbol}${PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GW2024Migration.priceCap)}"
         case SupporterPlus2024 => s"${currencySymbol}${estimatedNewPrice}"
+        case GuardianWeekly2025 =>
+          s"${currencySymbol}${PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GuardianWeekly2025Migration.priceCap)}"
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)
@@ -282,15 +284,17 @@ object NotificationHandler extends CohortHandler {
 
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case GW2024            => GW2024Migration.maxLeadTime
-      case SupporterPlus2024 => SupporterPlus2024Migration.maxLeadTime
+      case GW2024             => GW2024Migration.maxLeadTime
+      case SupporterPlus2024  => SupporterPlus2024Migration.maxLeadTime
+      case GuardianWeekly2025 => GuardianWeekly2025Migration.maxLeadTime
     }
   }
 
   def minLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case GW2024            => GW2024Migration.minLeadTime
-      case SupporterPlus2024 => SupporterPlus2024Migration.minLeadTime
+      case GW2024             => GW2024Migration.minLeadTime
+      case SupporterPlus2024  => SupporterPlus2024Migration.minLeadTime
+      case GuardianWeekly2025 => GuardianWeekly2025Migration.minLeadTime
     }
   }
 
