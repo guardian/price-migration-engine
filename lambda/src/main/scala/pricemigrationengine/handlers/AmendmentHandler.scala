@@ -90,16 +90,15 @@ object AmendmentHandler extends CohortHandler {
   }
 
   private def shouldPerformFinalPriceCheck(cohortSpec: CohortSpec): Boolean = {
-    // We do not apply the check to the SupporterPlus2024
-    // migration where, due to the way the prices are computed, the new price can be higher than the
-    // estimated price (which wasn't including the extra contribution).
-
     MigrationType(cohortSpec) match {
       case GW2024             => true
-      case SupporterPlus2024  => false
+      case SupporterPlus2024  => false // [1]
       case GuardianWeekly2025 => true
-      case Newspaper2025      => true
     }
+
+    // [1] We do not apply the check to the SupporterPlus2024 migration where, due to the way
+    // the prices are computed, the new price can be higher than the
+    // estimated price (which wasn't including the extra contribution).
   }
 
   private def doAmendment_usingZuoraUpdate(

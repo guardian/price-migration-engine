@@ -10,11 +10,17 @@ import java.time.LocalDate
 object GuardianWeekly2025Migration {
 
   // ------------------------------------------------
+  // Price capping
+  // ------------------------------------------------
+
+  val priceCap = 1.20 // 20%
+
+  // ------------------------------------------------
   // Notification Timings
   // ------------------------------------------------
 
-  val maxLeadTime = 39
-  val minLeadTime = 37
+  val maxLeadTime = 49
+  val minLeadTime = 36
 
   // ------------------------------------------------
   // Price Grid
@@ -94,6 +100,11 @@ object GuardianWeekly2025Migration {
         }
       }
     }
+  }
+
+  def subscriptionToLastPriceMigrationDate(subscription: ZuoraSubscription): Option[LocalDate] = {
+    // This will be moved to Subscription Introspection
+    ???
   }
 
   // ------------------------------------------------
