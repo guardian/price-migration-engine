@@ -239,7 +239,7 @@ object AmendmentHandler extends CohortHandler {
               subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
-              priceCap = SupporterPlus2024Migration.priceCap
+              priceCap = GuardianWeekly2025Migration.priceCap
             )
           )
       }
