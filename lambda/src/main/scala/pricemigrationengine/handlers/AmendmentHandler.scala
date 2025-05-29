@@ -243,7 +243,6 @@ object AmendmentHandler extends CohortHandler {
             )
           )
       }
-
       _ <- Logging.info(
         s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
       )
