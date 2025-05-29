@@ -90,14 +90,15 @@ object AmendmentHandler extends CohortHandler {
   }
 
   private def shouldPerformFinalPriceCheck(cohortSpec: CohortSpec): Boolean = {
-    // We do not apply the check to the SupporterPlus2024
-    // migration where, due to the way the prices are computed, the new price can be higher than the
-    // estimated price (which wasn't including the extra contribution).
-
     MigrationType(cohortSpec) match {
-      case GW2024            => true
-      case SupporterPlus2024 => false
+      case GW2024             => true
+      case SupporterPlus2024  => false // [1]
+      case GuardianWeekly2025 => true
     }
+
+    // [1] We do not apply the check to the SupporterPlus2024 migration where, due to the way
+    // the prices are computed, the new price can be higher than the
+    // estimated price (which wasn't including the extra contribution).
   }
 
   private def doAmendment_usingZuoraUpdate(
@@ -140,7 +141,8 @@ object AmendmentHandler extends CohortHandler {
               GW2024Migration.priceCap
             )
           )
-        case SupporterPlus2024 => ZIO.fromEither(Left(ConfigFailure("[53d150d9] Incorrect doAmendment dispatch")))
+        case SupporterPlus2024  => ZIO.fromEither(Left(ConfigFailure("[53d150d9] Incorrect doAmendment dispatch")))
+        case GuardianWeekly2025 => ZIO.fromEither(Left(ConfigFailure("[4feb4a0e] Incorrect doAmendment dispatch")))
       }
 
       _ <- Logging.info(
@@ -227,8 +229,20 @@ object AmendmentHandler extends CohortHandler {
               priceCap = SupporterPlus2024Migration.priceCap
             )
           )
+        case GuardianWeekly2025 =>
+          ZIO.fromEither(
+            GuardianWeekly2025Migration.amendmentOrderPayload(
+              orderDate = LocalDate.now(),
+              accountNumber = account.basicInfo.accountNumber,
+              subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
+              effectDate = startDate,
+              subscription = subscriptionBeforeUpdate,
+              oldPrice = oldPrice,
+              estimatedNewPrice = estimatedNewPrice,
+              priceCap = GuardianWeekly2025Migration.priceCap
+            )
+          )
       }
-
       _ <- Logging.info(
         s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
       )
@@ -275,6 +289,12 @@ object AmendmentHandler extends CohortHandler {
         )
       case GW2024 =>
         doAmendment_usingZuoraUpdate(
+          cohortSpec: CohortSpec,
+          catalogue: ZuoraProductCatalogue,
+          item: CohortItem
+        )
+      case GuardianWeekly2025 =>
+        doAmendment_ordersApi(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
