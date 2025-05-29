@@ -12,7 +12,7 @@ object Newspaper2025Migration {
   // Price capping
   // ------------------------------------------------
 
-  // val priceCap = 1.20 // Not confirmed yet
+  val priceCap = 1.20 // TODO: Not signed off yet
 
   // ------------------------------------------------
   // Notification Timings
@@ -29,6 +29,8 @@ object Newspaper2025Migration {
   // advantage of not relying on complex look up of the price catalogue. (In fact we could even migrate
   // to prices not present in the price catalogue)
   // ------------------------------------------------
+
+  // Not implemented yet
 
   // ------------------------------------------------
   // Helpers

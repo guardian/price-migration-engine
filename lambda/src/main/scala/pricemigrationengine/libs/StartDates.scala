@@ -1,7 +1,7 @@
 package pricemigrationengine.libs
 
 import pricemigrationengine.handlers.NotificationHandler
-import pricemigrationengine.migrations.{GW2024Migration, GuardianWeekly2025Migration}
+import pricemigrationengine.migrations.{GW2024Migration, GuardianWeekly2025Migration, Newspaper2025Migration}
 import pricemigrationengine.model._
 import zio.{IO, Random}
 
@@ -27,12 +27,15 @@ object StartDates {
   // This function returns the optional date of the last price rise.
   def lastPriceRiseDate(cohortSpec: CohortSpec, subscription: ZuoraSubscription): Option[LocalDate] = {
     MigrationType(cohortSpec) match {
-      case GW2024             => GW2024Migration.subscriptionToLastPriceMigrationDate(subscription)
-      case SupporterPlus2024  => None
-      case GuardianWeekly2025 => GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription) // [1]
-      case Newspaper2025      => None // We are not applying this for GuardianWeekly2025
+      case GW2024            => GW2024Migration.subscriptionToLastPriceMigrationDate(subscription)
+      case SupporterPlus2024 => None
+      case GuardianWeekly2025 =>
+        GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription) // [1]
+      case Newspaper2025 =>
+        Newspaper2025Migration.subscriptionToLastPriceMigrationDate(subscription) // [2]
     }
-    // [1] We are applying the one year since the last price migration policy for GuardianWeekly2025
+    // [1 & 2] We are applying the "one year since the last price migration" policy for
+    // GuardianWeekly2025 and Newspaper2025
   }
 
   def cohortSpecLowerBound(
@@ -88,8 +91,8 @@ object StartDates {
       MigrationType(cohortSpec) match {
         case GW2024             => 3
         case SupporterPlus2024  => 1 // no spread for S+2024 monthlies
-        case GuardianWeekly2025 => 1 // no spread for GuardianWeekly2025 monthlies
-        case Newspaper2025      => 1 // no spread for Newspaper2025 monthlies
+        case GuardianWeekly2025 => 1 // no spread for Guardian Weekly 2025
+        case Newspaper2025      => 1 // no spread for Newspaper 2025
       }
     } else 1
   }

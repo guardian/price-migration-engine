@@ -94,6 +94,7 @@ object AmendmentHandler extends CohortHandler {
       case GW2024             => true
       case SupporterPlus2024  => false // [1]
       case GuardianWeekly2025 => true
+      case Newspaper2025      => true
     }
 
     // [1] We do not apply the check to the SupporterPlus2024 migration where, due to the way
@@ -240,7 +241,7 @@ object AmendmentHandler extends CohortHandler {
               subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
-              priceCap = SupporterPlus2024Migration.priceCap
+              priceCap = GuardianWeekly2025Migration.priceCap
             )
           )
         case Newspaper2025 =>
@@ -253,11 +254,10 @@ object AmendmentHandler extends CohortHandler {
               subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
-              priceCap = SupporterPlus2024Migration.priceCap
+              priceCap = Newspaper2025Migration.priceCap
             )
           )
       }
-
       _ <- Logging.info(
         s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
       )
