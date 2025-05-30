@@ -6,6 +6,15 @@ import pricemigrationengine.libs._
 
 import java.time.LocalDate
 
+sealed trait Newspaper2025ProductType
+object Voucher extends Newspaper2025ProductType
+object Subcard extends Newspaper2025ProductType
+object HomeDelivery extends Newspaper2025ProductType
+
+sealed trait Newspaper2025Frequency
+object EverydayPlus extends Newspaper2025Frequency
+object SixdayPlus extends Newspaper2025Frequency
+
 object Newspaper2025Migration {
 
   // ------------------------------------------------
@@ -30,11 +39,68 @@ object Newspaper2025Migration {
   // to prices not present in the price catalogue)
   // ------------------------------------------------
 
-  // Not implemented yet
+  val pricesVouncherEverydayPlus: Map[BillingPeriod, BigDecimal] = Map(
+    Monthly -> BigDecimal(69.99),
+    Quarterly -> BigDecimal(209.97),
+    SemiAnnual -> BigDecimal(419.94),
+    Annual -> BigDecimal(839.88),
+  )
+
+  val pricesVouncherSixdayPlus: Map[BillingPeriod, BigDecimal] = Map(
+    Monthly -> BigDecimal(61.99),
+    Quarterly -> BigDecimal(185.97),
+    SemiAnnual -> BigDecimal(371.94),
+    Annual -> BigDecimal(743.88),
+  )
+
+  val pricesSubCardEverydayPlus: Map[BillingPeriod, BigDecimal] = Map(
+    Monthly -> BigDecimal(69.99),
+    Quarterly -> BigDecimal(209.97),
+  )
+
+  val pricesSubCardSixdayPlus: Map[BillingPeriod, BigDecimal] = Map(
+    Monthly -> BigDecimal(61.99),
+    Quarterly -> BigDecimal(185.97),
+  )
+
+  val pricesHomeDeliveryEverydayPlus: Map[BillingPeriod, BigDecimal] = Map(
+    Monthly -> BigDecimal(83.99),
+  )
+
+  val pricesHomeDeliverySixdayPlus: Map[BillingPeriod, BigDecimal] = Map(
+    Monthly -> BigDecimal(73.99),
+  )
 
   // ------------------------------------------------
   // Helpers
   // ------------------------------------------------
+
+  def priceLookUp(
+      productType: Newspaper2025ProductType,
+      frequency: Newspaper2025Frequency,
+      billingPeriod: BillingPeriod
+  ): Option[BigDecimal] = {
+    productType match {
+      case Voucher => {
+        frequency match {
+          case EverydayPlus => pricesVouncherEverydayPlus.get(billingPeriod)
+          case SixdayPlus   => pricesVouncherSixdayPlus.get(billingPeriod)
+        }
+      }
+      case Subcard => {
+        frequency match {
+          case EverydayPlus => pricesSubCardEverydayPlus.get(billingPeriod)
+          case SixdayPlus   => pricesSubCardSixdayPlus.get(billingPeriod)
+        }
+      }
+      case HomeDelivery => {
+        frequency match {
+          case EverydayPlus => pricesHomeDeliveryEverydayPlus.get(billingPeriod)
+          case SixdayPlus   => pricesHomeDeliverySixdayPlus.get(billingPeriod)
+        }
+      }
+    }
+  }
 
   def subscriptionToLastPriceMigrationDate(subscription: ZuoraSubscription): Option[LocalDate] = {
     // This will be moved to Subscription Introspection
