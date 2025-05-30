@@ -1,7 +1,7 @@
 package pricemigrationengine.libs
 
 import pricemigrationengine.handlers.NotificationHandler
-import pricemigrationengine.migrations.{GW2024Migration, GuardianWeekly2025Migration, Newspaper2025Migration}
+import pricemigrationengine.migrations.{GuardianWeekly2025Migration, Newspaper2025Migration}
 import pricemigrationengine.model._
 import zio.{IO, Random}
 
@@ -27,7 +27,6 @@ object StartDates {
   // This function returns the optional date of the last price rise.
   def lastPriceRiseDate(cohortSpec: CohortSpec, subscription: ZuoraSubscription): Option[LocalDate] = {
     MigrationType(cohortSpec) match {
-      case GW2024             => GW2024Migration.subscriptionToLastPriceMigrationDate(subscription)
       case SupporterPlus2024  => None
       case GuardianWeekly2025 => GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription) // [1]
       case Newspaper2025      => Newspaper2025Migration.subscriptionToLastPriceMigrationDate(subscription) // [1]
@@ -86,7 +85,6 @@ object StartDates {
   ): Int = {
     if (isMonthlySubscription(subscription, invoicePreview)) {
       MigrationType(cohortSpec) match {
-        case GW2024             => 3
         case SupporterPlus2024  => 1 // no spread for S+2024 monthlies
         case GuardianWeekly2025 => 1 // no spread for Guardian Weekly 2025
         case Newspaper2025      => 1 // no spread for Newspaper 2025
@@ -103,7 +101,6 @@ object StartDates {
 
     // LowerBound from to the cohort spec and the notification window's end
     val startDateLowerBound1 = MigrationType(cohortSpec) match {
-      case GW2024             => cohortSpecLowerBound(cohortSpec, today)
       case SupporterPlus2024  => cohortSpecLowerBound(cohortSpec, today)
       case GuardianWeekly2025 => cohortSpecLowerBound(cohortSpec, today)
       case Newspaper2025      => cohortSpecLowerBound(cohortSpec, today)
