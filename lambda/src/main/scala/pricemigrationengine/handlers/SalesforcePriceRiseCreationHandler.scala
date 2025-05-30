@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.migrations.{GW2024Migration, GuardianWeekly2025Migration, Newspaper2025Migration}
+import pricemigrationengine.migrations.{GuardianWeekly2025Migration, Newspaper2025Migration}
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiseCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -82,7 +82,6 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
           .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a startDate"))
     } yield {
       val estimatedPriceWithOptionalCapping = MigrationType(cohortSpec) match {
-        case GW2024 => PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GW2024Migration.priceCap)
         case SupporterPlus2024 => estimatedNewPrice // [1]
         case GuardianWeekly2025 =>
           PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GuardianWeekly2025Migration.priceCap)
