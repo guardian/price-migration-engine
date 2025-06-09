@@ -9,7 +9,7 @@ import java.time.LocalDate
   Date: 27th May 2025
   Author: Pascal
 
-  SubscriptionIntrospection2025 was introduced in May 2025, in preparation of the
+  SubscriptionIntrospection2025, renamed to SI2025, was introduced in May 2025, in preparation of the
   Guardian Weekly and Newspaper, migrations starting soon to help improve the migration
   specific codes.
 
@@ -18,30 +18,14 @@ import java.time.LocalDate
   the price grid (Pascal prefers hardcoding the price grid of each migration, notably in cases
   the prices are not yet, or identical, to the price catalogue)
 
-  The purpose of SubscriptionIntrospection2025 is to facilitate writing the migration specific code
+  The purpose of SI2025 is to facilitate writing the migration specific code
   by abstracting away some helpers functions we have (re)written a few times over the years
 
  */
 
-object SubscriptionIntrospection2025 {
-
-  /*
-    Date: 28 May 2025
-    Author: Pascal
-
-    Function `invoicePreviewToChargeNumber` is the core of the logic to determine the migration
-    rate plan (and the core of SubscriptionIntrospection2025). It takes an invoice list
-    (something that we naturally have access to during Estimation) and extracts a charge number.
-    The charge number will then be used to identify the migration rate plan.
-   */
-
+object SI2025RateplanFromSubAndInvoices {
   def invoicePreviewToChargeNumber(invoiceList: ZuoraInvoiceList): Option[String] =
     invoiceList.invoiceItems.headOption.map(invoiceItem => invoiceItem.chargeNumber)
-
-  /*
-    Given a subscription and the rate plan charge we extracted from reading the subscription's invoice preview
-    We can now identify the migration rate plan using `ratePlanChargeNumberToMatchingRatePlan`
-   */
 
   def ratePlanChargeNumberToMatchingRatePlan(
       subscription: ZuoraSubscription,
@@ -49,8 +33,72 @@ object SubscriptionIntrospection2025 {
   ): Option[ZuoraRatePlan] =
     subscription.ratePlans.find(_.ratePlanCharges.exists(_.number == ratePlanChargeNumber))
 
-  // --------------------------------------
-  // Derivative attributes
+  // `determineRatePlan` is the main function of this object. Given a subscription and an invoice List
+  // it determines the rate plan that corresponds to the invoice list. This is a very reliable
+  // way of determining the rate plan that other data should be derived from.
+
+  def determineRatePlan(subscription: ZuoraSubscription, invoiceList: ZuoraInvoiceList): Option[ZuoraRatePlan] = {
+    for {
+      ratePlanChargeNumber <- SI2025RateplanFromSubAndInvoices.invoicePreviewToChargeNumber(invoiceList)
+      ratePlan <- SI2025RateplanFromSubAndInvoices.ratePlanChargeNumberToMatchingRatePlan(
+        subscription,
+        ratePlanChargeNumber
+      )
+    } yield ratePlan
+  }
+}
+
+object SI2025RateplanFromSub {
+
+  // This version of determineRatePlan doesn't use invoice previews and can be used in
+  // a situation where only the subscription is available and assuming there is only
+  // one active rate plan on the subscription (which is arguably the case of all our
+  // subscriptions). This is the one we can use from StartDates to determine the last
+  // price migration date in a context where we only have access to the subscription.
+
+  def determineRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
+    subscription.ratePlans.find(ratePlan => ZuoraRatePlan.ratePlanIsActive(ratePlan))
+  }
+}
+
+/*
+
+  Note that the helper functions are given with signature
+
+  """
+  subscriptionToLastPriceMigrationDate(ratePlan: ZuoraRatePlan): Option[Something]
+  """
+
+  This is for consistency. If you intend to use the helper function in a migration module,
+  you are probably going to do it this way:
+
+  def subscriptionToLastPriceMigrationDate(
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+  ): Option[LocalDate] = {
+    for {
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
+      date <- SI2025Extractions.subscriptionToLastPriceMigrationDate(ratePlan)
+    } yield date
+  }
+
+  The subscription and invoice list are naturally present in the migration code. You then
+  use `SI2025RateplanFromSubAndInvoices.determineRatePlan` to extract the rate plan
+  and then use the helper function you are interested in.
+
+  With this said, if you are in a situation where you only have access to the subscription and
+  can assume that it only has one active rate plan, you can use `SI2025RateplanFromSub` to get
+
+  def subscriptionToLastPriceMigrationDate(subscription: ZuoraSubscription): Option[LocalDate] = {
+    for {
+      ratePlan <- SI2025RateplanFromSub.determineRatePlan(subscription)
+      date <- SI2025Extractions.subscriptionToLastPriceMigrationDate(ratePlan)
+    } yield date
+  }
+
+ */
+
+object SI2025Extractions {
 
   def determineCurrency(
       ratePlan: ZuoraRatePlan
@@ -68,14 +116,31 @@ object SubscriptionIntrospection2025 {
     )
   }
 
+  def subscriptionToLastPriceMigrationDate(
+      ratePlan: ZuoraRatePlan
+  ): Option[LocalDate] = {
+    // This function is used to decide the date of the last price migration.
+
+    // It is part of the enforcement of the policy to not re-migrate a subscription within
+    // one year of its last price migration. Note that it uses invoice previews to determine
+    // the rate plan of interest from which the date is going to be read. As such the value
+    // that it returns is the date at which we moved to the latest charges
+    // of the rate plans we are currently on.
+
+    for {
+      ratePlanCharge <- ratePlan.ratePlanCharges.headOption
+      date <- ratePlanCharge.originalOrderDate
+    } yield date
+  }
+}
+
+object SI2025Templates {
+
   def determineNewPrice(): BigDecimal = {
     // This function is a placeholder for consistency to remind the engineer that
     // by convention the new prices are hard coded in the migration itself
     throw new Exception("[6170c05c] this function should not be called. See code comment.")
   }
-
-  // --------------------------------------
-  // priceData template
 
   /*
     The function below is a template, which needs to be copied into the migration module
@@ -89,14 +154,13 @@ object SubscriptionIntrospection2025 {
       invoiceList: ZuoraInvoiceList
   ): Either[DataExtractionFailure, PriceData] = {
     val priceDataOpt: Option[PriceData] = for {
-      ratePlanChargeNumber <- invoicePreviewToChargeNumber(invoiceList)
-      ratePlan <- ratePlanChargeNumberToMatchingRatePlan(subscription, ratePlanChargeNumber)
-      currency <- determineCurrency(ratePlan)
-      oldPrice = determineOldPrice(ratePlan: ZuoraRatePlan)
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
+      currency <- SI2025Extractions.determineCurrency(ratePlan)
+      oldPrice = SI2025Extractions.determineOldPrice(ratePlan: ZuoraRatePlan)
       newPrice = BigDecimal(
         2.71
       ) // Should replace this by a call to the migration's own `determineNewPrice()` the price grid lookup
-      billingPeriod <- determineBillingPeriod(ratePlan)
+      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
     } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
@@ -106,5 +170,4 @@ object SubscriptionIntrospection2025 {
         )
     }
   }
-
 }
