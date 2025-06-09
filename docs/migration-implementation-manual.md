@@ -71,6 +71,10 @@ We used the Guardian Weekly 2024 migration as a teaching opportunity and split t
 6. [The User Notification Step](https://github.com/guardian/price-migration-engine/pull/1023)
 7. [The Amendment Step](https://github.com/guardian/price-migration-engine/pull/996)
 
+## Prevent accidental firing of migration steps
+
+There are situations where you have already implemented and excecuted the first steps of a migrations, but do not yet want to see the later steps being executed, or if, for some reasons, you want to permanently disable a step of a given migration, [as we did for SupporterPlus 2024](https://github.com/guardian/price-migration-engine/blob/2da72b6d02aa96c42781ea8a70b3431895f95af4/lambda/src/main/scala/pricemigrationengine/handlers/SalesforcePriceRiseCreationHandler.scala#L116). A very simple way to perform this is simply to add guards in the handlers. [See an example](https://github.com/guardian/price-migration-engine/pull/1141).
+
 ## Downloading the Cohort Tables
 
 As part of preparing / running a migratition, it is often useful to run processes on the entire cohort table. It is not easy to query Dynamo tables directly but you can download the entirety of the records as JSON objects. Here is the command that Pascal has been using: (You only need the Janus credentials, also in this case given for the PriceMigration-PROD-GW2024 table)
