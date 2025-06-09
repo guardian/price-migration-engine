@@ -115,7 +115,15 @@ Individual lambdas like the `EstimationLambda` and the `AmendmentLambda` can be 
 * zuoraClientSecret=`personal clientSecret`
 
 ##### Input Cohort Spec Example
-` {     "cohortName": "EchoLegacyTesting",     "brazeCampaignName": "cmp123",     "importStartDate": "2020-07-01",     "earliestPriceMigrationStartDate": "2022-08-02"  }`
+``` 
+{
+  "cohortName": "EchoLegacyTesting",
+  "brazeName": "cmp123",
+  "importStartDate": "2020-07-01",
+  "earliestPriceMigrationStartDate": "2022-08-02"
+}
+```
+
 Note the above is different to the input JSON that the lambda admits 
 
 ## Importing subscription id for a price migration

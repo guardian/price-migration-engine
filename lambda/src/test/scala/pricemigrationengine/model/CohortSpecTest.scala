@@ -13,7 +13,7 @@ class CohortSpecTest extends munit.FunSuite {
 
   private val cohortSpec = CohortSpec(
     cohortName = "Home Delivery 2018",
-    brazeCampaignName = "cmp123",
+    brazeName = "cmp123",
     importStartDate = LocalDate.of(2020, 1, 1),
     earliestPriceMigrationStartDate = LocalDate.of(2020, 1, 2),
     migrationCompleteDate = None
@@ -26,7 +26,7 @@ class CohortSpecTest extends munit.FunSuite {
     CohortSpec.isActive(
       CohortSpec(
         cohortName = "name",
-        brazeCampaignName = "cmp123",
+        brazeName = "cmp123",
         importStartDate,
         earliestPriceMigrationStartDate = LocalDate.of(2021, 1, 1),
         migrationComplete
@@ -67,7 +67,7 @@ class CohortSpecTest extends munit.FunSuite {
   test("fromDynamoDbItem: should include all fields") {
     val item = Map(
       "cohortName" -> AttributeValue.builder.s("Home Delivery 2018").build(),
-      "brazeCampaignName" -> AttributeValue.builder.s("cmp123").build(),
+      "brazeName" -> AttributeValue.builder.s("cmp123").build(),
       "importStartDate" -> AttributeValue.builder.s("2020-01-01").build(),
       "earliestPriceMigrationStartDate" -> AttributeValue.builder.s("2020-01-02").build()
     ).asJava
@@ -86,7 +86,7 @@ class CohortSpecTest extends munit.FunSuite {
   }
 
   test("isValid: should be false when the campaign name contains an illegal character") {
-    assertFalse(isValid(cohortSpec.copy(brazeCampaignName = "vc:ppr321")))
+    assertFalse(isValid(cohortSpec.copy(brazeName = "vc:ppr321")))
   }
 
   test("isValid: should be false when the import date is not before the earliest migration start date") {

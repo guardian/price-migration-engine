@@ -487,7 +487,7 @@ object NotificationHandler extends CohortHandler {
   // email templates in Braze to serve communication to the users.
 
   // Traditionally the name of the campaign or canvas has been part of the CohortSpec, making
-  // `cohortSpec.brazeCampaignName` the default carrier of this information, but in the case of SupporterPlus 2024
+  // `cohortSpec.brazeName` the default carrier of this information, but in the case of SupporterPlus 2024
   // we have two canvases and need to decide one depending on the structure of the subscription. Once
   // SupporterPlus2024 finished, we may decide to go back to a simpler format, or keep that function, depending
   // on the likelihood of Marketing adopting this variation in the future.
@@ -500,7 +500,7 @@ object NotificationHandler extends CohortHandler {
           bn <- ZIO.fromEither(SupporterPlus2024Migration.brazeName(subscription))
         } yield bn
       }
-      case _ => ZIO.succeed(cohortSpec.brazeCampaignName)
+      case _ => ZIO.succeed(cohortSpec.brazeName)
     }
   }
 }
