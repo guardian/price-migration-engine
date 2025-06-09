@@ -19,7 +19,7 @@ As part of setting up a migration you will want to run some of the lambdas on de
 ```
 {
     "cohortName":"GW2024",
-    "brazeCampaignName":"SV_GW_PriceRise2024Email",
+    "brazeName":"SV_GW_PriceRise2024Email",
     "importStartDate":"2024-02-01",
     "earliestPriceMigrationStartDate":"2024-05-20"
 }
@@ -27,7 +27,7 @@ As part of setting up a migration you will want to run some of the lambdas on de
 {
     "cohortSpec": {
         "cohortName":"GW2024",
-        "brazeCampaignName":"SV_GW_PriceRise2024Email",
+        "brazeName":"SV_GW_PriceRise2024Email",
         "importStartDate":"2024-02-01",
         "earliestPriceMigrationStartDate":"2024-05-20"
     }
@@ -37,7 +37,7 @@ As part of setting up a migration you will want to run some of the lambdas on de
 The difference between the two is that the former is used to run specific lambdas and the latter used to run the state machine itself. They both carry the same information.
 
 * **cohortName**: A unique name to identify the cohort. Must consist of alphanumeric, whitespace, '-' and '_' characters.
-* **brazeCampaignName**: The name that membership-workflow uses to refer to the Braze campaign or canvas for notifying subscribers. Must consist of alphanumeric, whitespace, '-' and '_' characters. This name is given to us by Marketing after they have set up the campaign or canvas in Braze.
+* **brazeName**: The name that membership-workflow uses to refer to the Braze campaign or canvas for notifying subscribers. Must consist of alphanumeric, whitespace, '-' and '_' characters. This name is given to us by Marketing after they have set up the campaign or canvas in Braze.
 * **importStartDate**: Date on which to begin importing participating subscription numbers into the engine. Format is `yyyy-mm-dd`. This key is not of much importance nowadays, because we upload the subscriptions numbers only when the cohort has been determined and ready to be sent to the DynamoDB. It would be fine to decommission this key in the future.
 * **earliestPriceMigrationStartDate**: Earliest date on which a subscription can have its price increased. Increases will always begin on the first day of a billing period on or after this date. Format is `yyyy-mm-dd`.
 
