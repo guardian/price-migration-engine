@@ -122,7 +122,7 @@ class SubscriptionIntrospection2025Test extends munit.FunSuite {
     val invoicePreview =
       Fixtures.invoiceListFromJson("libs/SubscriptionIntrospection2025/subscription1/invoice-preview.json")
     val chargeNumber =
-      SubscriptionIntrospection2025.invoicePreviewToChargeNumber(invoicePreview)
+      SI2025RateplanFromSubAndInvoices.invoicePreviewToChargeNumber(invoicePreview)
     assertEquals(chargeNumber, Some("C-05719965"))
   }
 
@@ -131,7 +131,7 @@ class SubscriptionIntrospection2025Test extends munit.FunSuite {
       Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription1/subscription.json")
 
     val ratePlan =
-      SubscriptionIntrospection2025.ratePlanChargeNumberToMatchingRatePlan(
+      SI2025RateplanFromSubAndInvoices.ratePlanChargeNumberToMatchingRatePlan(
         subscription,
         "C-05719965" // <- value from the previous test, otherwise can be read from the fixture data.
       )
@@ -203,7 +203,7 @@ class SubscriptionIntrospection2025Test extends munit.FunSuite {
       ),
       lastChangeType = Some("Add")
     )
-    val currency = SubscriptionIntrospection2025.determineCurrency(ratePlan)
+    val currency = SI2025Extractions.determineCurrency(ratePlan)
     assertEquals(currency, Some("USD"))
   }
 
@@ -238,7 +238,7 @@ class SubscriptionIntrospection2025Test extends munit.FunSuite {
       ),
       lastChangeType = Some("Add")
     )
-    val billingPeriod = SubscriptionIntrospection2025.determineBillingPeriod(ratePlan)
+    val billingPeriod = SI2025Extractions.determineBillingPeriod(ratePlan)
     assertEquals(billingPeriod, Some(Quarterly))
   }
 
@@ -273,7 +273,7 @@ class SubscriptionIntrospection2025Test extends munit.FunSuite {
       ),
       lastChangeType = Some("Add")
     )
-    val price = SubscriptionIntrospection2025.determineOldPrice(ratePlan)
+    val price = SI2025Extractions.determineOldPrice(ratePlan)
     assertEquals(price, BigDecimal(90.0))
   }
 
@@ -282,7 +282,7 @@ class SubscriptionIntrospection2025Test extends munit.FunSuite {
       Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription1/subscription.json")
     val invoicePreview =
       Fixtures.invoiceListFromJson("libs/SubscriptionIntrospection2025/subscription1/invoice-preview.json")
-    val priceData = SubscriptionIntrospection2025.priceData(subscription, invoicePreview)
+    val priceData = SI2025Templates.priceData(subscription, invoicePreview)
     assertEquals(priceData, Right(PriceData("USD", BigDecimal(90.0), BigDecimal(2.71), "Quarter")))
   }
 }

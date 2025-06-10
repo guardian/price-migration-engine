@@ -30,12 +30,11 @@ object SubscriptionLocalisation {
       account: ZuoraAccount
   ): Option[SubscriptionLocalisation] = {
     for {
-      ratePlanChargeNumber <- SubscriptionIntrospection2025.invoicePreviewToChargeNumber(invoiceList)
-      ratePlan <- SubscriptionIntrospection2025.ratePlanChargeNumberToMatchingRatePlan(
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(
         subscription,
-        ratePlanChargeNumber
+        invoiceList
       )
-      currency <- SubscriptionIntrospection2025.determineCurrency(ratePlan)
+      currency <- SI2025Extractions.determineCurrency(ratePlan)
     } yield {
       val country = account.soldToContact.country
       val isROW = currency == "USD" && country != "United States"

@@ -32,9 +32,12 @@ object ZuoraRatePlan {
     } yield BillingPeriod.fromString(billingPeriod)
   }
 
-  def ratePlanToRatePlanPrice(ratePlan: ZuoraRatePlan): BigDecimal = {
-    ratePlan.ratePlanCharges.foldLeft(BigDecimal(0))((price: BigDecimal, ratePlanCharge: ZuoraRatePlanCharge) =>
-      price + ratePlanCharge.price.getOrElse(BigDecimal(0))
-    )
+  // Sadly `lastChangeType` is not always defined on all rate plans. The situation is:
+  //     - Not defined                    -> Active rate plan
+  //     - Defined and value is "Add"     -> Active rate plan
+  //     - Defined and value is "Removed" -> Non active rate plan
+
+  def ratePlanIsActive(ratePlan: ZuoraRatePlan): Boolean = {
+    !ratePlan.lastChangeType.contains("Removed")
   }
 }
