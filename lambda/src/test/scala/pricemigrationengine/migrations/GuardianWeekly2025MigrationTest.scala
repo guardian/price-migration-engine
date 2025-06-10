@@ -76,4 +76,20 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     )
   }
 
+  test("GuardianWeekly2025Migration.priceData (EUR-annual1)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2025/EUR-annual1/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2025/EUR-annual1/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2025/EUR-annual1/invoice-preview.json")
+
+    // Currency from subscription: "currency": "EUR"
+    // Old price from currency: active rate plan, one single rate plan charge: "price": 318
+    // price lookup (new price): (Annual, "EUR") -> BigDecimal(348)
+    // Billing frequency from currency: active rate plan, rate plan charge: "billingPeriod": "Annual"
+
+    assertEquals(
+      GuardianWeekly2025Migration.priceData(subscription, invoicePreview, account),
+      Right(PriceData("EUR", BigDecimal(318), BigDecimal(348), "Annual"))
+    )
+  }
+
 }
