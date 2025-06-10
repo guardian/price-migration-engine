@@ -1,4 +1,4 @@
-package pricemigrationengine.model
+package pricemigrationengine.libs
 
 import java.time.LocalDate
 import upickle.default._

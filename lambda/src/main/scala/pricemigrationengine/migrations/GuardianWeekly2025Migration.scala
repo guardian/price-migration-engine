@@ -6,6 +6,7 @@ import pricemigrationengine.model._
 import pricemigrationengine.libs._
 
 import java.time.LocalDate
+import ujson._
 
 object GuardianWeekly2025Migration {
 
@@ -156,7 +157,7 @@ object GuardianWeekly2025Migration {
       oldPrice: BigDecimal,
       estimatedNewPrice: BigDecimal,
       priceCap: BigDecimal
-  ): Either[Failure, ZuoraAmendmentOrderPayload] = {
+  ): Either[Failure, Value] = {
     ???
   }
 }

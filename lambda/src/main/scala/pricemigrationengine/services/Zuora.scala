@@ -4,6 +4,7 @@ import java.time.LocalDate
 
 import pricemigrationengine.model._
 import zio.ZIO
+import ujson._
 
 trait Zuora {
 
@@ -20,9 +21,14 @@ trait Zuora {
       update: ZuoraSubscriptionUpdate
   ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId]
 
-  def applyAmendmentOrder(
+  def applyAmendmentOrder_typed_deprecated(
       subscription: ZuoraSubscription,
       payload: ZuoraAmendmentOrderPayload
+  ): ZIO[Any, ZuoraOrderFailure, Unit]
+
+  def applyAmendmentOrder_json_values(
+      subscription: ZuoraSubscription,
+      payload: Value
   ): ZIO[Any, ZuoraOrderFailure, Unit]
 
   def renewSubscription(
@@ -51,11 +57,17 @@ object Zuora {
   ): ZIO[Zuora, ZuoraUpdateFailure, ZuoraSubscriptionId] =
     ZIO.environmentWithZIO(_.get.updateSubscription(subscription, update))
 
-  def applyAmendmentOrder(
+  def applyAmendmentOrder_typed_deprecated(
       subscription: ZuoraSubscription,
       payload: ZuoraAmendmentOrderPayload
   ): ZIO[Zuora, ZuoraOrderFailure, Unit] =
-    ZIO.environmentWithZIO(_.get.applyAmendmentOrder(subscription, payload))
+    ZIO.environmentWithZIO(_.get.applyAmendmentOrder_typed_deprecated(subscription, payload))
+
+  def applyAmendmentOrder_json_values(
+      subscription: ZuoraSubscription,
+      payload: Value
+  ): ZIO[Zuora, ZuoraOrderFailure, Unit] =
+    ZIO.environmentWithZIO(_.get.applyAmendmentOrder_json_values(subscription, payload))
 
   def renewSubscription(
       subscriptionNumber: String,

@@ -6,6 +6,7 @@ import pricemigrationengine.migrations._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import java.time.{LocalDate, LocalDateTime, ZoneOffset}
+import ujson._
 
 /** Carries out price-rise amendments in Zuora.
   */
@@ -101,7 +102,7 @@ object AmendmentHandler extends CohortHandler {
     // estimated price (which wasn't including the extra contribution).
   }
 
-  private def doAmendment_ordersApi(
+  private def doAmendment_ordersApi_typed_deprecated(
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
@@ -142,6 +143,72 @@ object AmendmentHandler extends CohortHandler {
             )
           )
         case GuardianWeekly2025 =>
+          ZIO.fail(MigrationRoutingFailure("GuardianWeekly2025 should not use doAmendment_ordersApi_typed_deprecated"))
+        case Newspaper2025 =>
+          ZIO.fail(MigrationRoutingFailure("Newspaper2025 should not use doAmendment_ordersApi_typed_deprecated"))
+      }
+      _ <- Logging.info(
+        s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
+      )
+
+      _ <- Zuora.applyAmendmentOrder_typed_deprecated(subscriptionBeforeUpdate, order)
+
+      subscriptionAfterUpdate <- fetchSubscription(item)
+
+      invoicePreviewAfterUpdate <-
+        Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)
+
+      newPrice <-
+        ZIO.fromEither(
+          AmendmentData.totalChargeAmount(
+            subscriptionAfterUpdate,
+            invoicePreviewAfterUpdate,
+            startDate
+          )
+        )
+
+      whenDone <- Clock.instant
+    } yield SuccessfulAmendmentResult(
+      item.subscriptionName,
+      startDate,
+      oldPrice,
+      newPrice,
+      estimatedNewPrice,
+      subscriptionAfterUpdate.id,
+      whenDone
+    )
+  }
+
+  private def doAmendment_ordersApi_json_values(
+      cohortSpec: CohortSpec,
+      catalogue: ZuoraProductCatalogue,
+      item: CohortItem
+  ): ZIO[Zuora with Logging, Failure, SuccessfulAmendmentResult] = {
+    for {
+      subscriptionBeforeUpdate <- fetchSubscription(item)
+
+      startDate <- ZIO.fromOption(item.startDate).orElseFail(DataExtractionFailure(s"No start date in $item"))
+
+      oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(DataExtractionFailure(s"No old price in $item"))
+
+      estimatedNewPrice <-
+        ZIO
+          .fromOption(item.estimatedNewPrice)
+          .orElseFail(DataExtractionFailure(s"No estimated new price in $item"))
+
+      invoicePreviewTargetDate = startDate.plusMonths(13)
+
+      account <- Zuora.fetchAccount(
+        subscriptionBeforeUpdate.accountNumber,
+        subscriptionBeforeUpdate.subscriptionNumber
+      )
+
+      _ <- renewSubscription(subscriptionBeforeUpdate, subscriptionBeforeUpdate.termEndDate, account)
+
+      order <- MigrationType(cohortSpec) match {
+        case SupporterPlus2024 =>
+          ZIO.fail(MigrationRoutingFailure("SupporterPlus2024 should not use doAmendment_ordersApi_json_values"))
+        case GuardianWeekly2025 =>
           ZIO.fromEither(
             GuardianWeekly2025Migration.amendmentOrderPayload(
               orderDate = LocalDate.now(),
@@ -172,7 +239,7 @@ object AmendmentHandler extends CohortHandler {
         s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
       )
 
-      _ <- Zuora.applyAmendmentOrder(subscriptionBeforeUpdate, order)
+      _ <- Zuora.applyAmendmentOrder_json_values(subscriptionBeforeUpdate, order)
 
       subscriptionAfterUpdate <- fetchSubscription(item)
 
@@ -207,19 +274,19 @@ object AmendmentHandler extends CohortHandler {
   ): ZIO[Zuora with Logging, Failure, SuccessfulAmendmentResult] = {
     MigrationType(cohortSpec) match {
       case SupporterPlus2024 =>
-        doAmendment_ordersApi(
+        doAmendment_ordersApi_typed_deprecated(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
       case GuardianWeekly2025 =>
-        doAmendment_ordersApi(
+        doAmendment_ordersApi_json_values(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
       case Newspaper2025 =>
-        doAmendment_ordersApi(
+        doAmendment_ordersApi_json_values(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
