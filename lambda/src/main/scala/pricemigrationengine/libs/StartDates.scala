@@ -29,9 +29,10 @@ object StartDates {
     MigrationType(cohortSpec) match {
       case SupporterPlus2024  => None
       case GuardianWeekly2025 => GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription) // [1]
-      case Newspaper2025      => Newspaper2025Migration.subscriptionToLastPriceMigrationDate(subscription) // [1]
+      case Newspaper2025      => Newspaper2025Migration.subscriptionToLastPriceMigrationDate(subscription) // [2]
     }
-    // [1] We are applying the one year since the last price migration policy for GuardianWeekly2025
+    // [1 & 2] We are applying the "one year since the last price migration" policy for
+    // GuardianWeekly2025 and Newspaper2025
   }
 
   def cohortSpecLowerBound(

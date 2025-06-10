@@ -1,4 +1,5 @@
 package pricemigrationengine.migrations
+import pricemigrationengine.libs.SI2025Extractions
 import pricemigrationengine.model.PriceCap
 import pricemigrationengine.model.ZuoraRatePlan
 import pricemigrationengine.model._
@@ -101,9 +102,13 @@ object GuardianWeekly2025Migration {
     }
   }
 
-  def subscriptionToLastPriceMigrationDate(subscription: ZuoraSubscription): Option[LocalDate] = {
-    // This will be moved to Subscription Introspection
-    ???
+  def subscriptionToLastPriceMigrationDate(
+      subscription: ZuoraSubscription,
+  ): Option[LocalDate] = {
+    for {
+      ratePlan <- SI2025RateplanFromSub.determineRatePlan(subscription)
+      date <- SI2025Extractions.determineLastPriceMigrationDate(ratePlan)
+    } yield date
   }
 
   // ------------------------------------------------
@@ -121,7 +126,25 @@ object GuardianWeekly2025Migration {
       invoiceList: ZuoraInvoiceList,
       account: ZuoraAccount
   ): Either[DataExtractionFailure, PriceData] = {
-    ???
+    val priceDataOpt: Option[PriceData] = for {
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
+      currency <- SI2025Extractions.determineCurrency(ratePlan)
+      oldPrice = SI2025Extractions.determineOldPrice(ratePlan)
+      localisation <- SubscriptionLocalisation.determineSubscriptionLocalisation(subscription, invoiceList, account)
+      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
+      newPrice <- priceLookUp(
+        localisation,
+        billingPeriod: BillingPeriod,
+        currency: String
+      )
+    } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
+    priceDataOpt match {
+      case Some(pricedata) => Right(pricedata)
+      case None =>
+        Left(
+          DataExtractionFailure(s"Could not determine PriceData for subscription ${subscription.subscriptionNumber}")
+        )
+    }
   }
 
   def amendmentOrderPayload(

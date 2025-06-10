@@ -57,13 +57,15 @@ object SI2025RateplanFromSub {
   // price migration date in a context where we only have access to the subscription.
 
   def determineRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
-    subscription.ratePlans.find(ratePlan => ZuoraRatePlan.ratePlanIsActive(ratePlan))
+    subscription.ratePlans
+      .filter(ratePlan => ratePlan.productName != "Discounts")
+      .find(ratePlan => ZuoraRatePlan.ratePlanIsActive(ratePlan))
   }
 }
 
 /*
 
-  Note that the helper functions are given with signature
+  Note that the helper functions (SI2025Extractions) are given with signature
 
   """
   subscriptionToLastPriceMigrationDate(ratePlan: ZuoraRatePlan): Option[Something]
@@ -116,7 +118,7 @@ object SI2025Extractions {
     )
   }
 
-  def subscriptionToLastPriceMigrationDate(
+  def determineLastPriceMigrationDate(
       ratePlan: ZuoraRatePlan
   ): Option[LocalDate] = {
     // This function is used to decide the date of the last price migration.
