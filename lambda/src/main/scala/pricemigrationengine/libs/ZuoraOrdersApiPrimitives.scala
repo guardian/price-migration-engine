@@ -62,7 +62,7 @@ object ZuoraOrdersApiPrimitives {
       singletonDate("CustomerAcceptance", datestr)
     )
   }
-  def removeProduct(triggerDatesStr: String, ratePlanId: String): Value = {
+  def removeProduct(triggerDateString: String, subscriptionRatePlanId: String): Value = {
     /*
       {
         "type": "RemoveProduct",
@@ -87,14 +87,14 @@ object ZuoraOrdersApiPrimitives {
      */
     Obj(
       "type" -> Str("RemoveProduct"),
-      "triggerDates" -> triggerDates(triggerDatesStr: String),
+      "triggerDates" -> triggerDates(triggerDateString: String),
       "removeProduct" -> Obj(
-        "ratePlanId" -> Str(ratePlanId)
+        "ratePlanId" -> Str(subscriptionRatePlanId)
       )
     )
   }
 
-  def chargeOverride(productRatePlanChargeId: String, listPrice: Int): Value = {
+  def chargeOverride(productRatePlanChargeId: String, listPrice: BigDecimal): Value = {
     /*
         {
             "productRatePlanChargeId": "8a128ed885fc6ded018602296af13eba",
@@ -109,13 +109,13 @@ object ZuoraOrdersApiPrimitives {
       "productRatePlanChargeId" -> Str(productRatePlanChargeId),
       "pricing" -> Obj(
         "recurringFlatFee" -> Obj(
-          "listPrice" -> Num(listPrice)
+          "listPrice" -> Num(listPrice.doubleValue)
         )
       )
     )
   }
 
-  def addProduct(triggerDatesStr: String, productRatePlanId: String, chargeOverrides: List[Value]): Value = {
+  def addProduct(triggerDateString: String, productRatePlanId: String, chargeOverrides: List[Value]): Value = {
     /*
       {
           "type": "AddProduct",
@@ -158,7 +158,7 @@ object ZuoraOrdersApiPrimitives {
      */
     Obj(
       "type" -> Str("AddProduct"),
-      "triggerDates" -> triggerDates(triggerDatesStr: String),
+      "triggerDates" -> triggerDates(triggerDateString),
       "addProduct" -> Obj(
         "productRatePlanId" -> Str(productRatePlanId),
         "chargeOverrides" -> chargeOverrides
