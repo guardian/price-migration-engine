@@ -25,6 +25,7 @@ It currently consists in
     - [Setting migration extra attributes](docs/migration-extra-attributes.md)
     - [The migration implementation manual](docs/migration-implementation-manual.md)
     - [Downloading fixtures](docs/downloading-fixtures.md)
+    - [Notes on the Zuora Order API](docs/zuora-order-api.md)
     - [Troubleshooting document](docs/troubleshooting.md)
 
 - Android Price Rises
