@@ -140,6 +140,86 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
     )
   }
 
+  test("subscription") {
+    val removeProduct = ZuoraOrdersApiPrimitives.removeProduct("2025-05-19", "8a12867e92c341870192c7c46bdb47d6")
+    val addProduct = ZuoraOrdersApiPrimitives.addProduct(
+      "2025-05-20",
+      "8a128ed885fc6ded018602296ace3eb8",
+      List(
+        ZuoraOrdersApiPrimitives.chargeOverride("8a128ed885fc6ded018602296af13eba", 12),
+        ZuoraOrdersApiPrimitives.chargeOverride("8a128d7085fc6dec01860234cd075270", 0)
+      )
+    )
+    val json = ZuoraOrdersApiPrimitives.subscription("a1809f5e84dd", removeProduct: Value, addProduct: Value)
+    val jsonstrpp = ujson.write(json, indent = 4)
+    assertEquals(
+      jsonstrpp,
+      """{
+        |    "subscriptionNumber": "a1809f5e84dd",
+        |    "orderActions": [
+        |        {
+        |            "type": "RemoveProduct",
+        |            "triggerDates": [
+        |                {
+        |                    "name": "ContractEffective",
+        |                    "triggerDate": "2025-05-19"
+        |                },
+        |                {
+        |                    "name": "ServiceActivation",
+        |                    "triggerDate": "2025-05-19"
+        |                },
+        |                {
+        |                    "name": "CustomerAcceptance",
+        |                    "triggerDate": "2025-05-19"
+        |                }
+        |            ],
+        |            "removeProduct": {
+        |                "ratePlanId": "8a12867e92c341870192c7c46bdb47d6"
+        |            }
+        |        },
+        |        {
+        |            "type": "AddProduct",
+        |            "triggerDates": [
+        |                {
+        |                    "name": "ContractEffective",
+        |                    "triggerDate": "2025-05-20"
+        |                },
+        |                {
+        |                    "name": "ServiceActivation",
+        |                    "triggerDate": "2025-05-20"
+        |                },
+        |                {
+        |                    "name": "CustomerAcceptance",
+        |                    "triggerDate": "2025-05-20"
+        |                }
+        |            ],
+        |            "addProduct": {
+        |                "productRatePlanId": "8a128ed885fc6ded018602296ace3eb8",
+        |                "chargeOverrides": [
+        |                    {
+        |                        "productRatePlanChargeId": "8a128ed885fc6ded018602296af13eba",
+        |                        "pricing": {
+        |                            "recurringFlatFee": {
+        |                                "listPrice": 12
+        |                            }
+        |                        }
+        |                    },
+        |                    {
+        |                        "productRatePlanChargeId": "8a128d7085fc6dec01860234cd075270",
+        |                        "pricing": {
+        |                            "recurringFlatFee": {
+        |                                "listPrice": 0
+        |                            }
+        |                        }
+        |                    }
+        |                ]
+        |            }
+        |        }
+        |    ]
+        |}""".stripMargin
+    )
+  }
+
   test("replace_a_product_in_a_subscription") {
     val removeProduct = ZuoraOrdersApiPrimitives.removeProduct("2025-05-19", "8a12867e92c341870192c7c46bdb47d6")
     val addProduct = ZuoraOrdersApiPrimitives.addProduct(
@@ -236,85 +316,4 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |}""".stripMargin
     )
   }
-
-  test("subscription") {
-    val removeProduct = ZuoraOrdersApiPrimitives.removeProduct("2025-05-19", "8a12867e92c341870192c7c46bdb47d6")
-    val addProduct = ZuoraOrdersApiPrimitives.addProduct(
-      "2025-05-20",
-      "8a128ed885fc6ded018602296ace3eb8",
-      List(
-        ZuoraOrdersApiPrimitives.chargeOverride("8a128ed885fc6ded018602296af13eba", 12),
-        ZuoraOrdersApiPrimitives.chargeOverride("8a128d7085fc6dec01860234cd075270", 0)
-      )
-    )
-    val json = ZuoraOrdersApiPrimitives.subscription("a1809f5e84dd", removeProduct: Value, addProduct: Value)
-    val jsonstrpp = ujson.write(json, indent = 4)
-    assertEquals(
-      jsonstrpp,
-      """{
-        |    "subscriptionNumber": "a1809f5e84dd",
-        |    "orderActions": [
-        |        {
-        |            "type": "RemoveProduct",
-        |            "triggerDates": [
-        |                {
-        |                    "name": "ContractEffective",
-        |                    "triggerDate": "2025-05-19"
-        |                },
-        |                {
-        |                    "name": "ServiceActivation",
-        |                    "triggerDate": "2025-05-19"
-        |                },
-        |                {
-        |                    "name": "CustomerAcceptance",
-        |                    "triggerDate": "2025-05-19"
-        |                }
-        |            ],
-        |            "removeProduct": {
-        |                "ratePlanId": "8a12867e92c341870192c7c46bdb47d6"
-        |            }
-        |        },
-        |        {
-        |            "type": "AddProduct",
-        |            "triggerDates": [
-        |                {
-        |                    "name": "ContractEffective",
-        |                    "triggerDate": "2025-05-20"
-        |                },
-        |                {
-        |                    "name": "ServiceActivation",
-        |                    "triggerDate": "2025-05-20"
-        |                },
-        |                {
-        |                    "name": "CustomerAcceptance",
-        |                    "triggerDate": "2025-05-20"
-        |                }
-        |            ],
-        |            "addProduct": {
-        |                "productRatePlanId": "8a128ed885fc6ded018602296ace3eb8",
-        |                "chargeOverrides": [
-        |                    {
-        |                        "productRatePlanChargeId": "8a128ed885fc6ded018602296af13eba",
-        |                        "pricing": {
-        |                            "recurringFlatFee": {
-        |                                "listPrice": 12
-        |                            }
-        |                        }
-        |                    },
-        |                    {
-        |                        "productRatePlanChargeId": "8a128d7085fc6dec01860234cd075270",
-        |                        "pricing": {
-        |                            "recurringFlatFee": {
-        |                                "listPrice": 0
-        |                            }
-        |                        }
-        |                    }
-        |                ]
-        |            }
-        |        }
-        |    ]
-        |}""".stripMargin
-    )
-  }
-
 }

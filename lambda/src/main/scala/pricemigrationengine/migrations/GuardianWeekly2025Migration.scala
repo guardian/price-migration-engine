@@ -158,6 +158,30 @@ object GuardianWeekly2025Migration {
       estimatedNewPrice: BigDecimal,
       priceCap: BigDecimal
   ): Either[Failure, Value] = {
-    ???
+
+    // We have two notions of subscription here.
+    // There is the Zuora subscription which is one of the arguments, and there is
+    // the notion of subscription as defined in the Zuora Order API documentation,
+    // which roughly translates to a collections of { actions / atomic mutations } in Zuora
+
+    val zuora_subscription = subscription
+
+    val subscriptionRatePlanId =
+      "TODO:subscriptionRatePlanId" // this is to be read from the rate plan in the subscription
+    val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId: String)
+    val triggerDateString = effectDate.toString
+    val productRatePlanId = "TODO:productCatalogueRatePlanId" // read from the product catalogue
+    val chargeOverrides = List(
+      ZuoraOrdersApiPrimitives.chargeOverride("TODO:productRatePlanChargeId", estimatedNewPrice)
+    )
+    val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+    val order_subscription = ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, removeProduct, addProduct)
+    val order = ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
+      orderDate.toString,
+      accountNumber,
+      order_subscription
+    )
+
+    Right(order)
   }
 }
