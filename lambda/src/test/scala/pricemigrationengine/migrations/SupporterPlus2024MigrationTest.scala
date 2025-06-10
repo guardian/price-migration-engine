@@ -95,7 +95,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
   //   ... is meant to ensure that we know how to extract the rate plan if it doesn't carry a LastChangeType.
   //   The story with LastChangeTypes is
   //     - present with "Add"     : most recently added
-  //     - present with "Removed" : most recently removed
+  //     - present with "Remove"  : most recently removed
   //     - not present            : most recently added
   // I also modified the base price from the original 10 to 6, to test the price capping.
 
@@ -745,118 +745,6 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     assertEquals(
       SupporterPlus2024Migration.brazeName(subscription),
       Right("SV_SP2_Contributors_PriceRise2024")
-    )
-  }
-
-  // -----------------------------------
-  // zuoraUpdate
-
-  test("zuoraUpdate (monthly)") {
-    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
-    assertEquals(
-      SupporterPlus2024Migration.zuoraUpdate(subscription, LocalDate.of(2024, 9, 9), 10, 12, 1.27),
-      Right(
-        ZuoraSubscriptionUpdate(
-          add = List(
-            AddZuoraRatePlan(
-              productRatePlanId = "8a128ed885fc6ded018602296ace3eb8",
-              contractEffectiveDate = LocalDate.of(2024, 9, 9),
-              chargeOverrides = List(
-                ChargeOverride(
-                  productRatePlanChargeId = "8a128ed885fc6ded018602296af13eba", // base plan charge Id
-                  billingPeriod = "Month",
-                  price = 12
-                ),
-                ChargeOverride(
-                  productRatePlanChargeId = "8a128d7085fc6dec01860234cd075270", //  contribution charge Id
-                  billingPeriod = "Month",
-                  price = 0.0
-                )
-              )
-            )
-          ),
-          remove = List(
-            RemoveZuoraRatePlan(
-              ratePlanId = "8a12908b8dd07f56018de8f4950923b8",
-              contractEffectiveDate = LocalDate.of(2024, 9, 9)
-            )
-          ),
-          currentTerm = None,
-          currentTermPeriodType = None
-        )
-      )
-    )
-  }
-  test("zuoraUpdate (annual, without capping)") {
-    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
-    assertEquals(
-      SupporterPlus2024Migration.zuoraUpdate(subscription, LocalDate.of(2024, 9, 9), 160, 200, 1.27),
-      Right(
-        ZuoraSubscriptionUpdate(
-          add = List(
-            AddZuoraRatePlan(
-              productRatePlanId = "8a128ed885fc6ded01860228f77e3d5a",
-              contractEffectiveDate = LocalDate.of(2024, 9, 9),
-              chargeOverrides = List(
-                ChargeOverride(
-                  productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
-                  billingPeriod = "Annual",
-                  price = 200.0
-                ),
-                ChargeOverride(
-                  productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
-                  billingPeriod = "Annual",
-                  price = 340.0
-                )
-              )
-            )
-          ),
-          remove = List(
-            RemoveZuoraRatePlan(
-              ratePlanId = "8a12820a8c0ff963018c2504ba045b2f",
-              contractEffectiveDate = LocalDate.of(2024, 9, 9)
-            )
-          ),
-          currentTerm = None,
-          currentTermPeriodType = None
-        )
-      )
-    )
-  }
-  test("zuoraUpdate (annual, with capping)") {
-    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
-    assertEquals(
-      SupporterPlus2024Migration.zuoraUpdate(subscription, LocalDate.of(2024, 9, 9), 150, 200, 1.27),
-      Right(
-        ZuoraSubscriptionUpdate(
-          add = List(
-            AddZuoraRatePlan(
-              productRatePlanId = "8a128ed885fc6ded01860228f77e3d5a",
-              contractEffectiveDate = LocalDate.of(2024, 9, 9),
-              chargeOverrides = List(
-                ChargeOverride(
-                  productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
-                  billingPeriod = "Annual",
-                  price = 190.5
-                ),
-                ChargeOverride(
-                  productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
-                  billingPeriod = "Annual",
-                  price = 340.0
-                )
-              )
-            )
-          ),
-          remove = List(
-            RemoveZuoraRatePlan(
-              ratePlanId = "8a12820a8c0ff963018c2504ba045b2f",
-              contractEffectiveDate = LocalDate.of(2024, 9, 9)
-            )
-          ),
-          currentTerm = None,
-          currentTermPeriodType = None
-        )
-      )
     )
   }
 

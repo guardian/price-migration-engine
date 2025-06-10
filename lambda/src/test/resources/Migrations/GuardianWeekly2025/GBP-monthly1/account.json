@@ -56,7 +56,7 @@
   },
   "billToContact": null,
   "soldToContact": {
-    "country": "United Kingdom",
+    "country": "United Kingdom"
   },
   "taxInfo": null,
   "success": true

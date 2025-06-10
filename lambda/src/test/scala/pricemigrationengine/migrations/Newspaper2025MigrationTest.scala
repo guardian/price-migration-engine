@@ -33,5 +33,4 @@ class Newspaper2025MigrationTest extends munit.FunSuite {
       None
     )
   }
-
 }

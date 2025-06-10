@@ -5,7 +5,6 @@ import pricemigrationengine.model._
 import java.time.LocalDate
 
 /*
-
   Date: 28th May 2025
   Author: Pascal
 
@@ -13,10 +12,8 @@ import java.time.LocalDate
   and I also just agreed with Marketing that the definition we used last year
   should become permanent. This object facilitates the determination.
 
-  It uses the same approach as SubscriptionIntrospection2025:
-  using the invoice preview to determine the rate plan and derive the currency.
-  The location is read from the account
-
+  It uses the same approach as SI2025: using the invoice preview to determine
+  the rate plan and derive the currency. The location is read from the account.
  */
 
 sealed trait SubscriptionLocalisation

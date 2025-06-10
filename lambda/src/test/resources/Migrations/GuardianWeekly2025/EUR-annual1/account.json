@@ -56,7 +56,7 @@
   },
   "billToContact": null,
   "soldToContact": {
-    "country": "Belgium",
+    "country": "Belgium"
   },
   "taxInfo": null,
   "success": true
