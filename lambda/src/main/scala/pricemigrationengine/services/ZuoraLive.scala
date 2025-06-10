@@ -7,6 +7,7 @@ import zio.Schedule.{exponential, recurs}
 import zio._
 
 import java.time.LocalDate
+import ujson._
 
 object ZuoraLive {
 
@@ -208,7 +209,7 @@ object ZuoraLive {
           )
         }
 
-        override def applyAmendmentOrder(
+        override def applyAmendmentOrder_typed_deprecated(
             subscription: ZuoraSubscription,
             payload: ZuoraAmendmentOrderPayload
         ): ZIO[Any, ZuoraOrderFailure, Unit] = {
@@ -243,6 +244,36 @@ object ZuoraLive {
                 ZIO.fail(
                   ZuoraOrderFailure(
                     s"[bb6f22ef] subscription number: ${subscription.subscriptionNumber}, payload: ${payload}, serialised payload: ${body}, with answer ${response}"
+                  )
+                )
+              }
+          )
+        }
+
+        override def applyAmendmentOrder_json_values(
+            subscription: ZuoraSubscription,
+            payload: Value
+        ): ZIO[Any, ZuoraOrderFailure, Unit] = {
+
+          val payload_stringified = payload.toString()
+
+          post[ZuoraAmendmentOrderResponse](
+            path = s"orders",
+            body = payload_stringified
+          ).foldZIO(
+            failure = e =>
+              ZIO.fail(
+                ZuoraOrderFailure(
+                  s"[c37ad58f] subscription number: ${subscription.subscriptionNumber}, payload: ${payload}, reason: ${e.reason}"
+                )
+              ),
+            success = response =>
+              if (response.success) {
+                ZIO.succeed(())
+              } else {
+                ZIO.fail(
+                  ZuoraOrderFailure(
+                    s"[a2694894] subscription number: ${subscription.subscriptionNumber}, payload: ${payload}, serialised payload: ${payload_stringified}, with answer ${response}"
                   )
                 )
               }

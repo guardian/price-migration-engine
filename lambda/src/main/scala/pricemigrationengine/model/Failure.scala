@@ -42,3 +42,4 @@ case class NotificationNotEnoughLeadTimeFailure(reason: String) extends Failure
 case class EmailSenderFailure(reason: String) extends Failure
 
 case class CohortTableDatalakeExportFailure(reason: String) extends Failure
+case class MigrationRoutingFailure(reason: String) extends Failure

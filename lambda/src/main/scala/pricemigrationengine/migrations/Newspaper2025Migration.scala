@@ -5,6 +5,7 @@ import pricemigrationengine.model._
 import pricemigrationengine.libs._
 
 import java.time.LocalDate
+import ujson._
 
 sealed trait Newspaper2025ProductType
 object Voucher extends Newspaper2025ProductType
@@ -134,7 +135,7 @@ object Newspaper2025Migration {
       oldPrice: BigDecimal,
       estimatedNewPrice: BigDecimal,
       priceCap: BigDecimal
-  ): Either[Failure, ZuoraAmendmentOrderPayload] = {
+  ): Either[Failure, Value] = {
     ???
   }
 }
