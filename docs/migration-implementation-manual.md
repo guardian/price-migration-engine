@@ -45,7 +45,7 @@ The difference between the two is that the former is used to run specific lambda
 
 Add a folder to the `price-migration-engine-prod` S3 bucket with the same name as the cohort in the cohort specification (`cohortName` value)
 
-Add the following CSV files to the folder:
+Add the following CSV file to the folder:
 
 * **subscription-numbers.csv**: A file holding line-separated subscription numbers for the price rise, which will typically be the result of a Salesforce report. More info in [subscription-numbers-upload.md](./subscription-numbers-upload.md) on this.
 
