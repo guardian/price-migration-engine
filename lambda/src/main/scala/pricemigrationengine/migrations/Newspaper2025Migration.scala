@@ -133,7 +133,8 @@ object Newspaper2025Migration {
       subscription: ZuoraSubscription,
       oldPrice: BigDecimal,
       estimatedNewPrice: BigDecimal,
-      priceCap: BigDecimal
+      priceCap: BigDecimal,
+      invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
     ???
   }

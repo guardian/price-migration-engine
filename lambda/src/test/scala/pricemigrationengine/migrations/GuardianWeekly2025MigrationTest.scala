@@ -116,25 +116,17 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     // The other one is going to be parsed from the raw JSON string, which gives us
     // visibility on the actual payload.
 
-    val subscriptionRatePlanId = "TODO:subscriptionRatePlanId" // [1]
-    val newProductRatePlanId = "TODO:productCatalogueRatePlanId" // [2]
-    val productRatePlanChargeId = "TODO:productRatePlanChargeId" // [3]
-
-    // [1] [2] [3]
-    // same value I hard coded into the current migration code.
-    // Once the migration code has been updated, we can replace those handled by the values from the
-    // subscription and the product catalogue
-
     assertEquals(
       GuardianWeekly2025Migration.amendmentOrderPayload(
         orderDate,
         accountNumber,
-        subscriptionNumber: String,
-        effectDate: LocalDate,
-        subscription: ZuoraSubscription,
-        oldPrice: BigDecimal,
-        estimatedNewPrice: BigDecimal,
-        priceCap: BigDecimal
+        subscriptionNumber,
+        effectDate,
+        subscription,
+        oldPrice,
+        estimatedNewPrice,
+        priceCap,
+        invoicePreview
       ),
       Right(
         ujson.read(
@@ -162,7 +154,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
             |                        }
             |                    ],
             |                    "removeProduct": {
-            |                        "ratePlanId": "${subscriptionRatePlanId}"
+            |                        "ratePlanId": "8a1299b39348e9bb019376218c532ba1"
             |                    }
             |                },
             |                {
@@ -182,13 +174,13 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
             |                        }
             |                    ],
             |                    "addProduct": {
-            |                        "productRatePlanId": "${newProductRatePlanId}",
+            |                        "productRatePlanId": "2c92a0fd79ac64b00179ae3f9d474960",
             |                        "chargeOverrides": [
             |                            {
-            |                                "productRatePlanChargeId": "${productRatePlanChargeId}",
+            |                                "productRatePlanChargeId": "2c92a0fd79ac64b00179ae3f9d704962",
             |                                "pricing": {
             |                                    "recurringFlatFee": {
-            |                                        "listPrice": ${estimatedNewPrice}
+            |                                        "listPrice": 16.5
             |                                    }
             |                                }
             |                            }
