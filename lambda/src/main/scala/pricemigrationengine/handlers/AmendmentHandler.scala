@@ -205,6 +205,9 @@ object AmendmentHandler extends CohortHandler {
 
       _ <- renewSubscription(subscriptionBeforeUpdate, subscriptionBeforeUpdate.termEndDate, account)
 
+      invoicePreviewBeforeUpdate <-
+        Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
+
       order <- MigrationType(cohortSpec) match {
         case SupporterPlus2024 =>
           ZIO.fail(MigrationRoutingFailure("SupporterPlus2024 should not use doAmendment_ordersApi_json_values"))
@@ -218,7 +221,8 @@ object AmendmentHandler extends CohortHandler {
               subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
-              priceCap = GuardianWeekly2025Migration.priceCap
+              priceCap = GuardianWeekly2025Migration.priceCap,
+              invoiceList = invoicePreviewBeforeUpdate
             )
           )
         case Newspaper2025 =>
@@ -231,7 +235,8 @@ object AmendmentHandler extends CohortHandler {
               subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
-              priceCap = Newspaper2025Migration.priceCap
+              priceCap = Newspaper2025Migration.priceCap,
+              invoiceList = invoicePreviewBeforeUpdate
             )
           )
       }
