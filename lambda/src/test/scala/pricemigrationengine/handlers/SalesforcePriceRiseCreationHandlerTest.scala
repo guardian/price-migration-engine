@@ -22,9 +22,6 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
   private val oldPrice = BigDecimal(10.00)
 
   private val estimatedNewPrice = BigDecimal(15.00)
-  test("For legacy migrations, we need the estimatedNewPrice to be higher than the capped price") {
-    assert(PriceCap.priceCapLegacy(oldPrice, estimatedNewPrice) < estimatedNewPrice)
-  }
 
   private val currentTime = Instant.parse("2020-05-21T15:16:37Z")
 

@@ -152,9 +152,9 @@ object NotificationHandler extends CohortHandler {
       priceWithOptionalCappingWithCurrencySymbol = MigrationType(cohortSpec) match {
         case SupporterPlus2024 => s"${currencySymbol}${estimatedNewPrice}"
         case GuardianWeekly2025 =>
-          s"${currencySymbol}${PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GuardianWeekly2025Migration.priceCap)}"
+          s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, GuardianWeekly2025Migration.priceCap)}"
         case Newspaper2025 =>
-          s"${currencySymbol}${PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, Newspaper2025Migration.priceCap)}"
+          s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025Migration.priceCap)}"
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)

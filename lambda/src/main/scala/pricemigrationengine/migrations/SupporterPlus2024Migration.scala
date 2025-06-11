@@ -355,7 +355,7 @@ object SupporterPlus2024Migration {
       productRatePlanId = existingRatePlan.productRatePlanId,
       existingBaseProductRatePlanChargeId = existingBaseRatePlanCharge.productRatePlanChargeId,
       existingContributionRatePlanChargeId = existingContributionRatePlanCharge.productRatePlanChargeId,
-      newBaseAmount = PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, priceCap),
+      newBaseAmount = PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap),
       newContributionAmount = existingContributionPrice
     )
   }
