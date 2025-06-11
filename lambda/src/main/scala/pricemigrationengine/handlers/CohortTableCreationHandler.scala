@@ -22,8 +22,7 @@ object CohortTableCreationHandler extends CohortHandler {
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
     MigrationType(input) match {
-      case GuardianWeekly2025 => ZIO.succeed(HandlerOutput(isComplete = true))
-      case Newspaper2025      => ZIO.succeed(HandlerOutput(isComplete = true))
+      case Newspaper2025 => ZIO.succeed(HandlerOutput(isComplete = true))
       case _ => {
         main(input).provideSome[Logging](
           EnvConfig.stage.layer,
