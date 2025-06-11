@@ -6,6 +6,7 @@ import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
+import pricemigrationengine.libs.PriceCap
 import pricemigrationengine.migrations.{GuardianWeekly2025Migration, Newspaper2025Migration, SupporterPlus2024Migration}
 import pricemigrationengine.model.RateplansProbe
 
@@ -152,9 +153,9 @@ object NotificationHandler extends CohortHandler {
       priceWithOptionalCappingWithCurrencySymbol = MigrationType(cohortSpec) match {
         case SupporterPlus2024 => s"${currencySymbol}${estimatedNewPrice}"
         case GuardianWeekly2025 =>
-          s"${currencySymbol}${PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, GuardianWeekly2025Migration.priceCap)}"
+          s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, GuardianWeekly2025Migration.priceCap)}"
         case Newspaper2025 =>
-          s"${currencySymbol}${PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, Newspaper2025Migration.priceCap)}"
+          s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025Migration.priceCap)}"
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)

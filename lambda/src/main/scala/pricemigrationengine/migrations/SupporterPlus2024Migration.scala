@@ -1,4 +1,5 @@
 package pricemigrationengine.migrations
+import pricemigrationengine.libs.PriceCap
 import pricemigrationengine.model.ZuoraRatePlan
 import pricemigrationengine.model._
 
@@ -355,7 +356,7 @@ object SupporterPlus2024Migration {
       productRatePlanId = existingRatePlan.productRatePlanId,
       existingBaseProductRatePlanChargeId = existingBaseRatePlanCharge.productRatePlanChargeId,
       existingContributionRatePlanChargeId = existingContributionRatePlanCharge.productRatePlanChargeId,
-      newBaseAmount = PriceCap.priceCapForNotification(oldPrice, estimatedNewPrice, priceCap),
+      newBaseAmount = PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap),
       newContributionAmount = existingContributionPrice
     )
   }
