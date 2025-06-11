@@ -166,7 +166,7 @@ object GuardianWeekly2025Migration {
 
     val zuora_subscription = subscription
 
-    val order = {
+    val order_opt = {
       for {
         ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
         subscriptionRatePlanId = ratePlan.id
@@ -181,16 +181,16 @@ object GuardianWeekly2025Migration {
         )
         addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
         order_subscription = ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, removeProduct, addProduct)
-        o = ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
+        order = ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
           orderDate.toString,
           accountNumber,
           order_subscription
         )
-      } yield o
+      } yield order
     }
 
-    order match {
-      case Some(o) => Right(o)
+    order_opt match {
+      case Some(order) => Right(order)
       case None =>
         Left(
           DataExtractionFailure(
