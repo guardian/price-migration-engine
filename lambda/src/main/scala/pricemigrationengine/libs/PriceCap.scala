@@ -1,4 +1,4 @@
-package pricemigrationengine.model
+package pricemigrationengine.libs
 
 object PriceCap {
 

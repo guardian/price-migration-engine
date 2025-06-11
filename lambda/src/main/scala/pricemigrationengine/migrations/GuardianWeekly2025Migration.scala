@@ -1,6 +1,5 @@
 package pricemigrationengine.migrations
 import pricemigrationengine.libs.SI2025Extractions
-import pricemigrationengine.model.PriceCap
 import pricemigrationengine.model.ZuoraRatePlan
 import pricemigrationengine.model._
 import pricemigrationengine.libs._

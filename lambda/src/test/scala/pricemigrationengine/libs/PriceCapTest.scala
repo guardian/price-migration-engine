@@ -1,8 +1,4 @@
-package pricemigrationengine.model
-
-import pricemigrationengine.model.PriceCap
-
-import java.time.LocalDate
+package pricemigrationengine.libs
 
 class PriceCapTest extends munit.FunSuite {
 

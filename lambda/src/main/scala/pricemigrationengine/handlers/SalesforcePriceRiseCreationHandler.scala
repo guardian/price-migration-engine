@@ -1,5 +1,6 @@
 package pricemigrationengine.handlers
 
+import pricemigrationengine.libs.PriceCap
 import pricemigrationengine.migrations.{GuardianWeekly2025Migration, Newspaper2025Migration}
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiseCreationComplete}
 import pricemigrationengine.model._

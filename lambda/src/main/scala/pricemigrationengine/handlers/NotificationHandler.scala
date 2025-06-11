@@ -6,6 +6,7 @@ import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
+import pricemigrationengine.libs.PriceCap
 import pricemigrationengine.migrations.{GuardianWeekly2025Migration, Newspaper2025Migration, SupporterPlus2024Migration}
 import pricemigrationengine.model.RateplansProbe
 
