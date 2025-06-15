@@ -94,6 +94,7 @@ object StartDates {
   }
 
   def startDateLowerBound(
+      item: CohortItem,
       subscription: ZuoraSubscription,
       invoicePreview: ZuoraInvoiceList,
       cohortSpec: CohortSpec,
@@ -113,6 +114,16 @@ object StartDates {
     // And the policy not to price rise a sub twice within 12 months of any possible price rise
     val startDateLowerBound3 =
       noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, startDateLowerBound2)
+
+    // With GuardianWeekly2025, we were given lower bounds in the Marketing spreadsheet
+    // that was the first use of the new cohortItem's migrationExtraAttributes. If we expect a
+    // migration to provide it own lowerbound computation, we do it here, otherwise we identity
+    // on startDateLowerBound3
+    val startDateLowerBound4 = MigrationType(cohortSpec) match {
+      case SupporterPlus2024  => startDateLowerBound3
+      case GuardianWeekly2025 => GuardianWeekly2025Migration.computeStartDateLowerBound4(startDateLowerBound3, item)
+      case Newspaper2025      => startDateLowerBound3
+    }
 
     // Decide the spread period for this migration
     val spreadPeriod = decideSpreadPeriod(subscription, invoicePreview, cohortSpec)

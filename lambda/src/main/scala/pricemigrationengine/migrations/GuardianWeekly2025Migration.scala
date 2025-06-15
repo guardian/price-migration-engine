@@ -6,6 +6,27 @@ import pricemigrationengine.libs._
 
 import java.time.LocalDate
 import ujson._
+import upickle.default._
+
+import java.time.format.DateTimeFormatter
+
+case class GuardianWeekly2025ExtendedAttributes(earliestMigrationDate: LocalDate)
+object GuardianWeekly2025ExtendedAttributes {
+
+  implicit val localDateReader: Reader[LocalDate] =
+    readwriter[String].bimap[LocalDate](
+      // write (not used here)
+      date => date.format(DateTimeFormatter.ISO_LOCAL_DATE),
+      // read
+      str => LocalDate.parse(str, DateTimeFormatter.ISO_LOCAL_DATE)
+    )
+
+  implicit val reader: Reader[GuardianWeekly2025ExtendedAttributes] = macroR
+
+  // usage
+  // val s = """{ "earliestMigrationDate": "2025-10-06" }"""
+  // val attribute: GuardianWeekly2025ExtendedAttributes = upickle.default.read[GuardianWeekly2025ExtendedAttributes](s)
+}
 
 object GuardianWeekly2025Migration {
 
@@ -76,6 +97,24 @@ object GuardianWeekly2025Migration {
   // ------------------------------------------------
   // Helpers
   // ------------------------------------------------
+
+  def getEarliestMigrationDateFromMigrationExtraAttributes(item: CohortItem): Option[LocalDate] = {
+    for {
+      attributes <- item.migrationExtraAttributes
+    } yield {
+      val data: GuardianWeekly2025ExtendedAttributes =
+        upickle.default.read[GuardianWeekly2025ExtendedAttributes](attributes)
+      data.earliestMigrationDate
+    }
+  }
+
+  def computeStartDateLowerBound4(lowerBound: LocalDate, item: CohortItem): LocalDate = {
+    val dateFromCohortItem = getEarliestMigrationDateFromMigrationExtraAttributes(item)
+    dateFromCohortItem match {
+      case Some(date) => Date.datesMax(lowerBound, date)
+      case None       => lowerBound
+    }
+  }
 
   def priceLookUp(
       localisation: SubscriptionLocalisation,
