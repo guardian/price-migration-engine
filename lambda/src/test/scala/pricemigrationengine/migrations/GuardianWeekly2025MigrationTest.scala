@@ -3,9 +3,9 @@ package pricemigrationengine.migrations
 import pricemigrationengine.Fixtures
 import pricemigrationengine.model._
 import pricemigrationengine.libs._
+import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 
-import java.time.LocalDate
-import ujson._
+import java.time.{Instant, LocalDate}
 
 // Subscription fixture: GBP-monthly1
 // val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2025/GBP-monthly1/subscription.json")
@@ -16,6 +16,55 @@ import ujson._
 // val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2025/EUR-annual1/subscription.json")
 // val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2025/EUR-annual1/account.json")
 // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2025/EUR-annual1/invoice-preview.json")
+
+class GuardianWeekly2025ExtendedAttributesTest extends munit.FunSuite {
+
+  test("decoding") {
+    val s = """{ "earliestMigrationDate": "2025-10-06" }"""
+    val attribute: GuardianWeekly2025ExtendedAttributes = upickle.default.read[GuardianWeekly2025ExtendedAttributes](s)
+    assertEquals(attribute, GuardianWeekly2025ExtendedAttributes(LocalDate.of(2025, 10, 6)))
+  }
+
+  test("getEarliestMigrationDateFromExtendedAttributes") {
+    val cohortItem = CohortItem(
+      subscriptionName = "A-000001",
+      processingStage = ReadyForEstimation,
+      migrationExtraAttributes = Some("""{ "earliestMigrationDate": "2025-10-06" }"""),
+    )
+    val date = GuardianWeekly2025Migration.getEarliestMigrationDateFromMigrationExtraAttributes(cohortItem)
+    assertEquals(date, Some(LocalDate.of(2025, 10, 6)))
+  }
+
+  test("GuardianWeekly2025Migration.computeStartDateLowerBound4 (0): no extra attributes") {
+    val cohortItem = CohortItem(
+      subscriptionName = "A-000001",
+      processingStage = ReadyForEstimation,
+      migrationExtraAttributes = Some("""{ "earliestMigrationDate": "2025-10-06" }"""),
+    )
+    val date = GuardianWeekly2025Migration.computeStartDateLowerBound4(LocalDate.of(2025, 8, 9), cohortItem)
+    assertEquals(date, LocalDate.of(2025, 10, 6))
+  }
+
+  test("GuardianWeekly2025Migration.computeStartDateLowerBound4 (1): bound3 is lower than extra attributes date") {
+    val cohortItem = CohortItem(
+      subscriptionName = "A-000001",
+      processingStage = ReadyForEstimation,
+      migrationExtraAttributes = Some("""{ "earliestMigrationDate": "2025-10-06" }"""),
+    )
+    val date = GuardianWeekly2025Migration.computeStartDateLowerBound4(LocalDate.of(2025, 8, 9), cohortItem)
+    assertEquals(date, LocalDate.of(2025, 10, 6))
+  }
+
+  test("GuardianWeekly2025Migration.computeStartDateLowerBound4 (2): bound3 is higher than extra attributes date") {
+    val cohortItem = CohortItem(
+      subscriptionName = "A-000001",
+      processingStage = ReadyForEstimation,
+      migrationExtraAttributes = Some("""{ "earliestMigrationDate": "2025-10-06" }"""),
+    )
+    val date = GuardianWeekly2025Migration.computeStartDateLowerBound4(LocalDate.of(2025, 11, 9), cohortItem)
+    assertEquals(date, LocalDate.of(2025, 11, 9))
+  }
+}
 
 class GuardianWeekly2025MigrationTest extends munit.FunSuite {
 

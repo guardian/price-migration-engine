@@ -63,9 +63,11 @@ Step 4: We now need to apply our [no price rise during subscription first year] 
 
 Step 5: We then apply the [no price rise within a year of last price rise] (not price rising a subscription twice within the same 12 months). (This is a policy that is mostly symbolically implemented in the code and has a non trivial evaluation only for the Guardian Weekly 2024, where we protect for subs from the Guardian Weekly 2022 migration from being price risen too soon.) In this case our sub is undergoing its first price rise, so the lowerbound remains to `2024-07-08`.
 
-Step 6: Our spread period is 3 months. Let's assume that the random choice returned 1, We now need to add a month to our previously computed date, which is now `2024-08-08`. 
+Step 6: With GuardianWeekly2025, we were given lower bounds in the Marketing spreadsheet. That was actually the first use of the new cohortItem's migrationExtraAttributes. If we expect a migration to provide it own lowerbound computation, we do it here, otherwise we identity on startDateLowerBound3.
 
-Step 7: We are now ready for the start date. The start date is the next available billing date after `2024-08-08`. Since we have a monthly sub paying on the 27th, the start date is `2024-08-27` 🗓️ 🎉
+Step 7: Our spread period is 3 months. Let's assume that the random choice returned 1, We now need to add a month to our previously computed date, which is now `2024-08-08`. 
+
+Step 8: We are now ready for the start date. The start date is the next available billing date after `2024-08-08`. Since we have a monthly sub paying on the 27th, the start date is `2024-08-27` 🗓️ 🎉
 
 
 
