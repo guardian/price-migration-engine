@@ -12,6 +12,10 @@ import java.time.LocalDate
   and I also just agreed with Marketing that the definition we used last year
   should become permanent. This object facilitates the determination.
 
+  Subscriptions are 'Domestic' unless they are
+    - USD paying with a delivery address not in the `United States`, or
+    - GBP paying with a delivery address not in the `United Kingdom`
+
   It uses the same approach as SI2025: using the invoice preview to determine
   the rate plan and derive the currency. The location is read from the account.
  */
@@ -34,8 +38,9 @@ object SubscriptionLocalisation {
       currency <- SI2025Extractions.determineCurrency(ratePlan)
     } yield {
       val country = account.soldToContact.country
-      val isROW = currency == "USD" && country != "United States"
-      if (isROW) {
+      val isROWUSD = currency == "USD" && country != "United States"
+      val isROWGBP = currency == "GBP" && country != "United Kingdom"
+      if (isROWUSD || isROWGBP) {
         RestOfWorld
       } else {
         Domestic
