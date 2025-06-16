@@ -4,17 +4,17 @@ import pricemigrationengine.Fixtures
 import pricemigrationengine.model._
 import java.time.LocalDate
 
-// Subscription 1 is standard, USD is an address in the `United States`
+// Subscription 1 is standard, USD with an address in the `United States`
 // val subscription = Fixtures.subscriptionFromJson("libs/SubscriptionLocalisation/subscription1/subscription.json")
 // val account = Fixtures.accountFromJson("libs/SubscriptionLocalisation/subscription1/account.json")
 // val invoicePreview = Fixtures.invoiceListFromJson("libs/SubscriptionLocalisation/subscription1/invoice-preview.json")
 
-// Subscription 2 is ROW (USD variant), USD is an address in the `France`
+// Subscription 2 is ROW (USD variant), USD with an address in `France`
 // val subscription = Fixtures.subscriptionFromJson("libs/SubscriptionLocalisation/subscription2/subscription.json")
 // val account = Fixtures.accountFromJson("libs/SubscriptionLocalisation/subscription2/account.json")
 // val invoicePreview = Fixtures.invoiceListFromJson("libs/SubscriptionLocalisation/subscription2/invoice-preview.json")
 
-// Subscription 3 is ROW (GBP variant), USD is an address in the `France`
+// Subscription 3 is ROW (GBP variant), GBP with an address in `France`
 // val subscription = Fixtures.subscriptionFromJson("libs/SubscriptionLocalisation/subscription3/subscription.json")
 // val account = Fixtures.accountFromJson("libs/SubscriptionLocalisation/subscription3/account.json")
 // val invoicePreview = Fixtures.invoiceListFromJson("libs/SubscriptionLocalisation/subscription3/invoice-preview.json")
