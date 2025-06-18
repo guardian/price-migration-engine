@@ -1,7 +1,7 @@
 package pricemigrationengine.libs
 
 import pricemigrationengine.handlers.NotificationHandler
-import pricemigrationengine.migrations.{GuardianWeekly2025Migration, Newspaper2025Migration}
+import pricemigrationengine.migrations.{GuardianWeekly2025Migration, Newspaper2025P1Migration}
 import pricemigrationengine.model._
 import zio.{IO, Random}
 
@@ -29,7 +29,7 @@ object StartDates {
     MigrationType(cohortSpec) match {
       case SupporterPlus2024  => None
       case GuardianWeekly2025 => GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription) // [1]
-      case Newspaper2025      => Newspaper2025Migration.subscriptionToLastPriceMigrationDate(subscription) // [2]
+      case Newspaper2025P1    => Newspaper2025P1Migration.subscriptionToLastPriceMigrationDate(subscription) // [2]
     }
     // [1 & 2] We are applying the "one year since the last price migration" policy for
     // GuardianWeekly2025 and Newspaper2025
@@ -88,7 +88,7 @@ object StartDates {
       MigrationType(cohortSpec) match {
         case SupporterPlus2024  => 1 // no spread for S+2024 monthlies
         case GuardianWeekly2025 => 1 // no spread for Guardian Weekly 2025
-        case Newspaper2025      => 1 // no spread for Newspaper 2025
+        case Newspaper2025P1    => 1 // no spread for Newspaper 2025
       }
     } else 1
   }
@@ -105,7 +105,7 @@ object StartDates {
     val startDateLowerBound1 = MigrationType(cohortSpec) match {
       case SupporterPlus2024  => cohortSpecLowerBound(cohortSpec, today)
       case GuardianWeekly2025 => cohortSpecLowerBound(cohortSpec, today)
-      case Newspaper2025      => cohortSpecLowerBound(cohortSpec, today)
+      case Newspaper2025P1    => cohortSpecLowerBound(cohortSpec, today)
     }
 
     // We now respect the policy of not increasing members during their first year
@@ -122,7 +122,7 @@ object StartDates {
     val startDateLowerBound4 = MigrationType(cohortSpec) match {
       case SupporterPlus2024  => startDateLowerBound3
       case GuardianWeekly2025 => GuardianWeekly2025Migration.computeStartDateLowerBound4(startDateLowerBound3, item)
-      case Newspaper2025      => startDateLowerBound3
+      case Newspaper2025P1    => startDateLowerBound3
     }
 
     // Decide the spread period for this migration

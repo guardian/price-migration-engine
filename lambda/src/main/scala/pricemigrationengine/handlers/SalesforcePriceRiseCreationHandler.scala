@@ -1,7 +1,7 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.libs.PriceCap
-import pricemigrationengine.migrations.{GuardianWeekly2025Migration, Newspaper2025Migration}
+import pricemigrationengine.migrations.{GuardianWeekly2025Migration, Newspaper2025P1Migration}
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiseCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
@@ -86,8 +86,8 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
         case SupporterPlus2024 => estimatedNewPrice // [1]
         case GuardianWeekly2025 =>
           PriceCap.cappedPrice(oldPrice, estimatedNewPrice, GuardianWeekly2025Migration.priceCap)
-        case Newspaper2025 =>
-          PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025Migration.priceCap)
+        case Newspaper2025P1 =>
+          PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025P1Migration.priceCap)
       }
       // [1]
       // (Comment group: 7992fa98)
@@ -119,7 +119,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
     // the correct price.
     MigrationType(input) match {
       case SupporterPlus2024 => ZIO.succeed(HandlerOutput(isComplete = true))
-      case Newspaper2025     => ZIO.succeed(HandlerOutput(isComplete = true))
+      case Newspaper2025P1   => ZIO.succeed(HandlerOutput(isComplete = true))
       case _ =>
         main(input).provideSome[Logging](
           EnvConfig.cohortTable.layer,

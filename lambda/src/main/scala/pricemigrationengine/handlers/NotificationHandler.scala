@@ -7,7 +7,11 @@ import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
 import pricemigrationengine.libs.PriceCap
-import pricemigrationengine.migrations.{GuardianWeekly2025Migration, Newspaper2025Migration, SupporterPlus2024Migration}
+import pricemigrationengine.migrations.{
+  GuardianWeekly2025Migration,
+  Newspaper2025P1Migration,
+  SupporterPlus2024Migration
+}
 import pricemigrationengine.model.RateplansProbe
 
 import java.time.{LocalDate, ZoneId}
@@ -29,7 +33,7 @@ object NotificationHandler extends CohortHandler {
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     MigrationType(input) match {
-      case Newspaper2025 => ZIO.succeed(HandlerOutput(isComplete = true))
+      case Newspaper2025P1 => ZIO.succeed(HandlerOutput(isComplete = true))
       case _ => {
         main(input).provideSome[Logging](
           EnvConfig.salesforce.layer,
@@ -153,8 +157,8 @@ object NotificationHandler extends CohortHandler {
         case SupporterPlus2024 => s"${currencySymbol}${estimatedNewPrice}"
         case GuardianWeekly2025 =>
           s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, GuardianWeekly2025Migration.priceCap)}"
-        case Newspaper2025 =>
-          s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025Migration.priceCap)}"
+        case Newspaper2025P1 =>
+          s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025P1Migration.priceCap)}"
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)
@@ -292,7 +296,7 @@ object NotificationHandler extends CohortHandler {
     MigrationType(cohortSpec) match {
       case SupporterPlus2024  => SupporterPlus2024Migration.maxLeadTime
       case GuardianWeekly2025 => GuardianWeekly2025Migration.maxLeadTime
-      case Newspaper2025      => Newspaper2025Migration.maxLeadTime
+      case Newspaper2025P1    => Newspaper2025P1Migration.maxLeadTime
     }
   }
 
@@ -300,7 +304,7 @@ object NotificationHandler extends CohortHandler {
     MigrationType(cohortSpec) match {
       case SupporterPlus2024  => SupporterPlus2024Migration.minLeadTime
       case GuardianWeekly2025 => GuardianWeekly2025Migration.minLeadTime
-      case Newspaper2025      => Newspaper2025Migration.minLeadTime
+      case Newspaper2025P1    => Newspaper2025P1Migration.minLeadTime
     }
   }
 

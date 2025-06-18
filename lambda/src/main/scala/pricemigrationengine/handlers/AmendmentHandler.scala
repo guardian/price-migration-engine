@@ -94,7 +94,7 @@ object AmendmentHandler extends CohortHandler {
     MigrationType(cohortSpec) match {
       case SupporterPlus2024  => false // [1]
       case GuardianWeekly2025 => true
-      case Newspaper2025      => true
+      case Newspaper2025P1    => true
     }
 
     // [1] We do not apply the check to the SupporterPlus2024 migration where, due to the way
@@ -144,7 +144,7 @@ object AmendmentHandler extends CohortHandler {
           )
         case GuardianWeekly2025 =>
           ZIO.fail(MigrationRoutingFailure("GuardianWeekly2025 should not use doAmendment_ordersApi_typed_deprecated"))
-        case Newspaper2025 =>
+        case Newspaper2025P1 =>
           ZIO.fail(MigrationRoutingFailure("Newspaper2025 should not use doAmendment_ordersApi_typed_deprecated"))
       }
       _ <- Logging.info(
@@ -225,9 +225,9 @@ object AmendmentHandler extends CohortHandler {
               invoiceList = invoicePreviewBeforeUpdate
             )
           )
-        case Newspaper2025 =>
+        case Newspaper2025P1 =>
           ZIO.fromEither(
-            Newspaper2025Migration.amendmentOrderPayload(
+            Newspaper2025P1Migration.amendmentOrderPayload(
               orderDate = LocalDate.now(),
               accountNumber = account.basicInfo.accountNumber,
               subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
@@ -235,7 +235,7 @@ object AmendmentHandler extends CohortHandler {
               subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
-              priceCap = Newspaper2025Migration.priceCap,
+              priceCap = Newspaper2025P1Migration.priceCap,
               invoiceList = invoicePreviewBeforeUpdate
             )
           )
@@ -301,7 +301,7 @@ object AmendmentHandler extends CohortHandler {
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
-      case Newspaper2025 =>
+      case Newspaper2025P1 =>
         doAmendment_ordersApi_json_values(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
@@ -313,7 +313,7 @@ object AmendmentHandler extends CohortHandler {
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     MigrationType(input) match {
       case GuardianWeekly2025 => ZIO.succeed(HandlerOutput(isComplete = true))
-      case Newspaper2025      => ZIO.succeed(HandlerOutput(isComplete = true))
+      case Newspaper2025P1    => ZIO.succeed(HandlerOutput(isComplete = true))
       case _ => {
         main(input).provideSome[Logging](
           EnvConfig.cohortTable.layer,
