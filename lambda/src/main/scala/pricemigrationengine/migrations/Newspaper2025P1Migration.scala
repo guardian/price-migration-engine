@@ -6,16 +6,16 @@ import pricemigrationengine.libs._
 import java.time.LocalDate
 import ujson._
 
-sealed trait Newspaper2025ProductType
-object Voucher extends Newspaper2025ProductType
-object Subcard extends Newspaper2025ProductType
-object HomeDelivery extends Newspaper2025ProductType
+sealed trait Newspaper2025P1ProductType
+object Voucher extends Newspaper2025P1ProductType
+object Subcard extends Newspaper2025P1ProductType
+object HomeDelivery extends Newspaper2025P1ProductType
 
-sealed trait Newspaper2025Frequency
-object EverydayPlus extends Newspaper2025Frequency
-object SixdayPlus extends Newspaper2025Frequency
+sealed trait Newspaper2025P1Frequency
+object EverydayPlus extends Newspaper2025P1Frequency
+object SixdayPlus extends Newspaper2025P1Frequency
 
-object Newspaper2025Migration {
+object Newspaper2025P1Migration {
 
   // ------------------------------------------------
   // Price capping
@@ -76,8 +76,8 @@ object Newspaper2025Migration {
   // ------------------------------------------------
 
   def priceLookUp(
-      productType: Newspaper2025ProductType,
-      frequency: Newspaper2025Frequency,
+      productType: Newspaper2025P1ProductType,
+      frequency: Newspaper2025P1Frequency,
       billingPeriod: BillingPeriod
   ): Option[BigDecimal] = {
     productType match {
