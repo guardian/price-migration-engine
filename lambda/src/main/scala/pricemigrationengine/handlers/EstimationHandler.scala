@@ -121,9 +121,11 @@ object EstimationHandler extends CohortHandler {
           today
         )
       )
+      _ <- ZIO.logInfo(s"item: ${item.toString}, startDateLowerBound: ${startDateLowerBound}")
       result <- ZIO.fromEither(
         EstimationResult(account, catalogue, subscription, invoicePreview, startDateLowerBound, cohortSpec)
       )
+      _ <- ZIO.logInfo(s"item: ${item.toString}, estimation result: ${result}")
     } yield result
   }
 

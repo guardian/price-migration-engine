@@ -163,4 +163,37 @@ class AmendmentDataTest extends munit.FunSuite {
     )
     assertEquals(chargeAmount, Right(BigDecimal(0)))
   }
+
+  // ---------------------------------------------------------------------------
+  // Date: 19 June 2025
+  // Author: Pascal
+  //
+  // I am adding new tests to this, with fixtures located in `model/AmendmentData`
+  // This is follow up of the tests in libs/StartDatesTest, applied to the case of
+  // subscription A-S02059070, with extra: {"earliestMigrationDate":"2026-03-19"}
+  // (part of Guardian Weekly 2025)
+
+  test("AmendmentData.nextServiceStartDate") {
+    val subscription = Fixtures.subscriptionFromJson("model/AmendmentData/A-S02059070/subscription.json")
+    val account = Fixtures.accountFromJson("model/AmendmentData/A-S02059070/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("model/AmendmentData/A-S02059070/invoice-preview.json")
+
+    assertEquals(
+      AmendmentData.nextServiceStartDate(
+        invoiceList = invoicePreview,
+        subscription = subscription,
+        onOrAfter = LocalDate.of(2026, 3, 19)
+      ),
+      Right(LocalDate.of(2026, 3, 19))
+    )
+
+    assertEquals(
+      AmendmentData.nextServiceStartDate(
+        invoiceList = invoicePreview,
+        subscription = subscription,
+        onOrAfter = LocalDate.of(2026, 3, 20)
+      ),
+      Right(LocalDate.of(2026, 4, 19))
+    )
+  }
 }

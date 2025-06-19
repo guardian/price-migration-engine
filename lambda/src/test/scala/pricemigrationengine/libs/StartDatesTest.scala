@@ -112,7 +112,7 @@ class StartDatesTest extends munit.FunSuite {
     val cohortItem = CohortItem(
       "SUBSCRIPTION-NUMBER",
       ReadyForEstimation,
-      migrationExtraAttributes = Some("""{ "earliestMigrationDate": "2026-03-06" }""")
+      migrationExtraAttributes = Some(""" {"earliestMigrationDate":"2026-03-19"} """)
     )
     val today = LocalDate.of(2025, 7, 1) // 1 July 2025
     val cohortSpec = CohortSpec(
@@ -168,7 +168,7 @@ class StartDatesTest extends munit.FunSuite {
 
     assertEquals(
       GuardianWeekly2025Migration.getEarliestMigrationDateFromMigrationExtraAttributes(cohortItem),
-      Some(LocalDate.of(2026, 3, 6))
+      Some(LocalDate.of(2026, 3, 19))
     )
 
     // [1]
@@ -181,13 +181,13 @@ class StartDatesTest extends munit.FunSuite {
     // but at that point if we really want to carry on testing the migration extended attributes as
     // part of start date computations we can move the code to Test3007's own migration module
 
-    // Here we have extended attributes: { "earliestMigrationDate": "2026-03-06" }
+    // Here we have extended attributes: {"earliestMigrationDate":"2026-03-19"}
 
     val startDateLowerBound4 = GuardianWeekly2025Migration.computeStartDateLowerBound4(startDateLowerBound3, cohortItem)
 
     assertEquals(
       startDateLowerBound4,
-      LocalDate.of(2026, 3, 6)
+      LocalDate.of(2026, 3, 19)
     )
 
     // --------------------------------------------------
@@ -204,7 +204,7 @@ class StartDatesTest extends munit.FunSuite {
         cohortSpec = cohortSpec,
         today = today
       ),
-      LocalDate.of(2026, 3, 6) // [1]
+      LocalDate.of(2026, 3, 19) // [1]
     )
 
     // [1]
