@@ -18,9 +18,9 @@ sealed trait Newspaper2025P1Frequency
 object EverydayPlus extends Newspaper2025P1Frequency
 object SixdayPlus extends Newspaper2025P1Frequency
 
-case class Newspaper2025ExtendedAttributes(brandTitle: String)
-object Newspaper2025ExtendedAttributes {
-  implicit val reader: Reader[Newspaper2025ExtendedAttributes] = macroR
+case class Newspaper2025ExtraAttributes(brandTitle: String)
+object Newspaper2025ExtraAttributes {
+  implicit val reader: Reader[Newspaper2025ExtraAttributes] = macroR
 
   // Each item of the migration is going to have a migration extended attributes object
   // with a brandTitle key. The value of this key is to be sent to Braze, during the
@@ -103,8 +103,8 @@ object Newspaper2025P1Migration {
     for {
       attributes <- item.migrationExtraAttributes
     } yield {
-      val data: Newspaper2025ExtendedAttributes =
-        upickle.default.read[Newspaper2025ExtendedAttributes](attributes)
+      val data: Newspaper2025ExtraAttributes =
+        upickle.default.read[Newspaper2025ExtraAttributes](attributes)
       data.brandTitle
     }
   }

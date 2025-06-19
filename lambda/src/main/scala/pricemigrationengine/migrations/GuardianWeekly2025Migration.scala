@@ -10,8 +10,8 @@ import upickle.default._
 
 import java.time.format.DateTimeFormatter
 
-case class GuardianWeekly2025ExtendedAttributes(earliestMigrationDate: LocalDate)
-object GuardianWeekly2025ExtendedAttributes {
+case class GuardianWeekly2025ExtraAttributes(earliestMigrationDate: LocalDate)
+object GuardianWeekly2025ExtraAttributes {
 
   implicit val localDateReader: Reader[LocalDate] =
     readwriter[String].bimap[LocalDate](
@@ -21,11 +21,11 @@ object GuardianWeekly2025ExtendedAttributes {
       str => LocalDate.parse(str, DateTimeFormatter.ISO_LOCAL_DATE)
     )
 
-  implicit val reader: Reader[GuardianWeekly2025ExtendedAttributes] = macroR
+  implicit val reader: Reader[GuardianWeekly2025ExtraAttributes] = macroR
 
   // usage
   // val s = """{ "earliestMigrationDate": "2025-10-06" }"""
-  // val attributes: GuardianWeekly2025ExtendedAttributes = upickle.default.read[GuardianWeekly2025ExtendedAttributes](s)
+  // val attributes: GuardianWeekly2025ExtraAttributes = upickle.default.read[GuardianWeekly2025ExtraAttributes](s)
 }
 
 object GuardianWeekly2025Migration {
@@ -102,8 +102,8 @@ object GuardianWeekly2025Migration {
     for {
       attributes <- item.migrationExtraAttributes
     } yield {
-      val data: GuardianWeekly2025ExtendedAttributes =
-        upickle.default.read[GuardianWeekly2025ExtendedAttributes](attributes)
+      val data: GuardianWeekly2025ExtraAttributes =
+        upickle.default.read[GuardianWeekly2025ExtraAttributes](attributes)
       data.earliestMigrationDate
     }
   }
