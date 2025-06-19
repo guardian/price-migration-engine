@@ -2,8 +2,16 @@ package pricemigrationengine.migrations
 import pricemigrationengine.libs.PriceCap
 import pricemigrationengine.model.ZuoraRatePlan
 import pricemigrationengine.model._
+import pricemigrationengine.services.Zuora
+import zio.ZIO
 
 import java.time.LocalDate
+
+case class SupporterPlus2024NotificationData(
+    contributionAmount: Option[BigDecimal],
+    previousCombinedAmount: Option[BigDecimal],
+    newCombinedAmount: Option[BigDecimal]
+)
 
 object SupporterPlus2024Migration {
 
@@ -229,6 +237,27 @@ object SupporterPlus2024Migration {
         )
       )
     } yield amount > 0
+  }
+
+  def buildSupporterPlus2024NotificationData(
+      cohortSpec: CohortSpec,
+      subscriptionNumber: String
+  ): ZIO[Zuora, Failure, SupporterPlus2024NotificationData] = {
+    MigrationType(cohortSpec) match {
+      case SupporterPlus2024 => {
+        for {
+          subscription <- Zuora.fetchSubscription(subscriptionNumber)
+          contributionAmountOpt <- ZIO.fromEither(SupporterPlus2024Migration.contributionAmount(subscription))
+          previousCombinedAmountOpt <- ZIO.fromEither(SupporterPlus2024Migration.previousCombinedAmount(subscription))
+          newCombinedAmountOpt <- ZIO.fromEither(SupporterPlus2024Migration.newCombinedAmount(subscription))
+        } yield SupporterPlus2024NotificationData(
+          contributionAmount = contributionAmountOpt,
+          previousCombinedAmount = previousCombinedAmountOpt,
+          newCombinedAmount = newCombinedAmountOpt
+        )
+      }
+      case _ => ZIO.succeed(SupporterPlus2024NotificationData(None, None, None))
+    }
   }
 
   // -------------------------------------------------------------------

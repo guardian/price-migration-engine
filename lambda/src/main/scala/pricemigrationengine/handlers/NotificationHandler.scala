@@ -10,18 +10,13 @@ import pricemigrationengine.libs.PriceCap
 import pricemigrationengine.migrations.{
   GuardianWeekly2025Migration,
   Newspaper2025P1Migration,
-  SupporterPlus2024Migration
+  SupporterPlus2024Migration,
+  SupporterPlus2024NotificationData
 }
 import pricemigrationengine.model.RateplansProbe
 
 import java.time.{LocalDate, ZoneId}
 import java.time.format.DateTimeFormatter
-
-case class SupporterPlus2024NotificationData(
-    contributionAmount: Option[BigDecimal],
-    previousCombinedAmount: Option[BigDecimal],
-    newCombinedAmount: Option[BigDecimal]
-)
 
 object NotificationHandler extends CohortHandler {
 
@@ -166,7 +161,7 @@ object NotificationHandler extends CohortHandler {
       // ----------------------------------------------------
       // Data for SupporterPlus2024
 
-      supporterPlus2024NotificationData <- buildSupporterPlus2024NotificationData(
+      supporterPlus2024NotificationData <- SupporterPlus2024Migration.buildSupporterPlus2024NotificationData(
         cohortSpec,
         cohortItem.subscriptionName
       )
@@ -462,30 +457,6 @@ object NotificationHandler extends CohortHandler {
         s"Subscription ${cohortItem.subscriptionName} has been cancelled, price rise notification not sent"
       )
     } yield ()
-  }
-
-  // -------------------------------------------------------------------
-  // Supporter Plus 2024 extra function
-
-  def buildSupporterPlus2024NotificationData(
-      cohortSpec: CohortSpec,
-      subscriptionNumber: String
-  ): ZIO[Zuora, Failure, SupporterPlus2024NotificationData] = {
-    MigrationType(cohortSpec) match {
-      case SupporterPlus2024 => {
-        for {
-          subscription <- Zuora.fetchSubscription(subscriptionNumber)
-          contributionAmountOpt <- ZIO.fromEither(SupporterPlus2024Migration.contributionAmount(subscription))
-          previousCombinedAmountOpt <- ZIO.fromEither(SupporterPlus2024Migration.previousCombinedAmount(subscription))
-          newCombinedAmountOpt <- ZIO.fromEither(SupporterPlus2024Migration.newCombinedAmount(subscription))
-        } yield SupporterPlus2024NotificationData(
-          contributionAmount = contributionAmountOpt,
-          previousCombinedAmount = previousCombinedAmountOpt,
-          newCombinedAmount = newCombinedAmountOpt
-        )
-      }
-      case _ => ZIO.succeed(SupporterPlus2024NotificationData(None, None, None))
-    }
   }
 
   // -------------------------------------------------------------------
