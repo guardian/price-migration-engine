@@ -39,6 +39,7 @@ object CohortTableLive {
           cancellationReason <-
             getOptionalStringFromResults(cohortItem, "cancellationReason")
           doNotProcessUntil <- getOptionalDateFromResults(cohortItem, "doNotProcessUntil")
+          migrationExtraAttributes <- getOptionalStringFromResults(cohortItem, "migrationExtraAttributes")
         } yield CohortItem(
           subscriptionName = subscriptionNumber,
           processingStage = processingStage,
@@ -56,7 +57,8 @@ object CohortTableLive {
           whenNotificationSent = whenNotificationSent,
           whenNotificationSentWrittenToSalesforce = whenNotificationSentWrittenToSalesforce,
           cancellationReason = cancellationReason,
-          doNotProcessUntil = doNotProcessUntil
+          doNotProcessUntil = doNotProcessUntil,
+          migrationExtraAttributes = migrationExtraAttributes
         )
       )
       .mapError(e => DynamoDBZIOError(e))
@@ -98,6 +100,7 @@ object CohortTableLive {
         ),
         cohortItem.cancellationReason.map(reason => stringFieldUpdate("cancellationReason", reason)),
         cohortItem.doNotProcessUntil.map(date => dateFieldUpdate("doNotProcessUntil", date)),
+        cohortItem.migrationExtraAttributes.map(extra => stringFieldUpdate("migrationExtraAttributes", extra)),
       ).flatten.toMap.asJava
 
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =
