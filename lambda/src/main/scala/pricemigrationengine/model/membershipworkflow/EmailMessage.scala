@@ -20,10 +20,17 @@ case class EmailPayloadSubscriberAttributes(
     subscription_id: String,
     product_type: String,
 
+    // -----------------------------------------------
     // SupporterPlus 2024 extension (see comment below)
+    // (Comment Group: 602514a6-5e53)
     sp2024_contribution_amount: Option[String] = None,
     sp2024_previous_combined_amount: Option[String] = None,
     sp2024_new_combined_amount: Option[String] = None,
+
+    // -----------------------------------------------
+    // Newspaper2025P1 (extension)
+    // (Comment Group: 571dac68)
+    newspaper2025_brand_title: Option[String] = None,
 )
 
 /*

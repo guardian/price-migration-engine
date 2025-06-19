@@ -25,7 +25,7 @@ object GuardianWeekly2025ExtendedAttributes {
 
   // usage
   // val s = """{ "earliestMigrationDate": "2025-10-06" }"""
-  // val attribute: GuardianWeekly2025ExtendedAttributes = upickle.default.read[GuardianWeekly2025ExtendedAttributes](s)
+  // val attributes: GuardianWeekly2025ExtendedAttributes = upickle.default.read[GuardianWeekly2025ExtendedAttributes](s)
 }
 
 object GuardianWeekly2025Migration {
