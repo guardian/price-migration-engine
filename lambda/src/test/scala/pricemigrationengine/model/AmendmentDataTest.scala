@@ -4,6 +4,8 @@ import pricemigrationengine.Fixtures
 
 import java.time.LocalDate
 import pricemigrationengine.Fixtures._
+import pricemigrationengine.libs.StartDates
+import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 
 class AmendmentDataTest extends munit.FunSuite {
 
@@ -172,6 +174,36 @@ class AmendmentDataTest extends munit.FunSuite {
   // This is follow up of the tests in libs/StartDatesTest, applied to the case of
   // subscription A-S02059070, with extra: {"earliestMigrationDate":"2026-03-19"}
   // (part of Guardian Weekly 2025)
+
+  test("AmendmentData.nextServiceStartDate") {
+    val subscription = Fixtures.subscriptionFromJson("model/AmendmentData/A-S02059070/subscription.json")
+    val account = Fixtures.accountFromJson("model/AmendmentData/A-S02059070/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("model/AmendmentData/A-S02059070/invoice-preview.json")
+
+    val cohortItem = CohortItem(
+      "SUBSCRIPTION-NUMBER",
+      ReadyForEstimation,
+      migrationExtraAttributes = Some(""" {"earliestMigrationDate":"2026-03-19"} """)
+    )
+    val today = LocalDate.of(2025, 7, 1) // 1 July 2025
+    val cohortSpec = CohortSpec(
+      cohortName = "Test3007",
+      brazeName = "BrazeName",
+      importStartDate = LocalDate.of(2025, 1, 1),
+      earliestPriceMigrationStartDate = LocalDate.of(2025, 9, 10) // 10 Sept 2025
+    )
+
+    assertEquals(
+      StartDates.startDateLowerBound(
+        item = cohortItem,
+        subscription = subscription,
+        invoicePreview = invoicePreview,
+        cohortSpec = cohortSpec,
+        today = today
+      ),
+      LocalDate.of(2026, 3, 19)
+    )
+  }
 
   test("AmendmentData.nextServiceStartDate") {
     val subscription = Fixtures.subscriptionFromJson("model/AmendmentData/A-S02059070/subscription.json")
