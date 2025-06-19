@@ -39,7 +39,7 @@ aws dynamodb update-item \
 
 Pascal uses this tool from Ruby scripts to automate the updates.
 
-### How to use, an exmanple
+### How to use, an example
 
 The first use of `migrationExtraAttributes` was made in this [PR, for GuardianWeekly2025](https://github.com/guardian/price-migration-engine/pull/1150).
 
