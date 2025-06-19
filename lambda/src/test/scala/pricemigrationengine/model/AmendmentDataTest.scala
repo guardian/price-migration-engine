@@ -9,13 +9,13 @@ class AmendmentDataTest extends munit.FunSuite {
 
   val importDate = LocalDate.of(2000, 1, 1) // Some old date, just to build the cohort Spec
 
-  private def migrationStartDate = LocalDate.of(2020, 12, 25)
+  private def migrationStartDate = LocalDate.of(2021, 1, 25)
 
   test("nextserviceStartDate: billing date is first after migration start date") {
     val invoiceList = invoiceListFromJson("Core/AmendmentData/Misc/InvoicePreview.json")
     val subscription = subscriptionFromJson("Handlers/EstimationHandler/Monthly/Subscription.json")
     val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = migrationStartDate)
-    assertEquals(serviceStartDate, Right(LocalDate.of(2021, 1, 8)))
+    assertEquals(serviceStartDate, Right(LocalDate.of(2021, 2, 8)))
   }
 
   private def deliveryMigrationStartDate = LocalDate.of(2022, 4, 18)
@@ -33,10 +33,11 @@ class AmendmentDataTest extends munit.FunSuite {
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date") {
     val invoiceList = invoiceListFromJson("Core/AmendmentData/Misc/InvoicePreviewTermEndsBeforeMigration.json")
     val subscription = subscriptionFromJson("Core/AmendmentData/Monthly/Subscription.json")
-    val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = migrationStartDate)
+    val serviceStartDate =
+      AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = LocalDate.of(2021, 5, 25))
     assertEquals(
       serviceStartDate.left.map(_.reason.take(79)),
-      Left("Cannot determine next billing date on or after 2020-12-25 from ZuoraInvoiceList")
+      Left("Cannot determine next billing date on or after 2021-05-25 from ZuoraInvoiceList")
     )
   }
 
