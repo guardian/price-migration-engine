@@ -160,6 +160,10 @@ object NotificationHandler extends CohortHandler {
 
       // ----------------------------------------------------
       // Data for SupporterPlus2024
+      // (Comment Group: 602514a6-5e53)
+
+      // This section and the corresponding section below should be removed as part of the
+      // SupporterPlus2024 decommissioning.
 
       supporterPlus2024NotificationData <- SupporterPlus2024Migration.buildSupporterPlus2024NotificationData(
         cohortSpec,
@@ -172,6 +176,16 @@ object NotificationHandler extends CohortHandler {
         .map(a => s"${currencySymbol}${a.toString()}")
       sp2024NewCombinedAmountWithCurrencySymbol = supporterPlus2024NotificationData.newCombinedAmount
         .map(a => s"${currencySymbol}${a.toString()}")
+      // ----------------------------------------------------
+
+      // ----------------------------------------------------
+      // Data for Newspaper2025P1
+      // (Comment Group: 571dac68)
+
+      // This section and the corresponding section below should be removed as part of the
+      // Newspaper2025P1 decommissioning.
+
+      newspaper2025P1NotificationData <- Newspaper2025P1Migration.getNotificationData(cohortSpec, cohortItem)
       // ----------------------------------------------------
 
       brazeName <- brazeName(cohortSpec, cohortItem.subscriptionName)
@@ -200,17 +214,33 @@ object NotificationHandler extends CohortHandler {
                 product_type = sfSubscription.Product_Type__c.getOrElse(""),
 
                 // -------------------------------------------------------------
+                // SupporterPlus 2024 extension
+
                 // [1]
                 // (Comment group: 7992fa98)
+                // (Comment Group: 602514a6-5e53)
                 // For SupporterPlus2024, we did not use that value. Instead we used the data provided by the
                 // extension below. That value was the new base price, but we needed a different data distribution
                 // to be able to fill the email template. That distribution is given by the next section.
 
-                // SupporterPlus 2024 extension
+                // This section and the corresponding section above should be removed as part of the
+                // SupporterPlus2024 decommissioning.
+
                 sp2024_contribution_amount = sp2024ContributionAmountWithCurrencySymbol,
                 sp2024_previous_combined_amount = sp2024PreviousCombinedAmountWithCurrencySymbol,
-                sp2024_new_combined_amount = sp2024NewCombinedAmountWithCurrencySymbol
+                sp2024_new_combined_amount = sp2024NewCombinedAmountWithCurrencySymbol,
                 // -------------------------------------------------------------
+
+                // -------------------------------------------------------------
+                // Newspaper2025P1 extension
+                // (Comment Group: 571dac68)
+
+                // This section and the corresponding section above should be removed as part of the
+                // Newspaper2025P1 decommissioning.
+
+                newspaper2025_brand_title = Some(newspaper2025P1NotificationData.brandTitle),
+                // -------------------------------------------------------------
+
               )
             )
           ),

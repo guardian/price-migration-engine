@@ -2,9 +2,12 @@ package pricemigrationengine.migrations
 import pricemigrationengine.model.ZuoraRatePlan
 import pricemigrationengine.model._
 import pricemigrationengine.libs._
+import pricemigrationengine.services.Zuora
 
 import java.time.LocalDate
 import ujson._
+import upickle.default._
+import zio.ZIO
 
 sealed trait Newspaper2025P1ProductType
 object Voucher extends Newspaper2025P1ProductType
@@ -14,6 +17,27 @@ object HomeDelivery extends Newspaper2025P1ProductType
 sealed trait Newspaper2025P1Frequency
 object EverydayPlus extends Newspaper2025P1Frequency
 object SixdayPlus extends Newspaper2025P1Frequency
+
+case class Newspaper2025ExtendedAttributes(brandTitle: String)
+object Newspaper2025ExtendedAttributes {
+  implicit val reader: Reader[Newspaper2025ExtendedAttributes] = macroR
+
+  // Each item of the migration is going to have a migration extended attributes object
+  // with a brandTitle key. The value of this key is to be sent to Braze, during the
+  // notification handler to decide the labelling to the entity in the email. At that point the
+  // attribute will be called `brand_title`
+
+  // usage
+  // val s = """{ "brandTitle": "the Guardian" }"""
+  // val s = """{ "brandTitle": "the Guardian and the Observer" }"""
+  // val attributes: Newspaper2025ExtendedAttributes = upickle.default.read[Newspaper2025ExtendedAttributes](s)
+}
+
+// (Comment Group: 571dac68)
+
+case class Newspaper2025P1NotificationData(
+    brandTitle: String,
+)
 
 object Newspaper2025P1Migration {
 
@@ -74,6 +98,42 @@ object Newspaper2025P1Migration {
   // ------------------------------------------------
   // Helpers
   // ------------------------------------------------
+
+  def getLabelFromMigrationExtraAttributes(item: CohortItem): Option[String] = {
+    for {
+      attributes <- item.migrationExtraAttributes
+    } yield {
+      val data: Newspaper2025ExtendedAttributes =
+        upickle.default.read[Newspaper2025ExtendedAttributes](attributes)
+      data.brandTitle
+    }
+  }
+
+  // (Comment Group: 571dac68)
+
+  def getNotificationData(
+      cohortSpec: CohortSpec,
+      item: CohortItem
+  ): ZIO[Zuora, Failure, Newspaper2025P1NotificationData] = {
+    MigrationType(cohortSpec) match {
+      case Newspaper2025P1 => {
+        (for {
+          brandTitle <- getLabelFromMigrationExtraAttributes(item)
+        } yield Newspaper2025P1NotificationData(
+          brandTitle
+        )) match {
+          case None =>
+            ZIO.fail(
+              DataExtractionFailure(
+                s"Could not build Newspaper2025P1NotificationData for item ${item.toString}"
+              )
+            )
+          case Some(d) => ZIO.succeed(d)
+        }
+      }
+      case _ => ZIO.succeed(Newspaper2025P1NotificationData(""))
+    }
+  }
 
   def priceLookUp(
       productType: Newspaper2025P1ProductType,
