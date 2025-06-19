@@ -130,6 +130,6 @@ object StartDates {
 
     for {
       randomFactor <- Random.nextIntBetween(0, spreadPeriod)
-    } yield startDateLowerBound3.plusMonths(randomFactor)
+    } yield startDateLowerBound4.plusMonths(randomFactor)
   }
 }
