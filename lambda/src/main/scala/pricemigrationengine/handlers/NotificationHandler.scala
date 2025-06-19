@@ -149,6 +149,7 @@ object NotificationHandler extends CohortHandler {
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
 
       priceWithOptionalCappingWithCurrencySymbol = MigrationType(cohortSpec) match {
+        case Test3007          => s"${currencySymbol}${estimatedNewPrice}" // default value
         case SupporterPlus2024 => s"${currencySymbol}${estimatedNewPrice}"
         case GuardianWeekly2025 =>
           s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, GuardianWeekly2025Migration.priceCap)}"
@@ -319,6 +320,7 @@ object NotificationHandler extends CohortHandler {
 
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
+      case Test3007           => 35
       case SupporterPlus2024  => SupporterPlus2024Migration.maxLeadTime
       case GuardianWeekly2025 => GuardianWeekly2025Migration.maxLeadTime
       case Newspaper2025P1    => Newspaper2025P1Migration.maxLeadTime
@@ -327,6 +329,7 @@ object NotificationHandler extends CohortHandler {
 
   def minLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
+      case Test3007           => 33
       case SupporterPlus2024  => SupporterPlus2024Migration.minLeadTime
       case GuardianWeekly2025 => GuardianWeekly2025Migration.minLeadTime
       case Newspaper2025P1    => Newspaper2025P1Migration.minLeadTime
