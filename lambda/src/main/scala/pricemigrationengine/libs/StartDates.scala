@@ -3,7 +3,7 @@ package pricemigrationengine.libs
 import pricemigrationengine.handlers.NotificationHandler
 import pricemigrationengine.migrations.{GuardianWeekly2025Migration, Newspaper2025P1Migration}
 import pricemigrationengine.model._
-import zio.{IO, Random}
+import scala.util.Random
 
 import java.time.LocalDate
 
@@ -99,7 +99,7 @@ object StartDates {
       invoicePreview: ZuoraInvoiceList,
       cohortSpec: CohortSpec,
       today: LocalDate
-  ): IO[ConfigFailure, LocalDate] = {
+  ): LocalDate = {
 
     // LowerBound from to the cohort spec and the notification window's end
     val startDateLowerBound1 = MigrationType(cohortSpec) match {
@@ -128,8 +128,11 @@ object StartDates {
     // Decide the spread period for this migration
     val spreadPeriod = decideSpreadPeriod(subscription, invoicePreview, cohortSpec)
 
-    for {
-      randomFactor <- Random.nextIntBetween(0, spreadPeriod)
-    } yield startDateLowerBound4.plusMonths(randomFactor)
+    val randomDelayInMonths = Random.nextInt(spreadPeriod) // [1]
+    // [1]
+    // Decides an integer in the interval [0, spreadPeriod-1]
+    // The default spread period is 1
+
+    startDateLowerBound4.plusMonths(randomDelayInMonths)
   }
 }
