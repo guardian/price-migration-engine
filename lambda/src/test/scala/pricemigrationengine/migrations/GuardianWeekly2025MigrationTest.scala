@@ -39,10 +39,10 @@ class GuardianWeekly2025ExtendedAttributesTest extends munit.FunSuite {
     val cohortItem = CohortItem(
       subscriptionName = "A-000001",
       processingStage = ReadyForEstimation,
-      migrationExtraAttributes = Some("""{ "earliestMigrationDate": "2025-10-06" }"""),
+      migrationExtraAttributes = None,
     )
     val date = GuardianWeekly2025Migration.computeStartDateLowerBound4(LocalDate.of(2025, 8, 9), cohortItem)
-    assertEquals(date, LocalDate.of(2025, 10, 6))
+    assertEquals(date, LocalDate.of(2025, 8, 9))
   }
 
   test("GuardianWeekly2025Migration.computeStartDateLowerBound4 (1): bound3 is lower than extra attributes date") {
