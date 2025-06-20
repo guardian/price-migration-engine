@@ -92,7 +92,7 @@ object AmendmentHandler extends CohortHandler {
 
   private def shouldPerformFinalPriceCheck(cohortSpec: CohortSpec): Boolean = {
     MigrationType(cohortSpec) match {
-      case Test3007           => true // default value
+      case Test1              => true // default value
       case SupporterPlus2024  => false // [1]
       case GuardianWeekly2025 => true
       case Newspaper2025P1    => true
@@ -130,7 +130,7 @@ object AmendmentHandler extends CohortHandler {
       _ <- renewSubscription(subscriptionBeforeUpdate, subscriptionBeforeUpdate.termEndDate, account)
 
       order <- MigrationType(cohortSpec) match {
-        case Test3007 => ZIO.fail(ConfigFailure("Branch not supported"))
+        case Test1 => ZIO.fail(ConfigFailure("Branch not supported"))
         case SupporterPlus2024 =>
           ZIO.fromEither(
             SupporterPlus2024Migration.amendmentOrderPayload(
@@ -211,7 +211,7 @@ object AmendmentHandler extends CohortHandler {
         Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
 
       order <- MigrationType(cohortSpec) match {
-        case Test3007 => ZIO.fail(ConfigFailure("Branch not supported"))
+        case Test1 => ZIO.fail(ConfigFailure("Branch not supported"))
         case SupporterPlus2024 =>
           ZIO.fail(MigrationRoutingFailure("SupporterPlus2024 should not use doAmendment_ordersApi_json_values"))
         case GuardianWeekly2025 =>
@@ -292,7 +292,7 @@ object AmendmentHandler extends CohortHandler {
       item: CohortItem
   ): ZIO[Zuora with Logging, Failure, SuccessfulAmendmentResult] = {
     MigrationType(cohortSpec) match {
-      case Test3007 => ZIO.fail(ConfigFailure("Branch not supported"))
+      case Test1 => ZIO.fail(ConfigFailure("Branch not supported"))
       case SupporterPlus2024 =>
         doAmendment_ordersApi_typed_deprecated(
           cohortSpec: CohortSpec,

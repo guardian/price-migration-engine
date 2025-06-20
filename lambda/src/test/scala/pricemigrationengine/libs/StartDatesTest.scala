@@ -21,7 +21,7 @@ class StartDatesTest extends munit.FunSuite {
     val cohortItem = CohortItem("SUBSCRIPTION-NUMBER", ReadyForEstimation)
     val today = LocalDate.of(2025, 7, 1) // 1 July 2025
     val cohortSpec = CohortSpec(
-      cohortName = "Test3007",
+      cohortName = "Test1",
       brazeName = "BrazeName",
       importStartDate = LocalDate.of(2025, 1, 1),
       earliestPriceMigrationStartDate = LocalDate.of(2025, 9, 10) // 10 Sept 2025
@@ -54,7 +54,7 @@ class StartDatesTest extends munit.FunSuite {
     // --------------------------------------------------
     // startDateLowerBound3:
 
-    // Test3007 doesn't have a last price rise date, so we are invariant here:
+    // Test1 doesn't have a last price rise date, so we are invariant here:
 
     val startDateLowerBound3 =
       StartDates.noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, startDateLowerBound2)
@@ -75,7 +75,7 @@ class StartDatesTest extends munit.FunSuite {
     // Here I am re-using GuardianWeekly2025Migration.computeStartDateLowerBound4, for testing it.
     // Technically this test will break when GuardianWeekly2025 is decommissioned in October 2026,
     // but at that point if we really want to carry on testing the migration extended attributes as
-    // part of start date computations we can move the code to Test3007's own migration module
+    // part of start date computations we can move the code to Test1's own migration module
 
     // Here nothing happens because the cohort item didn't have extended attributes
 
@@ -90,7 +90,7 @@ class StartDatesTest extends munit.FunSuite {
     // startDateLowerBound:
 
     // We report the highest computed date. Without random spread.
-    // (Test3007 spread period is set to 1)
+    // (Test1 spread period is set to 1)
 
     assertEquals(
       StartDates.startDateLowerBound(
@@ -116,7 +116,7 @@ class StartDatesTest extends munit.FunSuite {
     )
     val today = LocalDate.of(2025, 7, 1) // 1 July 2025
     val cohortSpec = CohortSpec(
-      cohortName = "Test3007",
+      cohortName = "Test1",
       brazeName = "BrazeName",
       importStartDate = LocalDate.of(2025, 1, 1),
       earliestPriceMigrationStartDate = LocalDate.of(2025, 9, 10) // 10 Sept 2025
@@ -149,7 +149,7 @@ class StartDatesTest extends munit.FunSuite {
     // --------------------------------------------------
     // startDateLowerBound3:
 
-    // Test3007 doesn't have a last price rise date, so we are invariant here:
+    // Test1 doesn't have a last price rise date, so we are invariant here:
 
     val startDateLowerBound3 =
       StartDates.noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, startDateLowerBound2)
@@ -179,7 +179,7 @@ class StartDatesTest extends munit.FunSuite {
     // Here I am re-using GuardianWeekly2025Migration.computeStartDateLowerBound4, for testing it.
     // Technically this test will break when GuardianWeekly2025 is decommissioned in October 2026,
     // but at that point if we really want to carry on testing the migration extended attributes as
-    // part of start date computations we can move the code to Test3007's own migration module
+    // part of start date computations we can move the code to Test1's own migration module
 
     // Here we have extended attributes: {"earliestMigrationDate":"2026-03-19"}
 
@@ -194,7 +194,7 @@ class StartDatesTest extends munit.FunSuite {
     // startDateLowerBound:
 
     // We report the highest computed date. Without random spread.
-    // (Test3007 spread period is set to 1)
+    // (Test1 spread period is set to 1)
 
     assertEquals(
       StartDates.startDateLowerBound(
