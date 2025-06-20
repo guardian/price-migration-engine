@@ -6,6 +6,7 @@ sealed trait Failure {
 
 case class InputFailure(reason: String) extends Failure
 case class ConfigFailure(reason: String) extends Failure
+case class MigrationRoutingFailure(reason: String) extends Failure
 
 case class DataExtractionFailure(reason: String) extends Failure
 
@@ -42,4 +43,3 @@ case class NotificationNotEnoughLeadTimeFailure(reason: String) extends Failure
 case class EmailSenderFailure(reason: String) extends Failure
 
 case class CohortTableDatalakeExportFailure(reason: String) extends Failure
-case class MigrationRoutingFailure(reason: String) extends Failure

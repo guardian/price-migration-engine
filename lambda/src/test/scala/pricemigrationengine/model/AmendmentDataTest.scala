@@ -4,18 +4,20 @@ import pricemigrationengine.Fixtures
 
 import java.time.LocalDate
 import pricemigrationengine.Fixtures._
+import pricemigrationengine.libs.StartDates
+import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 
 class AmendmentDataTest extends munit.FunSuite {
 
   val importDate = LocalDate.of(2000, 1, 1) // Some old date, just to build the cohort Spec
 
-  private def migrationStartDate = LocalDate.of(2020, 12, 25)
+  private def migrationStartDate = LocalDate.of(2021, 1, 25)
 
   test("nextserviceStartDate: billing date is first after migration start date") {
     val invoiceList = invoiceListFromJson("Core/AmendmentData/Misc/InvoicePreview.json")
     val subscription = subscriptionFromJson("Handlers/EstimationHandler/Monthly/Subscription.json")
     val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = migrationStartDate)
-    assertEquals(serviceStartDate, Right(LocalDate.of(2021, 1, 8)))
+    assertEquals(serviceStartDate, Right(LocalDate.of(2021, 2, 8)))
   }
 
   private def deliveryMigrationStartDate = LocalDate.of(2022, 4, 18)
@@ -33,10 +35,11 @@ class AmendmentDataTest extends munit.FunSuite {
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date") {
     val invoiceList = invoiceListFromJson("Core/AmendmentData/Misc/InvoicePreviewTermEndsBeforeMigration.json")
     val subscription = subscriptionFromJson("Core/AmendmentData/Monthly/Subscription.json")
-    val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = migrationStartDate)
+    val serviceStartDate =
+      AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = LocalDate.of(2021, 5, 25))
     assertEquals(
       serviceStartDate.left.map(_.reason.take(79)),
-      Left("Cannot determine next billing date on or after 2020-12-25 from ZuoraInvoiceList")
+      Left("Cannot determine next billing date on or after 2021-05-25 from ZuoraInvoiceList")
     )
   }
 
@@ -161,5 +164,68 @@ class AmendmentDataTest extends munit.FunSuite {
       )
     )
     assertEquals(chargeAmount, Right(BigDecimal(0)))
+  }
+
+  // ---------------------------------------------------------------------------
+  // Date: 19 June 2025
+  // Author: Pascal
+  //
+  // I am adding new tests to this, with fixtures located in `model/AmendmentData`
+  // This is follow up of the tests in libs/StartDatesTest, applied to the case of
+  // subscription A-S02059070, with extra: {"earliestMigrationDate":"2026-03-19"}
+  // (part of Guardian Weekly 2025)
+
+  test("AmendmentData.nextServiceStartDate") {
+    val subscription = Fixtures.subscriptionFromJson("model/AmendmentData/A-S02059070/subscription.json")
+    val account = Fixtures.accountFromJson("model/AmendmentData/A-S02059070/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("model/AmendmentData/A-S02059070/invoice-preview.json")
+
+    val cohortItem = CohortItem(
+      "SUBSCRIPTION-NUMBER",
+      ReadyForEstimation,
+      migrationExtraAttributes = Some(""" {"earliestMigrationDate":"2026-03-19"} """)
+    )
+    val today = LocalDate.of(2025, 7, 1) // 1 July 2025
+    val cohortSpec = CohortSpec(
+      cohortName = "Test1",
+      brazeName = "BrazeName",
+      importStartDate = LocalDate.of(2025, 1, 1),
+      earliestPriceMigrationStartDate = LocalDate.of(2025, 9, 10) // 10 Sept 2025
+    )
+
+    assertEquals(
+      StartDates.startDateLowerBound(
+        item = cohortItem,
+        subscription = subscription,
+        invoicePreview = invoicePreview,
+        cohortSpec = cohortSpec,
+        today = today
+      ),
+      LocalDate.of(2026, 3, 19)
+    )
+  }
+
+  test("AmendmentData.nextServiceStartDate") {
+    val subscription = Fixtures.subscriptionFromJson("model/AmendmentData/A-S02059070/subscription.json")
+    val account = Fixtures.accountFromJson("model/AmendmentData/A-S02059070/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("model/AmendmentData/A-S02059070/invoice-preview.json")
+
+    assertEquals(
+      AmendmentData.nextServiceStartDate(
+        invoiceList = invoicePreview,
+        subscription = subscription,
+        onOrAfter = LocalDate.of(2026, 3, 19)
+      ),
+      Right(LocalDate.of(2026, 3, 19))
+    )
+
+    assertEquals(
+      AmendmentData.nextServiceStartDate(
+        invoiceList = invoicePreview,
+        subscription = subscription,
+        onOrAfter = LocalDate.of(2026, 3, 20)
+      ),
+      Right(LocalDate.of(2026, 4, 19))
+    )
   }
 }

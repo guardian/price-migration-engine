@@ -112,16 +112,20 @@ object EstimationHandler extends CohortHandler {
       account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
       invoicePreviewTargetDate = cohortSpec.earliestPriceMigrationStartDate.plusMonths(16)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
-      startDateLowerBound <- StartDates.startDateLowerBound(
-        item: CohortItem,
-        subscription,
-        invoicePreview,
-        cohortSpec,
-        today
+      startDateLowerBound <- ZIO.succeed(
+        StartDates.startDateLowerBound(
+          item: CohortItem,
+          subscription,
+          invoicePreview,
+          cohortSpec,
+          today
+        )
       )
+      _ <- ZIO.logInfo(s"item: ${item.toString}, startDateLowerBound: ${startDateLowerBound}")
       result <- ZIO.fromEither(
         EstimationResult(account, catalogue, subscription, invoicePreview, startDateLowerBound, cohortSpec)
       )
+      _ <- ZIO.logInfo(s"item: ${item.toString}, estimation result: ${result}")
     } yield result
   }
 

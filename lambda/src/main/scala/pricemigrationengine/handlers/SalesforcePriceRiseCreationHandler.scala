@@ -83,6 +83,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
           .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a startDate"))
     } yield {
       val estimatedPriceWithOptionalCapping = MigrationType(cohortSpec) match {
+        case Test1             => estimatedNewPrice // default value
         case SupporterPlus2024 => estimatedNewPrice // [1]
         case GuardianWeekly2025 =>
           PriceCap.cappedPrice(oldPrice, estimatedNewPrice, GuardianWeekly2025Migration.priceCap)

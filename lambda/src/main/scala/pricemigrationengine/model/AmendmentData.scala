@@ -129,6 +129,7 @@ object AmendmentData {
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, PriceData] = {
     MigrationType(cohortSpec) match {
+      case Test1              => Left(ConfigFailure("Branch not supported"))
       case SupporterPlus2024  => SupporterPlus2024Migration.priceData(subscription)
       case GuardianWeekly2025 => GuardianWeekly2025Migration.priceData(subscription, invoiceList, account)
       case Newspaper2025P1    => Newspaper2025P1Migration.priceData(subscription, invoiceList, account)
