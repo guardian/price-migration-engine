@@ -26,6 +26,7 @@ It currently consists in
     - [The migration implementation manual](docs/migration-implementation-manual.md)
     - [Downloading fixtures](docs/downloading-fixtures.md)
     - [Notes on the Zuora Order API](docs/zuora-order-api.md)
+    - [Extending cohort items](docs/extending-CohortItem.md)
     - [Troubleshooting document](docs/troubleshooting.md)
 
 - Android Price Rises
