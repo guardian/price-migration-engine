@@ -244,7 +244,10 @@ object AmendmentHandler extends CohortHandler {
           )
       }
       _ <- Logging.info(
-        s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
+        s"[6e6da544] Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
+      )
+      _ <- Logging.info(
+        s"[d785dc89] Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${ujson.write(order, indent = 4)}"
       )
 
       _ <- Zuora.applyAmendmentOrder_json_values(subscriptionBeforeUpdate, order)

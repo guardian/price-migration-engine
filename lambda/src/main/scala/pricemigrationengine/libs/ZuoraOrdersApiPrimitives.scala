@@ -20,6 +20,7 @@ object ZuoraOrdersApiPrimitives {
         "isMember" -> Bool(true),
         "tags" -> Arr(Str("scala"), Str("json"))
       )
+      val pretty = ujson.write(json, indent = 4)
       json
     }
    */
