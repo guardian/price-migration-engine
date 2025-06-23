@@ -191,7 +191,7 @@ object GuardianWeekly2025Migration {
       accountNumber: String,
       subscriptionNumber: String,
       effectDate: LocalDate,
-      subscription: ZuoraSubscription,
+      zuora_subscription: ZuoraSubscription,
       oldPrice: BigDecimal,
       estimatedNewPrice: BigDecimal,
       priceCap: BigDecimal,
@@ -203,11 +203,9 @@ object GuardianWeekly2025Migration {
     // the notion of subscription as defined in the Zuora Order API documentation,
     // which roughly translates to a collections of { actions / atomic mutations } in Zuora
 
-    val zuora_subscription = subscription
-
     val order_opt = {
       for {
-        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
+        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
         subscriptionRatePlanId = ratePlan.id
         removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
         triggerDateString = effectDate.toString
@@ -233,7 +231,7 @@ object GuardianWeekly2025Migration {
       case None =>
         Left(
           DataExtractionFailure(
-            s"Could not compute amendmentOrderPayload for subscription ${subscription.subscriptionNumber}"
+            s"Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
           )
         )
     }

@@ -221,7 +221,7 @@ object AmendmentHandler extends CohortHandler {
               accountNumber = account.basicInfo.accountNumber,
               subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
               effectDate = startDate,
-              subscription = subscriptionBeforeUpdate,
+              zuora_subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
               priceCap = GuardianWeekly2025Migration.priceCap,
@@ -244,7 +244,7 @@ object AmendmentHandler extends CohortHandler {
           )
       }
       _ <- Logging.info(
-        s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
+        s"[6e6da544] Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
       )
 
       _ <- Zuora.applyAmendmentOrder_json_values(subscriptionBeforeUpdate, order)
@@ -316,8 +316,7 @@ object AmendmentHandler extends CohortHandler {
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     MigrationType(input) match {
-      case GuardianWeekly2025 => ZIO.succeed(HandlerOutput(isComplete = true))
-      case Newspaper2025P1    => ZIO.succeed(HandlerOutput(isComplete = true))
+      case Newspaper2025P1 => ZIO.succeed(HandlerOutput(isComplete = true))
       case _ => {
         main(input).provideSome[Logging](
           EnvConfig.cohortTable.layer,
