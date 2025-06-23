@@ -207,7 +207,7 @@ object GuardianWeekly2025Migration {
 
     val order_opt = {
       for {
-        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
+        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
         subscriptionRatePlanId = ratePlan.id
         removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
         triggerDateString = effectDate.toString
@@ -233,7 +233,7 @@ object GuardianWeekly2025Migration {
       case None =>
         Left(
           DataExtractionFailure(
-            s"Could not compute amendmentOrderPayload for subscription ${subscription.subscriptionNumber}"
+            s"Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
           )
         )
     }

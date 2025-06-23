@@ -142,13 +142,13 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     )
   }
 
-  test("GuardianWeekly2025Migration.priceData (GBP-monthly1)") {
+  test("GuardianWeekly2025Migration.priceData (GBP-monthly1) (standard)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2025/GBP-monthly1/subscription.json")
     val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2025/GBP-monthly1/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2025/GBP-monthly1/invoice-preview.json")
 
     // Currency from subscription: "currency": "GBP"
-    // Old price from currency: active rate plan, one single rate plan charge: "price": 15.0
+    // Old price from currency, active rate plan, one single rate plan charge: "price": 15.0
     // price lookup (new price): (Monthly, "GBP") -> BigDecimal(16.5)
     // Billing frequency from currency: active rate plan, rate plan charge: "billingPeriod": "Month"
 
@@ -158,6 +158,117 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     val effectDate = LocalDate.of(2025, 11, 8) // "2025-11-08": Will be used in tiggerDates
     val oldPrice = BigDecimal(15.0)
     val estimatedNewPrice = BigDecimal(16.5)
+    val priceCap = BigDecimal(1.2)
+
+    // So here, I think that the natural way to test is to compare Values.
+    // We have one coming from GuardianWeekly2025Migration.amendmentOrderPayload
+    // The other one is going to be parsed from the raw JSON string, which gives us
+    // visibility on the actual payload.
+
+    assertEquals(
+      GuardianWeekly2025Migration.amendmentOrderPayload(
+        orderDate,
+        accountNumber,
+        subscriptionNumber,
+        effectDate,
+        subscription,
+        oldPrice,
+        estimatedNewPrice,
+        priceCap,
+        invoicePreview
+      ),
+      Right(
+        ujson.read(
+          s"""{
+             |    "orderDate": "2025-11-07",
+             |    "existingAccountNumber": "ed570ff842d582466",
+             |    "subscriptions": [
+             |        {
+             |            "subscriptionNumber": "SUBSCRIPTION-NUMBER",
+             |            "orderActions": [
+             |                {
+             |                    "type": "RemoveProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-11-08"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-11-08"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-11-08"
+             |                        }
+             |                    ],
+             |                    "removeProduct": {
+             |                        "ratePlanId": "8a1299b39348e9bb019376218c532ba1"
+             |                    }
+             |                },
+             |                {
+             |                    "type": "AddProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-11-08"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-11-08"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-11-08"
+             |                        }
+             |                    ],
+             |                    "addProduct": {
+             |                        "productRatePlanId": "2c92a0fd79ac64b00179ae3f9d474960",
+             |                        "chargeOverrides": [
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd79ac64b00179ae3f9d704962",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 16.5
+             |                                    }
+             |                                }
+             |                            }
+             |                        ]
+             |                    }
+             |                }
+             |            ]
+             |        }
+             |    ],
+             |    "processingOptions": {
+             |        "runBilling": false,
+             |        "collectPayment": false
+             |    }
+             |}""".stripMargin
+        )
+      )
+    )
+  }
+
+  test("GuardianWeekly2025Migration.priceData (GBP-monthly1) (active price cap)") {
+
+    // This test is similar to the previous one but with an inflated estimated new price to
+    // see the effect of the price cap
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2025/GBP-monthly1/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2025/GBP-monthly1/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2025/GBP-monthly1/invoice-preview.json")
+
+    // Currency from subscription: "currency": "GBP"
+    // Old price from currency, active rate plan, one single rate plan charge: "price": 15.0
+    // price lookup (new price): (Monthly, "GBP") -> BigDecimal(16.5)
+    // Billing frequency from currency: active rate plan, rate plan charge: "billingPeriod": "Month"
+
+    val orderDate = LocalDate.of(2025, 11, 7) // "2025-11-07"
+    val accountNumber = "ed570ff842d582466"
+    val subscriptionNumber = subscription.subscriptionNumber // "SUBSCRIPTION-NUMBER" (sanitised fixture)
+    val effectDate = LocalDate.of(2025, 11, 8) // "2025-11-08": Will be used in tiggerDates
+    val oldPrice = BigDecimal(200.0)
+    val estimatedNewPrice = BigDecimal(300.0)
     val priceCap = BigDecimal(1.2)
 
     // So here, I think that the natural way to test is to compare Values.
@@ -229,7 +340,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
             |                                "productRatePlanChargeId": "2c92a0fd79ac64b00179ae3f9d704962",
             |                                "pricing": {
             |                                    "recurringFlatFee": {
-            |                                        "listPrice": 16.5
+            |                                        "listPrice": 240
             |                                    }
             |                                }
             |                            }
@@ -244,6 +355,113 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
             |        "collectPayment": false
             |    }
             |}""".stripMargin
+        )
+      )
+    )
+  }
+
+  test("GuardianWeekly2025Migration.priceData (EUR-annual1) (standard)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2025/EUR-annual1/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2025/EUR-annual1/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2025/EUR-annual1/invoice-preview.json")
+
+    // Currency from subscription: "currency": "EUR"
+    // Old price from currency, active rate plan, one single rate plan charge: "price": 318.0
+    // price lookup (new price): (Annual, "EUR") -> BigDecimal(348.0)
+    // Billing frequency from currency: active rate plan, rate plan charge: "billingPeriod": "Annual"
+
+    val orderDate = LocalDate.of(2025, 11, 5) // "2025-11-05" derived from "2024-11-05" from the subscription
+    val accountNumber = "0b89c1c6b41e"
+    val subscriptionNumber = subscription.subscriptionNumber // "SUBSCRIPTION-NUMBER" (sanitised fixture)
+    val effectDate = LocalDate.of(2025, 11, 5) // "2025-11-08": Will be used in tiggerDates
+    val oldPrice = BigDecimal(318.0)
+    val estimatedNewPrice = BigDecimal(348.0)
+    val priceCap = BigDecimal(1.2)
+
+    // So here, I think that the natural way to test is to compare Values.
+    // We have one coming from GuardianWeekly2025Migration.amendmentOrderPayload
+    // The other one is going to be parsed from the raw JSON string, which gives us
+    // visibility on the actual payload.
+
+    assertEquals(
+      GuardianWeekly2025Migration.amendmentOrderPayload(
+        orderDate,
+        accountNumber,
+        subscriptionNumber,
+        effectDate,
+        subscription,
+        oldPrice,
+        estimatedNewPrice,
+        priceCap,
+        invoicePreview
+      ),
+      Right(
+        ujson.read(
+          s"""{
+             |    "orderDate": "2025-11-05",
+             |    "existingAccountNumber": "0b89c1c6b41e",
+             |    "subscriptions": [
+             |        {
+             |            "subscriptionNumber": "SUBSCRIPTION-NUMBER",
+             |            "orderActions": [
+             |                {
+             |                    "type": "RemoveProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-11-05"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-11-05"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-11-05"
+             |                        }
+             |                    ],
+             |                    "removeProduct": {
+             |                        "ratePlanId": "8a12820a92f75e4b0192fb2364496183"
+             |                    }
+             |                },
+             |                {
+             |                    "type": "AddProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-11-05"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-11-05"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-11-05"
+             |                        }
+             |                    ],
+             |                    "addProduct": {
+             |                        "productRatePlanId": "2c92a0fe6619b4b901661aa8e66c1692",
+             |                        "chargeOverrides": [
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fe6619b4b901661aa8e6811695",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 348.0
+             |                                    }
+             |                                }
+             |                            }
+             |                        ]
+             |                    }
+             |                }
+             |            ]
+             |        }
+             |    ],
+             |    "processingOptions": {
+             |        "runBilling": false,
+             |        "collectPayment": false
+             |    }
+             |}""".stripMargin
         )
       )
     )
