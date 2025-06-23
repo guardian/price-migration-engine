@@ -191,7 +191,7 @@ object GuardianWeekly2025Migration {
       accountNumber: String,
       subscriptionNumber: String,
       effectDate: LocalDate,
-      subscription: ZuoraSubscription,
+      zuora_subscription: ZuoraSubscription,
       oldPrice: BigDecimal,
       estimatedNewPrice: BigDecimal,
       priceCap: BigDecimal,
@@ -202,8 +202,6 @@ object GuardianWeekly2025Migration {
     // There is the Zuora subscription which is one of the arguments, and there is
     // the notion of subscription as defined in the Zuora Order API documentation,
     // which roughly translates to a collections of { actions / atomic mutations } in Zuora
-
-    val zuora_subscription = subscription
 
     val order_opt = {
       for {
