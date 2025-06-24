@@ -231,7 +231,7 @@ object GuardianWeekly2025Migration {
       case None =>
         Left(
           DataExtractionFailure(
-            s"Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
+            s"[e5bd98d7] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
           )
         )
     }

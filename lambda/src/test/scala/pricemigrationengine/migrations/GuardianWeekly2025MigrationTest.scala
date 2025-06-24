@@ -17,6 +17,12 @@ import java.time.{Instant, LocalDate}
 // val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2025/EUR-annual1/account.json")
 // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2025/EUR-annual1/invoice-preview.json")
 
+// Subscription fixture: A-S00531704
+// This one was introduced to investigate "Subscription A-S00531704 failed: DataExtractionFailure(Could not compute amendmentOrderPayload for subscription A-S00531704)"
+// val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2025/A-S00531704/subscription.json")
+// val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2025/A-S00531704/account.json")
+// val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2025/A-S00531704/invoice-preview.json")
+
 class GuardianWeekly2025ExtraAttributesTest extends munit.FunSuite {
 
   test("decoding") {
@@ -370,7 +376,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     // price lookup (new price): (Annual, "EUR") -> BigDecimal(348.0)
     // Billing frequency from currency: active rate plan, rate plan charge: "billingPeriod": "Annual"
 
-    val orderDate = LocalDate.of(2025, 11, 5) // "2025-11-05" derived from "2024-11-05" from the subscription
+    val orderDate = LocalDate.of(2025, 6, 24) // LocalDate.now()
     val accountNumber = "0b89c1c6b41e"
     val subscriptionNumber = subscription.subscriptionNumber // "SUBSCRIPTION-NUMBER" (sanitised fixture)
     val effectDate = LocalDate.of(2025, 11, 5) // "2025-11-08": Will be used in tiggerDates
@@ -398,7 +404,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
       Right(
         ujson.read(
           s"""{
-             |    "orderDate": "2025-11-05",
+             |    "orderDate": "2025-06-24",
              |    "existingAccountNumber": "0b89c1c6b41e",
              |    "subscriptions": [
              |        {
@@ -448,6 +454,396 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
              |                                "pricing": {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 348.0
+             |                                    }
+             |                                }
+             |                            }
+             |                        ]
+             |                    }
+             |                }
+             |            ]
+             |        }
+             |    ],
+             |    "processingOptions": {
+             |        "runBilling": false,
+             |        "collectPayment": false
+             |    }
+             |}""".stripMargin
+        )
+      )
+    )
+  }
+
+  test("A-S00531704 Investigation (1)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2025/A-S00531704/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2025/A-S00531704/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2025/A-S00531704/invoice-preview.json")
+
+    // Here we test correct extraction of the rateplan
+    // The subscription has an active Discount, a removed rate plan and the currently active "Guardian Weekly - Domestic"
+
+    val rateplan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview)
+
+    assertEquals(
+      rateplan,
+      Some(
+        ZuoraRatePlan(
+          id = "8a129ede979cc3330197a13698217602",
+          productName = "Guardian Weekly - Domestic",
+          productRatePlanId = "2c92a0fe6619b4b301661aa494392ee2",
+          ratePlanName = "GW Oct 18 - Quarterly - Domestic",
+          ratePlanCharges = List(
+            ZuoraRatePlanCharge(
+              productRatePlanChargeId = "2c92a0fe6619b4b601661aa8b74e623f",
+              name = "GW Oct 18 - Quarterly - Domestic",
+              number = "C-05701607",
+              currency = "GBP",
+              price = Some(45.0),
+              billingPeriod = Some("Quarter"),
+              chargedThroughDate = Some(LocalDate.of(2025, 8, 11)),
+              processedThroughDate = Some(LocalDate.of(2025, 5, 11)),
+              specificBillingPeriod = None,
+              endDateCondition = Some("Subscription_End"),
+              upToPeriodsType = None,
+              upToPeriods = None,
+              billingDay = Some("ChargeTriggerDay"),
+              triggerEvent = Some("CustomerAcceptance"),
+              triggerDate = None,
+              discountPercentage = None,
+              originalOrderDate = Some(LocalDate.of(2024, 6, 23)),
+              effectiveStartDate = Some(LocalDate.of(2024, 8, 11)),
+              effectiveEndDate = Some(LocalDate.of(2026, 7, 30))
+            )
+          ),
+          lastChangeType = Some("Add")
+        )
+      )
+    )
+  }
+
+  test("A-S00531704 Investigation (2)") {
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2025/A-S00531704/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2025/A-S00531704/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2025/A-S00531704/invoice-preview.json")
+
+    // Here we test the step by step extraction of the `for` construct in amendmentOrderPayload
+
+    val ratePlan = ZuoraRatePlan(
+      id = "8a129ede979cc3330197a13698217602",
+      productName = "Guardian Weekly - Domestic",
+      productRatePlanId = "2c92a0fe6619b4b301661aa494392ee2",
+      ratePlanName = "GW Oct 18 - Quarterly - Domestic",
+      ratePlanCharges = List(
+        ZuoraRatePlanCharge(
+          productRatePlanChargeId = "2c92a0fe6619b4b601661aa8b74e623f",
+          name = "GW Oct 18 - Quarterly - Domestic",
+          number = "C-05701607",
+          currency = "GBP",
+          price = Some(45.0),
+          billingPeriod = Some("Quarter"),
+          chargedThroughDate = Some(LocalDate.of(2025, 8, 11)),
+          processedThroughDate = Some(LocalDate.of(2025, 5, 11)),
+          specificBillingPeriod = None,
+          endDateCondition = Some("Subscription_End"),
+          upToPeriodsType = None,
+          upToPeriods = None,
+          billingDay = Some("ChargeTriggerDay"),
+          triggerEvent = Some("CustomerAcceptance"),
+          triggerDate = None,
+          discountPercentage = None,
+          originalOrderDate = Some(LocalDate.of(2024, 6, 23)),
+          effectiveStartDate = Some(LocalDate.of(2024, 8, 11)),
+          effectiveEndDate = Some(LocalDate.of(2026, 7, 30))
+        )
+      ),
+      lastChangeType = Some("Add")
+    )
+
+    val subscriptionRatePlanId = ratePlan.id
+
+    assertEquals(
+      subscriptionRatePlanId,
+      "8a129ede979cc3330197a13698217602"
+    )
+
+    val effectDate = LocalDate.of(2025, 8, 11) // read from the CohortItem
+
+    val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
+
+    assertEquals(
+      removeProduct,
+      ujson.read(
+        s"""{
+           |    "type": "RemoveProduct",
+           |    "triggerDates": [
+           |        {
+           |            "name": "ContractEffective",
+           |            "triggerDate": "2025-08-11"
+           |        },
+           |        {
+           |            "name": "ServiceActivation",
+           |            "triggerDate": "2025-08-11"
+           |        },
+           |        {
+           |            "name": "CustomerAcceptance",
+           |            "triggerDate": "2025-08-11"
+           |        }
+           |    ],
+           |    "removeProduct": {
+           |        "ratePlanId": "8a129ede979cc3330197a13698217602"
+           |    }
+           |}""".stripMargin
+      )
+    )
+
+    val triggerDateString = effectDate.toString
+
+    val productRatePlanId = ratePlan.productRatePlanId
+
+    val oldPrice = BigDecimal(45)
+    val estimatedNewPrice = BigDecimal(49.5)
+    val priceCap = 1.2
+
+    val chargeOverrides = List(
+      ZuoraOrdersApiPrimitives.chargeOverride(
+        ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId,
+        PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap)
+      )
+    )
+
+    val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+
+    assertEquals(
+      addProduct,
+      ujson.read(
+        s"""{
+           |    "type": "AddProduct",
+           |    "triggerDates": [
+           |        {
+           |            "name": "ContractEffective",
+           |            "triggerDate": "2025-08-11"
+           |        },
+           |        {
+           |            "name": "ServiceActivation",
+           |            "triggerDate": "2025-08-11"
+           |        },
+           |        {
+           |            "name": "CustomerAcceptance",
+           |            "triggerDate": "2025-08-11"
+           |        }
+           |    ],
+           |    "addProduct": {
+           |        "productRatePlanId": "2c92a0fe6619b4b301661aa494392ee2",
+           |        "chargeOverrides": [
+           |            {
+           |                "productRatePlanChargeId": "2c92a0fe6619b4b601661aa8b74e623f",
+           |                "pricing": {
+           |                    "recurringFlatFee": {
+           |                        "listPrice": 49.5
+           |                    }
+           |                }
+           |            }
+           |        ]
+           |    }
+           |}""".stripMargin
+      )
+    )
+
+    val subscriptionNumber = subscription.subscriptionNumber
+
+    val order_subscription = ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, removeProduct, addProduct)
+
+    assertEquals(
+      order_subscription,
+      ujson.read(
+        s"""{
+           |    "subscriptionNumber": "SUBSCRIPTION-NUMBER",
+           |    "orderActions": [
+           |        {
+           |            "type": "RemoveProduct",
+           |            "triggerDates": [
+           |                {
+           |                    "name": "ContractEffective",
+           |                    "triggerDate": "2025-08-11"
+           |                },
+           |                {
+           |                    "name": "ServiceActivation",
+           |                    "triggerDate": "2025-08-11"
+           |                },
+           |                {
+           |                    "name": "CustomerAcceptance",
+           |                    "triggerDate": "2025-08-11"
+           |                }
+           |            ],
+           |            "removeProduct": {
+           |                "ratePlanId": "8a129ede979cc3330197a13698217602"
+           |            }
+           |        },
+           |        {
+           |            "type": "AddProduct",
+           |            "triggerDates": [
+           |                {
+           |                    "name": "ContractEffective",
+           |                    "triggerDate": "2025-08-11"
+           |                },
+           |                {
+           |                    "name": "ServiceActivation",
+           |                    "triggerDate": "2025-08-11"
+           |                },
+           |                {
+           |                    "name": "CustomerAcceptance",
+           |                    "triggerDate": "2025-08-11"
+           |                }
+           |            ],
+           |            "addProduct": {
+           |                "productRatePlanId": "2c92a0fe6619b4b301661aa494392ee2",
+           |                "chargeOverrides": [
+           |                    {
+           |                        "productRatePlanChargeId": "2c92a0fe6619b4b601661aa8b74e623f",
+           |                        "pricing": {
+           |                            "recurringFlatFee": {
+           |                                "listPrice": 49.5
+           |                            }
+           |                        }
+           |                    }
+           |                ]
+           |            }
+           |        }
+           |    ]
+           |}""".stripMargin
+      )
+    )
+
+  }
+
+  test("A-S00531704 Investigation (3)") {
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2025/A-S00531704/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2025/A-S00531704/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2025/A-S00531704/invoice-preview.json")
+
+    // Here is the rate plan from step (1).
+
+    val ratePlan = ZuoraRatePlan(
+      id = "8a129ede979cc3330197a13698217602",
+      productName = "Guardian Weekly - Domestic",
+      productRatePlanId = "2c92a0fe6619b4b301661aa494392ee2",
+      ratePlanName = "GW Oct 18 - Quarterly - Domestic",
+      ratePlanCharges = List(
+        ZuoraRatePlanCharge(
+          productRatePlanChargeId = "2c92a0fe6619b4b601661aa8b74e623f",
+          name = "GW Oct 18 - Quarterly - Domestic",
+          number = "C-05701607",
+          currency = "GBP",
+          price = Some(45.0),
+          billingPeriod = Some("Quarter"),
+          chargedThroughDate = Some(LocalDate.of(2025, 8, 11)),
+          processedThroughDate = Some(LocalDate.of(2025, 5, 11)),
+          specificBillingPeriod = None,
+          endDateCondition = Some("Subscription_End"),
+          upToPeriodsType = None,
+          upToPeriods = None,
+          billingDay = Some("ChargeTriggerDay"),
+          triggerEvent = Some("CustomerAcceptance"),
+          triggerDate = None,
+          discountPercentage = None,
+          originalOrderDate = Some(LocalDate.of(2024, 6, 23)),
+          effectiveStartDate = Some(LocalDate.of(2024, 8, 11)),
+          effectiveEndDate = Some(LocalDate.of(2026, 7, 30))
+        )
+      ),
+      lastChangeType = Some("Add")
+    )
+
+    // We also identity the cohort item, which I read from the Dynamo table
+
+    val startDate = LocalDate.of(2025, 8, 11)
+    val oldPrice = BigDecimal(45)
+    val estimatedNewPrice = BigDecimal(49.5)
+
+    val cohortItem = CohortItem(
+      subscriptionName = subscription.subscriptionNumber,
+      processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
+      startDate = Some(startDate),
+      currency = Some("GBP"),
+      oldPrice = Some(oldPrice),
+      estimatedNewPrice = Some(estimatedNewPrice),
+      billingPeriod = Some("Quarter")
+    )
+
+    // We now collect the arguments of GuardianWeekly2025Migration.amendmentOrderPayload
+
+    val orderDate = LocalDate.of(2025, 6, 24) // LocalDate.now()
+    val accountNumber = subscription.accountNumber
+    val subscriptionNumber = subscription.subscriptionNumber
+    val effectDate = startDate
+    val priceCap = 1.2
+
+    assertEquals(
+      GuardianWeekly2025Migration.amendmentOrderPayload(
+        orderDate,
+        accountNumber,
+        subscriptionNumber,
+        effectDate,
+        subscription,
+        oldPrice,
+        estimatedNewPrice,
+        priceCap,
+        invoicePreview
+      ),
+      Right(
+        ujson.read(
+          s"""{
+             |    "orderDate": "2025-06-24",
+             |    "existingAccountNumber": "ACCOUNT-NUMBER",
+             |    "subscriptions": [
+             |        {
+             |            "subscriptionNumber": "SUBSCRIPTION-NUMBER",
+             |            "orderActions": [
+             |                {
+             |                    "type": "RemoveProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-08-11"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-08-11"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-08-11"
+             |                        }
+             |                    ],
+             |                    "removeProduct": {
+             |                        "ratePlanId": "8a129ede979cc3330197a13698217602"
+             |                    }
+             |                },
+             |                {
+             |                    "type": "AddProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-08-11"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-08-11"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-08-11"
+             |                        }
+             |                    ],
+             |                    "addProduct": {
+             |                        "productRatePlanId": "2c92a0fe6619b4b301661aa494392ee2",
+             |                        "chargeOverrides": [
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fe6619b4b601661aa8b74e623f",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 49.5
              |                                    }
              |                                }
              |                            }
