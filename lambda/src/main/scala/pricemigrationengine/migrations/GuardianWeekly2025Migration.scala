@@ -206,24 +206,25 @@ object GuardianWeekly2025Migration {
     val order_opt = {
       for {
         ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
-        subscriptionRatePlanId = ratePlan.id
-        removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
-        triggerDateString = effectDate.toString
-        productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
-        chargeOverrides = List(
+      } yield {
+        val subscriptionRatePlanId = ratePlan.id
+        val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
+        val triggerDateString = effectDate.toString
+        val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
+        val chargeOverrides = List(
           ZuoraOrdersApiPrimitives.chargeOverride(
             ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId,
             PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap)
           )
         )
-        addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
-        order_subscription = ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, removeProduct, addProduct)
-        order = ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
+        val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+        val order_subscription = ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, removeProduct, addProduct)
+        ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
           orderDate.toString,
           accountNumber,
           order_subscription
         )
-      } yield order
+      }
     }
 
     order_opt match {
