@@ -251,7 +251,7 @@ object GuardianWeekly2025Migration {
         // internal data.
 
         // If there is a problem, then the right thing to do is to download the subscription
-        // , make sure from the json data whether it has a discount or not and investigate fro there
+        // and check in the json if it has a discount or not, and investigate from there
 
         for {
           ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
