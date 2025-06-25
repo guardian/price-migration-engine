@@ -1,0 +1,53 @@
+{
+  "accountId": "ACCOUNT_ID",
+  "invoiceItems": [
+    {
+      "id": "ada664cd28e744f185986bf37a956cae",
+      "subscriptionName": "ACCOUNT_NUMBER",
+      "subscriptionId": "8a12951897a206cd0197a6aca7c110c6",
+      "subscriptionNumber": "ACCOUNT_NUMBER",
+      "serviceStartDate": "2026-03-23",
+      "serviceEndDate": "2027-03-22",
+      "chargeAmount": 368.7,
+      "chargeDescription": "",
+      "chargeName": "GW Oct 18 - Annual - ROW",
+      "chargeNumber": "C-01575662",
+      "chargeId": "2c92a0ff69767b5f0169796508b458e7",
+      "productName": "Guardian Weekly - ROW",
+      "quantity": 1,
+      "taxAmount": 55.3,
+      "unitOfMeasure": "",
+      "chargeDate": "2025-06-25 11:40:22",
+      "chargeType": "Recurring",
+      "processingType": "Charge",
+      "appliedToItemId": null,
+      "numberOfDeliveries": 0.0
+    },
+    {
+      "id": "4707e720362e436db9e4ac17095168a4",
+      "subscriptionName": "ACCOUNT_NUMBER",
+      "subscriptionId": "8a12951897a206cd0197a6aca7c110c6",
+      "subscriptionNumber": "ACCOUNT_NUMBER",
+      "serviceStartDate": "2026-03-23",
+      "serviceEndDate": "2027-03-22",
+      "chargeAmount": -36.87,
+      "chargeDescription": "",
+      "chargeName": "Percentage",
+      "chargeNumber": "C-01271544",
+      "chargeId": "2c92a0fe6241efc20162420e384c0e4f",
+      "productName": "Discounts",
+      "quantity": 1.0,
+      "taxAmount": -5.53,
+      "unitOfMeasure": "",
+      "chargeDate": "2025-06-25 11:40:22",
+      "chargeType": "Recurring",
+      "processingType": "Discount",
+      "appliedToItemId": "ada664cd28e744f185986bf37a956cae",
+      "numberOfDeliveries": 0.0
+    }
+  ],
+  "creditMemoItems": [
+
+  ],
+  "success": true
+}

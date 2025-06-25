@@ -217,6 +217,7 @@ object AmendmentHandler extends CohortHandler {
         case GuardianWeekly2025 =>
           ZIO.fromEither(
             GuardianWeekly2025Migration.amendmentOrderPayload(
+              cohortItem = item,
               orderDate = LocalDate.now(),
               accountNumber = account.basicInfo.accountNumber,
               subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,

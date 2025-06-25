@@ -120,6 +120,10 @@ object GuardianWeekly2025Migration {
     flag_opt.getOrElse(false)
   }
 
+  def getDiscount(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
+    SI2025Extractions.getDiscount(subscription)
+  }
+
   def computeStartDateLowerBound4(lowerBound: LocalDate, item: CohortItem): LocalDate = {
     val dateFromCohortItem = getEarliestMigrationDateFromMigrationExtraAttributes(item)
     dateFromCohortItem match {
@@ -199,6 +203,7 @@ object GuardianWeekly2025Migration {
   }
 
   def amendmentOrderPayload(
+      cohortItem: CohortItem,
       orderDate: LocalDate,
       accountNumber: String,
       subscriptionNumber: String,
@@ -214,6 +219,8 @@ object GuardianWeekly2025Migration {
     // There is the Zuora subscription which is one of the arguments, and there is
     // the notion of subscription as defined in the Zuora Order API documentation,
     // which roughly translates to a collections of { actions / atomic mutations } in Zuora
+
+    // TODO: read the remove discount status, and prepare the right payload
 
     val order_opt = {
       for {

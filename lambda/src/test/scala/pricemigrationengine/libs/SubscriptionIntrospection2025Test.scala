@@ -27,6 +27,9 @@ import java.time.LocalDate
 // Which I also put on first position; to help test the active rate plan resolution
 // val subscription = Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription2/subscription.json")
 
+// Subscription 3: Subscription with discount (originally selected to support the GW2025 extra attribute `removeDiscount`)
+// val subscription = Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription3-with-discount/subscription.json")
+
 class SI2025ExtractionsTest extends munit.FunSuite {
 
   // ----------------------------------------------------
@@ -374,6 +377,46 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     assertEquals(
       SI2025Extractions.determineLastPriceMigrationDate(ratePlan),
       Some(LocalDate.of(2024, 6, 30))
+    )
+  }
+
+  test("SI2025Extractions.determineLastPriceMigrationDate") {
+    val subscription =
+      Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription3-with-discount/subscription.json")
+    assertEquals(
+      SI2025Extractions.getDiscount(subscription),
+      Some(
+        ZuoraRatePlan(
+          id = "8a129ce595aa3a180195c130cca57d19",
+          productName = "Discounts",
+          productRatePlanId = "2c92a0ff5345f9220153559d915d5c26",
+          ratePlanName = "Percentage",
+          ratePlanCharges = List(
+            ZuoraRatePlanCharge(
+              productRatePlanChargeId = "2c92a0fd5345efa10153559e97bb76c6",
+              name = "Percentage",
+              number = "C-01271544",
+              currency = "AUD",
+              price = None,
+              billingPeriod = Some("Annual"),
+              chargedThroughDate = Some(LocalDate.of(2026, 3, 23)),
+              processedThroughDate = Some(LocalDate.of(2025, 3, 23)),
+              specificBillingPeriod = None,
+              endDateCondition = Some("Subscription_End"),
+              upToPeriodsType = None,
+              upToPeriods = None,
+              billingDay = Some("DefaultFromCustomer"),
+              triggerEvent = Some("CustomerAcceptance"),
+              triggerDate = None,
+              discountPercentage = Some(10),
+              originalOrderDate = Some(LocalDate.of(2018, 3, 20)),
+              effectiveStartDate = Some(LocalDate.of(2018, 3, 23)),
+              effectiveEndDate = Some(LocalDate.of(2026, 3, 23))
+            )
+          ),
+          lastChangeType = Some("Add")
+        )
+      )
     )
   }
 
