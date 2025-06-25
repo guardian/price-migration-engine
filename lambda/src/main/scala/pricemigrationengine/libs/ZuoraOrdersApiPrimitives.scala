@@ -235,6 +235,7 @@ object ZuoraOrdersApiPrimitives {
      */
 
     val actions = removals ++ additions
+
     Obj(
       "subscriptionNumber" -> Str(subscriptionNumber),
       "orderActions" -> ujson.Arr(actions: _*)
