@@ -245,14 +245,6 @@ object GuardianWeekly2025Migration {
           )
         }
       } else {
-        // We end up here because the cohort item's extra attribute mention that a discount
-        // should be deleted. We should fail if we do not find one, because that would
-        // indicate a fundamental discrepancy between the original spreadsheet and Zuora's
-        // internal data.
-
-        // If there is a problem, then the right thing to do is to download the subscription
-        // and check in the json if it has a discount or not, and investigate from there
-
         for {
           ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
           discount <- GuardianWeekly2025Migration.getDiscount(zuora_subscription)
