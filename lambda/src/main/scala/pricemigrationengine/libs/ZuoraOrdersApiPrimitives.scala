@@ -167,7 +167,7 @@ object ZuoraOrdersApiPrimitives {
     )
   }
 
-  def subscription(subscriptionNumber: String, removeProduct: Value, addProduct: Value): Value = {
+  def subscription(subscriptionNumber: String, removals: List[Value], additions: List[Value]): Value = {
     /*
       {
         "subscriptionNumber": "a1809f5e84dd",
@@ -234,9 +234,10 @@ object ZuoraOrdersApiPrimitives {
       }
      */
 
+    val actions = removals ++ additions
     Obj(
       "subscriptionNumber" -> Str(subscriptionNumber),
-      "orderActions" -> Arr(removeProduct, addProduct)
+      "orderActions" -> ujson.Arr(actions: _*)
     )
   }
 
