@@ -150,7 +150,7 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         ZuoraOrdersApiPrimitives.chargeOverride("8a128d7085fc6dec01860234cd075270", 0)
       )
     )
-    val json = ZuoraOrdersApiPrimitives.subscription("a1809f5e84dd", removeProduct: Value, addProduct: Value)
+    val json = ZuoraOrdersApiPrimitives.subscription("a1809f5e84dd", List(removeProduct), List(addProduct))
     val jsonstrpp = ujson.write(json, indent = 4)
     assertEquals(
       jsonstrpp,
@@ -230,7 +230,7 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         ZuoraOrdersApiPrimitives.chargeOverride("8a128d7085fc6dec01860234cd075270", 0)
       )
     )
-    val subscription = ZuoraOrdersApiPrimitives.subscription("a1809f5e84dd", removeProduct: Value, addProduct: Value)
+    val subscription = ZuoraOrdersApiPrimitives.subscription("a1809f5e84dd", List(removeProduct), List(addProduct))
 
     val json = ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
       "2025-05-20",

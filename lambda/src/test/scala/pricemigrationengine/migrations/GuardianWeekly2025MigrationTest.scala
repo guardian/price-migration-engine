@@ -690,7 +690,8 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
 
     val subscriptionNumber = subscription.subscriptionNumber
 
-    val order_subscription = ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, removeProduct, addProduct)
+    val order_subscription =
+      ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
 
     assertEquals(
       order_subscription,
