@@ -10,7 +10,10 @@ import upickle.default._
 
 import java.time.format.DateTimeFormatter
 
-case class GuardianWeekly2025ExtraAttributes(earliestMigrationDate: LocalDate)
+case class GuardianWeekly2025ExtraAttributes(
+    earliestMigrationDate: Option[LocalDate] = None,
+    removeDiscount: Option[Boolean] = None
+)
 object GuardianWeekly2025ExtraAttributes {
 
   implicit val localDateReader: Reader[LocalDate] =
@@ -101,11 +104,10 @@ object GuardianWeekly2025Migration {
   def getEarliestMigrationDateFromMigrationExtraAttributes(item: CohortItem): Option[LocalDate] = {
     for {
       attributes <- item.migrationExtraAttributes
-    } yield {
-      val data: GuardianWeekly2025ExtraAttributes =
+      data: GuardianWeekly2025ExtraAttributes =
         upickle.default.read[GuardianWeekly2025ExtraAttributes](attributes)
-      data.earliestMigrationDate
-    }
+      date <- data.earliestMigrationDate
+    } yield date
   }
 
   def computeStartDateLowerBound4(lowerBound: LocalDate, item: CohortItem): LocalDate = {

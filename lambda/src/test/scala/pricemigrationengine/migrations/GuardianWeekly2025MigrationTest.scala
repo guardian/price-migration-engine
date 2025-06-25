@@ -28,7 +28,7 @@ class GuardianWeekly2025ExtraAttributesTest extends munit.FunSuite {
   test("decoding") {
     val s = """{ "earliestMigrationDate": "2025-10-06" }"""
     val attribute: GuardianWeekly2025ExtraAttributes = upickle.default.read[GuardianWeekly2025ExtraAttributes](s)
-    assertEquals(attribute, GuardianWeekly2025ExtraAttributes(LocalDate.of(2025, 10, 6)))
+    assertEquals(attribute, GuardianWeekly2025ExtraAttributes(Some(LocalDate.of(2025, 10, 6)), None))
   }
 
   test("getEarliestMigrationDateFromExtendedAttributes") {
