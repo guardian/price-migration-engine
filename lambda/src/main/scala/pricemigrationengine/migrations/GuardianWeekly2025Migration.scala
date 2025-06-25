@@ -10,7 +10,10 @@ import upickle.default._
 
 import java.time.format.DateTimeFormatter
 
-case class GuardianWeekly2025ExtraAttributes(earliestMigrationDate: LocalDate)
+case class GuardianWeekly2025ExtraAttributes(
+    earliestMigrationDate: Option[LocalDate] = None,
+    removeDiscount: Option[Boolean] = None
+)
 object GuardianWeekly2025ExtraAttributes {
 
   implicit val localDateReader: Reader[LocalDate] =
@@ -101,11 +104,24 @@ object GuardianWeekly2025Migration {
   def getEarliestMigrationDateFromMigrationExtraAttributes(item: CohortItem): Option[LocalDate] = {
     for {
       attributes <- item.migrationExtraAttributes
-    } yield {
-      val data: GuardianWeekly2025ExtraAttributes =
+      data: GuardianWeekly2025ExtraAttributes =
         upickle.default.read[GuardianWeekly2025ExtraAttributes](attributes)
-      data.earliestMigrationDate
-    }
+      date <- data.earliestMigrationDate
+    } yield date
+  }
+
+  def shouldRemoveDiscount(item: CohortItem): Boolean = {
+    val flag_opt = (for {
+      attributes <- item.migrationExtraAttributes
+      data: GuardianWeekly2025ExtraAttributes =
+        upickle.default.read[GuardianWeekly2025ExtraAttributes](attributes)
+      removeDiscount <- data.removeDiscount
+    } yield removeDiscount)
+    flag_opt.getOrElse(false)
+  }
+
+  def getDiscount(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
+    SI2025Extractions.getDiscount(subscription)
   }
 
   def computeStartDateLowerBound4(lowerBound: LocalDate, item: CohortItem): LocalDate = {
@@ -187,6 +203,7 @@ object GuardianWeekly2025Migration {
   }
 
   def amendmentOrderPayload(
+      cohortItem: CohortItem,
       orderDate: LocalDate,
       accountNumber: String,
       subscriptionNumber: String,
@@ -202,6 +219,8 @@ object GuardianWeekly2025Migration {
     // There is the Zuora subscription which is one of the arguments, and there is
     // the notion of subscription as defined in the Zuora Order API documentation,
     // which roughly translates to a collections of { actions / atomic mutations } in Zuora
+
+    // TODO: read the remove discount status, and prepare the right payload
 
     val order_opt = {
       for {

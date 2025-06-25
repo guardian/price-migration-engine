@@ -3,7 +3,7 @@ package pricemigrationengine.migrations
 import pricemigrationengine.Fixtures
 import pricemigrationengine.model._
 import pricemigrationengine.libs._
-import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
+import pricemigrationengine.model.CohortTableFilter.{NotificationSendDateWrittenToSalesforce, ReadyForEstimation}
 
 import java.time.{Instant, LocalDate}
 
@@ -25,10 +25,28 @@ import java.time.{Instant, LocalDate}
 
 class GuardianWeekly2025ExtraAttributesTest extends munit.FunSuite {
 
-  test("decoding") {
+  test("decoding (0)") {
+    val s = "{}"
+    val attribute: GuardianWeekly2025ExtraAttributes = upickle.default.read[GuardianWeekly2025ExtraAttributes](s)
+    assertEquals(attribute, GuardianWeekly2025ExtraAttributes(None, None))
+  }
+
+  test("decoding (1)") {
     val s = """{ "earliestMigrationDate": "2025-10-06" }"""
     val attribute: GuardianWeekly2025ExtraAttributes = upickle.default.read[GuardianWeekly2025ExtraAttributes](s)
-    assertEquals(attribute, GuardianWeekly2025ExtraAttributes(LocalDate.of(2025, 10, 6)))
+    assertEquals(attribute, GuardianWeekly2025ExtraAttributes(Some(LocalDate.of(2025, 10, 6)), None))
+  }
+
+  test("decoding (2)") {
+    val s = """{ "removeDiscount": true }"""
+    val attribute: GuardianWeekly2025ExtraAttributes = upickle.default.read[GuardianWeekly2025ExtraAttributes](s)
+    assertEquals(attribute, GuardianWeekly2025ExtraAttributes(None, Some(true)))
+  }
+
+  test("decoding (3)") {
+    val s = """{ "earliestMigrationDate": "2025-10-06", "removeDiscount": false }"""
+    val attribute: GuardianWeekly2025ExtraAttributes = upickle.default.read[GuardianWeekly2025ExtraAttributes](s)
+    assertEquals(attribute, GuardianWeekly2025ExtraAttributes(Some(LocalDate.of(2025, 10, 6)), Some(false)))
   }
 
   test("getEarliestMigrationDateFromExtendedAttributes") {
@@ -153,6 +171,12 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2025/GBP-monthly1/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2025/GBP-monthly1/invoice-preview.json")
 
+    val cohortItem = CohortItem(
+      "SUBSCRIPTION-NUMBER", // Doesn't really matter because we are not reading that in GuardianWeekly2025Migration.amendmentOrderPayload
+      NotificationSendDateWrittenToSalesforce, // Doesn't really matter because we are not reading that in GuardianWeekly2025Migration.amendmentOrderPayload
+      migrationExtraAttributes = None
+    )
+
     // Currency from subscription: "currency": "GBP"
     // Old price from currency, active rate plan, one single rate plan charge: "price": 15.0
     // price lookup (new price): (Monthly, "GBP") -> BigDecimal(16.5)
@@ -173,6 +197,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
 
     assertEquals(
       GuardianWeekly2025Migration.amendmentOrderPayload(
+        cohortItem,
         orderDate,
         accountNumber,
         subscriptionNumber,
@@ -264,6 +289,12 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2025/GBP-monthly1/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2025/GBP-monthly1/invoice-preview.json")
 
+    val cohortItem = CohortItem(
+      "SUBSCRIPTION-NUMBER", // Doesn't really matter because we are not reading that in GuardianWeekly2025Migration.amendmentOrderPayload
+      NotificationSendDateWrittenToSalesforce, // Doesn't really matter because we are not reading that in GuardianWeekly2025Migration.amendmentOrderPayload
+      migrationExtraAttributes = None
+    )
+
     // Currency from subscription: "currency": "GBP"
     // Old price from currency, active rate plan, one single rate plan charge: "price": 15.0
     // price lookup (new price): (Monthly, "GBP") -> BigDecimal(16.5)
@@ -284,6 +315,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
 
     assertEquals(
       GuardianWeekly2025Migration.amendmentOrderPayload(
+        cohortItem,
         orderDate,
         accountNumber,
         subscriptionNumber,
@@ -376,6 +408,12 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     // price lookup (new price): (Annual, "EUR") -> BigDecimal(348.0)
     // Billing frequency from currency: active rate plan, rate plan charge: "billingPeriod": "Annual"
 
+    val cohortItem = CohortItem(
+      "SUBSCRIPTION-NUMBER", // Doesn't really matter because we are not reading that in GuardianWeekly2025Migration.amendmentOrderPayload
+      NotificationSendDateWrittenToSalesforce, // Doesn't really matter because we are not reading that in GuardianWeekly2025Migration.amendmentOrderPayload
+      migrationExtraAttributes = None
+    )
+
     val orderDate = LocalDate.of(2025, 6, 24) // LocalDate.now()
     val accountNumber = "0b89c1c6b41e"
     val subscriptionNumber = subscription.subscriptionNumber // "SUBSCRIPTION-NUMBER" (sanitised fixture)
@@ -391,6 +429,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
 
     assertEquals(
       GuardianWeekly2025Migration.amendmentOrderPayload(
+        cohortItem,
         orderDate,
         accountNumber,
         subscriptionNumber,
@@ -781,6 +820,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
 
     assertEquals(
       GuardianWeekly2025Migration.amendmentOrderPayload(
+        cohortItem,
         orderDate,
         accountNumber,
         subscriptionNumber,
@@ -858,6 +898,46 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
              |        "collectPayment": false
              |    }
              |}""".stripMargin
+        )
+      )
+    )
+  }
+
+  test("GuardianWeekly2025Migration.getDiscount") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2025/6801-Discount/subscription.json")
+    assertEquals(
+      GuardianWeekly2025Migration.getDiscount(subscription),
+      Some(
+        ZuoraRatePlan(
+          id = "8a129ce595aa3a180195c130cca57d19",
+          productName = "Discounts",
+          productRatePlanId = "2c92a0ff5345f9220153559d915d5c26",
+          ratePlanName = "Percentage",
+          ratePlanCharges = List(
+            ZuoraRatePlanCharge(
+              productRatePlanChargeId = "2c92a0fd5345efa10153559e97bb76c6",
+              name = "Percentage",
+              number = "C-01271544",
+              currency = "AUD",
+              price = None,
+              billingPeriod = Some("Annual"),
+              chargedThroughDate = Some(LocalDate.of(2026, 3, 23)),
+              processedThroughDate = Some(LocalDate.of(2025, 3, 23)),
+              specificBillingPeriod = None,
+              endDateCondition = Some("Subscription_End"),
+              upToPeriodsType = None,
+              upToPeriods = None,
+              billingDay = Some("DefaultFromCustomer"),
+              triggerEvent = Some("CustomerAcceptance"),
+              triggerDate = None,
+              discountPercentage = Some(10),
+              originalOrderDate = Some(LocalDate.of(2018, 3, 20)),
+              effectiveStartDate = Some(LocalDate.of(2018, 3, 23)),
+              effectiveEndDate = Some(LocalDate.of(2026, 3, 23))
+            )
+          ),
+          lastChangeType = Some("Add")
         )
       )
     )

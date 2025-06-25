@@ -1,0 +1,63 @@
+{
+  "basicInfo": {
+    "id": "ACCOUNT_ID",
+    "name": "ACCOUNT_NUMBER",
+    "accountNumber": "ACCOUNT_NUMBER",
+    "notes": null,
+    "status": "Active",
+    "crmId": "0010J00001lS3brQAC",
+    "batch": "Batch1",
+    "invoiceTemplateId": "2c92a0fb49377eae014951ca848e074b",
+    "communicationProfileId": "2c92a0f9456e27a4014570f3aed41be2",
+    "profileNumber": "CP-00000001",
+    "purchaseOrderNumber": null,
+    "customerServiceRepName": null,
+    "ScrubbedOn__c": null,
+    "IdentityId__c": "IDENTITY_ID__c",
+    "sfContactId__c": "sfContactId__c",
+    "CCURN__c": null,
+    "SpecialDeliveryInstructions__c": null,
+    "NonStandardDataReason__c": null,
+    "Scrubbed__c": null,
+    "ProcessingAdvice__c": null,
+    "CreatedRequestId__c": null,
+    "RetryStatus__c": null,
+    "salesRep": null,
+    "creditMemoTemplateId": null,
+    "debitMemoTemplateId": null,
+    "summaryStatementTemplateId": null,
+    "sequenceSetId": null
+  },
+  "billingAndPayment": {
+    "billCycleDay": 23,
+    "currency": "AUD",
+    "paymentTerm": "Due Upon Receipt",
+    "paymentGateway": "Stripe PaymentIntents GNM Membership",
+    "paymentGatewayNumber": "PG-00000008",
+    "defaultPaymentMethodId": "8a12947b8e955542018e9651cdaa3415",
+    "invoiceDeliveryPrefsPrint": false,
+    "invoiceDeliveryPrefsEmail": true,
+    "autoPay": true,
+    "additionalEmailAddresses": [
+
+    ],
+    "paymentMethodCascadingConsent": false,
+    "gatewayRoutingEligible": null
+  },
+  "metrics": {
+    "balance": 0.0,
+    "currency": "AUD",
+    "totalInvoiceBalance": 0.0,
+    "creditBalance": 0.0,
+    "totalDebitMemoBalance": 0.0,
+    "unappliedPaymentAmount": 0.0,
+    "unappliedCreditMemoAmount": 0.0,
+    "contractedMrr": 35.33
+  },
+  "billToContact": null,
+  "soldToContact": {
+    "country": "New Zealand"
+  },
+  "taxInfo": null,
+  "success": true
+}

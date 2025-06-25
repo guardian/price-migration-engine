@@ -134,6 +134,10 @@ object SI2025Extractions {
       date <- ratePlanCharge.originalOrderDate
     } yield date
   }
+
+  def getDiscount(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
+    subscription.ratePlans.find(ratePlan => ratePlan.productName == "Discounts")
+  }
 }
 
 object SI2025Templates {
