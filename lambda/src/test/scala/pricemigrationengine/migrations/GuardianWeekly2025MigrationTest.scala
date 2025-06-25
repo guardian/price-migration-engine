@@ -25,10 +25,28 @@ import java.time.{Instant, LocalDate}
 
 class GuardianWeekly2025ExtraAttributesTest extends munit.FunSuite {
 
-  test("decoding") {
+  test("decoding (0)") {
+    val s = "{}"
+    val attribute: GuardianWeekly2025ExtraAttributes = upickle.default.read[GuardianWeekly2025ExtraAttributes](s)
+    assertEquals(attribute, GuardianWeekly2025ExtraAttributes(None, None))
+  }
+
+  test("decoding (1)") {
     val s = """{ "earliestMigrationDate": "2025-10-06" }"""
     val attribute: GuardianWeekly2025ExtraAttributes = upickle.default.read[GuardianWeekly2025ExtraAttributes](s)
     assertEquals(attribute, GuardianWeekly2025ExtraAttributes(Some(LocalDate.of(2025, 10, 6)), None))
+  }
+
+  test("decoding (2)") {
+    val s = """{ "removeDiscount": true }"""
+    val attribute: GuardianWeekly2025ExtraAttributes = upickle.default.read[GuardianWeekly2025ExtraAttributes](s)
+    assertEquals(attribute, GuardianWeekly2025ExtraAttributes(None, Some(true)))
+  }
+
+  test("decoding (3)") {
+    val s = """{ "earliestMigrationDate": "2025-10-06", "removeDiscount": false }"""
+    val attribute: GuardianWeekly2025ExtraAttributes = upickle.default.read[GuardianWeekly2025ExtraAttributes](s)
+    assertEquals(attribute, GuardianWeekly2025ExtraAttributes(Some(LocalDate.of(2025, 10, 6)), Some(false)))
   }
 
   test("getEarliestMigrationDateFromExtendedAttributes") {

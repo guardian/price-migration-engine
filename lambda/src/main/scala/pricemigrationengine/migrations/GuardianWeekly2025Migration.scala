@@ -110,6 +110,16 @@ object GuardianWeekly2025Migration {
     } yield date
   }
 
+  def shouldRemoveDiscount(item: CohortItem): Boolean = {
+    val flag_opt = (for {
+      attributes <- item.migrationExtraAttributes
+      data: GuardianWeekly2025ExtraAttributes =
+        upickle.default.read[GuardianWeekly2025ExtraAttributes](attributes)
+      removeDiscount <- data.removeDiscount
+    } yield removeDiscount)
+    flag_opt.getOrElse(false)
+  }
+
   def computeStartDateLowerBound4(lowerBound: LocalDate, item: CohortItem): LocalDate = {
     val dateFromCohortItem = getEarliestMigrationDateFromMigrationExtraAttributes(item)
     dateFromCohortItem match {
