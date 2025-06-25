@@ -1,8 +1,8 @@
 {
   "basicInfo": {
-    "id": "ACCOUNT_ID",
-    "name": "ACCOUNT_NUMBER",
-    "accountNumber": "ACCOUNT_NUMBER",
+    "id": "ACCOUNT-ID",
+    "name": "ACCOUNT-NUMBER",
+    "accountNumber": "ACCOUNT-NUMBER",
     "notes": null,
     "status": "Active",
     "crmId": "0010J00001lS3brQAC",
@@ -13,8 +13,8 @@
     "purchaseOrderNumber": null,
     "customerServiceRepName": null,
     "ScrubbedOn__c": null,
-    "IdentityId__c": "IDENTITY_ID__c",
-    "sfContactId__c": "sfContactId__c",
+    "IdentityId__c": "100825957",
+    "sfContactId__c": "0030J00001uyVrKQAU",
     "CCURN__c": null,
     "SpecialDeliveryInstructions__c": null,
     "NonStandardDataReason__c": null,

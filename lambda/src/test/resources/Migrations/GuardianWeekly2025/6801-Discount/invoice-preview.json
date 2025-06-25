@@ -1,11 +1,11 @@
 {
-  "accountId": "ACCOUNT_ID",
+  "accountId": "ACCOUNT-ID",
   "invoiceItems": [
     {
-      "id": "ada664cd28e744f185986bf37a956cae",
-      "subscriptionName": "ACCOUNT_NUMBER",
-      "subscriptionId": "8a12951897a206cd0197a6aca7c110c6",
-      "subscriptionNumber": "ACCOUNT_NUMBER",
+      "id": "f82ed6eceaff470391e690f3ebd9c95b",
+      "subscriptionName": "ACCOUNT-NUMBER",
+      "subscriptionId": "8a12910197a206e10197a8a02cc96e31",
+      "subscriptionNumber": "ACCOUNT-NUMBER",
       "serviceStartDate": "2026-03-23",
       "serviceEndDate": "2027-03-22",
       "chargeAmount": 368.7,
@@ -17,17 +17,17 @@
       "quantity": 1,
       "taxAmount": 55.3,
       "unitOfMeasure": "",
-      "chargeDate": "2025-06-25 11:40:22",
+      "chargeDate": "2025-06-25 20:45:59",
       "chargeType": "Recurring",
       "processingType": "Charge",
       "appliedToItemId": null,
       "numberOfDeliveries": 0.0
     },
     {
-      "id": "4707e720362e436db9e4ac17095168a4",
-      "subscriptionName": "ACCOUNT_NUMBER",
-      "subscriptionId": "8a12951897a206cd0197a6aca7c110c6",
-      "subscriptionNumber": "ACCOUNT_NUMBER",
+      "id": "0ce01b0170a1423e8d13ba9eac883eaf",
+      "subscriptionName": "ACCOUNT-NUMBER",
+      "subscriptionId": "8a12910197a206e10197a8a02cc96e31",
+      "subscriptionNumber": "ACCOUNT-NUMBER",
       "serviceStartDate": "2026-03-23",
       "serviceEndDate": "2027-03-22",
       "chargeAmount": -36.87,
@@ -39,10 +39,10 @@
       "quantity": 1.0,
       "taxAmount": -5.53,
       "unitOfMeasure": "",
-      "chargeDate": "2025-06-25 11:40:22",
+      "chargeDate": "2025-06-25 20:45:59",
       "chargeType": "Recurring",
       "processingType": "Discount",
-      "appliedToItemId": "ada664cd28e744f185986bf37a956cae",
+      "appliedToItemId": "f82ed6eceaff470391e690f3ebd9c95b",
       "numberOfDeliveries": 0.0
     }
   ],
