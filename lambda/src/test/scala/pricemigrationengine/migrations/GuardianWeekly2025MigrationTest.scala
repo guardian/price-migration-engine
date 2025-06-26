@@ -943,4 +943,144 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
       )
     )
   }
+
+  test("6801-Discount (testing the discount payload)") {
+
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2025/6801-Discount/subscription.json")
+    val invoicePreview =
+      Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2025/6801-Discount/invoice-preview.json")
+
+    val startDate = LocalDate.of(2025, 8, 11)
+    val oldPrice = BigDecimal(45)
+    val estimatedNewPrice = BigDecimal(49.5)
+
+    val cohortItem = CohortItem(
+      subscriptionName = subscription.subscriptionNumber,
+      processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
+      startDate = Some(startDate),
+      currency = Some("GBP"),
+      oldPrice = Some(oldPrice),
+      estimatedNewPrice = Some(estimatedNewPrice),
+      billingPeriod = Some("Quarter"),
+      migrationExtraAttributes = Some("""{ "removeDiscount": true }""")
+    )
+
+    // We now collect the arguments of GuardianWeekly2025Migration.amendmentOrderPayload
+
+    val orderDate = LocalDate.of(2025, 6, 24) // LocalDate.now()
+    val accountNumber = subscription.accountNumber
+    val subscriptionNumber = subscription.subscriptionNumber
+    val effectDate = startDate
+    val priceCap = 1.2
+
+    // In the test below
+    // "8a129ce595aa3a180195c130cc947d0a" is the id of "GW Oct 18 - Annual - ROW", and
+    // "8a129ce595aa3a180195c130cca57d19" is the id of the Percentage Discount.
+    // We have two RemoveProduct, and one AddProduct
+
+    assertEquals(
+      GuardianWeekly2025Migration.amendmentOrderPayload(
+        cohortItem,
+        orderDate,
+        accountNumber,
+        subscriptionNumber,
+        effectDate,
+        subscription,
+        oldPrice,
+        estimatedNewPrice,
+        priceCap,
+        invoicePreview
+      ),
+      Right(
+        ujson.read(
+          s"""{
+             |    "orderDate": "2025-06-24",
+             |    "existingAccountNumber": "ACCOUNT-NUMBER",
+             |    "subscriptions": [
+             |        {
+             |            "subscriptionNumber": "SUBSCRIPTION-NUMBER",
+             |            "orderActions": [
+             |                {
+             |                    "type": "RemoveProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-08-11"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-08-11"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-08-11"
+             |                        }
+             |                    ],
+             |                    "removeProduct": {
+             |                        "ratePlanId": "8a129ce595aa3a180195c130cc947d0a"
+             |                    }
+             |                },
+             |                {
+             |                    "type": "RemoveProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-08-11"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-08-11"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-08-11"
+             |                        }
+             |                    ],
+             |                    "removeProduct": {
+             |                        "ratePlanId": "8a129ce595aa3a180195c130cca57d19"
+             |                    }
+             |                },
+             |                {
+             |                    "type": "AddProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-08-11"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-08-11"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-08-11"
+             |                        }
+             |                    ],
+             |                    "addProduct": {
+             |                        "productRatePlanId": "2c92a0fe6619b4b601661ab300222651",
+             |                        "chargeOverrides": [
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fe6619b4b601661ab3002f2653",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 49.5
+             |                                    }
+             |                                }
+             |                            }
+             |                        ]
+             |                    }
+             |                }
+             |            ]
+             |        }
+             |    ],
+             |    "processingOptions": {
+             |        "runBilling": false,
+             |        "collectPayment": false
+             |    }
+             |}""".stripMargin
+        )
+      )
+    )
+  }
 }
