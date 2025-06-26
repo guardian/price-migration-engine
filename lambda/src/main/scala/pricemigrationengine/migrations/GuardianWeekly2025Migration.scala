@@ -237,7 +237,8 @@ object GuardianWeekly2025Migration {
           )
         )
         val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
-        val order_subscription = ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, removeProduct, addProduct)
+        val order_subscription =
+          ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
         ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
           orderDate.toString,
           accountNumber,

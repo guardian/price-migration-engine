@@ -1,13 +1,13 @@
 {
   "success": true,
-  "id": "SUBSCRIPTION_ID",
-  "accountId": "ACCOUNT_ID",
-  "accountNumber": "ACCOUNT_NUMBER",
-  "accountName": "ACCOUNT_NUMBER",
-  "invoiceOwnerAccountId": "ACCOUNT_ID",
-  "invoiceOwnerAccountNumber": "ACCOUNT_NUMBER",
-  "invoiceOwnerAccountName": "ACCOUNT_NUMBER",
-  "subscriptionNumber": "ACCOUNT_NUMBER",
+  "id": "SUBSCRIPTION-ID",
+  "accountId": "ACCOUNT-ID",
+  "accountNumber": "ACCOUNT-NUMBER",
+  "accountName": "ACCOUNT-NUMBER",
+  "invoiceOwnerAccountId": "ACCOUNT-ID",
+  "invoiceOwnerAccountNumber": "ACCOUNT-NUMBER",
+  "invoiceOwnerAccountName": "ACCOUNT-NUMBER",
+  "subscriptionNumber": "SUBSCRIPTION-NUMBER",
   "version": 15,
   "revision": "15.0",
   "termType": "TERMED",
@@ -72,7 +72,9 @@
   "invoiceTemplateName": null,
   "sequenceSetId": null,
   "sequenceSetName": null,
-  "soldToContact": null,
+  "soldToContact": {
+    "country": "New Zealand"
+  },
   "isLatestVersion": true,
   "cancelReason": null,
   "ratePlans": [
