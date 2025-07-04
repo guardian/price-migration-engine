@@ -10,13 +10,13 @@ import upickle.default._
 import zio.ZIO
 
 sealed trait Newspaper2025P1ProductType
-object Voucher extends Newspaper2025P1ProductType
-object Subcard extends Newspaper2025P1ProductType
-object HomeDelivery extends Newspaper2025P1ProductType
+object Newspaper2025P1Voucher extends Newspaper2025P1ProductType
+object Newspaper2025P1Subcard extends Newspaper2025P1ProductType
+object Newspaper2025P1HomeDelivery extends Newspaper2025P1ProductType
 
 sealed trait Newspaper2025P1PlusType
-object EverydayPlus extends Newspaper2025P1PlusType
-object SixdayPlus extends Newspaper2025P1PlusType
+object Newspaper2025P1EverydayPlus extends Newspaper2025P1PlusType
+object Newspaper2025P1SixdayPlus extends Newspaper2025P1PlusType
 
 case class Newspaper2025ExtraAttributes(brandTitle: String)
 object Newspaper2025ExtraAttributes {
@@ -137,26 +137,26 @@ object Newspaper2025P1Migration {
 
   def priceLookUp(
       productType: Newspaper2025P1ProductType,
-      frequency: Newspaper2025P1PlusType,
+      plusType: Newspaper2025P1PlusType,
       billingPeriod: BillingPeriod
   ): Option[BigDecimal] = {
     productType match {
-      case Voucher => {
-        frequency match {
-          case EverydayPlus => pricesVouncherEverydayPlus.get(billingPeriod)
-          case SixdayPlus   => pricesVouncherSixdayPlus.get(billingPeriod)
+      case Newspaper2025P1Voucher => {
+        plusType match {
+          case Newspaper2025P1EverydayPlus => pricesVouncherEverydayPlus.get(billingPeriod)
+          case Newspaper2025P1SixdayPlus   => pricesVouncherSixdayPlus.get(billingPeriod)
         }
       }
-      case Subcard => {
-        frequency match {
-          case EverydayPlus => pricesSubCardEverydayPlus.get(billingPeriod)
-          case SixdayPlus   => pricesSubCardSixdayPlus.get(billingPeriod)
+      case Newspaper2025P1Subcard => {
+        plusType match {
+          case Newspaper2025P1EverydayPlus => pricesSubCardEverydayPlus.get(billingPeriod)
+          case Newspaper2025P1SixdayPlus   => pricesSubCardSixdayPlus.get(billingPeriod)
         }
       }
-      case HomeDelivery => {
-        frequency match {
-          case EverydayPlus => pricesHomeDeliveryEverydayPlus.get(billingPeriod)
-          case SixdayPlus   => pricesHomeDeliverySixdayPlus.get(billingPeriod)
+      case Newspaper2025P1HomeDelivery => {
+        plusType match {
+          case Newspaper2025P1EverydayPlus => pricesHomeDeliveryEverydayPlus.get(billingPeriod)
+          case Newspaper2025P1SixdayPlus   => pricesHomeDeliverySixdayPlus.get(billingPeriod)
         }
       }
     }
