@@ -1,0 +1,63 @@
+{
+  "basicInfo": {
+    "id": "ACCOUNT-ID",
+    "name": "ACCOUNT-NAME",
+    "accountNumber": "ACCOUNT-NUMBER",
+    "notes": null,
+    "status": "Active",
+    "crmId": "ACCOUNT-NAME",
+    "batch": "Batch1",
+    "invoiceTemplateId": "2c92a0fb49377eae014951ca848e074b",
+    "communicationProfileId": null,
+    "profileNumber": null,
+    "purchaseOrderNumber": null,
+    "customerServiceRepName": null,
+    "ScrubbedOn__c": null,
+    "IdentityId__c": "IDENTITY-ID",
+    "sfContactId__c": "SFCONTACT-ID",
+    "CCURN__c": null,
+    "SpecialDeliveryInstructions__c": null,
+    "NonStandardDataReason__c": null,
+    "Scrubbed__c": null,
+    "ProcessingAdvice__c": "NoAdvice",
+    "CreatedRequestId__c": "a0409c7c-3256-30f0-0000-000000032e51",
+    "RetryStatus__c": null,
+    "salesRep": null,
+    "creditMemoTemplateId": null,
+    "debitMemoTemplateId": null,
+    "summaryStatementTemplateId": null,
+    "sequenceSetId": null
+  },
+  "billingAndPayment": {
+    "billCycleDay": 18,
+    "currency": "EUR",
+    "paymentTerm": "Due Upon Receipt",
+    "paymentGateway": "Stripe PaymentIntents GNM Membership",
+    "paymentGatewayNumber": "PG-00000008",
+    "defaultPaymentMethodId": "2c92a0fe762b9e6601763cfeb0a01ce6",
+    "invoiceDeliveryPrefsPrint": false,
+    "invoiceDeliveryPrefsEmail": false,
+    "autoPay": true,
+    "additionalEmailAddresses": [
+
+    ],
+    "paymentMethodCascadingConsent": false,
+    "gatewayRoutingEligible": null
+  },
+  "metrics": {
+    "balance": 0.0,
+    "currency": "EUR",
+    "totalInvoiceBalance": 0.0,
+    "creditBalance": 0.0,
+    "totalDebitMemoBalance": 0.0,
+    "unappliedPaymentAmount": 0.0,
+    "unappliedCreditMemoAmount": 0.0,
+    "contractedMrr": 22.5
+  },
+  "billToContact": null,
+  "soldToContact": {
+    "country": "Pakistan"
+  },
+  "taxInfo": null,
+  "success": true
+}
