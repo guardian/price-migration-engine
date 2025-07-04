@@ -51,8 +51,8 @@ object Newspaper2025P1Migration {
   // Notification Timings
   // ------------------------------------------------
 
-  val maxLeadTime = 37
-  val minLeadTime = 35
+  val maxLeadTime = 35
+  val minLeadTime = 33
 
   // ------------------------------------------------
   // Price Grid
