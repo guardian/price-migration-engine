@@ -14,9 +14,9 @@ object Voucher extends Newspaper2025P1ProductType
 object Subcard extends Newspaper2025P1ProductType
 object HomeDelivery extends Newspaper2025P1ProductType
 
-sealed trait Newspaper2025P1Frequency
-object EverydayPlus extends Newspaper2025P1Frequency
-object SixdayPlus extends Newspaper2025P1Frequency
+sealed trait Newspaper2025P1PlusType
+object EverydayPlus extends Newspaper2025P1PlusType
+object SixdayPlus extends Newspaper2025P1PlusType
 
 case class Newspaper2025ExtraAttributes(brandTitle: String)
 object Newspaper2025ExtraAttributes {
@@ -137,7 +137,7 @@ object Newspaper2025P1Migration {
 
   def priceLookUp(
       productType: Newspaper2025P1ProductType,
-      frequency: Newspaper2025P1Frequency,
+      frequency: Newspaper2025P1PlusType,
       billingPeriod: BillingPeriod
   ): Option[BigDecimal] = {
     productType match {
