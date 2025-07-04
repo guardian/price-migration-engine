@@ -30,7 +30,7 @@ object Newspaper2025ExtraAttributes {
   // usage
   // val s = """{ "brandTitle": "the Guardian" }"""
   // val s = """{ "brandTitle": "the Guardian and the Observer" }"""
-  // val attributes: Newspaper2025ExtendedAttributes = upickle.default.read[Newspaper2025ExtendedAttributes](s)
+  // val attributes: Newspaper2025ExtraAttributes = upickle.default.read[Newspaper2025ExtraAttributes](s)
 }
 
 // (Comment Group: 571dac68)
