@@ -1,6 +1,14 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.{CohortSpec, Failure, GuardianWeekly2025, HandlerOutput, HomeDelivery2025, MigrationType, Newspaper2025P1}
+import pricemigrationengine.model.{
+  CohortSpec,
+  Failure,
+  GuardianWeekly2025,
+  HandlerOutput,
+  HomeDelivery2025,
+  MigrationType,
+  Newspaper2025P1
+}
 import pricemigrationengine.services._
 import zio.ZIO
 
@@ -22,8 +30,6 @@ object CohortTableCreationHandler extends CohortHandler {
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
     MigrationType(input) match {
-      case Newspaper2025P1 => ZIO.succeed(HandlerOutput(isComplete = true))
-      case HomeDelivery2025 => ZIO.succeed(HandlerOutput(isComplete = true))
       case _ => {
         main(input).provideSome[Logging](
           EnvConfig.stage.layer,
