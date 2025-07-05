@@ -9,6 +9,7 @@ import com.gu.i18n
 import pricemigrationengine.libs.PriceCap
 import pricemigrationengine.migrations.{
   GuardianWeekly2025Migration,
+  HomeDelivery2025Migration,
   Newspaper2025P1Migration,
   SupporterPlus2024Migration,
   SupporterPlus2024NotificationData
@@ -28,7 +29,8 @@ object NotificationHandler extends CohortHandler {
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     MigrationType(input) match {
-      case Newspaper2025P1 => ZIO.succeed(HandlerOutput(isComplete = true))
+      case Newspaper2025P1  => ZIO.succeed(HandlerOutput(isComplete = true))
+      case HomeDelivery2025 => ZIO.succeed(HandlerOutput(isComplete = true))
       case _ => {
         main(input).provideSome[Logging](
           EnvConfig.salesforce.layer,
@@ -155,6 +157,8 @@ object NotificationHandler extends CohortHandler {
           s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, GuardianWeekly2025Migration.priceCap)}"
         case Newspaper2025P1 =>
           s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025P1Migration.priceCap)}"
+        case HomeDelivery2025 =>
+          s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, HomeDelivery2025Migration.priceCap)}"
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)
@@ -187,6 +191,15 @@ object NotificationHandler extends CohortHandler {
       // Newspaper2025P1 decommissioning.
 
       newspaper2025P1NotificationData <- Newspaper2025P1Migration.getNotificationData(cohortSpec, cohortItem)
+      // ----------------------------------------------------
+
+      // ----------------------------------------------------
+      // Data for HomeDelivery2025
+
+      // This section and the corresponding section below should be removed as part of the
+      // HomeDelivery2025 decommissioning.
+
+      homedelivery2025NotificationData <- HomeDelivery2025Migration.getNotificationData(cohortSpec, cohortItem)
       // ----------------------------------------------------
 
       brazeName <- brazeName(cohortSpec, cohortItem.subscriptionName)
@@ -240,6 +253,15 @@ object NotificationHandler extends CohortHandler {
                 // Newspaper2025P1 decommissioning.
 
                 newspaper2025_brand_title = Some(newspaper2025P1NotificationData.brandTitle),
+                // -------------------------------------------------------------
+
+                // -------------------------------------------------------------
+                // HomeDelivery2025 extension
+
+                // This section and the corresponding section above should be removed as part of the
+                // HomeDelivery decommissioning.
+
+                homedelivery2025_brand_title = Some(homedelivery2025NotificationData.brandTitle),
                 // -------------------------------------------------------------
 
               )
@@ -324,6 +346,7 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2024  => SupporterPlus2024Migration.maxLeadTime
       case GuardianWeekly2025 => GuardianWeekly2025Migration.maxLeadTime
       case Newspaper2025P1    => Newspaper2025P1Migration.maxLeadTime
+      case HomeDelivery2025   => HomeDelivery2025Migration.maxLeadTime
     }
   }
 
@@ -333,6 +356,7 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2024  => SupporterPlus2024Migration.minLeadTime
       case GuardianWeekly2025 => GuardianWeekly2025Migration.minLeadTime
       case Newspaper2025P1    => Newspaper2025P1Migration.minLeadTime
+      case HomeDelivery2025   => HomeDelivery2025Migration.minLeadTime
     }
   }
 

@@ -9,46 +9,43 @@ import ujson._
 import upickle.default._
 import zio.ZIO
 
-sealed trait Newspaper2025P1ProductType
-object Newspaper2025P1Voucher extends Newspaper2025P1ProductType
-object Newspaper2025P1Subcard extends Newspaper2025P1ProductType
-object Newspaper2025P1HomeDelivery extends Newspaper2025P1ProductType
+sealed trait HomeDelivery2025ProductType
+object HomeDelivery2025Voucher extends HomeDelivery2025ProductType
+object HomeDelivery2025Subcard extends HomeDelivery2025ProductType
+object HomeDelivery2025HomeDelivery2025 extends HomeDelivery2025ProductType
 
-sealed trait Newspaper2025P1PlusType
-object Newspaper2025P1EverydayPlus extends Newspaper2025P1PlusType
-object Newspaper2025P1SixdayPlus extends Newspaper2025P1PlusType
+sealed trait HomeDelivery2025PlusType
+object HomeDelivery2025EverydayPlus extends HomeDelivery2025PlusType
+object HomeDelivery2025SixdayPlus extends HomeDelivery2025PlusType
 
-case class Newspaper2025ExtraAttributes(brandTitle: String, removeDiscount: Option[Boolean] = None)
-object Newspaper2025ExtraAttributes {
-  implicit val reader: Reader[Newspaper2025ExtraAttributes] = macroR
+case class HomeDelivery2025ExtraAttributes(brandTitle: String)
+object HomeDelivery2025ExtraAttributes {
+  implicit val reader: Reader[HomeDelivery2025ExtraAttributes] = macroR
 
   // Each item of the migration is going to have a migration extended attributes object
-  // with a brandTitle key and possibly a removeDiscount key.
-  //
-  // The value of the `brandTitle` key is to be sent to Braze, during the
+  // with a brandTitle key. The value of this key is to be sent to Braze, during the
   // notification handler to decide the labelling to the entity in the email. At that point the
-  // attribute will be called `newspaper2025_brand_title`
+  // attribute will be called `brand_title`
 
-  // usage:
+  // usage
   // val s = """{ "brandTitle": "the Guardian" }"""
   // val s = """{ "brandTitle": "the Guardian and the Observer" }"""
-  // val s = """{ "brandTitle": "the Guardian", "removeDiscount": true }"""
-  // val attributes: Newspaper2025ExtraAttributes = upickle.default.read[Newspaper2025ExtraAttributes](s)
+  // val attributes: HomeDelivery2025ExtraAttributes = upickle.default.read[HomeDelivery2025ExtraAttributes](s)
 }
 
 // (Comment Group: 571dac68)
 
-case class Newspaper2025P1NotificationData(
+case class HomeDelivery2025NotificationData(
     brandTitle: String,
 )
 
-object Newspaper2025P1Migration {
+object HomeDelivery2025Migration {
 
   // ------------------------------------------------
   // Price capping
   // ------------------------------------------------
 
-  val priceCap = 1.20
+  val priceCap = 1.20 // TODO: Not signed off yet
 
   // ------------------------------------------------
   // Notification Timings
@@ -90,11 +87,11 @@ object Newspaper2025P1Migration {
     Quarterly -> BigDecimal(185.97),
   )
 
-  val pricesHomeDeliveryEverydayPlus: Map[BillingPeriod, BigDecimal] = Map(
+  val pricesHomeDelivery2025EverydayPlus: Map[BillingPeriod, BigDecimal] = Map(
     Monthly -> BigDecimal(83.99),
   )
 
-  val pricesHomeDeliverySixdayPlus: Map[BillingPeriod, BigDecimal] = Map(
+  val pricesHomeDelivery2025SixdayPlus: Map[BillingPeriod, BigDecimal] = Map(
     Monthly -> BigDecimal(73.99),
   )
 
@@ -102,74 +99,64 @@ object Newspaper2025P1Migration {
   // Helpers
   // ------------------------------------------------
 
-  // (Comment Group: 571dac68)
-
   def getLabelFromMigrationExtraAttributes(item: CohortItem): Option[String] = {
     for {
       attributes <- item.migrationExtraAttributes
     } yield {
-      val data: Newspaper2025ExtraAttributes =
-        upickle.default.read[Newspaper2025ExtraAttributes](attributes)
+      val data: HomeDelivery2025ExtraAttributes =
+        upickle.default.read[HomeDelivery2025ExtraAttributes](attributes)
       data.brandTitle
     }
   }
 
-  def decideShouldRemoveDiscount(item: CohortItem): Boolean = {
-    val flag_opt = (for {
-      attributes <- item.migrationExtraAttributes
-      data: Newspaper2025ExtraAttributes =
-        upickle.default.read[Newspaper2025ExtraAttributes](attributes)
-      removeDiscount <- data.removeDiscount
-    } yield removeDiscount)
-    flag_opt.getOrElse(false)
-  }
+  // (Comment Group: 571dac68)
 
   def getNotificationData(
       cohortSpec: CohortSpec,
       item: CohortItem
-  ): ZIO[Zuora, Failure, Newspaper2025P1NotificationData] = {
+  ): ZIO[Zuora, Failure, HomeDelivery2025NotificationData] = {
     MigrationType(cohortSpec) match {
-      case Newspaper2025P1 => {
+      case HomeDelivery2025 => {
         (for {
           brandTitle <- getLabelFromMigrationExtraAttributes(item)
-        } yield Newspaper2025P1NotificationData(
+        } yield HomeDelivery2025NotificationData(
           brandTitle
         )) match {
           case None =>
             ZIO.fail(
               DataExtractionFailure(
-                s"Could not build Newspaper2025P1NotificationData for item ${item.toString}"
+                s"Could not build HomeDelivery2025NotificationData for item ${item.toString}"
               )
             )
           case Some(d) => ZIO.succeed(d)
         }
       }
-      case _ => ZIO.succeed(Newspaper2025P1NotificationData(""))
+      case _ => ZIO.succeed(HomeDelivery2025NotificationData(""))
     }
   }
 
   def priceLookUp(
-      productType: Newspaper2025P1ProductType,
-      plusType: Newspaper2025P1PlusType,
+      productType: HomeDelivery2025ProductType,
+      plusType: HomeDelivery2025PlusType,
       billingPeriod: BillingPeriod
   ): Option[BigDecimal] = {
     productType match {
-      case Newspaper2025P1Voucher => {
+      case HomeDelivery2025Voucher => {
         plusType match {
-          case Newspaper2025P1EverydayPlus => pricesVouncherEverydayPlus.get(billingPeriod)
-          case Newspaper2025P1SixdayPlus   => pricesVouncherSixdayPlus.get(billingPeriod)
+          case HomeDelivery2025EverydayPlus => pricesVouncherEverydayPlus.get(billingPeriod)
+          case HomeDelivery2025SixdayPlus   => pricesVouncherSixdayPlus.get(billingPeriod)
         }
       }
-      case Newspaper2025P1Subcard => {
+      case HomeDelivery2025Subcard => {
         plusType match {
-          case Newspaper2025P1EverydayPlus => pricesSubCardEverydayPlus.get(billingPeriod)
-          case Newspaper2025P1SixdayPlus   => pricesSubCardSixdayPlus.get(billingPeriod)
+          case HomeDelivery2025EverydayPlus => pricesSubCardEverydayPlus.get(billingPeriod)
+          case HomeDelivery2025SixdayPlus   => pricesSubCardSixdayPlus.get(billingPeriod)
         }
       }
-      case Newspaper2025P1HomeDelivery => {
+      case HomeDelivery2025HomeDelivery2025 => {
         plusType match {
-          case Newspaper2025P1EverydayPlus => pricesHomeDeliveryEverydayPlus.get(billingPeriod)
-          case Newspaper2025P1SixdayPlus   => pricesHomeDeliverySixdayPlus.get(billingPeriod)
+          case HomeDelivery2025EverydayPlus => pricesHomeDelivery2025EverydayPlus.get(billingPeriod)
+          case HomeDelivery2025SixdayPlus   => pricesHomeDelivery2025SixdayPlus.get(billingPeriod)
         }
       }
     }
