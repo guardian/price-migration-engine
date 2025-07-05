@@ -18,18 +18,21 @@ sealed trait Newspaper2025P1PlusType
 object Newspaper2025P1EverydayPlus extends Newspaper2025P1PlusType
 object Newspaper2025P1SixdayPlus extends Newspaper2025P1PlusType
 
-case class Newspaper2025ExtraAttributes(brandTitle: String)
+case class Newspaper2025ExtraAttributes(brandTitle: String, removeDiscount: Option[Boolean] = None)
 object Newspaper2025ExtraAttributes {
   implicit val reader: Reader[Newspaper2025ExtraAttributes] = macroR
 
   // Each item of the migration is going to have a migration extended attributes object
-  // with a brandTitle key. The value of this key is to be sent to Braze, during the
+  // with a brandTitle key and possibly a removeDiscount key.
+  //
+  // The value of the `brandTitle` key is to be sent to Braze, during the
   // notification handler to decide the labelling to the entity in the email. At that point the
-  // attribute will be called `brand_title`
+  // attribute will be called `newspaper2025_brand_title`
 
-  // usage
+  // usage:
   // val s = """{ "brandTitle": "the Guardian" }"""
   // val s = """{ "brandTitle": "the Guardian and the Observer" }"""
+  // val s = """{ "brandTitle": "the Guardian", "removeDiscount": true }"""
   // val attributes: Newspaper2025ExtraAttributes = upickle.default.read[Newspaper2025ExtraAttributes](s)
 }
 
@@ -45,7 +48,7 @@ object Newspaper2025P1Migration {
   // Price capping
   // ------------------------------------------------
 
-  val priceCap = 1.20 // TODO: Not signed off yet
+  val priceCap = 1.20
 
   // ------------------------------------------------
   // Notification Timings
@@ -99,6 +102,8 @@ object Newspaper2025P1Migration {
   // Helpers
   // ------------------------------------------------
 
+  // (Comment Group: 571dac68)
+
   def getLabelFromMigrationExtraAttributes(item: CohortItem): Option[String] = {
     for {
       attributes <- item.migrationExtraAttributes
@@ -109,7 +114,15 @@ object Newspaper2025P1Migration {
     }
   }
 
-  // (Comment Group: 571dac68)
+  def decideShouldRemoveDiscount(item: CohortItem): Boolean = {
+    val flag_opt = (for {
+      attributes <- item.migrationExtraAttributes
+      data: Newspaper2025ExtraAttributes =
+        upickle.default.read[Newspaper2025ExtraAttributes](attributes)
+      removeDiscount <- data.removeDiscount
+    } yield removeDiscount)
+    flag_opt.getOrElse(false)
+  }
 
   def getNotificationData(
       cohortSpec: CohortSpec,
