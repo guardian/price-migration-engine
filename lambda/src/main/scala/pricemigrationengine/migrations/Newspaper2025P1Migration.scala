@@ -183,11 +183,13 @@ object Newspaper2025P1Migration {
   }
 
   def decideProductType(ratePlan: ZuoraRatePlan): Option[Newspaper2025P1ProductType] = {
-    /*
-    object Newspaper2025P1Voucher extends Newspaper2025P1ProductType
-    object Newspaper2025P1Subcard extends Newspaper2025P1ProductType
-    object Newspaper2025P1HomeDelivery extends Newspaper2025P1ProductType
-     */
+    // I have checked every subscription and the only product names that come up are
+    // Newspaper Voucher
+    // Newspaper Digital Voucher
+    // Newspaper Delivery
+    // And I checked with Marketing that the below mapping is correct and in particular there doesn't
+    // seem to be any subscription that uses the [2025 - Price Grid - Sub Card] part of the pricing grid,
+    // what would map to Newspaper2025P1Subcard
     ratePlan.productName match {
       case "Newspaper Voucher"         => Some(Newspaper2025P1Voucher) // confirmed
       case "Newspaper Digital Voucher" => Some(Newspaper2025P1Voucher) // confirmed
