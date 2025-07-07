@@ -31,6 +31,10 @@ case class EmailPayloadSubscriberAttributes(
     // Newspaper2025P1 (extension)
     // (Comment Group: 571dac68)
     newspaper2025_brand_title: Option[String] = None,
+
+    // -----------------------------------------------
+    // HomeDelivery2025 (extension)
+    homedelivery2025_brand_title: Option[String] = None,
 )
 
 /*

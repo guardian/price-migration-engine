@@ -96,6 +96,7 @@ object AmendmentHandler extends CohortHandler {
       case SupporterPlus2024  => false // [1]
       case GuardianWeekly2025 => true
       case Newspaper2025P1    => true
+      case HomeDelivery2025   => true
     }
 
     // [1] We do not apply the check to the SupporterPlus2024 migration where, due to the way
@@ -148,6 +149,8 @@ object AmendmentHandler extends CohortHandler {
           ZIO.fail(MigrationRoutingFailure("GuardianWeekly2025 should not use doAmendment_ordersApi_typed_deprecated"))
         case Newspaper2025P1 =>
           ZIO.fail(MigrationRoutingFailure("Newspaper2025 should not use doAmendment_ordersApi_typed_deprecated"))
+        case HomeDelivery2025 =>
+          ZIO.fail(MigrationRoutingFailure("HomeDelivery2025 should not use doAmendment_ordersApi_typed_deprecated"))
       }
       _ <- Logging.info(
         s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
@@ -243,6 +246,20 @@ object AmendmentHandler extends CohortHandler {
               invoiceList = invoicePreviewBeforeUpdate
             )
           )
+        case HomeDelivery2025 =>
+          ZIO.fromEither(
+            HomeDelivery2025Migration.amendmentOrderPayload(
+              orderDate = LocalDate.now(),
+              accountNumber = account.basicInfo.accountNumber,
+              subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
+              effectDate = startDate,
+              subscription = subscriptionBeforeUpdate,
+              oldPrice = oldPrice,
+              estimatedNewPrice = estimatedNewPrice,
+              priceCap = Newspaper2025P1Migration.priceCap,
+              invoiceList = invoicePreviewBeforeUpdate
+            )
+          )
       }
       _ <- Logging.info(
         s"[6e6da544] Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
@@ -307,6 +324,12 @@ object AmendmentHandler extends CohortHandler {
           item: CohortItem
         )
       case Newspaper2025P1 =>
+        doAmendment_ordersApi_json_values(
+          cohortSpec: CohortSpec,
+          catalogue: ZuoraProductCatalogue,
+          item: CohortItem
+        )
+      case HomeDelivery2025 =>
         doAmendment_ordersApi_json_values(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
