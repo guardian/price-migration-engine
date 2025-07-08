@@ -110,7 +110,7 @@ object GuardianWeekly2025Migration {
     } yield date
   }
 
-  def shouldRemoveDiscount(item: CohortItem): Boolean = {
+  def decideShouldRemoveDiscount(item: CohortItem): Boolean = {
     val flag_opt = (for {
       attributes <- item.migrationExtraAttributes
       data: GuardianWeekly2025ExtraAttributes =
@@ -221,7 +221,7 @@ object GuardianWeekly2025Migration {
     // which roughly translates to a collections of { actions / atomic mutations } in Zuora
 
     val order_opt = {
-      if (!shouldRemoveDiscount(cohortItem)) {
+      if (!decideShouldRemoveDiscount(cohortItem)) {
         for {
           ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
         } yield {
