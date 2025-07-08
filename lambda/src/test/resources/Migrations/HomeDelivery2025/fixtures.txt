@@ -1,0 +1,30 @@
+﻿
+---------------------------------------------------
+A-S00252266
+Newspaper - Home Delivery
+Sixday
+Month
+
+---------------------------------------------------
+A-S00256852
+Newspaper - Home Delivery
+Weekend
+Month
+
+---------------------------------------------------
+GA0000464
+Newspaper - Home Delivery
+Saturday
+Quarter
+
+---------------------------------------------------
+GA0004508
+Newspaper - Home Delivery
+Weekend
+Quarter
+
+---------------------------------------------------
+GA0006731
+Newspaper - Home Delivery
+Saturday
+Month
