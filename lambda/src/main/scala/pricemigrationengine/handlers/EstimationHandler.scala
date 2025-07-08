@@ -131,8 +131,6 @@ object EstimationHandler extends CohortHandler {
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     MigrationType(input) match {
-      case Newspaper2025P1  => ZIO.succeed(HandlerOutput(isComplete = true))
-      case HomeDelivery2025 => ZIO.succeed(HandlerOutput(isComplete = true))
       case _ => {
         main(input).provideSome[Logging](
           EnvConfig.cohortTable.layer,
