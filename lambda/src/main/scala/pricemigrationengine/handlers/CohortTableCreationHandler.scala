@@ -1,14 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.{
-  CohortSpec,
-  Failure,
-  GuardianWeekly2025,
-  HandlerOutput,
-  HomeDelivery2025,
-  MigrationType,
-  Newspaper2025P1
-}
+import pricemigrationengine.model.{CohortSpec, Failure, HandlerOutput, MigrationType}
 import pricemigrationengine.services._
 import zio.ZIO
 

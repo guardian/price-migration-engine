@@ -524,7 +524,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
 
   // amendmentOrderPayload
 
-  test("priceData (276579)") {
+  test("amendmentOrderPayload (276579)") {
     // Subscription fixture: 276579
     // 276579; Newspaper - Voucher Book; Sixday+; Month
 
@@ -642,7 +642,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     )
   }
 
-  test("priceData (280828)") {
+  test("amendmentOrderPayload (280828)") {
     // Subscription fixture: 280828
     // 280828; Newspaper - Voucher Book; Everyday+; Quarter
 
@@ -677,7 +677,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     )
   }
 
-  test("priceData (296144)") {
+  test("amendmentOrderPayload (296144)") {
     // Subscription fixture: 296144 (comes as "productName": "Newspaper Digital Voucher") # anomaly
     // 296144; Newspaper - Subscription Card; Sixday+; Month
 
@@ -712,7 +712,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     )
   }
 
-  test("priceData (A-S00553498)") {
+  test("amendmentOrderPayload (A-S00553498)") {
     // Subscription fixture: A-S00553498
     // A-S00553498; Newspaper - Home Delivery; Everyday+; Month
 
