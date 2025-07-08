@@ -180,7 +180,23 @@ object HomeDelivery2025Migration {
       invoiceList: ZuoraInvoiceList,
       account: ZuoraAccount
   ): Either[DataExtractionFailure, PriceData] = {
-    ???
+    val priceDataOpt: Option[PriceData] = for {
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
+      currency <- SI2025Extractions.determineCurrency(ratePlan)
+      oldPrice = SI2025Extractions.determineOldPrice(ratePlan)
+      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
+      deliveryPattern <- decideDeliveryPattern(ratePlan)
+      newPrice <- priceLookUp(deliveryPattern, billingPeriod)
+    } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
+    priceDataOpt match {
+      case Some(pricedata) => Right(pricedata)
+      case None =>
+        Left(
+          DataExtractionFailure(
+            s"[93a96aee] Could not determine PriceData for subscription ${subscription.subscriptionNumber}"
+          )
+        )
+    }
   }
 
   def amendmentOrderPayload(
