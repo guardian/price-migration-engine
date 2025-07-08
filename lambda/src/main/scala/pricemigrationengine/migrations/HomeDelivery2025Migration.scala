@@ -101,8 +101,8 @@ object HomeDelivery2025Migration {
   def decideShouldRemoveDiscount(item: CohortItem): Boolean = {
     val flag_opt = (for {
       attributes <- item.migrationExtraAttributes
-      data: Newspaper2025ExtraAttributes =
-        upickle.default.read[Newspaper2025ExtraAttributes](attributes)
+      data: HomeDelivery2025ExtraAttributes =
+        upickle.default.read[HomeDelivery2025ExtraAttributes](attributes)
       removeDiscount <- data.removeDiscount
     } yield removeDiscount)
     flag_opt.getOrElse(false)
