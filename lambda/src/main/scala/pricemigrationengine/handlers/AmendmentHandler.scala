@@ -235,11 +235,12 @@ object AmendmentHandler extends CohortHandler {
         case Newspaper2025P1 =>
           ZIO.fromEither(
             Newspaper2025P1Migration.amendmentOrderPayload(
+              cohortItem = item,
               orderDate = LocalDate.now(),
               accountNumber = account.basicInfo.accountNumber,
               subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
               effectDate = startDate,
-              subscription = subscriptionBeforeUpdate,
+              zuora_subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
               priceCap = Newspaper2025P1Migration.priceCap,
