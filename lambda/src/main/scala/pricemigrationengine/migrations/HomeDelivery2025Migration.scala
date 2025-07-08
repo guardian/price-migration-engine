@@ -9,13 +9,13 @@ import ujson._
 import upickle.default._
 import zio.ZIO
 
-sealed trait HomeDelivery2025DeliveryFrequency
-object HomeDelivery2025Everyday extends HomeDelivery2025DeliveryFrequency
-object HomeDelivery2025Sixday extends HomeDelivery2025DeliveryFrequency
-object HomeDelivery2025Weekend extends HomeDelivery2025DeliveryFrequency
-object HomeDelivery2025Saturday extends HomeDelivery2025DeliveryFrequency
+sealed trait HomeDelivery2025DeliveryPattern
+object HomeDelivery2025Everyday extends HomeDelivery2025DeliveryPattern
+object HomeDelivery2025Sixday extends HomeDelivery2025DeliveryPattern
+object HomeDelivery2025Weekend extends HomeDelivery2025DeliveryPattern
+object HomeDelivery2025Saturday extends HomeDelivery2025DeliveryPattern
 
-case class HomeDelivery2025ExtraAttributes(brandTitle: String)
+case class HomeDelivery2025ExtraAttributes(brandTitle: String, removeDiscount: Option[Boolean] = None)
 object HomeDelivery2025ExtraAttributes {
   implicit val reader: Reader[HomeDelivery2025ExtraAttributes] = macroR
 
@@ -27,6 +27,7 @@ object HomeDelivery2025ExtraAttributes {
   // usage
   // val s = """{ "brandTitle": "the Guardian" }"""
   // val s = """{ "brandTitle": "the Guardian and the Observer" }"""
+  // val s = """{ "brandTitle": "the Guardian", "removeDiscount": true }"""
   // val attributes: HomeDelivery2025ExtraAttributes = upickle.default.read[HomeDelivery2025ExtraAttributes](s)
 }
 
@@ -60,7 +61,7 @@ object HomeDelivery2025Migration {
   // to prices not present in the price catalogue)
   // ------------------------------------------------
 
-  val newPrices: Map[(HomeDelivery2025DeliveryFrequency, BillingPeriod), BigDecimal] = Map(
+  val newPrices: Map[(HomeDelivery2025DeliveryPattern, BillingPeriod), BigDecimal] = Map(
     // Everyday
     (HomeDelivery2025Everyday, Monthly) -> BigDecimal(83.99),
     (HomeDelivery2025Everyday, Quarterly) -> BigDecimal(251.97),
@@ -97,6 +98,16 @@ object HomeDelivery2025Migration {
     }
   }
 
+  def decideShouldRemoveDiscount(item: CohortItem): Boolean = {
+    val flag_opt = (for {
+      attributes <- item.migrationExtraAttributes
+      data: HomeDelivery2025ExtraAttributes =
+        upickle.default.read[HomeDelivery2025ExtraAttributes](attributes)
+      removeDiscount <- data.removeDiscount
+    } yield removeDiscount)
+    flag_opt.getOrElse(false)
+  }
+
   // (Comment Group: 571dac68)
 
   def getNotificationData(
@@ -124,15 +135,34 @@ object HomeDelivery2025Migration {
   }
 
   def priceLookUp(
-      deliveryFrequency: HomeDelivery2025DeliveryFrequency,
+      deliveryFrequency: HomeDelivery2025DeliveryPattern,
       billingPeriod: BillingPeriod
   ): Option[BigDecimal] = {
     newPrices.get((deliveryFrequency, billingPeriod))
   }
 
   def subscriptionToLastPriceMigrationDate(subscription: ZuoraSubscription): Option[LocalDate] = {
-    // This will be moved to Subscription Introspection
-    ???
+    for {
+      ratePlan <- SI2025RateplanFromSub.determineRatePlan(subscription)
+      date <- SI2025Extractions.determineLastPriceMigrationDate(ratePlan)
+    } yield date
+  }
+
+  def decideDeliveryPattern(ratePlan: ZuoraRatePlan): Option[HomeDelivery2025DeliveryPattern] = {
+    // I have checked every subscription and the only product names that come up are
+    // Newspaper Voucher
+    // Newspaper Digital Voucher
+    // Newspaper Delivery
+    // And I checked with Marketing that the below mapping is correct and in particular there doesn't
+    // seem to be any subscription that uses the [2025 - Price Grid - Sub Card] part of the pricing grid,
+    // what would map to Newspaper2025P1Subcard
+    ratePlan.ratePlanName match {
+      case "Everyday" => Some(HomeDelivery2025Everyday)
+      case "Weekend"  => Some(HomeDelivery2025Weekend)
+      case "Sixday"   => Some(HomeDelivery2025Sixday)
+      case "Saturday" => Some(HomeDelivery2025Saturday)
+      case _          => None
+    }
   }
 
   // ------------------------------------------------
