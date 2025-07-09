@@ -683,7 +683,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/SupporterPlus2024/monthly/account.json")
     val catalogue = Fixtures.productCatalogueFromJson("Migrations/SupporterPlus2024/monthly/catalogue.json")
 
-    val cohortSpec = CohortSpec("SupporterPlus2024", "", LocalDate.of(2024, 8, 1), LocalDate.of(2024, 9, 9))
+    val cohortSpec = CohortSpec("SupporterPlus2024", "", LocalDate.of(2024, 9, 9))
 
     val startDateLowerBound = LocalDate.of(2024, 9, 9)
 
@@ -709,7 +709,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/SupporterPlus2024/annual/account.json")
     val catalogue = Fixtures.productCatalogueFromJson("Migrations/SupporterPlus2024/annual/catalogue.json")
 
-    val cohortSpec = CohortSpec("SupporterPlus2024", "", LocalDate.of(2024, 8, 1), LocalDate.of(2024, 9, 9))
+    val cohortSpec = CohortSpec("SupporterPlus2024", "", LocalDate.of(2024, 9, 9))
 
     val startDateLowerBound = LocalDate.of(2024, 9, 9)
 

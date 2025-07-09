@@ -16,7 +16,6 @@ First we need a cohort spec. Let's assume that the cohort spec is
 {
     "cohortName":"GW2024",
     "brazeName":"SV_GW_PriceRise2024",
-    "importStartDate":"2024-02-01",
     "earliestPriceMigrationStartDate":"2024-05-20" 
 }
 ```

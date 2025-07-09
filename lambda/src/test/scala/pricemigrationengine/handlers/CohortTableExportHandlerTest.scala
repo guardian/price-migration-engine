@@ -66,7 +66,7 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
 
   test("CohortTableExportHandler should write cohort items to s3 as CSV") {
     val cohortName = "expected cohort name"
-    val cohortSpec = new CohortSpec(cohortName, "", LocalDate.now(), LocalDate.now())
+    val cohortSpec = new CohortSpec(cohortName, "", LocalDate.now())
     val uploadedFiles = ArrayBuffer[(S3Location, String)]()
     val stubS3 = createStubS3(uploadedFiles)
 
@@ -116,7 +116,7 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
   }
   test("CohortTableExportHandler should write cohort items with missing optional values to s3 as CSV") {
     val cohortName = "expected cohort name"
-    val cohortSpec = new CohortSpec(cohortName, "", LocalDate.now(), LocalDate.now())
+    val cohortSpec = new CohortSpec(cohortName, "", LocalDate.now())
     val uploadedFiles = ArrayBuffer[(S3Location, String)]()
     val stubS3 = createStubS3(uploadedFiles)
 
