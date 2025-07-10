@@ -62,7 +62,6 @@ trait CohortHandler extends ZIOAppDefault with RequestStreamHandler {
     *     "cohortSpec":{
     *         "cohortName":"M2023",
     *         "brazeName":"SV_MB_M2023",
-    *         "importStartDate":"2023-01-01",
     *         "earliestPriceMigrationStartDate":"2023-01-02"
     *     }
     * }

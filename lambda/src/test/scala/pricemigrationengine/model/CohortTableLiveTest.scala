@@ -20,7 +20,6 @@ class CohortTableLiveTest extends munit.FunSuite {
   private val cohortSpec = CohortSpec(
     cohortName = "name",
     brazeName = "cmp123",
-    importStartDate = LocalDate.of(2020, 1, 1),
     earliestPriceMigrationStartDate = LocalDate.of(2020, 1, 1)
   )
 

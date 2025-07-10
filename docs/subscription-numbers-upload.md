@@ -38,7 +38,6 @@ Do not forget to set the correct cohort specifications (see example below, but u
 {
     "cohortName":"migration-name",
     "brazeName":"any-name",
-    "importStartDate":"2024-02-01",
     "earliestPriceMigrationStartDate":"2024-05-20" 
 }
 ```
