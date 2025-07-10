@@ -189,7 +189,6 @@ class AmendmentDataTest extends munit.FunSuite {
     val cohortSpec = CohortSpec(
       cohortName = "Test1",
       brazeName = "BrazeName",
-      importStartDate = LocalDate.of(2025, 1, 1),
       earliestPriceMigrationStartDate = LocalDate.of(2025, 9, 10) // 10 Sept 2025
     )
 

@@ -35,12 +35,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
       cohortSpec: CohortSpec
   ): ZIO[CohortTable with S3 with StageConfig with Logging, Failure, HandlerOutput] =
     (for {
-      today <- Clock.currentDateTime.map(_.toLocalDate)
-      _ <-
-        if (today.isBefore(cohortSpec.importStartDate))
-          Logging.info(s"No action. Import start date ${cohortSpec.importStartDate} is in the future.").unit
-        else
-          importCohortAndCleanUp(cohortSpec)
+      _ <- importCohortAndCleanUp(cohortSpec)
     } yield HandlerOutput(isComplete = true))
       .tapError(e => Logging.error(e.toString))
 

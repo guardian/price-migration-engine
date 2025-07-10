@@ -69,7 +69,6 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
             CohortSpec(
               cohortName = "cohortName",
               brazeName = "cmp123",
-              importStartDate = LocalDate.of(2020, 1, 1),
               earliestPriceMigrationStartDate = LocalDate.of(2020, 1, 1)
             )
           )
