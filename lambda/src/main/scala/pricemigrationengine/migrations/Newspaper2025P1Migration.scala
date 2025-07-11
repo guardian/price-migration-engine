@@ -55,7 +55,7 @@ object Newspaper2025P1Migration {
   // ------------------------------------------------
 
   val maxLeadTime = 35
-  val minLeadTime = 33
+  val minLeadTime = 32
 
   // ------------------------------------------------
   // Price Grid
@@ -253,6 +253,75 @@ object Newspaper2025P1Migration {
       priceCap: BigDecimal,
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
-    ???
+    // We have two notions of subscription here.
+    // There is the Zuora subscription which is one of the arguments, and there is
+    // the notion of subscription as defined in the Zuora Order API documentation,
+    // which roughly translates to a collections of { actions / atomic mutations } in Zuora
+
+    val order_opt = {
+      if (!decideShouldRemoveDiscount(cohortItem)) {
+        for {
+          ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+        } yield {
+          val subscriptionRatePlanId = ratePlan.id
+          val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
+          val triggerDateString = effectDate.toString
+          val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
+          val chargeOverrides = List(
+            ZuoraOrdersApiPrimitives.chargeOverride(
+              ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId,
+              PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap)
+            )
+          )
+          val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+          val order_subscription =
+            ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
+          ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
+            orderDate.toString,
+            accountNumber,
+            order_subscription
+          )
+        }
+      } else {
+        for {
+          ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+          discount <- GuardianWeekly2025Migration.getDiscount(zuora_subscription)
+        } yield {
+          val subscriptionRatePlanId = ratePlan.id
+          val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
+          val removeDiscount = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, discount.id)
+          val triggerDateString = effectDate.toString
+          val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
+          val chargeOverrides = List(
+            ZuoraOrdersApiPrimitives.chargeOverride(
+              ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId,
+              PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap)
+            )
+          )
+          val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+          val order_subscription =
+            ZuoraOrdersApiPrimitives.subscription(
+              subscriptionNumber,
+              List(removeProduct, removeDiscount),
+              List(addProduct)
+            )
+          ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
+            orderDate.toString,
+            accountNumber,
+            order_subscription
+          )
+        }
+      }
+    }
+
+    order_opt match {
+      case Some(order) => Right(order)
+      case None =>
+        Left(
+          DataExtractionFailure(
+            s"[e5bd98d7] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
+          )
+        )
+    }
   }
 }

@@ -521,4 +521,229 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
       Right(PriceData("GBP", BigDecimal(80.99), BigDecimal(83.99), "Month"))
     )
   }
+
+  // amendmentOrderPayload
+
+  test("amendmentOrderPayload (276579)") {
+    // Subscription fixture: 276579
+    // 276579; Newspaper - Voucher Book; Sixday+; Month
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/276579/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Newspaper2025P1/276579/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/276579/invoice-preview.json")
+
+    val startDate = LocalDate.of(2025, 9, 11) // random
+    val oldPrice = BigDecimal(100.5) // random
+    val estimatedNewPrice = BigDecimal(111.12) // random
+
+    val cohortItem = CohortItem(
+      subscriptionName = subscription.subscriptionNumber,
+      processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
+      startDate = Some(startDate),
+      currency = Some("EUR"),
+      oldPrice = Some(oldPrice),
+      estimatedNewPrice = Some(estimatedNewPrice),
+      billingPeriod = Some("Quarter"),
+      migrationExtraAttributes = None
+    )
+
+    // We now collect the arguments of GuardianWeekly2025Migration.amendmentOrderPayload
+
+    val orderDate = LocalDate.of(2025, 7, 7) // LocalDate.now()
+    val accountNumber = subscription.accountNumber
+    val subscriptionNumber = subscription.subscriptionNumber
+    val effectDate = startDate
+    val priceCap = 1.2
+
+    val payload = Newspaper2025P1Migration.amendmentOrderPayload(
+      cohortItem,
+      orderDate,
+      accountNumber,
+      subscriptionNumber,
+      effectDate,
+      subscription,
+      oldPrice,
+      estimatedNewPrice,
+      priceCap,
+      invoicePreview,
+    )
+
+    assertEquals(
+      payload,
+      Right(
+        ujson.read(
+          s"""{
+           |    "orderDate": "2025-07-07",
+           |    "existingAccountNumber": "ACCOUNT-NUMBER",
+           |    "subscriptions": [
+           |        {
+           |            "subscriptionNumber": "SUBSCRIPTION-NUMBER",
+           |            "orderActions": [
+           |                {
+           |                    "type": "RemoveProduct",
+           |                    "triggerDates": [
+           |                        {
+           |                            "name": "ContractEffective",
+           |                            "triggerDate": "2025-09-11"
+           |                        },
+           |                        {
+           |                            "name": "ServiceActivation",
+           |                            "triggerDate": "2025-09-11"
+           |                        },
+           |                        {
+           |                            "name": "CustomerAcceptance",
+           |                            "triggerDate": "2025-09-11"
+           |                        }
+           |                    ],
+           |                    "removeProduct": {
+           |                        "ratePlanId": "8a12910195aa4f620195b0e2bc0c139d"
+           |                    }
+           |                },
+           |                {
+           |                    "type": "AddProduct",
+           |                    "triggerDates": [
+           |                        {
+           |                            "name": "ContractEffective",
+           |                            "triggerDate": "2025-09-11"
+           |                        },
+           |                        {
+           |                            "name": "ServiceActivation",
+           |                            "triggerDate": "2025-09-11"
+           |                        },
+           |                        {
+           |                            "name": "CustomerAcceptance",
+           |                            "triggerDate": "2025-09-11"
+           |                        }
+           |                    ],
+           |                    "addProduct": {
+           |                        "productRatePlanId": "2c92a0fc56fe26ba0157040c5ea17f6a",
+           |                        "chargeOverrides": [
+           |                            {
+           |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709cdedbd246b",
+           |                                "pricing": {
+           |                                    "recurringFlatFee": {
+           |                                        "listPrice": 111.12
+           |                                    }
+           |                                }
+           |                            }
+           |                        ]
+           |                    }
+           |                }
+           |            ]
+           |        }
+           |    ],
+           |    "processingOptions": {
+           |        "runBilling": false,
+           |        "collectPayment": false
+           |    }
+           |}""".stripMargin
+        )
+      )
+    )
+  }
+
+  test("amendmentOrderPayload (280828)") {
+    // Subscription fixture: 280828
+    // 280828; Newspaper - Voucher Book; Everyday+; Quarter
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/280828/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Newspaper2025P1/280828/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/280828/invoice-preview.json")
+
+    // Here we check the rate plan product name and rate plan name
+    // and then we perform the main test Newspaper2025P1Migration.priceData
+
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+
+    assertEquals(
+      ratePlan.productName,
+      "Newspaper Voucher"
+    )
+
+    assertEquals(
+      ratePlan.ratePlanName,
+      "Everyday+"
+    )
+
+    val priceData = Newspaper2025P1Migration.priceData(
+      subscription,
+      invoicePreview,
+      account
+    )
+
+    assertEquals(
+      priceData,
+      Right(PriceData("GBP", BigDecimal(200.97), BigDecimal(209.97), "Quarter"))
+    )
+  }
+
+  test("amendmentOrderPayload (296144)") {
+    // Subscription fixture: 296144 (comes as "productName": "Newspaper Digital Voucher") # anomaly
+    // 296144; Newspaper - Subscription Card; Sixday+; Month
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/296144/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Newspaper2025P1/296144/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/296144/invoice-preview.json")
+
+    // Here we check the rate plan product name and rate plan name
+    // and then we perform the main test Newspaper2025P1Migration.priceData
+
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+
+    assertEquals(
+      ratePlan.productName,
+      "Newspaper Digital Voucher"
+    )
+
+    assertEquals(
+      ratePlan.ratePlanName,
+      "Sixday+"
+    )
+
+    val priceData = Newspaper2025P1Migration.priceData(
+      subscription,
+      invoicePreview,
+      account
+    )
+
+    assertEquals(
+      priceData,
+      Right(PriceData("GBP", BigDecimal(58.99), BigDecimal(61.99), "Month"))
+    )
+  }
+
+  test("amendmentOrderPayload (A-S00553498)") {
+    // Subscription fixture: A-S00553498
+    // A-S00553498; Newspaper - Home Delivery; Everyday+; Month
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/A-S00553498/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Newspaper2025P1/A-S00553498/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/A-S00553498/invoice-preview.json")
+
+    // Here we check the rate plan product name and rate plan name
+    // and then we perform the main test Newspaper2025P1Migration.priceData
+
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+
+    assertEquals(
+      ratePlan.productName,
+      "Newspaper Delivery"
+    )
+
+    assertEquals(
+      ratePlan.ratePlanName,
+      "Everyday+"
+    )
+
+    val priceData = Newspaper2025P1Migration.priceData(
+      subscription,
+      invoicePreview,
+      account
+    )
+
+    assertEquals(
+      priceData,
+      Right(PriceData("GBP", BigDecimal(80.99), BigDecimal(83.99), "Month"))
+    )
+  }
 }
