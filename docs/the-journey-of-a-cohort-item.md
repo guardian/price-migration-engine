@@ -143,6 +143,8 @@ I discovered during Newspaper2025P1 a curious behavior of some subscriptions. Wh
 
 I managed to rescue a dozen subscriptions which had been incorrectly put in `EstimationFailed` except one: 344070.
 
+The same day, looking at HomeDelivery2025, I discovered that some items had ended up in EstimationFailed due to dirty data in Zuora, which this PR corrected: [https://github.com/guardian/price-migration-engine/pull/1180](https://github.com/guardian/price-migration-engine/pull/1180)
+
 ### Notification (part 1)
 
 In the case of migration SupporterPlus2024, the first operation is to check whether the item is under an active cancellation save. By definition, an "active" cancellation save is a cancellation save that was issued less than 6 months ago. If the item is found in that state, its processing stage become `DoNotProcessUntil` and the value of `doNotProcessUntil` is updated to become the effective date of the cancelation save plus 6 months.

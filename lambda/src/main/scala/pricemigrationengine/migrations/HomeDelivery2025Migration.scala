@@ -156,7 +156,8 @@ object HomeDelivery2025Migration {
     // And I checked with Marketing that the below mapping is correct and in particular there doesn't
     // seem to be any subscription that uses the [2025 - Price Grid - Sub Card] part of the pricing grid,
     // what would map to Newspaper2025P1Subcard
-    ratePlan.ratePlanName match {
+
+    ratePlan.ratePlanName.trim match {
       case "Everyday" => Some(HomeDelivery2025Everyday)
       case "Weekend"  => Some(HomeDelivery2025Weekend)
       case "Sixday"   => Some(HomeDelivery2025Sixday)

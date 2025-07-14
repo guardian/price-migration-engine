@@ -505,4 +505,38 @@ class HomeDelivery2025MigrationTest extends munit.FunSuite {
       Right(PriceData("GBP", BigDecimal(19.99), BigDecimal(20.99), "Month"))
     )
   }
+
+  test("priceData (A-S01588918-EstimationFailed)") {
+    // A-S01588918
+
+    // This sub is for HomeDelivery2025 what 344070-EstimationFailed was for Newspaper2025P1, meaning came up
+    // during the EstimationFailed investigation. For Newspaper2025P1 we didn't find much, but here
+    // there was a problem with HomeDelivery2025Migration.decideDeliveryPattern due to a space in the subscription's
+    // rate plan's ratePlanName. Which lead to https://github.com/guardian/price-migration-engine/pull/1180
+
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/HomeDelivery2025/A-S01588918-EstimationFailed/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/HomeDelivery2025/A-S01588918-EstimationFailed/account.json")
+    val invoicePreview =
+      Fixtures.invoiceListFromJson("Migrations/HomeDelivery2025/A-S01588918-EstimationFailed/invoice-preview.json")
+
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+    val deliveryPattern = HomeDelivery2025Migration.decideDeliveryPattern(ratePlan).get
+
+    assertEquals(
+      deliveryPattern,
+      HomeDelivery2025Saturday
+    )
+
+    val priceData = HomeDelivery2025Migration.priceData(
+      subscription,
+      invoicePreview,
+      account
+    )
+
+    assertEquals(
+      priceData,
+      Right(PriceData("GBP", BigDecimal(17.99), BigDecimal(20.99), "Month"))
+    )
+  }
 }
