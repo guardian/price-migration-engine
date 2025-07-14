@@ -521,4 +521,48 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
       Right(PriceData("GBP", BigDecimal(80.99), BigDecimal(83.99), "Month"))
     )
   }
+
+  // The following subscription is interesting.
+  // I moves from ReadyForEstimation to EstimationFailed in AWS, and only AWS,
+  // without any indication of what the cause might be.
+  // It's the only subscription of Newspaper2025P1 with that behavior 🤔
+
+  // Subscription fixture: 344070
+  // val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/344070-EstimationFailed/subscription.json")
+  // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P1/344070-EstimationFailed/account.json")
+  // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/344070-EstimationFailed/invoice-preview.json")
+
+  test("priceData (344070-EstimationFailed)") {
+    // Subscription fixture: 344070-EstimationFailed
+
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/344070-EstimationFailed/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Newspaper2025P1/344070-EstimationFailed/account.json")
+    val invoicePreview =
+      Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/344070-EstimationFailed/invoice-preview.json")
+
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+
+    assertEquals(
+      ratePlan.productName,
+      "Newspaper Voucher"
+    )
+
+    assertEquals(
+      ratePlan.ratePlanName,
+      "Sixday+"
+    )
+
+    val priceData = Newspaper2025P1Migration.priceData(
+      subscription,
+      invoicePreview,
+      account
+    )
+
+    assertEquals(
+      priceData,
+      Right(PriceData("GBP", BigDecimal(58.99), BigDecimal(61.99), "Month"))
+    )
+  }
+
 }
