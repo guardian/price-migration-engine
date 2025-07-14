@@ -222,13 +222,36 @@ object Newspaper2025P1Migration {
       account: ZuoraAccount
   ): Either[DataExtractionFailure, PriceData] = {
     val priceDataOpt: Option[PriceData] = for {
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
-      currency <- SI2025Extractions.determineCurrency(ratePlan)
-      oldPrice = SI2025Extractions.determineOldPrice(ratePlan)
-      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
-      productType <- decideProductType(ratePlan)
-      plusType <- decidePlusType(ratePlan)
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList).map { rp =>
+        println(s"[05e533ad] ratePlan: $rp")
+        rp
+      }
+      currency <- SI2025Extractions.determineCurrency(ratePlan).map { c =>
+        println(s"[e7391f56] currency: $c")
+        c
+      }
+      oldPrice = {
+        val old_price = SI2025Extractions.determineOldPrice(ratePlan)
+        println(s"[4a3211cf] old price: $old_price")
+        old_price
+      }
+      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan).map { newp =>
+        println(s"[963a3fae] new price: $newp")
+        newp
+      }
+      productType <- decideProductType(ratePlan).map { pt =>
+        println(s"[d1b07e39] product type: $pt")
+        pt
+      }
+      plusType <- decidePlusType(ratePlan).map { pt =>
+        println(s"[12403eba] plus type: $pt")
+        pt
+      }
       newPrice <- priceLookUp(productType, plusType, billingPeriod)
+        .map { np =>
+          println(s"[e8fe71a1] new price: $np")
+          np
+        }
     } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
