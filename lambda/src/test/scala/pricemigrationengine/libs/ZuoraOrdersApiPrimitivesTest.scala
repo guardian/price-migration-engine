@@ -7,7 +7,7 @@ import java.time.LocalDate
 
 class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
 
-  test("singletonDate") {
+  test("ZuoraOrdersApiPrimitives.singletonDate") {
     val singletonDate = ZuoraOrdersApiPrimitives.singletonDate("ContractEffective", "2024-11-28")
     val jsonstr = singletonDate.render()
     assertEquals(jsonstr, """{"name":"ContractEffective","triggerDate":"2024-11-28"}""")
@@ -23,7 +23,7 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
     )
   }
 
-  test("triggerDates") {
+  test("ZuoraOrdersApiPrimitives.triggerDates") {
     val triggerDates = ZuoraOrdersApiPrimitives.triggerDates("2024-11-28")
     val jsonstrpp = ujson.write(triggerDates, indent = 4)
     assertEquals(
@@ -45,7 +45,7 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
     )
   }
 
-  test("removeProduct") {
+  test("ZuoraOrdersApiPrimitives.removeProduct") {
     val removeProduct = ZuoraOrdersApiPrimitives.removeProduct("2024-11-28", "8a12867e92c341870192c7c46bdb47d6")
     val jsonstrpp = ujson.write(removeProduct, indent = 4)
     assertEquals(
@@ -73,7 +73,7 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
     )
   }
 
-  test("chargeOverride") {
+  test("ZuoraOrdersApiPrimitives.chargeOverride") {
     val chargeOverride = ZuoraOrdersApiPrimitives.chargeOverride("8a128ed885fc6ded018602296af13eba", 12)
     val jsonstrpp = ujson.write(chargeOverride, indent = 4)
     assertEquals(
@@ -89,7 +89,7 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
     )
   }
 
-  test("addProduct") {
+  test("ZuoraOrdersApiPrimitives.addProduct") {
     val chargeOverrides = List(
       ZuoraOrdersApiPrimitives.chargeOverride("8a128ed885fc6ded018602296af13eba", 12),
       ZuoraOrdersApiPrimitives.chargeOverride("8a128d7085fc6dec01860234cd075270", 0)
@@ -97,7 +97,7 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
     val addProduct = ZuoraOrdersApiPrimitives.addProduct(
       "2024-11-28",
       "8a128ed885fc6ded018602296ace3eb8",
-      chargeOverrides: List[Value]
+      chargeOverrides
     )
     val jsonstrpp = ujson.write(addProduct, indent = 4)
     assertEquals(
@@ -143,7 +143,7 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
     )
   }
 
-  test("subscription") {
+  test("ZuoraOrdersApiPrimitives.subscription") {
     val removeProduct = ZuoraOrdersApiPrimitives.removeProduct("2025-05-19", "8a12867e92c341870192c7c46bdb47d6")
     val addProduct = ZuoraOrdersApiPrimitives.addProduct(
       "2025-05-20",
@@ -223,7 +223,7 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
     )
   }
 
-  test("replace_a_product_in_a_subscription") {
+  test("ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription") {
     val removeProduct = ZuoraOrdersApiPrimitives.removeProduct("2025-05-19", "8a12867e92c341870192c7c46bdb47d6")
     val addProduct = ZuoraOrdersApiPrimitives.addProduct(
       "2025-05-20",

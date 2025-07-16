@@ -254,6 +254,18 @@ object Newspaper2025P1Migration {
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
 
+    // This version of `amendmentOrderPayload`, applied to subscriptions with the active rate plan having
+    // several charges (one per delivery day), is using ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides
+    // which maps the rate plan's rate plan charges to an array of charge overrides json objects.
+
+    // The important preliminary here, which wasn't needed in the simpler case of a single rate plan charge
+    // in the case of GuardianWeekly2025, for instance, is the price ratio from the old price to the new price
+    // (both carried by the cohort item).
+
+    // Note that we do use `get` here. The cohort items always get them from the estimation step, but in the
+    // abnormal case it would not, we want the process to error and alarm.
+    val priceRatio = estimatedNewPrice / oldPrice
+
     val order_opt = for {
       ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
     } yield {
@@ -261,11 +273,9 @@ object Newspaper2025P1Migration {
       val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
       val triggerDateString = effectDate.toString
       val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
-      val chargeOverrides = List(
-        ZuoraOrdersApiPrimitives.chargeOverride(
-          ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId,
-          PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap)
-        )
+      val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
+        ratePlan.ratePlanCharges,
+        priceRatio
       )
       val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
       val order_subscription =
@@ -286,6 +296,5 @@ object Newspaper2025P1Migration {
           )
         )
     }
-
   }
 }

@@ -118,7 +118,10 @@ object ZuoraOrdersApiPrimitives {
     )
   }
 
-  def ratePlanChargesToChargeOverrides(ratePlanCharges: List[ZuoraRatePlanCharge], priceRatio: BigDecimal): Value = {
+  def ratePlanChargesToChargeOverrides(
+      ratePlanCharges: List[ZuoraRatePlanCharge],
+      priceRatio: BigDecimal
+  ): List[Value] = {
     // This functions is a more general case of the previous function (`chargeOverride`)
     // We originally introduced `chargeOverride` for price increases that have a single charge
     // in the rate plan that is being price increased, but cases such as Newspaper2025(P1) and
@@ -138,7 +141,7 @@ object ZuoraOrdersApiPrimitives {
     // price increase ratio (we express the percentage as a ratio, so for instance a 20% increase
     // will be a price ratio of 1.2).
 
-    val rpcs = ratePlanCharges.map { rpc =>
+    ratePlanCharges.map { rpc =>
       Obj(
         "productRatePlanChargeId" -> Str(rpc.productRatePlanChargeId),
         "pricing" -> Obj(
@@ -148,7 +151,6 @@ object ZuoraOrdersApiPrimitives {
         )
       )
     }
-    ujson.Arr(rpcs: _*) // this is the expression to transform a scala array into a json Value array
 
     // [1] The `get` method here *will* cause a runtime exception if it turns out that
     // the rate plan charge didn't have a price attached to it. This will cause the engine to

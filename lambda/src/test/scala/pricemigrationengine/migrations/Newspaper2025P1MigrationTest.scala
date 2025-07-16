@@ -665,7 +665,55 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709cdedbd246b",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 81
+             |                                        "listPrice": 11.548444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f3015709d10a436f52",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 2.577777777777778
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fe56fe33ff015704325d87494c",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 11.548444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709d078df4a80",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 15.711555555555556
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709cfc1500a2e",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 11.548444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709ced61a032e",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 11.548444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fc56fe26ba015709cf4bbd3d1c",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 11.548444444444444
              |                                    }
              |                                }
              |                            }
