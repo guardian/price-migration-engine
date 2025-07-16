@@ -320,7 +320,7 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
     )
   }
 
-  test("ratePlanChargesToChargeOverrides") {
+  test("ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides") {
 
     // The following rate plan was taken from the Newspaper2025P1 test suite.
     // We stole it from there to test ratePlanChargesToChargeOverrides
@@ -549,6 +549,5 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |    }
         |]""".stripMargin
     )
-
   }
 }

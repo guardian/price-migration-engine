@@ -253,6 +253,39 @@ object Newspaper2025P1Migration {
       priceCap: BigDecimal,
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
-    ???
+
+    val order_opt = for {
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+    } yield {
+      val subscriptionRatePlanId = ratePlan.id
+      val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
+      val triggerDateString = effectDate.toString
+      val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
+      val chargeOverrides = List(
+        ZuoraOrdersApiPrimitives.chargeOverride(
+          ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId,
+          PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap)
+        )
+      )
+      val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+      val order_subscription =
+        ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
+      ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
+        orderDate.toString,
+        accountNumber,
+        order_subscription
+      )
+    }
+
+    order_opt match {
+      case Some(order) => Right(order)
+      case None =>
+        Left(
+          DataExtractionFailure(
+            s"[4f62efe5] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
+          )
+        )
+    }
+
   }
 }
