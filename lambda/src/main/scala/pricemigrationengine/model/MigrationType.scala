@@ -6,6 +6,7 @@ object SupporterPlus2024 extends MigrationType
 object GuardianWeekly2025 extends MigrationType
 object Newspaper2025P1 extends MigrationType
 object HomeDelivery2025 extends MigrationType
+object Newspaper2025P3 extends MigrationType
 
 object MigrationType {
   def apply(cohortSpec: CohortSpec): MigrationType = cohortSpec.cohortName match {
@@ -14,5 +15,6 @@ object MigrationType {
     case "GuardianWeekly2025" => GuardianWeekly2025
     case "Newspaper2025P1"    => Newspaper2025P1
     case "HomeDelivery2025"   => HomeDelivery2025
+    case "Newspaper2025P3"    => Newspaper2025P3
   }
 }
