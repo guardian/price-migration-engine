@@ -18,7 +18,7 @@ object Newspaper2025P3ExtraAttributes {
   //
   // The value of the `brandTitle` key is to be sent to Braze, during the
   // notification handler to decide the labelling to the entity in the email. At that point the
-  // attribute will be called `newspaper2025_brand_title`
+  // attribute will be called `newspaper2025_phase3_brand_title`
 
   // usage:
   // val s = """{ "brandTitle": "the Guardian" }"""
