@@ -1,0 +1,61 @@
+{
+  "basicInfo": {
+    "id": "ACCOUNT-ID",
+    "name": "ACCOUNT-NANE",
+    "accountNumber": "ACCOUNT-NUMBER",
+    "notes": null,
+    "status": "Active",
+    "crmId": "ACCOUNT-NANE",
+    "batch": "Batch1",
+    "invoiceTemplateId": "2c92a0fb49377eae014951ca848e074b",
+    "communicationProfileId": null,
+    "profileNumber": null,
+    "purchaseOrderNumber": null,
+    "customerServiceRepName": null,
+    "ScrubbedOn__c": null,
+    "IdentityId__c": "IDENTITY-ID",
+    "sfContactId__c": "sfContactId__c",
+    "CCURN__c": null,
+    "SpecialDeliveryInstructions__c": null,
+    "NonStandardDataReason__c": null,
+    "Scrubbed__c": null,
+    "ProcessingAdvice__c": "NoAdvice",
+    "CreatedRequestId__c": "72f7ccae-5cb1-8dab-0000-0000000034d1",
+    "RetryStatus__c": null,
+    "salesRep": null,
+    "creditMemoTemplateId": null,
+    "debitMemoTemplateId": null,
+    "summaryStatementTemplateId": null,
+    "sequenceSetId": null
+  },
+  "billingAndPayment": {
+    "billCycleDay": 27,
+    "currency": "GBP",
+    "paymentTerm": "Due Upon Receipt",
+    "paymentGateway": "Stripe PaymentIntents GNM Membership",
+    "paymentGatewayNumber": "PG-00000008",
+    "defaultPaymentMethodId": "8a128c88882485bb0188262ca1ff42f1",
+    "invoiceDeliveryPrefsPrint": false,
+    "invoiceDeliveryPrefsEmail": true,
+    "autoPay": true,
+    "additionalEmailAddresses": [],
+    "paymentMethodCascadingConsent": false,
+    "gatewayRoutingEligible": null
+  },
+  "metrics": {
+    "balance": 0.0,
+    "currency": "GBP",
+    "totalInvoiceBalance": 0.0,
+    "creditBalance": 0.0,
+    "totalDebitMemoBalance": 0.0,
+    "unappliedPaymentAmount": 0.0,
+    "unappliedCreditMemoAmount": 0.0,
+    "contractedMrr": 14.99
+  },
+  "billToContact": null,
+  "soldToContact": {
+    "country": "United Kingdom"
+  },
+  "taxInfo": null,
+  "success": true
+}
