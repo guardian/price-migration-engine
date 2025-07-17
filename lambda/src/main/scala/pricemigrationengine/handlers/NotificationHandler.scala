@@ -454,6 +454,7 @@ object NotificationHandler extends CohortHandler {
     // that we are only delivery in the UK.
     MigrationType(cohortSpec) match {
       case SupporterPlus2024 => Right(address.country.getOrElse(""))
+      case HomeDelivery2025  => Right(address.country.getOrElse("United Kingdom"))
       case _                 => requiredField(address.country, "Contact.OtherAddress.country")
     }
   }
