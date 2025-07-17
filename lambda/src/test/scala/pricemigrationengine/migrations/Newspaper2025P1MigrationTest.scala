@@ -733,16 +733,18 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     )
   }
 
-  test("Newspaper2025P1Migration.amendmentOrderPayload (276579) [with discount removal]") {
+  test("Newspaper2025P1Migration.amendmentOrderPayload (277526-Discounts-Adjustment) [with discount removal]") {
 
-    // Here we reuse 276579 to test the discount removal variant of Newspaper2025P1Migration.amendmentOrderPayload
+    // Here we use 277526-Discounts-Adjustment to test the discount removal variant of Newspaper2025P1Migration.amendmentOrderPayload
 
     // To trigger that we just need to set the cohort item extra attributes with
     // a "removeDiscount": true
 
-    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/276579/subscription.json")
-    val account = Fixtures.accountFromJson("Migrations/Newspaper2025P1/276579/account.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/276579/invoice-preview.json")
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/277526-Discounts-Adjustment/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Newspaper2025P1/277526-Discounts-Adjustment/account.json")
+    val invoicePreview =
+      Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/277526-Discounts-Adjustment/invoice-preview.json")
 
     val startDate = LocalDate.of(2025, 8, 5)
     val oldPrice = BigDecimal(67.5)
@@ -784,7 +786,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
         ujson.read(
           s"""{
              |    "orderDate": "2025-07-16",
-             |    "existingAccountNumber": "ACCOUNT-NUMBER",
+             |    "existingAccountNumber": "SUBSCRIPTION-NUMBER",
              |    "subscriptions": [
              |        {
              |            "subscriptionNumber": "SUBSCRIPTION-NUMBER",
@@ -806,7 +808,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                        }
              |                    ],
              |                    "removeProduct": {
-             |                        "ratePlanId": "8a12910195aa4f620195b0e2bc0c139d"
+             |                        "ratePlanId": "8a1281f09187876601918cb7010d0274"
              |                    }
              |                },
              |                {
@@ -826,7 +828,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                        }
              |                    ],
              |                    "removeProduct": {
-             |                        "ratePlanId": "8a12910195aa4f620195b0e2b1541258"
+             |                        "ratePlanId": "8a1281f09187876601918cb7011c02dd"
              |                    }
              |                },
              |                {
@@ -846,61 +848,69 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                        }
              |                    ],
              |                    "addProduct": {
-             |                        "productRatePlanId": "2c92a0fc56fe26ba0157040c5ea17f6a",
+             |                        "productRatePlanId": "2c92a0ff56fe33f50157040bbdcf3ae4",
              |                        "chargeOverrides": [
              |                            {
-             |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709cdedbd246b",
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709cce7ad1aea",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 11.548444444444444
+             |                                        "listPrice": 10.852444444444444
              |                                    }
              |                                }
              |                            },
              |                            {
-             |                                "productRatePlanChargeId": "2c92a0ff56fe33f3015709d10a436f52",
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709c80af30495",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 14.757777777777777
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f0015709cac4561bf3",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 10.852444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe270b015709cc16f92645",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 10.852444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe270b015709c90c291c49",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 10.852444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709ca144a646a",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 10.852444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b60157042fcd462666",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 14.74488888888889
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fc56fe26ba01570418eddd26e1",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 2.577777777777778
-             |                                    }
-             |                                }
-             |                            },
-             |                            {
-             |                                "productRatePlanChargeId": "2c92a0fe56fe33ff015704325d87494c",
-             |                                "pricing": {
-             |                                    "recurringFlatFee": {
-             |                                        "listPrice": 11.548444444444444
-             |                                    }
-             |                                }
-             |                            },
-             |                            {
-             |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709d078df4a80",
-             |                                "pricing": {
-             |                                    "recurringFlatFee": {
-             |                                        "listPrice": 15.711555555555556
-             |                                    }
-             |                                }
-             |                            },
-             |                            {
-             |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709cfc1500a2e",
-             |                                "pricing": {
-             |                                    "recurringFlatFee": {
-             |                                        "listPrice": 11.548444444444444
-             |                                    }
-             |                                }
-             |                            },
-             |                            {
-             |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709ced61a032e",
-             |                                "pricing": {
-             |                                    "recurringFlatFee": {
-             |                                        "listPrice": 11.548444444444444
-             |                                    }
-             |                                }
-             |                            },
-             |                            {
-             |                                "productRatePlanChargeId": "2c92a0fc56fe26ba015709cf4bbd3d1c",
-             |                                "pricing": {
-             |                                    "recurringFlatFee": {
-             |                                        "listPrice": 11.548444444444444
              |                                    }
              |                                }
              |                            }
@@ -919,5 +929,4 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
       )
     )
   }
-
 }

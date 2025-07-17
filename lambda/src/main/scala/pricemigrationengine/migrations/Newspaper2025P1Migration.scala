@@ -291,7 +291,7 @@ object Newspaper2025P1Migration {
       } else {
         for {
           ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
-          discount <- GuardianWeekly2025Migration.getDiscount(zuora_subscription)
+          discount <- SI2025Extractions.getDiscount(zuora_subscription, "Adjustment")
         } yield {
           val subscriptionRatePlanId = ratePlan.id
           val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
@@ -316,7 +316,6 @@ object Newspaper2025P1Migration {
           )
         }
       }
-
     }
 
     order_opt match {

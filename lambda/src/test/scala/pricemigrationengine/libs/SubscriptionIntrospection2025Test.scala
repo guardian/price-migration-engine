@@ -384,7 +384,7 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     val subscription =
       Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription3-with-discount/subscription.json")
     assertEquals(
-      SI2025Extractions.getDiscount(subscription),
+      SI2025Extractions.getDiscount(subscription, "Percentage"),
       Some(
         ZuoraRatePlan(
           id = "8a129ce595aa3a180195c130cca57d19",
@@ -412,6 +412,48 @@ class SI2025ExtractionsTest extends munit.FunSuite {
               originalOrderDate = Some(LocalDate.of(2018, 3, 20)),
               effectiveStartDate = Some(LocalDate.of(2018, 3, 23)),
               effectiveEndDate = Some(LocalDate.of(2026, 3, 23))
+            )
+          ),
+          lastChangeType = Some("Add")
+        )
+      )
+    )
+  }
+
+  test("SI2025Extractions.determineLastPriceMigrationDate") {
+    val subscription =
+      Fixtures.subscriptionFromJson(
+        "libs/SubscriptionIntrospection2025/subscription4-511760-Discount-Adjustment/subscription.json"
+      )
+    assertEquals(
+      SI2025Extractions.getDiscount(subscription, "Adjustment"),
+      Some(
+        ZuoraRatePlan(
+          id = "8a128efc91a138d30191bb00a80c281f",
+          productName = "Discounts",
+          productRatePlanId = "2c92a0ff5e09bd67015e0a93efe86d2e",
+          ratePlanName = "Customer Experience Adjustment - Voucher",
+          ratePlanCharges = List(
+            ZuoraRatePlanCharge(
+              productRatePlanChargeId = "2c92a0ff5e09bd67015e0a93f0026d34",
+              name = "Adjustment charge",
+              number = "C-01103430",
+              currency = "GBP",
+              price = Some(-4.15),
+              billingPeriod = Some("Month"),
+              chargedThroughDate = Some(LocalDate.of(2025, 8, 4)),
+              processedThroughDate = Some(LocalDate.of(2025, 7, 4)),
+              specificBillingPeriod = None,
+              endDateCondition = Some("Subscription_End"),
+              upToPeriodsType = None,
+              upToPeriods = None,
+              billingDay = Some("DefaultFromCustomer"),
+              triggerEvent = Some("CustomerAcceptance"),
+              triggerDate = None,
+              discountPercentage = None,
+              originalOrderDate = Some(LocalDate.of(2017, 8, 24)),
+              effectiveStartDate = Some(LocalDate.of(2017, 9, 4)),
+              effectiveEndDate = Some(LocalDate.of(2025, 9, 4))
             )
           ),
           lastChangeType = Some("Add")
