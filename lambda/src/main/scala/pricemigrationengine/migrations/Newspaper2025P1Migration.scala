@@ -316,7 +316,6 @@ object Newspaper2025P1Migration {
           )
         }
       }
-
     }
 
     order_opt match {
