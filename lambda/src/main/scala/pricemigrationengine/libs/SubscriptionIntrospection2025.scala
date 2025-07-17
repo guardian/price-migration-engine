@@ -135,8 +135,14 @@ object SI2025Extractions {
     } yield date
   }
 
-  def getDiscount(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
-    subscription.ratePlans.find(ratePlan => ratePlan.productName == "Discounts")
+  def getDiscount(subscription: ZuoraSubscription, ratePlanName: String): Option[ZuoraRatePlan] = {
+    // The product name is always "Discount", but the ratePlanName is more freeform.
+    // I have noticed
+    // ratePlanName: "Percentage"
+    // ratePlanName: "Customer Experience Adjustment - Voucher"
+    // To handle this we use ratePlanName.contains
+    subscription.ratePlans
+      .find(ratePlan => ratePlan.productName == "Discounts" && ratePlan.ratePlanName.contains(ratePlanName))
   }
 }
 

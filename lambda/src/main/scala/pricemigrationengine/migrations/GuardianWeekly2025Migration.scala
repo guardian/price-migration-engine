@@ -120,10 +120,6 @@ object GuardianWeekly2025Migration {
     flag_opt.getOrElse(false)
   }
 
-  def getDiscount(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
-    SI2025Extractions.getDiscount(subscription)
-  }
-
   def computeStartDateLowerBound4(lowerBound: LocalDate, item: CohortItem): LocalDate = {
     val dateFromCohortItem = getEarliestMigrationDateFromMigrationExtraAttributes(item)
     dateFromCohortItem match {
@@ -247,7 +243,7 @@ object GuardianWeekly2025Migration {
       } else {
         for {
           ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
-          discount <- GuardianWeekly2025Migration.getDiscount(zuora_subscription)
+          discount <- SI2025Extractions.getDiscount(zuora_subscription, "Percentage")
         } yield {
           val subscriptionRatePlanId = ratePlan.id
           val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
