@@ -733,4 +733,201 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     )
   }
 
+  test("Newspaper2025P1Migration.amendmentOrderPayload (276579) [with discount removal]") {
+
+    // Here we use 277526-Discounts-Adjustment to test the discount removal variant of Newspaper2025P1Migration.amendmentOrderPayload
+
+    // To trigger that we just need to set the cohort item extra attributes with
+    // a "removeDiscount": true
+
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/277526-Discounts-Adjustment/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Newspaper2025P1/277526-Discounts-Adjustment/account.json")
+    val invoicePreview =
+      Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/277526-Discounts-Adjustment/invoice-preview.json")
+
+    val startDate = LocalDate.of(2025, 8, 5)
+    val oldPrice = BigDecimal(67.5)
+    val estimatedNewPrice = BigDecimal(87.0)
+
+    val cohortItem = CohortItem(
+      subscriptionName = subscription.subscriptionNumber,
+      processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
+      startDate = Some(startDate),
+      currency = Some("EUR"),
+      oldPrice = Some(oldPrice),
+      estimatedNewPrice = Some(estimatedNewPrice),
+      billingPeriod = Some("Quarter"),
+      migrationExtraAttributes = Some("""{ "brandTitle": "Label 01", "removeDiscount": true }""")
+    )
+
+    // We now collect the arguments of Newspaper2025P1Migration.amendmentOrderPayload
+
+    val orderDate = LocalDate.of(2025, 7, 16) // LocalDate.now()
+    val accountNumber = subscription.accountNumber
+    val subscriptionNumber = subscription.subscriptionNumber
+    val effectDate = startDate
+    val priceCap = 1.2
+
+    assertEquals(
+      Newspaper2025P1Migration.amendmentOrderPayload(
+        cohortItem,
+        orderDate,
+        accountNumber,
+        subscriptionNumber,
+        effectDate,
+        subscription,
+        oldPrice,
+        estimatedNewPrice,
+        priceCap,
+        invoicePreview
+      ),
+      Right(
+        ujson.read(
+          s"""{
+             |    "orderDate": "2025-07-16",
+             |    "existingAccountNumber": "SUBSCRIPTION-NUMBER",
+             |    "subscriptions": [
+             |        {
+             |            "subscriptionNumber": "SUBSCRIPTION-NUMBER",
+             |            "orderActions": [
+             |                {
+             |                    "type": "RemoveProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-08-05"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-08-05"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-08-05"
+             |                        }
+             |                    ],
+             |                    "removeProduct": {
+             |                        "ratePlanId": "8a1281f09187876601918cb7010d0274"
+             |                    }
+             |                },
+             |                {
+             |                    "type": "RemoveProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-08-05"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-08-05"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-08-05"
+             |                        }
+             |                    ],
+             |                    "removeProduct": {
+             |                        "ratePlanId": "8a1281f09187876601918cb7011c02dd"
+             |                    }
+             |                },
+             |                {
+             |                    "type": "AddProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-08-05"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-08-05"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-08-05"
+             |                        }
+             |                    ],
+             |                    "addProduct": {
+             |                        "productRatePlanId": "2c92a0ff56fe33f50157040bbdcf3ae4",
+             |                        "chargeOverrides": [
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709cce7ad1aea",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 10.852444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709c80af30495",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 14.757777777777777
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f0015709cac4561bf3",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 10.852444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe270b015709cc16f92645",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 10.852444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe270b015709c90c291c49",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 10.852444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709ca144a646a",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 10.852444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b60157042fcd462666",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 14.74488888888889
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fc56fe26ba01570418eddd26e1",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 2.577777777777778
+             |                                    }
+             |                                }
+             |                            }
+             |                        ]
+             |                    }
+             |                }
+             |            ]
+             |        }
+             |    ],
+             |    "processingOptions": {
+             |        "runBilling": false,
+             |        "collectPayment": false
+             |    }
+             |}""".stripMargin
+        )
+      )
+    )
+  }
+
 }
