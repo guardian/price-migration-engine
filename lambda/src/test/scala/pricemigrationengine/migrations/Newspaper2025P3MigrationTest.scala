@@ -68,4 +68,26 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     val label = Newspaper2025P3Migration.decideShouldRemoveDiscount(cohortItem)
     assertEquals(label, false)
   }
+
+  test("priceLookUp") {
+    assertEquals(
+      Newspaper2025P3Migration.priceLookUp(Newspaper2025P3Everyday, Monthly),
+      Some(BigDecimal(69.99))
+    )
+
+    assertEquals(
+      Newspaper2025P3Migration.priceLookUp(Newspaper2025P3Sixday, SemiAnnual),
+      Some(BigDecimal(371.94))
+    )
+
+    assertEquals(
+      Newspaper2025P3Migration.priceLookUp(Newspaper2025P3Weekend, Quarterly),
+      Some(BigDecimal(83.97))
+    )
+
+    assertEquals(
+      Newspaper2025P3Migration.priceLookUp(Newspaper2025P3Saturday, Monthly),
+      Some(BigDecimal(15.99))
+    )
+  }
 }
