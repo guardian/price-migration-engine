@@ -135,10 +135,10 @@ object HomeDelivery2025Migration {
   }
 
   def priceLookUp(
-      deliveryFrequency: HomeDelivery2025DeliveryPattern,
+      deliveryPattern: HomeDelivery2025DeliveryPattern,
       billingPeriod: BillingPeriod
   ): Option[BigDecimal] = {
-    newPrices.get((deliveryFrequency, billingPeriod))
+    newPrices.get((deliveryPattern, billingPeriod))
   }
 
   def subscriptionToLastPriceMigrationDate(subscription: ZuoraSubscription): Option[LocalDate] = {

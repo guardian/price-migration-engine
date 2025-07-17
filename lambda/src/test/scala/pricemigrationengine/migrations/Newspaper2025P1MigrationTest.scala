@@ -565,4 +565,172 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     )
   }
 
+  test("Newspaper2025P1Migration.amendmentOrderPayload (276579)") {
+
+    // We start with the same subscription that we started priceData with. The one with the fully
+    // detailed ratePlan (that we also used for ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides)
+
+    // Subscription fixture: 276579
+    // 276579; Newspaper - Voucher Book; Sixday+; Month
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/276579/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Newspaper2025P1/276579/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/276579/invoice-preview.json")
+
+    val startDate = LocalDate.of(2025, 8, 5)
+    val oldPrice = BigDecimal(67.5)
+    val estimatedNewPrice = BigDecimal(87.0)
+
+    val cohortItem = CohortItem(
+      subscriptionName = subscription.subscriptionNumber,
+      processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
+      startDate = Some(startDate),
+      currency = Some("EUR"),
+      oldPrice = Some(oldPrice),
+      estimatedNewPrice = Some(estimatedNewPrice),
+      billingPeriod = Some("Quarter"),
+      migrationExtraAttributes = None
+    )
+
+    // We now collect the arguments of Newspaper2025P1Migration.amendmentOrderPayload
+
+    val orderDate = LocalDate.of(2025, 7, 16) // LocalDate.now()
+    val accountNumber = subscription.accountNumber
+    val subscriptionNumber = subscription.subscriptionNumber
+    val effectDate = startDate
+    val priceCap = 1.2
+
+    assertEquals(
+      Newspaper2025P1Migration.amendmentOrderPayload(
+        cohortItem,
+        orderDate,
+        accountNumber,
+        subscriptionNumber,
+        effectDate,
+        subscription,
+        oldPrice,
+        estimatedNewPrice,
+        priceCap,
+        invoicePreview
+      ),
+      Right(
+        ujson.read(
+          s"""{
+             |    "orderDate": "2025-07-16",
+             |    "existingAccountNumber": "ACCOUNT-NUMBER",
+             |    "subscriptions": [
+             |        {
+             |            "subscriptionNumber": "SUBSCRIPTION-NUMBER",
+             |            "orderActions": [
+             |                {
+             |                    "type": "RemoveProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-08-05"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-08-05"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-08-05"
+             |                        }
+             |                    ],
+             |                    "removeProduct": {
+             |                        "ratePlanId": "8a12910195aa4f620195b0e2bc0c139d"
+             |                    }
+             |                },
+             |                {
+             |                    "type": "AddProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-08-05"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-08-05"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-08-05"
+             |                        }
+             |                    ],
+             |                    "addProduct": {
+             |                        "productRatePlanId": "2c92a0fc56fe26ba0157040c5ea17f6a",
+             |                        "chargeOverrides": [
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709cdedbd246b",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 11.548444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f3015709d10a436f52",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 2.577777777777778
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fe56fe33ff015704325d87494c",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 11.548444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709d078df4a80",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 15.711555555555556
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709cfc1500a2e",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 11.548444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709ced61a032e",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 11.548444444444444
+             |                                    }
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fc56fe26ba015709cf4bbd3d1c",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 11.548444444444444
+             |                                    }
+             |                                }
+             |                            }
+             |                        ]
+             |                    }
+             |                }
+             |            ]
+             |        }
+             |    ],
+             |    "processingOptions": {
+             |        "runBilling": false,
+             |        "collectPayment": false
+             |    }
+             |}""".stripMargin
+        )
+      )
+    )
+  }
+
 }

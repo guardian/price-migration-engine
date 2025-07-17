@@ -86,7 +86,6 @@ class HomeDelivery2025MigrationTest extends munit.FunSuite {
       Some(BigDecimal(20.99))
     )
 
-    // And we test an undefined combination
     assertEquals(
       HomeDelivery2025Migration.priceLookUp(HomeDelivery2025Saturday, SemiAnnual),
       Some(BigDecimal(125.94))
