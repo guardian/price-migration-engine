@@ -1,5 +1,7 @@
 package pricemigrationengine.libs
 
+import pricemigrationengine.model.ZuoraRatePlanCharge
+
 import java.time.LocalDate
 import upickle.default._
 import ujson._
@@ -114,6 +116,45 @@ object ZuoraOrdersApiPrimitives {
         )
       )
     )
+  }
+
+  def ratePlanChargesToChargeOverrides(
+      ratePlanCharges: List[ZuoraRatePlanCharge],
+      priceRatio: BigDecimal
+  ): List[Value] = {
+    // This functions is a more general case of the previous function (`chargeOverride`)
+    // We originally introduced `chargeOverride` for price increases that have a single charge
+    // in the rate plan that is being price increased, but cases such as Newspaper2025(P1) and
+    // HomeDelivery2025 have rate plans containing charges for each day of the week (or a subset
+    // of days of the week). In those cases we want to provide the set of ZuoraRatePlanCharge
+    // and get a corresponding set of charge overrides objects.
+
+    // An additional complexity is that in the simple case, we know the listing price
+    // which is the price we are moving to. In the case of a migration involving increases
+    // across different charges, we instead are going to provide the effective increase ratio.
+    // For instance if the old price of the entire subscription was £50 and the new price (the price
+    // carried by the cohort item, in other words the price we communicated to the user) is
+    // £60, which corresponds to a 20% increase, and assuming that the individual charges before
+    // price increase are £10, £20, £7 and £13 (note that the sum of values is 50), then the new
+    // post price increase charges should be 10 + 20%, 20 + 20%, 7 +20% and 13 + 20%.
+    // Consequently the signature of this functions include a parameter for the effective
+    // price increase ratio (we express the percentage as a ratio, so for instance a 20% increase
+    // will be a price ratio of 1.2).
+
+    ratePlanCharges.map { rpc =>
+      Obj(
+        "productRatePlanChargeId" -> Str(rpc.productRatePlanChargeId),
+        "pricing" -> Obj(
+          "recurringFlatFee" -> Obj(
+            "listPrice" -> Num((rpc.price.get * priceRatio).doubleValue) // [1]
+          )
+        )
+      )
+    }
+
+    // [1] The `get` method here *will* cause a runtime exception if it turns out that
+    // the rate plan charge didn't have a price attached to it. This will cause the engine to
+    // crashland in flames and alarm, but this is what we want.
   }
 
   def addProduct(triggerDateString: String, productRatePlanId: String, chargeOverrides: List[Value]): Value = {
