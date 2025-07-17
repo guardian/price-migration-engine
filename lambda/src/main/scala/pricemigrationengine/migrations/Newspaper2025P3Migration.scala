@@ -9,6 +9,12 @@ import ujson._
 import upickle.default._
 import zio.ZIO
 
+sealed trait Newspaper2025P3DeliveryPattern
+object Newspaper2025P3Everyday extends Newspaper2025P3DeliveryPattern
+object Newspaper2025P3Sixday extends Newspaper2025P3DeliveryPattern
+object Newspaper2025P3Weekend extends Newspaper2025P3DeliveryPattern
+object Newspaper2025P3Saturday extends Newspaper2025P3DeliveryPattern
+
 case class Newspaper2025P3ExtraAttributes(brandTitle: String, removeDiscount: Option[Boolean] = None)
 object Newspaper2025P3ExtraAttributes {
   implicit val reader: Reader[Newspaper2025P3ExtraAttributes] = macroR
@@ -55,7 +61,28 @@ object Newspaper2025P3Migration {
   // to prices not present in the price catalogue)
   // ------------------------------------------------
 
-  //
+  val newPrices: Map[(Newspaper2025P3DeliveryPattern, BillingPeriod), BigDecimal] = Map(
+    // Everyday
+    (Newspaper2025P3Everyday, Monthly) -> BigDecimal(69.99),
+    (Newspaper2025P3Everyday, Quarterly) -> BigDecimal(209.97),
+    (Newspaper2025P3Everyday, SemiAnnual) -> BigDecimal(419.94),
+    (Newspaper2025P3Everyday, Annual) -> BigDecimal(839.88),
+    // Sixday
+    (Newspaper2025P3Sixday, Monthly) -> BigDecimal(61.99),
+    (Newspaper2025P3Sixday, Quarterly) -> BigDecimal(185.97),
+    (Newspaper2025P3Sixday, SemiAnnual) -> BigDecimal(371.94),
+    (Newspaper2025P3Sixday, Annual) -> BigDecimal(743.88),
+    // Weekend
+    (Newspaper2025P3Weekend, Monthly) -> BigDecimal(27.99),
+    (Newspaper2025P3Weekend, Quarterly) -> BigDecimal(83.97),
+    (Newspaper2025P3Weekend, SemiAnnual) -> BigDecimal(167.94),
+    (Newspaper2025P3Weekend, Annual) -> BigDecimal(335.88),
+    // Saturday
+    (Newspaper2025P3Saturday, Monthly) -> BigDecimal(15.99),
+    (Newspaper2025P3Saturday, Quarterly) -> BigDecimal(47.97),
+    (Newspaper2025P3Saturday, SemiAnnual) -> BigDecimal(95.94),
+    (Newspaper2025P3Saturday, Annual) -> BigDecimal(191.88),
+  )
 
   // ------------------------------------------------
   // Helpers
@@ -108,11 +135,10 @@ object Newspaper2025P3Migration {
   }
 
   def priceLookUp(
-      productType: Newspaper2025P1ProductType,
-      plusType: Newspaper2025P1PlusType,
+      deliveryPattern: Newspaper2025P3DeliveryPattern,
       billingPeriod: BillingPeriod
   ): Option[BigDecimal] = {
-    ???
+    newPrices.get((deliveryPattern, billingPeriod))
   }
 
   def subscriptionToLastPriceMigrationDate(subscription: ZuoraSubscription): Option[LocalDate] = {
