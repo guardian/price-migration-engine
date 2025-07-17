@@ -18,9 +18,9 @@ sealed trait Newspaper2025P1PlusType
 object Newspaper2025P1EverydayPlus extends Newspaper2025P1PlusType
 object Newspaper2025P1SixdayPlus extends Newspaper2025P1PlusType
 
-case class Newspaper2025ExtraAttributes(brandTitle: String, removeDiscount: Option[Boolean] = None)
-object Newspaper2025ExtraAttributes {
-  implicit val reader: Reader[Newspaper2025ExtraAttributes] = macroR
+case class Newspaper2025P1ExtraAttributes(brandTitle: String, removeDiscount: Option[Boolean] = None)
+object Newspaper2025P1ExtraAttributes {
+  implicit val reader: Reader[Newspaper2025P1ExtraAttributes] = macroR
 
   // Each item of the migration is going to have a migration extended attributes object
   // with a brandTitle key and possibly a removeDiscount key.
@@ -33,7 +33,7 @@ object Newspaper2025ExtraAttributes {
   // val s = """{ "brandTitle": "the Guardian" }"""
   // val s = """{ "brandTitle": "the Guardian and the Observer" }"""
   // val s = """{ "brandTitle": "the Guardian", "removeDiscount": true }"""
-  // val attributes: Newspaper2025ExtraAttributes = upickle.default.read[Newspaper2025ExtraAttributes](s)
+  // val attributes: Newspaper2025P1ExtraAttributes = upickle.default.read[Newspaper2025P1ExtraAttributes](s)
 }
 
 // (Comment Group: 571dac68)
@@ -108,8 +108,8 @@ object Newspaper2025P1Migration {
     for {
       attributes <- item.migrationExtraAttributes
     } yield {
-      val data: Newspaper2025ExtraAttributes =
-        upickle.default.read[Newspaper2025ExtraAttributes](attributes)
+      val data: Newspaper2025P1ExtraAttributes =
+        upickle.default.read[Newspaper2025P1ExtraAttributes](attributes)
       data.brandTitle
     }
   }
@@ -117,8 +117,8 @@ object Newspaper2025P1Migration {
   def decideShouldRemoveDiscount(item: CohortItem): Boolean = {
     val flag_opt = (for {
       attributes <- item.migrationExtraAttributes
-      data: Newspaper2025ExtraAttributes =
-        upickle.default.read[Newspaper2025ExtraAttributes](attributes)
+      data: Newspaper2025P1ExtraAttributes =
+        upickle.default.read[Newspaper2025P1ExtraAttributes](attributes)
       removeDiscount <- data.removeDiscount
     } yield removeDiscount)
     flag_opt.getOrElse(false)

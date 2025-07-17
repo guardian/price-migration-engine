@@ -39,8 +39,8 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
 
   test("decoding") {
     val s = """{ "brandTitle": "Label 01" }"""
-    val attribute: Newspaper2025ExtraAttributes = upickle.default.read[Newspaper2025ExtraAttributes](s)
-    assertEquals(attribute, Newspaper2025ExtraAttributes("Label 01", None))
+    val attribute: Newspaper2025P1ExtraAttributes = upickle.default.read[Newspaper2025P1ExtraAttributes](s)
+    assertEquals(attribute, Newspaper2025P1ExtraAttributes("Label 01", None))
   }
 
   test("getLabelFromMigrationExtraAttributes (1)") {
