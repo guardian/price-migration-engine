@@ -1,0 +1,12 @@
+"id": "8a128efc91a138d30191bb00a80c281f"
+"lastChangeType": "Add"
+"productId": "2c92a0ff5345f9200153559c6d2a3385"
+"productName": "Discounts"
+"productSku": "ABC-00000012"
+"productRatePlanId": "2c92a0ff5e09bd67015e0a93efe86d2e"
+"productRatePlanNumber": null
+"ratePlanName": "Customer Experience Adjustment - Voucher"
+"subscriptionProductFeatures": []
+"externallyManagedPlanId": null
+"subscriptionRatePlanNumber": "SRP-01103430"
+"isFromExternalCatalog": false
