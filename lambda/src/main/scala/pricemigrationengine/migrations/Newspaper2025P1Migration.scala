@@ -266,25 +266,57 @@ object Newspaper2025P1Migration {
     // abnormal case it would not, we want the process to error and alarm.
     val priceRatio = estimatedNewPrice / oldPrice
 
-    val order_opt = for {
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
-    } yield {
-      val subscriptionRatePlanId = ratePlan.id
-      val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
-      val triggerDateString = effectDate.toString
-      val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
-      val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
-        ratePlan.ratePlanCharges,
-        priceRatio
-      )
-      val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
-      val order_subscription =
-        ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
-      ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
-        orderDate.toString,
-        accountNumber,
-        order_subscription
-      )
+    val order_opt = {
+      if (!decideShouldRemoveDiscount(cohortItem)) {
+        for {
+          ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+        } yield {
+          val subscriptionRatePlanId = ratePlan.id
+          val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
+          val triggerDateString = effectDate.toString
+          val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
+          val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
+            ratePlan.ratePlanCharges,
+            priceRatio
+          )
+          val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+          val order_subscription =
+            ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
+          ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
+            orderDate.toString,
+            accountNumber,
+            order_subscription
+          )
+        }
+      } else {
+        for {
+          ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+          discount <- SI2025Extractions.getDiscount(zuora_subscription, "Adjustment")
+        } yield {
+          val subscriptionRatePlanId = ratePlan.id
+          val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
+          val removeDiscount = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, discount.id)
+          val triggerDateString = effectDate.toString
+          val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
+          val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
+            ratePlan.ratePlanCharges,
+            priceRatio
+          )
+          val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+          val order_subscription =
+            ZuoraOrdersApiPrimitives.subscription(
+              subscriptionNumber,
+              List(removeProduct, removeDiscount),
+              List(addProduct)
+            )
+          ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
+            orderDate.toString,
+            accountNumber,
+            order_subscription
+          )
+        }
+      }
+
     }
 
     order_opt match {
