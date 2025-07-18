@@ -733,7 +733,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     )
   }
 
-  test("Newspaper2025P1Migration.amendmentOrderPayload (276579) [with discount removal]") {
+  test("Newspaper2025P1Migration.amendmentOrderPayload (277526-Discounts-Adjustment) [with discount removal]") {
 
     // Here we use 277526-Discounts-Adjustment to test the discount removal variant of Newspaper2025P1Migration.amendmentOrderPayload
 
@@ -929,5 +929,4 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
       )
     )
   }
-
 }
