@@ -18,9 +18,9 @@ sealed trait Newspaper2025P1PlusType
 object Newspaper2025P1EverydayPlus extends Newspaper2025P1PlusType
 object Newspaper2025P1SixdayPlus extends Newspaper2025P1PlusType
 
-case class Newspaper2025ExtraAttributes(brandTitle: String, removeDiscount: Option[Boolean] = None)
-object Newspaper2025ExtraAttributes {
-  implicit val reader: Reader[Newspaper2025ExtraAttributes] = macroR
+case class Newspaper2025P1ExtraAttributes(brandTitle: String, removeDiscount: Option[Boolean] = None)
+object Newspaper2025P1ExtraAttributes {
+  implicit val reader: Reader[Newspaper2025P1ExtraAttributes] = macroR
 
   // Each item of the migration is going to have a migration extended attributes object
   // with a brandTitle key and possibly a removeDiscount key.
@@ -33,7 +33,7 @@ object Newspaper2025ExtraAttributes {
   // val s = """{ "brandTitle": "the Guardian" }"""
   // val s = """{ "brandTitle": "the Guardian and the Observer" }"""
   // val s = """{ "brandTitle": "the Guardian", "removeDiscount": true }"""
-  // val attributes: Newspaper2025ExtraAttributes = upickle.default.read[Newspaper2025ExtraAttributes](s)
+  // val attributes: Newspaper2025P1ExtraAttributes = upickle.default.read[Newspaper2025P1ExtraAttributes](s)
 }
 
 // (Comment Group: 571dac68)
@@ -55,7 +55,7 @@ object Newspaper2025P1Migration {
   // ------------------------------------------------
 
   val maxLeadTime = 35
-  val minLeadTime = 32
+  val minLeadTime = 33
 
   // ------------------------------------------------
   // Price Grid
@@ -108,8 +108,8 @@ object Newspaper2025P1Migration {
     for {
       attributes <- item.migrationExtraAttributes
     } yield {
-      val data: Newspaper2025ExtraAttributes =
-        upickle.default.read[Newspaper2025ExtraAttributes](attributes)
+      val data: Newspaper2025P1ExtraAttributes =
+        upickle.default.read[Newspaper2025P1ExtraAttributes](attributes)
       data.brandTitle
     }
   }
@@ -117,8 +117,8 @@ object Newspaper2025P1Migration {
   def decideShouldRemoveDiscount(item: CohortItem): Boolean = {
     val flag_opt = (for {
       attributes <- item.migrationExtraAttributes
-      data: Newspaper2025ExtraAttributes =
-        upickle.default.read[Newspaper2025ExtraAttributes](attributes)
+      data: Newspaper2025P1ExtraAttributes =
+        upickle.default.read[Newspaper2025P1ExtraAttributes](attributes)
       removeDiscount <- data.removeDiscount
     } yield removeDiscount)
     flag_opt.getOrElse(false)
@@ -253,10 +253,18 @@ object Newspaper2025P1Migration {
       priceCap: BigDecimal,
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
-    // We have two notions of subscription here.
-    // There is the Zuora subscription which is one of the arguments, and there is
-    // the notion of subscription as defined in the Zuora Order API documentation,
-    // which roughly translates to a collections of { actions / atomic mutations } in Zuora
+
+    // This version of `amendmentOrderPayload`, applied to subscriptions with the active rate plan having
+    // several charges (one per delivery day), is using ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides
+    // which maps the rate plan's rate plan charges to an array of charge overrides json objects.
+
+    // The important preliminary here, which wasn't needed in the simpler case of a single rate plan charge
+    // in the case of GuardianWeekly2025, for instance, is the price ratio from the old price to the new price
+    // (both carried by the cohort item).
+
+    // Note that we do use `get` here. The cohort items always get them from the estimation step, but in the
+    // abnormal case it would not, we want the process to error and alarm.
+    val priceRatio = estimatedNewPrice / oldPrice
 
     val order_opt = {
       if (!decideShouldRemoveDiscount(cohortItem)) {
@@ -267,11 +275,9 @@ object Newspaper2025P1Migration {
           val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
           val triggerDateString = effectDate.toString
           val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
-          val chargeOverrides = List(
-            ZuoraOrdersApiPrimitives.chargeOverride(
-              ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId,
-              PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap)
-            )
+          val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
+            ratePlan.ratePlanCharges,
+            priceRatio
           )
           val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
           val order_subscription =
@@ -285,18 +291,16 @@ object Newspaper2025P1Migration {
       } else {
         for {
           ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
-          discount <- GuardianWeekly2025Migration.getDiscount(zuora_subscription)
+          discount <- SI2025Extractions.getDiscount(zuora_subscription, "Adjustment")
         } yield {
           val subscriptionRatePlanId = ratePlan.id
           val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
           val removeDiscount = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, discount.id)
           val triggerDateString = effectDate.toString
           val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
-          val chargeOverrides = List(
-            ZuoraOrdersApiPrimitives.chargeOverride(
-              ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId,
-              PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap)
-            )
+          val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
+            ratePlan.ratePlanCharges,
+            priceRatio
           )
           val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
           val order_subscription =
@@ -319,7 +323,7 @@ object Newspaper2025P1Migration {
       case None =>
         Left(
           DataExtractionFailure(
-            s"[e5bd98d7] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
+            s"[01700e84] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
           )
         )
     }

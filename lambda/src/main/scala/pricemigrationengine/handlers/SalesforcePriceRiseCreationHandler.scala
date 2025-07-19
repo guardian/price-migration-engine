@@ -4,7 +4,8 @@ import pricemigrationengine.libs.PriceCap
 import pricemigrationengine.migrations.{
   GuardianWeekly2025Migration,
   HomeDelivery2025Migration,
-  Newspaper2025P1Migration
+  Newspaper2025P1Migration,
+  Newspaper2025P3Migration
 }
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiseCreationComplete}
 import pricemigrationengine.model._
@@ -95,6 +96,8 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
           PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025P1Migration.priceCap)
         case HomeDelivery2025 =>
           PriceCap.cappedPrice(oldPrice, estimatedNewPrice, HomeDelivery2025Migration.priceCap)
+        case Newspaper2025P3 =>
+          PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025P3Migration.priceCap)
       }
       // [1]
       // (Comment group: 7992fa98)

@@ -97,6 +97,7 @@ object AmendmentHandler extends CohortHandler {
       case GuardianWeekly2025 => true
       case Newspaper2025P1    => true
       case HomeDelivery2025   => true
+      case Newspaper2025P3    => true
     }
 
     // [1] We do not apply the check to the SupporterPlus2024 migration where, due to the way
@@ -148,9 +149,11 @@ object AmendmentHandler extends CohortHandler {
         case GuardianWeekly2025 =>
           ZIO.fail(MigrationRoutingFailure("GuardianWeekly2025 should not use doAmendment_ordersApi_typed_deprecated"))
         case Newspaper2025P1 =>
-          ZIO.fail(MigrationRoutingFailure("Newspaper2025 should not use doAmendment_ordersApi_typed_deprecated"))
+          ZIO.fail(MigrationRoutingFailure("Newspaper2025P1 should not use doAmendment_ordersApi_typed_deprecated"))
         case HomeDelivery2025 =>
           ZIO.fail(MigrationRoutingFailure("HomeDelivery2025 should not use doAmendment_ordersApi_typed_deprecated"))
+        case Newspaper2025P3 =>
+          ZIO.fail(MigrationRoutingFailure("Newspaper2025P3 should not use doAmendment_ordersApi_typed_deprecated"))
       }
       _ <- Logging.info(
         s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
@@ -250,11 +253,27 @@ object AmendmentHandler extends CohortHandler {
         case HomeDelivery2025 =>
           ZIO.fromEither(
             HomeDelivery2025Migration.amendmentOrderPayload(
+              cohortItem = item,
               orderDate = LocalDate.now(),
               accountNumber = account.basicInfo.accountNumber,
               subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
               effectDate = startDate,
-              subscription = subscriptionBeforeUpdate,
+              zuora_subscription = subscriptionBeforeUpdate,
+              oldPrice = oldPrice,
+              estimatedNewPrice = estimatedNewPrice,
+              priceCap = Newspaper2025P1Migration.priceCap,
+              invoiceList = invoicePreviewBeforeUpdate
+            )
+          )
+        case Newspaper2025P3 =>
+          ZIO.fromEither(
+            Newspaper2025P3Migration.amendmentOrderPayload(
+              cohortItem = item,
+              orderDate = LocalDate.now(),
+              accountNumber = account.basicInfo.accountNumber,
+              subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
+              effectDate = startDate,
+              zuora_subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
               priceCap = Newspaper2025P1Migration.priceCap,
@@ -336,6 +355,12 @@ object AmendmentHandler extends CohortHandler {
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
+      case Newspaper2025P3 =>
+        doAmendment_ordersApi_json_values(
+          cohortSpec: CohortSpec,
+          catalogue: ZuoraProductCatalogue,
+          item: CohortItem
+        )
     }
   }
 
@@ -343,6 +368,7 @@ object AmendmentHandler extends CohortHandler {
     MigrationType(input) match {
       case Newspaper2025P1  => ZIO.succeed(HandlerOutput(isComplete = true))
       case HomeDelivery2025 => ZIO.succeed(HandlerOutput(isComplete = true))
+      case Newspaper2025P3  => ZIO.succeed(HandlerOutput(isComplete = true))
       case _ => {
         main(input).provideSome[Logging](
           EnvConfig.cohortTable.layer,

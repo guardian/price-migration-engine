@@ -4,6 +4,7 @@ import pricemigrationengine.migrations.{
   GuardianWeekly2025Migration,
   HomeDelivery2025Migration,
   Newspaper2025P1Migration,
+  Newspaper2025P3Migration,
   SupporterPlus2024Migration
 }
 import pricemigrationengine.model.ZuoraProductCatalogue.productPricingMap
@@ -135,6 +136,7 @@ object AmendmentData {
       case GuardianWeekly2025 => GuardianWeekly2025Migration.priceData(subscription, invoiceList, account)
       case Newspaper2025P1    => Newspaper2025P1Migration.priceData(subscription, invoiceList, account)
       case HomeDelivery2025   => HomeDelivery2025Migration.priceData(subscription, invoiceList, account)
+      case Newspaper2025P3    => Newspaper2025P3Migration.priceData(subscription, invoiceList, account)
     }
   }
 }

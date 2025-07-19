@@ -1,0 +1,8 @@
+"id": "8a129ce595aa3a180195c130cca57d19"
+"lastChangeType": "Add"
+"productId": "2c92a0ff5345f9200153559c6d2a3385"
+"productName": "Discounts"
+"productSku": "ABC-00000012"
+"productRatePlanId": "2c92a0ff5345f9220153559d915d5c26"
+"productRatePlanNumber": null
+"ratePlanName": "Percentage"

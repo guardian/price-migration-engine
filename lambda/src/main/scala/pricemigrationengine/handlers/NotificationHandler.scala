@@ -11,6 +11,7 @@ import pricemigrationengine.migrations.{
   GuardianWeekly2025Migration,
   HomeDelivery2025Migration,
   Newspaper2025P1Migration,
+  Newspaper2025P3Migration,
   SupporterPlus2024Migration,
   SupporterPlus2024NotificationData
 }
@@ -29,6 +30,7 @@ object NotificationHandler extends CohortHandler {
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     MigrationType(input) match {
+      case Newspaper2025P3 => ZIO.succeed(HandlerOutput(isComplete = true))
       case _ => {
         main(input).provideSome[Logging](
           EnvConfig.salesforce.layer,
@@ -157,6 +159,8 @@ object NotificationHandler extends CohortHandler {
           s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025P1Migration.priceCap)}"
         case HomeDelivery2025 =>
           s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, HomeDelivery2025Migration.priceCap)}"
+        case Newspaper2025P3 =>
+          s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025P3Migration.priceCap)}"
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)
@@ -198,6 +202,11 @@ object NotificationHandler extends CohortHandler {
       // HomeDelivery2025 decommissioning.
 
       homedelivery2025NotificationData <- HomeDelivery2025Migration.getNotificationData(cohortSpec, cohortItem)
+      // ----------------------------------------------------
+
+      // ----------------------------------------------------
+      // Data for Newspaper2025P3
+      newspaper2025P3NotificationData <- Newspaper2025P3Migration.getNotificationData(cohortSpec, cohortItem)
       // ----------------------------------------------------
 
       brazeName <- brazeName(cohortSpec, cohortItem.subscriptionName)
@@ -260,6 +269,11 @@ object NotificationHandler extends CohortHandler {
                 // HomeDelivery decommissioning.
 
                 homedelivery2025_brand_title = Some(homedelivery2025NotificationData.brandTitle),
+                // -------------------------------------------------------------
+
+                // -------------------------------------------------------------
+                // Newspaper2025P3 extension
+                newspaper2025_phase3_brand_title = Some(newspaper2025P3NotificationData.brandTitle),
                 // -------------------------------------------------------------
 
               )
@@ -345,6 +359,7 @@ object NotificationHandler extends CohortHandler {
       case GuardianWeekly2025 => GuardianWeekly2025Migration.maxLeadTime
       case Newspaper2025P1    => Newspaper2025P1Migration.maxLeadTime
       case HomeDelivery2025   => HomeDelivery2025Migration.maxLeadTime
+      case Newspaper2025P3    => Newspaper2025P3Migration.maxLeadTime
     }
   }
 
@@ -355,6 +370,7 @@ object NotificationHandler extends CohortHandler {
       case GuardianWeekly2025 => GuardianWeekly2025Migration.minLeadTime
       case Newspaper2025P1    => Newspaper2025P1Migration.minLeadTime
       case HomeDelivery2025   => HomeDelivery2025Migration.minLeadTime
+      case Newspaper2025P3    => Newspaper2025P3Migration.minLeadTime
     }
   }
 
@@ -438,6 +454,8 @@ object NotificationHandler extends CohortHandler {
     // that we are only delivery in the UK.
     MigrationType(cohortSpec) match {
       case SupporterPlus2024 => Right(address.country.getOrElse(""))
+      case Newspaper2025P1   => Right(address.country.getOrElse("United Kingdom"))
+      case HomeDelivery2025  => Right(address.country.getOrElse("United Kingdom"))
       case _                 => requiredField(address.country, "Contact.OtherAddress.country")
     }
   }

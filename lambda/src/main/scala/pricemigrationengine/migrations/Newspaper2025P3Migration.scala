@@ -9,35 +9,35 @@ import ujson._
 import upickle.default._
 import zio.ZIO
 
-sealed trait HomeDelivery2025DeliveryPattern
-object HomeDelivery2025Everyday extends HomeDelivery2025DeliveryPattern
-object HomeDelivery2025Sixday extends HomeDelivery2025DeliveryPattern
-object HomeDelivery2025Weekend extends HomeDelivery2025DeliveryPattern
-object HomeDelivery2025Saturday extends HomeDelivery2025DeliveryPattern
+sealed trait Newspaper2025P3DeliveryPattern
+object Newspaper2025P3Everyday extends Newspaper2025P3DeliveryPattern
+object Newspaper2025P3Sixday extends Newspaper2025P3DeliveryPattern
+object Newspaper2025P3Weekend extends Newspaper2025P3DeliveryPattern
+object Newspaper2025P3Saturday extends Newspaper2025P3DeliveryPattern
 
-case class HomeDelivery2025ExtraAttributes(brandTitle: String, removeDiscount: Option[Boolean] = None)
-object HomeDelivery2025ExtraAttributes {
-  implicit val reader: Reader[HomeDelivery2025ExtraAttributes] = macroR
+case class Newspaper2025P3ExtraAttributes(brandTitle: String, removeDiscount: Option[Boolean] = None)
+object Newspaper2025P3ExtraAttributes {
+  implicit val reader: Reader[Newspaper2025P3ExtraAttributes] = macroR
 
   // Each item of the migration is going to have a migration extended attributes object
-  // with a brandTitle key. The value of this key is to be sent to Braze, during the
+  // with a brandTitle key and possibly a removeDiscount key.
+  //
+  // The value of the `brandTitle` key is to be sent to Braze, during the
   // notification handler to decide the labelling to the entity in the email. At that point the
-  // attribute will be called `brand_title`
+  // attribute will be called `newspaper2025_phase3_brand_title`
 
-  // usage
+  // usage:
   // val s = """{ "brandTitle": "the Guardian" }"""
   // val s = """{ "brandTitle": "the Guardian and the Observer" }"""
   // val s = """{ "brandTitle": "the Guardian", "removeDiscount": true }"""
-  // val attributes: HomeDelivery2025ExtraAttributes = upickle.default.read[HomeDelivery2025ExtraAttributes](s)
+  // val attributes: Newspaper2025P3ExtraAttributes = upickle.default.read[Newspaper2025P3ExtraAttributes](s)
 }
 
-// (Comment Group: 571dac68)
-
-case class HomeDelivery2025NotificationData(
+case class Newspaper2025P3NotificationData(
     brandTitle: String,
 )
 
-object HomeDelivery2025Migration {
+object Newspaper2025P3Migration {
 
   // ------------------------------------------------
   // Price capping
@@ -61,39 +61,41 @@ object HomeDelivery2025Migration {
   // to prices not present in the price catalogue)
   // ------------------------------------------------
 
-  val newPrices: Map[(HomeDelivery2025DeliveryPattern, BillingPeriod), BigDecimal] = Map(
+  val newPrices: Map[(Newspaper2025P3DeliveryPattern, BillingPeriod), BigDecimal] = Map(
     // Everyday
-    (HomeDelivery2025Everyday, Monthly) -> BigDecimal(83.99),
-    (HomeDelivery2025Everyday, Quarterly) -> BigDecimal(251.97),
-    (HomeDelivery2025Everyday, SemiAnnual) -> BigDecimal(503.94),
-    (HomeDelivery2025Everyday, Annual) -> BigDecimal(1007.88),
+    (Newspaper2025P3Everyday, Monthly) -> BigDecimal(69.99),
+    (Newspaper2025P3Everyday, Quarterly) -> BigDecimal(209.97),
+    (Newspaper2025P3Everyday, SemiAnnual) -> BigDecimal(419.94),
+    (Newspaper2025P3Everyday, Annual) -> BigDecimal(839.88),
     // Sixday
-    (HomeDelivery2025Sixday, Monthly) -> BigDecimal(73.99),
-    (HomeDelivery2025Sixday, Quarterly) -> BigDecimal(221.97),
-    (HomeDelivery2025Sixday, SemiAnnual) -> BigDecimal(443.94),
-    (HomeDelivery2025Sixday, Annual) -> BigDecimal(887.88),
+    (Newspaper2025P3Sixday, Monthly) -> BigDecimal(61.99),
+    (Newspaper2025P3Sixday, Quarterly) -> BigDecimal(185.97),
+    (Newspaper2025P3Sixday, SemiAnnual) -> BigDecimal(371.94),
+    (Newspaper2025P3Sixday, Annual) -> BigDecimal(743.88),
     // Weekend
-    (HomeDelivery2025Weekend, Monthly) -> BigDecimal(34.99),
-    (HomeDelivery2025Weekend, Quarterly) -> BigDecimal(104.97),
-    (HomeDelivery2025Weekend, SemiAnnual) -> BigDecimal(209.94),
-    (HomeDelivery2025Weekend, Annual) -> BigDecimal(419.88),
+    (Newspaper2025P3Weekend, Monthly) -> BigDecimal(27.99),
+    (Newspaper2025P3Weekend, Quarterly) -> BigDecimal(83.97),
+    (Newspaper2025P3Weekend, SemiAnnual) -> BigDecimal(167.94),
+    (Newspaper2025P3Weekend, Annual) -> BigDecimal(335.88),
     // Saturday
-    (HomeDelivery2025Saturday, Monthly) -> BigDecimal(20.99),
-    (HomeDelivery2025Saturday, Quarterly) -> BigDecimal(62.97),
-    (HomeDelivery2025Saturday, SemiAnnual) -> BigDecimal(125.94),
-    (HomeDelivery2025Saturday, Annual) -> BigDecimal(251.88),
+    (Newspaper2025P3Saturday, Monthly) -> BigDecimal(15.99),
+    (Newspaper2025P3Saturday, Quarterly) -> BigDecimal(47.97),
+    (Newspaper2025P3Saturday, SemiAnnual) -> BigDecimal(95.94),
+    (Newspaper2025P3Saturday, Annual) -> BigDecimal(191.88),
   )
 
   // ------------------------------------------------
   // Helpers
   // ------------------------------------------------
 
+  // (Comment Group: 571dac68)
+
   def getLabelFromMigrationExtraAttributes(item: CohortItem): Option[String] = {
     for {
       attributes <- item.migrationExtraAttributes
     } yield {
-      val data: HomeDelivery2025ExtraAttributes =
-        upickle.default.read[HomeDelivery2025ExtraAttributes](attributes)
+      val data: Newspaper2025P3ExtraAttributes =
+        upickle.default.read[Newspaper2025P3ExtraAttributes](attributes)
       data.brandTitle
     }
   }
@@ -101,41 +103,39 @@ object HomeDelivery2025Migration {
   def decideShouldRemoveDiscount(item: CohortItem): Boolean = {
     val flag_opt = (for {
       attributes <- item.migrationExtraAttributes
-      data: HomeDelivery2025ExtraAttributes =
-        upickle.default.read[HomeDelivery2025ExtraAttributes](attributes)
+      data: Newspaper2025P3ExtraAttributes =
+        upickle.default.read[Newspaper2025P3ExtraAttributes](attributes)
       removeDiscount <- data.removeDiscount
     } yield removeDiscount)
     flag_opt.getOrElse(false)
   }
 
-  // (Comment Group: 571dac68)
-
   def getNotificationData(
       cohortSpec: CohortSpec,
       item: CohortItem
-  ): ZIO[Zuora, Failure, HomeDelivery2025NotificationData] = {
+  ): ZIO[Zuora, Failure, Newspaper2025P3NotificationData] = {
     MigrationType(cohortSpec) match {
-      case HomeDelivery2025 => {
+      case Newspaper2025P1 => {
         (for {
           brandTitle <- getLabelFromMigrationExtraAttributes(item)
-        } yield HomeDelivery2025NotificationData(
+        } yield Newspaper2025P3NotificationData(
           brandTitle
         )) match {
           case None =>
             ZIO.fail(
               DataExtractionFailure(
-                s"Could not build HomeDelivery2025NotificationData for item ${item.toString}"
+                s"Could not build Newspaper2025P3NotificationData for item ${item.toString}"
               )
             )
           case Some(d) => ZIO.succeed(d)
         }
       }
-      case _ => ZIO.succeed(HomeDelivery2025NotificationData(""))
+      case _ => ZIO.succeed(Newspaper2025P3NotificationData(""))
     }
   }
 
   def priceLookUp(
-      deliveryPattern: HomeDelivery2025DeliveryPattern,
+      deliveryPattern: Newspaper2025P3DeliveryPattern,
       billingPeriod: BillingPeriod
   ): Option[BigDecimal] = {
     newPrices.get((deliveryPattern, billingPeriod))
@@ -148,20 +148,12 @@ object HomeDelivery2025Migration {
     } yield date
   }
 
-  def decideDeliveryPattern(ratePlan: ZuoraRatePlan): Option[HomeDelivery2025DeliveryPattern] = {
-    // I have checked every subscription and the only product names that come up are
-    // Newspaper Voucher
-    // Newspaper Digital Voucher
-    // Newspaper Delivery
-    // And I checked with Marketing that the below mapping is correct and in particular there doesn't
-    // seem to be any subscription that uses the [2025 - Price Grid - Sub Card] part of the pricing grid,
-    // what would map to Newspaper2025P1Subcard
-
+  def decideDeliveryPattern(ratePlan: ZuoraRatePlan): Option[Newspaper2025P3DeliveryPattern] = {
     ratePlan.ratePlanName.trim match {
-      case "Everyday" => Some(HomeDelivery2025Everyday)
-      case "Weekend"  => Some(HomeDelivery2025Weekend)
-      case "Sixday"   => Some(HomeDelivery2025Sixday)
-      case "Saturday" => Some(HomeDelivery2025Saturday)
+      case "Everyday" => Some(Newspaper2025P3Everyday)
+      case "Weekend"  => Some(Newspaper2025P3Weekend)
+      case "Sixday"   => Some(Newspaper2025P3Sixday)
+      case "Saturday" => Some(Newspaper2025P3Saturday)
       case _          => None
     }
   }
@@ -194,7 +186,7 @@ object HomeDelivery2025Migration {
       case None =>
         Left(
           DataExtractionFailure(
-            s"[93a96aee] Could not determine PriceData for subscription ${subscription.subscriptionNumber}"
+            s"[a149987a] Could not determine PriceData for subscription ${subscription.subscriptionNumber}"
           )
         )
     }
@@ -212,6 +204,7 @@ object HomeDelivery2025Migration {
       priceCap: BigDecimal,
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
+
     // This version of `amendmentOrderPayload`, applied to subscriptions with the active rate plan having
     // several charges (one per delivery day), is using ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides
     // which maps the rate plan's rate plan charges to an array of charge overrides json objects.
@@ -281,7 +274,7 @@ object HomeDelivery2025Migration {
       case None =>
         Left(
           DataExtractionFailure(
-            s"[4f62efe5] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
+            s"[9f480e70] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
           )
         )
     }
