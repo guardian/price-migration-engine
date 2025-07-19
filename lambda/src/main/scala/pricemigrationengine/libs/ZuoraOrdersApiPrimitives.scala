@@ -5,6 +5,7 @@ import pricemigrationengine.model.ZuoraRatePlanCharge
 import java.time.LocalDate
 import upickle.default._
 import ujson._
+import scala.math.BigDecimal.RoundingMode
 
 // This file contains the primitives to be able to construct the Orders API Payload
 // described here:
@@ -146,7 +147,7 @@ object ZuoraOrdersApiPrimitives {
         "productRatePlanChargeId" -> Str(rpc.productRatePlanChargeId),
         "pricing" -> Obj(
           "recurringFlatFee" -> Obj(
-            "listPrice" -> Num((rpc.price.get * priceRatio).doubleValue) // [1]
+            "listPrice" -> Num((rpc.price.get * priceRatio).setScale(2, RoundingMode.DOWN).doubleValue) // [1]
           )
         )
       )
