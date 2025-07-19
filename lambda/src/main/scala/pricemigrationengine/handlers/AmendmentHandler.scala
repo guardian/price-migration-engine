@@ -19,7 +19,7 @@ object AmendmentHandler extends CohortHandler {
       catalogue <- Zuora.fetchProductCatalogue
       count <- CohortTable
         .fetch(NotificationSendDateWrittenToSalesforce, None)
-        .take(batchSize)
+        .take(1)
         .mapZIO(item => amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
         .runCount
     } yield HandlerOutput(isComplete = count < batchSize)
