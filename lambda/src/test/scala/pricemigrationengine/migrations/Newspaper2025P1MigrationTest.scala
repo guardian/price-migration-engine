@@ -665,7 +665,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709cdedbd246b",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 11.548444444444444
+             |                                        "listPrice": 11.54
              |                                    }
              |                                }
              |                            },
@@ -673,7 +673,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0ff56fe33f3015709d10a436f52",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 2.577777777777778
+             |                                        "listPrice": 2.57
              |                                    }
              |                                }
              |                            },
@@ -681,7 +681,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0fe56fe33ff015704325d87494c",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 11.548444444444444
+             |                                        "listPrice": 11.54
              |                                    }
              |                                }
              |                            },
@@ -689,7 +689,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709d078df4a80",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 15.711555555555556
+             |                                        "listPrice": 15.71
              |                                    }
              |                                }
              |                            },
@@ -697,7 +697,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709cfc1500a2e",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 11.548444444444444
+             |                                        "listPrice": 11.54
              |                                    }
              |                                }
              |                            },
@@ -705,7 +705,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709ced61a032e",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 11.548444444444444
+             |                                        "listPrice": 11.54
              |                                    }
              |                                }
              |                            },
@@ -713,7 +713,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0fc56fe26ba015709cf4bbd3d1c",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 11.548444444444444
+             |                                        "listPrice": 11.54
              |                                    }
              |                                }
              |                            }
@@ -854,7 +854,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709cce7ad1aea",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 10.852444444444444
+             |                                        "listPrice": 10.85
              |                                    }
              |                                }
              |                            },
@@ -862,7 +862,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709c80af30495",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 14.757777777777777
+             |                                        "listPrice": 14.75
              |                                    }
              |                                }
              |                            },
@@ -870,7 +870,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0ff56fe33f0015709cac4561bf3",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 10.852444444444444
+             |                                        "listPrice": 10.85
              |                                    }
              |                                }
              |                            },
@@ -878,7 +878,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0fd56fe270b015709cc16f92645",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 10.852444444444444
+             |                                        "listPrice": 10.85
              |                                    }
              |                                }
              |                            },
@@ -886,7 +886,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0fd56fe270b015709c90c291c49",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 10.852444444444444
+             |                                        "listPrice": 10.85
              |                                    }
              |                                }
              |                            },
@@ -894,7 +894,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709ca144a646a",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 10.852444444444444
+             |                                        "listPrice": 10.85
              |                                    }
              |                                }
              |                            },
@@ -902,7 +902,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0fd56fe26b60157042fcd462666",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 14.74488888888889
+             |                                        "listPrice": 14.74
              |                                    }
              |                                }
              |                            },
@@ -910,7 +910,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0fc56fe26ba01570418eddd26e1",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 2.577777777777778
+             |                                        "listPrice": 2.57
              |                                    }
              |                                }
              |                            }
