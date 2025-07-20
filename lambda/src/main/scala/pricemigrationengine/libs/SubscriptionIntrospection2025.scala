@@ -145,6 +145,17 @@ object SI2025Extractions {
       .find(ratePlan => ratePlan.productName == "Discounts" && ratePlan.ratePlanName.contains(ratePlanName))
   }
 
+  def getPercentageOrAdjustementDiscount(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
+    // This function will extract a "Percentage" or a "Adjustment" ratePlan, whichever is present
+
+    // Note that the choice of values "Percentage" and "Adjustment" comes from the metadata
+    // in Marketing spreadsheets and as we have highlighted in the body of function `getDiscountByRatePlanName`
+    // those are not even always equal to the rate plan names but may appear as substring.
+
+    var a = getDiscountByRatePlanName(subscription: ZuoraSubscription, "Percentage")
+    var b = getDiscountByRatePlanName(subscription: ZuoraSubscription, "Adjustment")
+    a.orElse(b)
+  }
 }
 
 object SI2025Templates {

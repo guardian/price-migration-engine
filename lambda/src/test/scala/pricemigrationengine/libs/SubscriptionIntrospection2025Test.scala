@@ -380,7 +380,7 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     )
   }
 
-  test("SI2025Extractions.determineLastPriceMigrationDate") {
+  test("SI2025Extractions.getDiscountByRatePlanName") {
     val subscription =
       Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription3-with-discount/subscription.json")
     assertEquals(
@@ -420,13 +420,101 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     )
   }
 
-  test("SI2025Extractions.determineLastPriceMigrationDate") {
+  test("SI2025Extractions.getDiscountByRatePlanName") {
     val subscription =
       Fixtures.subscriptionFromJson(
         "libs/SubscriptionIntrospection2025/subscription4-511760-Discount-Adjustment/subscription.json"
       )
     assertEquals(
       SI2025Extractions.getDiscountByRatePlanName(subscription, "Adjustment"),
+      Some(
+        ZuoraRatePlan(
+          id = "8a128efc91a138d30191bb00a80c281f",
+          productName = "Discounts",
+          productRatePlanId = "2c92a0ff5e09bd67015e0a93efe86d2e",
+          ratePlanName = "Customer Experience Adjustment - Voucher",
+          ratePlanCharges = List(
+            ZuoraRatePlanCharge(
+              productRatePlanChargeId = "2c92a0ff5e09bd67015e0a93f0026d34",
+              name = "Adjustment charge",
+              number = "C-01103430",
+              currency = "GBP",
+              price = Some(-4.15),
+              billingPeriod = Some("Month"),
+              chargedThroughDate = Some(LocalDate.of(2025, 8, 4)),
+              processedThroughDate = Some(LocalDate.of(2025, 7, 4)),
+              specificBillingPeriod = None,
+              endDateCondition = Some("Subscription_End"),
+              upToPeriodsType = None,
+              upToPeriods = None,
+              billingDay = Some("DefaultFromCustomer"),
+              triggerEvent = Some("CustomerAcceptance"),
+              triggerDate = None,
+              discountPercentage = None,
+              originalOrderDate = Some(LocalDate.of(2017, 8, 24)),
+              effectiveStartDate = Some(LocalDate.of(2017, 9, 4)),
+              effectiveEndDate = Some(LocalDate.of(2025, 9, 4))
+            )
+          ),
+          lastChangeType = Some("Add")
+        )
+      )
+    )
+  }
+
+  test("SI2025Extractions.getPercentageOrAdjustementDiscount") {
+    val subscription =
+      Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription3-with-discount/subscription.json")
+
+    // The subscription has a "Percentage" discount, so that's what we expect
+
+    assertEquals(
+      SI2025Extractions.getPercentageOrAdjustementDiscount(subscription),
+      Some(
+        ZuoraRatePlan(
+          id = "8a129ce595aa3a180195c130cca57d19",
+          productName = "Discounts",
+          productRatePlanId = "2c92a0ff5345f9220153559d915d5c26",
+          ratePlanName = "Percentage",
+          ratePlanCharges = List(
+            ZuoraRatePlanCharge(
+              productRatePlanChargeId = "2c92a0fd5345efa10153559e97bb76c6",
+              name = "Percentage",
+              number = "C-01271544",
+              currency = "AUD",
+              price = None,
+              billingPeriod = Some("Annual"),
+              chargedThroughDate = Some(LocalDate.of(2026, 3, 23)),
+              processedThroughDate = Some(LocalDate.of(2025, 3, 23)),
+              specificBillingPeriod = None,
+              endDateCondition = Some("Subscription_End"),
+              upToPeriodsType = None,
+              upToPeriods = None,
+              billingDay = Some("DefaultFromCustomer"),
+              triggerEvent = Some("CustomerAcceptance"),
+              triggerDate = None,
+              discountPercentage = Some(10),
+              originalOrderDate = Some(LocalDate.of(2018, 3, 20)),
+              effectiveStartDate = Some(LocalDate.of(2018, 3, 23)),
+              effectiveEndDate = Some(LocalDate.of(2026, 3, 23))
+            )
+          ),
+          lastChangeType = Some("Add")
+        )
+      )
+    )
+  }
+
+  test("SI2025Extractions.getPercentageOrAdjustementDiscount") {
+    val subscription =
+      Fixtures.subscriptionFromJson(
+        "libs/SubscriptionIntrospection2025/subscription4-511760-Discount-Adjustment/subscription.json"
+      )
+
+    // The subscription has a "* Adjustment *" discount, so that's what we expect
+
+    assertEquals(
+      SI2025Extractions.getPercentageOrAdjustementDiscount(subscription),
       Some(
         ZuoraRatePlan(
           id = "8a128efc91a138d30191bb00a80c281f",
