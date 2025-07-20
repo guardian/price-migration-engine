@@ -142,6 +142,10 @@ object ZuoraOrdersApiPrimitives {
     // price increase ratio (we express the percentage as a ratio, so for instance a 20% increase
     // will be a price ratio of 1.2).
 
+    // Note that we use RoundingMode.DOWN instead of the more classical RoundingMode.HALF_UP, because we do not want
+    // a rounding up to accidentally set the final price higher than the originally computed estimation price,
+    // because then that would trigger the post amendment price check error
+
     ratePlanCharges.map { rpc =>
       Obj(
         "productRatePlanChargeId" -> Str(rpc.productRatePlanChargeId),
