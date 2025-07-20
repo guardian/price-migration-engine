@@ -90,4 +90,52 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
       Some(BigDecimal(15.99))
     )
   }
+
+  // Fixtures:
+
+  // 277291-everyday-annual
+  // val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P3/277291-everyday-annual/subscription.json")
+  // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/277291-everyday-annual/account.json")
+  // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/277291-everyday-annual/invoice-preview.json")
+
+  // 277750-everyday-month
+  // val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P3/277750-everyday-month/subscription.json")
+  // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/277750-everyday-month/account.json")
+  // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/277750-everyday-month/invoice-preview.json")
+
+  // 412032-sixday-annual
+  // val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P3/412032-sixday-annual/subscription.json")
+  // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/412032-sixday-annual/account.json")
+  // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/412032-sixday-annual/invoice-preview.json")
+
+  // A-S02075439-saturday-month
+  // val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P3/A-S02075439-saturday-month/subscription.json")
+  // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/A-S02075439-saturday-month/account.json")
+  // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/A-S02075439-saturday-month/invoice-preview.json")
+
+  test("Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate") {
+    // 277291-everyday-annual
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/Newspaper2025P3/277291-everyday-annual/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/277291-everyday-annual/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/277291-everyday-annual/invoice-preview.json")
+
+    assertEquals(
+      Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate(subscription),
+      Some(LocalDate.of(2024, 11, 27))
+    )
+  }
+
+  test("Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate") {
+    // 412032-sixday-annual
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/Newspaper2025P3/412032-sixday-annual/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/412032-sixday-annual/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/412032-sixday-annual/invoice-preview.json")
+
+    assertEquals(
+      Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate(subscription),
+      Some(LocalDate.of(2024, 8, 12))
+    )
+  }
 }
