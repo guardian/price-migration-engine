@@ -39,14 +39,14 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     assertEquals(label, Some("Label 01"))
   }
 
-  test("decideShouldRemoveDiscount (2)") {
+  test("decideShouldRemoveDiscount (1)") {
     val cohortItem = CohortItem(
       subscriptionName = "A-000001",
       processingStage = ReadyForEstimation,
       migrationExtraAttributes = Some("""{ "brandTitle": "Label 01" }"""),
     )
-    val label = Newspaper2025P3Migration.decideShouldRemoveDiscount(cohortItem)
-    assertEquals(label, false)
+    val flag = Newspaper2025P3Migration.decideShouldRemoveDiscount(cohortItem)
+    assertEquals(flag, false)
   }
 
   test("decideShouldRemoveDiscount (2)") {
@@ -55,8 +55,8 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
       processingStage = ReadyForEstimation,
       migrationExtraAttributes = Some("""{ "brandTitle": "Label 01", "removeDiscount": true }"""),
     )
-    val label = Newspaper2025P3Migration.decideShouldRemoveDiscount(cohortItem)
-    assertEquals(label, true)
+    val flag = Newspaper2025P3Migration.decideShouldRemoveDiscount(cohortItem)
+    assertEquals(flag, true)
   }
 
   test("decideShouldRemoveDiscount (3)") {
@@ -65,8 +65,39 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
       processingStage = ReadyForEstimation,
       migrationExtraAttributes = Some("""{ "brandTitle": "Label 01", "removeDiscount": false }"""),
     )
-    val label = Newspaper2025P3Migration.decideShouldRemoveDiscount(cohortItem)
-    assertEquals(label, false)
+    val flag = Newspaper2025P3Migration.decideShouldRemoveDiscount(cohortItem)
+    assertEquals(flag, false)
+  }
+
+  test("getEarliestMigrationDateFromMigrationExtraAttributes (1)") {
+    val cohortItem = CohortItem(
+      subscriptionName = "A-000001",
+      processingStage = ReadyForEstimation,
+      migrationExtraAttributes = Some("""{ "brandTitle": "Label 01" }"""),
+    )
+    val date = Newspaper2025P3Migration.getEarliestMigrationDateFromMigrationExtraAttributes(cohortItem)
+    assertEquals(date, None)
+  }
+
+  test("getEarliestMigrationDateFromMigrationExtraAttributes (2)") {
+    val cohortItem = CohortItem(
+      subscriptionName = "A-000001",
+      processingStage = ReadyForEstimation,
+      migrationExtraAttributes = Some("""{ "brandTitle": "Label 01", "earliestMigrationDate": "2025-10-06" }"""),
+    )
+    val date = Newspaper2025P3Migration.getEarliestMigrationDateFromMigrationExtraAttributes(cohortItem)
+    assertEquals(date, Some(LocalDate.of(2025, 10, 6)))
+  }
+
+  test("getEarliestMigrationDateFromMigrationExtraAttributes (3)") {
+    val cohortItem = CohortItem(
+      subscriptionName = "A-000001",
+      processingStage = ReadyForEstimation,
+      migrationExtraAttributes =
+        Some("""{ "brandTitle": "Label 01", "removeDiscount": false, "earliestMigrationDate": "2025-10-06" }"""),
+    )
+    val date = Newspaper2025P3Migration.getEarliestMigrationDateFromMigrationExtraAttributes(cohortItem)
+    assertEquals(date, Some(LocalDate.of(2025, 10, 6)))
   }
 
   test("priceLookUp") {
