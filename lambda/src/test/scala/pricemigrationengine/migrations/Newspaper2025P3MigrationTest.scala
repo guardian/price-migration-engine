@@ -3,7 +3,7 @@ package pricemigrationengine.migrations
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.Fixtures
-import pricemigrationengine.libs.SI2025RateplanFromSubAndInvoices
+import pricemigrationengine.libs.{SI2025RateplanFromSub, SI2025RateplanFromSubAndInvoices}
 
 import java.time.LocalDate
 
@@ -91,6 +91,7 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     )
   }
 
+  // --------------------------------------------------------------------
   // Fixtures:
 
   // 277291-everyday-annual
@@ -112,6 +113,9 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
   // val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P3/A-S02075439-saturday-month/subscription.json")
   // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/A-S02075439-saturday-month/account.json")
   // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/A-S02075439-saturday-month/invoice-preview.json")
+
+  // --------------------------------------------------------------------
+  // Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate
 
   test("Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate") {
     // 277291-everyday-annual
@@ -138,4 +142,68 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
       Some(LocalDate.of(2024, 8, 12))
     )
   }
+
+  // --------------------------------------------------------------------
+  // Newspaper2025P3Migration.decideDeliveryPattern
+
+  test("Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate") {
+    // 277291-everyday-annual
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/Newspaper2025P3/277291-everyday-annual/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/277291-everyday-annual/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/277291-everyday-annual/invoice-preview.json")
+
+    val ratePlan = SI2025RateplanFromSub.determineRatePlan(subscription: ZuoraSubscription).get
+
+    assertEquals(
+      Newspaper2025P3Migration.decideDeliveryPattern(ratePlan),
+      Some(Newspaper2025P3Everyday)
+    )
+  }
+
+  test("Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate") {
+    // 277750-everyday-month
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/Newspaper2025P3/277750-everyday-month/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/277750-everyday-month/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/277750-everyday-month/invoice-preview.json")
+
+    val ratePlan = SI2025RateplanFromSub.determineRatePlan(subscription: ZuoraSubscription).get
+
+    assertEquals(
+      Newspaper2025P3Migration.decideDeliveryPattern(ratePlan),
+      Some(Newspaper2025P3Everyday)
+    )
+  }
+
+  test("Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate") {
+    // 412032-sixday-annual
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/Newspaper2025P3/412032-sixday-annual/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/412032-sixday-annual/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/412032-sixday-annual/invoice-preview.json")
+
+    val ratePlan = SI2025RateplanFromSub.determineRatePlan(subscription: ZuoraSubscription).get
+
+    assertEquals(
+      Newspaper2025P3Migration.decideDeliveryPattern(ratePlan),
+      Some(Newspaper2025P3Sixday)
+    )
+  }
+
+  test("Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate") {
+    // A-S02075439-saturday-month
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/Newspaper2025P3/A-S02075439-saturday-month/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/A-S02075439-saturday-month/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/A-S02075439-saturday-month/invoice-preview.json")
+
+    val ratePlan = SI2025RateplanFromSub.determineRatePlan(subscription: ZuoraSubscription).get
+
+    assertEquals(
+      Newspaper2025P3Migration.decideDeliveryPattern(ratePlan),
+      Some(Newspaper2025P3Saturday)
+    )
+  }
+
 }
