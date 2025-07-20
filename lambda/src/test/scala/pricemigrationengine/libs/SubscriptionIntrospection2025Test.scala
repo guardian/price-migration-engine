@@ -384,7 +384,7 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     val subscription =
       Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription3-with-discount/subscription.json")
     assertEquals(
-      SI2025Extractions.getDiscount(subscription, "Percentage"),
+      SI2025Extractions.getDiscountByRatePlanName(subscription, "Percentage"),
       Some(
         ZuoraRatePlan(
           id = "8a129ce595aa3a180195c130cca57d19",
@@ -426,7 +426,7 @@ class SI2025ExtractionsTest extends munit.FunSuite {
         "libs/SubscriptionIntrospection2025/subscription4-511760-Discount-Adjustment/subscription.json"
       )
     assertEquals(
-      SI2025Extractions.getDiscount(subscription, "Adjustment"),
+      SI2025Extractions.getDiscountByRatePlanName(subscription, "Adjustment"),
       Some(
         ZuoraRatePlan(
           id = "8a128efc91a138d30191bb00a80c281f",

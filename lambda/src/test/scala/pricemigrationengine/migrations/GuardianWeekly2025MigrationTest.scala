@@ -908,7 +908,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     val subscription =
       Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2025/6801-Discount/subscription.json")
     assertEquals(
-      SI2025Extractions.getDiscount(subscription, "Percentage"),
+      SI2025Extractions.getDiscountByRatePlanName(subscription, "Percentage"),
       Some(
         ZuoraRatePlan(
           id = "8a129ce595aa3a180195c130cca57d19",

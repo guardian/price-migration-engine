@@ -243,7 +243,7 @@ object GuardianWeekly2025Migration {
       } else {
         for {
           ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
-          discount <- SI2025Extractions.getDiscount(zuora_subscription, "Percentage")
+          discount <- SI2025Extractions.getDiscountByRatePlanName(zuora_subscription, "Percentage")
         } yield {
           val subscriptionRatePlanId = ratePlan.id
           val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
