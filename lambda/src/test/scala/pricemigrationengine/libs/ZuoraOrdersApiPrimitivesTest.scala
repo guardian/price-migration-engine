@@ -519,7 +519,7 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |        "productRatePlanChargeId": "2c92a0fd56fe26b6015709d078df4a80",
         |        "pricing": {
         |            "recurringFlatFee": {
-        |                "listPrice": 18.285
+        |                "listPrice": 18.28
         |            }
         |        }
         |    },

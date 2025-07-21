@@ -5,6 +5,7 @@ import pricemigrationengine.model.ZuoraRatePlanCharge
 import java.time.LocalDate
 import upickle.default._
 import ujson._
+import scala.math.BigDecimal.RoundingMode
 
 // This file contains the primitives to be able to construct the Orders API Payload
 // described here:
@@ -141,12 +142,16 @@ object ZuoraOrdersApiPrimitives {
     // price increase ratio (we express the percentage as a ratio, so for instance a 20% increase
     // will be a price ratio of 1.2).
 
+    // Note that we use RoundingMode.DOWN instead of the more classical RoundingMode.HALF_UP, because we do not want
+    // a rounding up to accidentally set the final price higher than the originally computed estimation price,
+    // because then that would trigger the post amendment price check error
+
     ratePlanCharges.map { rpc =>
       Obj(
         "productRatePlanChargeId" -> Str(rpc.productRatePlanChargeId),
         "pricing" -> Obj(
           "recurringFlatFee" -> Obj(
-            "listPrice" -> Num((rpc.price.get * priceRatio).doubleValue) // [1]
+            "listPrice" -> Num((rpc.price.get * priceRatio).setScale(2, RoundingMode.DOWN).doubleValue) // [1]
           )
         )
       )
