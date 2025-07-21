@@ -21,13 +21,9 @@ object CohortTableCreationHandler extends CohortHandler {
       .as(HandlerOutput(isComplete = true))
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] =
-    MigrationType(input) match {
-      case _ => {
-        main(input).provideSome[Logging](
-          EnvConfig.stage.layer,
-          DynamoDBClientLive.impl,
-          CohortTableDdlLive.impl
-        )
-      }
-    }
+    main(input).provideSome[Logging](
+      EnvConfig.stage.layer,
+      DynamoDBClientLive.impl,
+      CohortTableDdlLive.impl
+    )
 }

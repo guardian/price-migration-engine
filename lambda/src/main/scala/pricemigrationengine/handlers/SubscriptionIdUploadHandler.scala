@@ -84,17 +84,13 @@ object SubscriptionIdUploadHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    MigrationType(input) match {
-      case _ => {
-        main(input).provideSome[Logging](
-          EnvConfig.cohortTable.layer,
-          EnvConfig.stage.layer,
-          DynamoDBClientLive.impl,
-          DynamoDBZIOLive.impl,
-          CohortTableLive.impl(input),
-          S3Live.impl
-        )
-      }
-    }
+    main(input).provideSome[Logging](
+      EnvConfig.cohortTable.layer,
+      EnvConfig.stage.layer,
+      DynamoDBClientLive.impl,
+      DynamoDBZIOLive.impl,
+      CohortTableLive.impl(input),
+      S3Live.impl
+    )
   }
 }

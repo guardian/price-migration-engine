@@ -323,7 +323,7 @@ object Newspaper2025P1Migration {
       case None =>
         Left(
           DataExtractionFailure(
-            s"[4f62efe5] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
+            s"[01700e84] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
           )
         )
     }
