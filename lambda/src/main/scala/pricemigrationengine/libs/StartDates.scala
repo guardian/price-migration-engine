@@ -137,7 +137,7 @@ object StartDates {
       case GuardianWeekly2025 => GuardianWeekly2025Migration.computeStartDateLowerBound4(startDateLowerBound3, item)
       case Newspaper2025P1    => startDateLowerBound3
       case HomeDelivery2025   => startDateLowerBound3
-      case Newspaper2025P3    => startDateLowerBound3
+      case Newspaper2025P3    => Newspaper2025P3Migration.computeStartDateLowerBound4(startDateLowerBound3, item)
     }
 
     // [1]
