@@ -15,7 +15,11 @@ object Newspaper2025P3Sixday extends Newspaper2025P3DeliveryPattern
 object Newspaper2025P3Weekend extends Newspaper2025P3DeliveryPattern
 object Newspaper2025P3Saturday extends Newspaper2025P3DeliveryPattern
 
-case class Newspaper2025P3ExtraAttributes(brandTitle: String, removeDiscount: Option[Boolean] = None)
+case class Newspaper2025P3ExtraAttributes(
+    brandTitle: String,
+    removeDiscount: Option[Boolean] = None,
+    earliestMigrationDate: Option[LocalDate] = None
+)
 object Newspaper2025P3ExtraAttributes {
   implicit val reader: Reader[Newspaper2025P3ExtraAttributes] = macroR
 
@@ -30,6 +34,7 @@ object Newspaper2025P3ExtraAttributes {
   // val s = """{ "brandTitle": "the Guardian" }"""
   // val s = """{ "brandTitle": "the Guardian and the Observer" }"""
   // val s = """{ "brandTitle": "the Guardian", "removeDiscount": true }"""
+  // val s = """{ "brandTitle": "the Guardian", "earliestMigrationDate": "2025-10-06" }"""
   // val attributes: Newspaper2025P3ExtraAttributes = upickle.default.read[Newspaper2025P3ExtraAttributes](s)
 }
 
@@ -88,7 +93,22 @@ object Newspaper2025P3Migration {
   // Helpers
   // ------------------------------------------------
 
-  // (Comment Group: 571dac68)
+  def getEarliestMigrationDateFromMigrationExtraAttributes(item: CohortItem): Option[LocalDate] = {
+    for {
+      attributes <- item.migrationExtraAttributes
+      data: Newspaper2025P3ExtraAttributes =
+        upickle.default.read[Newspaper2025P3ExtraAttributes](attributes)
+      date <- data.earliestMigrationDate
+    } yield date
+  }
+
+  def computeStartDateLowerBound4(lowerBound: LocalDate, item: CohortItem): LocalDate = {
+    val dateFromCohortItem = getEarliestMigrationDateFromMigrationExtraAttributes(item)
+    dateFromCohortItem match {
+      case Some(date) => Date.datesMax(lowerBound, date)
+      case None       => lowerBound
+    }
+  }
 
   def getLabelFromMigrationExtraAttributes(item: CohortItem): Option[String] = {
     for {
@@ -242,7 +262,7 @@ object Newspaper2025P3Migration {
       } else {
         for {
           ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
-          discount <- SI2025Extractions.getDiscount(zuora_subscription, "Percentage")
+          discount <- SI2025Extractions.getPercentageOrAdjustementDiscount(zuora_subscription)
         } yield {
           val subscriptionRatePlanId = ratePlan.id
           val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)

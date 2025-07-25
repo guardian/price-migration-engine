@@ -135,7 +135,7 @@ object SI2025Extractions {
     } yield date
   }
 
-  def getDiscount(subscription: ZuoraSubscription, ratePlanName: String): Option[ZuoraRatePlan] = {
+  def getDiscountByRatePlanName(subscription: ZuoraSubscription, ratePlanName: String): Option[ZuoraRatePlan] = {
     // The product name is always "Discount", but the ratePlanName is more freeform.
     // I have noticed
     // ratePlanName: "Percentage"
@@ -143,6 +143,18 @@ object SI2025Extractions {
     // To handle this we use ratePlanName.contains
     subscription.ratePlans
       .find(ratePlan => ratePlan.productName == "Discounts" && ratePlan.ratePlanName.contains(ratePlanName))
+  }
+
+  def getPercentageOrAdjustementDiscount(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
+    // This function will extract a "Percentage" or a "Adjustment" ratePlan, whichever is present
+
+    // Note that the choice of values "Percentage" and "Adjustment" comes from the metadata
+    // in Marketing spreadsheets and as we have highlighted in the body of function `getDiscountByRatePlanName`
+    // those are not even always equal to the rate plan names but may appear as substring.
+
+    var a = getDiscountByRatePlanName(subscription: ZuoraSubscription, "Percentage")
+    var b = getDiscountByRatePlanName(subscription: ZuoraSubscription, "Adjustment")
+    a.orElse(b)
   }
 }
 
