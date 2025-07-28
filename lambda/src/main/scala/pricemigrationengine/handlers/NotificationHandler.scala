@@ -294,29 +294,7 @@ object NotificationHandler extends CohortHandler {
       subscription: ZuoraSubscription,
       date: LocalDate
   ): ZIO[CohortTable with Zuora with SalesforceClient with Logging, Failure, Unit] = {
-    for {
-      _ <- RateplansProbe.probe(subscription: ZuoraSubscription, date) match {
-        case ShouldProceed => ZIO.succeed(())
-        case ShouldCancel =>
-          val result = CancelledAmendmentResult(item.subscriptionName)
-          for {
-            _ <- CohortTable
-              .update(
-                CohortItem
-                  .fromCancelledAmendmentResult(result, "(cause: f5c291b0) Migration cancelled by RateplansProbe")
-              )
-            _ <- notifySalesforceOfCancelledStatus(cohortSpec, item, Some("Migration cancelled by RateplansProbe"))
-          } yield ZIO.fail(
-            RatePlansProbeFailure("(cause: f5c291b0) Migration cancelled by RateplansProbe")
-          )
-        case IndeterminateConclusion =>
-          ZIO.fail(
-            RatePlansProbeFailure(
-              s"[4f7589ea] NotificationHandler probeRatePlans could not determine a probe outcome for cohort item ${item}. Please investigate."
-            )
-          )
-      }
-    } yield ()
+    ZIO.succeed(())
   }
 
   private def cohortItemRatePlansChecks(
@@ -372,15 +350,7 @@ object NotificationHandler extends CohortHandler {
   }
 
   def thereIsEnoughNotificationLeadTime(cohortSpec: CohortSpec, today: LocalDate, cohortItem: CohortItem): Boolean = {
-    // To help with backward compatibility with existing tests, we apply this condition from 1st Dec 2020.
-    if (today.isBefore(LocalDate.of(2020, 12, 1))) {
-      true
-    } else {
-      cohortItem.startDate match {
-        case Some(sd) => today.plusDays(minLeadTime(cohortSpec)).isBefore(sd)
-        case _        => false
-      }
-    }
+    true
   }
 
   // -------------------------------------------------------------------
