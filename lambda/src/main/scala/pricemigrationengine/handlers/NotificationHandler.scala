@@ -206,79 +206,81 @@ object NotificationHandler extends CohortHandler {
 
       brazeName <- brazeName(cohortSpec, cohortItem.subscriptionName)
 
-      _ <- EmailSender.sendEmail(
-        message = EmailMessage(
-          EmailPayload(
-            Address = contact.Email,
-            ContactAttributes = EmailPayloadContactAttributes(
-              SubscriberAttributes = EmailPayloadSubscriberAttributes(
-                title = contact.FirstName flatMap (_ =>
-                  contact.Salutation // if no first name, we use salutation as first name and leave this field empty
-                ),
-                first_name = firstName,
-                last_name = lastName,
-                billing_address_1 = street,
-                billing_address_2 = None, // See 'Billing Address Format' section in the readme
-                billing_city = address.city,
-                billing_postal_code = postalCode,
-                billing_state = address.state,
-                billing_country = country,
-                payment_amount = priceWithOptionalCappingWithCurrencySymbol, // [1]
-                next_payment_date = startDateConversion(startDate),
-                payment_frequency = paymentFrequency,
-                subscription_id = cohortItem.subscriptionName,
-                product_type = sfSubscription.Product_Type__c.getOrElse(""),
+      emailMessage = EmailMessage(
+        EmailPayload(
+          Address = contact.Email,
+          ContactAttributes = EmailPayloadContactAttributes(
+            SubscriberAttributes = EmailPayloadSubscriberAttributes(
+              title = contact.FirstName flatMap (_ =>
+                contact.Salutation // if no first name, we use salutation as first name and leave this field empty
+              ),
+              first_name = firstName,
+              last_name = lastName,
+              billing_address_1 = street,
+              billing_address_2 = None, // See 'Billing Address Format' section in the readme
+              billing_city = address.city,
+              billing_postal_code = postalCode,
+              billing_state = address.state,
+              billing_country = country,
+              payment_amount = priceWithOptionalCappingWithCurrencySymbol, // [1]
+              next_payment_date = startDateConversion(startDate),
+              payment_frequency = paymentFrequency,
+              subscription_id = cohortItem.subscriptionName,
+              product_type = sfSubscription.Product_Type__c.getOrElse(""),
 
-                // -------------------------------------------------------------
-                // SupporterPlus 2024 extension
+              // -------------------------------------------------------------
+              // SupporterPlus 2024 extension
 
-                // [1]
-                // (Comment group: 7992fa98)
-                // (Comment Group: 602514a6-5e53)
-                // For SupporterPlus2024, we did not use that value. Instead we used the data provided by the
-                // extension below. That value was the new base price, but we needed a different data distribution
-                // to be able to fill the email template. That distribution is given by the next section.
+              // [1]
+              // (Comment group: 7992fa98)
+              // (Comment Group: 602514a6-5e53)
+              // For SupporterPlus2024, we did not use that value. Instead we used the data provided by the
+              // extension below. That value was the new base price, but we needed a different data distribution
+              // to be able to fill the email template. That distribution is given by the next section.
 
-                // This section and the corresponding section above should be removed as part of the
-                // SupporterPlus2024 decommissioning.
+              // This section and the corresponding section above should be removed as part of the
+              // SupporterPlus2024 decommissioning.
 
-                sp2024_contribution_amount = sp2024ContributionAmountWithCurrencySymbol,
-                sp2024_previous_combined_amount = sp2024PreviousCombinedAmountWithCurrencySymbol,
-                sp2024_new_combined_amount = sp2024NewCombinedAmountWithCurrencySymbol,
-                // -------------------------------------------------------------
+              sp2024_contribution_amount = sp2024ContributionAmountWithCurrencySymbol,
+              sp2024_previous_combined_amount = sp2024PreviousCombinedAmountWithCurrencySymbol,
+              sp2024_new_combined_amount = sp2024NewCombinedAmountWithCurrencySymbol,
+              // -------------------------------------------------------------
 
-                // -------------------------------------------------------------
-                // Newspaper2025P1 extension
-                // (Comment Group: 571dac68)
+              // -------------------------------------------------------------
+              // Newspaper2025P1 extension
+              // (Comment Group: 571dac68)
 
-                // This section and the corresponding section above should be removed as part of the
-                // Newspaper2025P1 decommissioning.
+              // This section and the corresponding section above should be removed as part of the
+              // Newspaper2025P1 decommissioning.
 
-                newspaper2025_brand_title = Some(newspaper2025P1NotificationData.brandTitle),
-                // -------------------------------------------------------------
+              newspaper2025_brand_title = Some(newspaper2025P1NotificationData.brandTitle),
+              // -------------------------------------------------------------
 
-                // -------------------------------------------------------------
-                // HomeDelivery2025 extension
+              // -------------------------------------------------------------
+              // HomeDelivery2025 extension
 
-                // This section and the corresponding section above should be removed as part of the
-                // HomeDelivery decommissioning.
+              // This section and the corresponding section above should be removed as part of the
+              // HomeDelivery decommissioning.
 
-                homedelivery2025_brand_title = Some(homedelivery2025NotificationData.brandTitle),
-                // -------------------------------------------------------------
+              homedelivery2025_brand_title = Some(homedelivery2025NotificationData.brandTitle),
+              // -------------------------------------------------------------
 
-                // -------------------------------------------------------------
-                // Newspaper2025P3 extension
-                newspaper2025_phase3_brand_title = Some(newspaper2025P3NotificationData.brandTitle),
-                // -------------------------------------------------------------
+              // -------------------------------------------------------------
+              // Newspaper2025P3 extension
+              newspaper2025_phase3_brand_title = Some(newspaper2025P3NotificationData.brandTitle),
+              // -------------------------------------------------------------
 
-              )
             )
-          ),
-          brazeName,
-          contact.Id,
-          contact.IdentityID__c
-        )
+          )
+        ),
+        brazeName,
+        contact.Id,
+        contact.IdentityID__c
       )
+
+      _ <- ZIO.logInfo(s"item: ${cohortItem.toString}, estimation result: ${emailMessage.toString}")
+
+      _ <- EmailSender.sendEmail(emailMessage)
 
       _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete)
     } yield ()
