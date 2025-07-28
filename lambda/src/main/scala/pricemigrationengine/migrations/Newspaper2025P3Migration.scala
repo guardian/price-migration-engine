@@ -135,7 +135,7 @@ object Newspaper2025P3Migration {
       item: CohortItem
   ): ZIO[Zuora, Failure, Newspaper2025P3NotificationData] = {
     MigrationType(cohortSpec) match {
-      case Newspaper2025P1 => {
+      case Newspaper2025P3 => {
         (for {
           brandTitle <- getLabelFromMigrationExtraAttributes(item)
         } yield Newspaper2025P3NotificationData(
