@@ -427,6 +427,21 @@ object NotificationHandler extends CohortHandler {
 
     MigrationType(cohortSpec) match {
       case SupporterPlus2024 => testCompatibleEmptySalesforceAddress(contact)
+      case Newspaper2025P3 => {
+        // For Newspaper2025P3, we tolerate a missing delivery address and we will rely on the user getting an email.
+        // For this, we compute the SalesforceAddress as the usual case, but if we get a Left,
+        // we serve the null SalesforceAddress we introduced for SupporterPlus2024
+        val address = (for {
+          billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
+          _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
+          _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
+        } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
+
+        address.fold(
+          _ => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))),
+          value => Right(value)
+        )
+      }
       case _ =>
         (for {
           billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
