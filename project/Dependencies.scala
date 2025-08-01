@@ -18,6 +18,6 @@ object Dependencies {
   lazy val awsLambda = "com.amazonaws" % "aws-lambda-java-core" % "1.3.0"
   lazy val http = "org.scalaj" %% "scalaj-http" % "2.4.2"
   lazy val munit = "org.scalameta" %% "munit" % "1.1.1"
-  lazy val commonsCsv = "org.apache.commons" % "commons-csv" % "1.14.0"
+  lazy val commonsCsv = "org.apache.commons" % "commons-csv" % "1.14.1"
   lazy val slf4jNop = "org.slf4j" % "slf4j-nop" % "2.0.17"
 }
