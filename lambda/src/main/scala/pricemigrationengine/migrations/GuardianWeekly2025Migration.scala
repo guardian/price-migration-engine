@@ -183,6 +183,7 @@ object GuardianWeekly2025Migration {
       account: ZuoraAccount
   ): Either[DataExtractionFailure, PriceData] = {
     val priceDataOpt: Option[PriceData] = for {
+      _ <- Some(()).map(logValue("initialization"))
       ratePlan <- SI2025RateplanFromSubAndInvoices
         .determineRatePlan(subscription, invoiceList)
         .map(logValue("ratePlan"))
