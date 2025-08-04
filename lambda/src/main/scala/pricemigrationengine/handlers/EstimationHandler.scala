@@ -71,9 +71,6 @@ object EstimationHandler extends CohortHandler {
   ): ZIO[CohortTable with Zuora, Failure, EstimationResult] =
     doEstimation(catalogue, item, cohortSpec, today).foldZIO(
       failure = {
-        case failure: DataExtractionFailure =>
-          val result = FailedEstimationResult(item.subscriptionName, failure.reason)
-          CohortTable.update(CohortItem.fromFailedEstimationResult(result)).as(result)
         case _: CancelledSubscriptionFailure =>
           val result = CancelledEstimationResult(item.subscriptionName)
           CohortTable

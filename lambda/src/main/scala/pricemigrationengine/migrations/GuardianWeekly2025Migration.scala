@@ -172,22 +172,36 @@ object GuardianWeekly2025Migration {
   // - amendmentOrderPayload is used in the Amendment handler
   // ------------------------------------------------
 
+  def logValue[T](label: String)(value: T): T = {
+    println(s"$label: $value")
+    value
+  }
+
   def priceData(
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       account: ZuoraAccount
   ): Either[DataExtractionFailure, PriceData] = {
     val priceDataOpt: Option[PriceData] = for {
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
-      currency <- SI2025Extractions.determineCurrency(ratePlan)
-      oldPrice = SI2025Extractions.determineOldPrice(ratePlan)
-      localisation <- SubscriptionLocalisation.determineSubscriptionLocalisation(subscription, invoiceList, account)
-      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
+      _ <- Some(()).map(logValue("initialization"))
+      ratePlan <- SI2025RateplanFromSubAndInvoices
+        .determineRatePlan(subscription, invoiceList)
+        .map(logValue("ratePlan"))
+      currency <- SI2025Extractions
+        .determineCurrency(ratePlan)
+        .map(logValue("currency"))
+      oldPrice = logValue("oldPrice")(SI2025Extractions.determineOldPrice(ratePlan))
+      localisation <- SubscriptionLocalisation
+        .determineSubscriptionLocalisation(subscription, invoiceList, account)
+        .map(logValue("localisation"))
+      billingPeriod <- SI2025Extractions
+        .determineBillingPeriod(ratePlan)
+        .map(logValue("billingPeriod"))
       newPrice <- priceLookUp(
         localisation,
         billingPeriod: BillingPeriod,
         currency: String
-      )
+      ).map(logValue("newPrice"))
     } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
