@@ -667,6 +667,9 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 11.54
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
              |                                }
              |                            },
              |                            {
@@ -675,6 +678,9 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 2.57
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
              |                                }
              |                            },
              |                            {
@@ -683,6 +689,9 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 11.54
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
              |                                }
              |                            },
              |                            {
@@ -691,6 +700,9 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 15.71
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
              |                                }
              |                            },
              |                            {
@@ -699,6 +711,9 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 11.54
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
              |                                }
              |                            },
              |                            {
@@ -707,6 +722,9 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 11.54
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
              |                                }
              |                            },
              |                            {
@@ -715,6 +733,9 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 11.54
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
              |                                }
              |                            }
              |                        ]
@@ -856,6 +877,9 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 10.85
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
              |                                }
              |                            },
              |                            {
@@ -864,6 +888,9 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 14.75
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
              |                                }
              |                            },
              |                            {
@@ -872,6 +899,9 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 10.85
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
              |                                }
              |                            },
              |                            {
@@ -880,6 +910,9 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 10.85
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
              |                                }
              |                            },
              |                            {
@@ -888,6 +921,9 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 10.85
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
              |                                }
              |                            },
              |                            {
@@ -896,6 +932,9 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 10.85
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
              |                                }
              |                            },
              |                            {
@@ -904,6 +943,9 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 14.74
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
              |                                }
              |                            },
              |                            {
@@ -912,6 +954,9 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 2.57
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
              |                                }
              |                            }
              |                        ]

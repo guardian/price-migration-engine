@@ -74,7 +74,7 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
   }
 
   test("ZuoraOrdersApiPrimitives.chargeOverride") {
-    val chargeOverride = ZuoraOrdersApiPrimitives.chargeOverride("8a128ed885fc6ded018602296af13eba", 12)
+    val chargeOverride = ZuoraOrdersApiPrimitives.chargeOverride("8a128ed885fc6ded018602296af13eba", 12, "Quarter")
     val jsonstrpp = ujson.write(chargeOverride, indent = 4)
     assertEquals(
       jsonstrpp,
@@ -84,6 +84,9 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |        "recurringFlatFee": {
         |            "listPrice": 12
         |        }
+        |    },
+        |    "billing": {
+        |        "billingPeriod": "Quarter"
         |    }
         |}""".stripMargin
     )
@@ -91,8 +94,8 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
 
   test("ZuoraOrdersApiPrimitives.addProduct") {
     val chargeOverrides = List(
-      ZuoraOrdersApiPrimitives.chargeOverride("8a128ed885fc6ded018602296af13eba", 12),
-      ZuoraOrdersApiPrimitives.chargeOverride("8a128d7085fc6dec01860234cd075270", 0)
+      ZuoraOrdersApiPrimitives.chargeOverride("8a128ed885fc6ded018602296af13eba", 12, "Month"),
+      ZuoraOrdersApiPrimitives.chargeOverride("8a128d7085fc6dec01860234cd075270", 0, "Month")
     )
     val addProduct = ZuoraOrdersApiPrimitives.addProduct(
       "2024-11-28",
@@ -127,6 +130,9 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |                    "recurringFlatFee": {
         |                        "listPrice": 12
         |                    }
+        |                },
+        |                "billing": {
+        |                    "billingPeriod": "Month"
         |                }
         |            },
         |            {
@@ -135,6 +141,9 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |                    "recurringFlatFee": {
         |                        "listPrice": 0
         |                    }
+        |                },
+        |                "billing": {
+        |                    "billingPeriod": "Month"
         |                }
         |            }
         |        ]
@@ -149,8 +158,8 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
       "2025-05-20",
       "8a128ed885fc6ded018602296ace3eb8",
       List(
-        ZuoraOrdersApiPrimitives.chargeOverride("8a128ed885fc6ded018602296af13eba", 12),
-        ZuoraOrdersApiPrimitives.chargeOverride("8a128d7085fc6dec01860234cd075270", 0)
+        ZuoraOrdersApiPrimitives.chargeOverride("8a128ed885fc6ded018602296af13eba", 12, "Annual"),
+        ZuoraOrdersApiPrimitives.chargeOverride("8a128d7085fc6dec01860234cd075270", 0, "Annual")
       )
     )
     val json = ZuoraOrdersApiPrimitives.subscription("a1809f5e84dd", List(removeProduct), List(addProduct))
@@ -205,6 +214,9 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |                            "recurringFlatFee": {
         |                                "listPrice": 12
         |                            }
+        |                        },
+        |                        "billing": {
+        |                            "billingPeriod": "Annual"
         |                        }
         |                    },
         |                    {
@@ -213,6 +225,9 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |                            "recurringFlatFee": {
         |                                "listPrice": 0
         |                            }
+        |                        },
+        |                        "billing": {
+        |                            "billingPeriod": "Annual"
         |                        }
         |                    }
         |                ]
@@ -229,8 +244,8 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
       "2025-05-20",
       "8a128ed885fc6ded018602296ace3eb8",
       List(
-        ZuoraOrdersApiPrimitives.chargeOverride("8a128ed885fc6ded018602296af13eba", 12),
-        ZuoraOrdersApiPrimitives.chargeOverride("8a128d7085fc6dec01860234cd075270", 0)
+        ZuoraOrdersApiPrimitives.chargeOverride("8a128ed885fc6ded018602296af13eba", 12, "Month"),
+        ZuoraOrdersApiPrimitives.chargeOverride("8a128d7085fc6dec01860234cd075270", 0, "Month")
       )
     )
     val subscription = ZuoraOrdersApiPrimitives.subscription("a1809f5e84dd", List(removeProduct), List(addProduct))
@@ -296,6 +311,9 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |                                    "recurringFlatFee": {
         |                                        "listPrice": 12
         |                                    }
+        |                                },
+        |                                "billing": {
+        |                                    "billingPeriod": "Month"
         |                                }
         |                            },
         |                            {
@@ -304,6 +322,9 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |                                    "recurringFlatFee": {
         |                                        "listPrice": 0
         |                                    }
+        |                                },
+        |                                "billing": {
+        |                                    "billingPeriod": "Month"
         |                                }
         |                            }
         |                        ]
@@ -483,7 +504,8 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
 
     val json = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
       ratePlan.ratePlanCharges,
-      BigDecimal(1.5)
+      BigDecimal(1.5),
+      "Month"
     )
 
     val jsonstrpp = ujson.write(json, indent = 4)
@@ -497,6 +519,9 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |            "recurringFlatFee": {
         |                "listPrice": 13.44
         |            }
+        |        },
+        |        "billing": {
+        |            "billingPeriod": "Month"
         |        }
         |    },
         |    {
@@ -505,6 +530,9 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |            "recurringFlatFee": {
         |                "listPrice": 3
         |            }
+        |        },
+        |        "billing": {
+        |            "billingPeriod": "Month"
         |        }
         |    },
         |    {
@@ -513,6 +541,9 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |            "recurringFlatFee": {
         |                "listPrice": 13.44
         |            }
+        |        },
+        |        "billing": {
+        |            "billingPeriod": "Month"
         |        }
         |    },
         |    {
@@ -521,6 +552,9 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |            "recurringFlatFee": {
         |                "listPrice": 18.28
         |            }
+        |        },
+        |        "billing": {
+        |            "billingPeriod": "Month"
         |        }
         |    },
         |    {
@@ -529,6 +563,9 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |            "recurringFlatFee": {
         |                "listPrice": 13.44
         |            }
+        |        },
+        |        "billing": {
+        |            "billingPeriod": "Month"
         |        }
         |    },
         |    {
@@ -537,6 +574,9 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |            "recurringFlatFee": {
         |                "listPrice": 13.44
         |            }
+        |        },
+        |        "billing": {
+        |            "billingPeriod": "Month"
         |        }
         |    },
         |    {
@@ -545,6 +585,9 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |            "recurringFlatFee": {
         |                "listPrice": 13.44
         |            }
+        |        },
+        |        "billing": {
+        |            "billingPeriod": "Month"
         |        }
         |    }
         |]""".stripMargin
