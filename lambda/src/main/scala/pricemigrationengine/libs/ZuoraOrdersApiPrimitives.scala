@@ -5,6 +5,7 @@ import pricemigrationengine.model.ZuoraRatePlanCharge
 import java.time.LocalDate
 import upickle.default._
 import ujson._
+
 import scala.math.BigDecimal.RoundingMode
 
 // This file contains the primitives to be able to construct the Orders API Payload
@@ -98,7 +99,7 @@ object ZuoraOrdersApiPrimitives {
     )
   }
 
-  def chargeOverride(productRatePlanChargeId: String, listPrice: BigDecimal): Value = {
+  def chargeOverride(productRatePlanChargeId: String, listPrice: BigDecimal, billingPeriod: String): Value = {
     /*
         {
             "productRatePlanChargeId": "8a128ed885fc6ded018602296af13eba",
@@ -115,13 +116,17 @@ object ZuoraOrdersApiPrimitives {
         "recurringFlatFee" -> Obj(
           "listPrice" -> Num(listPrice.doubleValue)
         )
+      ),
+      "billing" -> Obj(
+        "billingPeriod" -> Str(billingPeriod)
       )
     )
   }
 
   def ratePlanChargesToChargeOverrides(
       ratePlanCharges: List[ZuoraRatePlanCharge],
-      priceRatio: BigDecimal
+      priceRatio: BigDecimal,
+      billingPeriod: String
   ): List[Value] = {
     // This functions is a more general case of the previous function (`chargeOverride`)
     // We originally introduced `chargeOverride` for price increases that have a single charge
@@ -153,6 +158,9 @@ object ZuoraOrdersApiPrimitives {
           "recurringFlatFee" -> Obj(
             "listPrice" -> Num((rpc.price.get * priceRatio).setScale(2, RoundingMode.DOWN).doubleValue) // [1]
           )
+        ),
+        "billing" -> Obj(
+          "billingPeriod" -> Str(billingPeriod)
         )
       )
     }

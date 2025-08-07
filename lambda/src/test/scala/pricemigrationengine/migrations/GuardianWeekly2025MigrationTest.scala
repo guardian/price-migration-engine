@@ -262,6 +262,9 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 16.5
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
              |                                }
              |                            }
              |                        ]
@@ -380,6 +383,9 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
             |                                    "recurringFlatFee": {
             |                                        "listPrice": 240
             |                                    }
+            |                                },
+            |                                "billing": {
+            |                                    "billingPeriod": "Month"
             |                                }
             |                            }
             |                        ]
@@ -494,6 +500,9 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 348.0
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
              |                                }
              |                            }
              |                        ]
@@ -646,7 +655,8 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     val chargeOverrides = List(
       ZuoraOrdersApiPrimitives.chargeOverride(
         ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId,
-        PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap)
+        PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap),
+        "Quarter"
       )
     )
 
@@ -680,6 +690,9 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
            |                    "recurringFlatFee": {
            |                        "listPrice": 49.5
            |                    }
+           |                },
+           |                "billing": {
+           |                    "billingPeriod": "Quarter"
            |                }
            |            }
            |        ]
@@ -744,6 +757,9 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
            |                            "recurringFlatFee": {
            |                                "listPrice": 49.5
            |                            }
+           |                        },
+           |                        "billing": {
+           |                            "billingPeriod": "Quarter"
            |                        }
            |                    }
            |                ]
@@ -886,6 +902,9 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 49.5
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Quarter"
              |                                }
              |                            }
              |                        ]
@@ -1066,6 +1085,9 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 49.5
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
              |                                }
              |                            }
              |                        ]
@@ -1186,6 +1208,9 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 81
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Quarter"
              |                                }
              |                            }
              |                        ]

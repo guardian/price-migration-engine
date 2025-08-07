@@ -270,6 +270,7 @@ object Newspaper2025P1Migration {
       if (!decideShouldRemoveDiscount(cohortItem)) {
         for {
           ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+          billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
         } yield {
           val subscriptionRatePlanId = ratePlan.id
           val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
@@ -277,7 +278,8 @@ object Newspaper2025P1Migration {
           val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
           val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
             ratePlan.ratePlanCharges,
-            priceRatio
+            priceRatio,
+            BillingPeriod.toString(billingPeriod)
           )
           val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
           val order_subscription =
@@ -291,6 +293,7 @@ object Newspaper2025P1Migration {
       } else {
         for {
           ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+          billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
           discount <- SI2025Extractions.getDiscountByRatePlanName(zuora_subscription, "Adjustment")
         } yield {
           val subscriptionRatePlanId = ratePlan.id
@@ -300,7 +303,8 @@ object Newspaper2025P1Migration {
           val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
           val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
             ratePlan.ratePlanCharges,
-            priceRatio
+            priceRatio,
+            BillingPeriod.toString(billingPeriod)
           )
           val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
           val order_subscription =
