@@ -25,7 +25,7 @@ class AmendmentHelperTest extends munit.FunSuite {
 
     assertEquals(
       AmendmentHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
-        Annual,
+        Some("Annual"),
         subscription1,
         invoicePreview1
       ),
@@ -34,11 +34,20 @@ class AmendmentHelperTest extends munit.FunSuite {
 
     assertEquals(
       AmendmentHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
-        Annual,
+        Some("Annual"),
         subscription2, // this one is a Monthly
         invoicePreview2
       ),
       Some(false)
+    )
+
+    assertEquals(
+      AmendmentHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
+        None, // Also testing that the answer should be false if the reference billing period is None
+        subscription2,
+        invoicePreview2
+      ),
+      None
     )
   }
 }

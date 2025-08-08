@@ -6,13 +6,14 @@ import pricemigrationengine.model.{BillingPeriod, ZuoraInvoiceList, ZuoraRatePla
 
 object AmendmentHelper {
   def subscriptionHasCorrectBillingPeriodAfterUpdate(
-      billingPeriodReference: BillingPeriod,
+      billingPeriodReferenceOpt: Option[String],
       subscriptionAfterUpdate: ZuoraSubscription,
       invoicePreviewAfterUpdate: ZuoraInvoiceList
   ): Option[Boolean] = {
     for {
+      billingPeriodReference <- billingPeriodReferenceOpt
       ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscriptionAfterUpdate, invoicePreviewAfterUpdate)
       billingPeriodAfterUpdate <- SI2025Extractions.determineBillingPeriod(ratePlan)
-    } yield billingPeriodReference == billingPeriodAfterUpdate
+    } yield billingPeriodReference == BillingPeriod.toString(billingPeriodAfterUpdate)
   }
 }
