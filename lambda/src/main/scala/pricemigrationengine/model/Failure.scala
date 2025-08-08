@@ -8,6 +8,7 @@ case class InputFailure(reason: String) extends Failure
 case class ConfigFailure(reason: String) extends Failure
 case class MigrationRoutingFailure(reason: String) extends Failure
 
+case class AmendmentFailure(reason: String) extends Failure
 case class DataExtractionFailure(reason: String) extends Failure
 
 case class CohortStateMachineFailure(reason: String) extends Failure
