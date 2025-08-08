@@ -43,7 +43,7 @@ class AmendmentHelperTest extends munit.FunSuite {
 
     assertEquals(
       AmendmentHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
-        None, // Also testing that the answer should be false if the reference billing period is None
+        None, // Also testing that the answer should be None if the reference billing period is None
         subscription2,
         invoicePreview2
       ),
