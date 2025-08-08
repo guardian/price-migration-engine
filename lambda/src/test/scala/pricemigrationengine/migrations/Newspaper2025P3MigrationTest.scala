@@ -537,6 +537,9 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 147.97
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
              |                                }
              |                            },
              |                            {
@@ -545,6 +548,9 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 108.81
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
              |                                }
              |                            },
              |                            {
@@ -553,6 +559,9 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 108.81
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
              |                                }
              |                            },
              |                            {
@@ -561,6 +570,9 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 108.81
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
              |                                }
              |                            },
              |                            {
@@ -569,6 +581,9 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 147.84
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
              |                                }
              |                            },
              |                            {
@@ -577,6 +592,9 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 108.81
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
              |                                }
              |                            },
              |                            {
@@ -585,6 +603,9 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 108.81
              |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
              |                                }
              |                            }
              |                        ]
