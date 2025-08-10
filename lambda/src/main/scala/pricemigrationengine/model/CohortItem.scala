@@ -68,9 +68,6 @@ object CohortItem {
   def fromNoPriceIncreaseEstimationResult(result: EstimationData): UIO[CohortItem] =
     fromSuccessfulEstimationResult(result).map(_.copy(processingStage = NoPriceIncrease))
 
-  def fromFailedEstimationResult(result: FailedEstimationResult): CohortItem =
-    CohortItem(result.subscriptionNumber, EstimationFailed)
-
   def fromCancelledEstimationResult(result: CancelledEstimationResult, reason: String): CohortItem =
     CohortItem(result.subscriptionNumber, processingStage = Cancelled, cancellationReason = Some(reason))
 
