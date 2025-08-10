@@ -14,10 +14,6 @@ case class SuccessfulAmendmentResult(
     whenDone: Instant
 ) extends AmendmentResult
 
-case class CancelledAmendmentResult(
-    subscriptionNumber: String
-) extends AmendmentResult
-
 case class SubscriptionCancelledInZuoraAmendmentResult(
     subscriptionNumber: String
 ) extends AmendmentResult
