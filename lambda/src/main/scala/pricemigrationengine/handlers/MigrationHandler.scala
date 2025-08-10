@@ -12,11 +12,10 @@ object MigrationHandler extends ZIOAppDefault with RequestHandler[Unit, Unit] {
 
   private val migrateActiveCohorts =
     (for {
-      today <- Clock.currentDateTime.map(_.toLocalDate)
       cohortSpecs <- CohortSpecTable.fetchAll
       activeSpecs <-
         ZIO
-          .filter(cohortSpecs)(cohort => ZIO.succeed(CohortSpec.isActive(cohort)(today)))
+          .filter(cohortSpecs)(cohort => ZIO.succeed(true)) // TODO: simplify this
           .tap(specs => Logging.info(s"Currently ${specs.size} active cohorts"))
       _ <- ZIO.foreachDiscard(activeSpecs)(CohortStateMachine.startExecution)
     } yield ()).tapError(e => Logging.error(s"Migration run failed: $e"))
