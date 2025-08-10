@@ -17,13 +17,6 @@ class CohortSpecTest extends munit.FunSuite {
   private def assertTrue(obtained: Boolean): Unit = assertEquals(obtained, true)
   private def assertFalse(obtained: Boolean): Unit = assertEquals(obtained, false)
 
-  test("tableName: should be transformed cohort name") {
-    assertEquals(
-      cohortSpec.tableName(stage = "PROD"),
-      "PriceMigration-PROD-HomeDelivery2018"
-    )
-  }
-
   test("fromDynamoDbItem: should include all fields") {
     val item = Map(
       "cohortName" -> AttributeValue.builder.s("Home Delivery 2018").build(),

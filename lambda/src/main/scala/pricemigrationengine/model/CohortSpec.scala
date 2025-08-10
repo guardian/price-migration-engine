@@ -24,8 +24,7 @@ case class CohortSpec(
     brazeName: String,
     earliestPriceMigrationStartDate: LocalDate,
 ) {
-  val normalisedCohortName: String = cohortName.replaceAll(" ", "")
-  def tableName(stage: String): String = s"PriceMigration-$stage-$normalisedCohortName"
+  def tableName(stage: String): String = s"PriceMigration-${stage}-${cohortName}"
 }
 
 object CohortSpec {
