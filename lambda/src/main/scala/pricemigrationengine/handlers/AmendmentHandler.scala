@@ -46,13 +46,6 @@ object AmendmentHandler extends CohortHandler {
             )
             .as(result)
         }
-        case _: ExpiringSubscriptionFailure => {
-          // `ExpiringSubscriptionFailure` happens when the subscription's end of effective period is before the
-          // intended startDate (the price increase date). Alike `CancelledSubscriptionFailure` we cancel the amendment
-          // and the only effect is an updated cohort item in the database
-          val result = ExpiringSubscriptionResult(item.subscriptionName)
-          CohortTable.update(CohortItem.fromExpiringSubscriptionResult(result)).as(result)
-        }
         case e: ZuoraUpdateFailure => {
           // We are only interested in the ZuoraUpdateFailures corresponding to message
           // "Operation failed due to a lock competition"
