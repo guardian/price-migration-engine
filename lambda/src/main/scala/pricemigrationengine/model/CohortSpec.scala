@@ -10,7 +10,7 @@ import java.util
 /** Specification of a cohort.
   *
   * @param cohortName
-  *   Name that uniquely identifies a cohort, eg. "Vouchers 2020"
+  *   Name that uniquely identifies a cohort, eg. "Vouchers2020"
   * @param brazeName
   *   Name of the Braze campaign, or Braze canvas for this cohort.
   *   Mapping to environment-specific Braze campaign ID is provided by membership-workflow:
