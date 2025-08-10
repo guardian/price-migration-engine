@@ -182,6 +182,19 @@ CohortItem(
 
 Once the cohort item is in `Cancelled` state the engine will no longer touch it. Alike `AmendmentWrittenToSalesforce`, `Cancelled` is a final state for a cohort item.
 
+### ZuoraCancellation
+
+The processing stage `ZuoraCancellation` is used when the subscription has been cancelled in Zuora. Before August 2025, we used the `Cancelled` processing state with a `cancellationReason`.
+
+### Non standard processing stages
+
+The `Cancelled` processing stage in not the only processing stage a subscription can be put in when something goes wrong and the migration cannot pursue on it. Three other processing stages can be found in Dynamo table when Pascal investigates a failure from an handler. In such cases the item can be put manually in 
+- `EstimationFailed` (failure mode for `EstimationComplete`)
+- `NotificationSendFailed` (failure mode for `NotificationSendComplete`)
+- `AmendmentFailed` (failure mode for `AmendmentComplete`)
+
+The advantage of specifing the stage that was current when the failure happened helps recovering from the failure (when an attemps to do so is performed)
+
 ### Processing Lambdas
 
 The price migration engine define a state machine which is linear. The lambdas fire in a given linear order (ocassionaly the same lambda fires more than once) For reference here is the other in which the lambda fire 

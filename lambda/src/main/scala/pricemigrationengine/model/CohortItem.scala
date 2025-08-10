@@ -78,9 +78,6 @@ object CohortItem {
       whenAmendmentDone = Some(result.whenDone)
     )
 
-  def fromExpiringSubscriptionResult(result: ExpiringSubscriptionResult): CohortItem =
-    CohortItem(result.subscriptionNumber, Cancelled)
-
   def isProcessable(item: CohortItem, today: LocalDate): Boolean = {
     // This function return a boolean indicating whether the item is processable
     // defined as either doNotProcessUntil is None or is a date equal to today or in the past.

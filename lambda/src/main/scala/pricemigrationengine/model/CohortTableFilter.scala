@@ -29,11 +29,11 @@ object CohortTableFilter {
     override val value: String = "AmendmentWrittenToSalesforce"
   }
 
-  /*
-   * Status of a sub that has been cancelled since the price migration process began, or has
-   * undergone some amendments in Zuora that are incompatible with the price rise.
-   * We mark it as ineligible for further processing.
-   */
+  case object ZuoraCancellation extends CohortTableFilter { override val value: String = "ZuoraCancellation" }
+
+  // General termination processing state. This is a terminal state for a cohort item
+  // It is used when the processing of a cohort items cannot pursue (for another reason than)
+  // the subscription having been cancelled in Zuora
   case object Cancelled extends CohortTableFilter { override val value: String = "Cancelled" }
 
   /*
