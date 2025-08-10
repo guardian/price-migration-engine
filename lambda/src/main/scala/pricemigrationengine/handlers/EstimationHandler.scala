@@ -72,7 +72,7 @@ object EstimationHandler extends CohortHandler {
     doEstimation(catalogue, item, cohortSpec, today).foldZIO(
       failure = {
         case _: SubscriptionCancelledInZuoraFailure =>
-          val result = CancelledEstimationResult(item.subscriptionName)
+          val result = SubscriptionCancelledInZuoraEstimationResult(item.subscriptionName)
           CohortTable
             .update(
               CohortItem(
