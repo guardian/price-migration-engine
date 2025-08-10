@@ -44,8 +44,6 @@ object CohortTableFilter {
 
   // ++++++++++ Exceptional states ++++++++++
 
-  case object EstimationFailed extends CohortTableFilter { override val value: String = "EstimationFailed" }
-
   case object AmendmentFailed extends CohortTableFilter { override val value: String = "AmendmentFailed" }
 
   case object DoNotProcessUntil extends CohortTableFilter { override val value: String = "DoNotProcessUntil" }
@@ -57,7 +55,6 @@ object CohortTableFilter {
     AmendmentWrittenToSalesforce,
     Cancelled,
     EstimationComplete,
-    EstimationFailed,
     NoPriceIncrease,
     NotificationSendComplete,
     NotificationSendDateWrittenToSalesforce,
