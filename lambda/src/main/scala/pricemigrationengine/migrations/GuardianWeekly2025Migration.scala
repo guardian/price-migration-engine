@@ -1,7 +1,6 @@
 package pricemigrationengine.migrations
 import pricemigrationengine.libs.SI2025Extractions
-import pricemigrationengine.model.ZuoraRatePlan
-import pricemigrationengine.model._
+import pricemigrationengine.model.{BillingPeriod, ZuoraRatePlan, _}
 import pricemigrationengine.libs._
 
 import java.time.LocalDate
@@ -172,22 +171,36 @@ object GuardianWeekly2025Migration {
   // - amendmentOrderPayload is used in the Amendment handler
   // ------------------------------------------------
 
+  def logValue[T](label: String)(value: T): T = {
+    println(s"$label: $value")
+    value
+  }
+
   def priceData(
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       account: ZuoraAccount
   ): Either[DataExtractionFailure, PriceData] = {
     val priceDataOpt: Option[PriceData] = for {
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
-      currency <- SI2025Extractions.determineCurrency(ratePlan)
-      oldPrice = SI2025Extractions.determineOldPrice(ratePlan)
-      localisation <- SubscriptionLocalisation.determineSubscriptionLocalisation(subscription, invoiceList, account)
-      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
+      _ <- Some(()).map(logValue("initialization"))
+      ratePlan <- SI2025RateplanFromSubAndInvoices
+        .determineRatePlan(subscription, invoiceList)
+        .map(logValue("ratePlan"))
+      currency <- SI2025Extractions
+        .determineCurrency(ratePlan)
+        .map(logValue("currency"))
+      oldPrice = logValue("oldPrice")(SI2025Extractions.determineOldPrice(ratePlan))
+      localisation <- SubscriptionLocalisation
+        .determineSubscriptionLocalisation(subscription, invoiceList, account)
+        .map(logValue("localisation"))
+      billingPeriod <- SI2025Extractions
+        .determineBillingPeriod(ratePlan)
+        .map(logValue("billingPeriod"))
       newPrice <- priceLookUp(
         localisation,
         billingPeriod: BillingPeriod,
         currency: String
-      )
+      ).map(logValue("newPrice"))
     } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
@@ -220,6 +233,7 @@ object GuardianWeekly2025Migration {
       if (!decideShouldRemoveDiscount(cohortItem)) {
         for {
           ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+          billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
         } yield {
           val subscriptionRatePlanId = ratePlan.id
           val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
@@ -228,7 +242,8 @@ object GuardianWeekly2025Migration {
           val chargeOverrides = List(
             ZuoraOrdersApiPrimitives.chargeOverride(
               ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId,
-              PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap)
+              PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap),
+              BillingPeriod.toString(billingPeriod)
             )
           )
           val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
@@ -243,6 +258,7 @@ object GuardianWeekly2025Migration {
       } else {
         for {
           ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+          billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
           discount <- SI2025Extractions.getDiscountByRatePlanName(zuora_subscription, "Percentage")
         } yield {
           val subscriptionRatePlanId = ratePlan.id
@@ -253,7 +269,8 @@ object GuardianWeekly2025Migration {
           val chargeOverrides = List(
             ZuoraOrdersApiPrimitives.chargeOverride(
               ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId,
-              PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap)
+              PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap),
+              BillingPeriod.toString(billingPeriod)
             )
           )
           val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)

@@ -1,10 +1,12 @@
 package pricemigrationengine.handlers
 
+import pricemigrationengine.libs.AmendmentHelper
 import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
 import pricemigrationengine.model._
 import pricemigrationengine.migrations._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
+
 import java.time.{LocalDate, LocalDateTime, ZoneOffset}
 import ujson._
 
@@ -165,6 +167,29 @@ object AmendmentHandler extends CohortHandler {
 
       invoicePreviewAfterUpdate <-
         Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)
+
+      _ <- {
+        val test = AmendmentHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
+          item.billingPeriod,
+          subscriptionAfterUpdate,
+          invoicePreviewAfterUpdate
+        )
+        test match {
+          case None =>
+            ZIO.fail(
+              DataExtractionFailure(
+                s"[b001b590] could not perform the billing period check with subscription: ${item.subscriptionName}"
+              )
+            )
+          case Some(false) =>
+            ZIO.fail(
+              AmendmentFailure(
+                s"[f2e43c45] subscription: ${item.subscriptionName}, has failed the post amendment billing period check"
+              )
+            )
+          case Some(true) => ZIO.succeed(())
+        }
+      }
 
       newPrice <-
         ZIO.fromEither(
