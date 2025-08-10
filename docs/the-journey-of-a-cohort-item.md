@@ -167,11 +167,24 @@ Last, but not least, this entire section, eg: moving through
 
 happens the same day. Being independent steps it is possible to delay the next one of the sequence, but there is also value in letting in them complete the same day, so that is a customer calls a CRS, they see, in Zuora and Salesforce, an up-to-date view of what the engine was in the process of doing.
 
-### Cancellations
+### Zuora Cancellations
 
 As we have seen a cohort item / subscription can sleep for a long time before it is ready to move to notification process, but what happens if the subscription has been cancelled by the user in the meantime ?
 
-In such a case, the engine will detect that the subscription has been cancelled in Zuora and will move the cohort item to `Cancelled` processing stage
+In such a case, the engine will detect that the subscription has been cancelled in Zuora and will move the cohort item to `ZuoraCancellation` processing stage
+
+```
+CohortItem(
+    subscriptionName  = "S-00000003"
+    processingStage   = "ZuoraCancellation"
+)
+```
+
+Once the cohort item is in `ZuoraCancellation` state the engine will no longer touch it. Alike `AmendmentWrittenToSalesforce`, `ZuoraCancellation` is a final state for a cohort item.
+
+### Cancelled processing stage
+
+A Zuora cancellation (indicated by `ZuoraCancellation`), as well as when the cohort item doesn't need to be price risen (indicated by `NoPriceIncrease`), are the to non error ways that the engine can put a cohort item in. Another terminaal state, and in fact that most general terminal state is `Cancelled`
 
 ```
 CohortItem(
@@ -180,11 +193,7 @@ CohortItem(
 )
 ```
 
-Once the cohort item is in `Cancelled` state the engine will no longer touch it. Alike `AmendmentWrittenToSalesforce`, `Cancelled` is a final state for a cohort item.
-
-### ZuoraCancellation
-
-The processing stage `ZuoraCancellation` is used when the subscription has been cancelled in Zuora. Before August 2025, we used the `Cancelled` processing state with a `cancellationReason`.
+At the time these lines are written (August 2025), it is generated only by RateplansProbe inside the notification handler. It is now much less common in the engine due to the introduction of the non standard processing stages (next section).
 
 ### Non standard processing stages
 
