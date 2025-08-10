@@ -81,3 +81,14 @@ aws dynamodb scan --region eu-west-1 --table-name PriceMigration-PROD-GW2024 --s
 """
 
 If the table that you are downloading has more than 50,000 items, and you want all of them, just update that number.
+
+## When is a migration completed ?
+
+A migration is completed when every item of the cohort table is in either of the following processing stages:
+
+- `AmendmentWrittenToSalesforce`
+- `ZuoraCancellation`
+- `EstimationFailed`
+- `NotificationSendFailed`
+- `AmendmentFailed`
+- `Cancelled`
