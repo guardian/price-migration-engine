@@ -75,9 +75,11 @@ object EstimationHandler extends CohortHandler {
           val result = CancelledEstimationResult(item.subscriptionName)
           CohortTable
             .update(
-              CohortItem.fromCancelledEstimationResult(
-                result,
-                s"(reason: b6829dd30) subscription ${item.subscriptionName} has been cancelled in Zuora"
+              CohortItem(
+                item.subscriptionName,
+                processingStage = Cancelled,
+                cancellationReason =
+                  Some(s"(reason: b6829dd30) subscription ${item.subscriptionName} has been cancelled in Zuora")
               )
             )
             .as(result)

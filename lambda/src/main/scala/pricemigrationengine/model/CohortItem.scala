@@ -68,9 +68,6 @@ object CohortItem {
   def fromNoPriceIncreaseEstimationResult(result: EstimationData): UIO[CohortItem] =
     fromSuccessfulEstimationResult(result).map(_.copy(processingStage = NoPriceIncrease))
 
-  def fromCancelledEstimationResult(result: CancelledEstimationResult, reason: String): CohortItem =
-    CohortItem(result.subscriptionNumber, processingStage = Cancelled, cancellationReason = Some(reason))
-
   def fromSuccessfulAmendmentResult(result: SuccessfulAmendmentResult): CohortItem =
     CohortItem(
       result.subscriptionNumber,
@@ -79,13 +76,6 @@ object CohortItem {
       newPrice = Some(result.newPrice),
       newSubscriptionId = Some(result.newSubscriptionId),
       whenAmendmentDone = Some(result.whenDone)
-    )
-
-  def fromCancelledAmendmentResult(result: CancelledAmendmentResult, reason: String): CohortItem =
-    CohortItem(
-      result.subscriptionNumber,
-      processingStage = Cancelled,
-      cancellationReason = Some(reason)
     )
 
   def fromExpiringSubscriptionResult(result: ExpiringSubscriptionResult): CohortItem =

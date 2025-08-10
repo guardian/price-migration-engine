@@ -1,7 +1,7 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.libs.AmendmentHelper
-import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
+import pricemigrationengine.model.CohortTableFilter.{Cancelled, NotificationSendDateWrittenToSalesforce}
 import pricemigrationengine.model._
 import pricemigrationengine.migrations._
 import pricemigrationengine.services._
@@ -42,7 +42,11 @@ object AmendmentHandler extends CohortHandler {
           val result = CancelledAmendmentResult(item.subscriptionName)
           CohortTable
             .update(
-              CohortItem.fromCancelledAmendmentResult(result, "(cause: 99727bf9) subscription was cancelled in Zuora")
+              CohortItem(
+                result.subscriptionNumber,
+                processingStage = Cancelled,
+                cancellationReason = Some("(cause: 99727bf9) subscription was cancelled in Zuora")
+              )
             )
             .as(result)
         }

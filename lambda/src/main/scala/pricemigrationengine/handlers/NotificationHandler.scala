@@ -298,12 +298,14 @@ object NotificationHandler extends CohortHandler {
       _ <- RateplansProbe.probe(subscription: ZuoraSubscription, date) match {
         case ShouldProceed => ZIO.succeed(())
         case ShouldCancel =>
-          val result = CancelledAmendmentResult(item.subscriptionName)
           for {
             _ <- CohortTable
               .update(
-                CohortItem
-                  .fromCancelledAmendmentResult(result, "(cause: f5c291b0) Migration cancelled by RateplansProbe")
+                CohortItem(
+                  item.subscriptionName,
+                  processingStage = Cancelled,
+                  cancellationReason = Some("(cause: f5c291b0) Migration cancelled by RateplansProbe")
+                )
               )
             _ <- notifySalesforceOfCancelledStatus(cohortSpec, item, Some("Migration cancelled by RateplansProbe"))
           } yield ZIO.fail(
