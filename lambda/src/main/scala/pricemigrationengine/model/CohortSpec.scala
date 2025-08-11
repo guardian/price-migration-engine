@@ -18,14 +18,11 @@ import java.util
   * @param earliestPriceMigrationStartDate
   *   Earliest date on which any sub in the cohort can have price migrated. The actual date for any sub will depend on
   *   its billing dates.
-  * @param migrationCompleteDate
-  *   Date on which the final step in the price migration was complete for every sub in the cohort.
   */
 case class CohortSpec(
     cohortName: String,
     brazeName: String,
     earliestPriceMigrationStartDate: LocalDate,
-    migrationCompleteDate: Option[LocalDate] = None
 ) {
   val normalisedCohortName: String = cohortName.replaceAll(" ", "")
   def tableName(stage: String): String = s"PriceMigration-$stage-$normalisedCohortName"
@@ -34,9 +31,6 @@ case class CohortSpec(
 object CohortSpec {
 
   implicit val rw: ReadWriter[CohortSpec] = macroRW
-
-  def isActive(spec: CohortSpec)(date: LocalDate): Boolean =
-    spec.migrationCompleteDate.forall(_.isAfter(date))
 
   def isValid(spec: CohortSpec): Boolean = {
     def isValidStringValue(s: String) = s.trim == s && s.nonEmpty && s.matches("[A-Za-z0-9-_ ]+")
@@ -49,11 +43,9 @@ object CohortSpec {
       cohortName <- getStringFromResults(values, "cohortName")
       brazeName <- getStringFromResults(values, "brazeName")
       earliestPriceMigrationStartDate <- getDateFromResults(values, "earliestPriceMigrationStartDate")
-      migrationCompleteDate <- getOptionalDateFromResults(values, "migrationCompleteDate")
     } yield CohortSpec(
       cohortName,
       brazeName,
-      earliestPriceMigrationStartDate,
-      migrationCompleteDate
+      earliestPriceMigrationStartDate
     )).left.map(e => CohortSpecFetchFailure(e))
 }
