@@ -184,7 +184,7 @@ Once the cohort item is in `ZuoraCancellation` state the engine will no longer t
 
 ### Cancelled processing stage
 
-A Zuora cancellation (indicated by `ZuoraCancellation`), as well as when the cohort item doesn't need to be price risen (indicated by `NoPriceIncrease`), are the to non error ways that the engine can put a cohort item in. Another terminaal state, and in fact that most general terminal state is `Cancelled`
+A Zuora cancellation (indicated by `ZuoraCancellation`), as well as when the cohort item doesn't need to be price risen (indicated by `NoPriceIncrease`), are the two non error ways that the engine can put a cohort item in. Another terminaal state, and in fact that most general terminal state is `Cancelled`
 
 ```
 CohortItem(
