@@ -1,7 +1,11 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.libs.AmendmentHelper
-import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
+import pricemigrationengine.model.CohortTableFilter.{
+  Cancelled,
+  NotificationSendDateWrittenToSalesforce,
+  ZuoraCancellation
+}
 import pricemigrationengine.model._
 import pricemigrationengine.migrations._
 import pricemigrationengine.services._
@@ -43,24 +47,19 @@ object AmendmentHandler extends CohortHandler {
   ): ZIO[CohortTable with Zuora with Logging, Failure, AmendmentResult] =
     doAmendment(cohortSpec, catalogue, item).foldZIO(
       failure = {
-        case _: CancelledSubscriptionFailure => {
-          // `CancelledSubscriptionFailure` happens when the subscription was cancelled in Zuora
+        case _: SubscriptionCancelledInZuoraFailure => {
+          // This happens when the subscription was cancelled in Zuora
           // in which case we simply update the processing state for this item in the database
           // Although it was given to us as a failure of `doAmendment`, the only effect of the database update, if it
           // is not recorded as a failure of `amend`, is to allow the processing to continue.
-          val result = CancelledAmendmentResult(item.subscriptionName)
           CohortTable
             .update(
-              CohortItem.fromCancelledAmendmentResult(result, "(cause: 99727bf9) subscription was cancelled in Zuora")
+              CohortItem(
+                item.subscriptionName,
+                processingStage = ZuoraCancellation
+              )
             )
-            .as(result)
-        }
-        case _: ExpiringSubscriptionFailure => {
-          // `ExpiringSubscriptionFailure` happens when the subscription's end of effective period is before the
-          // intended startDate (the price increase date). Alike `CancelledSubscriptionFailure` we cancel the amendment
-          // and the only effect is an updated cohort item in the database
-          val result = ExpiringSubscriptionResult(item.subscriptionName)
-          CohortTable.update(CohortItem.fromExpiringSubscriptionResult(result)).as(result)
+            .as(SubscriptionCancelledInZuoraAmendmentResult(item.subscriptionName))
         }
         case e: ZuoraUpdateFailure => {
           // We are only interested in the ZuoraUpdateFailures corresponding to message
@@ -82,7 +81,9 @@ object AmendmentHandler extends CohortHandler {
   private def fetchSubscription(item: CohortItem): ZIO[Zuora, Failure, ZuoraSubscription] =
     Zuora
       .fetchSubscription(item.subscriptionName)
-      .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
+      .filterOrFail(_.status != "Cancelled")(
+        SubscriptionCancelledInZuoraFailure(s"subscription ${item.subscriptionName} has been cancelled in Zuora")
+      )
 
   private def renewSubscription(
       subscription: ZuoraSubscription,
@@ -338,7 +339,7 @@ object AmendmentHandler extends CohortHandler {
       _ <-
         if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec) && (newPrice > estimatedNewPrice)) {
           ZIO.fail(
-            DataExtractionFailure(
+            AmendmentFailure(
               s"[e9054daa] Item ${item} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice}"
             )
           )
