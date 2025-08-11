@@ -513,6 +513,8 @@ class HomeDelivery2025MigrationTest extends munit.FunSuite {
     // there was a problem with HomeDelivery2025Migration.decideDeliveryPattern due to a space in the subscription's
     // rate plan's ratePlanName. Which lead to https://github.com/guardian/price-migration-engine/pull/1180
 
+    // The `EstimationFailed` processing stage has been decommissioned
+
     val subscription =
       Fixtures.subscriptionFromJson("Migrations/HomeDelivery2025/A-S01588918-EstimationFailed/subscription.json")
     val account = Fixtures.accountFromJson("Migrations/HomeDelivery2025/A-S01588918-EstimationFailed/account.json")

@@ -8,6 +8,7 @@ case class InputFailure(reason: String) extends Failure
 case class ConfigFailure(reason: String) extends Failure
 case class MigrationRoutingFailure(reason: String) extends Failure
 
+case class AmendmentFailure(reason: String) extends Failure
 case class DataExtractionFailure(reason: String) extends Failure
 
 case class CohortStateMachineFailure(reason: String) extends Failure
@@ -28,8 +29,8 @@ case class ZuoraUpdateFailure(reason: String) extends Failure
 case class ZuoraRenewalFailure(reason: String) extends Failure
 case class ZuoraOrderFailure(reason: String) extends Failure
 
-case class CancelledSubscriptionFailure(reason: String) extends Failure
-case class ExpiringSubscriptionFailure(reason: String) extends Failure
+case class SubscriptionCancelledInZuoraFailure(reason: String) extends Failure
+
 case class RatePlansProbeFailure(reason: String) extends Failure
 
 case class SalesforcePriceRiseWriteFailure(reason: String) extends Failure
