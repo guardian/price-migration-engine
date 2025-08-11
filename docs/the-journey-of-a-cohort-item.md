@@ -137,14 +137,6 @@ CohortItem(
 
 Then, the cohort item is going to.... sleep. It's going to sleep as long as it take for it to be at the start date minus about 40 days. This might take a few days or up to a year.
 
-### The Estimation Stage (part 3)
-
-I discovered during Newspaper2025P1 a curious behavior of some subscriptions. When one runs the Estimation step, they move from `ReadyForEstimation` to `EstimationFailed` (which doesn't cause an error in the engine -- maybe it should), but without any apparent reason. I initially thought there was an irregularity with the subs and that it would appear in tests by downloading the fixtures, but nothing came up. Turns out that moving the item back to `ReadyForEstimation` and running the Estimation handler again did work. This signals that there is transcient problem in Zuora which doesn't cause an error in the engine 🤔
-
-I managed to rescue a dozen subscriptions which had been incorrectly put in `EstimationFailed` except one: 344070.
-
-The same day, looking at HomeDelivery2025, I discovered that some items had ended up in EstimationFailed due to dirty data in Zuora, which this PR corrected: [https://github.com/guardian/price-migration-engine/pull/1180](https://github.com/guardian/price-migration-engine/pull/1180)
-
 ### Notification (part 1)
 
 In the case of migration SupporterPlus2024, the first operation is to check whether the item is under an active cancellation save. By definition, an "active" cancellation save is a cancellation save that was issued less than 6 months ago. If the item is found in that state, its processing stage become `DoNotProcessUntil` and the value of `doNotProcessUntil` is updated to become the effective date of the cancelation save plus 6 months.
@@ -175,11 +167,24 @@ Last, but not least, this entire section, eg: moving through
 
 happens the same day. Being independent steps it is possible to delay the next one of the sequence, but there is also value in letting in them complete the same day, so that is a customer calls a CRS, they see, in Zuora and Salesforce, an up-to-date view of what the engine was in the process of doing.
 
-### Cancellations
+### Zuora Cancellations
 
 As we have seen a cohort item / subscription can sleep for a long time before it is ready to move to notification process, but what happens if the subscription has been cancelled by the user in the meantime ?
 
-In such a case, the engine will detect that the subscription has been cancelled in Zuora and will move the cohort item to `Cancelled` processing stage
+In such a case, the engine will detect that the subscription has been cancelled in Zuora and will move the cohort item to `ZuoraCancellation` processing stage
+
+```
+CohortItem(
+    subscriptionName  = "S-00000003"
+    processingStage   = "ZuoraCancellation"
+)
+```
+
+Once the cohort item is in `ZuoraCancellation` state the engine will no longer touch it. Alike `AmendmentWrittenToSalesforce`, `ZuoraCancellation` is a final state for a cohort item.
+
+### Cancelled processing stage
+
+A Zuora cancellation (indicated by `ZuoraCancellation`), as well as when the cohort item doesn't need to be price risen (indicated by `NoPriceIncrease`), are the two non error ways that the engine can put a cohort item in. Another terminaal state, and in fact that most general terminal state is `Cancelled`
 
 ```
 CohortItem(
@@ -188,7 +193,16 @@ CohortItem(
 )
 ```
 
-Once the cohort item is in `Cancelled` state the engine will no longer touch it. Alike `AmendmentWrittenToSalesforce`, `Cancelled` is a final state for a cohort item.
+At the time these lines are written (August 2025), it is generated only by RateplansProbe inside the notification handler. It is now much less common in the engine due to the introduction of the non standard processing stages (next section).
+
+### Non standard processing stages
+
+The `Cancelled` processing stage in not the only processing stage a subscription can be put in when something goes wrong and the migration cannot pursue on it. Three other processing stages can be found in Dynamo table when Pascal investigates a failure from an handler. In such cases the item can be put manually in 
+- `EstimationFailed` (failure mode for `EstimationComplete`)
+- `NotificationSendFailed` (failure mode for `NotificationSendComplete`)
+- `AmendmentFailed` (failure mode for `AmendmentComplete`)
+
+The advantage of specifing the stage that was current when the failure happened helps recovering from the failure (when an attemps to do so is performed)
 
 ### Processing Lambdas
 
