@@ -49,9 +49,18 @@ object NotificationHandler extends CohortHandler {
   ): ZIO[Logging with CohortTable with SalesforceClient with EmailSender with Zuora, Failure, HandlerOutput] = {
     for {
       today <- Clock.currentDateTime.map(_.toLocalDate)
-      count <- CohortTable
-        .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
-        .take(batchSize)
+      count <- (
+        cohortSpec.subscriptionNumber match {
+          case None =>
+            CohortTable
+              .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+              .take(batchSize)
+          case Some(subscriptionNumber) =>
+            CohortTable
+              .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+              .filter(item => item.subscriptionName == subscriptionNumber)
+        }
+      )
         .mapZIO(item =>
           MigrationType(cohortSpec) match {
             case SupporterPlus2024 => {

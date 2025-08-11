@@ -18,7 +18,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
     ZIO.service[StageConfig] map { stageConfig =>
       S3Location(
         s"price-migration-engine-${stageConfig.stage.toLowerCase}",
-        s"${cohortSpec.normalisedCohortName}"
+        s"${cohortSpec.cohortName}"
       )
     }
 
