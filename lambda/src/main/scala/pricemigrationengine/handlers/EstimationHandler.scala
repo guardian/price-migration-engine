@@ -22,9 +22,18 @@ object EstimationHandler extends CohortHandler {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       _ <- monitorDoNotProcessUntils(today)
       catalogue <- Zuora.fetchProductCatalogue
-      count <- CohortTable
-        .fetch(ReadyForEstimation, None)
-        .take(batchSize)
+      count <- (
+        cohortSpec.subscriptionNumber match {
+          case None =>
+            CohortTable
+              .fetch(ReadyForEstimation, None)
+              .take(batchSize)
+          case Some(subscriptionNumber) =>
+            CohortTable
+              .fetch(ReadyForEstimation, None)
+              .filter(item => item.subscriptionName == subscriptionNumber)
+        }
+      )
         .mapZIO(item =>
           estimate(catalogue, cohortSpec)(today, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
         )
