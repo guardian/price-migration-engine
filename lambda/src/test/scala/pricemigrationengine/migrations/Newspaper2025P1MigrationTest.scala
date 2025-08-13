@@ -3,7 +3,6 @@ package pricemigrationengine.migrations
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.Fixtures
-import pricemigrationengine.libs.SI2025RateplanFromSubAndInvoices
 
 import java.time.LocalDate
 

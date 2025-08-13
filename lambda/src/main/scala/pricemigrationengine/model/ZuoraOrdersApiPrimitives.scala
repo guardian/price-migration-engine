@@ -1,11 +1,6 @@
-package pricemigrationengine.libs
+package pricemigrationengine.model
 
-import pricemigrationengine.model.ZuoraRatePlanCharge
-
-import java.time.LocalDate
-import upickle.default._
 import ujson._
-
 import scala.math.BigDecimal.RoundingMode
 
 // This file contains the primitives to be able to construct the Orders API Payload

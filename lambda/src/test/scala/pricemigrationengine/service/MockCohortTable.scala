@@ -2,7 +2,7 @@ package pricemigrationengine.service
 
 import pricemigrationengine.model.{CohortFetchFailure, CohortItem, CohortTableFilter, CohortUpdateFailure, Failure}
 import pricemigrationengine.services.CohortTable
-import pricemigrationengine.libs.Runner.unsafeRun
+import pricemigrationengine.model.Runner.unsafeRun
 import zio.mock.{Mock, Proxy}
 import zio.stream.ZStream
 import zio.{IO, URLayer, ZIO, ZLayer}

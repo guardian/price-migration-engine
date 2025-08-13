@@ -2,7 +2,6 @@ package pricemigrationengine.migrations
 
 import pricemigrationengine.Fixtures
 import pricemigrationengine.model._
-import pricemigrationengine.libs._
 import pricemigrationengine.model.CohortTableFilter.{NotificationSendDateWrittenToSalesforce, ReadyForEstimation}
 
 import java.time.{Instant, LocalDate}

@@ -4,7 +4,6 @@ import pricemigrationengine.TestLogging
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import pricemigrationengine.libs.Runner.unsafeRunSync
 import software.amazon.awssdk.services.s3.model.{ObjectCannedACL, PutObjectResponse}
 import zio.Exit.Success
 import zio.Runtime.default
@@ -93,7 +92,7 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
     val stubCohortTable = createStubCohortTable(List(cohortItem))
 
     assertEquals(
-      unsafeRunSync(default)(
+      Runner.unsafeRunSync(default)(
         CohortTableDatalakeExportHandler
           .main(cohortSpec)
           .provideLayer(
@@ -128,7 +127,7 @@ class CohortTableExportHandlerTest extends munit.FunSuite {
     val stubCohortTable = createStubCohortTable(List(cohortItem))
 
     assertEquals(
-      unsafeRunSync(default)(
+      Runner.unsafeRunSync(default)(
         CohortTableDatalakeExportHandler
           .main(cohortSpec)
           .provideLayer(
