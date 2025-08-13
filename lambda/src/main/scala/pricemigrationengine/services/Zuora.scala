@@ -33,7 +33,7 @@ trait Zuora {
 
   def renewSubscription(
       subscriptionNumber: String,
-      payload: ZuoraRenewOrderPayload
+      payload: Value
   ): ZIO[Any, ZuoraRenewalFailure, Unit]
 }
 
@@ -71,7 +71,7 @@ object Zuora {
 
   def renewSubscription(
       subscriptionNumber: String,
-      payload: ZuoraRenewOrderPayload
+      payload: Value
   ): ZIO[Zuora, ZuoraRenewalFailure, Unit] =
     ZIO.environmentWithZIO(_.get.renewSubscription(subscriptionNumber, payload))
 }

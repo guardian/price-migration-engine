@@ -254,9 +254,7 @@ object ZuoraLive {
             subscription: ZuoraSubscription,
             payload: Value
         ): ZIO[Any, ZuoraOrderFailure, Unit] = {
-
           val payload_stringified = payload.toString()
-
           post[ZuoraAmendmentOrderResponse](
             path = s"orders",
             body = payload_stringified
@@ -282,11 +280,12 @@ object ZuoraLive {
 
         override def renewSubscription(
             subscriptionNumber: String,
-            payload: ZuoraRenewOrderPayload
+            payload: Value
         ): ZIO[Any, ZuoraRenewalFailure, Unit] = {
+          val payload_stringified = payload.toString()
           post[ZuoraRenewOrderResponse](
             path = s"orders",
-            body = write(payload)
+            body = payload_stringified
           ).foldZIO(
             failure = e =>
               ZIO.fail(

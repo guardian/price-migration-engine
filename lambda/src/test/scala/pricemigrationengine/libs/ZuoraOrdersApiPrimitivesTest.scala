@@ -250,7 +250,7 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
     )
     val subscription = ZuoraOrdersApiPrimitives.subscription("a1809f5e84dd", List(removeProduct), List(addProduct))
 
-    val json = ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
+    val json = ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
       "2025-05-20",
       "4f3d6ed065437111b3",
       subscription
@@ -591,6 +591,51 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |        }
         |    }
         |]""".stripMargin
+    )
+  }
+
+  test("ZuoraOrdersApiPrimitives.subscriptionRenewalPayload") {
+    val payload = ZuoraOrdersApiPrimitives.subscriptionRenewalPayload(
+      "2025-07-28",
+      "A-NUMBER",
+      "S-NUMBER",
+      "2026-01-08"
+    )
+    val jsonstrpp = ujson.write(payload, indent = 4)
+    assertEquals(
+      jsonstrpp,
+      """{
+        |    "orderDate": "2025-07-28",
+        |    "existingAccountNumber": "A-NUMBER",
+        |    "subscriptions": [
+        |        {
+        |            "subscriptionNumber": "S-NUMBER",
+        |            "orderActions": [
+        |                {
+        |                    "type": "RenewSubscription",
+        |                    "triggerDates": [
+        |                        {
+        |                            "name": "ContractEffective",
+        |                            "triggerDate": "2026-01-08"
+        |                        },
+        |                        {
+        |                            "name": "ServiceActivation",
+        |                            "triggerDate": "2026-01-08"
+        |                        },
+        |                        {
+        |                            "name": "CustomerAcceptance",
+        |                            "triggerDate": "2026-01-08"
+        |                        }
+        |                    ]
+        |                }
+        |            ]
+        |        }
+        |    ],
+        |    "processingOptions": {
+        |        "runBilling": false,
+        |        "collectPayment": false
+        |    }
+        |}""".stripMargin
     )
   }
 }
