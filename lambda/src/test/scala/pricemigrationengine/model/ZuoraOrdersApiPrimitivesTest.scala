@@ -1,7 +1,4 @@
-package pricemigrationengine.libs
-
-import pricemigrationengine.model.{ZuoraRatePlan, ZuoraRatePlanCharge}
-import ujson.Value
+package pricemigrationengine.model
 
 import java.time.LocalDate
 

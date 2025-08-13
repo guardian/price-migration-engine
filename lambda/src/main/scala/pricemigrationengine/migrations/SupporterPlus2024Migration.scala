@@ -1,5 +1,5 @@
 package pricemigrationengine.migrations
-import pricemigrationengine.libs.PriceCap
+import pricemigrationengine.model.PriceCap
 import pricemigrationengine.model.ZuoraRatePlan
 import pricemigrationengine.model._
 import pricemigrationengine.services.Zuora

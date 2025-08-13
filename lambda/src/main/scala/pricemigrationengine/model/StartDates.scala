@@ -1,4 +1,4 @@
-package pricemigrationengine.libs
+package pricemigrationengine.model
 
 import pricemigrationengine.handlers.NotificationHandler
 import pricemigrationengine.migrations.{
@@ -7,8 +7,6 @@ import pricemigrationengine.migrations.{
   Newspaper2025P1Migration,
   Newspaper2025P3Migration
 }
-import pricemigrationengine.model._
-
 import scala.util.Random
 import java.time.LocalDate
 

@@ -1,6 +1,4 @@
-package pricemigrationengine.libs
-
-import pricemigrationengine.model._
+package pricemigrationengine.model
 
 import java.time.LocalDate
 

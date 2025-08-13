@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.libs.{AmendmentHelper, ZuoraOrdersApiPrimitives}
+import pricemigrationengine.model.{AmendmentHelper, ZuoraOrdersApiPrimitives}
 import pricemigrationengine.model.CohortTableFilter.{
   Cancelled,
   NotificationSendDateWrittenToSalesforce,
