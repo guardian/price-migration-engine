@@ -36,55 +36,6 @@ case class ZuoraRenewOrderPayload(
     subscriptions: List[ZuoraRenewOrderPayloadSubscription],
     processingOptions: ZuoraRenewOrderPayloadProcessingOptions
 )
-object ZuoraRenewOrderPayload {
-  implicit val rwZuoraRenewOrderPayload: ReadWriter[ZuoraRenewOrderPayload] = macroRW
-
-  def apply(
-      orderDate: LocalDate,
-      subscriptionNumber: String,
-      accountNumber: String,
-      effectDate: LocalDate
-  ): ZuoraRenewOrderPayload = {
-    val triggerDates = List(
-      ZuoraRenewOrderPayloadOrderActionTriggerDate(
-        "ContractEffective",
-        effectDate
-      ),
-      ZuoraRenewOrderPayloadOrderActionTriggerDate(
-        "ServiceActivation",
-        effectDate
-      ),
-      ZuoraRenewOrderPayloadOrderActionTriggerDate(
-        "CustomerAcceptance",
-        effectDate
-      ),
-    )
-
-    val orderActions = List(
-      ZuoraRenewOrderPayloadOrderAction(
-        `type` = "RenewSubscription",
-        triggerDates = triggerDates
-      )
-    )
-
-    val subscriptions = List(
-      ZuoraRenewOrderPayloadSubscription(
-        subscriptionNumber = subscriptionNumber,
-        orderActions = orderActions
-      )
-    )
-
-    val processingOptions = ZuoraRenewOrderPayloadProcessingOptions(runBilling = false, collectPayment = false)
-
-    ZuoraRenewOrderPayload(
-      orderDate = orderDate,
-      existingAccountNumber = accountNumber,
-      subscriptions = subscriptions,
-      processingOptions = processingOptions
-    )
-  }
-}
-
 case class ZuoraRenewOrderResponse(
     success: Boolean
     // Be careful if you are considering extending this class because the answer's shape
