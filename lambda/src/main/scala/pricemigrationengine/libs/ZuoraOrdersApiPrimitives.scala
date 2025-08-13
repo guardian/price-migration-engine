@@ -92,7 +92,7 @@ object ZuoraOrdersApiPrimitives {
      */
     Obj(
       "type" -> Str("RemoveProduct"),
-      "triggerDates" -> triggerDates(triggerDateString: String),
+      "triggerDates" -> triggerDates(triggerDateString),
       "removeProduct" -> Obj(
         "ratePlanId" -> Str(subscriptionRatePlanId)
       )
@@ -107,6 +107,9 @@ object ZuoraOrdersApiPrimitives {
                 "recurringFlatFee": {
                     "listPrice": 12
                 }
+            },
+            "billing": {
+                "billingPeriod": "Month"
             }
         }
      */
@@ -197,6 +200,9 @@ object ZuoraOrdersApiPrimitives {
                           "recurringFlatFee": {
                               "listPrice": 12
                           }
+                      },
+                      "billing": {
+                          "billingPeriod": "Month"
                       }
                   },
                   {
@@ -205,6 +211,9 @@ object ZuoraOrdersApiPrimitives {
                           "recurringFlatFee": {
                               "listPrice": 0
                           }
+                      },
+                      "billing": {
+                          "billingPeriod": "Month"
                       }
                   }
               ]
@@ -271,6 +280,9 @@ object ZuoraOrdersApiPrimitives {
                             "recurringFlatFee": {
                                 "listPrice": 12
                             }
+                        },
+                        "billing": {
+                            "billingPeriod": "Month"
                         }
                     },
                     {
@@ -279,6 +291,9 @@ object ZuoraOrdersApiPrimitives {
                             "recurringFlatFee": {
                                 "listPrice": 0
                             }
+                        },
+                        "billing": {
+                            "billingPeriod": "Month"
                         }
                     }
                 ]
@@ -354,6 +369,9 @@ object ZuoraOrdersApiPrimitives {
                                 "recurringFlatFee": {
                                     "listPrice": 12
                                 }
+                            },
+                            "billing": {
+                                "billingPeriod": "Month"
                             }
                         },
                         {
@@ -362,6 +380,9 @@ object ZuoraOrdersApiPrimitives {
                                 "recurringFlatFee": {
                                     "listPrice": 0
                                 }
+                            },
+                            "billing": {
+                                "billingPeriod": "Month"
                             }
                         }
                     ]
