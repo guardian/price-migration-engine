@@ -255,7 +255,7 @@ object Newspaper2025P3Migration {
           val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
           val order_subscription =
             ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
-          ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
+          ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
             orderDate.toString,
             accountNumber,
             order_subscription
@@ -284,7 +284,7 @@ object Newspaper2025P3Migration {
               List(removeProduct, removeDiscount),
               List(addProduct)
             )
-          ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
+          ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
             orderDate.toString,
             accountNumber,
             order_subscription

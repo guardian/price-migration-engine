@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.libs.AmendmentHelper
+import pricemigrationengine.libs.{AmendmentHelper, ZuoraOrdersApiPrimitives}
 import pricemigrationengine.model.CohortTableFilter.{
   Cancelled,
   NotificationSendDateWrittenToSalesforce,
@@ -90,11 +90,11 @@ object AmendmentHandler extends CohortHandler {
       effectDate: LocalDate,
       account: ZuoraAccount
   ): ZIO[Zuora with Logging, Failure, Unit] = {
-    val payload = ZuoraRenewOrderPayload(
-      LocalDate.now(),
-      subscription.subscriptionNumber,
+    val payload = ZuoraOrdersApiPrimitives.subscriptionRenewalPayload(
+      LocalDate.now().toString,
       account.basicInfo.accountNumber,
-      effectDate
+      subscription.subscriptionNumber,
+      effectDate.toString
     )
     for {
       _ <- Logging.info(s"Renewing subscription ${subscription.subscriptionNumber} with payload $payload")
