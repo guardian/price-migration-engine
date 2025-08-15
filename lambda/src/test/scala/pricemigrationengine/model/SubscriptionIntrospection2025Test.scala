@@ -379,7 +379,7 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     )
   }
 
-  test("SI2025Extractions.getDiscountByRatePlanName") {
+  test("SI2025Extractions.getDiscountByRatePlanName (Percentage)") {
     val subscription =
       Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription3-with-discount/subscription.json")
     assertEquals(
@@ -419,7 +419,7 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     )
   }
 
-  test("SI2025Extractions.getDiscountByRatePlanName") {
+  test("SI2025Extractions.getDiscountByRatePlanName (Adjustment)") {
     val subscription =
       Fixtures.subscriptionFromJson(
         "model/SubscriptionIntrospection2025/subscription4-511760-Discount-Adjustment/subscription.json"
@@ -461,7 +461,7 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     )
   }
 
-  test("SI2025Extractions.getPercentageOrAdjustementDiscount") {
+  test("SI2025Extractions.getPercentageOrAdjustementDiscount (finding Percentage)") {
     val subscription =
       Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription3-with-discount/subscription.json")
 
@@ -504,7 +504,7 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     )
   }
 
-  test("SI2025Extractions.getPercentageOrAdjustementDiscount") {
+  test("SI2025Extractions.getPercentageOrAdjustementDiscount (finding Adjustment)") {
     val subscription =
       Fixtures.subscriptionFromJson(
         "model/SubscriptionIntrospection2025/subscription4-511760-Discount-Adjustment/subscription.json"
