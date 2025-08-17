@@ -151,7 +151,7 @@ object AmendmentHandler extends CohortHandler {
               orderDate = LocalDate.now(),
               accountNumber = account.basicInfo.accountNumber,
               subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
-              effectDate = startDate,
+              mainChargeEffectDate = startDate,
               subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
