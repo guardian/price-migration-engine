@@ -104,12 +104,13 @@ object AmendmentHandler extends CohortHandler {
 
   private def shouldPerformFinalPriceCheck(cohortSpec: CohortSpec): Boolean = {
     MigrationType(cohortSpec) match {
-      case Test1              => true // default value
-      case SupporterPlus2024  => false // [1]
-      case GuardianWeekly2025 => true
-      case Newspaper2025P1    => true
-      case HomeDelivery2025   => true
-      case Newspaper2025P3    => true
+      case Test1                  => true // default value
+      case SupporterPlus2024      => false // [1]
+      case GuardianWeekly2025     => true
+      case Newspaper2025P1        => true
+      case HomeDelivery2025       => true
+      case Newspaper2025P3        => true
+      case ProductMigration2025N4 => true
     }
 
     // [1] We do not apply the check to the SupporterPlus2024 migration where, due to the way
@@ -166,6 +167,10 @@ object AmendmentHandler extends CohortHandler {
           ZIO.fail(MigrationRoutingFailure("HomeDelivery2025 should not use doAmendment_ordersApi_typed_deprecated"))
         case Newspaper2025P3 =>
           ZIO.fail(MigrationRoutingFailure("Newspaper2025P3 should not use doAmendment_ordersApi_typed_deprecated"))
+        case ProductMigration2025N4 =>
+          ZIO.fail(
+            MigrationRoutingFailure("ProductMigration2025N4 should not use doAmendment_ordersApi_typed_deprecated")
+          )
       }
       _ <- Logging.info(
         s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
@@ -296,7 +301,7 @@ object AmendmentHandler extends CohortHandler {
               zuora_subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
-              priceCap = Newspaper2025P1Migration.priceCap,
+              priceCap = HomeDelivery2025Migration.priceCap,
               invoiceList = invoicePreviewBeforeUpdate
             )
           )
@@ -311,7 +316,22 @@ object AmendmentHandler extends CohortHandler {
               zuora_subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
-              priceCap = Newspaper2025P1Migration.priceCap,
+              priceCap = Newspaper2025P3Migration.priceCap,
+              invoiceList = invoicePreviewBeforeUpdate
+            )
+          )
+        case ProductMigration2025N4 =>
+          ZIO.fromEither(
+            ProductMigration2025N4Migration.amendmentOrderPayload(
+              cohortItem = item,
+              orderDate = LocalDate.now(),
+              accountNumber = account.basicInfo.accountNumber,
+              subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
+              effectDate = startDate,
+              zuora_subscription = subscriptionBeforeUpdate,
+              oldPrice = oldPrice,
+              estimatedNewPrice = estimatedNewPrice,
+              priceCap = ProductMigration2025N4Migration.priceCap,
               invoiceList = invoicePreviewBeforeUpdate
             )
           )
@@ -396,6 +416,12 @@ object AmendmentHandler extends CohortHandler {
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
+      case ProductMigration2025N4 =>
+        doAmendment_ordersApi_json_values(
+          cohortSpec: CohortSpec,
+          catalogue: ZuoraProductCatalogue,
+          item: CohortItem
+        )
     }
   }
 
@@ -406,10 +432,11 @@ object AmendmentHandler extends CohortHandler {
     // Instead, the process will be running using an asynchronous solution that
     // we will be porting back to this codebase in the near future.
     MigrationType(input) match {
-      case GuardianWeekly2025 => ZIO.succeed(HandlerOutput(isComplete = true))
-      case Newspaper2025P1    => ZIO.succeed(HandlerOutput(isComplete = true))
-      case HomeDelivery2025   => ZIO.succeed(HandlerOutput(isComplete = true))
-      case Newspaper2025P3    => ZIO.succeed(HandlerOutput(isComplete = true))
+      case GuardianWeekly2025     => ZIO.succeed(HandlerOutput(isComplete = true))
+      case Newspaper2025P1        => ZIO.succeed(HandlerOutput(isComplete = true))
+      case HomeDelivery2025       => ZIO.succeed(HandlerOutput(isComplete = true))
+      case Newspaper2025P3        => ZIO.succeed(HandlerOutput(isComplete = true))
+      case ProductMigration2025N4 => ZIO.succeed(HandlerOutput(isComplete = true))
       case _ =>
         main(input).provideSome[Logging](
           EnvConfig.cohortTable.layer,
