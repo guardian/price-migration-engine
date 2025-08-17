@@ -68,10 +68,6 @@ Step 7: Our spread period is 3 months. Let's assume that the random choice retur
 
 Step 8: We are now ready for the start date. The start date is the next available billing date after `2024-08-08`. Since we have a monthly sub paying on the 27th, the start date is `2024-08-27` 🗓️ 🎉
 
+### Extra fun: the case of SupporterPlus2024
 
-
-
-
-
-
-
+We found a case where the two charges of the same rate plan happened at different dates. This led to this PR: [https://github.com/guardian/price-migration-engine/pull/1214](https://github.com/guardian/price-migration-engine/pull/1214). To keep in mind if a similar situation arises again in the future.

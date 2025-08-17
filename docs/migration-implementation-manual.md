@@ -56,6 +56,12 @@ In practice, things are a bit more subtle. To be able to better serve the needs 
 
 In practice the mechanism we use to provide migration specific behavior and data is the `MigrationType` trait. In the current design of the engine the first step in starting a migration in to define a new instance of that trait.
 
+## Data Regularity Checks
+
+Zuora has a rather complex data model, and when coding a migration you might need, or want, to make assumptions about the way the subscriptions and rate plans present themselves. Sometimes those assumptions are essentially incorrect as not enforced by the Zuora data model itself, but happen to be true for the cohort you are working with, and greatly simplify the encoding of that migration. There are no general rules on how to run those checks, because they depend on the specific migration, but Pascal would run them using Ruby scripts.
+
+One such check, if we had thought about it at the time, would have been checking the date alignement of SupporterPlus 2024 subscriptions. A misalignment was reported (soon before the end of the migration) and led to this PR [https://github.com/guardian/price-migration-engine/pull/1214](https://github.com/guardian/price-migration-engine/pull/1214).
+
 ## Migration Steps
 
 We used the Guardian Weekly 2024 migration as a teaching opportunity and split the implementation in 7 Steps. The PR description should help understand what each step acheived and why. 
