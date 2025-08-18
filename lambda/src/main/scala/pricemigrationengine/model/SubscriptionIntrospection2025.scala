@@ -56,8 +56,9 @@ object SI2025RateplanFromSub {
 
   def determineRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
     subscription.ratePlans
-      .filter(ratePlan => ratePlan.productName != "Discounts")
-      .find(ratePlan => ZuoraRatePlan.ratePlanIsActive(ratePlan))
+      .filter(ratePlan => ZuoraRatePlan.ratePlanIsActive(ratePlan))
+      .find(ratePlan => ratePlan.productName != "Discounts")
+
   }
 }
 
@@ -140,7 +141,9 @@ object SI2025Extractions {
     // ratePlanName: "Customer Experience Adjustment - Voucher"
     // To handle this we use ratePlanName.contains
     subscription.ratePlans
-      .find(ratePlan => ratePlan.productName == "Discounts" && ratePlan.ratePlanName.contains(ratePlanName))
+      .filter(ratePlan => ZuoraRatePlan.ratePlanIsActive(ratePlan))
+      .filter(ratePlan => ratePlan.productName == "Discounts")
+      .find(ratePlan => ratePlan.ratePlanName.contains(ratePlanName))
   }
 
   def getPercentageOrAdjustementDiscount(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {

@@ -296,7 +296,7 @@ object AmendmentHandler extends CohortHandler {
               zuora_subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
-              priceCap = Newspaper2025P1Migration.priceCap,
+              priceCap = HomeDelivery2025Migration.priceCap,
               invoiceList = invoicePreviewBeforeUpdate
             )
           )
@@ -311,7 +311,7 @@ object AmendmentHandler extends CohortHandler {
               zuora_subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
-              priceCap = Newspaper2025P1Migration.priceCap,
+              priceCap = Newspaper2025P3Migration.priceCap,
               invoiceList = invoicePreviewBeforeUpdate
             )
           )
