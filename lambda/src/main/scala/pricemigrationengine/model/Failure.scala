@@ -42,5 +42,3 @@ case class SubscriptionIdUploadFailure(reason: String) extends Failure
 case class NotificationHandlerFailure(reason: String) extends Failure
 case class NotificationNotEnoughLeadTimeFailure(reason: String) extends Failure
 case class EmailSenderFailure(reason: String) extends Failure
-
-case class CohortTableDatalakeExportFailure(reason: String) extends Failure
