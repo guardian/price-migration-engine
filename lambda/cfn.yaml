@@ -53,7 +53,6 @@ Resources:
         - Ref: PriceMigrationEngineNotificationLambdaRole
         - Ref: PriceMigrationEngineSalesforceNotificationDateUpdateLambdaRole
         - Ref: PriceMigrationEngineSalesforceAmendmentUpdateLambdaRole
-        - Ref: PriceMigrationEngineCohortTableDatalakeExportLambdaRole
 
   ReadFromDistBucketPolicy:
     Type: AWS::IAM::Policy
@@ -74,7 +73,6 @@ Resources:
         - Ref: PriceMigrationEngineNotificationLambdaRole
         - Ref: PriceMigrationEngineSalesforceNotificationDateUpdateLambdaRole
         - Ref: PriceMigrationEngineSalesforceAmendmentUpdateLambdaRole
-        - Ref: PriceMigrationEngineCohortTableDatalakeExportLambdaRole
 
   CohortTableAccessPolicy:
     Type: AWS::IAM::Policy
@@ -100,7 +98,6 @@ Resources:
         - Ref: PriceMigrationEngineNotificationLambdaRole
         - Ref: PriceMigrationEngineSalesforceNotificationDateUpdateLambdaRole
         - Ref: PriceMigrationEngineSalesforceAmendmentUpdateLambdaRole
-        - Ref: PriceMigrationEngineCohortTableDatalakeExportLambdaRole
         - Ref: PriceMigrationEngineSubscriptionIdUploadLambdaRole
 
   PriceMigrationEngineTableCreateLambdaRole:
@@ -341,44 +338,6 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-salesforce-amendment-update-lambda-${Stage}:log-stream:*"
 
-  PriceMigrationEngineCohortTableDatalakeExportLambdaRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      Path: /
-      Policies:
-        - PolicyName: LambdaPolicy
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                  - lambda:InvokeFunction
-                Resource:
-                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/price-migration-engine-cohort-table-datalake-export-lambda-${Stage}:log-stream:*"
-        - PolicyName: S3BucketPolicy
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:PutObject
-                  - s3:PutObjectAcl
-                Resource:
-                  - !Sub
-                    - "arn:aws:s3:::${ExportBucketName}/*"
-                    - {ExportBucketName: !FindInMap [StageMap, !Ref Stage, ExportBucketName]}
-    DependsOn:
-      - S3Bucket
-
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -583,32 +542,6 @@ Resources:
       Runtime: java11
       Timeout: 900
 
-  PriceMigrationEngineCohortTableDatalakeExportLambda:
-    Type: AWS::Lambda::Function
-    Properties:
-      Description: Exports the cohort table to s3 for so it is available for import into the datalake.
-      FunctionName:
-        !Sub price-migration-engine-cohort-table-datalake-export-lambda-${Stage}
-      Code:
-        S3Bucket: membership-dist
-        S3Key: !Sub membership/${Stage}/price-migration-engine-lambda/price-migration-engine-lambda.jar
-      Handler: pricemigrationengine.handlers.CohortTableDatalakeExportHandler::handleRequest
-      Environment:
-        Variables:
-          stage: !Ref Stage
-          batchSize: 100
-          exportBucketName: !FindInMap [StageMap, !Ref Stage, ExportBucketName]
-      Role:
-        Fn::GetAtt:
-          - PriceMigrationEngineCohortTableDatalakeExportLambdaRole
-          - Arn
-      MemorySize: 1536
-      Runtime: java11
-      Timeout: 900
-    DependsOn:
-      - PriceMigrationEngineCohortTableDatalakeExportLambdaRole
-      - S3Bucket
-
 Outputs:
   PriceMigrationEngineTableCreateLambdaOutput:
     Value: !GetAtt PriceMigrationEngineTableCreateLambda.Arn
@@ -642,7 +575,3 @@ Outputs:
     Value: !GetAtt PriceMigrationEngineSalesforceAmendmentUpdateLambda.Arn
     Export:
       Name: !Sub "${AWS::StackName}-UpdatingSalesforceWithAmendsLambda"
-  PriceMigrationEngineCohortTableDatalakeExportLambdaOutput:
-    Value: !GetAtt PriceMigrationEngineCohortTableDatalakeExportLambda.Arn
-    Export:
-      Name: !Sub "${AWS::StackName}-ExportingCohortTableToDatalakeLambda"
