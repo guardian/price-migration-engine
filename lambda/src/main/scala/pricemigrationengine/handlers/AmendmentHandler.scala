@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.libs.AmendmentHelper
+import pricemigrationengine.model.{AmendmentHelper, ZuoraOrdersApiPrimitives}
 import pricemigrationengine.model.CohortTableFilter.{
   Cancelled,
   NotificationSendDateWrittenToSalesforce,
@@ -90,11 +90,11 @@ object AmendmentHandler extends CohortHandler {
       effectDate: LocalDate,
       account: ZuoraAccount
   ): ZIO[Zuora with Logging, Failure, Unit] = {
-    val payload = ZuoraRenewOrderPayload(
-      LocalDate.now(),
-      subscription.subscriptionNumber,
+    val payload = ZuoraOrdersApiPrimitives.subscriptionRenewalPayload(
+      LocalDate.now().toString,
       account.basicInfo.accountNumber,
-      effectDate
+      subscription.subscriptionNumber,
+      effectDate.toString
     )
     for {
       _ <- Logging.info(s"Renewing subscription ${subscription.subscriptionNumber} with payload $payload")
@@ -296,7 +296,7 @@ object AmendmentHandler extends CohortHandler {
               zuora_subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
-              priceCap = Newspaper2025P1Migration.priceCap,
+              priceCap = HomeDelivery2025Migration.priceCap,
               invoiceList = invoicePreviewBeforeUpdate
             )
           )
@@ -311,7 +311,7 @@ object AmendmentHandler extends CohortHandler {
               zuora_subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
-              priceCap = Newspaper2025P1Migration.priceCap,
+              priceCap = Newspaper2025P3Migration.priceCap,
               invoiceList = invoicePreviewBeforeUpdate
             )
           )
@@ -400,14 +400,26 @@ object AmendmentHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    main(input).provideSome[Logging](
-      EnvConfig.cohortTable.layer,
-      EnvConfig.zuora.layer,
-      EnvConfig.stage.layer,
-      DynamoDBZIOLive.impl,
-      DynamoDBClientLive.impl,
-      CohortTableLive.impl(input),
-      ZuoraLive.impl
-    )
+    // Date: 14th August 2025
+    // Author: Pascal
+    // I am suspending the amendment handler for the print migrations.
+    // Instead, the process will be running using an asynchronous solution that
+    // we will be porting back to this codebase in the near future.
+    MigrationType(input) match {
+      case GuardianWeekly2025 => ZIO.succeed(HandlerOutput(isComplete = true))
+      case Newspaper2025P1    => ZIO.succeed(HandlerOutput(isComplete = true))
+      case HomeDelivery2025   => ZIO.succeed(HandlerOutput(isComplete = true))
+      case Newspaper2025P3    => ZIO.succeed(HandlerOutput(isComplete = true))
+      case _ =>
+        main(input).provideSome[Logging](
+          EnvConfig.cohortTable.layer,
+          EnvConfig.zuora.layer,
+          EnvConfig.stage.layer,
+          DynamoDBZIOLive.impl,
+          DynamoDBClientLive.impl,
+          CohortTableLive.impl(input),
+          ZuoraLive.impl
+        )
+    }
   }
 }

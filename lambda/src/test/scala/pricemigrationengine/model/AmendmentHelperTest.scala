@@ -1,8 +1,6 @@
-package pricemigrationengine.libs
+package pricemigrationengine.model
 
 import pricemigrationengine.Fixtures
-import pricemigrationengine.libs.AmendmentHelper
-import pricemigrationengine.model.{Annual, BillingPeriod, ZuoraInvoiceList, ZuoraSubscription}
 
 class AmendmentHelperTest extends munit.FunSuite {
 
