@@ -16,11 +16,6 @@ trait Zuora {
 
   val fetchProductCatalogue: ZIO[Any, ZuoraFetchFailure, ZuoraProductCatalogue]
 
-  def updateSubscription(
-      subscription: ZuoraSubscription,
-      update: ZuoraSubscriptionUpdate
-  ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId]
-
   def applyAmendmentOrder_typed_deprecated(
       subscription: ZuoraSubscription,
       payload: ZuoraAmendmentOrderPayload
@@ -50,12 +45,6 @@ object Zuora {
 
   val fetchProductCatalogue: ZIO[Zuora, ZuoraFetchFailure, ZuoraProductCatalogue] =
     ZIO.environmentWithZIO(_.get.fetchProductCatalogue)
-
-  def updateSubscription(
-      subscription: ZuoraSubscription,
-      update: ZuoraSubscriptionUpdate
-  ): ZIO[Zuora, ZuoraUpdateFailure, ZuoraSubscriptionId] =
-    ZIO.environmentWithZIO(_.get.updateSubscription(subscription, update))
 
   def applyAmendmentOrder_typed_deprecated(
       subscription: ZuoraSubscription,

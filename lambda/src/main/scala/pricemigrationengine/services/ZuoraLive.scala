@@ -28,9 +28,6 @@ object ZuoraLive {
   )
   private implicit val rwInvoicePreviewRequest: ReadWriter[InvoicePreviewRequest] = macroRW
 
-  private case class SubscriptionUpdateResponse(subscriptionId: ZuoraSubscriptionId)
-  private implicit val rwSubscriptionUpdateResponse: ReadWriter[SubscriptionUpdateResponse] = macroRW
-
   /*
    * The access token is generated outside the ZIO framework so that it's only fetched once.
    * There has to be a better way to do this, but don't know what it is at the moment.
@@ -194,19 +191,6 @@ object ZuoraLive {
             } yield catalogue
 
           fetchCatalogue(ZuoraProductCatalogue.empty, pageIdx = 1)
-        }
-
-        override def updateSubscription(
-            subscription: ZuoraSubscription,
-            update: ZuoraSubscriptionUpdate
-        ): ZIO[Any, ZuoraUpdateFailure, ZuoraSubscriptionId] = {
-          put[SubscriptionUpdateResponse](
-            path = s"subscriptions/${subscription.subscriptionNumber}",
-            body = write(update)
-          ).mapBoth(
-            e => ZuoraUpdateFailure(s"Subscription ${subscription.subscriptionNumber} and update $update: ${e.reason}"),
-            response => response.subscriptionId
-          )
         }
 
         override def applyAmendmentOrder_typed_deprecated(

@@ -21,11 +21,13 @@ It currently consists in
 ### Operations:
 
 - Web Price Rises
+    - [lambdas code structure](docs/lambdas-code-structure.md)
     - [Set up a new cohort of subscriptions for price rise](docs/subscription-numbers-upload.md)
     - [Setting migration extra attributes](docs/migration-extra-attributes.md)
     - [The migration implementation manual](docs/migration-implementation-manual.md)
     - [Downloading fixtures](docs/downloading-fixtures.md)
     - [Notes on the Zuora Order API](docs/zuora-order-api.md)
+    - [Communication with braze](docs/communication-with-braze.md)
     - [Extending cohort items](docs/extending-CohortItem.md)
     - [Troubleshooting document](docs/troubleshooting.md)
 
