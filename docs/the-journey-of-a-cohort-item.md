@@ -216,4 +216,3 @@ The price migration engine define a state machine which is linear. The lambdas f
 - SalesforceNotificationDateUpdateHandler
 - AmendmentHandler
 - SalesforceAmendmentUpdateHandler
-- CohortTableDatalakeExportHandler
