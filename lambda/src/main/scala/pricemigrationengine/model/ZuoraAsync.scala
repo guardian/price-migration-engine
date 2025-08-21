@@ -14,7 +14,7 @@ import upickle.default._
 // in Zuora is undefined: the operation sometimes succeed a couple of minutes later
 // or the operation has completely failed. Because of the indeterminacy of the
 // result, it is not recommended to retry, because it may result in the operation
-// having succeeded twice, and that without the client even receiving a 200.
+// having succeeded twice, and that without the client ever receiving a 200.
 
 /*
 
@@ -92,26 +92,26 @@ The various statuses are given below:
   "errors" : null,
   "result" : {
     "orderNumber" : "O-04857851",
-    "accountNumber" : "GA0005776",
+    "accountNumber" : "[removed]",
     "status" : "Completed",
-    "subscriptionNumbers" : [ "GA0005776" ],
+    "subscriptionNumbers" : [ "[removed]" ],
     "jobType" : "AsyncCreateOrder"
   },
   "success" : true
 }
+
+The above process is identical for subscription amendment (meaning product migration)
+orders
 
  */
 
 case class AsyncJobSubmissionTicket(jobId: String, success: Boolean)
 object AsyncJobSubmissionTicket {
   implicit val reader: Reader[AsyncJobSubmissionTicket] = macroR
-  // usage:
-  // val ticket: AsyncJobSubmissionTicket = upickle.default.read[AsyncJobSubmissionTicket](jsonstring)
 }
 
-case class AsyncJobStatus(status: String, errors: Option[String])
-object AsyncJobStatus {
-  implicit val reader: Reader[AsyncJobStatus] = macroR
-  // usage:
-  // val status: AsyncJobStatus = upickle.default.read[AsyncJobStatus](jsonstring)
+case class AsyncJobReport(status: String, errors: Option[String])
+object AsyncJobReport {
+  implicit val reader: Reader[AsyncJobReport] = macroR
+  def isReady(report: AsyncJobReport): Boolean = report.status == "Completed"
 }

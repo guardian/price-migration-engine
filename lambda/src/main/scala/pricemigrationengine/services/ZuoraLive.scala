@@ -234,63 +234,7 @@ object ZuoraLive {
           )
         }
 
-        override def applyAmendmentOrder_json_values(
-            subscription: ZuoraSubscription,
-            payload: Value
-        ): ZIO[Any, ZuoraOrderFailure, Unit] = {
-          val payload_stringified = payload.toString()
-          post[ZuoraAmendmentOrderResponse](
-            path = s"orders",
-            body = payload_stringified
-          ).foldZIO(
-            failure = e =>
-              ZIO.fail(
-                ZuoraOrderFailure(
-                  s"[c37ad58f] subscription number: ${subscription.subscriptionNumber}, payload: ${payload}, reason: ${e.reason}"
-                )
-              ),
-            success = response =>
-              if (response.success) {
-                ZIO.succeed(())
-              } else {
-                ZIO.fail(
-                  ZuoraOrderFailure(
-                    s"[a2694894] subscription number: ${subscription.subscriptionNumber}, payload: ${payload}, serialised payload: ${payload_stringified}, with answer ${response}"
-                  )
-                )
-              }
-          )
-        }
-
-        override def renewSubscription(
-            subscriptionNumber: String,
-            payload: Value
-        ): ZIO[Any, ZuoraRenewalFailure, Unit] = {
-          val payload_stringified = payload.toString()
-          post[ZuoraRenewOrderResponse](
-            path = s"orders",
-            body = payload_stringified
-          ).foldZIO(
-            failure = e =>
-              ZIO.fail(
-                ZuoraRenewalFailure(
-                  s"[06f5bd6f] subscription number: ${subscriptionNumber}, payload: ${payload}, reason: ${e.reason}"
-                )
-              ),
-            success = response =>
-              if (response.success) {
-                ZIO.succeed(())
-              } else {
-                ZIO.fail(
-                  ZuoraRenewalFailure(
-                    s"[bc532694] subscription number: ${subscriptionNumber}, payload: ${payload}, with answer ${response}"
-                  )
-                )
-              }
-          )
-        }
-
-        private def submitAsynchronousRenewRequest(
+        private def submitAsynchronousOrderRequest(
             subscriptionNumber: String,
             payload: Value
         ): ZIO[Any, ZuoraAsynchronousOrderRequestFailure, AsyncJobSubmissionTicket] = {
@@ -309,46 +253,56 @@ object ZuoraLive {
           )
         }
 
-        private def submitAsynchronousOrderAmendmentRequest(
-            subscriptionNumber: String,
-            payload: Value
-        ): ZIO[Any, ZuoraAsynchronousOrderRequestFailure, AsyncJobSubmissionTicket] = {
-          val payload_stringified = payload.toString()
-          post[AsyncJobSubmissionTicket](
-            path = s"async/orders",
-            body = payload_stringified
-          ).foldZIO(
-            failure = e =>
-              ZIO.fail(
-                ZuoraAsynchronousOrderRequestFailure(
-                  s"[55a0c583] subscription number: ${subscriptionNumber}, payload: ${payload}, reason: ${e.reason}"
-                )
-              ),
-            success = response => ZIO.succeed(response)
-          )
-        }
-
-        private def getJobStatus(jobId: String): ZIO[Any, ZuoraGetJobStatusFailure, AsyncJobSubmissionTicket] = {
-          get[AsyncJobSubmissionTicket](s"async-jobs/${jobId}")
+        private def getJobReport(jobId: String): ZIO[Any, ZuoraGetJobStatusFailure, AsyncJobReport] = {
+          get[AsyncJobReport](s"async-jobs/${jobId}")
             .mapError(e =>
               ZuoraGetJobStatusFailure(
-                s"[deb14905] Could not retrieve job status for jobId: ${jobId}, reason: ${e.reason}"
+                s"[deb14905] Could not retrieve job report for jobId: ${jobId}, reason: ${e.reason}"
               )
             )
         }
 
-        override def renewSubmissionAsynchronously(
+        override def applyOrderAsynchronously(
             subscriptionNumber: String,
-            payload: Value
-        ): ZIO[Any, ZuoraRenewalFailure, Unit] = {
-          ZIO.succeed(())
-        }
-
-        override def applyOrderAmendmentAsynchronously(
-            subscriptionNumber: String,
-            payload: Value
-        ): ZIO[Any, ZuoraOrderFailure, Unit] = {
-          ZIO.succeed(())
+            payload: Value,
+            operationDescriptionForLogging: String
+        ): ZIO[Any, ZuoraAsynchronousOrderRequestFailure, Unit] = {
+          // Note: This function was introduced in August 2025, to support the print migrations.
+          // Some subscriptions with a large number of amendments would timeout during a
+          // synchronous renewal or price amendment request, but extensive tests ran
+          // with asynchronous requests showed a 100% success rate within less than 20 seconds.
+          // I am setting the timeout to 5 minutes, but if one day this is not enough
+          // (which really should not happen) then we can increase the value, or better,
+          // pass it as an argument. See documentation for details.
+          for {
+            submissionTicket <- submitAsynchronousOrderRequest(
+              subscriptionNumber,
+              payload
+            ).mapError(e =>
+              ZuoraAsynchronousOrderRequestFailure(
+                s"[847e2075] error while submitting asynchronous order operation request for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, reason: ${e.reason}"
+              )
+            )
+            // Check the success of submission ticket
+            _ <- ZIO.logInfo(
+              s"[fe478094] submitted asynchronous order operation request for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, submission ticket: ${submissionTicket}"
+            )
+            _ <- (for {
+              jobReport <- getJobReport(submissionTicket.jobId)
+              _ <-
+                if (AsyncJobReport.isReady(jobReport)) { ZIO.unit }
+                else { ZIO.fail(()) }
+            } yield ())
+              .retry(Schedule.spaced(2.second) && Schedule.duration(5.minutes))
+              .mapError(e =>
+                ZuoraAsynchronousOrderRequestFailure(
+                  s"[462b80c6] error while evaluating asynchronous job report 🤔, jobId: ${submissionTicket.jobId}"
+                )
+              )
+            _ <- ZIO.logInfo(
+              s"[62d66c48] completed asynchronous order operation for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, jobId: ${submissionTicket.jobId}"
+            )
+          } yield ZIO.succeed(())
         }
       }
     )

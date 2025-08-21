@@ -21,25 +21,11 @@ trait Zuora {
       payload: ZuoraAmendmentOrderPayload
   ): ZIO[Any, ZuoraOrderFailure, Unit]
 
-  def applyAmendmentOrder_json_values(
-      subscription: ZuoraSubscription,
-      payload: Value
-  ): ZIO[Any, ZuoraOrderFailure, Unit]
-
-  def renewSubscription(
+  def applyOrderAsynchronously(
       subscriptionNumber: String,
-      payload: Value
-  ): ZIO[Any, ZuoraRenewalFailure, Unit]
-
-  def renewSubmissionAsynchronously(
-      subscriptionNumber: String,
-      payload: Value
-  ): ZIO[Any, ZuoraRenewalFailure, Unit]
-
-  def applyOrderAmendmentAsynchronously(
-      subscriptionNumber: String,
-      payload: Value
-  ): ZIO[Any, ZuoraOrderFailure, Unit]
+      payload: Value,
+      operationDescriptionForLogging: String
+  ): ZIO[Any, ZuoraAsynchronousOrderRequestFailure, Unit]
 }
 
 object Zuora {
@@ -62,28 +48,10 @@ object Zuora {
   ): ZIO[Zuora, ZuoraOrderFailure, Unit] =
     ZIO.environmentWithZIO(_.get.applyAmendmentOrder_typed_deprecated(subscription, payload))
 
-  def applyAmendmentOrder_json_values(
-      subscription: ZuoraSubscription,
-      payload: Value
-  ): ZIO[Zuora, ZuoraOrderFailure, Unit] =
-    ZIO.environmentWithZIO(_.get.applyAmendmentOrder_json_values(subscription, payload))
-
-  def renewSubscription(
+  def applyOrderAsynchronously(
       subscriptionNumber: String,
-      payload: Value
-  ): ZIO[Zuora, ZuoraRenewalFailure, Unit] =
-    ZIO.environmentWithZIO(_.get.renewSubscription(subscriptionNumber, payload))
-
-  def renewSubmissionAsynchronously(
-      subscriptionNumber: String,
-      payload: Value
-  ): ZIO[Zuora, ZuoraRenewalFailure, Unit] =
-    ZIO.environmentWithZIO(_.get.renewSubmissionAsynchronously(subscriptionNumber, payload))
-
-  def applyOrderAmendmentAsynchronously(
-      subscriptionNumber: String,
-      payload: Value
-  ): ZIO[Zuora, ZuoraOrderFailure, Unit] =
-    ZIO.environmentWithZIO(_.get.applyOrderAmendmentAsynchronously(subscriptionNumber, payload))
-
+      payload: Value,
+      operationDescriptionForLogging: String
+  ): ZIO[Zuora, ZuoraAsynchronousOrderRequestFailure, Unit] =
+    ZIO.environmentWithZIO(_.get.applyOrderAsynchronously(subscriptionNumber, payload, operationDescriptionForLogging))
 }
