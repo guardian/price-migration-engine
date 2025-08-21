@@ -275,17 +275,28 @@ object ZuoraLive {
           // (which really should not happen) then we can increase the value, or better,
           // pass it as an argument. See documentation for details.
           for {
+            _ <- ZIO.logInfo(
+              s"[18943ad2] submitting asynchronous order for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, payload: ${payload}"
+            )
             submissionTicket <- submitAsynchronousOrderRequest(
               subscriptionNumber,
               payload
             ).mapError(e =>
               ZuoraAsynchronousOrderRequestFailure(
-                s"[847e2075] error while submitting asynchronous order operation request for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, reason: ${e.reason}"
+                s"[847e2075] error while submitting asynchronous order for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, reason: ${e.reason}"
               )
             )
-            // Check the success of submission ticket
+            _ <-
+              if (submissionTicket.success) { ZIO.unit }
+              else {
+                ZIO.fail(
+                  ZuoraAsynchronousOrderRequestFailure(
+                    s"[65d1d2fa] Zuora has not accepted an asynchronous order for ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, payload: ${payload}"
+                  )
+                )
+              }
             _ <- ZIO.logInfo(
-              s"[fe478094] submitted asynchronous order operation request for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, submission ticket: ${submissionTicket}"
+              s"[fe478094] submitted asynchronous order for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, submission ticket: ${submissionTicket}"
             )
             _ <- (for {
               jobReport <- getJobReport(submissionTicket.jobId)
@@ -296,11 +307,11 @@ object ZuoraLive {
               .retry(Schedule.spaced(2.second) && Schedule.duration(5.minutes))
               .mapError(e =>
                 ZuoraAsynchronousOrderRequestFailure(
-                  s"[462b80c6] error while evaluating asynchronous job report 🤔, jobId: ${submissionTicket.jobId}"
+                  s"[462b80c6] error while evaluating asynchronous job report 🤔, jobId: ${submissionTicket.jobId}, error: ${e}"
                 )
               )
             _ <- ZIO.logInfo(
-              s"[62d66c48] completed asynchronous order operation for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, jobId: ${submissionTicket.jobId}"
+              s"[62d66c48] completed asynchronous order for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}"
             )
           } yield ZIO.succeed(())
         }
