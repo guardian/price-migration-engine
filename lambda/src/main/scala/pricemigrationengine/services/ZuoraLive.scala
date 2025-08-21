@@ -289,6 +289,67 @@ object ZuoraLive {
               }
           )
         }
+
+        private def submitAsynchronousRenewRequest(
+            subscriptionNumber: String,
+            payload: Value
+        ): ZIO[Any, ZuoraAsynchronousOrderRequestFailure, AsyncJobSubmissionTicket] = {
+          val payload_stringified = payload.toString()
+          post[AsyncJobSubmissionTicket](
+            path = s"async/orders",
+            body = payload_stringified
+          ).foldZIO(
+            failure = e =>
+              ZIO.fail(
+                ZuoraAsynchronousOrderRequestFailure(
+                  s"[c8158a4f] subscription number: ${subscriptionNumber}, payload: ${payload}, reason: ${e.reason}"
+                )
+              ),
+            success = response => ZIO.succeed(response)
+          )
+        }
+
+        private def submitAsynchronousOrderAmendmentRequest(
+            subscriptionNumber: String,
+            payload: Value
+        ): ZIO[Any, ZuoraAsynchronousOrderRequestFailure, AsyncJobSubmissionTicket] = {
+          val payload_stringified = payload.toString()
+          post[AsyncJobSubmissionTicket](
+            path = s"async/orders",
+            body = payload_stringified
+          ).foldZIO(
+            failure = e =>
+              ZIO.fail(
+                ZuoraAsynchronousOrderRequestFailure(
+                  s"[55a0c583] subscription number: ${subscriptionNumber}, payload: ${payload}, reason: ${e.reason}"
+                )
+              ),
+            success = response => ZIO.succeed(response)
+          )
+        }
+
+        private def getJobStatus(jobId: String): ZIO[Any, ZuoraGetJobStatusFailure, AsyncJobSubmissionTicket] = {
+          get[AsyncJobSubmissionTicket](s"async-jobs/${jobId}")
+            .mapError(e =>
+              ZuoraGetJobStatusFailure(
+                s"[deb14905] Could not retrieve job status for jobId: ${jobId}, reason: ${e.reason}"
+              )
+            )
+        }
+
+        override def renewSubmissionAsynchronously(
+            subscriptionNumber: String,
+            payload: Value
+        ): ZIO[Any, ZuoraRenewalFailure, Unit] = {
+          ZIO.succeed(())
+        }
+
+        override def applyOrderAmendmentAsynchronously(
+            subscriptionNumber: String,
+            payload: Value
+        ): ZIO[Any, ZuoraOrderFailure, Unit] = {
+          ZIO.succeed(())
+        }
       }
     )
 }

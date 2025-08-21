@@ -30,6 +30,16 @@ trait Zuora {
       subscriptionNumber: String,
       payload: Value
   ): ZIO[Any, ZuoraRenewalFailure, Unit]
+
+  def renewSubmissionAsynchronously(
+      subscriptionNumber: String,
+      payload: Value
+  ): ZIO[Any, ZuoraRenewalFailure, Unit]
+
+  def applyOrderAmendmentAsynchronously(
+      subscriptionNumber: String,
+      payload: Value
+  ): ZIO[Any, ZuoraOrderFailure, Unit]
 }
 
 object Zuora {
@@ -63,4 +73,17 @@ object Zuora {
       payload: Value
   ): ZIO[Zuora, ZuoraRenewalFailure, Unit] =
     ZIO.environmentWithZIO(_.get.renewSubscription(subscriptionNumber, payload))
+
+  def renewSubmissionAsynchronously(
+      subscriptionNumber: String,
+      payload: Value
+  ): ZIO[Zuora, ZuoraRenewalFailure, Unit] =
+    ZIO.environmentWithZIO(_.get.renewSubmissionAsynchronously(subscriptionNumber, payload))
+
+  def applyOrderAmendmentAsynchronously(
+      subscriptionNumber: String,
+      payload: Value
+  ): ZIO[Zuora, ZuoraOrderFailure, Unit] =
+    ZIO.environmentWithZIO(_.get.applyOrderAmendmentAsynchronously(subscriptionNumber, payload))
+
 }

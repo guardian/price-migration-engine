@@ -67,6 +67,10 @@ The server then return the job id
 The Job id can then be used to pull the status of the job and we need to keep
 doing this until we receive the `Completed` status.
 
+curl -X GET \
+  "https://rest.zuora.com/v1/async-jobs/8a129101989d368501989f0e18ec7d98" \
+  -H "Authorization: Bearer [removed]"
+
 The various statuses are given below:
 
 {
@@ -98,12 +102,16 @@ The various statuses are given below:
 
  */
 
+case class AsyncJobSubmissionTicket(jobId: String, success: Boolean)
+object AsyncJobSubmissionTicket {
+  implicit val reader: Reader[AsyncJobSubmissionTicket] = macroR
+  // usage:
+  // val ticket: AsyncJobSubmissionTicket = upickle.default.read[AsyncJobSubmissionTicket](jsonstring)
+}
+
 case class AsyncJobStatus(status: String, errors: Option[String])
 object AsyncJobStatus {
   implicit val reader: Reader[AsyncJobStatus] = macroR
   // usage:
   // val status: AsyncJobStatus = upickle.default.read[AsyncJobStatus](jsonstring)
-
 }
-
-object ZuoraAsyncAmendments {}
