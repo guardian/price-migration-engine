@@ -1,7 +1,5 @@
 package pricemigrationengine.migrations
-import pricemigrationengine.libs.SI2025Extractions
 import pricemigrationengine.model.{BillingPeriod, ZuoraRatePlan, _}
-import pricemigrationengine.libs._
 
 import java.time.LocalDate
 import ujson._
@@ -249,7 +247,7 @@ object GuardianWeekly2025Migration {
           val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
           val order_subscription =
             ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
-          ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
+          ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
             orderDate.toString,
             accountNumber,
             order_subscription
@@ -280,7 +278,7 @@ object GuardianWeekly2025Migration {
               List(removeProduct, removeDiscount),
               List(addProduct)
             )
-          ZuoraOrdersApiPrimitives.replace_a_product_in_a_subscription(
+          ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
             orderDate.toString,
             accountNumber,
             order_subscription

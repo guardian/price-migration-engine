@@ -1,4 +1,4 @@
-package pricemigrationengine.libs
+package pricemigrationengine.model
 
 class PriceCapTest extends munit.FunSuite {
 

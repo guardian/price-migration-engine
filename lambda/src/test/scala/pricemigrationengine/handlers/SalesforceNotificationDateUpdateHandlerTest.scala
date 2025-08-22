@@ -4,7 +4,6 @@ import pricemigrationengine.TestLogging
 import pricemigrationengine.model.CohortTableFilter.{NotificationSendComplete, NotificationSendDateWrittenToSalesforce}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
-import pricemigrationengine.libs.Runner.unsafeRunSync
 import zio.Exit.Success
 import zio.Runtime.default
 import zio.stream.ZStream
@@ -82,7 +81,7 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
     val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
 
     val cohortSpec: CohortSpec =
-      CohortSpec("cohortName", "brazeName", LocalDate.of(2022, 1, 1), None)
+      CohortSpec("cohortName", "brazeName", LocalDate.of(2022, 1, 1))
 
     val cohortItem = CohortItem(
       subscriptionName = subscriptionName,
@@ -94,7 +93,7 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
     val stubCohortTable = createStubCohortTable(updatedResultsWrittenToCohortTable, cohortItem)
 
     assertEquals(
-      unsafeRunSync(default)(
+      Runner.unsafeRunSync(default)(
         (for {
           _ <- TestClock.setTime(currentTime)
           program <- SalesforceNotificationDateUpdateHandler.main(cohortSpec)

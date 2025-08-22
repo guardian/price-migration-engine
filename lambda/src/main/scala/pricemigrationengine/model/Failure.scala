@@ -29,8 +29,8 @@ case class ZuoraUpdateFailure(reason: String) extends Failure
 case class ZuoraRenewalFailure(reason: String) extends Failure
 case class ZuoraOrderFailure(reason: String) extends Failure
 
-case class CancelledSubscriptionFailure(reason: String) extends Failure
-case class ExpiringSubscriptionFailure(reason: String) extends Failure
+case class SubscriptionCancelledInZuoraFailure(reason: String) extends Failure
+
 case class RatePlansProbeFailure(reason: String) extends Failure
 
 case class SalesforcePriceRiseWriteFailure(reason: String) extends Failure
@@ -42,5 +42,3 @@ case class SubscriptionIdUploadFailure(reason: String) extends Failure
 case class NotificationHandlerFailure(reason: String) extends Failure
 case class NotificationNotEnoughLeadTimeFailure(reason: String) extends Failure
 case class EmailSenderFailure(reason: String) extends Failure
-
-case class CohortTableDatalakeExportFailure(reason: String) extends Failure

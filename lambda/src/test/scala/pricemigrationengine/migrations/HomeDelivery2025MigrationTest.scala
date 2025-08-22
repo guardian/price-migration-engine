@@ -3,7 +3,6 @@ package pricemigrationengine.migrations
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.Fixtures
-import pricemigrationengine.libs.SI2025RateplanFromSubAndInvoices
 
 import java.time.LocalDate
 
@@ -512,6 +511,8 @@ class HomeDelivery2025MigrationTest extends munit.FunSuite {
     // during the EstimationFailed investigation. For Newspaper2025P1 we didn't find much, but here
     // there was a problem with HomeDelivery2025Migration.decideDeliveryPattern due to a space in the subscription's
     // rate plan's ratePlanName. Which lead to https://github.com/guardian/price-migration-engine/pull/1180
+
+    // The `EstimationFailed` processing stage has been decommissioned
 
     val subscription =
       Fixtures.subscriptionFromJson("Migrations/HomeDelivery2025/A-S01588918-EstimationFailed/subscription.json")

@@ -33,7 +33,7 @@ object CohortStateMachineLive {
                 stateMachine.startExecution(
                   StartExecutionRequest.builder
                     .stateMachineArn(config.stateMachineArn)
-                    .name(s"${spec.normalisedCohortName}-$timeStr")
+                    .name(s"${spec.cohortName}-$timeStr")
                     .input(write(StateMachineInput(spec)))
                     .build()
                 )
