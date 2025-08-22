@@ -76,7 +76,6 @@ trait CohortHandler extends ZIOAppDefault with RequestStreamHandler {
       _ <- goConsole(input)
     } yield ())
       .provideSomeLayer[ZIOAppArgs](ConsoleLogging.impl("ParsingEnvInput"))
-      .exitCode
 
   override final def handleRequest(input: InputStream, output: OutputStream, context: Context): Unit =
     unsafeRun(Runtime.default)(
