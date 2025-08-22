@@ -300,6 +300,9 @@ object ZuoraLive {
             )
             _ <- (for {
               jobReport <- getJobReport(submissionTicket.jobId)
+              _ <- ZIO.logInfo(
+                s"[4b4e379c] jobReport: ${jobReport}"
+              )
               _ <-
                 if (AsyncJobReport.isReady(jobReport)) { ZIO.unit }
                 else { ZIO.fail(()) }

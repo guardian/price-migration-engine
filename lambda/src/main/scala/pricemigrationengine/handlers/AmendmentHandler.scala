@@ -97,7 +97,7 @@ object AmendmentHandler extends CohortHandler {
       effectDate.toString
     )
     for {
-      _ <- Logging.info(s"Renewing subscription ${subscription.subscriptionNumber} with payload $payload")
+      _ <- Logging.info(s"[cce20c51] Renewing subscription ${subscription.subscriptionNumber} with payload ${payload}")
       _ <- Zuora.applyOrderAsynchronously(subscription.subscriptionNumber, payload, "subscription renewal")
     } yield ()
   }
