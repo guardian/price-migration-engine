@@ -16,11 +16,21 @@ trait Zuora {
 
   val fetchProductCatalogue: ZIO[Any, ZuoraFetchFailure, ZuoraProductCatalogue]
 
+  /*
+    This is currently only used for SupporterPlus2024, will be decommissioned
+    afterward.
+   */
   def applyAmendmentOrder_typed_deprecated(
       subscription: ZuoraSubscription,
       payload: ZuoraAmendmentOrderPayload
   ): ZIO[Any, ZuoraOrderFailure, Unit]
 
+  /*
+    This function takes a Zuora Orders API payload and submit it for asynchronous processing
+    Note that the `subscriptionNumber` and `operationDescriptionForLogging` are both
+    only used for logging. Notably `operationDescriptionForLogging` was introduced
+    simply to specify a difference between renewals and product changes.
+   */
   def applyOrderAsynchronously(
       subscriptionNumber: String,
       payload: Value,
