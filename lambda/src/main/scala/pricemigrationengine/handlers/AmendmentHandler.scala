@@ -18,7 +18,7 @@ import ujson._
   */
 object AmendmentHandler extends CohortHandler {
 
-  private val batchSize = 50
+  private val batchSize = 15
 
   private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] = {
     for {
