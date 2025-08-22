@@ -16,20 +16,26 @@ trait Zuora {
 
   val fetchProductCatalogue: ZIO[Any, ZuoraFetchFailure, ZuoraProductCatalogue]
 
+  /*
+    This is currently only used for SupporterPlus2024, will be decommissioned
+    afterward.
+   */
   def applyAmendmentOrder_typed_deprecated(
       subscription: ZuoraSubscription,
       payload: ZuoraAmendmentOrderPayload
   ): ZIO[Any, ZuoraOrderFailure, Unit]
 
-  def applyAmendmentOrder_json_values(
-      subscription: ZuoraSubscription,
-      payload: Value
-  ): ZIO[Any, ZuoraOrderFailure, Unit]
-
-  def renewSubscription(
+  /*
+    This function takes a Zuora Orders API payload and submit it for asynchronous processing
+    Note that the `subscriptionNumber` and `operationDescriptionForLogging` are both
+    only used for logging. Notably `operationDescriptionForLogging` was introduced
+    simply to specify a difference between renewals and product changes.
+   */
+  def applyOrderAsynchronously(
       subscriptionNumber: String,
-      payload: Value
-  ): ZIO[Any, ZuoraRenewalFailure, Unit]
+      payload: Value,
+      operationDescriptionForLogging: String
+  ): ZIO[Any, ZuoraAsynchronousOrderRequestFailure, Unit]
 }
 
 object Zuora {
@@ -52,15 +58,10 @@ object Zuora {
   ): ZIO[Zuora, ZuoraOrderFailure, Unit] =
     ZIO.environmentWithZIO(_.get.applyAmendmentOrder_typed_deprecated(subscription, payload))
 
-  def applyAmendmentOrder_json_values(
-      subscription: ZuoraSubscription,
-      payload: Value
-  ): ZIO[Zuora, ZuoraOrderFailure, Unit] =
-    ZIO.environmentWithZIO(_.get.applyAmendmentOrder_json_values(subscription, payload))
-
-  def renewSubscription(
+  def applyOrderAsynchronously(
       subscriptionNumber: String,
-      payload: Value
-  ): ZIO[Zuora, ZuoraRenewalFailure, Unit] =
-    ZIO.environmentWithZIO(_.get.renewSubscription(subscriptionNumber, payload))
+      payload: Value,
+      operationDescriptionForLogging: String
+  ): ZIO[Zuora, ZuoraAsynchronousOrderRequestFailure, Unit] =
+    ZIO.environmentWithZIO(_.get.applyOrderAsynchronously(subscriptionNumber, payload, operationDescriptionForLogging))
 }

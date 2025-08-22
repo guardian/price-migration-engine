@@ -234,60 +234,94 @@ object ZuoraLive {
           )
         }
 
-        override def applyAmendmentOrder_json_values(
-            subscription: ZuoraSubscription,
+        private def submitAsynchronousOrderRequest(
+            subscriptionNumber: String,
             payload: Value
-        ): ZIO[Any, ZuoraOrderFailure, Unit] = {
+        ): ZIO[Any, ZuoraAsynchronousOrderRequestFailure, AsyncJobSubmissionTicket] = {
           val payload_stringified = payload.toString()
-          post[ZuoraAmendmentOrderResponse](
-            path = s"orders",
+          post[AsyncJobSubmissionTicket](
+            path = "async/orders",
             body = payload_stringified
           ).foldZIO(
             failure = e =>
               ZIO.fail(
-                ZuoraOrderFailure(
-                  s"[c37ad58f] subscription number: ${subscription.subscriptionNumber}, payload: ${payload}, reason: ${e.reason}"
+                ZuoraAsynchronousOrderRequestFailure(
+                  s"[c8158a4f] subscription number: ${subscriptionNumber}, payload: ${payload}, reason: ${e.reason}"
                 )
               ),
-            success = response =>
-              if (response.success) {
-                ZIO.succeed(())
-              } else {
-                ZIO.fail(
-                  ZuoraOrderFailure(
-                    s"[a2694894] subscription number: ${subscription.subscriptionNumber}, payload: ${payload}, serialised payload: ${payload_stringified}, with answer ${response}"
-                  )
-                )
-              }
+            success = response => ZIO.succeed(response)
           )
         }
 
-        override def renewSubscription(
+        private def getJobReport(jobId: String): ZIO[Any, ZuoraGetJobStatusFailure, AsyncJobReport] = {
+          get[AsyncJobReport](s"async-jobs/${jobId}")
+            .mapError(e =>
+              ZuoraGetJobStatusFailure(
+                s"[deb14905] Could not retrieve job report for jobId: ${jobId}, reason: ${e.reason}"
+              )
+            )
+        }
+
+        override def applyOrderAsynchronously(
             subscriptionNumber: String,
-            payload: Value
-        ): ZIO[Any, ZuoraRenewalFailure, Unit] = {
-          val payload_stringified = payload.toString()
-          post[ZuoraRenewOrderResponse](
-            path = s"orders",
-            body = payload_stringified
-          ).foldZIO(
-            failure = e =>
-              ZIO.fail(
-                ZuoraRenewalFailure(
-                  s"[06f5bd6f] subscription number: ${subscriptionNumber}, payload: ${payload}, reason: ${e.reason}"
-                )
-              ),
-            success = response =>
-              if (response.success) {
-                ZIO.succeed(())
-              } else {
+            payload: Value,
+            operationDescriptionForLogging: String
+        ): ZIO[Any, ZuoraAsynchronousOrderRequestFailure, Unit] = {
+          // Note: This function was introduced in August 2025, to support the print migrations.
+          // Some subscriptions with a large number of amendments would timeout during a
+          // synchronous renewal or price amendment request, but extensive tests ran
+          // with asynchronous requests showed a 100% success rate within less than 20 seconds.
+          //
+          // The retry schedule was originally meant to be
+          // `.retry(Schedule.spaced(2.second) && Schedule.duration(5.minutes))`
+          // but that actually didn't work, the effect was exiting after 5 minutes
+          // despite the order executing within seconds 🤔. I then set it to
+          // `.retry(Schedule.spaced(2.second))`.
+          // If for any reason Zuora doesn't succeed that job, the lambda is going to
+          // be terminated by AWS.
+          for {
+            _ <- ZIO.logInfo(
+              s"[18943ad2] submitting asynchronous order for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, payload: ${payload}"
+            )
+            submissionTicket <- submitAsynchronousOrderRequest(
+              subscriptionNumber,
+              payload
+            ).mapError(e =>
+              ZuoraAsynchronousOrderRequestFailure(
+                s"[847e2075] error while submitting asynchronous order for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, reason: ${e.reason}"
+              )
+            )
+            _ <-
+              if (submissionTicket.success) { ZIO.unit }
+              else {
                 ZIO.fail(
-                  ZuoraRenewalFailure(
-                    s"[bc532694] subscription number: ${subscriptionNumber}, payload: ${payload}, with answer ${response}"
+                  ZuoraAsynchronousOrderRequestFailure(
+                    s"[65d1d2fa] Zuora has not accepted an asynchronous order for ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, payload: ${payload}"
                   )
                 )
               }
-          )
+            _ <- ZIO.logInfo(
+              s"[fe478094] submitted asynchronous order for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, submission ticket: ${submissionTicket}"
+            )
+            _ <- (for {
+              jobReport <- getJobReport(submissionTicket.jobId)
+              _ <- ZIO.logInfo(
+                s"[4b4e379c] jobReport: ${jobReport}"
+              )
+              _ <-
+                if (AsyncJobReport.isReady(jobReport)) { ZIO.unit }
+                else { ZIO.fail(()) }
+            } yield ())
+              .retry(Schedule.spaced(2.second))
+              .mapError(e =>
+                ZuoraAsynchronousOrderRequestFailure(
+                  s"[462b80c6] error while evaluating asynchronous job report 🤔, jobId: ${submissionTicket.jobId}, error: ${e}"
+                )
+              )
+            _ <- ZIO.logInfo(
+              s"[62d66c48] completed asynchronous order for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}"
+            )
+          } yield ZIO.succeed(())
         }
       }
     )

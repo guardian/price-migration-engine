@@ -18,7 +18,7 @@ import ujson._
   */
 object AmendmentHandler extends CohortHandler {
 
-  private val batchSize = 50
+  private val batchSize = 15
 
   private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] = {
     for {
@@ -97,8 +97,8 @@ object AmendmentHandler extends CohortHandler {
       effectDate.toString
     )
     for {
-      _ <- Logging.info(s"Renewing subscription ${subscription.subscriptionNumber} with payload $payload")
-      _ <- Zuora.renewSubscription(subscription.subscriptionNumber, payload)
+      _ <- Logging.info(s"[cce20c51] Renewing subscription ${subscription.subscriptionNumber} with payload ${payload}")
+      _ <- Zuora.applyOrderAsynchronously(subscription.subscriptionNumber, payload, "subscription renewal")
     } yield ()
   }
 
@@ -320,7 +320,7 @@ object AmendmentHandler extends CohortHandler {
         s"[6e6da544] Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
       )
 
-      _ <- Zuora.applyAmendmentOrder_json_values(subscriptionBeforeUpdate, order)
+      _ <- Zuora.applyOrderAsynchronously(subscriptionBeforeUpdate.subscriptionNumber, order, "subscription amendment")
 
       subscriptionAfterUpdate <- fetchSubscription(item)
 
@@ -400,26 +400,14 @@ object AmendmentHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    // Date: 14th August 2025
-    // Author: Pascal
-    // I am suspending the amendment handler for the print migrations.
-    // Instead, the process will be running using an asynchronous solution that
-    // we will be porting back to this codebase in the near future.
-    MigrationType(input) match {
-      case GuardianWeekly2025 => ZIO.succeed(HandlerOutput(isComplete = true))
-      case Newspaper2025P1    => ZIO.succeed(HandlerOutput(isComplete = true))
-      case HomeDelivery2025   => ZIO.succeed(HandlerOutput(isComplete = true))
-      case Newspaper2025P3    => ZIO.succeed(HandlerOutput(isComplete = true))
-      case _ =>
-        main(input).provideSome[Logging](
-          EnvConfig.cohortTable.layer,
-          EnvConfig.zuora.layer,
-          EnvConfig.stage.layer,
-          DynamoDBZIOLive.impl,
-          DynamoDBClientLive.impl,
-          CohortTableLive.impl(input),
-          ZuoraLive.impl
-        )
-    }
+    main(input).provideSome[Logging](
+      EnvConfig.cohortTable.layer,
+      EnvConfig.zuora.layer,
+      EnvConfig.stage.layer,
+      DynamoDBZIOLive.impl,
+      DynamoDBClientLive.impl,
+      CohortTableLive.impl(input),
+      ZuoraLive.impl
+    )
   }
 }
