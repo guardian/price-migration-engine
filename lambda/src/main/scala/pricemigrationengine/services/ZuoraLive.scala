@@ -240,7 +240,7 @@ object ZuoraLive {
         ): ZIO[Any, ZuoraAsynchronousOrderRequestFailure, AsyncJobSubmissionTicket] = {
           val payload_stringified = payload.toString()
           post[AsyncJobSubmissionTicket](
-            path = s"async/orders",
+            path = "async/orders",
             body = payload_stringified
           ).foldZIO(
             failure = e =>
