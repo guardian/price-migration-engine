@@ -18,7 +18,7 @@ import ujson._
   */
 object AmendmentHandler extends CohortHandler {
 
-  private val batchSize = 50
+  private val batchSize = 15
 
   private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] = {
     for {
@@ -97,8 +97,8 @@ object AmendmentHandler extends CohortHandler {
       effectDate.toString
     )
     for {
-      _ <- Logging.info(s"Renewing subscription ${subscription.subscriptionNumber} with payload $payload")
-      _ <- Zuora.renewSubscription(subscription.subscriptionNumber, payload)
+      _ <- Logging.info(s"[cce20c51] Renewing subscription ${subscription.subscriptionNumber} with payload ${payload}")
+      _ <- Zuora.applyOrderAsynchronously(subscription.subscriptionNumber, payload, "subscription renewal")
     } yield ()
   }
 
@@ -320,7 +320,7 @@ object AmendmentHandler extends CohortHandler {
         s"[6e6da544] Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
       )
 
-      _ <- Zuora.applyAmendmentOrder_json_values(subscriptionBeforeUpdate, order)
+      _ <- Zuora.applyOrderAsynchronously(subscriptionBeforeUpdate.subscriptionNumber, order, "subscription amendment")
 
       subscriptionAfterUpdate <- fetchSubscription(item)
 
