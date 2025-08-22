@@ -1,11 +1,6 @@
-package pricemigrationengine.libs
+package pricemigrationengine.model
 
-import pricemigrationengine.model.ZuoraRatePlanCharge
-
-import java.time.LocalDate
-import upickle.default._
 import ujson._
-
 import scala.math.BigDecimal.RoundingMode
 
 // This file contains the primitives to be able to construct the Orders API Payload
@@ -92,7 +87,7 @@ object ZuoraOrdersApiPrimitives {
      */
     Obj(
       "type" -> Str("RemoveProduct"),
-      "triggerDates" -> triggerDates(triggerDateString: String),
+      "triggerDates" -> triggerDates(triggerDateString),
       "removeProduct" -> Obj(
         "ratePlanId" -> Str(subscriptionRatePlanId)
       )
@@ -107,6 +102,9 @@ object ZuoraOrdersApiPrimitives {
                 "recurringFlatFee": {
                     "listPrice": 12
                 }
+            },
+            "billing": {
+                "billingPeriod": "Month"
             }
         }
      */
@@ -197,6 +195,9 @@ object ZuoraOrdersApiPrimitives {
                           "recurringFlatFee": {
                               "listPrice": 12
                           }
+                      },
+                      "billing": {
+                          "billingPeriod": "Month"
                       }
                   },
                   {
@@ -205,6 +206,9 @@ object ZuoraOrdersApiPrimitives {
                           "recurringFlatFee": {
                               "listPrice": 0
                           }
+                      },
+                      "billing": {
+                          "billingPeriod": "Month"
                       }
                   }
               ]
@@ -271,6 +275,9 @@ object ZuoraOrdersApiPrimitives {
                             "recurringFlatFee": {
                                 "listPrice": 12
                             }
+                        },
+                        "billing": {
+                            "billingPeriod": "Month"
                         }
                     },
                     {
@@ -279,6 +286,9 @@ object ZuoraOrdersApiPrimitives {
                             "recurringFlatFee": {
                                 "listPrice": 0
                             }
+                        },
+                        "billing": {
+                            "billingPeriod": "Month"
                         }
                     }
                 ]
@@ -296,7 +306,14 @@ object ZuoraOrdersApiPrimitives {
     )
   }
 
-  def replace_a_product_in_a_subscription(
+  def processingOptions(): Value = {
+    Obj(
+      "runBilling" -> Bool(false),
+      "collectPayment" -> Bool(false)
+    )
+  }
+
+  def subscriptionUpdatePayload(
       orderDate: String,
       existingAccountNumber: String,
       subscription: Value
@@ -354,6 +371,9 @@ object ZuoraOrdersApiPrimitives {
                                 "recurringFlatFee": {
                                     "listPrice": 12
                                 }
+                            },
+                            "billing": {
+                                "billingPeriod": "Month"
                             }
                         },
                         {
@@ -362,6 +382,9 @@ object ZuoraOrdersApiPrimitives {
                                 "recurringFlatFee": {
                                     "listPrice": 0
                                 }
+                            },
+                            "billing": {
+                                "billingPeriod": "Month"
                             }
                         }
                     ]
@@ -380,10 +403,65 @@ object ZuoraOrdersApiPrimitives {
       "orderDate" -> Str(orderDate),
       "existingAccountNumber" -> Str(existingAccountNumber),
       "subscriptions" -> Arr(subscription),
-      "processingOptions" -> Obj(
-        "runBilling" -> Bool(false),
-        "collectPayment" -> Bool(false)
-      )
+      "processingOptions" -> processingOptions()
+    )
+  }
+
+  def subscriptionRenewalPayload(
+      orderDate: String,
+      existingAccountNumber: String,
+      subscriptionNumber: String,
+      triggerDate: String
+  ): Value = {
+    /*
+        {
+            "orderDate": "2025-08-12",
+            "existingAccountNumber": "A-NUMBER",
+            "subscriptions": [
+                {
+                    "subscriptionNumber": "A-NUMBER",
+                    "orderActions": [
+                        {
+                            "type": "RenewSubscription",
+                            "triggerDates": [
+                                {
+                                    "name": "ContractEffective",
+                                    "triggerDate": "2025-08-12"
+                                },
+                                {
+                                    "name": "ServiceActivation",
+                                    "triggerDate": "2025-08-12"
+                                },
+                                {
+                                    "name": "CustomerAcceptance",
+                                    "triggerDate": "2025-08-12"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "processingOptions": {
+                "runBilling": false,
+                "collectPayment": false
+            }
+        }
+     */
+    Obj(
+      "orderDate" -> Str(orderDate),
+      "existingAccountNumber" -> Str(existingAccountNumber),
+      "subscriptions" -> Arr(
+        Obj(
+          "subscriptionNumber" -> Str(subscriptionNumber),
+          "orderActions" -> Arr(
+            Obj(
+              "type" -> Str("RenewSubscription"),
+              "triggerDates" -> triggerDates(triggerDate)
+            )
+          )
+        )
+      ),
+      "processingOptions" -> processingOptions()
     )
   }
 }

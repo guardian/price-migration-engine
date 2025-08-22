@@ -1,7 +1,11 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.libs.AmendmentHelper
-import pricemigrationengine.model.CohortTableFilter.NotificationSendDateWrittenToSalesforce
+import pricemigrationengine.model.{AmendmentHelper, ZuoraOrdersApiPrimitives}
+import pricemigrationengine.model.CohortTableFilter.{
+  Cancelled,
+  NotificationSendDateWrittenToSalesforce,
+  ZuoraCancellation
+}
 import pricemigrationengine.model._
 import pricemigrationengine.migrations._
 import pricemigrationengine.services._
@@ -19,9 +23,18 @@ object AmendmentHandler extends CohortHandler {
   private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] = {
     for {
       catalogue <- Zuora.fetchProductCatalogue
-      count <- CohortTable
-        .fetch(NotificationSendDateWrittenToSalesforce, None)
-        .take(batchSize)
+      count <- (
+        cohortSpec.subscriptionNumber match {
+          case None =>
+            CohortTable
+              .fetch(NotificationSendDateWrittenToSalesforce, None)
+              .take(batchSize)
+          case Some(subscriptionNumber) =>
+            CohortTable
+              .fetch(NotificationSendDateWrittenToSalesforce, None)
+              .filter(item => item.subscriptionName == subscriptionNumber)
+        }
+      )
         .mapZIO(item => amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
         .runCount
     } yield HandlerOutput(isComplete = count < batchSize)
@@ -34,24 +47,19 @@ object AmendmentHandler extends CohortHandler {
   ): ZIO[CohortTable with Zuora with Logging, Failure, AmendmentResult] =
     doAmendment(cohortSpec, catalogue, item).foldZIO(
       failure = {
-        case _: CancelledSubscriptionFailure => {
-          // `CancelledSubscriptionFailure` happens when the subscription was cancelled in Zuora
+        case _: SubscriptionCancelledInZuoraFailure => {
+          // This happens when the subscription was cancelled in Zuora
           // in which case we simply update the processing state for this item in the database
           // Although it was given to us as a failure of `doAmendment`, the only effect of the database update, if it
           // is not recorded as a failure of `amend`, is to allow the processing to continue.
-          val result = CancelledAmendmentResult(item.subscriptionName)
           CohortTable
             .update(
-              CohortItem.fromCancelledAmendmentResult(result, "(cause: 99727bf9) subscription was cancelled in Zuora")
+              CohortItem(
+                item.subscriptionName,
+                processingStage = ZuoraCancellation
+              )
             )
-            .as(result)
-        }
-        case _: ExpiringSubscriptionFailure => {
-          // `ExpiringSubscriptionFailure` happens when the subscription's end of effective period is before the
-          // intended startDate (the price increase date). Alike `CancelledSubscriptionFailure` we cancel the amendment
-          // and the only effect is an updated cohort item in the database
-          val result = ExpiringSubscriptionResult(item.subscriptionName)
-          CohortTable.update(CohortItem.fromExpiringSubscriptionResult(result)).as(result)
+            .as(SubscriptionCancelledInZuoraAmendmentResult(item.subscriptionName))
         }
         case e: ZuoraUpdateFailure => {
           // We are only interested in the ZuoraUpdateFailures corresponding to message
@@ -73,18 +81,20 @@ object AmendmentHandler extends CohortHandler {
   private def fetchSubscription(item: CohortItem): ZIO[Zuora, Failure, ZuoraSubscription] =
     Zuora
       .fetchSubscription(item.subscriptionName)
-      .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
+      .filterOrFail(_.status != "Cancelled")(
+        SubscriptionCancelledInZuoraFailure(s"subscription ${item.subscriptionName} has been cancelled in Zuora")
+      )
 
   private def renewSubscription(
       subscription: ZuoraSubscription,
       effectDate: LocalDate,
       account: ZuoraAccount
   ): ZIO[Zuora with Logging, Failure, Unit] = {
-    val payload = ZuoraRenewOrderPayload(
-      LocalDate.now(),
-      subscription.subscriptionNumber,
+    val payload = ZuoraOrdersApiPrimitives.subscriptionRenewalPayload(
+      LocalDate.now().toString,
       account.basicInfo.accountNumber,
-      effectDate
+      subscription.subscriptionNumber,
+      effectDate.toString
     )
     for {
       _ <- Logging.info(s"Renewing subscription ${subscription.subscriptionNumber} with payload $payload")
@@ -286,7 +296,7 @@ object AmendmentHandler extends CohortHandler {
               zuora_subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
-              priceCap = Newspaper2025P1Migration.priceCap,
+              priceCap = HomeDelivery2025Migration.priceCap,
               invoiceList = invoicePreviewBeforeUpdate
             )
           )
@@ -301,7 +311,7 @@ object AmendmentHandler extends CohortHandler {
               zuora_subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
-              priceCap = Newspaper2025P1Migration.priceCap,
+              priceCap = Newspaper2025P3Migration.priceCap,
               invoiceList = invoicePreviewBeforeUpdate
             )
           )
@@ -329,7 +339,7 @@ object AmendmentHandler extends CohortHandler {
       _ <-
         if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec) && (newPrice > estimatedNewPrice)) {
           ZIO.fail(
-            DataExtractionFailure(
+            AmendmentFailure(
               s"[e9054daa] Item ${item} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice}"
             )
           )
@@ -390,14 +400,26 @@ object AmendmentHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    main(input).provideSome[Logging](
-      EnvConfig.cohortTable.layer,
-      EnvConfig.zuora.layer,
-      EnvConfig.stage.layer,
-      DynamoDBZIOLive.impl,
-      DynamoDBClientLive.impl,
-      CohortTableLive.impl(input),
-      ZuoraLive.impl
-    )
+    // Date: 14th August 2025
+    // Author: Pascal
+    // I am suspending the amendment handler for the print migrations.
+    // Instead, the process will be running using an asynchronous solution that
+    // we will be porting back to this codebase in the near future.
+    MigrationType(input) match {
+      case GuardianWeekly2025 => ZIO.succeed(HandlerOutput(isComplete = true))
+      case Newspaper2025P1    => ZIO.succeed(HandlerOutput(isComplete = true))
+      case HomeDelivery2025   => ZIO.succeed(HandlerOutput(isComplete = true))
+      case Newspaper2025P3    => ZIO.succeed(HandlerOutput(isComplete = true))
+      case _ =>
+        main(input).provideSome[Logging](
+          EnvConfig.cohortTable.layer,
+          EnvConfig.zuora.layer,
+          EnvConfig.stage.layer,
+          DynamoDBZIOLive.impl,
+          DynamoDBClientLive.impl,
+          CohortTableLive.impl(input),
+          ZuoraLive.impl
+        )
+    }
   }
 }

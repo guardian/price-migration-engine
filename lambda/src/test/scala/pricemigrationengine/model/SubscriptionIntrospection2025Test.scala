@@ -1,17 +1,16 @@
-package pricemigrationengine.libs
+package pricemigrationengine.model
 
 import pricemigrationengine.Fixtures
-import pricemigrationengine.model._
 import java.time.LocalDate
 
-// This module has its own fixtures at test/resources/libs/SubscriptionIntrospection2025/
+// This module has its own fixtures at test/resources/model/SubscriptionIntrospection2025/
 
 // For the subscription, for instance subscription1, I added all the fixtures we usually
 // download for migrations:
-// val subscription = Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription1/subscription.json")
-// val account = Fixtures.accountFromJson("libs/SubscriptionIntrospection2025/subscription1/account.json")
-// val invoicePreview = Fixtures.invoiceListFromJson("libs/SubscriptionIntrospection2025/subscription1/invoice-preview.json")
-// val catalogue = Fixtures.productCatalogueFromJson("libs/SubscriptionIntrospection2025/subscription1/catalogue.json")
+// val subscription = Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription1/subscription.json")
+// val account = Fixtures.accountFromJson("model/SubscriptionIntrospection2025/subscription1/account.json")
+// val invoicePreview = Fixtures.invoiceListFromJson("model/SubscriptionIntrospection2025/subscription1/invoice-preview.json")
+// val catalogue = Fixtures.productCatalogueFromJson("model/SubscriptionIntrospection2025/subscription1/catalogue.json")
 
 // ----------------------------------------------------------------------------------
 // subscription1:
@@ -25,10 +24,10 @@ import java.time.LocalDate
 // Subscription 2
 // Was selected due to having an active discount alongside the ratePlanName: "GW Oct 18 - Annual - Domestic"
 // Which I also put on first position; to help test the active rate plan resolution
-// val subscription = Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription2/subscription.json")
+// val subscription = Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription2/subscription.json")
 
 // Subscription 3: Subscription with discount (originally selected to support the GW2025 extra attribute `removeDiscount`)
-// val subscription = Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription3-with-discount/subscription.json")
+// val subscription = Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription3-with-discount/subscription.json")
 
 class SI2025ExtractionsTest extends munit.FunSuite {
 
@@ -132,7 +131,7 @@ class SI2025ExtractionsTest extends munit.FunSuite {
      */
 
     val invoicePreview =
-      Fixtures.invoiceListFromJson("libs/SubscriptionIntrospection2025/subscription1/invoice-preview.json")
+      Fixtures.invoiceListFromJson("model/SubscriptionIntrospection2025/subscription1/invoice-preview.json")
     val chargeNumber =
       SI2025RateplanFromSubAndInvoices.invoicePreviewToChargeNumber(invoicePreview)
     assertEquals(chargeNumber, Some("C-05719965"))
@@ -140,7 +139,7 @@ class SI2025ExtractionsTest extends munit.FunSuite {
 
   test("SI2025RateplanFromSubAndInvoices.ratePlanChargeNumberToMatchingRatePlan") {
     val subscription =
-      Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription1/subscription.json")
+      Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription1/subscription.json")
 
     val ratePlan =
       SI2025RateplanFromSubAndInvoices.ratePlanChargeNumberToMatchingRatePlan(
@@ -194,7 +193,7 @@ class SI2025ExtractionsTest extends munit.FunSuite {
 
   test("SI2025RateplanFromSub.determineRatePlan (subscription2)") {
     val subscription =
-      Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription2/subscription.json")
+      Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription2/subscription.json")
 
     val ratePlan = SI2025RateplanFromSub.determineRatePlan(subscription)
     assertEquals(
@@ -380,9 +379,9 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     )
   }
 
-  test("SI2025Extractions.getDiscountByRatePlanName") {
+  test("SI2025Extractions.getDiscountByRatePlanName (Percentage)") {
     val subscription =
-      Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription3-with-discount/subscription.json")
+      Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription3-with-discount/subscription.json")
     assertEquals(
       SI2025Extractions.getDiscountByRatePlanName(subscription, "Percentage"),
       Some(
@@ -420,10 +419,10 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     )
   }
 
-  test("SI2025Extractions.getDiscountByRatePlanName") {
+  test("SI2025Extractions.getDiscountByRatePlanName (Adjustment)") {
     val subscription =
       Fixtures.subscriptionFromJson(
-        "libs/SubscriptionIntrospection2025/subscription4-511760-Discount-Adjustment/subscription.json"
+        "model/SubscriptionIntrospection2025/subscription4-511760-Discount-Adjustment/subscription.json"
       )
     assertEquals(
       SI2025Extractions.getDiscountByRatePlanName(subscription, "Adjustment"),
@@ -462,9 +461,9 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     )
   }
 
-  test("SI2025Extractions.getPercentageOrAdjustementDiscount") {
+  test("SI2025Extractions.getPercentageOrAdjustementDiscount (finding Percentage)") {
     val subscription =
-      Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription3-with-discount/subscription.json")
+      Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription3-with-discount/subscription.json")
 
     // The subscription has a "Percentage" discount, so that's what we expect
 
@@ -505,10 +504,10 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     )
   }
 
-  test("SI2025Extractions.getPercentageOrAdjustementDiscount") {
+  test("SI2025Extractions.getPercentageOrAdjustementDiscount (finding Adjustment)") {
     val subscription =
       Fixtures.subscriptionFromJson(
-        "libs/SubscriptionIntrospection2025/subscription4-511760-Discount-Adjustment/subscription.json"
+        "model/SubscriptionIntrospection2025/subscription4-511760-Discount-Adjustment/subscription.json"
       )
 
     // The subscription has a "* Adjustment *" discount, so that's what we expect
@@ -556,9 +555,9 @@ class SI2025ExtractionsTest extends munit.FunSuite {
 
   test("SI2025Templates.priceData") {
     val subscription =
-      Fixtures.subscriptionFromJson("libs/SubscriptionIntrospection2025/subscription1/subscription.json")
+      Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription1/subscription.json")
     val invoicePreview =
-      Fixtures.invoiceListFromJson("libs/SubscriptionIntrospection2025/subscription1/invoice-preview.json")
+      Fixtures.invoiceListFromJson("model/SubscriptionIntrospection2025/subscription1/invoice-preview.json")
     val priceData = SI2025Templates.priceData(subscription, invoicePreview)
     assertEquals(priceData, Right(PriceData("USD", BigDecimal(90.0), BigDecimal(2.71), "Quarter")))
   }

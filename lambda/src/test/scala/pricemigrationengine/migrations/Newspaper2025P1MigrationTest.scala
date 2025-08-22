@@ -3,7 +3,6 @@ package pricemigrationengine.migrations
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.model._
 import pricemigrationengine.Fixtures
-import pricemigrationengine.libs.SI2025RateplanFromSubAndInvoices
 
 import java.time.LocalDate
 
@@ -523,7 +522,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
   }
 
   // The following subscription is interesting.
-  // I moves from ReadyForEstimation to EstimationFailed in AWS, and only AWS,
+  // It moves from ReadyForEstimation to EstimationFailed in AWS, and only AWS,
   // without any indication of what the cause might be.
   // It's the only subscription of Newspaper2025P1 with that behavior 🤔
 
@@ -534,6 +533,8 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
 
   test("priceData (344070-EstimationFailed)") {
     // Subscription fixture: 344070-EstimationFailed
+
+    // The `EstimationFailed` processing stage has been decommissioned
 
     val subscription =
       Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/344070-EstimationFailed/subscription.json")

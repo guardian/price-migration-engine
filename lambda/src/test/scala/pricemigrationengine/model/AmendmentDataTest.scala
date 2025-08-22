@@ -4,7 +4,6 @@ import pricemigrationengine.Fixtures
 
 import java.time.LocalDate
 import pricemigrationengine.Fixtures._
-import pricemigrationengine.libs.StartDates
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 
 class AmendmentDataTest extends munit.FunSuite {
@@ -171,7 +170,7 @@ class AmendmentDataTest extends munit.FunSuite {
   // Author: Pascal
   //
   // I am adding new tests to this, with fixtures located in `model/AmendmentData`
-  // This is follow up of the tests in libs/StartDatesTest, applied to the case of
+  // This is follow up of the tests in model/StartDatesTest, applied to the case of
   // subscription A-S02059070, with extra: {"earliestMigrationDate":"2026-03-19"}
   // (part of Guardian Weekly 2025)
 

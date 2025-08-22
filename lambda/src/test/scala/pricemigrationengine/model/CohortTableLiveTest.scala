@@ -2,7 +2,6 @@ package pricemigrationengine.model
 
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 import pricemigrationengine.services._
-import pricemigrationengine.libs.Runner.unsafeRunSync
 import software.amazon.awssdk.services.dynamodb.model.AttributeAction.PUT
 import software.amazon.awssdk.services.dynamodb.model._
 import zio.Exit.Success
@@ -76,7 +75,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     )
 
     assertEquals(
-      unsafeRunSync(Runtime.default)(
+      Runner.unsafeRunSync(Runtime.default)(
         for {
           resultList <- CohortTable
             .fetch(ReadyForEstimation, None)
@@ -100,7 +99,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       Map(":processingStage" -> AttributeValue.builder.s("ReadyForEstimation").build()).asJava
     )
     assertEquals(
-      unsafeRunSync(Runtime.default)(
+      Runner.unsafeRunSync(Runtime.default)(
         receivedDeserialiser.get.deserialise(
           Map(
             "subscriptionNumber" -> AttributeValue.builder.s(subscriptionId).build(),
@@ -175,7 +174,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     )
 
     assertEquals(
-      unsafeRunSync(Runtime.default)(
+      Runner.unsafeRunSync(Runtime.default)(
         for {
           resultList <- CohortTable
             .fetch(ReadyForEstimation, Some(expectedLatestDate))
@@ -261,7 +260,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     )
 
     assertEquals(
-      unsafeRunSync(Runtime.default)(
+      Runner.unsafeRunSync(Runtime.default)(
         CohortTable
           .update(cohortItem)
           .provideLayer(
@@ -436,7 +435,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     )
 
     assertEquals(
-      unsafeRunSync(Runtime.default)(
+      Runner.unsafeRunSync(Runtime.default)(
         CohortTable
           .update(cohortItem)
           .provideLayer(
@@ -506,7 +505,7 @@ class CohortTableLiveTest extends munit.FunSuite {
     val cohortItem = CohortItem("Subscription-id", ReadyForEstimation)
 
     assertEquals(
-      unsafeRunSync(Runtime.default)(
+      Runner.unsafeRunSync(Runtime.default)(
         CohortTable
           .create(cohortItem)
           .provideLayer(

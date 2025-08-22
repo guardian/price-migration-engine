@@ -6,14 +6,12 @@ import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
-import pricemigrationengine.libs.PriceCap
 import pricemigrationengine.migrations.{
   GuardianWeekly2025Migration,
   HomeDelivery2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
-  SupporterPlus2024Migration,
-  SupporterPlus2024NotificationData
+  SupporterPlus2024Migration
 }
 import pricemigrationengine.model.RateplansProbe
 
@@ -49,9 +47,18 @@ object NotificationHandler extends CohortHandler {
   ): ZIO[Logging with CohortTable with SalesforceClient with EmailSender with Zuora, Failure, HandlerOutput] = {
     for {
       today <- Clock.currentDateTime.map(_.toLocalDate)
-      count <- CohortTable
-        .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
-        .take(batchSize)
+      count <- (
+        cohortSpec.subscriptionNumber match {
+          case None =>
+            CohortTable
+              .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+              .take(batchSize)
+          case Some(subscriptionNumber) =>
+            CohortTable
+              .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+              .filter(item => item.subscriptionName == subscriptionNumber)
+        }
+      )
         .mapZIO(item =>
           MigrationType(cohortSpec) match {
             case SupporterPlus2024 => {
@@ -118,7 +125,7 @@ object NotificationHandler extends CohortHandler {
         if (sfSubscription.Status__c != Cancelled_Status) {
           sendNotification(cohortSpec, cohortItem, sfSubscription)
         } else {
-          putSubIntoCancelledStatus(cohortSpec, cohortItem, Some("Item has been cancelled in Zuora"))
+          putSubIntoZuoraCancellationStatus(cohortSpec, cohortItem)
         }
     } yield ()
   }
@@ -298,12 +305,14 @@ object NotificationHandler extends CohortHandler {
       _ <- RateplansProbe.probe(subscription: ZuoraSubscription, date) match {
         case ShouldProceed => ZIO.succeed(())
         case ShouldCancel =>
-          val result = CancelledAmendmentResult(item.subscriptionName)
           for {
             _ <- CohortTable
               .update(
-                CohortItem
-                  .fromCancelledAmendmentResult(result, "(cause: f5c291b0) Migration cancelled by RateplansProbe")
+                CohortItem(
+                  item.subscriptionName,
+                  processingStage = Cancelled,
+                  cancellationReason = Some("(cause: f5c291b0) Migration cancelled by RateplansProbe")
+                )
               )
             _ <- notifySalesforceOfCancelledStatus(cohortSpec, item, Some("Migration cancelled by RateplansProbe"))
           } yield ZIO.fail(
@@ -524,10 +533,9 @@ object NotificationHandler extends CohortHandler {
     } yield ()
   }
 
-  def putSubIntoCancelledStatus(
+  def putSubIntoZuoraCancellationStatus(
       cohortSpec: CohortSpec,
-      cohortItem: CohortItem,
-      reason: Option[String]
+      cohortItem: CohortItem
   ): ZIO[Logging with SalesforceClient with CohortTable, Failure, Unit] = {
     for {
       _ <-
@@ -535,10 +543,14 @@ object NotificationHandler extends CohortHandler {
           .update(
             CohortItem(
               subscriptionName = cohortItem.subscriptionName,
-              processingStage = Cancelled
+              processingStage = ZuoraCancellation
             )
           )
-      _ <- notifySalesforceOfCancelledStatus(cohortSpec, cohortItem, reason)
+      _ <- notifySalesforceOfCancelledStatus(
+        cohortSpec,
+        cohortItem,
+        Some("Item has been cancelled in Zuora")
+      )
       _ <- Logging.error(
         s"Subscription ${cohortItem.subscriptionName} has been cancelled, price rise notification not sent"
       )

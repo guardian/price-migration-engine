@@ -10,7 +10,7 @@ import java.util
 /** Specification of a cohort.
   *
   * @param cohortName
-  *   Name that uniquely identifies a cohort, eg. "Vouchers 2020"
+  *   Name that uniquely identifies a cohort, eg. "Vouchers2020"
   * @param brazeName
   *   Name of the Braze campaign, or Braze canvas for this cohort.
   *   Mapping to environment-specific Braze campaign ID is provided by membership-workflow:
@@ -18,25 +18,28 @@ import java.util
   * @param earliestPriceMigrationStartDate
   *   Earliest date on which any sub in the cohort can have price migrated. The actual date for any sub will depend on
   *   its billing dates.
-  * @param migrationCompleteDate
-  *   Date on which the final step in the price migration was complete for every sub in the cohort.
+  * @param subscriptionNumber
+  *   subscriptionNumber is an optional attribute, which, when present, and in the correct context (eg:
+  *   estimation handler, notification handler and amendment handler) is going to cause the handler to run
+  *   on this one specified subscription, rather than a subset of the cohort table. Note that for security,
+  *   the handler must still verify that the item, if found, has the right processing stage for this particular
+  *   handler.
+  *
+  *   This attribute was added to CohortSpec in August 2025, to help with rescuing some print migration
+  *   cohort items causing timeouts in Zuora. This attribute is not intended to be used by the state machine.
   */
 case class CohortSpec(
     cohortName: String,
     brazeName: String,
     earliestPriceMigrationStartDate: LocalDate,
-    migrationCompleteDate: Option[LocalDate] = None
+    subscriptionNumber: Option[String] = None,
 ) {
-  val normalisedCohortName: String = cohortName.replaceAll(" ", "")
-  def tableName(stage: String): String = s"PriceMigration-$stage-$normalisedCohortName"
+  def tableName(stage: String): String = s"PriceMigration-${stage}-${cohortName}"
 }
 
 object CohortSpec {
 
   implicit val rw: ReadWriter[CohortSpec] = macroRW
-
-  def isActive(spec: CohortSpec)(date: LocalDate): Boolean =
-    spec.migrationCompleteDate.forall(_.isAfter(date))
 
   def isValid(spec: CohortSpec): Boolean = {
     def isValidStringValue(s: String) = s.trim == s && s.nonEmpty && s.matches("[A-Za-z0-9-_ ]+")
@@ -49,11 +52,9 @@ object CohortSpec {
       cohortName <- getStringFromResults(values, "cohortName")
       brazeName <- getStringFromResults(values, "brazeName")
       earliestPriceMigrationStartDate <- getDateFromResults(values, "earliestPriceMigrationStartDate")
-      migrationCompleteDate <- getOptionalDateFromResults(values, "migrationCompleteDate")
     } yield CohortSpec(
       cohortName,
       brazeName,
-      earliestPriceMigrationStartDate,
-      migrationCompleteDate
+      earliestPriceMigrationStartDate
     )).left.map(e => CohortSpecFetchFailure(e))
 }

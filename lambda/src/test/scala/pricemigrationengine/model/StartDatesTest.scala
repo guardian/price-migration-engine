@@ -1,22 +1,17 @@
-package pricemigrationengine.libs
+package pricemigrationengine.model
 
 import pricemigrationengine.Fixtures
-import pricemigrationengine.libs.StartDates.{
-  noPriceRiseDuringSubscriptionFirstYearPolicyUpdate,
-  noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate
-}
 import pricemigrationengine.migrations.GuardianWeekly2025Migration
 import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
-import pricemigrationengine.model.{CohortItem, CohortSpec, CohortTableFilter, ZuoraInvoiceList, ZuoraSubscription}
 
 import java.time.LocalDate
 
 class StartDatesTest extends munit.FunSuite {
 
   test("startDateLowerBound (1)") {
-    val subscription = Fixtures.subscriptionFromJson("libs/StartDates/subscription1/subscription.json")
-    val account = Fixtures.accountFromJson("libs/StartDates/subscription1/account.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("libs/StartDates/subscription1/invoice-preview.json")
+    val subscription = Fixtures.subscriptionFromJson("model/StartDates/subscription1/subscription.json")
+    val account = Fixtures.accountFromJson("model/StartDates/subscription1/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("model/StartDates/subscription1/invoice-preview.json")
 
     val cohortItem = CohortItem("SUBSCRIPTION-NUMBER", ReadyForEstimation)
     val today = LocalDate.of(2025, 7, 1) // 1 July 2025
@@ -104,9 +99,9 @@ class StartDatesTest extends munit.FunSuite {
   }
 
   test("startDateLowerBound (2): with extended attributes") {
-    val subscription = Fixtures.subscriptionFromJson("libs/StartDates/subscription1/subscription.json")
-    val account = Fixtures.accountFromJson("libs/StartDates/subscription1/account.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("libs/StartDates/subscription1/invoice-preview.json")
+    val subscription = Fixtures.subscriptionFromJson("model/StartDates/subscription1/subscription.json")
+    val account = Fixtures.accountFromJson("model/StartDates/subscription1/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("model/StartDates/subscription1/invoice-preview.json")
 
     val cohortItem = CohortItem(
       "SUBSCRIPTION-NUMBER",

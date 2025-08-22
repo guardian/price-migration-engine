@@ -1,8 +1,4 @@
-package pricemigrationengine.libs
-
-import pricemigrationengine.libs.SI2025Extractions
-import pricemigrationengine.libs.SI2025RateplanFromSubAndInvoices
-import pricemigrationengine.model.{BillingPeriod, ZuoraInvoiceList, ZuoraRatePlan, ZuoraSubscription}
+package pricemigrationengine.model
 
 object AmendmentHelper {
   def subscriptionHasCorrectBillingPeriodAfterUpdate(

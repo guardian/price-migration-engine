@@ -17,10 +17,6 @@ case class EstimationData(
     billingPeriod: String
 ) extends EstimationResult
 
-case class FailedEstimationResult(subscriptionNumber: String, reason: String) extends EstimationResult
-
-case class CancelledEstimationResult(subscriptionNumber: String) extends EstimationResult
-
 object EstimationResult {
   def apply(
       account: ZuoraAccount,
@@ -43,3 +39,5 @@ object EstimationResult {
     )
   }
 }
+
+case class SubscriptionCancelledInZuoraEstimationResult(subscriptionNumber: String) extends EstimationResult

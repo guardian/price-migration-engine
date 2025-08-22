@@ -4,7 +4,7 @@ import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.{Clock, IO, Random, ZIO}
-import pricemigrationengine.libs.{Date, StartDates}
+import pricemigrationengine.model.StartDates
 import java.time.LocalDate
 
 /** Calculates start date and new price for a set of CohortItems.
@@ -22,9 +22,18 @@ object EstimationHandler extends CohortHandler {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       _ <- monitorDoNotProcessUntils(today)
       catalogue <- Zuora.fetchProductCatalogue
-      count <- CohortTable
-        .fetch(ReadyForEstimation, None)
-        .take(batchSize)
+      count <- (
+        cohortSpec.subscriptionNumber match {
+          case None =>
+            CohortTable
+              .fetch(ReadyForEstimation, None)
+              .take(batchSize)
+          case Some(subscriptionNumber) =>
+            CohortTable
+              .fetch(ReadyForEstimation, None)
+              .filter(item => item.subscriptionName == subscriptionNumber)
+        }
+      )
         .mapZIO(item =>
           estimate(catalogue, cohortSpec)(today, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
         )
@@ -71,13 +80,13 @@ object EstimationHandler extends CohortHandler {
   ): ZIO[CohortTable with Zuora, Failure, EstimationResult] =
     doEstimation(catalogue, item, cohortSpec, today).foldZIO(
       failure = {
-        case _: CancelledSubscriptionFailure =>
-          val result = CancelledEstimationResult(item.subscriptionName)
+        case _: SubscriptionCancelledInZuoraFailure =>
+          val result = SubscriptionCancelledInZuoraEstimationResult(item.subscriptionName)
           CohortTable
             .update(
-              CohortItem.fromCancelledEstimationResult(
-                result,
-                s"(reason: b6829dd30) subscription ${item.subscriptionName} has been cancelled in Zuora"
+              CohortItem(
+                item.subscriptionName,
+                processingStage = ZuoraCancellation
               )
             )
             .as(result)
@@ -105,7 +114,9 @@ object EstimationHandler extends CohortHandler {
       subscription <-
         Zuora
           .fetchSubscription(item.subscriptionName)
-          .filterOrFail(_.status != "Cancelled")(CancelledSubscriptionFailure(item.subscriptionName))
+          .filterOrFail(_.status != "Cancelled")(
+            SubscriptionCancelledInZuoraFailure(s"subscription ${item.subscriptionName} has been cancelled in Zuora")
+          )
       account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
       invoicePreviewTargetDate = cohortSpec.earliestPriceMigrationStartDate.plusMonths(16)
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
