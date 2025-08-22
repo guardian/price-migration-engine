@@ -271,9 +271,14 @@ object ZuoraLive {
           // Some subscriptions with a large number of amendments would timeout during a
           // synchronous renewal or price amendment request, but extensive tests ran
           // with asynchronous requests showed a 100% success rate within less than 20 seconds.
-          // I am setting the timeout to 5 minutes, but if one day this is not enough
-          // (which really should not happen) then we can increase the value, or better,
-          // pass it as an argument.
+          //
+          // The retry schedule was originally meant to be
+          // `.retry(Schedule.spaced(2.second) && Schedule.duration(5.minutes))`
+          // but that actually didn't work, the effect was exiting after 5 minutes
+          // despite the order executing within seconds 🤔. I then set it to
+          // `.retry(Schedule.spaced(2.second))`.
+          // If for any reason Zuora doesn't succeed that job, the lambda is going to
+          // be terminated by AWS.
           for {
             _ <- ZIO.logInfo(
               s"[18943ad2] submitting asynchronous order for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, payload: ${payload}"
