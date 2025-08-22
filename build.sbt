@@ -41,7 +41,11 @@ lazy val lambda = (project in file("lambda"))
   .enablePlugins(RiffRaffArtifact, BuildInfoPlugin)
   .settings(
     name := "price-migration-engine-lambda",
-    dependencyOverrides += "io.netty" % "netty-handler" % "4.2.3.Final", // https://github.com/guardian/price-migration-engine/security/dependabot/4
+    dependencyOverrides ++= Seq(
+      "io.netty" % "netty-handler" % "4.2.3.Final",
+      "io.netty" % "netty-codec-base" % "4.2.3.Final",
+      "io.netty" % "netty-codec" % "4.2.3.Final"
+    ),
     libraryDependencies ++= Seq(
       zio,
       zioStreams,
