@@ -327,7 +327,7 @@ object AmendmentHandler extends CohortHandler {
               )
             )
         }
-      } yield order).retry(exponential(1.second) && recurs(5))
+      } yield order).retry(exponential(10.second) && recurs(6))
 
       _ <- Logging.info(
         s"[6e6da544] Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
