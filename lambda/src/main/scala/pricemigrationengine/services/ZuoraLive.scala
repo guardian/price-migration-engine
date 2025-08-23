@@ -280,7 +280,7 @@ object ZuoraLive {
           // If for any reason Zuora doesn't succeed that job, the lambda is going to
           // be terminated by AWS.
           for {
-            _ <- ZIO.logInfo(
+            _ <- logging.info(
               s"[18943ad2] submitting asynchronous order for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, payload: ${payload}"
             )
             submissionTicket <- submitAsynchronousOrderRequest(
@@ -300,12 +300,12 @@ object ZuoraLive {
                   )
                 )
               }
-            _ <- ZIO.logInfo(
+            _ <- logging.info(
               s"[fe478094] submitted asynchronous order for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, submission ticket: ${submissionTicket}"
             )
             _ <- (for {
               jobReport <- getJobReport(submissionTicket.jobId)
-              _ <- ZIO.logInfo(
+              _ <- logging.info(
                 s"[4b4e379c] jobReport: ${jobReport}"
               )
               _ <-
@@ -318,7 +318,7 @@ object ZuoraLive {
                   s"[462b80c6] error while evaluating asynchronous job report 🤔, jobId: ${submissionTicket.jobId}, error: ${e}"
                 )
               )
-            _ <- ZIO.logInfo(
+            _ <- logging.info(
               s"[62d66c48] completed asynchronous order for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}"
             )
           } yield ZIO.succeed(())
