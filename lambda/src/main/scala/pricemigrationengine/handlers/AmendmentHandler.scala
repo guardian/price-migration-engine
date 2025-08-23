@@ -249,8 +249,17 @@ object AmendmentHandler extends CohortHandler {
       )
 
       order <- (for {
+        _ <- Logging.info(
+          s"[e0418da6] fetching invoice preview before update, accountId: ${subscriptionBeforeUpdate.accountId}, target date: ${invoicePreviewTargetDate}"
+        )
         invoicePreviewBeforeUpdate <-
           Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
+        _ <- Logging.info(
+          s"[ec0e9b31] found invoice preview: ${invoicePreviewBeforeUpdate}"
+        )
+        _ <- Logging.info(
+          s"[11ebeaa4] building amendment payload"
+        )
         order <- MigrationType(cohortSpec) match {
           case Test1 => ZIO.fail(ConfigFailure("Branch not supported"))
           case SupporterPlus2024 =>
@@ -316,7 +325,7 @@ object AmendmentHandler extends CohortHandler {
               )
             )
         }
-      } yield order).retry(exponential(1.second) && recurs(5))
+      } yield order)
 
       _ <- renewSubscription(subscriptionBeforeUpdate, subscriptionBeforeUpdate.termEndDate, account)
 
