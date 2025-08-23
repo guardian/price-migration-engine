@@ -248,6 +248,8 @@ object AmendmentHandler extends CohortHandler {
         subscriptionBeforeUpdate.subscriptionNumber
       )
 
+      _ <- renewSubscription(subscriptionBeforeUpdate, subscriptionBeforeUpdate.termEndDate, account)
+
       order <- (for {
         _ <- Logging.info(
           s"[e0418da6] fetching invoice preview before update, accountId: ${subscriptionBeforeUpdate.accountId}, target date: ${invoicePreviewTargetDate}"
@@ -326,8 +328,6 @@ object AmendmentHandler extends CohortHandler {
             )
         }
       } yield order)
-
-      _ <- renewSubscription(subscriptionBeforeUpdate, subscriptionBeforeUpdate.termEndDate, account)
 
       _ <- Logging.info(
         s"[6e6da544] Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
