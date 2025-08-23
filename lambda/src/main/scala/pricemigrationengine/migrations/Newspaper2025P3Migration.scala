@@ -235,9 +235,10 @@ object Newspaper2025P3Migration {
     // Note that we do use `get` here. The cohort items always get them from the estimation step, but in the
     // abnormal case it would not, we want the process to error and alarm.
     val priceRatio = estimatedNewPrice / oldPrice
+    val shouldRemoveDiscount = decideShouldRemoveDiscount(cohortItem)
 
     val order_opt = {
-      if (!decideShouldRemoveDiscount(cohortItem)) {
+      if (!shouldRemoveDiscount) {
         for {
           ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
           billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
