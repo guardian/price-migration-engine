@@ -353,7 +353,7 @@ object AmendmentHandler extends CohortHandler {
             )
         }
       } yield order)
-        .retry(exponential(10.second) && recurs(6))
+        .retry(Schedule.spaced(1.minute) && Schedule.recurs(5))
         .mapError(e =>
           // Note that there are two reason why this would happen
           // 1. MigrationRoutingFailure, or
