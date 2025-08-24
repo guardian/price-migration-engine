@@ -359,7 +359,7 @@ object AmendmentHandler extends CohortHandler {
           // 1. MigrationRoutingFailure, or
           // 2. The `retry` has exited
           ZuoraAmendmentPayloadBuildingFailure(
-            s"subscription: ${subscriptionBeforeUpdate.subscriptionNumber}, reason: ${e.reason}"
+            s"[2eecdf44] subscription: ${subscriptionBeforeUpdate.subscriptionNumber}, reason: ${e.reason}"
           )
         )
 
