@@ -353,7 +353,12 @@ object AmendmentHandler extends CohortHandler {
             )
         }
       } yield order)
-        .retry(Schedule.spaced(1.minute) && Schedule.recurs(5))
+        .retry(
+          // Values chosen to ensure that the operation doesn't last more than 5 minutes
+          // so that if an item was started just before the 10 minutes mark deadline of the handler,
+          // then the entire lambda will complete before 15 minutes (ish)
+          Schedule.spaced(1.minute) && Schedule.recurs(5)
+        )
         .mapError(e =>
           // Note that there are two reason why this would happen
           // 1. MigrationRoutingFailure, or
