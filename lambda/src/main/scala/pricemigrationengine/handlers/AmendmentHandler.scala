@@ -24,9 +24,23 @@ object AmendmentHandler extends CohortHandler {
 
   private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] = {
     for {
+
+      // The batch size of this lambda is particularly low (currently 15)
+      // which should be plenty of time (observations show that it runs in 4 minutes in average)
+      // but the refactoring we made here: https://github.com/guardian/price-migration-engine/pull/1221
+      // (retry of the invoice preview retrieval) means that we have much less control
+      // over the total time taken by the run.
+
+      // Specifically in one instance an item took 13 minutes to complete, which caused issues
+      // for the lambda itself. To address this problem we monitor the time since the start
+      // of the run, and exit after 10 minutes.
+
+      startingTime <- Clock.nanoTime
+      deadline = startingTime + 10.minutes.toNanos
+
       catalogue <- Zuora.fetchProductCatalogue
-      count <- (
-        cohortSpec.subscriptionNumber match {
+      count <- {
+        val items = cohortSpec.subscriptionNumber match {
           case None =>
             CohortTable
               .fetch(NotificationSendDateWrittenToSalesforce, None)
@@ -36,9 +50,17 @@ object AmendmentHandler extends CohortHandler {
               .fetch(NotificationSendDateWrittenToSalesforce, None)
               .filter(item => item.subscriptionName == subscriptionNumber)
         }
-      )
-        .mapZIO(item => amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
-        .runCount
+        items
+          .takeWhileZIO(_ => Clock.nanoTime.map(_ < deadline)) // [1]
+          .mapZIO(item =>
+            amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
+          )
+          .runCount
+
+        // [1] when we reach the deadline, we ignore later items from the array.
+        // They will be picked up by the next run of the lambda.
+      }
+
     } yield HandlerOutput(isComplete = count < batchSize)
   }
 
