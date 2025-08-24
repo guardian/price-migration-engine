@@ -95,6 +95,9 @@ object AmendmentHandler extends CohortHandler {
             ZIO.fail(e)
           }
         }
+        case e: ZuoraAmendmentPayloadBuildingFailure => {
+          ZIO.succeed(AmendmentPostponed(subscriptionNumber = item.subscriptionName))
+        }
         case e => ZIO.fail(e)
       },
       success = { result =>
@@ -349,7 +352,16 @@ object AmendmentHandler extends CohortHandler {
               )
             )
         }
-      } yield order).retry(exponential(10.second) && recurs(6))
+      } yield order)
+        .retry(exponential(10.second) && recurs(6))
+        .mapError(e =>
+          // Note that there are two reason why this would happen
+          // 1. MigrationRoutingFailure, or
+          // 2. The `retry` has exited
+          ZuoraAmendmentPayloadBuildingFailure(
+            s"subscription: ${subscriptionBeforeUpdate.subscriptionNumber}, reason: ${e.reason}"
+          )
+        )
 
       _ <- Logging.info(
         s"[6e6da544] Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
