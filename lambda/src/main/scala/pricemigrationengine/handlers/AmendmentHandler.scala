@@ -11,9 +11,7 @@ import pricemigrationengine.migrations._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 
-import java.time.{LocalDate, LocalDateTime, ZoneOffset}
-import ujson._
-import zio.Schedule.{exponential, recurs}
+import java.time.LocalDate
 import zio._
 
 /** Carries out price-rise amendments in Zuora.
