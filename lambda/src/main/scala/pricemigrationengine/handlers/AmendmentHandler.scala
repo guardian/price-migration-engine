@@ -51,14 +51,24 @@ object AmendmentHandler extends CohortHandler {
               .filter(item => item.subscriptionName == subscriptionNumber)
         }
         items
-          .takeWhileZIO(_ => Clock.nanoTime.map(_ < deadline)) // [1]
+          .takeWhileZIO(_ =>
+            // When we reach the deadline, we ignore later items from the array.
+            // They will be picked up by the next run of the lambda.
+            Clock.nanoTime.map(_ < deadline)
+          )
           .mapZIO(item =>
             amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
           )
+          .collect {
+            // Here we are only counting `SuccessfulAmendmentResult`
+            // and `SubscriptionCancelledInZuoraAmendmentResult`.
+            // This will ensure that `AmendmentPreventedDueToLockResult` and `AmendmentPostponed`
+            // are not counted, which would cause the lambda to return `HandlerOutput(true)`
+            // too early.
+            case s: SuccessfulAmendmentResult                   => s
+            case c: SubscriptionCancelledInZuoraAmendmentResult => c
+          }
           .runCount
-
-        // [1] when we reach the deadline, we ignore later items from the array.
-        // They will be picked up by the next run of the lambda.
       }
 
     } yield HandlerOutput(isComplete = count < batchSize)
