@@ -313,15 +313,8 @@ object ZuoraLive {
                 else { ZIO.fail(()) }
             } yield ())
               .retry(
-                Schedule.spaced(2.second)
-                // Note that this retry schedule has no exit. This would not be fine
-                // if we were running this on a EC2 server, but on a AWS lambda that's fine.
-                //
-                // There was a case where Zuora had a server error that lasted for a bit
-                // and kept returning
-                // "[40000060]: Oops, internal error occurred, please contact Zuora support."
-                // The lambda ended up being killed by AWS after 15 minutes, but the
-                // subscription was then successfully processed at the following run.
+                // Query every 2 seconds for a total of 150 times (eg: 5 minutes)
+                Schedule.spaced(2.second) && Schedule.recurs(150)
               )
               .mapError(e =>
                 ZuoraAsynchronousOrderRequestFailure(
