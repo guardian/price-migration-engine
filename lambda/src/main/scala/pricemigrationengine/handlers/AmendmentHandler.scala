@@ -11,9 +11,7 @@ import pricemigrationengine.migrations._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 
-import java.time.{LocalDate, LocalDateTime, ZoneOffset}
-import ujson._
-import zio.Schedule.{exponential, recurs}
+import java.time.LocalDate
 import zio._
 
 /** Carries out price-rise amendments in Zuora.
@@ -24,9 +22,23 @@ object AmendmentHandler extends CohortHandler {
 
   private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] = {
     for {
+
+      // The batch size of this lambda is particularly low (currently 15)
+      // which should be plenty of time (observations show that it runs in 4 minutes in average)
+      // but the refactoring we made here: https://github.com/guardian/price-migration-engine/pull/1221
+      // (retry of the invoice preview retrieval) means that we have much less control
+      // over the total time taken by the run.
+
+      // Specifically in one instance an item took 13 minutes to complete, which caused issues
+      // for the lambda itself. To address this problem we monitor the time since the start
+      // of the run, and exit after 10 minutes.
+
+      startingTime <- Clock.nanoTime
+      deadline = startingTime + 10.minutes.toNanos
+
       catalogue <- Zuora.fetchProductCatalogue
-      count <- (
-        cohortSpec.subscriptionNumber match {
+      count <- {
+        val items = cohortSpec.subscriptionNumber match {
           case None =>
             CohortTable
               .fetch(NotificationSendDateWrittenToSalesforce, None)
@@ -36,9 +48,27 @@ object AmendmentHandler extends CohortHandler {
               .fetch(NotificationSendDateWrittenToSalesforce, None)
               .filter(item => item.subscriptionName == subscriptionNumber)
         }
-      )
-        .mapZIO(item => amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
-        .runCount
+        items
+          .takeWhileZIO(_ =>
+            // When we reach the deadline, we ignore later items from the array.
+            // They will be picked up by the next run of the lambda.
+            Clock.nanoTime.map(_ < deadline)
+          )
+          .mapZIO(item =>
+            amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
+          )
+          .collect {
+            // Here we are only counting `SuccessfulAmendmentResult`
+            // and `SubscriptionCancelledInZuoraAmendmentResult`.
+            // This will ensure that `AmendmentPreventedDueToLockResult` and `AmendmentPostponed`
+            // are not counted, which would cause the lambda to return `HandlerOutput(true)`
+            // too early.
+            case s: SuccessfulAmendmentResult                   => s
+            case c: SubscriptionCancelledInZuoraAmendmentResult => c
+          }
+          .runCount
+      }
+
     } yield HandlerOutput(isComplete = count < batchSize)
   }
 
@@ -72,6 +102,9 @@ object AmendmentHandler extends CohortHandler {
           } else {
             ZIO.fail(e)
           }
+        }
+        case e: ZuoraAmendmentPayloadBuildingFailure => {
+          ZIO.succeed(AmendmentPostponed(subscriptionNumber = item.subscriptionName))
         }
         case e => ZIO.fail(e)
       },
@@ -327,7 +360,21 @@ object AmendmentHandler extends CohortHandler {
               )
             )
         }
-      } yield order).retry(exponential(10.second) && recurs(6))
+      } yield order)
+        .retry(
+          // Values chosen to ensure that the operation doesn't last more than 5 minutes
+          // so that if an item was started just before the 10 minutes mark deadline of the handler,
+          // then the entire lambda will complete before 15 minutes (ish)
+          Schedule.spaced(1.minute) && Schedule.recurs(5)
+        )
+        .mapError(e =>
+          // Note that there are two reason why this would happen
+          // 1. MigrationRoutingFailure, or
+          // 2. The `retry` has exited
+          ZuoraAmendmentPayloadBuildingFailure(
+            s"[2eecdf44] subscription: ${subscriptionBeforeUpdate.subscriptionNumber}, reason: ${e.reason}"
+          )
+        )
 
       _ <- Logging.info(
         s"[6e6da544] Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
