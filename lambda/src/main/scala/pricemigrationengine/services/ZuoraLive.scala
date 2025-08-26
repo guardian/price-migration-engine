@@ -312,7 +312,17 @@ object ZuoraLive {
                 if (AsyncJobReport.isReady(jobReport)) { ZIO.unit }
                 else { ZIO.fail(()) }
             } yield ())
-              .retry(Schedule.spaced(2.second))
+              .retry(
+                Schedule.spaced(2.second)
+                // Note that this retry schedule has no exit. This would not be fine
+                // if we were running this on a EC2 server, but on a AWS lambda that's fine.
+                //
+                // There was a case where Zuora had a server error that lasted for a bit
+                // and kept returning
+                // "[40000060]: Oops, internal error occurred, please contact Zuora support."
+                // The lambda ended up being killed by AWS after 15 minutes, but the
+                // subscription was then successfully processed at the following run.
+              )
               .mapError(e =>
                 ZuoraAsynchronousOrderRequestFailure(
                   s"[462b80c6] error while evaluating asynchronous job report 🤔, jobId: ${submissionTicket.jobId}, error: ${e}"
