@@ -21,3 +21,7 @@ case class SubscriptionCancelledInZuoraAmendmentResult(
 case class AmendmentPreventedDueToLockResult(
     subscriptionNumber: String
 ) extends AmendmentResult
+
+case class AmendmentPostponed(
+    subscriptionNumber: String
+) extends AmendmentResult
