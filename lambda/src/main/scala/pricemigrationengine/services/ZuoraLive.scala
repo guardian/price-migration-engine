@@ -317,7 +317,10 @@ object ZuoraLive {
                 if (AsyncJobReport.isReady(jobReport)) { ZIO.unit }
                 else { ZIO.fail(()) }
             } yield ())
-              .retry(Schedule.spaced(2.second))
+              .retry(
+                // Query every 2 seconds for a total of 150 times (eg: 5 minutes)
+                Schedule.spaced(2.second) && Schedule.recurs(150)
+              )
               .mapError(e =>
                 ZuoraAsynchronousOrderRequestFailure(
                   s"[462b80c6] error while evaluating asynchronous job report 🤔, jobId: ${submissionTicket.jobId}, error: ${e}"
