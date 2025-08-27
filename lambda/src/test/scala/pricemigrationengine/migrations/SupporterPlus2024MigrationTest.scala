@@ -758,7 +758,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
         orderDate = LocalDate.of(2024, 10, 25),
         accountNumber = "74bff0f2",
         subscriptionNumber = subscription.subscriptionNumber,
-        effectDate = LocalDate.of(2024, 11, 27),
+        mainChargeEffectDate = LocalDate.of(2024, 11, 27),
         subscription = subscription,
         oldPrice = 10,
         estimatedNewPrice = 12,
@@ -817,6 +817,10 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
                           "recurringFlatFee" -> Map(
                             "listPrice" -> 12
                           )
+                        ),
+                        startDate = Map(
+                          "triggerEvent" -> "SpecificDate",
+                          "specificTriggerDate" -> LocalDate.of(2024, 11, 27).toString
                         )
                       ),
                       ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
@@ -825,6 +829,10 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
                           "recurringFlatFee" -> Map(
                             "listPrice" -> 0.0
                           )
+                        ),
+                        startDate = Map(
+                          "triggerEvent" -> "SpecificDate",
+                          "specificTriggerDate" -> LocalDate.of(2024, 8, 30).toString
                         )
                       )
                     )
@@ -845,7 +853,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
         orderDate = LocalDate.of(2024, 10, 25),
         accountNumber = "74bff0f2",
         subscriptionNumber = subscription.subscriptionNumber,
-        effectDate = LocalDate.of(2024, 11, 27),
+        mainChargeEffectDate = LocalDate.of(2024, 11, 27),
         subscription = subscription,
         oldPrice = 10,
         estimatedNewPrice = 12,
@@ -904,6 +912,10 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
                           "recurringFlatFee" -> Map(
                             "listPrice" -> 11
                           )
+                        ),
+                        startDate = Map(
+                          "triggerEvent" -> "SpecificDate",
+                          "specificTriggerDate" -> LocalDate.of(2024, 11, 27).toString
                         )
                       ),
                       ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
@@ -912,6 +924,10 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
                           "recurringFlatFee" -> Map(
                             "listPrice" -> 0.0
                           )
+                        ),
+                        startDate = Map(
+                          "triggerEvent" -> "SpecificDate",
+                          "specificTriggerDate" -> LocalDate.of(2024, 8, 30).toString
                         )
                       )
                     )
@@ -932,7 +948,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
         orderDate = LocalDate.of(2024, 9, 9),
         accountNumber = "d4a7d0af",
         subscriptionNumber = subscription.subscriptionNumber,
-        effectDate = LocalDate.of(2024, 10, 11),
+        mainChargeEffectDate = LocalDate.of(2023, 11, 11),
         subscription = subscription,
         oldPrice = 150,
         estimatedNewPrice = 200,
@@ -951,15 +967,15 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
                   triggerDates = List(
                     ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
                       name = "ContractEffective",
-                      triggerDate = LocalDate.of(2024, 10, 11)
+                      triggerDate = LocalDate.of(2023, 11, 11)
                     ),
                     ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
                       name = "ServiceActivation",
-                      triggerDate = LocalDate.of(2024, 10, 11)
+                      triggerDate = LocalDate.of(2023, 11, 11)
                     ),
                     ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
                       name = "CustomerAcceptance",
-                      triggerDate = LocalDate.of(2024, 10, 11)
+                      triggerDate = LocalDate.of(2023, 11, 11)
                     )
                   ),
                   removeProduct = ZuoraAmendmentOrderPayloadOrderActionRemoveProduct(
@@ -971,15 +987,15 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
                   triggerDates = List(
                     ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
                       name = "ContractEffective",
-                      triggerDate = LocalDate.of(2024, 10, 11)
+                      triggerDate = LocalDate.of(2023, 11, 11)
                     ),
                     ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
                       name = "ServiceActivation",
-                      triggerDate = LocalDate.of(2024, 10, 11)
+                      triggerDate = LocalDate.of(2023, 11, 11)
                     ),
                     ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
                       name = "CustomerAcceptance",
-                      triggerDate = LocalDate.of(2024, 10, 11)
+                      triggerDate = LocalDate.of(2023, 11, 11)
                     )
                   ),
                   addProduct = ZuoraAmendmentOrderPayloadOrderActionAddProduct(
@@ -991,6 +1007,10 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
                           "recurringFlatFee" -> Map(
                             "listPrice" -> 190.50
                           )
+                        ),
+                        startDate = Map(
+                          "triggerEvent" -> "SpecificDate",
+                          "specificTriggerDate" -> LocalDate.of(2023, 11, 11).toString
                         )
                       ),
                       ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
@@ -999,6 +1019,10 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
                           "recurringFlatFee" -> Map(
                             "listPrice" -> 340.0
                           )
+                        ),
+                        startDate = Map(
+                          "triggerEvent" -> "SpecificDate",
+                          "specificTriggerDate" -> LocalDate.of(2023, 11, 11).toString
                         )
                       )
                     )
@@ -1096,6 +1120,10 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
               "recurringFlatFee" -> Map(
                 "listPrice" -> 190.50
               )
+            ),
+            startDate = Map(
+              "triggerEvent" -> "SpecificDate",
+              "specificTriggerDate" -> LocalDate.of(2024, 11, 27).toString
             )
           ),
           ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
@@ -1104,6 +1132,10 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
               "recurringFlatFee" -> Map(
                 "listPrice" -> 340.0
               )
+            ),
+            startDate = Map(
+              "triggerEvent" -> "SpecificDate",
+              "specificTriggerDate" -> LocalDate.of(2024, 11, 27).toString
             )
           )
         )
@@ -1137,6 +1169,10 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
         |          "recurringFlatFee": {
         |            "listPrice": 190.5
         |          }
+        |        },
+        |        "startDate": {
+        |          "triggerEvent": "SpecificDate",
+        |          "specificTriggerDate": "2024-11-27"
         |        }
         |      },
         |      {
@@ -1145,6 +1181,10 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
         |          "recurringFlatFee": {
         |            "listPrice": 340
         |          }
+        |        },
+        |        "startDate": {
+        |          "triggerEvent": "SpecificDate",
+        |          "specificTriggerDate": "2024-11-27"
         |        }
         |      }
         |    ]
@@ -1165,7 +1205,8 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       orderDate = LocalDate.of(2024, 10, 24),
       accountNumber = "A01955911",
       subscriptionNumber = "A-S02019224",
-      effectDate = LocalDate.of(2024, 11, 26),
+      mainChargeEffectDate = LocalDate.of(2024, 11, 26),
+      contributionChargeEffectDate = LocalDate.of(2024, 11, 26),
       removeRatePlanId = "8a128e208bdd4251018c0d5050970bd9",
       productRatePlanId = "8a128ed885fc6ded018602296ace3eb8",
       existingBaseProductRatePlanChargeId = "8a128ed885fc6ded018602296af13eba",
@@ -1229,6 +1270,10 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
         |                  "recurringFlatFee": {
         |                    "listPrice": 15
         |                  }
+        |                },
+        |                "startDate": {
+        |                  "triggerEvent": "SpecificDate",
+        |                  "specificTriggerDate": "2024-11-26"
         |                }
         |              },
         |              {
@@ -1237,6 +1282,10 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
         |                  "recurringFlatFee": {
         |                    "listPrice": 0
         |                  }
+        |                },
+        |                "startDate": {
+        |                  "triggerEvent": "SpecificDate",
+        |                  "specificTriggerDate": "2024-11-26"
         |                }
         |              }
         |            ]
@@ -1250,6 +1299,134 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
         |    "collectPayment": false
         |  }
         |}""".stripMargin
+    )
+  }
+  test("amendmentOrderPayload (annual), two billing dates") {
+
+    // This subscription is interesting it was added to the fixtures in August 2025 as an example
+    // of a Supporter Plus subscription where the main charge and the extra contribution are both
+    // annuals but happen at different dates. (Main charge: August 7th, Contribution: July 28th).
+
+    // We are making a correction. Before this correction the engine would read one of the items from the
+    // invoice preview, determine the active rate plan, get the first charge billing date
+    // and use that for everything.
+
+    // We want to correct this by having the main charge and the contribution charge happening
+    // at their natural dates.
+
+    // nb: No remaining subscription in this migration suffer from this problem. This one fixture
+    // is not part of the migration. We are just using it to practice thinking more precisely about dates.
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/two-billing-dates/subscription.json")
+
+    val ratePlan = SupporterPlus2024Migration.getSupporterPlusV2RatePlan(subscription).toOption.get
+
+    val contributionRatePlanCharge = SupporterPlus2024Migration
+      .getSupporterPlusContributionRatePlanCharge(
+        "SUBSCRIPTION-NUMBER",
+        ratePlan: ZuoraRatePlan
+      )
+      .toOption
+      .get
+
+    // Here we are making sure that the contribution date is correctly read from the fixture
+    assertEquals(contributionRatePlanCharge.processedThroughDate.get, LocalDate.of(2025, 7, 28))
+
+    val mainRatePlanEffectDate = LocalDate.of(2025, 8, 7)
+    // August start date for the main charge, as read from the subscription.
+    // The july date will be read from the subscription itself
+
+    assertEquals(
+      SupporterPlus2024Migration.amendmentOrderPayload(
+        orderDate = LocalDate.of(2025, 8, 5),
+        accountNumber = "d0b03dda", // random string
+        subscriptionNumber = subscription.subscriptionNumber,
+        mainChargeEffectDate = mainRatePlanEffectDate,
+        subscription = subscription,
+        oldPrice = 95.0,
+        estimatedNewPrice = 101.0,
+        priceCap = 1.2
+      ),
+      Right(
+        ZuoraAmendmentOrderPayload(
+          orderDate = LocalDate.of(2025, 8, 5),
+          existingAccountNumber = "d0b03dda",
+          subscriptions = List(
+            ZuoraAmendmentOrderPayloadSubscription(
+              subscriptionNumber = "SUBSCRIPTION-NUMBER",
+              orderActions = List(
+                ZuoraAmendmentOrderPayloadOrderActionRemove(
+                  `type` = "RemoveProduct",
+                  triggerDates = List(
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "ContractEffective",
+                      triggerDate = LocalDate.of(2025, 8, 7)
+                    ),
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "ServiceActivation",
+                      triggerDate = LocalDate.of(2025, 8, 7)
+                    ),
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "CustomerAcceptance",
+                      triggerDate = LocalDate.of(2025, 8, 7)
+                    )
+                  ),
+                  removeProduct = ZuoraAmendmentOrderPayloadOrderActionRemoveProduct(
+                    ratePlanId = "8a129c6098448d8301984f22e29970f9"
+                  )
+                ),
+                ZuoraAmendmentOrderPayloadOrderActionAdd(
+                  `type` = "AddProduct",
+                  triggerDates = List(
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "ContractEffective",
+                      triggerDate = LocalDate.of(2025, 8, 7)
+                    ),
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "ServiceActivation",
+                      triggerDate = LocalDate.of(2025, 8, 7)
+                    ),
+                    ZuoraAmendmentOrderPayloadOrderActionTriggerDate(
+                      name = "CustomerAcceptance",
+                      triggerDate = LocalDate.of(2025, 8, 7)
+                    )
+                  ),
+                  addProduct = ZuoraAmendmentOrderPayloadOrderActionAddProduct(
+                    productRatePlanId = "8a128ed885fc6ded01860228f77e3d5a",
+                    chargeOverrides = List(
+                      ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
+                        productRatePlanChargeId = "8a128ed885fc6ded01860228f7cb3d5f",
+                        pricing = Map(
+                          "recurringFlatFee" -> Map(
+                            "listPrice" -> 101.0 // estimatedNewPrice
+                          )
+                        ),
+                        startDate = Map(
+                          "triggerEvent" -> "SpecificDate",
+                          "specificTriggerDate" -> LocalDate.of(2025, 8, 7).toString
+                        )
+                      ),
+                      ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
+                        productRatePlanChargeId = "8a12892d85fc6df4018602451322287f",
+                        pricing = Map(
+                          "recurringFlatFee" -> Map(
+                            "listPrice" -> 5.0 // Existing contribution
+                          )
+                        ),
+                        startDate = Map(
+                          "triggerEvent" -> "SpecificDate",
+                          "specificTriggerDate" -> LocalDate.of(2025, 7, 28).toString
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          processingOptions = ZuoraAmendmentOrderPayloadProcessingOptions(false, false)
+        )
+      )
     )
   }
 }

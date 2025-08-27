@@ -143,7 +143,8 @@ object ZuoraAmendmentOrderPayloadOrderActionRemove {
 
 case class ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
     productRatePlanChargeId: String,
-    pricing: Map[String, Map[String, BigDecimal]]
+    pricing: Map[String, Map[String, BigDecimal]],
+    startDate: Map[String, String]
 )
 object ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride {
   implicit val w: Writer[ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride] = macroW
