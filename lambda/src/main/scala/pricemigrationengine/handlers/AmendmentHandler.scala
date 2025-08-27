@@ -1,17 +1,14 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.model.{AmendmentHelper, ZuoraOrdersApiPrimitives}
-import pricemigrationengine.model.CohortTableFilter.{
-  Cancelled,
-  NotificationSendDateWrittenToSalesforce,
-  ZuoraCancellation
-}
+import pricemigrationengine.model.CohortTableFilter.{NotificationSendDateWrittenToSalesforce, ZuoraCancellation}
 import pricemigrationengine.model._
 import pricemigrationengine.migrations._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 
-import java.time.{LocalDate, LocalDateTime, ZoneOffset}
+import java.time.LocalDate
+import zio._
 import ujson._
 
 /** Carries out price-rise amendments in Zuora.
@@ -22,9 +19,23 @@ object AmendmentHandler extends CohortHandler {
 
   private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] = {
     for {
+
+      // The batch size of this lambda is particularly low (currently 15)
+      // which should be plenty of time (observations show that it runs in 4 minutes in average)
+      // but the refactoring we made here: https://github.com/guardian/price-migration-engine/pull/1221
+      // (retry of the invoice preview retrieval) means that we have much less control
+      // over the total time taken by the run.
+
+      // Specifically in one instance an item took 13 minutes to complete, which caused issues
+      // for the lambda itself. To address this problem we monitor the time since the start
+      // of the run, and exit after 10 minutes.
+
+      startingTime <- Clock.nanoTime
+      deadline = startingTime + 10.minutes.toNanos
+
       catalogue <- Zuora.fetchProductCatalogue
-      count <- (
-        cohortSpec.subscriptionNumber match {
+      count <- {
+        val items = cohortSpec.subscriptionNumber match {
           case None =>
             CohortTable
               .fetch(NotificationSendDateWrittenToSalesforce, None)
@@ -34,9 +45,27 @@ object AmendmentHandler extends CohortHandler {
               .fetch(NotificationSendDateWrittenToSalesforce, None)
               .filter(item => item.subscriptionName == subscriptionNumber)
         }
-      )
-        .mapZIO(item => amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
-        .runCount
+        items
+          .takeWhileZIO(_ =>
+            // When we reach the deadline, we ignore later items from the array.
+            // They will be picked up by the next run of the lambda.
+            Clock.nanoTime.map(_ < deadline)
+          )
+          .mapZIO(item =>
+            amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
+          )
+          .collect {
+            // Here we are only counting `SuccessfulAmendmentResult`
+            // and `SubscriptionCancelledInZuoraAmendmentResult`.
+            // This will ensure that `AmendmentPreventedDueToLockResult` and `AmendmentPostponed`
+            // are not counted, which would cause the lambda to return `HandlerOutput(true)`
+            // too early.
+            case s: SuccessfulAmendmentResult                   => s
+            case c: SubscriptionCancelledInZuoraAmendmentResult => c
+          }
+          .runCount
+      }
+
     } yield HandlerOutput(isComplete = count < batchSize)
   }
 
@@ -70,6 +99,9 @@ object AmendmentHandler extends CohortHandler {
           } else {
             ZIO.fail(e)
           }
+        }
+        case e: ZuoraAmendmentPayloadBuildingFailure => {
+          ZIO.succeed(AmendmentPostponed(subscriptionNumber = item.subscriptionName))
         }
         case e => ZIO.fail(e)
       },
@@ -222,6 +254,79 @@ object AmendmentHandler extends CohortHandler {
     )
   }
 
+  private def amendmentOrderPayload(
+      cohortSpec: CohortSpec,
+      cohortItem: CohortItem,
+      orderDate: LocalDate,
+      accountNumber: String,
+      subscriptionNumber: String,
+      effectDate: LocalDate,
+      zuora_subscription: ZuoraSubscription,
+      oldPrice: BigDecimal,
+      estimatedNewPrice: BigDecimal,
+      priceCap: BigDecimal,
+      invoiceList: ZuoraInvoiceList
+  ): Either[Failure, Value] = {
+    MigrationType(cohortSpec) match {
+      case Test1 => Left(ConfigFailure("case not supported"))
+      case SupporterPlus2024 =>
+        Left(MigrationRoutingFailure("SupporterPlus2024 should not use doAmendment_ordersApi_json_values"))
+      case GuardianWeekly2025 =>
+        GuardianWeekly2025Migration.amendmentOrderPayload(
+          cohortItem,
+          orderDate,
+          accountNumber,
+          subscriptionNumber,
+          effectDate,
+          zuora_subscription,
+          oldPrice,
+          estimatedNewPrice,
+          priceCap,
+          invoiceList
+        )
+      case Newspaper2025P1 =>
+        Newspaper2025P1Migration.amendmentOrderPayload(
+          cohortItem,
+          orderDate,
+          accountNumber,
+          subscriptionNumber,
+          effectDate,
+          zuora_subscription,
+          oldPrice,
+          estimatedNewPrice,
+          priceCap,
+          invoiceList
+        )
+      case HomeDelivery2025 =>
+        HomeDelivery2025Migration.amendmentOrderPayload(
+          cohortItem,
+          orderDate,
+          accountNumber,
+          subscriptionNumber,
+          effectDate,
+          zuora_subscription,
+          oldPrice,
+          estimatedNewPrice,
+          priceCap,
+          invoiceList
+        )
+      case Newspaper2025P3 =>
+        Newspaper2025P3Migration.amendmentOrderPayload(
+          cohortItem,
+          orderDate,
+          accountNumber,
+          subscriptionNumber,
+          effectDate,
+          zuora_subscription,
+          oldPrice,
+          estimatedNewPrice,
+          priceCap,
+          invoiceList
+        )
+    }
+
+  }
+
   private def doAmendment_ordersApi_json_values(
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
@@ -248,74 +353,49 @@ object AmendmentHandler extends CohortHandler {
 
       _ <- renewSubscription(subscriptionBeforeUpdate, subscriptionBeforeUpdate.termEndDate, account)
 
-      invoicePreviewBeforeUpdate <-
-        Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
+      order <- (for {
+        _ <- Logging.info(
+          s"[e0418da6] fetching invoice preview before update, accountId: ${subscriptionBeforeUpdate.accountId}, target date: ${invoicePreviewTargetDate}"
+        )
+        invoicePreviewBeforeUpdate <-
+          Zuora.fetchInvoicePreview(subscriptionBeforeUpdate.accountId, invoicePreviewTargetDate)
+        _ <- Logging.info(
+          s"[ec0e9b31] found invoice preview: ${invoicePreviewBeforeUpdate}"
+        )
+        _ <- Logging.info(
+          s"[11ebeaa4] building amendment payload"
+        )
+        order <- ZIO.fromEither(
+          amendmentOrderPayload(
+            cohortSpec = cohortSpec,
+            cohortItem = item,
+            orderDate = LocalDate.now(),
+            accountNumber = account.basicInfo.accountNumber,
+            subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
+            effectDate = startDate,
+            zuora_subscription = subscriptionBeforeUpdate,
+            oldPrice = oldPrice,
+            estimatedNewPrice = estimatedNewPrice,
+            priceCap = GuardianWeekly2025Migration.priceCap,
+            invoiceList = invoicePreviewBeforeUpdate
+          )
+        )
+      } yield order)
+        .retry(
+          // Values chosen to ensure that the operation doesn't last more than 5 minutes
+          // so that if an item was started just before the 10 minutes mark deadline of the handler,
+          // then the entire lambda will complete before 15 minutes (ish)
+          Schedule.spaced(1.minute) && Schedule.recurs(5)
+        )
+        .mapError(e =>
+          // Note that there are two reason why this would happen
+          // 1. MigrationRoutingFailure, or
+          // 2. The `retry` has exited
+          ZuoraAmendmentPayloadBuildingFailure(
+            s"[2eecdf44] subscription: ${subscriptionBeforeUpdate.subscriptionNumber}, reason: ${e.reason}"
+          )
+        )
 
-      order <- MigrationType(cohortSpec) match {
-        case Test1 => ZIO.fail(ConfigFailure("Branch not supported"))
-        case SupporterPlus2024 =>
-          ZIO.fail(MigrationRoutingFailure("SupporterPlus2024 should not use doAmendment_ordersApi_json_values"))
-        case GuardianWeekly2025 =>
-          ZIO.fromEither(
-            GuardianWeekly2025Migration.amendmentOrderPayload(
-              cohortItem = item,
-              orderDate = LocalDate.now(),
-              accountNumber = account.basicInfo.accountNumber,
-              subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
-              effectDate = startDate,
-              zuora_subscription = subscriptionBeforeUpdate,
-              oldPrice = oldPrice,
-              estimatedNewPrice = estimatedNewPrice,
-              priceCap = GuardianWeekly2025Migration.priceCap,
-              invoiceList = invoicePreviewBeforeUpdate
-            )
-          )
-        case Newspaper2025P1 =>
-          ZIO.fromEither(
-            Newspaper2025P1Migration.amendmentOrderPayload(
-              cohortItem = item,
-              orderDate = LocalDate.now(),
-              accountNumber = account.basicInfo.accountNumber,
-              subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
-              effectDate = startDate,
-              zuora_subscription = subscriptionBeforeUpdate,
-              oldPrice = oldPrice,
-              estimatedNewPrice = estimatedNewPrice,
-              priceCap = Newspaper2025P1Migration.priceCap,
-              invoiceList = invoicePreviewBeforeUpdate
-            )
-          )
-        case HomeDelivery2025 =>
-          ZIO.fromEither(
-            HomeDelivery2025Migration.amendmentOrderPayload(
-              cohortItem = item,
-              orderDate = LocalDate.now(),
-              accountNumber = account.basicInfo.accountNumber,
-              subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
-              effectDate = startDate,
-              zuora_subscription = subscriptionBeforeUpdate,
-              oldPrice = oldPrice,
-              estimatedNewPrice = estimatedNewPrice,
-              priceCap = HomeDelivery2025Migration.priceCap,
-              invoiceList = invoicePreviewBeforeUpdate
-            )
-          )
-        case Newspaper2025P3 =>
-          ZIO.fromEither(
-            Newspaper2025P3Migration.amendmentOrderPayload(
-              cohortItem = item,
-              orderDate = LocalDate.now(),
-              accountNumber = account.basicInfo.accountNumber,
-              subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
-              effectDate = startDate,
-              zuora_subscription = subscriptionBeforeUpdate,
-              oldPrice = oldPrice,
-              estimatedNewPrice = estimatedNewPrice,
-              priceCap = Newspaper2025P3Migration.priceCap,
-              invoiceList = invoicePreviewBeforeUpdate
-            )
-          )
-      }
       _ <- Logging.info(
         s"[6e6da544] Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
       )
