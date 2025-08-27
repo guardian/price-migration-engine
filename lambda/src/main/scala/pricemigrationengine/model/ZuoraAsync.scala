@@ -88,6 +88,13 @@ The various statuses are given below:
 }
 
 {
+  "status" : "Failed",
+  "errors" : "[40000060]: Oops, internal error occurred, please contact Zuora support.",
+  "result" : null,
+  "success" : true
+}
+
+{
   "status" : "Completed",
   "errors" : null,
   "result" : {
