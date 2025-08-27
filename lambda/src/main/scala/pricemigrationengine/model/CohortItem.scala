@@ -54,6 +54,10 @@ case class CohortItem(
 // Guardian Weekly 2025 migration), for if and when we need to perform
 // operations using parameters that are not hold into the Zuora subscription.
 // For more details about when and how to use that attribute, see the documentation.
+//
+// Date: August 2025
+// migrationExtraAttributes is now deprecated. Do not use. Use
+// the new extendedAttribute1+ instead.
 
 // [20]
 //
