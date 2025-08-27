@@ -28,7 +28,7 @@ It currently consists in
     - [Downloading fixtures](docs/downloading-fixtures.md)
     - [Notes on the Zuora Order API](docs/zuora-order-api.md)
     - [Communication with braze](docs/communication-with-braze.md)
-    - [Extending cohort items](docs/extending-CohortItem.md)
+    - [Cohort Items](docs/cohort-item.md)
     - [Troubleshooting document](docs/troubleshooting.md)
 
 - Android Price Rises

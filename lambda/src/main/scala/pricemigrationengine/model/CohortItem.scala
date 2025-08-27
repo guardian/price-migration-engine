@@ -25,6 +25,12 @@ case class CohortItem(
     cancellationReason: Option[String] = None,
     doNotProcessUntil: Option[LocalDate] = None, // [18]
     migrationExtraAttributes: Option[String] = None, // [19]
+    extendedAttribute1: Option[String] = None, // [20]
+    extendedAttribute2: Option[String] = None,
+    extendedAttribute3: Option[String] = None,
+    extendedAttribute4: Option[String] = None,
+    extendedAttribute5: Option[String] = None,
+    extendedAttribute6: Option[String] = None,
 )
 
 // [18]
@@ -48,6 +54,14 @@ case class CohortItem(
 // Guardian Weekly 2025 migration), for if and when we need to perform
 // operations using parameters that are not hold into the Zuora subscription.
 // For more details about when and how to use that attribute, see the documentation.
+
+// [20]
+//
+// Date: August 2025
+// Author: Pascal
+// Comment: extendedAttributes 1 to 6 were introduced to support migration
+// specific functionalities as a replacement of migrationExtraAttributes.
+// See docs/cohort-item.md for details.
 
 object CohortItem {
 

@@ -40,6 +40,12 @@ object CohortTableLive {
             getOptionalStringFromResults(cohortItem, "cancellationReason")
           doNotProcessUntil <- getOptionalDateFromResults(cohortItem, "doNotProcessUntil")
           migrationExtraAttributes <- getOptionalStringFromResults(cohortItem, "migrationExtraAttributes")
+          extendedAttribute1 <- getOptionalStringFromResults(cohortItem, "extendedAttribute1")
+          extendedAttribute2 <- getOptionalStringFromResults(cohortItem, "extendedAttribute2")
+          extendedAttribute3 <- getOptionalStringFromResults(cohortItem, "extendedAttribute3")
+          extendedAttribute4 <- getOptionalStringFromResults(cohortItem, "extendedAttribute4")
+          extendedAttribute5 <- getOptionalStringFromResults(cohortItem, "extendedAttribute5")
+          extendedAttribute6 <- getOptionalStringFromResults(cohortItem, "extendedAttribute6")
         } yield CohortItem(
           subscriptionName = subscriptionNumber,
           processingStage = processingStage,
@@ -58,7 +64,13 @@ object CohortTableLive {
           whenNotificationSentWrittenToSalesforce = whenNotificationSentWrittenToSalesforce,
           cancellationReason = cancellationReason,
           doNotProcessUntil = doNotProcessUntil,
-          migrationExtraAttributes = migrationExtraAttributes
+          migrationExtraAttributes = migrationExtraAttributes,
+          extendedAttribute1 = extendedAttribute1,
+          extendedAttribute2 = extendedAttribute2,
+          extendedAttribute3 = extendedAttribute3,
+          extendedAttribute4 = extendedAttribute4,
+          extendedAttribute5 = extendedAttribute5,
+          extendedAttribute6 = extendedAttribute6,
         )
       )
       .mapError(e => DynamoDBZIOError(e))
@@ -101,6 +113,12 @@ object CohortTableLive {
         cohortItem.cancellationReason.map(reason => stringFieldUpdate("cancellationReason", reason)),
         cohortItem.doNotProcessUntil.map(date => dateFieldUpdate("doNotProcessUntil", date)),
         cohortItem.migrationExtraAttributes.map(extra => stringFieldUpdate("migrationExtraAttributes", extra)),
+        cohortItem.extendedAttribute1.map(extra => stringFieldUpdate("extendedAttribute1", extra)),
+        cohortItem.extendedAttribute2.map(extra => stringFieldUpdate("extendedAttribute2", extra)),
+        cohortItem.extendedAttribute3.map(extra => stringFieldUpdate("extendedAttribute3", extra)),
+        cohortItem.extendedAttribute4.map(extra => stringFieldUpdate("extendedAttribute4", extra)),
+        cohortItem.extendedAttribute5.map(extra => stringFieldUpdate("extendedAttribute5", extra)),
+        cohortItem.extendedAttribute6.map(extra => stringFieldUpdate("extendedAttribute6", extra)),
       ).flatten.toMap.asJava
 
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =
