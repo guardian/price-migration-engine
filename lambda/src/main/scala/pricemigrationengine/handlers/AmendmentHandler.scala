@@ -136,12 +136,13 @@ object AmendmentHandler extends CohortHandler {
 
   private def shouldPerformFinalPriceCheck(cohortSpec: CohortSpec): Boolean = {
     MigrationType(cohortSpec) match {
-      case Test1              => true // default value
-      case SupporterPlus2024  => false // [1]
-      case GuardianWeekly2025 => true
-      case Newspaper2025P1    => true
-      case HomeDelivery2025   => true
-      case Newspaper2025P3    => true
+      case Test1                  => true // default value
+      case SupporterPlus2024      => false // [1]
+      case GuardianWeekly2025     => true
+      case Newspaper2025P1        => true
+      case HomeDelivery2025       => true
+      case Newspaper2025P3        => true
+      case ProductMigration2025N4 => true
     }
 
     // [1] We do not apply the check to the SupporterPlus2024 migration where, due to the way
@@ -198,6 +199,10 @@ object AmendmentHandler extends CohortHandler {
           ZIO.fail(MigrationRoutingFailure("HomeDelivery2025 should not use doAmendment_ordersApi_typed_deprecated"))
         case Newspaper2025P3 =>
           ZIO.fail(MigrationRoutingFailure("Newspaper2025P3 should not use doAmendment_ordersApi_typed_deprecated"))
+        case ProductMigration2025N4 =>
+          ZIO.fail(
+            MigrationRoutingFailure("ProductMigration2025N4 should not use doAmendment_ordersApi_typed_deprecated")
+          )
       }
       _ <- Logging.info(
         s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
@@ -323,6 +328,19 @@ object AmendmentHandler extends CohortHandler {
           priceCap,
           invoiceList
         )
+      case ProductMigration2025N4 =>
+        ProductMigration2025N4Migration.amendmentOrderPayload(
+          cohortItem,
+          orderDate,
+          accountNumber,
+          subscriptionNumber,
+          effectDate,
+          zuora_subscription,
+          oldPrice,
+          estimatedNewPrice,
+          priceCap,
+          invoiceList
+        )
     }
 
   }
@@ -395,7 +413,6 @@ object AmendmentHandler extends CohortHandler {
             s"[2eecdf44] subscription: ${subscriptionBeforeUpdate.subscriptionNumber}, reason: ${e.reason}"
           )
         )
-
       _ <- Logging.info(
         s"[6e6da544] Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
       )
@@ -471,6 +488,12 @@ object AmendmentHandler extends CohortHandler {
           item: CohortItem
         )
       case Newspaper2025P3 =>
+        doAmendment_ordersApi_json_values(
+          cohortSpec: CohortSpec,
+          catalogue: ZuoraProductCatalogue,
+          item: CohortItem
+        )
+      case ProductMigration2025N4 =>
         doAmendment_ordersApi_json_values(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
