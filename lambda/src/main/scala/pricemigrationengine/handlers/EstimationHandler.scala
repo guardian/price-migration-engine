@@ -77,7 +77,7 @@ object EstimationHandler extends CohortHandler {
   )(
       today: LocalDate,
       item: CohortItem,
-  ): ZIO[CohortTable with Zuora, Failure, EstimationResult] =
+  ): ZIO[CohortTable with Zuora with Logging, Failure, EstimationResult] =
     doEstimation(catalogue, item, cohortSpec, today).foldZIO(
       failure = {
         case _: SubscriptionCancelledInZuoraFailure =>
@@ -109,7 +109,7 @@ object EstimationHandler extends CohortHandler {
       item: CohortItem,
       cohortSpec: CohortSpec,
       today: LocalDate,
-  ): ZIO[Zuora, Failure, EstimationData] = {
+  ): ZIO[Zuora with Logging, Failure, EstimationData] = {
     for {
       subscription <-
         Zuora
@@ -129,11 +129,11 @@ object EstimationHandler extends CohortHandler {
           today
         )
       )
-      _ <- ZIO.logInfo(s"item: ${item.toString}, startDateLowerBound: ${startDateLowerBound}")
+      _ <- Logging.info(s"item: ${item.toString}, startDateLowerBound: ${startDateLowerBound}")
       result <- ZIO.fromEither(
         EstimationResult(account, catalogue, subscription, invoicePreview, startDateLowerBound, cohortSpec)
       )
-      _ <- ZIO.logInfo(s"item: ${item.toString}, estimation result: ${result}")
+      _ <- Logging.info(s"item: ${item.toString}, estimation result: ${result}")
     } yield result
   }
 
