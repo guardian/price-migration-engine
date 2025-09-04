@@ -209,6 +209,11 @@ object GuardianWeekly2025Migration {
     }
   }
 
+  def determineTargetpProductRatePlanId(ratePlan: ZuoraRatePlan): String = {
+    // We are upgrading on the same rate plan.
+    ratePlan.productRatePlanId
+  }
+
   def amendmentOrderPayload(
       cohortItem: CohortItem,
       orderDate: LocalDate,
@@ -236,7 +241,7 @@ object GuardianWeekly2025Migration {
           val subscriptionRatePlanId = ratePlan.id
           val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
           val triggerDateString = effectDate.toString
-          val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
+          val productRatePlanId = determineTargetpProductRatePlanId(ratePlan)
           val chargeOverrides = List(
             ZuoraOrdersApiPrimitives.chargeOverride(
               ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId,

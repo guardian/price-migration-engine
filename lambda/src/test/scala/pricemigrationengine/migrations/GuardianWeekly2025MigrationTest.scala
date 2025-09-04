@@ -1227,4 +1227,14 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
       )
     )
   }
+
+  test("73291-GW-ROW-EUR") {
+
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2025/73291-GW-ROW-EUR/subscription.json")
+
+    val invoicePreview =
+      Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2025/73291-GW-ROW-EUR/invoice-preview.json")
+
+  }
 }
