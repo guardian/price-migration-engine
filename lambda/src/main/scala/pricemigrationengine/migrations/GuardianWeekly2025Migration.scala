@@ -213,8 +213,9 @@ object GuardianWeekly2025Migration {
     // In this migration we upgrade on the same rate plan, except the following case:
     //
     // 1. Subscription is a Quarterly ROW, paying in EUR
-    //        ratePlanName     : GW Oct 18 - Quarterly - ROW
-    //        productRatePlanId: 2c92a0086619bf8901661ab02752722f
+    //        ratePlanName           : GW Oct 18 - Quarterly - ROW
+    //        productRatePlanId      : 2c92a0086619bf8901661ab02752722f
+    //        productRatePlanChargeId: 2c92a0ff6619bf8b01661ab2d0396eb2
     //    Then we migrate to
     //        ratePlanName           : GW Oct 18 - Quarterly - Domestic
     //        productRatePlanId      : 2c92a0fe6619b4b301661aa494392ee2
