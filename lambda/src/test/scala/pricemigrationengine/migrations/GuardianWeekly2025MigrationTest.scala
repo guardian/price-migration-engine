@@ -1199,10 +1199,10 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
              |                        }
              |                    ],
              |                    "addProduct": {
-             |                        "productRatePlanId": "2c92a0086619bf8901661ab02752722f",
+             |                        "productRatePlanId": "2c92a0fe6619b4b301661aa494392ee2",
              |                        "chargeOverrides": [
              |                            {
-             |                                "productRatePlanChargeId": "2c92a0ff6619bf8b01661ab2d0396eb2",
+             |                                "productRatePlanChargeId": "2c92a0fe6619b4b601661aa8b74e623f",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 81
@@ -1225,6 +1225,38 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
              |}""".stripMargin
         )
       )
+    )
+  }
+
+  test("73291-GW-ROW-EUR") {
+
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2025/73291-GW-ROW-EUR/subscription.json")
+
+    val invoicePreview =
+      Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2025/73291-GW-ROW-EUR/invoice-preview.json")
+
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+    val ratePlanName = ratePlan.ratePlanName
+    val currency = SI2025Extractions.determineCurrency(ratePlan).get
+
+    // Testing that we have the correct ratePlanName and currency pair,
+    // as well as the expected productRatePlanId and the expected productRatePlanChargeId
+    assertEquals(ratePlanName, "GW Oct 18 - Quarterly - ROW")
+    assertEquals(currency, "EUR")
+    assertEquals(ratePlan.productRatePlanId, "2c92a0086619bf8901661ab02752722f")
+    assertEquals(ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId, "2c92a0ff6619bf8b01661ab2d0396eb2")
+
+    // Then we check that we are computing the right target productRatePlanId
+    assertEquals(
+      GuardianWeekly2025Migration.determineTargetProductRatePlanId(ratePlan),
+      "2c92a0fe6619b4b301661aa494392ee2"
+    )
+
+    // ... and the right productRatePlanChargeId
+    assertEquals(
+      GuardianWeekly2025Migration.determineTargetRatePlanChargeId(ratePlan),
+      "2c92a0fe6619b4b601661aa8b74e623f"
     )
   }
 }
