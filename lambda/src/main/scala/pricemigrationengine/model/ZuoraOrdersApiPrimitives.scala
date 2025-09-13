@@ -124,8 +124,10 @@ object ZuoraOrdersApiPrimitives {
   def ratePlanChargesToChargeOverrides(
       ratePlanCharges: List[ZuoraRatePlanCharge],
       priceRatio: BigDecimal,
+      targetNewPrice: BigDecimal,
       billingPeriod: String
   ): List[Value] = {
+
     // This functions is a more general case of the previous function (`chargeOverride`)
     // We originally introduced `chargeOverride` for price increases that have a single charge
     // in the rate plan that is being price increased, but cases such as Newspaper2025(P1) and
@@ -145,16 +147,48 @@ object ZuoraOrdersApiPrimitives {
     // price increase ratio (we express the percentage as a ratio, so for instance a 20% increase
     // will be a price ratio of 1.2).
 
-    // Note that we use RoundingMode.DOWN instead of the more classical RoundingMode.HALF_UP, because we do not want
-    // a rounding up to accidentally set the final price higher than the originally computed estimation price,
-    // because then that would trigger the post amendment price check error
+    // Following the "pennies incident" of 12th September 2025 (date at which it was reported),
+    // were it was highlighted that the default rounding down after a percentage increase in the
+    // computation of the charge override prices, we added the target price, the estimated new price,
+    // to the parameters of this function. We must ensure that after ratio increase and truncation, the
+    // sum of all charge prices is equal to the estimated new price.
 
-    ratePlanCharges.map { rpc =>
+    val ratePlanChargesWithUpdatedPrices = ratePlanCharges.map { rpc =>
+      val newPrice = rpc.price.map(p => (p * priceRatio).setScale(2, RoundingMode.DOWN))
+      rpc.copy(price = newPrice)
+    }
+
+    // At this point we have modified rate plan charges whose prices have been computed as a
+    // ratio increase of the old rate plan charges, and then truncated at 0.01.
+
+    // We now need to ensure that the total prices are the estimated new prices (this is not
+    // automatically true due to the roundings)
+
+    val totalPrice = ratePlanChargesWithUpdatedPrices.map(_.price.get).sum // [1]
+
+    // [1] The `get` method here *will* cause a runtime exception if it turns out that
+    // the rate plan charge didn't have a price attached to it. This is a very pathological situation
+    // and will cause the engine to crashland in flames and alarm, but this is what we want.
+
+    val difference = targetNewPrice - totalPrice
+
+    // `difference` is now what we need to add to one of the legs.
+
+    // Let's add it to the first one.
+
+    val firstRatePlanChargeAdjusted: List[ZuoraRatePlanCharge] = ratePlanChargesWithUpdatedPrices.take(1).map { rpc =>
+      val newPrice = rpc.price.map(p => p + difference)
+      rpc.copy(price = newPrice)
+    }
+
+    val ratePlanChargesWithFinalNewPrices = firstRatePlanChargeAdjusted ++ ratePlanChargesWithUpdatedPrices.drop(1)
+
+    ratePlanChargesWithFinalNewPrices.map { rpc =>
       Obj(
         "productRatePlanChargeId" -> Str(rpc.productRatePlanChargeId),
         "pricing" -> Obj(
           "recurringFlatFee" -> Obj(
-            "listPrice" -> Num((rpc.price.get * priceRatio).setScale(2, RoundingMode.DOWN).doubleValue) // [1]
+            "listPrice" -> Num(rpc.price.get.doubleValue)
           )
         ),
         "billing" -> Obj(
@@ -162,10 +196,6 @@ object ZuoraOrdersApiPrimitives {
         )
       )
     }
-
-    // [1] The `get` method here *will* cause a runtime exception if it turns out that
-    // the rate plan charge didn't have a price attached to it. This will cause the engine to
-    // crashland in flames and alarm, but this is what we want.
   }
 
   def addProduct(triggerDateString: String, productRatePlanId: String, chargeOverrides: List[Value]): Value = {
