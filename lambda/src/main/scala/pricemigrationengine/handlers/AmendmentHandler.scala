@@ -417,7 +417,7 @@ object AmendmentHandler extends CohortHandler {
         )
 
       _ <-
-        if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec) && (newPrice != estimatedNewPrice)) {
+        if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec) && (estimatedNewPrice - newPrice).abs > 0.001) {
           ZIO.fail(
             AmendmentFailure(
               s"[e9054daa] Item ${item} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice}"
