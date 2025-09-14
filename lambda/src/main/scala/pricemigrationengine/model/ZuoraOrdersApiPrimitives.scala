@@ -183,7 +183,7 @@ object ZuoraOrdersApiPrimitives {
 
     val ratePlanChargesWithFinalNewPrices = firstRatePlanChargeAdjusted ++ ratePlanChargesWithUpdatedPrices.drop(1)
 
-    ratePlanChargesWithFinalNewPrices.map { rpc =>
+    val jsonData = ratePlanChargesWithFinalNewPrices.map { rpc =>
       Obj(
         "productRatePlanChargeId" -> Str(rpc.productRatePlanChargeId),
         "pricing" -> Obj(
@@ -196,6 +196,18 @@ object ZuoraOrdersApiPrimitives {
         )
       )
     }
+
+    val totalListPriceFromJsonArray: Double =
+      jsonData.map(js => js("pricing")("recurringFlatFee")("listPrice").num).sum
+
+    // We perform a check and throw an exception if the sum do not match within margin error
+    if ((targetNewPrice.doubleValue - totalListPriceFromJsonArray) > 0.001) {
+      throw new Exception(
+        s"[] failed equality assertion with ratePlanCharges: ${ratePlanCharges}, priceRatio: ${priceRatio}, targetNewPrice: ${targetNewPrice}, jsonData: ${jsonData.toString()}"
+      )
+    }
+
+    jsonData
   }
 
   def addProduct(triggerDateString: String, productRatePlanId: String, chargeOverrides: List[Value]): Value = {
