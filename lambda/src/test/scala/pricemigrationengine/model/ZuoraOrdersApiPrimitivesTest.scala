@@ -501,7 +501,8 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
 
     val json = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
       ratePlan.ratePlanCharges,
-      BigDecimal(1.5),
+      BigDecimal(1.5), // price increase ratio
+      BigDecimal(88.47), // target price (aka: estimated new price)
       "Month"
     )
 
@@ -514,7 +515,7 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |        "productRatePlanChargeId": "2c92a0ff56fe33f5015709cdedbd246b",
         |        "pricing": {
         |            "recurringFlatFee": {
-        |                "listPrice": 13.44
+        |                "listPrice": 13.43
         |            }
         |        },
         |        "billing": {
@@ -589,6 +590,10 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |    }
         |]""".stripMargin
     )
+
+    // We can then perform a manual check that the sum of prices is indeed equal
+    // to the estimated new prices:
+    // 88.47 = 13.43 + 3 + 13.44 + 18.28 + 13.44 + 13.44 + 13.44
   }
 
   test("ZuoraOrdersApiPrimitives.subscriptionRenewalPayload") {
