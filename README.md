@@ -28,6 +28,7 @@ It currently consists in
     - [Downloading fixtures](docs/downloading-fixtures.md)
     - [Notes on the Zuora Order API](docs/zuora-order-api.md)
     - [Communication with braze](docs/communication-with-braze.md)
+    - [Notes on prices](docs/notes-on-prices.md)
     - [Extending cohort items](docs/extending-CohortItem.md)
     - [Troubleshooting document](docs/troubleshooting.md)
 
