@@ -34,3 +34,9 @@ Although price migrations are usually without calculations, print products migra
 It is interesting to notice that this floating number error didn't happen during previous multi charges print migrations (3+ years ago) because the prices were taken from the price catalogue, where they were "intended" by definition. Whereas newer migrations encode (and calculate) the Marketing price grid in the engine for flexibility and security.
 
 It is also interesting to notice that Guardian Weekly, the print product we prise rised twice before 2025, didn't suffer from any of this, due to having only one charge.
+
+### How does the new code actually work ?
+
+Imagine a subscription paying £180, which decomposes in (100, 70, 10). If we are told that the new price should be £199, the engine is going to deduce a price increase ratio of 199/180 = 1.105556. Then will apply that ratio to each component to get the vector (110.5556, 77.38892, 11.05556). If we then round down to the nearest penny, we get (110.55, 77.38, 11.05), which sums to 198.98.
+
+The new code, then takes that sum, compares with the intended sum, realises that there is a missing 0.02 and update the vector to be (110.57, 77.38, 11.05) which now sums to 199.0.
