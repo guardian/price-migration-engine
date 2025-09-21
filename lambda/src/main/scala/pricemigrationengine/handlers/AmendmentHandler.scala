@@ -417,13 +417,42 @@ object AmendmentHandler extends CohortHandler {
         )
 
       _ <-
-        if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec) && (estimatedNewPrice - newPrice).abs > 0.001) {
-          ZIO.fail(
-            AmendmentFailure(
-              s"[e9054daa] Item ${item} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice}"
-            )
-          )
+        if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec)) {
+          if (SI2025Extractions.subscriptionHasActiveDiscounts(subscriptionAfterUpdate)) {
+            if (newPrice > estimatedNewPrice) {
+              // should perform final check
+              // has active discount, therefore only performing the inequality check
+              // has failed the check
+              ZIO.fail(
+                AmendmentFailure(
+                  s"[6831cff2] Item ${item} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice} (nb: has discounts)"
+                )
+              )
+            } else {
+              // should perform final check
+              // has active discount, therefore only performing the inequality check
+              // has passed the check
+              ZIO.succeed(())
+            }
+          } else {
+            if ((estimatedNewPrice - newPrice).abs > 0.001) {
+              // should perform final check
+              // has no active discount, therefore performing the "equality" check
+              // has failed the check
+              ZIO.fail(
+                AmendmentFailure(
+                  s"[e9054daa] Item ${item} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice} (nb: no discounts)"
+                )
+              )
+            } else {
+              // should perform final check
+              // has no active discount, therefore performing the "equality" check
+              // has passed the check
+              ZIO.succeed(())
+            }
+          }
         } else {
+          // should not perform final check
           ZIO.succeed(())
         }
 
