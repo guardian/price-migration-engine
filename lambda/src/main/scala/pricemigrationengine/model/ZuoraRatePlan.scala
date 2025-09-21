@@ -26,12 +26,11 @@ object ZuoraRatePlan {
     } yield BillingPeriod.fromString(billingPeriod)
   }
 
-  // Sadly `lastChangeType` is not always defined on all rate plans. The situation is:
-  //     - Not defined                    -> Active rate plan
-  //     - Defined and value is "Add"     -> Active rate plan
-  //     - Defined and value is "Remove"  -> Non active rate plan
-
   def ratePlanIsActive(ratePlan: ZuoraRatePlan): Boolean = {
+    // `lastChangeType` is not always defined on all rate plans. The situation is:
+    //     - Not defined                    -> Active rate plan
+    //     - Defined and value is "Add"     -> Active rate plan
+    //     - Defined and value is "Remove"  -> Non active rate plan
     !ratePlan.lastChangeType.contains("Remove")
   }
 }

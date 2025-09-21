@@ -62,43 +62,6 @@ object SI2025RateplanFromSub {
   }
 }
 
-/*
-
-  Note that the helper functions (SI2025Extractions) are given with signature
-
-  """
-  subscriptionToLastPriceMigrationDate(ratePlan: ZuoraRatePlan): Option[Something]
-  """
-
-  This is for consistency. If you intend to use the helper function in a migration module,
-  you are probably going to do it this way:
-
-  def subscriptionToLastPriceMigrationDate(
-      subscription: ZuoraSubscription,
-      invoiceList: ZuoraInvoiceList,
-  ): Option[LocalDate] = {
-    for {
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
-      date <- SI2025Extractions.subscriptionToLastPriceMigrationDate(ratePlan)
-    } yield date
-  }
-
-  The subscription and invoice list are naturally present in the migration code. You then
-  use `SI2025RateplanFromSubAndInvoices.determineRatePlan` to extract the rate plan
-  and then use the helper function you are interested in.
-
-  With this said, if you are in a situation where you only have access to the subscription and
-  can assume that it only has one active rate plan, you can use `SI2025RateplanFromSub` to get
-
-  def subscriptionToLastPriceMigrationDate(subscription: ZuoraSubscription): Option[LocalDate] = {
-    for {
-      ratePlan <- SI2025RateplanFromSub.determineRatePlan(subscription)
-      date <- SI2025Extractions.subscriptionToLastPriceMigrationDate(ratePlan)
-    } yield date
-  }
-
- */
-
 object SI2025Extractions {
 
   def determineCurrency(
@@ -156,6 +119,16 @@ object SI2025Extractions {
     var a = getDiscountByRatePlanName(subscription: ZuoraSubscription, "Percentage")
     var b = getDiscountByRatePlanName(subscription: ZuoraSubscription, "Adjustment")
     a.orElse(b)
+  }
+
+  def getActiveDiscount(subscription: ZuoraSubscription): List[ZuoraRatePlan] = {
+    subscription.ratePlans
+      .filter(ratePlan => ZuoraRatePlan.ratePlanIsActive(ratePlan))
+      .filter(ratePlan => ratePlan.productName == "Discounts")
+  }
+
+  def subscriptionHasActiveDiscounts(subscription: ZuoraSubscription): Boolean = {
+    getActiveDiscount(subscription: ZuoraSubscription).nonEmpty
   }
 }
 
