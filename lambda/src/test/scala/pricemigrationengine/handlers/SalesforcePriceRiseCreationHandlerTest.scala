@@ -95,6 +95,10 @@ class SalesforcePriceRiseCreationHandlerTest extends munit.FunSuite {
         override def getContact(
             contactId: String
         ): IO[SalesforceClientFailure, SalesforceContact] = ???
+
+        override def getPriceRise(
+            priceRiseId: String
+        ): IO[SalesforceClientFailure, SalesforcePriceRise] = ???
       }
     )
   }

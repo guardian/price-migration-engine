@@ -124,7 +124,19 @@ object SalesforceClientLive {
               .header("Authorization", s"Bearer ${auth.access_token}")
               .header("Content-Type", "application/json")
           ).unit
-        } <* logging.info(s"Successfully updated Price_Rise__c object: $priceRiseId")
+        } <* logging.info(s"Successfully updated Price_Rise__c object, priceRiseId: ${priceRiseId}")
+
+        override def getPriceRise(priceRiseId: String): IO[SalesforceClientFailure, SalesforcePriceRise] =
+          sendRequestAndParseResponse[SalesforcePriceRise](
+            Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/${priceRiseId}")
+              .header("Authorization", s"Bearer ${auth.access_token}")
+              .method("GET")
+          ).tap(priceRise =>
+            logging.info(
+              s"Successfully retrieved Salesforce price rise object, priceRiseId: ${priceRiseId}, priceRise: ${priceRise}"
+            )
+          )
+
       }
     }
 
