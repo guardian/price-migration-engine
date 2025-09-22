@@ -1,0 +1,53 @@
+{
+  "accountId": "ACCOUNT-ID",
+  "invoiceItems": [
+    {
+      "id": "841edd3140c44f07b19e06e66e15fb2b",
+      "subscriptionName": "SUBSCRIPTION-NUMBER",
+      "subscriptionId": "SUBSCRIPTION-ID",
+      "subscriptionNumber": "SUBSCRIPTION-NUMBER",
+      "serviceStartDate": "2026-07-28",
+      "serviceEndDate": "2027-07-27",
+      "chargeAmount": 5.0,
+      "chargeDescription": "",
+      "chargeName": "Contribution",
+      "chargeNumber": "C-04468532",
+      "chargeId": "8a1283ea8995cad601899c7957bd7694",
+      "productName": "Supporter Plus",
+      "quantity": 1,
+      "taxAmount": 0.0,
+      "unitOfMeasure": "",
+      "chargeDate": "2025-08-17 19:28:39",
+      "chargeType": "Recurring",
+      "processingType": "Charge",
+      "appliedToItemId": null,
+      "numberOfDeliveries": 0.0
+    },
+    {
+      "id": "01c6008283dc41cca3c36e4eb85efd52",
+      "subscriptionName": "SUBSCRIPTION-NUMBER",
+      "subscriptionId": "SUBSCRIPTION-ID",
+      "subscriptionNumber": "SUBSCRIPTION-NUMBER",
+      "serviceStartDate": "2026-08-07",
+      "serviceEndDate": "2027-08-06",
+      "chargeAmount": 95.0,
+      "chargeDescription": "",
+      "chargeName": "Supporter Plus Annual Charge",
+      "chargeNumber": "C-04468533",
+      "chargeId": "8a1283ea8995cad601899c7957bd7695",
+      "productName": "Supporter Plus",
+      "quantity": 1,
+      "taxAmount": 0.0,
+      "unitOfMeasure": "",
+      "chargeDate": "2025-08-17 19:28:39",
+      "chargeType": "Recurring",
+      "processingType": "Charge",
+      "appliedToItemId": null,
+      "numberOfDeliveries": 0.0
+    }
+  ],
+  "creditMemoItems": [
+
+  ],
+  "success": true
+}
