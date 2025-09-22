@@ -149,6 +149,49 @@ object AmendmentHandler extends CohortHandler {
     // estimated price (which wasn't including the extra contribution).
   }
 
+  def postAmendmentPriceCheck(
+      cohortSpec: CohortSpec,
+      cohortItem: CohortItem,
+      subscriptionAfterUpdate: ZuoraSubscription,
+      estimatedNewPrice: BigDecimal,
+      newPrice: BigDecimal
+  ): Either[String, Unit] = {
+    if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec)) {
+      if (SI2025Extractions.subscriptionHasActiveDiscounts(subscriptionAfterUpdate)) {
+        if (newPrice > estimatedNewPrice) {
+          // should perform final check
+          // has active discount, therefore only performing the inequality check
+          // has failed the check
+          Left(
+            s"[6831cff2] Item ${cohortItem} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice} (nb: has discounts)"
+          )
+        } else {
+          // should perform final check
+          // has active discount, therefore only performing the inequality check
+          // has passed the check
+          Right(())
+        }
+      } else {
+        if ((estimatedNewPrice - newPrice).abs > 0.001) {
+          // should perform final check
+          // has no active discount, therefore performing the "equality" check
+          // has failed the check
+          Left(
+            s"[e9054daa] Item ${cohortItem} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice} (nb: no discounts)"
+          )
+        } else {
+          // should perform final check
+          // has no active discount, therefore performing the "equality" check
+          // has passed the check
+          Right(())
+        }
+      }
+    } else {
+      // should not perform final check
+      Right(())
+    }
+  }
+
   private def doAmendment_ordersApi_typed_deprecated(
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
@@ -324,7 +367,6 @@ object AmendmentHandler extends CohortHandler {
           invoiceList
         )
     }
-
   }
 
   private def doAmendment_ordersApi_json_values(
@@ -416,16 +458,9 @@ object AmendmentHandler extends CohortHandler {
           )
         )
 
-      _ <-
-        if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec) && (estimatedNewPrice - newPrice).abs > 0.001) {
-          ZIO.fail(
-            AmendmentFailure(
-              s"[e9054daa] Item ${item} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice}"
-            )
-          )
-        } else {
-          ZIO.succeed(())
-        }
+      _ <- ZIO
+        .fromEither(postAmendmentPriceCheck(cohortSpec, item, subscriptionAfterUpdate, estimatedNewPrice, newPrice))
+        .mapError(message => AmendmentFailure(message))
 
       whenDone <- Clock.instant
     } yield SuccessfulAmendmentResult(
