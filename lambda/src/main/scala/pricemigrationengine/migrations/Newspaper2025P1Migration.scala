@@ -278,6 +278,7 @@ object Newspaper2025P1Migration {
           val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
             ratePlan.ratePlanCharges,
             priceRatio,
+            estimatedNewPrice,
             BillingPeriod.toString(billingPeriod)
           )
           val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
@@ -303,6 +304,7 @@ object Newspaper2025P1Migration {
           val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
             ratePlan.ratePlanCharges,
             priceRatio,
+            estimatedNewPrice,
             BillingPeriod.toString(billingPeriod)
           )
           val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)

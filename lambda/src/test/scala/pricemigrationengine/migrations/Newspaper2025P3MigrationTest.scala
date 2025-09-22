@@ -534,7 +534,7 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709c39719783e",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 147.97
+             |                                        "listPrice": 147.99
              |                                    }
              |                                },
              |                                "billing": {

@@ -549,6 +549,24 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     )
   }
 
+  test("SI2025Extractions.subscriptionHasActiveDiscounts (no discounts)") {
+    val subscription =
+      Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription1/subscription.json")
+    assertEquals(
+      SI2025Extractions.subscriptionHasActiveDiscounts(subscription),
+      false
+    )
+  }
+
+  test("SI2025Extractions.subscriptionHasActiveDiscounts (discounts)") {
+    val subscription =
+      Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription3-with-discount/subscription.json")
+    assertEquals(
+      SI2025Extractions.subscriptionHasActiveDiscounts(subscription),
+      true
+    )
+  }
+
   // ----------------------------------------------------
   // SI2025Templates
   // ----------------------------------------------------
