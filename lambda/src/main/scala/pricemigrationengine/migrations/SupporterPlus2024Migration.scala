@@ -303,7 +303,8 @@ object SupporterPlus2024Migration {
       orderDate: LocalDate,
       accountNumber: String,
       subscriptionNumber: String,
-      effectDate: LocalDate,
+      mainChargeEffectDate: LocalDate,
+      contributionChargeEffectDate: LocalDate,
       removeRatePlanId: String,
       productRatePlanId: String,
       existingBaseProductRatePlanChargeId: String,
@@ -312,9 +313,9 @@ object SupporterPlus2024Migration {
       newContributionAmount: BigDecimal
   ): ZuoraAmendmentOrderPayload = {
     val triggerDates = List(
-      ZuoraAmendmentOrderPayloadOrderActionTriggerDate("ContractEffective", effectDate),
-      ZuoraAmendmentOrderPayloadOrderActionTriggerDate("ServiceActivation", effectDate),
-      ZuoraAmendmentOrderPayloadOrderActionTriggerDate("CustomerAcceptance", effectDate)
+      ZuoraAmendmentOrderPayloadOrderActionTriggerDate("ContractEffective", mainChargeEffectDate),
+      ZuoraAmendmentOrderPayloadOrderActionTriggerDate("ServiceActivation", mainChargeEffectDate),
+      ZuoraAmendmentOrderPayloadOrderActionTriggerDate("CustomerAcceptance", mainChargeEffectDate)
     )
     val actionRemove = ZuoraAmendmentOrderPayloadOrderActionRemove(
       `type` = "RemoveProduct",
@@ -329,11 +330,14 @@ object SupporterPlus2024Migration {
         chargeOverrides = List(
           ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
             productRatePlanChargeId = existingBaseProductRatePlanChargeId,
-            pricing = Map("recurringFlatFee" -> Map("listPrice" -> newBaseAmount))
+            pricing = Map("recurringFlatFee" -> Map("listPrice" -> newBaseAmount)),
+            startDate = Map("triggerEvent" -> "SpecificDate", "specificTriggerDate" -> mainChargeEffectDate.toString)
           ),
           ZuoraAmendmentOrderPayloadOrderActionAddProductChargeOverride(
             productRatePlanChargeId = existingContributionRatePlanChargeId,
-            pricing = Map("recurringFlatFee" -> Map("listPrice" -> newContributionAmount))
+            pricing = Map("recurringFlatFee" -> Map("listPrice" -> newContributionAmount)),
+            startDate =
+              Map("triggerEvent" -> "SpecificDate", "specificTriggerDate" -> contributionChargeEffectDate.toString)
           )
         )
       )
@@ -355,7 +359,7 @@ object SupporterPlus2024Migration {
       orderDate: LocalDate,
       accountNumber: String,
       subscriptionNumber: String,
-      effectDate: LocalDate,
+      mainChargeEffectDate: LocalDate,
       subscription: ZuoraSubscription,
       oldPrice: BigDecimal,
       estimatedNewPrice: BigDecimal,
@@ -376,11 +380,17 @@ object SupporterPlus2024Migration {
           s"[e4e702b6] Could not extract existing contribution price for subscription ${subscription.subscriptionNumber}"
         )
       )
+      contributionRatePlanEffectDate <- existingContributionRatePlanCharge.processedThroughDate.toRight(
+        DataExtractionFailure(
+          s"[f17691aa] Could not extract existing contribution processedThroughDate for subscription ${subscription.subscriptionNumber}"
+        )
+      )
     } yield amendmentOrdersPayload(
       orderDate = orderDate,
       accountNumber = accountNumber,
       subscriptionNumber = subscriptionNumber,
-      effectDate = effectDate,
+      mainChargeEffectDate = mainChargeEffectDate,
+      contributionChargeEffectDate = contributionRatePlanEffectDate,
       removeRatePlanId = existingRatePlan.id,
       productRatePlanId = existingRatePlan.productRatePlanId,
       existingBaseProductRatePlanChargeId = existingBaseRatePlanCharge.productRatePlanChargeId,
