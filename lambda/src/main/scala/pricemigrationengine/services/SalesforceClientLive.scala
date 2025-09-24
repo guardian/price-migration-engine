@@ -56,8 +56,10 @@ object SalesforceClientLive {
   private def sendRequestAndParseResponse[A](request: HttpRequest)(implicit reader: Reader[A]) =
     for {
       valid200Response <- sendRequest(request)
+      body = valid200Response.body
+      _ <- ZIO.logInfo(s"[5b58d83c] Salesforce GET body: ${body}")
       parsedResponse <- ZIO
-        .attempt(read[A](valid200Response.body))
+        .attempt(read[A](body))
         .mapError(ex => SalesforceClientFailure(s"${requestAsMessage(request)} failed to deserialise: $ex"))
     } yield parsedResponse
 
