@@ -122,6 +122,8 @@ object SI2025Extractions {
   }
 
   def getActiveDiscount(subscription: ZuoraSubscription): List[ZuoraRatePlan] = {
+    // This functions returns holiday stops which may have expired but are still listed as "Add"'ed
+    // in the subscription.
     subscription.ratePlans
       .filter(ratePlan => ZuoraRatePlan.ratePlanIsActive(ratePlan))
       .filter(ratePlan => ratePlan.productName == "Discounts")
