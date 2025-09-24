@@ -121,7 +121,7 @@ object SI2025Extractions {
     a.orElse(b)
   }
 
-  def getActiveDiscount(subscription: ZuoraSubscription): List[ZuoraRatePlan] = {
+  def getActiveDiscounts(subscription: ZuoraSubscription): List[ZuoraRatePlan] = {
     // This functions returns holiday stops which may have expired but are still listed as "Add"'ed
     // in the subscription.
     subscription.ratePlans
@@ -130,7 +130,7 @@ object SI2025Extractions {
   }
 
   def subscriptionHasActiveDiscounts(subscription: ZuoraSubscription): Boolean = {
-    getActiveDiscount(subscription: ZuoraSubscription).nonEmpty
+    getActiveDiscounts(subscription: ZuoraSubscription).nonEmpty
   }
 }
 
