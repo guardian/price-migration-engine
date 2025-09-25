@@ -10,7 +10,7 @@ import zio.ZIO
 
 case class ProductMigration2025N4NotificationData(
     brandTitle: String,
-    formstack_url: String
+    formstackUrl: String
 )
 
 object ProductMigration2025N4Migration {
