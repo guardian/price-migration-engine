@@ -17,6 +17,7 @@ trait SalesforceClient {
       priceRise: SalesforcePriceRise
   ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse]
   def updatePriceRise(priceRiseId: String, priceRise: SalesforcePriceRise): IO[SalesforceClientFailure, Unit]
+  def getPriceRise(priceRiseId: String): IO[SalesforceClientFailure, SalesforcePriceRise]
 }
 
 object SalesforceClient {
@@ -41,4 +42,9 @@ object SalesforceClient {
       priceRise: SalesforcePriceRise
   ): ZIO[SalesforceClient, SalesforceClientFailure, Unit] =
     ZIO.environmentWithZIO(_.get.updatePriceRise(priceRiseId, priceRise))
+
+  def getPriceRise(
+      priceRiseId: String
+  ): ZIO[SalesforceClient, SalesforceClientFailure, SalesforcePriceRise] =
+    ZIO.environmentWithZIO(_.get.getPriceRise(priceRiseId))
 }

@@ -121,14 +121,21 @@ object SI2025Extractions {
     a.orElse(b)
   }
 
-  def getActiveDiscount(subscription: ZuoraSubscription): List[ZuoraRatePlan] = {
+  def getActiveDiscounts(subscription: ZuoraSubscription, today: LocalDate): List[ZuoraRatePlan] = {
+    // Note that some discounts are listed as "Add"'ed but are not active in the sense that
+    // their effective end date is in the past. Those are removed to
     subscription.ratePlans
       .filter(ratePlan => ZuoraRatePlan.ratePlanIsActive(ratePlan))
       .filter(ratePlan => ratePlan.productName == "Discounts")
+      .filter(ratePlan =>
+        ratePlan.ratePlanCharges.headOption
+          .flatMap(_.effectiveEndDate)
+          .exists(_.isAfter(today))
+      )
   }
 
-  def subscriptionHasActiveDiscounts(subscription: ZuoraSubscription): Boolean = {
-    getActiveDiscount(subscription: ZuoraSubscription).nonEmpty
+  def subscriptionHasActiveDiscounts(subscription: ZuoraSubscription, today: LocalDate): Boolean = {
+    getActiveDiscounts(subscription: ZuoraSubscription, today).nonEmpty
   }
 }
 

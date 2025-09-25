@@ -154,10 +154,11 @@ object AmendmentHandler extends CohortHandler {
       cohortItem: CohortItem,
       subscriptionAfterUpdate: ZuoraSubscription,
       estimatedNewPrice: BigDecimal,
-      newPrice: BigDecimal
+      newPrice: BigDecimal,
+      today: LocalDate
   ): Either[String, Unit] = {
     if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec)) {
-      if (SI2025Extractions.subscriptionHasActiveDiscounts(subscriptionAfterUpdate)) {
+      if (SI2025Extractions.subscriptionHasActiveDiscounts(subscriptionAfterUpdate, today)) {
         if (newPrice > estimatedNewPrice) {
           // should perform final check
           // has active discount, therefore only performing the inequality check
@@ -458,8 +459,12 @@ object AmendmentHandler extends CohortHandler {
           )
         )
 
+      today <- Clock.currentDateTime.map(_.toLocalDate)
+
       _ <- ZIO
-        .fromEither(postAmendmentPriceCheck(cohortSpec, item, subscriptionAfterUpdate, estimatedNewPrice, newPrice))
+        .fromEither(
+          postAmendmentPriceCheck(cohortSpec, item, subscriptionAfterUpdate, estimatedNewPrice, newPrice, today)
+        )
         .mapError(message => AmendmentFailure(message))
 
       whenDone <- Clock.instant
