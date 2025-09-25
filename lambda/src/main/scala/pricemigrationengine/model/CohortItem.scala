@@ -25,6 +25,10 @@ case class CohortItem(
     cancellationReason: Option[String] = None,
     doNotProcessUntil: Option[LocalDate] = None, // [18]
     migrationExtraAttributes: Option[String] = None, // [19]
+
+    // ProductMigration2025N4
+    _2025N4_label: Option[String] = None,
+    _2025N4_group: Option[String] = None,
 )
 
 // [18]
