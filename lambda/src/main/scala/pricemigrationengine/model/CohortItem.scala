@@ -29,10 +29,10 @@ case class CohortItem(
     // For migration specific extensions, see docs/cohort-items.md
 
     // ProductMigration2025N4
-    _2025N4_label: Option[String] = None,
-    _2025N4_canvas: Option[String] = None,
-    _2025N4_rateplan_current: Option[String] = None,
-    _2025N4_rateplan_target: Option[String] = None,
+    ex_2025N4_label: Option[String] = None,
+    ex_2025N4_canvas: Option[String] = None,
+    ex_2025N4_rateplan_current: Option[String] = None,
+    ex_2025N4_rateplan_target: Option[String] = None,
 )
 
 // [18]
