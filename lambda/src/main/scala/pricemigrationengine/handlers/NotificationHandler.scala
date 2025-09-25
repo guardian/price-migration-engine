@@ -11,6 +11,7 @@ import pricemigrationengine.migrations.{
   HomeDelivery2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
+  ProductMigration2025N4Migration,
   SupporterPlus2024Migration
 }
 import pricemigrationengine.model.RateplansProbe
@@ -163,6 +164,7 @@ object NotificationHandler extends CohortHandler {
           s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, HomeDelivery2025Migration.priceCap)}"
         case Newspaper2025P3 =>
           s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025P3Migration.priceCap)}"
+        case ProductMigration2025N4 => s"${currencySymbol}${estimatedNewPrice}"
       }
 
       _ <- logMissingEmailAddress(cohortItem, contact)
@@ -360,23 +362,25 @@ object NotificationHandler extends CohortHandler {
 
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case Test1              => 35
-      case SupporterPlus2024  => SupporterPlus2024Migration.maxLeadTime
-      case GuardianWeekly2025 => GuardianWeekly2025Migration.maxLeadTime
-      case Newspaper2025P1    => Newspaper2025P1Migration.maxLeadTime
-      case HomeDelivery2025   => HomeDelivery2025Migration.maxLeadTime
-      case Newspaper2025P3    => Newspaper2025P3Migration.maxLeadTime
+      case Test1                  => 35
+      case SupporterPlus2024      => SupporterPlus2024Migration.maxLeadTime
+      case GuardianWeekly2025     => GuardianWeekly2025Migration.maxLeadTime
+      case Newspaper2025P1        => Newspaper2025P1Migration.maxLeadTime
+      case HomeDelivery2025       => HomeDelivery2025Migration.maxLeadTime
+      case Newspaper2025P3        => Newspaper2025P3Migration.maxLeadTime
+      case ProductMigration2025N4 => ProductMigration2025N4Migration.maxLeadTime
     }
   }
 
   def minLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case Test1              => 33
-      case SupporterPlus2024  => SupporterPlus2024Migration.minLeadTime
-      case GuardianWeekly2025 => GuardianWeekly2025Migration.minLeadTime
-      case Newspaper2025P1    => Newspaper2025P1Migration.minLeadTime
-      case HomeDelivery2025   => HomeDelivery2025Migration.minLeadTime
-      case Newspaper2025P3    => Newspaper2025P3Migration.minLeadTime
+      case Test1                  => 33
+      case SupporterPlus2024      => SupporterPlus2024Migration.minLeadTime
+      case GuardianWeekly2025     => GuardianWeekly2025Migration.minLeadTime
+      case Newspaper2025P1        => Newspaper2025P1Migration.minLeadTime
+      case HomeDelivery2025       => HomeDelivery2025Migration.minLeadTime
+      case Newspaper2025P3        => Newspaper2025P3Migration.minLeadTime
+      case ProductMigration2025N4 => ProductMigration2025N4Migration.minLeadTime
     }
   }
 

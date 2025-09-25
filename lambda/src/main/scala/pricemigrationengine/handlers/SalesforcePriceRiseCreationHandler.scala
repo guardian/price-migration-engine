@@ -97,6 +97,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
           PriceCap.cappedPrice(oldPrice, estimatedNewPrice, HomeDelivery2025Migration.priceCap)
         case Newspaper2025P3 =>
           PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025P3Migration.priceCap)
+        case ProductMigration2025N4 => estimatedNewPrice
       }
       // [1]
       // (Comment group: 7992fa98)
