@@ -382,7 +382,8 @@ object NotificationHandler extends CohortHandler {
 
   def thereIsEnoughNotificationLeadTime(cohortSpec: CohortSpec, today: LocalDate, cohortItem: CohortItem): Boolean = {
     // To help with backward compatibility with existing tests, we apply this condition from 1st Dec 2020.
-    if (today.isBefore(LocalDate.of(2020, 12, 1))) {
+    // We also default to true if `cohortSpec.forceNotifications` is `Some(true)`
+    if (today.isBefore(LocalDate.of(2020, 12, 1)) || cohortSpec.forceNotifications.contains(true)) {
       true
     } else {
       cohortItem.startDate match {
