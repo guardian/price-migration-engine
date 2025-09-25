@@ -26,19 +26,29 @@ case class EmailPayloadSubscriberAttributes(
     sp2024_contribution_amount: Option[String] = None,
     sp2024_previous_combined_amount: Option[String] = None,
     sp2024_new_combined_amount: Option[String] = None,
+    // -----------------------------------------------
 
     // -----------------------------------------------
     // Newspaper2025P1 (extension)
     // (Comment Group: 571dac68)
     newspaper2025_brand_title: Option[String] = None,
+    // -----------------------------------------------
 
     // -----------------------------------------------
     // HomeDelivery2025 (extension)
     homedelivery2025_brand_title: Option[String] = None,
+    // -----------------------------------------------
 
     // -----------------------------------------------
     // Newspaper2025P3 (extension)
     newspaper2025_phase3_brand_title: Option[String] = None,
+    // -----------------------------------------------
+
+    // -----------------------------------------------
+    // ProductMigration2025N4 (extension)
+    newspaper2025_phase4_brand_title: Option[String] = None,
+    newspaper2025_phase4_formstack_url: Option[String] = None,
+    // -----------------------------------------------
 )
 
 /*

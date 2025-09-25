@@ -172,15 +172,12 @@ object NotificationHandler extends CohortHandler {
       // ----------------------------------------------------
       // Data for SupporterPlus2024
       // (Comment Group: 602514a6-5e53)
-
       // This section and the corresponding section below should be removed as part of the
       // SupporterPlus2024 decommissioning.
-
       supporterPlus2024NotificationData <- SupporterPlus2024Migration.buildSupporterPlus2024NotificationData(
         cohortSpec,
         cohortItem.subscriptionName
       )
-
       sp2024ContributionAmountWithCurrencySymbol = supporterPlus2024NotificationData.contributionAmount
         .map(a => s"${currencySymbol}${a.toString()}")
       sp2024PreviousCombinedAmountWithCurrencySymbol = supporterPlus2024NotificationData.previousCombinedAmount
@@ -192,19 +189,15 @@ object NotificationHandler extends CohortHandler {
       // ----------------------------------------------------
       // Data for Newspaper2025P1
       // (Comment Group: 571dac68)
-
       // This section and the corresponding section below should be removed as part of the
       // Newspaper2025P1 decommissioning.
-
       newspaper2025P1NotificationData <- Newspaper2025P1Migration.getNotificationData(cohortSpec, cohortItem)
       // ----------------------------------------------------
 
       // ----------------------------------------------------
       // Data for HomeDelivery2025
-
       // This section and the corresponding section below should be removed as part of the
       // HomeDelivery2025 decommissioning.
-
       homedelivery2025NotificationData <- HomeDelivery2025Migration.getNotificationData(cohortSpec, cohortItem)
       // ----------------------------------------------------
 
@@ -213,7 +206,20 @@ object NotificationHandler extends CohortHandler {
       newspaper2025P3NotificationData <- Newspaper2025P3Migration.getNotificationData(cohortSpec, cohortItem)
       // ----------------------------------------------------
 
-      brazeName <- brazeName(cohortSpec, cohortItem.subscriptionName)
+      // ----------------------------------------------------
+      // Data for ProductMigration2025N4
+      productMigration2025N4NotificationData <-
+        ZIO
+          .fromOption(
+            ProductMigration2025N4Migration.getNotificationData(
+              cohortSpec,
+              cohortItem
+            )
+          )
+          .orElseFail(DataExtractionFailure(s"[c20f44b1] How did we get here ? 🤔"))
+      // ----------------------------------------------------
+
+      brazeName <- brazeName(cohortSpec, cohortItem)
 
       emailMessage = EmailMessage(
         EmailPayload(
@@ -239,17 +245,14 @@ object NotificationHandler extends CohortHandler {
 
               // -------------------------------------------------------------
               // SupporterPlus 2024 extension
-
               // [1]
               // (Comment group: 7992fa98)
               // (Comment Group: 602514a6-5e53)
               // For SupporterPlus2024, we did not use that value. Instead we used the data provided by the
               // extension below. That value was the new base price, but we needed a different data distribution
               // to be able to fill the email template. That distribution is given by the next section.
-
               // This section and the corresponding section above should be removed as part of the
               // SupporterPlus2024 decommissioning.
-
               sp2024_contribution_amount = sp2024ContributionAmountWithCurrencySymbol,
               sp2024_previous_combined_amount = sp2024PreviousCombinedAmountWithCurrencySymbol,
               sp2024_new_combined_amount = sp2024NewCombinedAmountWithCurrencySymbol,
@@ -258,19 +261,15 @@ object NotificationHandler extends CohortHandler {
               // -------------------------------------------------------------
               // Newspaper2025P1 extension
               // (Comment Group: 571dac68)
-
               // This section and the corresponding section above should be removed as part of the
               // Newspaper2025P1 decommissioning.
-
               newspaper2025_brand_title = Some(newspaper2025P1NotificationData.brandTitle),
               // -------------------------------------------------------------
 
               // -------------------------------------------------------------
               // HomeDelivery2025 extension
-
               // This section and the corresponding section above should be removed as part of the
               // HomeDelivery decommissioning.
-
               homedelivery2025_brand_title = Some(homedelivery2025NotificationData.brandTitle),
               // -------------------------------------------------------------
 
@@ -279,6 +278,11 @@ object NotificationHandler extends CohortHandler {
               newspaper2025_phase3_brand_title = Some(newspaper2025P3NotificationData.brandTitle),
               // -------------------------------------------------------------
 
+              // -------------------------------------------------------------
+              // ProductMigration2025N4 extension
+              newspaper2025_phase4_brand_title = Some(productMigration2025N4NotificationData.brandTitle),
+              newspaper2025_phase4_formstack_url = Some(productMigration2025N4NotificationData.formstackUrl),
+              // -------------------------------------------------------------
             )
           )
         ),
@@ -565,8 +569,6 @@ object NotificationHandler extends CohortHandler {
   // -------------------------------------------------------------------
   // Braze names
 
-  // Note:
-
   // This function was introduced in September 2024, when as part of SupporterPlus2024 we integrated two different
   // email templates in Braze to serve communication to the users.
 
@@ -576,15 +578,18 @@ object NotificationHandler extends CohortHandler {
   // SupporterPlus2024 finished, we may decide to go back to a simpler format, or keep that function, depending
   // on the likelihood of Marketing adopting this variation in the future.
 
-  def brazeName(cohortSpec: CohortSpec, subscriptionNumber: String): ZIO[Zuora, Failure, String] = {
+  // In September 2025, this function has been extended for ProductMigration2025N4, which uses 3 canvases
+
+  def brazeName(cohortSpec: CohortSpec, item: CohortItem): ZIO[Zuora, Failure, String] = {
     MigrationType(cohortSpec) match {
       case SupporterPlus2024 => {
         for {
-          subscription <- Zuora.fetchSubscription(subscriptionNumber)
+          subscription <- Zuora.fetchSubscription(item.subscriptionName)
           bn <- ZIO.fromEither(SupporterPlus2024Migration.brazeName(subscription))
         } yield bn
       }
-      case _ => ZIO.succeed(cohortSpec.brazeName)
+      case ProductMigration2025N4 => ZIO.succeed(ProductMigration2025N4Migration.brazeName(item))
+      case _                      => ZIO.succeed(cohortSpec.brazeName)
     }
   }
 }

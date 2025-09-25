@@ -36,7 +36,9 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
         ZIO
           .fromOption(item.salesforcePriceRiseId)
           .orElseFail(SalesforcePriceRiseWriteFailure("salesforcePriceRiseId is required to update Salesforce"))
-      // temporary, only to observe the values coming back from Salesforce
+      // [September 2025]
+      // Temporary, only to observe the values coming back from Salesforce
+      // as part of preparing for ProductMigration2025N4
       _ <- SalesforceClient.getPriceRise(salesforcePriceRiseId)
       _ <- SalesforceClient.updatePriceRise(salesforcePriceRiseId, priceRise)
       now <- Clock.instant

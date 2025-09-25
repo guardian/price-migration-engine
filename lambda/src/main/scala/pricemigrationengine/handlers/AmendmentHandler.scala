@@ -372,7 +372,6 @@ object AmendmentHandler extends CohortHandler {
           priceCap,
           invoiceList
         )
-
       case ProductMigration2025N4 =>
         ProductMigration2025N4Migration.amendmentOrderPayload(
           cohortItem,
@@ -457,7 +456,6 @@ object AmendmentHandler extends CohortHandler {
             s"[2eecdf44] subscription: ${subscriptionBeforeUpdate.subscriptionNumber}, reason: ${e.reason}"
           )
         )
-
       _ <- Logging.info(
         s"[6e6da544] Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
       )
