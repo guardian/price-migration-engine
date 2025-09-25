@@ -30,6 +30,7 @@ case class CohortItem(
 
     // ProductMigration2025N4
     ex_2025N4_label: Option[String] = None,
+    ex_2025N4_group: Option[String] = None,
     ex_2025N4_canvas: Option[String] = None,
     ex_2025N4_rateplan_current: Option[String] = None,
     ex_2025N4_rateplan_target: Option[String] = None,
