@@ -42,7 +42,7 @@ case class SalesforcePriceRise(
     Name: Option[String] = None,
     Buyer__c: Option[String] = None,
     Current_Price_Today__c: Option[BigDecimal] = None,
-    Guardian_Weekly_New_Price__c: Option[BigDecimal] = None,
+    Guardian_Weekly_New_Price__c: Option[BigDecimal] = None, // [3]
     Price_Rise_Date__c: Option[LocalDate] = None,
     SF_Subscription__c: Option[String] = None,
     Date_Letter_Sent__c: Option[LocalDate] = None,
@@ -64,3 +64,6 @@ case class SalesforcePriceRise(
 // product migration: ProductMigration2025N4. Users who have read the communication
 // and want to opt out will interact with a formstack page and trigger Salesforce
 // to set that attribute to `true`.
+
+// [3] This field is called `Guardian_Weekly_New_Price__c`, but it's actually
+// the (possibly capped) estimated new price of any migration.
