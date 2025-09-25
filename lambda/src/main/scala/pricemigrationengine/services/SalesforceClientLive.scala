@@ -31,6 +31,12 @@ object SalesforceClientLive {
   implicit private val salesforceAddressRW: ReadWriter[SalesforceAddress] = macroRW
   implicit private val salesforceContactRW: ReadWriter[SalesforceContact] = macroRW
 
+  implicit private val bigDecimalRW: ReadWriter[BigDecimal] =
+    readwriter[ujson.Value].bimap[BigDecimal](
+      bd => ujson.Num(bd.toDouble), // write
+      js => js.num // read as number
+    )
+
   private val timeout = Duration(30, SECONDS).toMillis.toInt
   private val connTimeout = HttpOptions.connTimeout(timeout)
   private val readTimeout = HttpOptions.readTimeout(timeout)
