@@ -41,7 +41,7 @@ object CohortTableLive {
           doNotProcessUntil <- getOptionalDateFromResults(cohortItem, "doNotProcessUntil")
           migrationExtraAttributes <- getOptionalStringFromResults(cohortItem, "migrationExtraAttributes")
           _2025N4_label <- getOptionalStringFromResults(cohortItem, "_2025N4_label")
-          _2025N4_group <- getOptionalStringFromResults(cohortItem, "_2025N4_group")
+          _2025N4_canvas <- getOptionalStringFromResults(cohortItem, "_2025N4_canvas")
           _2025N4_rateplan_current <- getOptionalStringFromResults(cohortItem, "_2025N4_rateplan_current")
           _2025N4_rateplan_target <- getOptionalStringFromResults(cohortItem, "_2025N4_rateplan_target")
         } yield CohortItem(
@@ -64,7 +64,7 @@ object CohortTableLive {
           doNotProcessUntil = doNotProcessUntil,
           migrationExtraAttributes = migrationExtraAttributes,
           _2025N4_label = _2025N4_label,
-          _2025N4_group = _2025N4_group,
+          _2025N4_canvas = _2025N4_canvas,
           _2025N4_rateplan_current = _2025N4_rateplan_current,
           _2025N4_rateplan_target = _2025N4_rateplan_target
         )
@@ -110,7 +110,7 @@ object CohortTableLive {
         cohortItem.doNotProcessUntil.map(date => dateFieldUpdate("doNotProcessUntil", date)),
         cohortItem.migrationExtraAttributes.map(extra => stringFieldUpdate("migrationExtraAttributes", extra)),
         cohortItem._2025N4_label.map(value => stringFieldUpdate("_2025N4_label", value)),
-        cohortItem._2025N4_group.map(value => stringFieldUpdate("_2025N4_group", value)),
+        cohortItem._2025N4_canvas.map(value => stringFieldUpdate("_2025N4_canvas", value)),
         cohortItem._2025N4_rateplan_current.map(value => stringFieldUpdate("_2025N4_rateplan_current", value)),
         cohortItem._2025N4_rateplan_target.map(value => stringFieldUpdate("_2025N4_rateplan_target", value)),
       ).flatten.toMap.asJava

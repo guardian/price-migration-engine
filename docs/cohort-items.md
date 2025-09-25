@@ -17,4 +17,4 @@ Storing a JSON string in a text field has the advantage of allowing extensibilit
 
 ## Extending CohortItem (Part 2)
 
-With ProductMigration2025N4 a new way to extend the CohortItem was adopted, which simply consists in adding extra fields to the case class. Fields dedicated to specific migrations; therefore we do not intend for them to be reused from one migration to another and they should be decommissioned together with the corresponding migration. Extra fields `_2025N4_label`, `_2025N4_group`, `_2025N4_rateplan_current` and `_2025N4_rateplan_target` were added for ProductMigration2025N4.
+With ProductMigration2025N4 a new way to extend the CohortItem was adopted, which simply consists in adding extra fields to the case class. Fields dedicated to specific migrations; therefore we do not intend for them to be reused from one migration to another and they should be decommissioned together with the corresponding migration. Extra fields `_2025N4_label`, `_2025N4_canvas`, `_2025N4_rateplan_current` and `_2025N4_rateplan_target` were added for ProductMigration2025N4.
