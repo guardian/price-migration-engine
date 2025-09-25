@@ -56,8 +56,10 @@ object SalesforceClientLive {
   private def sendRequestAndParseResponse[A](request: HttpRequest)(implicit reader: Reader[A]) =
     for {
       valid200Response <- sendRequest(request)
+      body = valid200Response.body
+      _ <- ZIO.logInfo(s"[5b58d83c] Salesforce GET body: ${body}")
       parsedResponse <- ZIO
-        .attempt(read[A](valid200Response.body))
+        .attempt(read[A](body))
         .mapError(ex => SalesforceClientFailure(s"${requestAsMessage(request)} failed to deserialise: $ex"))
     } yield parsedResponse
 
@@ -77,7 +79,9 @@ object SalesforceClientLive {
               )
             )
         )
-      } <* logging.info(s"Authenticated with salesforce using user:${config.userName} and client: ${config.clientId}")
+      } <* logging.info(
+        s"[c6f8f9f7] Authenticated with salesforce using user:${config.userName} and client: ${config.clientId}"
+      )
 
       for {
         config <- ZIO.service[SalesforceConfig]
@@ -94,14 +98,14 @@ object SalesforceClientLive {
             )
               .header("Authorization", s"Bearer ${auth.access_token}")
               .method("GET")
-          ).tap(subscription => logging.info(s"Successfully loaded: ${subscription.Name}"))
+          ).tap(subscription => logging.info(s"[ce8f4177] Successfully loaded: ${subscription.Name}"))
 
         override def getContact(contactId: String): IO[SalesforceClientFailure, SalesforceContact] =
           sendRequestAndParseResponse[SalesforceContact](
             Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Contact/$contactId")
               .header("Authorization", s"Bearer ${auth.access_token}")
               .method("GET")
-          ).tap(contact => logging.info(s"Successfully loaded contact: ${contact.Id}"))
+          ).tap(contact => logging.info(s"[0309af88] Successfully loaded contact: ${contact.Id}"))
 
         override def createPriceRise(
             priceRise: SalesforcePriceRise
@@ -111,7 +115,7 @@ object SalesforceClientLive {
               .postData(serialisePriceRise(priceRise))
               .header("Authorization", s"Bearer ${auth.access_token}")
               .header("Content-Type", "application/json")
-          ).tap(priceRiseId => logging.info(s"Successfully created Price_Rise__c object: ${priceRiseId.id}"))
+          ).tap(priceRiseId => logging.info(s"[e3e340a7] Successfully created Price_Rise__c object: ${priceRiseId.id}"))
 
         override def updatePriceRise(
             priceRiseId: String,
@@ -124,7 +128,7 @@ object SalesforceClientLive {
               .header("Authorization", s"Bearer ${auth.access_token}")
               .header("Content-Type", "application/json")
           ).unit
-        } <* logging.info(s"Successfully updated Price_Rise__c object, priceRiseId: ${priceRiseId}")
+        } <* logging.info(s"[bb7d65d1] Successfully updated Price_Rise__c object, priceRiseId: ${priceRiseId}")
 
         override def getPriceRise(priceRiseId: String): IO[SalesforceClientFailure, SalesforcePriceRise] =
           sendRequestAndParseResponse[SalesforcePriceRise](
@@ -133,7 +137,7 @@ object SalesforceClientLive {
               .method("GET")
           ).tap(priceRise =>
             logging.info(
-              s"Successfully retrieved Salesforce price rise object, priceRiseId: ${priceRiseId}, priceRise: ${priceRise}"
+              s"[774f676b] Successfully retrieved Salesforce price rise object, priceRiseId: ${priceRiseId}, priceRise: ${priceRise}"
             )
           )
 
