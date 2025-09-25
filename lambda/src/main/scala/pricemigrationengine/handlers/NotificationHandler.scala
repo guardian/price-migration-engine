@@ -588,8 +588,13 @@ object NotificationHandler extends CohortHandler {
           bn <- ZIO.fromEither(SupporterPlus2024Migration.brazeName(subscription))
         } yield bn
       }
-      case ProductMigration2025N4 => ZIO.succeed(ProductMigration2025N4Migration.brazeName(item))
-      case _                      => ZIO.succeed(cohortSpec.brazeName)
+      case ProductMigration2025N4 =>
+        ZIO
+          .fromOption(ProductMigration2025N4Migration.brazeName(item))
+          .orElseFail(
+            DataExtractionFailure(s"[] could not determine brazeName for ProductMigration2025N4, item: ${item}")
+          )
+      case _ => ZIO.succeed(cohortSpec.brazeName)
     }
   }
 }

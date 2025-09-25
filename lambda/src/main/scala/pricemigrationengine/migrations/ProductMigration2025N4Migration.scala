@@ -50,7 +50,7 @@ object ProductMigration2025N4Migration {
     }
   }
 
-  def brazeName(cohortItem: CohortItem): String = {
+  def brazeName(cohortItem: CohortItem): Option[String] = {
     /*
       Canvas1: Newspaper+
       Canvas ID: af95cae0-0d3a-46c4-90da-193764ecc87d
@@ -64,11 +64,15 @@ object ProductMigration2025N4Migration {
       Canvas ID: 7c8445fe-e36a-4e50-b3d4-5090b1c3e314
       Canvas name: SV_NP_DigitalMigrationDigitalSubs_2025
      */
-    cohortItem.ex_2025N4_canvas.get match {
-      case "canvas1" => "SV_NP_DigitalMigrationNewspaperPlus_2025"
-      case "canvas2" => "SV_NP_DigitalMigrationNewspaperOnly_2025"
-      case "canvas3" => "SV_NP_DigitalMigrationDigitalSubs_2025"
-      case _         => throw new Exception("unexpected ProductMigration2025N4 cohort item canvas name")
+    for {
+      canvas <- cohortItem.ex_2025N4_canvas
+    } yield {
+      canvas match {
+        case "canvas1" => "SV_NP_DigitalMigrationNewspaperPlus_2025"
+        case "canvas2" => "SV_NP_DigitalMigrationNewspaperOnly_2025"
+        case "canvas3" => "SV_NP_DigitalMigrationDigitalSubs_2025"
+        case _         => throw new Exception("unexpected ProductMigration2025N4 cohort item canvas name")
+      }
     }
   }
 
