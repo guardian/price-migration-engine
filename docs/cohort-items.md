@@ -3,7 +3,7 @@
 
 case class `CohortItem` carries the migration state as well as metadata for a subscription.
 
-When exanding the `CohortItem` case class, do not forget to [map the dynamo record to the Scala type](https://github.com/guardian/price-migration-engine/pull/1158). It's not done automatically.
+When expanding the `CohortItem` case class, do not forget to [map the dynamo record to the Scala type](https://github.com/guardian/price-migration-engine/pull/1158). It's not done automatically.
 
 ## Extending CohortItem (Part 1)
 
