@@ -13,9 +13,8 @@ object ZuoraLive {
 
   private val apiVersion = "v1"
 
-  private val timeout = 30.seconds.toMillis.toInt
-  private val connTimeout = HttpOptions.connTimeout(timeout)
-  private val readTimeout = HttpOptions.readTimeout(timeout)
+  private val connTimeout = HttpOptions.connTimeout(30.seconds.toMillis.toInt)
+  private val readTimeout = HttpOptions.readTimeout(120.seconds.toMillis.toInt)
 
   private case class AccessToken(access_token: String)
   private implicit val rwAccessToken: ReadWriter[AccessToken] = macroRW
