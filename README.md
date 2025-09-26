@@ -29,7 +29,7 @@ It currently consists in
     - [Notes on the Zuora Order API](docs/zuora-order-api.md)
     - [Communication with braze](docs/communication-with-braze.md)
     - [Notes on prices](docs/notes-on-prices.md)
-    - [Extending cohort items](docs/extending-CohortItem.md)
+    - [Cohort Items](docs/cohort-items.md)
     - [Troubleshooting document](docs/troubleshooting.md)
 
 - Android Price Rises
