@@ -62,7 +62,9 @@ object ProductMigration2025N4Migration {
 
       Canvas3: Digi Subs
       Canvas ID: 7c8445fe-e36a-4e50-b3d4-5090b1c3e314
-      Canvas name: SV_NP_DigitalMigrationDigitalSubs_2025
+      Canvas name:
+          (old) SV_NP_DigitalMigrationDigitalSubs_2025
+          (new) SV_NP_DigitalMigrationNewspaperOnlyNoOptOut_2025
      */
     for {
       canvas <- cohortItem.ex_2025N4_canvas
@@ -70,7 +72,7 @@ object ProductMigration2025N4Migration {
       canvas match {
         case "canvas1" => "SV_NP_DigitalMigrationNewspaperPlus_2025"
         case "canvas2" => "SV_NP_DigitalMigrationNewspaperOnly_2025"
-        case "canvas3" => "SV_NP_DigitalMigrationDigitalSubs_2025"
+        case "canvas3" => "SV_NP_DigitalMigrationNewspaperOnlyNoOptOut_2025"
         case _         => throw new Exception("unexpected ProductMigration2025N4 cohort item canvas name")
       }
     }
