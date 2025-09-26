@@ -206,7 +206,20 @@ object NotificationHandler extends CohortHandler {
       newspaper2025P3NotificationData <- Newspaper2025P3Migration.getNotificationData(cohortSpec, cohortItem)
       // ----------------------------------------------------
 
-      brazeName <- brazeName(cohortSpec, cohortItem.subscriptionName)
+      // ----------------------------------------------------
+      // Data for ProductMigration2025N4
+      productMigration2025N4NotificationData <-
+        ZIO
+          .fromOption(
+            ProductMigration2025N4Migration.getNotificationData(
+              cohortSpec,
+              cohortItem
+            )
+          )
+          .orElseFail(DataExtractionFailure(s"[c20f44b1] How did we get here ? 🤔"))
+      // ----------------------------------------------------
+
+      brazeName <- brazeName(cohortSpec, cohortItem)
 
       emailMessage = EmailMessage(
         EmailPayload(
@@ -265,6 +278,11 @@ object NotificationHandler extends CohortHandler {
               newspaper2025_phase3_brand_title = Some(newspaper2025P3NotificationData.brandTitle),
               // -------------------------------------------------------------
 
+              // -------------------------------------------------------------
+              // ProductMigration2025N4 extension
+              newspaper2025_phase4_brand_title = Some(productMigration2025N4NotificationData.brandTitle),
+              newspaper2025_phase4_formstack_url = Some(productMigration2025N4NotificationData.formstackUrl),
+              // -------------------------------------------------------------
             )
           )
         ),
@@ -560,14 +578,22 @@ object NotificationHandler extends CohortHandler {
   // SupporterPlus2024 finished, we may decide to go back to a simpler format, or keep that function, depending
   // on the likelihood of Marketing adopting this variation in the future.
 
-  def brazeName(cohortSpec: CohortSpec, subscriptionNumber: String): ZIO[Zuora, Failure, String] = {
+  // In September 2025, this function has been extended for ProductMigration2025N4, which uses 3 canvases
+
+  def brazeName(cohortSpec: CohortSpec, item: CohortItem): ZIO[Zuora, Failure, String] = {
     MigrationType(cohortSpec) match {
       case SupporterPlus2024 => {
         for {
-          subscription <- Zuora.fetchSubscription(subscriptionNumber)
+          subscription <- Zuora.fetchSubscription(item.subscriptionName)
           bn <- ZIO.fromEither(SupporterPlus2024Migration.brazeName(subscription))
         } yield bn
       }
+      case ProductMigration2025N4 =>
+        ZIO
+          .fromOption(ProductMigration2025N4Migration.brazeName(item))
+          .orElseFail(
+            DataExtractionFailure(s"[] could not determine brazeName for ProductMigration2025N4, item: ${item}")
+          )
       case _ => ZIO.succeed(cohortSpec.brazeName)
     }
   }

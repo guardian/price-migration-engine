@@ -43,6 +43,12 @@ case class EmailPayloadSubscriberAttributes(
     // Newspaper2025P3 (extension)
     newspaper2025_phase3_brand_title: Option[String] = None,
     // -----------------------------------------------
+
+    // -----------------------------------------------
+    // ProductMigration2025N4 (extension)
+    newspaper2025_phase4_brand_title: Option[String] = None,
+    newspaper2025_phase4_formstack_url: Option[String] = None,
+    // -----------------------------------------------
 )
 
 /*

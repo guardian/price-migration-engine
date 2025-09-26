@@ -94,9 +94,17 @@ object EstimationHandler extends CohortHandler {
       },
       success = { result =>
         val cohortItemToWrite =
-          if (result.estimatedNewPrice <= result.oldPrice) CohortItem.fromNoPriceIncreaseEstimationResult(result)
-          else CohortItem.fromSuccessfulEstimationResult(result)
-
+          MigrationType(cohortSpec) match {
+            case ProductMigration2025N4 => {
+              // For N4 we expect the estimated new price to be equal to the old price
+              // We are not performing a NoPriceIncreaseEstimationResult
+              CohortItem.fromSuccessfulEstimationResult(result)
+            }
+            case _ => {
+              if (result.estimatedNewPrice <= result.oldPrice) CohortItem.fromNoPriceIncreaseEstimationResult(result)
+              else CohortItem.fromSuccessfulEstimationResult(result)
+            }
+          }
         for {
           cohortItem <- cohortItemToWrite
           _ <- CohortTable.update(cohortItem)
