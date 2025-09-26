@@ -122,17 +122,32 @@ object StartDates {
     }
 
     // We now respect the policy of not increasing members during their first year
-    val startDateLowerBound2 = noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(startDateLowerBound1, subscription)
+    // This doesn't apply to ProductMigration2025N4 which is not a price rise
+    val startDateLowerBound2 = MigrationType(cohortSpec) match {
+      case ProductMigration2025N4 => startDateLowerBound1
+      case _ => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(startDateLowerBound1, subscription)
+    }
 
     // And the policy not to price rise a sub twice within 12 months of any possible price rise
-    val startDateLowerBound3 =
-      noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, startDateLowerBound2)
+    // This doesn't apply to ProductMigration2025N4 which is not a price rise
+    val startDateLowerBound3 = MigrationType(cohortSpec) match {
+      case ProductMigration2025N4 => startDateLowerBound2
+      case _ => noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, startDateLowerBound2)
+    }
 
     // With GuardianWeekly2025, we were given lower bounds in the Marketing spreadsheet
     // that was the first use of the new cohortItem's migrationExtraAttributes. If we expect a
     // migration to provide it own lowerbound computation, we do it here, otherwise we identity
     // on startDateLowerBound3
     val startDateLowerBound4 = MigrationType(cohortSpec) match {
+      // [1]
+      // Date: June 2025
+      // Author: Pascal
+      // (Comment group: ef77de28)
+      // Here I am re-using GuardianWeekly2025Migration.computeStartDateLowerBound4, for testing.
+      // Technically this test will break when GuardianWeekly2025 is decommissioned in October 2026,
+      // but at that point if we really want to carry on testing the migration extended attributes as
+      // part of start date computations we can move the code to Test1's own migration module
       case Test1 => GuardianWeekly2025Migration.computeStartDateLowerBound4(startDateLowerBound3, item) // [1]
       case SupporterPlus2024      => startDateLowerBound3
       case GuardianWeekly2025     => GuardianWeekly2025Migration.computeStartDateLowerBound4(startDateLowerBound3, item)
@@ -141,16 +156,6 @@ object StartDates {
       case Newspaper2025P3        => Newspaper2025P3Migration.computeStartDateLowerBound4(startDateLowerBound3, item)
       case ProductMigration2025N4 => startDateLowerBound3
     }
-
-    // [1]
-    // Date: June 2025
-    // Author: Pascal
-    // (Comment group: ef77de28)
-
-    // Here I am re-using GuardianWeekly2025Migration.computeStartDateLowerBound4, for testing it.
-    // Technically this test will break when GuardianWeekly2025 is decommissioned in October 2026,
-    // but at that point if we really want to carry on testing the migration extended attributes as
-    // part of start date computations we can move the code to Test1's own migration module
 
     // Decide the spread period for this migration
     val spreadPeriod = decideSpreadPeriod(subscription, invoicePreview, cohortSpec)
