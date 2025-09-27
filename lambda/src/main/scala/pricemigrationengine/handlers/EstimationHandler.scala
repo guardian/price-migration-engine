@@ -142,7 +142,7 @@ object EstimationHandler extends CohortHandler {
       _ <-
         if (invoicePreview.invoiceItems.isEmpty) {
           // This check was added after discovering the existence of active subscriptions
-          // with expired active rate plan, whose invoice preview is empty
+          // with expired active rate plan, whose invoice previews are empty
           ZIO.succeed(())
         } else {
           ZIO.fail(
