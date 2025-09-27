@@ -47,7 +47,7 @@ object CohortTableFilter {
   case object DoNotProcessUntil extends CohortTableFilter { override val value: String = "DoNotProcessUntil" }
 
   // Set of all states.  Remember to update when adding a state.
-  val all: Set[CohortTableFilter] = Set(
+  val allQueryableStates: Set[CohortTableFilter] = Set(
     AmendmentComplete,
     AmendmentWrittenToSalesforce,
     Cancelled,
