@@ -130,7 +130,7 @@ object EstimationHandler extends CohortHandler {
       invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
       startDateLowerBound <- ZIO.succeed(
         StartDates.startDateLowerBound(
-          item: CohortItem,
+          item,
           subscription,
           invoicePreview,
           cohortSpec,
