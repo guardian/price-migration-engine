@@ -34,6 +34,9 @@ object CohortTableFilter {
   // ++++++++++ Exceptional states ++++++++++
 
   case object ZuoraCancellation extends CohortTableFilter { override val value: String = "ZuoraCancellation" }
+  case object ZuoraEmptyInvoicePreview extends CohortTableFilter {
+    override val value: String = "ZuoraEmptyInvoicePreview"
+  }
 
   // General termination processing state. This is a terminal state for a cohort item
   // It is used when the processing of a cohort items cannot pursue (for another reason than)
@@ -48,7 +51,8 @@ object CohortTableFilter {
 
   // +++++++++++++++++++++
 
-  // Set of all states.  Remember to update when adding a state.
+  // Remember to update when adding a state that is being used to query cohort items
+  // In alphabetical order
   val allQueryableStates: Set[CohortTableFilter] = Set(
     AmendmentComplete,
     AmendmentWrittenToSalesforce,
