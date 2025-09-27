@@ -46,7 +46,7 @@ object CohortTableFilter {
    */
   case object NoPriceIncrease extends CohortTableFilter { override val value: String = "NoPriceIncrease" }
 
-  // ++++++++++++++++++++
+  // +++++++++++++++++++++
 
   // Set of all states.  Remember to update when adding a state.
   val allQueryableStates: Set[CohortTableFilter] = Set(
