@@ -57,7 +57,7 @@ object Conversions {
   ): Either[String, CohortTableFilter] =
     for {
       string <- getStringFromResults(result, fieldName)
-      string <- CohortTableFilter.all
+      string <- CohortTableFilter.allQueryableStates
         .find(_.value == string)
         .toRight(s"The '$fieldName' contained an invalid CohortTableFilter '$string'")
     } yield string

@@ -90,6 +90,16 @@ object EstimationHandler extends CohortHandler {
               )
             )
             .as(result)
+        case _: ZuoraEmptyInvoiceFailure =>
+          val result = EmptyInvoicePreviewZuoraEstimationResult(item.subscriptionName)
+          CohortTable
+            .update(
+              CohortItem(
+                item.subscriptionName,
+                processingStage = ZuoraEmptyInvoicePreview
+              )
+            )
+            .as(result)
         case e => ZIO.fail(e)
       },
       success = { result =>
@@ -127,10 +137,21 @@ object EstimationHandler extends CohortHandler {
           )
       account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
       invoicePreviewTargetDate = cohortSpec.earliestPriceMigrationStartDate.plusMonths(16)
-      invoicePreview <- Zuora.fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
+      invoicePreview <- Zuora
+        .fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
+      _ <-
+        if (invoicePreview.invoiceItems.isEmpty) {
+          // This check was added after discovering the existence of active subscriptions
+          // with expired active rate plan, whose invoice preview is empty
+          ZIO.succeed(())
+        } else {
+          ZIO.fail(
+            ZuoraEmptyInvoiceFailure(s"[ea4e9328] subscription ${item.subscriptionName} has an empty invoice preview")
+          )
+        }
       startDateLowerBound <- ZIO.succeed(
         StartDates.startDateLowerBound(
-          item: CohortItem,
+          item,
           subscription,
           invoicePreview,
           cohortSpec,
