@@ -48,7 +48,8 @@ object CohortTableFilter {
 
   // +++++++++++++++++++++
 
-  // Set of all states.  Remember to update when adding a state.
+  // Remember to update when adding a state that is being used to query cohort items
+  // In alphabetical order
   val allQueryableStates: Set[CohortTableFilter] = Set(
     AmendmentComplete,
     AmendmentWrittenToSalesforce,
