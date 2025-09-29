@@ -15,8 +15,8 @@ case class ProductMigration2025N4NotificationData(
 
 object ProductMigration2025N4Migration {
 
-  val maxLeadTime = 35
-  val minLeadTime = 33
+  val maxLeadTime = 1000
+  val minLeadTime = 0
 
   def decideFormstackUrl(salesforcePriceRiseId: String): String = {
     s"https://guardiannewsandmedia.formstack.com/forms/print_migration_25?subscription_reference=${salesforcePriceRiseId}"
