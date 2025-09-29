@@ -24,6 +24,7 @@ case class CohortItemAlreadyPresentFailure(reason: String) extends Failure
 case class CohortUpdateFailure(reason: String) extends Failure
 
 case class ZuoraFailure(reason: String) extends Failure
+case class ZuoraEmptyInvoiceFailure(reason: String) extends Failure
 case class ZuoraFetchFailure(reason: String) extends Failure
 case class ZuoraUpdateFailure(reason: String) extends Failure
 case class ZuoraOrderFailure(reason: String) extends Failure

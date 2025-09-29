@@ -41,3 +41,4 @@ object EstimationResult {
 }
 
 case class SubscriptionCancelledInZuoraEstimationResult(subscriptionNumber: String) extends EstimationResult
+case class EmptyInvoicePreviewZuoraEstimationResult(subscriptionNumber: String) extends EstimationResult
