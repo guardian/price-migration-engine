@@ -460,6 +460,20 @@ object NotificationHandler extends CohortHandler {
           value => Right(value)
         )
       }
+      case ProductMigration2025N4 => {
+        // We do not need the Contact.MailingAddress for ProductMigration2025N4
+        // Here we prevent NotificationHandlerFailure(Contact.MailingAddress is a required field)
+        val address = (for {
+          billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
+          _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
+          _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
+        } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
+
+        address.fold(
+          _ => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))),
+          value => Right(value)
+        )
+      }
       case _ =>
         (for {
           billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
