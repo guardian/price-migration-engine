@@ -159,7 +159,12 @@ object AmendmentHandler extends CohortHandler {
       today: LocalDate
   ): Either[String, Unit] = {
     if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec)) {
-      if (SI2025Extractions.subscriptionHasActiveDiscounts(subscriptionAfterUpdate, today)) {
+      if (
+        SI2025Extractions.subscriptionHasActiveDiscounts(subscriptionAfterUpdate, today)
+        || AmendmentHelper.newPriceHasBeenCappedAt20Percent(cohortItem.oldPrice.get, newPrice)
+        // Purposeful use of `.get` in the above as a cohortItem in Amendment step without
+        // an `oldPrice` would be extremely pathological
+      ) {
         if (newPrice > estimatedNewPrice) {
           // should perform final check
           // has active discount, therefore only performing the inequality check
@@ -174,18 +179,18 @@ object AmendmentHandler extends CohortHandler {
           Right(())
         }
       } else {
-        if ((estimatedNewPrice - newPrice).abs > 0.001) {
+        if (AmendmentHelper.priceEquality(estimatedNewPrice, newPrice)) {
+          // should perform final check
+          // has no active discount, therefore performing the "equality" check
+          // has passed the check
+          Right(())
+        } else {
           // should perform final check
           // has no active discount, therefore performing the "equality" check
           // has failed the check
           Left(
             s"[e9054daa] Item ${cohortItem} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice} (nb: no discounts)"
           )
-        } else {
-          // should perform final check
-          // has no active discount, therefore performing the "equality" check
-          // has passed the check
-          Right(())
         }
       }
     } else {
