@@ -20,14 +20,14 @@ As part of setting up a migration you will want to run some of the lambdas on de
 {
     "cohortName":"GW2024",
     "brazeName":"SV_GW_PriceRise2024Email",
-    "earliestAmendmentEffectDate":"2024-05-20"
+    "earliestAmendmentEffectiveDate":"2024-05-20"
 }
 
 {
     "cohortSpec": {
         "cohortName":"GW2024",
         "brazeName":"SV_GW_PriceRise2024Email",
-        "earliestAmendmentEffectDate":"2024-05-20"
+        "earliestAmendmentEffectiveDate":"2024-05-20"
     }
 }
 ```
@@ -36,7 +36,7 @@ The difference between the two is that the former is used to run specific lambda
 
 * **cohortName**: A unique name to identify the cohort. Must consist of alphanumeric, '-' and '_' characters (without space(s)). [1]
 * **brazeName**: The name that membership-workflow uses to refer to the Braze campaign or canvas for notifying subscribers. Must consist of alphanumeric, whitespace, '-' and '_' characters. This name is given to us by Marketing after they have set up the campaign or canvas in Braze.
-* **earliestAmendmentEffectDate**: Earliest date on which a subscription can have its price increased, or will move to another rate plan (with or without price increase). Increases will always begin on the first day of a billing period on or after this date. Format is `yyyy-mm-dd`.
+* **earliestAmendmentEffectiveDate**: Earliest date on which a subscription can have its price increased, or will move to another rate plan (with or without price increase). Increases will always begin on the first day of a billing period on or after this date. Format is `yyyy-mm-dd`.
 
 [1] Pascal always sticks to alphanumerical names, for instance "HomeDelivery2025" (where the year the migration has started appears in the name)
 

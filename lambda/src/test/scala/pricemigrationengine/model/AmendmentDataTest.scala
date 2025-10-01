@@ -188,7 +188,7 @@ class AmendmentDataTest extends munit.FunSuite {
     val cohortSpec = CohortSpec(
       cohortName = "Test1",
       brazeName = "BrazeName",
-      earliestAmendmentEffectDate = LocalDate.of(2025, 9, 10) // 10 Sept 2025
+      earliestAmendmentEffectiveDate = LocalDate.of(2025, 9, 10) // 10 Sept 2025
     )
 
     assertEquals(

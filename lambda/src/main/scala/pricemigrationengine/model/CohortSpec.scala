@@ -17,7 +17,7 @@ import java.util
   *   Mapping to environment-specific Braze campaign ID is provided by membership-workflow:
   *   See https://github.com/guardian/membership-workflow/blob/master/conf/PROD.public.conf#L39
   *
-  * @param earliestAmendmentEffectDate
+  * @param earliestAmendmentEffectiveDate
   *   Earliest date on which any sub in the cohort can have price migrated. The actual date for any sub will depend on
   *   its billing dates.
   *
@@ -37,7 +37,7 @@ import java.util
 case class CohortSpec(
     cohortName: String,
     brazeName: String,
-    earliestAmendmentEffectDate: LocalDate,
+    earliestAmendmentEffectiveDate: LocalDate,
     subscriptionNumber: Option[String] = None,
     forceNotifications: Option[Boolean] = None,
 ) {
@@ -58,10 +58,10 @@ object CohortSpec {
     (for {
       cohortName <- getStringFromResults(values, "cohortName")
       brazeName <- getStringFromResults(values, "brazeName")
-      earliestAmendmentEffectDate <- getDateFromResults(values, "earliestAmendmentEffectDate")
+      earliestAmendmentEffectiveDate <- getDateFromResults(values, "earliestAmendmentEffectiveDate")
     } yield CohortSpec(
       cohortName,
       brazeName,
-      earliestAmendmentEffectDate
+      earliestAmendmentEffectiveDate
     )).left.map(e => CohortSpecFetchFailure(e))
 }
