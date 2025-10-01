@@ -104,7 +104,9 @@ object SalesforceClientLive {
             )
               .header("Authorization", s"Bearer ${auth.access_token}")
               .method("GET")
-          ).tap(subscription => logging.info(s"[ce8f4177] Successfully loaded: ${subscription.Name}"))
+          ).tap(subscription =>
+            logging.info(s"[ce8f4177] Successfully loaded subscription ${subscription.Name} from Salesforce")
+          )
 
         override def getContact(contactId: String): IO[SalesforceClientFailure, SalesforceContact] =
           sendRequestAndParseResponse[SalesforceContact](
