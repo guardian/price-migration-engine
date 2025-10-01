@@ -497,11 +497,12 @@ object NotificationHandler extends CohortHandler {
     // the 2024 print migration, "United Kingdom" can be substituted for missing values considering
     // that we are only delivery in the UK.
     MigrationType(cohortSpec) match {
-      case SupporterPlus2024 => Right(address.country.getOrElse(""))
-      case Newspaper2025P1   => Right(address.country.getOrElse("United Kingdom"))
-      case HomeDelivery2025  => Right(address.country.getOrElse("United Kingdom"))
-      case Newspaper2025P3   => Right(address.country.getOrElse("United Kingdom"))
-      case _                 => requiredField(address.country, "Contact.OtherAddress.country")
+      case SupporterPlus2024      => Right(address.country.getOrElse(""))
+      case Newspaper2025P1        => Right(address.country.getOrElse("United Kingdom"))
+      case HomeDelivery2025       => Right(address.country.getOrElse("United Kingdom"))
+      case Newspaper2025P3        => Right(address.country.getOrElse("United Kingdom"))
+      case ProductMigration2025N4 => Right(address.country.getOrElse(""))
+      case _                      => requiredField(address.country, "Contact.OtherAddress.country")
     }
   }
 
