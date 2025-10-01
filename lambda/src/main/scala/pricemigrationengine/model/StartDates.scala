@@ -54,7 +54,7 @@ object StartDates {
     //   during a single month.
 
     Date.datesMax(
-      cohortSpec.earliestPriceMigrationStartDate,
+      cohortSpec.earliestAmendmentEffectDate,
       today.plusDays(
         NotificationHandler.minLeadTime(cohortSpec: CohortSpec) + 1
       ) // +1 because we need to be strictly over minLeadTime days away. Exactly minLeadTime is not enough.

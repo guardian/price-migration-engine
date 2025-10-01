@@ -16,11 +16,11 @@ First we need a cohort spec. Let's assume that the cohort spec is
 {
     "cohortName":"GW2024",
     "brazeName":"SV_GW_PriceRise2024",
-    "earliestPriceMigrationStartDate":"2024-05-20" 
+    "earliestAmendmentEffectDate":"2024-05-20" 
 }
 ```
 
-The only relevant bit of cohort spec we need for the computation of a subscription's start date is the `earliestPriceMigrationStartDate`. 
+The only relevant bit of cohort spec we need for the computation of a subscription's start date is the `earliestAmendmentEffectDate`. 
 
 Let us assume thay the notification period for this migration is `[-49, -36]`. This is Pascal's notation for the fact that we start notifying at -49 days and alarm at -36.
 
@@ -52,7 +52,7 @@ If we have a lot of monthlies to migrate, that's a lot of user notifications per
 
 With the above context and the explanation about spread periods, let's compute the start date of our subscription.
 
-Step 1: We know that the chosen date needs to be after the cohort spec's `earliestPriceMigrationStartDate`, meaning after `2024-05-20`. The date `2024-05-20` is our first lowerbound.
+Step 1: We know that the chosen date needs to be after the cohort spec's `earliestAmendmentEffectDate`, meaning after `2024-05-20`. The date `2024-05-20` is our first lowerbound.
 
 Step 2: We know that the date needs to be after today plus the end of a notification period (otherwise the engine will alarm immediately). Remember we are using `2024-03-07` as "today". The notification period is `[-49, -36]`, so there should be at least 37 days between today and the chosen date. This means thay we have a lowerbound at `today + 37 days`, meaning `2024-03-07 + 37 days`, meaning `2024-04-13` (13th of April).
 
