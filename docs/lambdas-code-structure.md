@@ -54,7 +54,7 @@ Individual lambdas like the `EstimationLambda` and the `AmendmentLambda` can be 
 {
   "cohortName": "EchoLegacyTesting",
   "brazeName": "cmp123",
-  "earliestPriceMigrationStartDate": "2022-08-02"
+  "earliestAmendmentEffectiveDate": "2022-08-02"
 }
 ```
 

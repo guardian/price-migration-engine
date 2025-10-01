@@ -136,7 +136,7 @@ object EstimationHandler extends CohortHandler {
             SubscriptionCancelledInZuoraFailure(s"subscription ${item.subscriptionName} has been cancelled in Zuora")
           )
       account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
-      invoicePreviewTargetDate = cohortSpec.earliestPriceMigrationStartDate.plusMonths(16)
+      invoicePreviewTargetDate = cohortSpec.earliestAmendmentEffectiveDate.plusMonths(16)
       invoicePreview <- Zuora
         .fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
       _ <-
