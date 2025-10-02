@@ -154,15 +154,15 @@ object CohortTableLive {
               .indexName(indexName)
               .keyConditionExpression(
                 "processingStage = :processingStage" + latestAmendmentEffectiveDateInclusive.fold("") { _ =>
-                  " AND amendmentEffectiveDate <= :latestAmendmentEffectiveDateInclusive"
+                  " AND amendmentEffectiveDate <= :date"
                 }
               )
               .expressionAttributeValues(
                 List(
                   Some(":processingStage" -> AttributeValue.builder.s(filter.value).build()),
-                  latestAmendmentEffectiveDateInclusive.map { latestAmendmentEffectiveDateInclusive =>
-                    ":latestAmendmentEffectiveDateInclusive" -> AttributeValue.builder
-                      .s(latestAmendmentEffectiveDateInclusive.toString)
+                  latestAmendmentEffectiveDateInclusive.map { date =>
+                    ":date" -> AttributeValue.builder
+                      .s(date.toString)
                       .build()
                   }
                 ).flatten.toMap.asJava

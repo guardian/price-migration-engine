@@ -193,13 +193,13 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(receivedRequest.get.indexName, "ProcessingStageStartDateIndexV1")
     assertEquals(
       receivedRequest.get.keyConditionExpression,
-      "processingStage = :processingStage AND amendmentEffectiveDate <= :latestAmendmentEffectiveDateInclusive"
+      "processingStage = :processingStage AND amendmentEffectiveDate <= :date"
     )
     assertEquals(
       receivedRequest.get.expressionAttributeValues,
       Map(
         ":processingStage" -> AttributeValue.builder.s("ReadyForEstimation").build(),
-        ":latestAmendmentEffectiveDateInclusive" -> AttributeValue.builder.s(expectedLatestDate.toString).build()
+        ":date" -> AttributeValue.builder.s(expectedLatestDate.toString).build()
       ).asJava
     )
   }
