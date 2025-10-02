@@ -15,7 +15,7 @@ It currently consists in
 - [The journey of a cohort item](docs/the-journey-of-a-cohort-item.md)
 - [Coding directives](docs/coding-directives.md)
 - [Notification windows](docs/notification-windows.md)
-- [The art of computing start dates](docs/start-date-computation.md)
+- [The art of computing amendment effective dates](docs/amendment-effective-date-computation.md)
 - [The art of the cap; or how to gracefully cap prices in the engine](docs/the-art-of-the-cap.md)
 
 ### Operations:

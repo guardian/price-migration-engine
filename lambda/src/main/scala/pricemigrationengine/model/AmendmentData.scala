@@ -8,19 +8,11 @@ import pricemigrationengine.migrations.{
   ProductMigration2025N4Migration,
   SupporterPlus2024Migration
 }
-import pricemigrationengine.model.ZuoraProductCatalogue.productPricingMap
 
 import java.time.LocalDate
 import scala.math.BigDecimal.RoundingMode
 
-case class AmendmentData(startDate: LocalDate, priceData: PriceData)
-
 object AmendmentData {
-
-  case class RatePlanChargePair(
-      chargeFromSubscription: ZuoraRatePlanCharge,
-      chargeFromProduct: ZuoraProductRatePlanCharge
-  )
 
   def nextServiceStartDate(
       invoiceList: ZuoraInvoiceList,
@@ -48,35 +40,6 @@ object AmendmentData {
         hasNotPriceAndDiscount,
         DataExtractionFailure(s"Rate plan charge '${invoiceItem.chargeNumber}' has price and discount")
       )
-
-  def ratePlanChargePair(
-      catalogue: ZuoraProductCatalogue,
-      ratePlanCharge: ZuoraRatePlanCharge
-  ): Either[ZuoraProductRatePlanChargeId, RatePlanChargePair] = {
-    productPricingMap(catalogue)
-      .get(ratePlanCharge.productRatePlanChargeId)
-      .toRight(ratePlanCharge.productRatePlanChargeId)
-      .map(productRatePlanCharge => RatePlanChargePair(ratePlanCharge, productRatePlanCharge))
-  }
-
-  def ratePlanChargePairs(
-      catalogue: ZuoraProductCatalogue,
-      ratePlanCharges: Seq[ZuoraRatePlanCharge]
-  ): Either[DataExtractionFailure, Seq[RatePlanChargePair]] = {
-    /*
-     * distinct because where a sub has a discount rate plan,
-     * the same discount will appear against each product rate plan charge in the invoice preview.
-     */
-    val pairs = ratePlanCharges.distinctBy(_.productRatePlanChargeId).map(rp => ratePlanChargePair(catalogue, rp))
-    val failures = pairs.collect { case Left(failure) => failure }
-    if (failures.isEmpty) Right(pairs.collect { case Right(pricing) => pricing })
-    else
-      Left(
-        DataExtractionFailure(
-          s"[AmendmentData] Failed to find matching product rate plan charges for rate plan charges: ${failures.mkString(", ")}"
-        )
-      )
-  }
 
   /** Total charge amount, including taxes and discounts, for the service period starting on the given service start
     * date.

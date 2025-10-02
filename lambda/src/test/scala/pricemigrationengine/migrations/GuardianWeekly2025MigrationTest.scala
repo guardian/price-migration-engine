@@ -64,7 +64,8 @@ class GuardianWeekly2025ExtraAttributesTest extends munit.FunSuite {
       processingStage = ReadyForEstimation,
       migrationExtraAttributes = None,
     )
-    val date = GuardianWeekly2025Migration.computeStartDateLowerBound4(LocalDate.of(2025, 8, 9), cohortItem)
+    val date =
+      GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound4(LocalDate.of(2025, 8, 9), cohortItem)
     assertEquals(date, LocalDate.of(2025, 8, 9))
   }
 
@@ -74,7 +75,8 @@ class GuardianWeekly2025ExtraAttributesTest extends munit.FunSuite {
       processingStage = ReadyForEstimation,
       migrationExtraAttributes = Some("""{ "earliestMigrationDate": "2025-10-06" }"""),
     )
-    val date = GuardianWeekly2025Migration.computeStartDateLowerBound4(LocalDate.of(2025, 8, 9), cohortItem)
+    val date =
+      GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound4(LocalDate.of(2025, 8, 9), cohortItem)
     assertEquals(date, LocalDate.of(2025, 10, 6))
   }
 
@@ -84,7 +86,8 @@ class GuardianWeekly2025ExtraAttributesTest extends munit.FunSuite {
       processingStage = ReadyForEstimation,
       migrationExtraAttributes = Some("""{ "earliestMigrationDate": "2025-10-06" }"""),
     )
-    val date = GuardianWeekly2025Migration.computeStartDateLowerBound4(LocalDate.of(2025, 11, 9), cohortItem)
+    val date =
+      GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound4(LocalDate.of(2025, 11, 9), cohortItem)
     assertEquals(date, LocalDate.of(2025, 11, 9))
   }
 }

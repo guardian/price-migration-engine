@@ -6,9 +6,9 @@ import pricemigrationengine.model.CohortTableFilter.ReadyForEstimation
 
 import java.time.LocalDate
 
-class StartDatesTest extends munit.FunSuite {
+class AmendmentEffectiveDateCalculatorTest extends munit.FunSuite {
 
-  test("startDateLowerBound (1)") {
+  test("lowerBound (1)") {
     val subscription = Fixtures.subscriptionFromJson("model/StartDates/subscription1/subscription.json")
     val account = Fixtures.accountFromJson("model/StartDates/subscription1/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("model/StartDates/subscription1/invoice-preview.json")
@@ -22,44 +22,48 @@ class StartDatesTest extends munit.FunSuite {
     )
 
     // --------------------------------------------------
-    // startDateLowerBound1:
+    // lowerBound1:
 
-    val startDateLowerBound1 = StartDates.cohortSpecLowerBound(cohortSpec, today)
+    val lowerBound1 = AmendmentEffectiveDateCalculator.cohortSpecLowerBound(cohortSpec, today)
 
     assertEquals(
-      startDateLowerBound1,
+      lowerBound1,
       LocalDate.of(2025, 9, 10)
     )
 
     // --------------------------------------------------
-    // startDateLowerBound2:
+    // lowerBound2:
 
-    val startDateLowerBound2 =
-      StartDates.noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(startDateLowerBound1, subscription)
+    val lowerBound2 =
+      AmendmentEffectiveDateCalculator.noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
 
-    // We compare startDateLowerBound1 and subscription.customerAcceptanceDate.plusMonths(12)
+    // We compare lowerBound1 and subscription.customerAcceptanceDate.plusMonths(12)
     // I set customerAcceptanceDate to 2025-02-24, leading to a plus 12 months of 2026-02-24
 
     assertEquals(
-      startDateLowerBound2,
+      lowerBound2,
       LocalDate.of(2026, 2, 24)
     )
 
     // --------------------------------------------------
-    // startDateLowerBound3:
+    // lowerBound3:
 
     // Test1 doesn't have a last price rise date, so we are invariant here:
 
-    val startDateLowerBound3 =
-      StartDates.noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, startDateLowerBound2)
+    val lowerBound3 =
+      AmendmentEffectiveDateCalculator.noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(
+        cohortSpec,
+        subscription,
+        lowerBound2
+      )
 
     assertEquals(
-      startDateLowerBound3,
+      lowerBound3,
       LocalDate.of(2026, 2, 24)
     )
 
     // --------------------------------------------------
-    // startDateLowerBound4:
+    // lowerBound4:
 
     // [1]
     // Date: June 2025
@@ -73,21 +77,21 @@ class StartDatesTest extends munit.FunSuite {
 
     // Here nothing happens because the cohort item didn't have extended attributes
 
-    val startDateLowerBound4 = GuardianWeekly2025Migration.computeStartDateLowerBound4(startDateLowerBound3, cohortItem)
+    val lowerBound4 = GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound4(lowerBound3, cohortItem)
 
     assertEquals(
-      startDateLowerBound3,
+      lowerBound3,
       LocalDate.of(2026, 2, 24)
     )
 
     // --------------------------------------------------
-    // startDateLowerBound:
+    // lowerBound:
 
     // We report the highest computed date. Without random spread.
     // (Test1 spread period is set to 1)
 
     assertEquals(
-      StartDates.startDateLowerBound(
+      AmendmentEffectiveDateCalculator.AmendmentEffectiveDateLowerBound(
         item = cohortItem,
         subscription = subscription,
         invoicePreview = invoicePreview,
@@ -98,7 +102,7 @@ class StartDatesTest extends munit.FunSuite {
     )
   }
 
-  test("startDateLowerBound (2): with extended attributes") {
+  test("lowerBound (2): with extended attributes") {
     val subscription = Fixtures.subscriptionFromJson("model/StartDates/subscription1/subscription.json")
     val account = Fixtures.accountFromJson("model/StartDates/subscription1/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("model/StartDates/subscription1/invoice-preview.json")
@@ -116,44 +120,48 @@ class StartDatesTest extends munit.FunSuite {
     )
 
     // --------------------------------------------------
-    // startDateLowerBound1:
+    // lowerBound1:
 
-    val startDateLowerBound1 = StartDates.cohortSpecLowerBound(cohortSpec, today)
+    val lowerBound1 = AmendmentEffectiveDateCalculator.cohortSpecLowerBound(cohortSpec, today)
 
     assertEquals(
-      startDateLowerBound1,
+      lowerBound1,
       LocalDate.of(2025, 9, 10)
     )
 
     // --------------------------------------------------
-    // startDateLowerBound2:
+    // lowerBound2:
 
-    val startDateLowerBound2 =
-      StartDates.noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(startDateLowerBound1, subscription)
+    val lowerBound2 =
+      AmendmentEffectiveDateCalculator.noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
 
-    // We compare startDateLowerBound1 and subscription.customerAcceptanceDate.plusMonths(12)
+    // We compare lowerBound1 and subscription.customerAcceptanceDate.plusMonths(12)
     // I set customerAcceptanceDate to 2025-02-24, leading to a plus 12 months of 2026-02-24
 
     assertEquals(
-      startDateLowerBound2,
+      lowerBound2,
       LocalDate.of(2026, 2, 24)
     )
 
     // --------------------------------------------------
-    // startDateLowerBound3:
+    // lowerBound3:
 
     // Test1 doesn't have a last price rise date, so we are invariant here:
 
-    val startDateLowerBound3 =
-      StartDates.noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, startDateLowerBound2)
+    val lowerBound3 =
+      AmendmentEffectiveDateCalculator.noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(
+        cohortSpec,
+        subscription,
+        lowerBound2
+      )
 
     assertEquals(
-      startDateLowerBound3,
+      lowerBound3,
       LocalDate.of(2026, 2, 24)
     )
 
     // --------------------------------------------------
-    // startDateLowerBound4:
+    // lowerBound4:
 
     // We start by checking the
     // GuardianWeekly2025Migration.getEarliestMigrationDateFromMigrationExtraAttributes(item)
@@ -176,21 +184,21 @@ class StartDatesTest extends munit.FunSuite {
 
     // Here we have extended attributes: {"earliestMigrationDate":"2026-03-19"}
 
-    val startDateLowerBound4 = GuardianWeekly2025Migration.computeStartDateLowerBound4(startDateLowerBound3, cohortItem)
+    val lowerBound4 = GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound4(lowerBound3, cohortItem)
 
     assertEquals(
-      startDateLowerBound4,
+      lowerBound4,
       LocalDate.of(2026, 3, 19)
     )
 
     // --------------------------------------------------
-    // startDateLowerBound:
+    // lowerBound:
 
     // We report the highest computed date. Without random spread.
     // (Test1 spread period is set to 1)
 
     assertEquals(
-      StartDates.startDateLowerBound(
+      AmendmentEffectiveDateCalculator.AmendmentEffectiveDateLowerBound(
         item = cohortItem,
         subscription = subscription,
         invoicePreview = invoicePreview,
