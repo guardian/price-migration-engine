@@ -39,12 +39,6 @@ case class HomeDelivery2025NotificationData(
 object HomeDelivery2025Migration {
 
   // ------------------------------------------------
-  // Price capping
-  // ------------------------------------------------
-
-  val priceCap = 1.20
-
-  // ------------------------------------------------
   // Notification Timings
   // ------------------------------------------------
 
@@ -208,7 +202,7 @@ object HomeDelivery2025Migration {
       zuora_subscription: ZuoraSubscription,
       oldPrice: BigDecimal,
       estimatedNewPrice: BigDecimal,
-      priceCap: BigDecimal,
+      priceCap: Option[BigDecimal],
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
     // This version of `amendmentOrderPayload`, applied to subscriptions with the active rate plan having

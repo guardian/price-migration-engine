@@ -238,8 +238,7 @@ object AmendmentHandler extends CohortHandler {
               mainChargeEffectDate = amendmentEffectiveDate,
               subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
-              estimatedNewPrice = estimatedNewPrice,
-              priceCap = SupporterPlus2024Migration.priceCap
+              estimatedNewPrice = estimatedNewPrice
             )
           )
         case GuardianWeekly2025 =>
@@ -320,7 +319,7 @@ object AmendmentHandler extends CohortHandler {
       zuora_subscription: ZuoraSubscription,
       oldPrice: BigDecimal,
       estimatedNewPrice: BigDecimal,
-      priceCap: BigDecimal,
+      priceCap: Option[BigDecimal],
       invoiceList: ZuoraInvoiceList
   ): Either[Failure, Value] = {
     MigrationType(cohortSpec) match {
@@ -446,7 +445,7 @@ object AmendmentHandler extends CohortHandler {
             zuora_subscription = subscriptionBeforeUpdate,
             oldPrice = oldPrice,
             estimatedNewPrice = estimatedNewPrice,
-            priceCap = GuardianWeekly2025Migration.priceCap,
+            priceCap = EstimationHandlerHelper.capRatio(cohortSpec).map(ratio => BigDecimal(ratio)),
             invoiceList = invoicePreviewBeforeUpdate
           )
         )

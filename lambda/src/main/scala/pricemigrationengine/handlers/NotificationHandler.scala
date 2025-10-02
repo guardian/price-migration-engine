@@ -145,8 +145,6 @@ object NotificationHandler extends CohortHandler {
       street <- ZIO.fromEither(requiredField(address.street, "Contact.OtherAddress.street"))
       postalCode = address.postalCode.getOrElse("")
       country <- ZIO.fromEither(country(cohortSpec, address))
-      oldPrice <- ZIO.fromEither(requiredField(cohortItem.oldPrice, "CohortItem.oldPrice"))
-      estimatedNewPrice <- ZIO.fromEither(requiredField(cohortItem.estimatedNewPrice, "CohortItem.estimatedNewPrice"))
       amendmentEffectiveDate <- ZIO.fromEither(
         requiredField(cohortItem.amendmentEffectiveDate.map(_.toString()), "CohortItem.amendmentEffectiveDate")
       )
@@ -154,20 +152,10 @@ object NotificationHandler extends CohortHandler {
       paymentFrequency <- paymentFrequency(billingPeriod)
       currencyISOCode <- ZIO.fromEither(requiredField(cohortItem.currency, "CohortItem.currency"))
       currencySymbol <- currencyISOtoSymbol(currencyISOCode)
-
-      priceWithOptionalCappingWithCurrencySymbol = MigrationType(cohortSpec) match {
-        case Test1             => s"${currencySymbol}${estimatedNewPrice}" // default value
-        case SupporterPlus2024 => s"${currencySymbol}${estimatedNewPrice}"
-        case GuardianWeekly2025 =>
-          s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, GuardianWeekly2025Migration.priceCap)}"
-        case Newspaper2025P1 =>
-          s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025P1Migration.priceCap)}"
-        case HomeDelivery2025 =>
-          s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, HomeDelivery2025Migration.priceCap)}"
-        case Newspaper2025P3 =>
-          s"${currencySymbol}${PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025P3Migration.priceCap)}"
-        case ProductMigration2025N4 => s"${currencySymbol}${estimatedNewPrice}"
-      }
+      commsPrice <- ZIO
+        .fromOption(cohortItem.commsPrice)
+        .orElseFail(DataExtractionFailure(s"[cd945387] $cohortItem does not have a commsPrice"))
+      commsPriceWithCurrencySymbol = s"${currencySymbol}${commsPrice}"
 
       _ <- logMissingEmailAddress(cohortItem, contact)
 
@@ -239,7 +227,7 @@ object NotificationHandler extends CohortHandler {
               billing_postal_code = postalCode,
               billing_state = address.state,
               billing_country = country,
-              payment_amount = priceWithOptionalCappingWithCurrencySymbol, // [1]
+              payment_amount = commsPriceWithCurrencySymbol, // [1]
               next_payment_date = startDateConversion(amendmentEffectiveDate),
               payment_frequency = paymentFrequency,
               subscription_id = cohortItem.subscriptionName,

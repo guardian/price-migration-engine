@@ -44,12 +44,6 @@ case class Newspaper2025P1NotificationData(
 object Newspaper2025P1Migration {
 
   // ------------------------------------------------
-  // Price capping
-  // ------------------------------------------------
-
-  val priceCap = 1.20
-
-  // ------------------------------------------------
   // Notification Timings
   // ------------------------------------------------
 
@@ -249,7 +243,7 @@ object Newspaper2025P1Migration {
       zuora_subscription: ZuoraSubscription,
       oldPrice: BigDecimal,
       estimatedNewPrice: BigDecimal,
-      priceCap: BigDecimal,
+      priceCap: Option[BigDecimal],
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
 
