@@ -110,8 +110,7 @@ object ProductMigration2025N4Migration {
       effectDate: LocalDate,
       zuora_subscription: ZuoraSubscription,
       oldPrice: BigDecimal,
-      estimatedNewPrice: BigDecimal,
-      priceCap: Option[BigDecimal],
+      commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = ???
 }

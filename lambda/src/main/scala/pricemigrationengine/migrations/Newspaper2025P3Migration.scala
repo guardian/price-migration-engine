@@ -213,8 +213,7 @@ object Newspaper2025P3Migration {
       effectDate: LocalDate,
       zuora_subscription: ZuoraSubscription,
       oldPrice: BigDecimal,
-      estimatedNewPrice: BigDecimal,
-      priceCap: Option[BigDecimal],
+      commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
 
@@ -228,7 +227,7 @@ object Newspaper2025P3Migration {
 
     // Note that we do use `get` here. The cohort items always get them from the estimation step, but in the
     // abnormal case it would not, we want the process to error and alarm.
-    val priceRatio = estimatedNewPrice / oldPrice
+    val priceRatio = commsPrice / oldPrice
 
     val order_opt = {
       if (!decideShouldRemoveDiscount(cohortItem)) {
@@ -243,7 +242,7 @@ object Newspaper2025P3Migration {
           val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
             ratePlan.ratePlanCharges,
             priceRatio,
-            estimatedNewPrice,
+            commsPrice,
             BillingPeriod.toString(billingPeriod)
           )
           val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
@@ -269,7 +268,7 @@ object Newspaper2025P3Migration {
           val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
             ratePlan.ratePlanCharges,
             priceRatio,
-            estimatedNewPrice,
+            commsPrice,
             BillingPeriod.toString(billingPeriod)
           )
           val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)

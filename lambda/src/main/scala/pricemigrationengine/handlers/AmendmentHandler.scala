@@ -154,32 +154,27 @@ object AmendmentHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       cohortItem: CohortItem,
       subscriptionAfterUpdate: ZuoraSubscription,
-      estimatedNewPrice: BigDecimal,
+      commsPrice: BigDecimal,
       newPrice: BigDecimal,
       today: LocalDate
   ): Either[String, Unit] = {
     if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec)) {
-      if (
-        SI2025Extractions.subscriptionHasActiveDiscounts(subscriptionAfterUpdate, today)
-        || AmendmentHandlerHelper.newPriceHasBeenCappedAt20Percent(cohortItem.oldPrice.get, newPrice)
-        // Purposeful use of `.get` in the above as a cohortItem in Amendment step without
-        // an `oldPrice` would be extremely pathological
-      ) {
-        if (newPrice > estimatedNewPrice) {
-          // should perform final check
-          // has active discount, therefore only performing the inequality check
-          // has failed the check
-          Left(
-            s"[6831cff2] Item ${cohortItem} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice} (nb: has discounts)"
-          )
-        } else {
+      if (SI2025Extractions.subscriptionHasActiveDiscounts(subscriptionAfterUpdate, today)) {
+        if (newPrice < commsPrice) {
           // should perform final check
           // has active discount, therefore only performing the inequality check
           // has passed the check
           Right(())
+        } else {
+          // should perform final check
+          // has active discount, therefore only performing the inequality check
+          // has failed the check
+          Left(
+            s"[6831cff2] Item ${cohortItem} has gone through the amendment step but has failed the final price check. commsPrice was ${commsPrice}, but the final price was ${newPrice} (nb: has discounts)"
+          )
         }
       } else {
-        if (AmendmentHandlerHelper.priceEquality(estimatedNewPrice, newPrice)) {
+        if (AmendmentHandlerHelper.priceEquality(commsPrice, newPrice)) {
           // should perform final check
           // has no active discount, therefore performing the "equality" check
           // has passed the check
@@ -189,7 +184,7 @@ object AmendmentHandler extends CohortHandler {
           // has no active discount, therefore performing the "equality" check
           // has failed the check
           Left(
-            s"[e9054daa] Item ${cohortItem} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice} (nb: no discounts)"
+            s"[e9054daa] Item ${cohortItem} has gone through the amendment step but has failed the final price check. commsPrice was ${commsPrice}, but the final price was ${newPrice} (nb: no discounts)"
           )
         }
       }
@@ -301,9 +296,7 @@ object AmendmentHandler extends CohortHandler {
     } yield SuccessfulAmendmentResult(
       item.subscriptionName,
       amendmentEffectiveDate,
-      oldPrice,
       newPrice,
-      estimatedNewPrice,
       subscriptionAfterUpdate.id,
       whenDone
     )
@@ -318,8 +311,7 @@ object AmendmentHandler extends CohortHandler {
       effectDate: LocalDate,
       zuora_subscription: ZuoraSubscription,
       oldPrice: BigDecimal,
-      estimatedNewPrice: BigDecimal,
-      priceCap: Option[BigDecimal],
+      commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList
   ): Either[Failure, Value] = {
     MigrationType(cohortSpec) match {
@@ -335,8 +327,7 @@ object AmendmentHandler extends CohortHandler {
           effectDate,
           zuora_subscription,
           oldPrice,
-          estimatedNewPrice,
-          priceCap,
+          commsPrice,
           invoiceList
         )
       case Newspaper2025P1 =>
@@ -348,8 +339,7 @@ object AmendmentHandler extends CohortHandler {
           effectDate,
           zuora_subscription,
           oldPrice,
-          estimatedNewPrice,
-          priceCap,
+          commsPrice,
           invoiceList
         )
       case HomeDelivery2025 =>
@@ -361,8 +351,7 @@ object AmendmentHandler extends CohortHandler {
           effectDate,
           zuora_subscription,
           oldPrice,
-          estimatedNewPrice,
-          priceCap,
+          commsPrice,
           invoiceList
         )
       case Newspaper2025P3 =>
@@ -374,8 +363,7 @@ object AmendmentHandler extends CohortHandler {
           effectDate,
           zuora_subscription,
           oldPrice,
-          estimatedNewPrice,
-          priceCap,
+          commsPrice,
           invoiceList
         )
       case ProductMigration2025N4 =>
@@ -387,8 +375,7 @@ object AmendmentHandler extends CohortHandler {
           effectDate,
           zuora_subscription,
           oldPrice,
-          estimatedNewPrice,
-          priceCap,
+          commsPrice,
           invoiceList
         )
     }
@@ -408,10 +395,10 @@ object AmendmentHandler extends CohortHandler {
 
       oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(DataExtractionFailure(s"No old price in $item"))
 
-      estimatedNewPrice <-
+      commsPrice <-
         ZIO
-          .fromOption(item.estimatedNewPrice)
-          .orElseFail(DataExtractionFailure(s"No estimated new price in $item"))
+          .fromOption(item.commsPrice)
+          .orElseFail(DataExtractionFailure(s"No commsPrice in $item"))
 
       invoicePreviewTargetDate = amendmentEffectiveDate.plusMonths(13)
 
@@ -444,8 +431,7 @@ object AmendmentHandler extends CohortHandler {
             effectDate = amendmentEffectiveDate,
             zuora_subscription = subscriptionBeforeUpdate,
             oldPrice = oldPrice,
-            estimatedNewPrice = estimatedNewPrice,
-            priceCap = EstimationHandlerHelper.capRatio(cohortSpec).map(ratio => BigDecimal(ratio)),
+            commsPrice = commsPrice,
             invoiceList = invoicePreviewBeforeUpdate
           )
         )
@@ -488,7 +474,7 @@ object AmendmentHandler extends CohortHandler {
 
       _ <- ZIO
         .fromEither(
-          postAmendmentPriceCheck(cohortSpec, item, subscriptionAfterUpdate, estimatedNewPrice, newPrice, today)
+          postAmendmentPriceCheck(cohortSpec, item, subscriptionAfterUpdate, commsPrice, newPrice, today)
         )
         .mapError(message => AmendmentFailure(message))
 
@@ -496,9 +482,7 @@ object AmendmentHandler extends CohortHandler {
     } yield SuccessfulAmendmentResult(
       item.subscriptionName,
       amendmentEffectiveDate,
-      oldPrice,
       newPrice,
-      estimatedNewPrice,
       subscriptionAfterUpdate.id,
       whenDone
     )
