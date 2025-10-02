@@ -40,7 +40,7 @@ object EstimationResult {
       priceData.currency,
       priceData.oldPrice,
       priceData.newPrice, // aka: estimatedNewPrice
-      EstimationHandlerHelper.computeCommsPrice(cohortSpec, priceData.oldPrice, priceData.newPrice),
+      EstimationHandlerHelper.commsPrice(cohortSpec, priceData.oldPrice, priceData.newPrice),
       priceData.billingPeriod
     )
   }
