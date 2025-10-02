@@ -14,18 +14,23 @@ case class CohortItem(
     newPrice: Option[BigDecimal] = None,
     billingPeriod: Option[String] = None,
     amendmentEffectiveDate: Option[LocalDate] = None,
-    whenEstimationDone: Option[Instant] = None,
     salesforcePriceRiseId: Option[String] = None,
-    whenSfShowEstimate: Option[Instant] = None,
     newSubscriptionId: Option[ZuoraSubscriptionId] = None,
+
+    //
+    doNotProcessUntil: Option[LocalDate] = None, // [18]
+    migrationExtraAttributes: Option[String] = None, // [19]
+    cancellationReason: Option[String] = None,
+
+    // timestamps
+    whenEstimationDone: Option[Instant] = None,
     whenAmendmentDone: Option[Instant] = None,
     whenNotificationSent: Option[Instant] = None,
     whenNotificationSentWrittenToSalesforce: Option[Instant] = None,
     whenAmendmentWrittenToSalesforce: Option[Instant] = None,
-    cancellationReason: Option[String] = None,
-    doNotProcessUntil: Option[LocalDate] = None, // [18]
-    migrationExtraAttributes: Option[String] = None, // [19]
+    whenSfShowEstimate: Option[Instant] = None,
 
+    // ------------------------------------------------------
     // For migration specific extensions, see docs/cohort-items.md
 
     // ProductMigration2025N4
