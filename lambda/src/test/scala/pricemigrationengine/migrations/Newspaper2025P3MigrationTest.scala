@@ -453,7 +453,7 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     val cohortItem = CohortItem(
       subscriptionName = subscription.subscriptionNumber,
       processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
-      startDate = Some(startDate),
+      amendmentEffectiveDate = Some(startDate),
       currency = Some("GBP"),
       oldPrice = Some(oldPrice),
       estimatedNewPrice = Some(estimatedNewPrice),

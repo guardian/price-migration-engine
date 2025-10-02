@@ -126,7 +126,7 @@ class CohortTableLiveTest extends munit.FunSuite {
         CohortItem(
           subscriptionName = subscriptionId,
           processingStage = processingStage,
-          startDate = Some(startDate),
+          amendmentEffectiveDate = Some(startDate),
           currency = Some(currency),
           oldPrice = Some(oldPrice),
           estimatedNewPrice = Some(estimatedNewPrice),
@@ -252,7 +252,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       whenEstimationDone = Some(whenEstimationDone),
       salesforcePriceRiseId = Some(priceRiseId),
       whenSfShowEstimate = Some(sfShowEstimate),
-      startDate = Some(startDate),
+      amendmentEffectiveDate = Some(startDate),
       newSubscriptionId = Some(newSubscriptionId),
       whenAmendmentDone = Some(whenAmendmentDone),
       whenNotificationSent = Some(whenNotificationSent),

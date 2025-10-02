@@ -48,7 +48,7 @@ object CohortTableLive {
         } yield CohortItem(
           subscriptionName = subscriptionNumber,
           processingStage = processingStage,
-          startDate = startDate,
+          amendmentEffectiveDate = startDate,
           currency = currency,
           oldPrice = oldPrice,
           estimatedNewPrice = estimatedNewPrice,
@@ -78,7 +78,7 @@ object CohortTableLive {
     cohortItem =>
       List(
         Option(stringFieldUpdate("processingStage", cohortItem.processingStage.value)),
-        cohortItem.startDate.map(startDate => dateFieldUpdate("startDate", startDate)),
+        cohortItem.amendmentEffectiveDate.map(startDate => dateFieldUpdate("startDate", startDate)),
         cohortItem.currency.map(currency => stringFieldUpdate("currency", currency)),
         cohortItem.oldPrice.map(oldPrice => bigDecimalFieldUpdate("oldPrice", oldPrice)),
         cohortItem.estimatedNewPrice
@@ -90,7 +90,7 @@ object CohortTableLive {
           .map(salesforcePriceRiseId => stringFieldUpdate("salesforcePriceRiseId", salesforcePriceRiseId)),
         cohortItem.whenSfShowEstimate
           .map(whenSfShowEstimate => instantFieldUpdate("whenSfShowEstimate", whenSfShowEstimate)),
-        cohortItem.startDate.map(startDate => dateFieldUpdate("startDate", startDate)),
+        cohortItem.amendmentEffectiveDate.map(startDate => dateFieldUpdate("startDate", startDate)),
         cohortItem.newPrice.map(newPrice => bigDecimalFieldUpdate("newPrice", newPrice)),
         cohortItem.newSubscriptionId
           .map(newSubscriptionId => stringFieldUpdate("newSubscriptionId", newSubscriptionId)),
