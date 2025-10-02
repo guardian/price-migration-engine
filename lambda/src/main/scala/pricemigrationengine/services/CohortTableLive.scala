@@ -14,7 +14,7 @@ object CohortTableLive {
   private val keyAttribName = "subscriptionNumber"
 
   private val ProcessingStageIndexName = "ProcessingStageIndexV2"
-  private val ProcessingStageAndStartDateIndexName = "ProcessingStageStartDateIndexV1"
+  private val ProcessingStageAndDateIndexName = "ProcessingStageAndDateIndexV1"
 
   private implicit val cohortItemDeserialiser: DynamoDBDeserialiser[CohortItem] = { cohortItem =>
     ZIO
@@ -147,7 +147,7 @@ object CohortTableLive {
         ): ZStream[Any, CohortFetchFailure, CohortItem] = {
           val indexName =
             latestAmendmentEffectiveDateInclusive
-              .fold(ProcessingStageIndexName)(_ => ProcessingStageAndStartDateIndexName)
+              .fold(ProcessingStageIndexName)(_ => ProcessingStageAndDateIndexName)
           val queryRequest =
             QueryRequest.builder
               .tableName(tableName)

@@ -13,10 +13,10 @@ object CohortTableDdlLive {
   private val partitionKey = "subscriptionNumber"
 
   private val stageIndex = "ProcessingStageIndexV2"
-  private val stageAndStartDateIndex = "ProcessingStageStartDateIndexV1"
+  private val stageAndDateIndex = "ProcessingStageAndDateIndexV1"
 
   private val stageAttribute = "processingStage"
-  private val startDateAttribute = "startDate"
+  private val amendmentEffectiveDateAttribute = "amendmentEffectiveDate"
 
   val impl: ZLayer[DynamoDBClient with StageConfig with Logging, ConfigFailure, CohortTableDdl] =
     ZLayer.fromZIO(
@@ -34,7 +34,7 @@ object CohortTableDdlLive {
               AttributeDefinition.builder.attributeName(partitionKey).attributeType(S).build(),
               AttributeDefinition.builder.attributeName(stageAttribute).attributeType(S).build(),
               AttributeDefinition.builder
-                .attributeName(startDateAttribute)
+                .attributeName(amendmentEffectiveDateAttribute)
                 .attributeType(S)
                 .build()
             )
@@ -45,10 +45,10 @@ object CohortTableDdlLive {
                 .projection(Projection.builder.projectionType(ProjectionType.ALL).build())
                 .build(),
               GlobalSecondaryIndex.builder
-                .indexName(stageAndStartDateIndex)
+                .indexName(stageAndDateIndex)
                 .keySchema(
                   KeySchemaElement.builder.attributeName(stageAttribute).keyType(HASH).build(),
-                  KeySchemaElement.builder.attributeName(startDateAttribute).keyType(RANGE).build()
+                  KeySchemaElement.builder.attributeName(amendmentEffectiveDateAttribute).keyType(RANGE).build()
                 )
                 .projection(Projection.builder.projectionType(ProjectionType.ALL).build())
                 .build()
