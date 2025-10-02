@@ -2,8 +2,8 @@ package pricemigrationengine.model
 
 object EstimationHandlerHelper {
 
-  def capRatio(cohortSpec: CohortSpec): Option[Double] = {
-    // This is where we declare the optional capping of each subscriptions
+  def migrationCapRatio(cohortSpec: CohortSpec): Option[Double] = {
+    // This is where we declare the optional capping of each subscription
     MigrationType(cohortSpec) match {
       case Test1                  => None
       case SupporterPlus2024      => None
@@ -19,7 +19,7 @@ object EstimationHandlerHelper {
     PriceCap.cappedPrice(
       oldPrice,
       estimatedNewPriceUncapped,
-      capRatio(cohortSpec: CohortSpec).map(ratio => BigDecimal(ratio))
+      migrationCapRatio(cohortSpec: CohortSpec).map(ratio => BigDecimal(ratio))
     )
   }
 }
