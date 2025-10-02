@@ -28,7 +28,7 @@ class CohortTableLiveTest extends munit.FunSuite {
   val tableName = "PriceMigration-DEV-name"
   val subscriptionId = "subscription-id"
   val processingStage = ReadyForEstimation
-  val startDate = LocalDate.now.plusDays(Random.nextInt(365))
+  val amendmentEffectiveDate = LocalDate.now.plusDays(Random.nextInt(365))
   val currency = "GBP"
   val oldPrice = Random.nextDouble()
   val newPrice = Random.nextDouble()
@@ -104,7 +104,6 @@ class CohortTableLiveTest extends munit.FunSuite {
           Map(
             "subscriptionNumber" -> AttributeValue.builder.s(subscriptionId).build(),
             "processingStage" -> AttributeValue.builder.s(processingStage.value).build(),
-            "expectedStartDate" -> AttributeValue.builder.s(startDate.toString).build(),
             "currency" -> AttributeValue.builder.s(currency).build(),
             "oldPrice" -> AttributeValue.builder.n(oldPrice.toString).build(),
             "estimatedNewPrice" -> AttributeValue.builder.n(estimatedNewPrice.toString).build(),
@@ -112,7 +111,7 @@ class CohortTableLiveTest extends munit.FunSuite {
             "whenEstimationDone" -> AttributeValue.builder.s(formatTimestamp(whenEstimationDone)).build(),
             "salesforcePriceRiseId" -> AttributeValue.builder.s(priceRiseId).build(),
             "whenSfShowEstimate" -> AttributeValue.builder.s(formatTimestamp(sfShowEstimate)).build(),
-            "startDate" -> AttributeValue.builder.s(startDate.toString).build(),
+            "amendmentEffectiveDate" -> AttributeValue.builder.s(amendmentEffectiveDate.toString).build(),
             "newPrice" -> AttributeValue.builder.n(newPrice.toString).build(),
             "newSubscriptionId" -> AttributeValue.builder.s(newSubscriptionId).build(),
             "whenAmendmentDone" -> AttributeValue.builder.s(formatTimestamp(whenAmendmentDone)).build(),
@@ -126,7 +125,7 @@ class CohortTableLiveTest extends munit.FunSuite {
         CohortItem(
           subscriptionName = subscriptionId,
           processingStage = processingStage,
-          startDate = Some(startDate),
+          amendmentEffectiveDate = Some(amendmentEffectiveDate),
           currency = Some(currency),
           oldPrice = Some(oldPrice),
           estimatedNewPrice = Some(estimatedNewPrice),
@@ -194,13 +193,13 @@ class CohortTableLiveTest extends munit.FunSuite {
     assertEquals(receivedRequest.get.indexName, "ProcessingStageStartDateIndexV1")
     assertEquals(
       receivedRequest.get.keyConditionExpression,
-      "processingStage = :processingStage AND startDate <= :latestStartDateInclusive"
+      "processingStage = :processingStage AND amendmentEffectiveDate <= :date"
     )
     assertEquals(
       receivedRequest.get.expressionAttributeValues,
       Map(
         ":processingStage" -> AttributeValue.builder.s("ReadyForEstimation").build(),
-        ":latestStartDateInclusive" -> AttributeValue.builder.s(expectedLatestDate.toString).build()
+        ":date" -> AttributeValue.builder.s(expectedLatestDate.toString).build()
       ).asJava
     )
   }
@@ -252,7 +251,7 @@ class CohortTableLiveTest extends munit.FunSuite {
       whenEstimationDone = Some(whenEstimationDone),
       salesforcePriceRiseId = Some(priceRiseId),
       whenSfShowEstimate = Some(sfShowEstimate),
-      startDate = Some(startDate),
+      amendmentEffectiveDate = Some(amendmentEffectiveDate),
       newSubscriptionId = Some(newSubscriptionId),
       whenAmendmentDone = Some(whenAmendmentDone),
       whenNotificationSent = Some(whenNotificationSent),
@@ -351,12 +350,12 @@ class CohortTableLiveTest extends munit.FunSuite {
       "whenSfShowEstimate"
     )
     assertEquals(
-      update.get("startDate"),
+      update.get("amendmentEffectiveDate"),
       AttributeValueUpdate.builder
-        .value(AttributeValue.builder.s(startDate.toString).build())
+        .value(AttributeValue.builder.s(amendmentEffectiveDate.toString).build())
         .action(PUT)
         .build(),
-      "startDate"
+      "amendmentEffectiveDate"
     )
     assertEquals(
       update.get("newSubscriptionId"),

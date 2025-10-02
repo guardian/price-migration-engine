@@ -585,7 +585,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     val cohortItem = CohortItem(
       subscriptionName = subscription.subscriptionNumber,
       processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
-      startDate = Some(startDate),
+      amendmentEffectiveDate = Some(startDate),
       currency = Some("EUR"),
       oldPrice = Some(oldPrice),
       estimatedNewPrice = Some(estimatedNewPrice),
@@ -775,7 +775,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     val cohortItem = CohortItem(
       subscriptionName = subscription.subscriptionNumber,
       processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
-      startDate = Some(startDate),
+      amendmentEffectiveDate = Some(startDate),
       currency = Some("EUR"),
       oldPrice = Some(oldPrice),
       estimatedNewPrice = Some(estimatedNewPrice),

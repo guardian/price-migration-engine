@@ -22,7 +22,7 @@ object CohortTableLive {
         for {
           subscriptionNumber <- getStringFromResults(cohortItem, keyAttribName)
           processingStage <- getCohortTableFilter(cohortItem, "processingStage")
-          startDate <- getOptionalDateFromResults(cohortItem, "startDate")
+          startDate <- getOptionalDateFromResults(cohortItem, "amendmentEffectiveDate")
           currency <- getOptionalStringFromResults(cohortItem, "currency")
           oldPrice <- getOptionalBigDecimalFromResults(cohortItem, "oldPrice")
           estimatedNewPrice <- getOptionalBigDecimalFromResults(cohortItem, "estimatedNewPrice")
@@ -48,7 +48,7 @@ object CohortTableLive {
         } yield CohortItem(
           subscriptionName = subscriptionNumber,
           processingStage = processingStage,
-          startDate = startDate,
+          amendmentEffectiveDate = startDate,
           currency = currency,
           oldPrice = oldPrice,
           estimatedNewPrice = estimatedNewPrice,
@@ -78,7 +78,7 @@ object CohortTableLive {
     cohortItem =>
       List(
         Option(stringFieldUpdate("processingStage", cohortItem.processingStage.value)),
-        cohortItem.startDate.map(startDate => dateFieldUpdate("startDate", startDate)),
+        cohortItem.amendmentEffectiveDate.map(startDate => dateFieldUpdate("amendmentEffectiveDate", startDate)),
         cohortItem.currency.map(currency => stringFieldUpdate("currency", currency)),
         cohortItem.oldPrice.map(oldPrice => bigDecimalFieldUpdate("oldPrice", oldPrice)),
         cohortItem.estimatedNewPrice
@@ -90,7 +90,7 @@ object CohortTableLive {
           .map(salesforcePriceRiseId => stringFieldUpdate("salesforcePriceRiseId", salesforcePriceRiseId)),
         cohortItem.whenSfShowEstimate
           .map(whenSfShowEstimate => instantFieldUpdate("whenSfShowEstimate", whenSfShowEstimate)),
-        cohortItem.startDate.map(startDate => dateFieldUpdate("startDate", startDate)),
+        cohortItem.amendmentEffectiveDate.map(startDate => dateFieldUpdate("amendmentEffectiveDate", startDate)),
         cohortItem.newPrice.map(newPrice => bigDecimalFieldUpdate("newPrice", newPrice)),
         cohortItem.newSubscriptionId
           .map(newSubscriptionId => stringFieldUpdate("newSubscriptionId", newSubscriptionId)),
@@ -142,26 +142,26 @@ object CohortTableLive {
 
         override def fetch(
             filter: CohortTableFilter,
-            latestStartDateInclusive: Option[LocalDate]
+            latestAmendmentEffectiveDateInclusive: Option[LocalDate]
         ): ZStream[Any, CohortFetchFailure, CohortItem] = {
           val indexName =
-            latestStartDateInclusive
+            latestAmendmentEffectiveDateInclusive
               .fold(ProcessingStageIndexName)(_ => ProcessingStageAndStartDateIndexName)
           val queryRequest =
             QueryRequest.builder
               .tableName(tableName)
               .indexName(indexName)
               .keyConditionExpression(
-                "processingStage = :processingStage" + latestStartDateInclusive.fold("") { _ =>
-                  " AND startDate <= :latestStartDateInclusive"
+                "processingStage = :processingStage" + latestAmendmentEffectiveDateInclusive.fold("") { _ =>
+                  " AND amendmentEffectiveDate <= :date"
                 }
               )
               .expressionAttributeValues(
                 List(
                   Some(":processingStage" -> AttributeValue.builder.s(filter.value).build()),
-                  latestStartDateInclusive.map { latestStartDateInclusive =>
-                    ":latestStartDateInclusive" -> AttributeValue.builder
-                      .s(latestStartDateInclusive.toString)
+                  latestAmendmentEffectiveDateInclusive.map { date =>
+                    ":date" -> AttributeValue.builder
+                      .s(date.toString)
                       .build()
                   }
                 ).flatten.toMap.asJava

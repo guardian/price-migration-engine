@@ -84,7 +84,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
           .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have an estimatedNewPrice"))
       priceRiseDate <-
         ZIO
-          .fromOption(cohortItem.startDate)
+          .fromOption(cohortItem.amendmentEffectiveDate)
           .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a startDate"))
     } yield {
       val estimatedPriceWithOptionalCapping = MigrationType(cohortSpec) match {

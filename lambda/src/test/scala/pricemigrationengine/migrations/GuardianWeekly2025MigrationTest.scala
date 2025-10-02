@@ -819,7 +819,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     val cohortItem = CohortItem(
       subscriptionName = subscription.subscriptionNumber,
       processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
-      startDate = Some(startDate),
+      amendmentEffectiveDate = Some(startDate),
       currency = Some("GBP"),
       oldPrice = Some(oldPrice),
       estimatedNewPrice = Some(estimatedNewPrice),
@@ -976,7 +976,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     val cohortItem = CohortItem(
       subscriptionName = subscription.subscriptionNumber,
       processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
-      startDate = Some(startDate),
+      amendmentEffectiveDate = Some(startDate),
       currency = Some("GBP"),
       oldPrice = Some(oldPrice),
       estimatedNewPrice = Some(estimatedNewPrice),
@@ -1119,7 +1119,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     val cohortItem = CohortItem(
       subscriptionName = subscription.subscriptionNumber,
       processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
-      startDate = Some(startDate),
+      amendmentEffectiveDate = Some(startDate),
       currency = Some("EUR"),
       oldPrice = Some(oldPrice),
       estimatedNewPrice = Some(estimatedNewPrice),
