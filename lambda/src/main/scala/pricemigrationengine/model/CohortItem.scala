@@ -23,9 +23,21 @@ case class CohortItem(
     // [3] Price (with possible capping) used in the communication to the user and sent to Salesforce
     // [4] Price read from the post amendment subscription
 
-    //
     doNotProcessUntil: Option[LocalDate] = None, // [18]
+    // comment group: 6157ec78
+    // `doNotProcessUntil` was introduced in July 2024 as a simple way to support
+    // the "cancellation saves" feature that has been introduced this month and affecting the
+    // cancellation journey of Supporter Plus subscriptions.
+    // The default value is `None`, and if a none trivial value is present it represents
+    // the date until when the item should be left alone and not being processed.
+
     migrationExtraAttributes: Option[String] = None, // [19]
+    // migrationExtraAttributes was introduced to allow a cohort item to hold
+    // extra attributes that are migration dependent (specifically for the
+    // Guardian Weekly 2025 migration), for if and when we need to perform
+    // operations using parameters that are not hold into the Zuora subscription.
+    // For more details about when and how to use that attribute, see the documentation.
+
     cancellationReason: Option[String] = None,
 
     // timestamps
@@ -46,28 +58,6 @@ case class CohortItem(
     ex_2025N4_rateplan_current: Option[String] = None,
     ex_2025N4_rateplan_target: Option[String] = None,
 )
-
-// [18]
-//
-// Date: July 2024
-// Author: Pascal
-// comment group: 6157ec78
-//
-// `doNotProcessUntil` was introduced in July 2024 as a simple way to support
-// the "cancellation saves" feature that has been introduced this month and affecting the
-// cancellation journey of Supporter Plus subscriptions.
-// The default value is `None`, and if a none trivial value is present it represents
-// the date until when the item should be left alone and not being processed.
-
-// [19]
-//
-// Date: June 2025
-// Author: Pascal
-// Comment: migrationExtraAttributes was introduced to allow a cohort item to hold
-// extra attributes that are migration dependent (specifically for the
-// Guardian Weekly 2025 migration), for if and when we need to perform
-// operations using parameters that are not hold into the Zuora subscription.
-// For more details about when and how to use that attribute, see the documentation.
 
 object CohortItem {
 
