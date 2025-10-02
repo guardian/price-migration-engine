@@ -9,13 +9,19 @@ case class CohortItem(
     subscriptionName: String,
     processingStage: CohortTableFilter,
     currency: Option[Currency] = None,
-    oldPrice: Option[BigDecimal] = None,
-    estimatedNewPrice: Option[BigDecimal] = None,
-    newPrice: Option[BigDecimal] = None,
+    oldPrice: Option[BigDecimal] = None, // [1]
+    estimatedNewPrice: Option[BigDecimal] = None, // [2]
+    commsPrice: Option[BigDecimal] = None, // [3]
+    newPrice: Option[BigDecimal] = None, // [4]
     billingPeriod: Option[String] = None,
     amendmentEffectiveDate: Option[LocalDate] = None,
     salesforcePriceRiseId: Option[String] = None,
     newSubscriptionId: Option[ZuoraSubscriptionId] = None,
+
+    // [1] Pre migration price
+    // [2] Price derived from the Estimation step, without capping
+    // [3] Price (with possible capping) used in the communication to the user and sent to Salesforce
+    // [4] Price read from the post amendment subscription
 
     //
     doNotProcessUntil: Option[LocalDate] = None, // [18]
