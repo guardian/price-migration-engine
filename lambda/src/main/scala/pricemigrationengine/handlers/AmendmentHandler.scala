@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.{AmendmentHelper, ZuoraOrdersApiPrimitives}
+import pricemigrationengine.model.{AmendmentHandlerHelper, ZuoraOrdersApiPrimitives}
 import pricemigrationengine.model.CohortTableFilter.{NotificationSendDateWrittenToSalesforce, ZuoraCancellation}
 import pricemigrationengine.model._
 import pricemigrationengine.migrations._
@@ -161,7 +161,7 @@ object AmendmentHandler extends CohortHandler {
     if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec)) {
       if (
         SI2025Extractions.subscriptionHasActiveDiscounts(subscriptionAfterUpdate, today)
-        || AmendmentHelper.newPriceHasBeenCappedAt20Percent(cohortItem.oldPrice.get, newPrice)
+        || AmendmentHandlerHelper.newPriceHasBeenCappedAt20Percent(cohortItem.oldPrice.get, newPrice)
         // Purposeful use of `.get` in the above as a cohortItem in Amendment step without
         // an `oldPrice` would be extremely pathological
       ) {
@@ -179,7 +179,7 @@ object AmendmentHandler extends CohortHandler {
           Right(())
         }
       } else {
-        if (AmendmentHelper.priceEquality(estimatedNewPrice, newPrice)) {
+        if (AmendmentHandlerHelper.priceEquality(estimatedNewPrice, newPrice)) {
           // should perform final check
           // has no active discount, therefore performing the "equality" check
           // has passed the check
@@ -267,7 +267,7 @@ object AmendmentHandler extends CohortHandler {
         Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)
 
       _ <- {
-        val test = AmendmentHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
+        val test = AmendmentHandlerHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
           item.billingPeriod,
           subscriptionAfterUpdate,
           invoicePreviewAfterUpdate
