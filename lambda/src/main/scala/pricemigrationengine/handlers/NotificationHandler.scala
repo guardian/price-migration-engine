@@ -147,8 +147,8 @@ object NotificationHandler extends CohortHandler {
       country <- ZIO.fromEither(country(cohortSpec, address))
       oldPrice <- ZIO.fromEither(requiredField(cohortItem.oldPrice, "CohortItem.oldPrice"))
       estimatedNewPrice <- ZIO.fromEither(requiredField(cohortItem.estimatedNewPrice, "CohortItem.estimatedNewPrice"))
-      startDate <- ZIO.fromEither(
-        requiredField(cohortItem.amendmentEffectiveDate.map(_.toString()), "CohortItem.startDate")
+      amendmentEffectiveDate <- ZIO.fromEither(
+        requiredField(cohortItem.amendmentEffectiveDate.map(_.toString()), "CohortItem.amendmentEffectiveDate")
       )
       billingPeriod <- ZIO.fromEither(requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod"))
       paymentFrequency <- paymentFrequency(billingPeriod)
@@ -240,7 +240,7 @@ object NotificationHandler extends CohortHandler {
               billing_state = address.state,
               billing_country = country,
               payment_amount = priceWithOptionalCappingWithCurrencySymbol, // [1]
-              next_payment_date = startDateConversion(startDate),
+              next_payment_date = startDateConversion(amendmentEffectiveDate),
               payment_frequency = paymentFrequency,
               subscription_id = cohortItem.subscriptionName,
               product_type = sfSubscription.Product_Type__c.getOrElse(""),

@@ -158,7 +158,9 @@ object EstimationHandler extends CohortHandler {
           today
         )
       )
-      _ <- Logging.info(s"item: ${item.toString}, startDateLowerBound: ${amendmentEffectiveDateLowerBound}")
+      _ <- Logging.info(
+        s"item: ${item.toString}, amendmentEffectiveDateLowerBound: ${amendmentEffectiveDateLowerBound}"
+      )
       result <- ZIO.fromEither(
         EstimationResult(account, catalogue, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec)
       )
