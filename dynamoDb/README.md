@@ -57,7 +57,7 @@ aws dynamodb query \
     --profile membership \
     --region eu-west-1 \
     --table-name PriceMigrationEngineDEV \
-    --index-name ProcessingStageStartDateIndexV1 \
+    --index-name ProcessingStageAmendmentDateIndexV1 \
     --key-condition-expression "processingStage = :stage AND amendmentEffectiveDate BETWEEN :earliestDate AND :latestDate" \
     --expression-attribute-values '{":stage":{"S":"SalesforcePriceRiseCreationComplete"},":earliestDate":{"S":"2020-06-26"},":latestDate":{"S":"2020-06-28"}}'
 ```
