@@ -90,7 +90,6 @@ object CohortTableLive {
           .map(salesforcePriceRiseId => stringFieldUpdate("salesforcePriceRiseId", salesforcePriceRiseId)),
         cohortItem.whenSfShowEstimate
           .map(whenSfShowEstimate => instantFieldUpdate("whenSfShowEstimate", whenSfShowEstimate)),
-        cohortItem.startDate.map(startDate => dateFieldUpdate("startDate", startDate)),
         cohortItem.newPrice.map(newPrice => bigDecimalFieldUpdate("newPrice", newPrice)),
         cohortItem.newSubscriptionId
           .map(newSubscriptionId => stringFieldUpdate("newSubscriptionId", newSubscriptionId)),
