@@ -165,18 +165,18 @@ object AmendmentHandler extends CohortHandler {
         // Purposeful use of `.get` in the above as a cohortItem in Amendment step without
         // an `oldPrice` would be extremely pathological
       ) {
-        if (newPrice > estimatedNewPrice) {
+        if (newPrice < estimatedNewPrice) {
+          // should perform final check
+          // has active discount, therefore only performing the inequality check
+          // has passed the check
+          Right(())
+        } else {
           // should perform final check
           // has active discount, therefore only performing the inequality check
           // has failed the check
           Left(
             s"[6831cff2] Item ${cohortItem} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice} (nb: has discounts)"
           )
-        } else {
-          // should perform final check
-          // has active discount, therefore only performing the inequality check
-          // has passed the check
-          Right(())
         }
       } else {
         if (AmendmentHandlerHelper.priceEquality(estimatedNewPrice, newPrice)) {
