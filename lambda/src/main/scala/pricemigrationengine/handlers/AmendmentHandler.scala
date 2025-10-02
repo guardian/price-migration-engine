@@ -326,7 +326,6 @@ object AmendmentHandler extends CohortHandler {
           subscriptionNumber,
           effectDate,
           zuora_subscription,
-          oldPrice,
           commsPrice,
           invoiceList
         )

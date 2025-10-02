@@ -206,7 +206,6 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
         subscriptionNumber,
         effectDate,
         subscription,
-        oldPrice,
         commsPrice,
         invoicePreview
       ),
@@ -327,7 +326,6 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
         subscriptionNumber,
         effectDate,
         subscription,
-        oldPrice,
         commsPrice,
         invoicePreview
       ),
@@ -444,7 +442,6 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
         subscriptionNumber,
         effectDate,
         subscription,
-        oldPrice,
         commsPrice,
         invoicePreview
       ),
@@ -846,7 +843,6 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
         subscriptionNumber,
         effectDate,
         subscription,
-        oldPrice,
         commsPrice,
         invoicePreview
       ),
@@ -1009,7 +1005,6 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
         subscriptionNumber,
         effectDate,
         subscription,
-        oldPrice,
         commsPrice,
         invoicePreview
       ),
@@ -1152,7 +1147,6 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
         subscriptionNumber,
         effectDate,
         subscription,
-        oldPrice,
         commsPrice,
         invoicePreview
       ),

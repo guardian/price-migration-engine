@@ -243,7 +243,6 @@ object GuardianWeekly2025Migration {
       subscriptionNumber: String,
       effectDate: LocalDate,
       zuora_subscription: ZuoraSubscription,
-      oldPrice: BigDecimal,
       commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {

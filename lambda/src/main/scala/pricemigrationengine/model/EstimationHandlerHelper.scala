@@ -15,7 +15,7 @@ object EstimationHandlerHelper {
     }
   }
 
-  def commsPrice(cohortSpec: CohortSpec, oldPrice: BigDecimal, estimatedNewPriceUncapped: BigDecimal) = {
+  def commsPrice(cohortSpec: CohortSpec, oldPrice: BigDecimal, estimatedNewPriceUncapped: BigDecimal): BigDecimal = {
     PriceCap.cappedPrice(
       oldPrice,
       estimatedNewPriceUncapped,
