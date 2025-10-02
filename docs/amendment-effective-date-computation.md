@@ -1,14 +1,14 @@
-# The art of computing start dates
+# The art of computing effective dates
 
-The engine code uses the variable name `startDate` to refer to the effective date of the price rise of a given subscription. That date is computed during the Estimation step. For instance, if subscription S-0000001 has a start date of `2024-08-27` (27th August 2024, which is in the future at the time these lines are written), then it means that on that day, the subscription is going to be billed using the intended updated price for this migration.
+The engine code uses the variable name `amendmentEffectiveDate` to refer to the effective date of the price rise of a given subscription. That date is computed during the Estimation step. For instance, if subscription S-0000001 has a effective date of `2024-08-27` (27th August 2024, which is in the future at the time these lines are written), then it means that on that day, the subscription is going to be billed using the intended updated price for this migration.
 
-So we have just learnt something about start dates, they are billing dates. A monthly subscription that is billed on the 27th of each month, can only have a start date of the form `****-**-27`. A quarterly subscription of that pays on the 15th of January (and 15th of April, 17th of July, and 15th of August), can only have start dates from one of the following forms: `****-01-15`, `****-04-15`, `****-07-15` or `****-10-15`.
+So we have just learnt something about effective dates, they are billing dates. A monthly subscription that is billed on the 27th of each month, can only have a effective date of the form `****-**-27`. A quarterly subscription of that pays on the 15th of January (and 15th of April, 17th of July, and 15th of August), can only have effective dates from one of the following forms: `****-01-15`, `****-04-15`, `****-07-15` or `****-10-15`.
 
-In this chapter, we learn how to compute start dates.
+In this chapter, we learn how to compute effective dates.
 
 ### Context
 
-To be computed, a start date needs a context. here is the context we are going to work with:
+To be computed, a effective date needs a context. here is the context we are going to work with:
 
 First we need a cohort spec. Let's assume that the cohort spec is
 
@@ -20,7 +20,7 @@ First we need a cohort spec. Let's assume that the cohort spec is
 }
 ```
 
-The only relevant bit of cohort spec we need for the computation of a subscription's start date is the `earliestAmendmentEffectiveDate`. 
+The only relevant bit of cohort spec we need for the computation of a subscription's effective date is the `earliestAmendmentEffectiveDate`. 
 
 Let us assume thay the notification period for this migration is `[-49, -36]`. This is Pascal's notation for the fact that we start notifying at -49 days and alarm at -36.
 
@@ -40,7 +40,7 @@ But then you realise that if you use the monthly anniversary of the person, then
 
 ### Spread periods
 
-When Marketing says that they want to spead the monthlies over 3 months, they mean that the process of upgrading the monthlies to a new price (which should otherwise only need 1 month) should be planned to take 3 months. You know that there will be a random choice made as part of the decision of the subscription start date. 
+When Marketing says that they want to spead the monthlies over 3 months, they mean that the process of upgrading the monthlies to a new price (which should otherwise only need 1 month) should be planned to take 3 months. You know that there will be a random choice made as part of the decision of the subscription effective date. 
 
 We could, but we never use a spread period for other billing frequencies (quarterly, annual, etc)
 
@@ -48,25 +48,25 @@ We could, but we never use a spread period for other billing frequencies (quarte
 
 If we have a lot of monthlies to migrate, that's a lot of user notifications per day and therefore a certain number of people calling the Guardian call centers per day. By spreading the monthlies over 3 months instead of 1 month, we help the call center operators with not being flooded with daily calls.
 
-### Computing the start date.
+### Computing the effective date.
 
-With the above context and the explanation about spread periods, let's compute the start date of our subscription.
+With the above context and the explanation about spread periods, let's compute the effective date of our subscription.
 
 Step 1: We know that the chosen date needs to be after the cohort spec's `earliestAmendmentEffectiveDate`, meaning after `2024-05-20`. The date `2024-05-20` is our first lowerbound.
 
 Step 2: We know that the date needs to be after today plus the end of a notification period (otherwise the engine will alarm immediately). Remember we are using `2024-03-07` as "today". The notification period is `[-49, -36]`, so there should be at least 37 days between today and the chosen date. This means thay we have a lowerbound at `today + 37 days`, meaning `2024-03-07 + 37 days`, meaning `2024-04-13` (13th of April).
 
-Step 3: Our new lowerbound is the max of the two lowerbounds we have computed so far. `max(2024-05-20, 2024-04-13) = 2024-05-20`. So the start date should be after `2024-05-20`.
+Step 3: Our new lowerbound is the max of the two lowerbounds we have computed so far. `max(2024-05-20, 2024-04-13) = 2024-05-20`. So the effective date should be after `2024-05-20`.
 
 Step 4: We now need to apply our [no price rise during subscription first year] policy (not price rising a subscription less than a year after its creation). The subscription was created on 8th July 2023, meaning `2023-07-08`. We cannot price rise it before `2024-07-08`. Therefore our new lowerbound is `max(2024-05-20, 2024-07-08) = 2024-07-08`.
 
 Step 5: We then apply the [no price rise within a year of last price rise] (not price rising a subscription twice within the same 12 months). (This is a policy that is mostly symbolically implemented in the code and has a non trivial evaluation only for the Guardian Weekly 2024, where we protect for subs from the Guardian Weekly 2022 migration from being price risen too soon.) In this case our sub is undergoing its first price rise, so the lowerbound remains to `2024-07-08`.
 
-Step 6: With GuardianWeekly2025, we were given lower bounds in the Marketing spreadsheet. That was actually the first use of the new cohortItem's migrationExtraAttributes. If we expect a migration to provide it own lowerbound computation, we do it here, otherwise we identity on startDateLowerBound3.
+Step 6: With GuardianWeekly2025, we were given lower bounds in the Marketing spreadsheet. That was actually the first use of the new cohortItem's migrationExtraAttributes. If we expect a migration to provide it own lowerbound computation, we do it here, otherwise we identity on lowerBound3.
 
 Step 7: Our spread period is 3 months. Let's assume that the random choice returned 1, We now need to add a month to our previously computed date, which is now `2024-08-08`. 
 
-Step 8: We are now ready for the start date. The start date is the next available billing date after `2024-08-08`. Since we have a monthly sub paying on the 27th, the start date is `2024-08-27` 🗓️ 🎉
+Step 8: We are now ready for the effective date. The effective date is the next available billing date after `2024-08-08`. Since we have a monthly sub paying on the 27th, the effective date is `2024-08-27` 🗓️ 🎉
 
 ### Extra fun: the case of SupporterPlus2024
 
