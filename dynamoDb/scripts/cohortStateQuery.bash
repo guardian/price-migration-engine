@@ -21,7 +21,7 @@
 function query() {
   aws dynamodb query --region eu-west-1 --profile membership \
     --table-name "PriceMigration-$2-$1" \
-    --index-name "ProcessingStageAmendmentDateIndexV1" \
+    --index-name "ProcessingStageAndDateIndexV1" \
     --projection-expression "subscriptionNumber" \
     --key-condition-expression "processingStage = :s AND startDate <= :d " \
     --expression-attribute-values "{\":s\": {\"S\": \"$3\"}, \":d\": {\"S\": \"$4\"}}" \

@@ -14,7 +14,7 @@ object CohortTableLive {
   private val keyAttribName = "subscriptionNumber"
 
   private val ProcessingStageIndexName = "ProcessingStageIndexV2"
-  private val ProcessingStageAndAmendmentDateIndexName = "ProcessingStageAmendmentDateIndexV1"
+  private val ProcessingStageAndAmendmentDateIndexName = "ProcessingStageAndDateIndexV1"
 
   private implicit val cohortItemDeserialiser: DynamoDBDeserialiser[CohortItem] = { cohortItem =>
     ZIO
