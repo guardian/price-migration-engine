@@ -14,6 +14,7 @@ case class EstimationData(
     currency: Currency,
     oldPrice: BigDecimal,
     estimatedNewPrice: BigDecimal,
+    commsPrice: BigDecimal,
     billingPeriod: String
 ) extends EstimationResult
 
@@ -38,7 +39,8 @@ object EstimationResult {
       amendmentEffectiveDate,
       priceData.currency,
       priceData.oldPrice,
-      priceData.newPrice,
+      priceData.newPrice, // aka: estimatedNewPrice
+      EstimationHandlerHelper.computeCommsPrice(cohortSpec, priceData.oldPrice, priceData.newPrice),
       priceData.billingPeriod
     )
   }
