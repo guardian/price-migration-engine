@@ -42,7 +42,6 @@ Individual lambdas like the `EstimationLambda` and the `AmendmentLambda` can be 
 ### Environment variables for EstimationHandler and Amendment Handler
 
 * input=`The input cohort spec in JSON string format` (see below for example)
-* earliestStartDate=`earliestStartDate`
 * batchSize=`batchSize`
 * zuoraApiHost=`host`
 * zuoraClientId=`personal clientId`

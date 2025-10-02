@@ -28,7 +28,7 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
 
         override def fetch(
             filter: CohortTableFilter,
-            beforeDateInclusive: Option[LocalDate]
+            latestAmendmentEffectiveDateInclusive: Option[LocalDate]
         ): ZStream[Any, CohortFetchFailure, CohortItem] = {
           assertEquals(filter, NotificationSendComplete)
           ZStream(cohortItem)

@@ -12,7 +12,7 @@ trait CohortTable {
 
   def fetch(
       filter: CohortTableFilter,
-      beforeDateInclusive: Option[LocalDate]
+      latestAmendmentEffectiveDateInclusive: Option[LocalDate]
   ): ZStream[Any, CohortFetchFailure, CohortItem]
 
   def fetchAll(): ZStream[Any, CohortFetchFailure, CohortItem]
@@ -26,9 +26,9 @@ object CohortTable {
 
   def fetch(
       filter: CohortTableFilter,
-      beforeDateInclusive: Option[LocalDate]
+      latestAmendmentEffectiveDateInclusive: Option[LocalDate]
   ): ZStream[CohortTable, CohortFetchFailure, CohortItem] =
-    ZStream.serviceWithStream(_.fetch(filter, beforeDateInclusive))
+    ZStream.serviceWithStream(_.fetch(filter, latestAmendmentEffectiveDateInclusive))
 
   def fetchAll(): ZStream[CohortTable, CohortFetchFailure, CohortItem] =
     ZStream.serviceWithStream(_.fetchAll())

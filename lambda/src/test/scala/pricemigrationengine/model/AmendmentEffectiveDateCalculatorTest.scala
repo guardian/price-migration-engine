@@ -91,7 +91,7 @@ class AmendmentEffectiveDateCalculatorTest extends munit.FunSuite {
     // (Test1 spread period is set to 1)
 
     assertEquals(
-      AmendmentEffectiveDateCalculator.AmendmentEffectiveDateLowerBound(
+      AmendmentEffectiveDateCalculator.amendmentEffectiveDateLowerBound(
         item = cohortItem,
         subscription = subscription,
         invoicePreview = invoicePreview,
@@ -198,7 +198,7 @@ class AmendmentEffectiveDateCalculatorTest extends munit.FunSuite {
     // (Test1 spread period is set to 1)
 
     assertEquals(
-      AmendmentEffectiveDateCalculator.AmendmentEffectiveDateLowerBound(
+      AmendmentEffectiveDateCalculator.amendmentEffectiveDateLowerBound(
         item = cohortItem,
         subscription = subscription,
         invoicePreview = invoicePreview,

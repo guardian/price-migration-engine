@@ -149,8 +149,8 @@ object EstimationHandler extends CohortHandler {
         } else {
           ZIO.succeed(())
         }
-      startDateLowerBound <- ZIO.succeed(
-        AmendmentEffectiveDateCalculator.AmendmentEffectiveDateLowerBound(
+      amendmentEffectiveDateLowerBound <- ZIO.succeed(
+        AmendmentEffectiveDateCalculator.amendmentEffectiveDateLowerBound(
           item,
           subscription,
           invoicePreview,
@@ -158,9 +158,9 @@ object EstimationHandler extends CohortHandler {
           today
         )
       )
-      _ <- Logging.info(s"item: ${item.toString}, startDateLowerBound: ${startDateLowerBound}")
+      _ <- Logging.info(s"item: ${item.toString}, startDateLowerBound: ${amendmentEffectiveDateLowerBound}")
       result <- ZIO.fromEither(
-        EstimationResult(account, catalogue, subscription, invoicePreview, startDateLowerBound, cohortSpec)
+        EstimationResult(account, catalogue, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec)
       )
       _ <- Logging.info(s"item: ${item.toString}, estimation result: ${result}")
     } yield result

@@ -192,7 +192,7 @@ class AmendmentDataTest extends munit.FunSuite {
     )
 
     assertEquals(
-      AmendmentEffectiveDateCalculator.AmendmentEffectiveDateLowerBound(
+      AmendmentEffectiveDateCalculator.amendmentEffectiveDateLowerBound(
         item = cohortItem,
         subscription = subscription,
         invoicePreview = invoicePreview,

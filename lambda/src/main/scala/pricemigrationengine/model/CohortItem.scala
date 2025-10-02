@@ -69,7 +69,7 @@ object CohortItem {
       oldPrice = Some(result.oldPrice),
       estimatedNewPrice = Some(result.estimatedNewPrice),
       currency = Some(result.currency),
-      amendmentEffectiveDate = Some(result.startDate),
+      amendmentEffectiveDate = Some(result.amendmentEffectiveDate),
       billingPeriod = Some(result.billingPeriod),
       whenEstimationDone = Some(thisInstant)
     )
@@ -81,7 +81,7 @@ object CohortItem {
     CohortItem(
       result.subscriptionNumber,
       processingStage = AmendmentComplete,
-      amendmentEffectiveDate = Some(result.startDate),
+      amendmentEffectiveDate = Some(result.amendmentEffectiveDate),
       newPrice = Some(result.newPrice),
       newSubscriptionId = Some(result.newSubscriptionId),
       whenAmendmentDone = Some(result.whenDone)

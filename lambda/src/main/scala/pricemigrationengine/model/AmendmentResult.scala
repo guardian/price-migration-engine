@@ -6,7 +6,7 @@ trait AmendmentResult
 
 case class SuccessfulAmendmentResult(
     subscriptionNumber: String,
-    startDate: LocalDate,
+    amendmentEffectiveDate: LocalDate,
     oldPrice: BigDecimal,
     newPrice: BigDecimal,
     estimatedNewPrice: BigDecimal,

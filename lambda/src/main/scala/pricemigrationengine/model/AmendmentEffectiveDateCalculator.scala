@@ -101,7 +101,7 @@ object AmendmentEffectiveDateCalculator {
     } else 1
   }
 
-  def AmendmentEffectiveDateLowerBound(
+  def amendmentEffectiveDateLowerBound(
       item: CohortItem,
       subscription: ZuoraSubscription,
       invoicePreview: ZuoraInvoiceList,
@@ -143,7 +143,7 @@ object AmendmentEffectiveDateCalculator {
       // Date: June 2025
       // Author: Pascal
       // (Comment group: ef77de28)
-      // Here I am re-using GuardianWeekly2025Migration.computeStartDateLowerBound4, for testing.
+      // Here I am re-using GuardianWeekly2025Migration's function, for testing.
       // Technically this test will break when GuardianWeekly2025 is decommissioned in October 2026,
       // but at that point if we really want to carry on testing the migration extended attributes as
       // part of start date computations we can move the code to Test1's own migration module

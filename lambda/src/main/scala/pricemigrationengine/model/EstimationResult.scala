@@ -10,7 +10,7 @@ trait EstimationResult
 
 case class EstimationData(
     subscriptionName: String,
-    startDate: LocalDate,
+    amendmentEffectiveDate: LocalDate,
     currency: Currency,
     oldPrice: BigDecimal,
     estimatedNewPrice: BigDecimal,
@@ -23,15 +23,19 @@ object EstimationResult {
       catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-      startDateLowerBound: LocalDate,
+      amendmentEffectiveDateLowerBound: LocalDate,
       cohortSpec: CohortSpec,
   ): Either[Failure, EstimationData] = {
     for {
-      startDate <- AmendmentData.nextServiceStartDate(invoiceList, subscription, startDateLowerBound)
+      amendmentEffectiveDate <- AmendmentData.nextServiceStartDate(
+        invoiceList,
+        subscription,
+        amendmentEffectiveDateLowerBound
+      )
       priceData <- AmendmentData.priceData(account, subscription, cohortSpec, invoiceList)
     } yield EstimationData(
       subscription.subscriptionNumber,
-      startDate,
+      amendmentEffectiveDate,
       priceData.currency,
       priceData.oldPrice,
       priceData.newPrice,

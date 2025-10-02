@@ -694,7 +694,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       Right(
         EstimationData(
           subscriptionName = "SUBSCRIPTION-NUMBER",
-          startDate = LocalDate.of(2024, 9, 30),
+          amendmentEffectiveDate = LocalDate.of(2024, 9, 30),
           currency = "GBP",
           oldPrice = BigDecimal(10.0),
           estimatedNewPrice = BigDecimal(12.0),
@@ -720,7 +720,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
       Right(
         EstimationData(
           subscriptionName = "SUBSCRIPTION-NUMBER",
-          startDate = LocalDate.of(2024, 11, 11),
+          amendmentEffectiveDate = LocalDate.of(2024, 11, 11),
           currency = "AUD",
           oldPrice = BigDecimal(150.0),
           estimatedNewPrice = BigDecimal(200.0),

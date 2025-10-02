@@ -22,7 +22,7 @@ object CohortTableLive {
         for {
           subscriptionNumber <- getStringFromResults(cohortItem, keyAttribName)
           processingStage <- getCohortTableFilter(cohortItem, "processingStage")
-          startDate <- getOptionalDateFromResults(cohortItem, "amendmentEffectiveDate")
+          amendmentEffectiveDate <- getOptionalDateFromResults(cohortItem, "amendmentEffectiveDate")
           currency <- getOptionalStringFromResults(cohortItem, "currency")
           oldPrice <- getOptionalBigDecimalFromResults(cohortItem, "oldPrice")
           estimatedNewPrice <- getOptionalBigDecimalFromResults(cohortItem, "estimatedNewPrice")
@@ -48,7 +48,7 @@ object CohortTableLive {
         } yield CohortItem(
           subscriptionName = subscriptionNumber,
           processingStage = processingStage,
-          amendmentEffectiveDate = startDate,
+          amendmentEffectiveDate = amendmentEffectiveDate,
           currency = currency,
           oldPrice = oldPrice,
           estimatedNewPrice = estimatedNewPrice,
@@ -78,7 +78,9 @@ object CohortTableLive {
     cohortItem =>
       List(
         Option(stringFieldUpdate("processingStage", cohortItem.processingStage.value)),
-        cohortItem.amendmentEffectiveDate.map(startDate => dateFieldUpdate("amendmentEffectiveDate", startDate)),
+        cohortItem.amendmentEffectiveDate.map(amendmentEffectiveDate =>
+          dateFieldUpdate("amendmentEffectiveDate", amendmentEffectiveDate)
+        ),
         cohortItem.currency.map(currency => stringFieldUpdate("currency", currency)),
         cohortItem.oldPrice.map(oldPrice => bigDecimalFieldUpdate("oldPrice", oldPrice)),
         cohortItem.estimatedNewPrice
