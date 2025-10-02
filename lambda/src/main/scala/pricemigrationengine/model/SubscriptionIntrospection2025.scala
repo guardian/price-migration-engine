@@ -50,9 +50,9 @@ object SI2025RateplanFromSub {
 
   // This version of determineRatePlan doesn't use invoice previews and can be used in
   // a situation where only the subscription is available and assuming there is only
-  // one active rate plan on the subscription (which is arguably the case of all our
-  // subscriptions). This is the one we can use from StartDates to determine the last
-  // price migration date in a context where we only have access to the subscription.
+  // one active rate plan on the subscription. This is the one we can use
+  // from AmendmentEffectiveDateCalculator to determine the last price migration
+  // date in a context where we only have access to the subscription.
 
   def determineRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
     subscription.ratePlans

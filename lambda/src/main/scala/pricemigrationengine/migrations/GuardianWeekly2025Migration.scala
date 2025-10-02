@@ -117,7 +117,7 @@ object GuardianWeekly2025Migration {
     flag_opt.getOrElse(false)
   }
 
-  def computeStartDateLowerBound4(lowerBound: LocalDate, item: CohortItem): LocalDate = {
+  def computeAmendmentEffectiveDateLowerBound4(lowerBound: LocalDate, item: CohortItem): LocalDate = {
     val dateFromCohortItem = getEarliestMigrationDateFromMigrationExtraAttributes(item)
     dateFromCohortItem match {
       case Some(date) => Date.datesMax(lowerBound, date)

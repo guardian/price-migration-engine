@@ -207,7 +207,7 @@ object AmendmentHandler extends CohortHandler {
     for {
       subscriptionBeforeUpdate <- fetchSubscription(item)
 
-      startDate <- ZIO
+      amendmentEffectiveDate <- ZIO
         .fromOption(item.amendmentEffectiveDate)
         .orElseFail(DataExtractionFailure(s"No start date in $item"))
 
@@ -218,7 +218,7 @@ object AmendmentHandler extends CohortHandler {
           .fromOption(item.estimatedNewPrice)
           .orElseFail(DataExtractionFailure(s"No estimated new price in $item"))
 
-      invoicePreviewTargetDate = startDate.plusMonths(13)
+      invoicePreviewTargetDate = amendmentEffectiveDate.plusMonths(13)
 
       account <- Zuora.fetchAccount(
         subscriptionBeforeUpdate.accountNumber,
@@ -235,7 +235,7 @@ object AmendmentHandler extends CohortHandler {
               orderDate = LocalDate.now(),
               accountNumber = account.basicInfo.accountNumber,
               subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
-              mainChargeEffectDate = startDate,
+              mainChargeEffectDate = amendmentEffectiveDate,
               subscription = subscriptionBeforeUpdate,
               oldPrice = oldPrice,
               estimatedNewPrice = estimatedNewPrice,
@@ -294,14 +294,14 @@ object AmendmentHandler extends CohortHandler {
           AmendmentData.totalChargeAmount(
             subscriptionAfterUpdate,
             invoicePreviewAfterUpdate,
-            startDate
+            amendmentEffectiveDate
           )
         )
 
       whenDone <- Clock.instant
     } yield SuccessfulAmendmentResult(
       item.subscriptionName,
-      startDate,
+      amendmentEffectiveDate,
       oldPrice,
       newPrice,
       estimatedNewPrice,
@@ -403,7 +403,7 @@ object AmendmentHandler extends CohortHandler {
     for {
       subscriptionBeforeUpdate <- fetchSubscription(item)
 
-      startDate <- ZIO
+      amendmentEffectiveDate <- ZIO
         .fromOption(item.amendmentEffectiveDate)
         .orElseFail(DataExtractionFailure(s"No start date in $item"))
 
@@ -414,7 +414,7 @@ object AmendmentHandler extends CohortHandler {
           .fromOption(item.estimatedNewPrice)
           .orElseFail(DataExtractionFailure(s"No estimated new price in $item"))
 
-      invoicePreviewTargetDate = startDate.plusMonths(13)
+      invoicePreviewTargetDate = amendmentEffectiveDate.plusMonths(13)
 
       account <- Zuora.fetchAccount(
         subscriptionBeforeUpdate.accountNumber,
@@ -442,7 +442,7 @@ object AmendmentHandler extends CohortHandler {
             orderDate = LocalDate.now(),
             accountNumber = account.basicInfo.accountNumber,
             subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
-            effectDate = startDate,
+            effectDate = amendmentEffectiveDate,
             zuora_subscription = subscriptionBeforeUpdate,
             oldPrice = oldPrice,
             estimatedNewPrice = estimatedNewPrice,
@@ -481,7 +481,7 @@ object AmendmentHandler extends CohortHandler {
           AmendmentData.totalChargeAmount(
             subscriptionAfterUpdate,
             invoicePreviewAfterUpdate,
-            startDate
+            amendmentEffectiveDate
           )
         )
 
@@ -496,7 +496,7 @@ object AmendmentHandler extends CohortHandler {
       whenDone <- Clock.instant
     } yield SuccessfulAmendmentResult(
       item.subscriptionName,
-      startDate,
+      amendmentEffectiveDate,
       oldPrice,
       newPrice,
       estimatedNewPrice,

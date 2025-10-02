@@ -4,7 +4,7 @@ import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.{Clock, IO, Random, ZIO}
-import pricemigrationengine.model.StartDates
+import pricemigrationengine.model.AmendmentEffectiveDateCalculator
 import java.time.LocalDate
 
 /** Calculates start date and new price for a set of CohortItems.
@@ -149,8 +149,8 @@ object EstimationHandler extends CohortHandler {
         } else {
           ZIO.succeed(())
         }
-      startDateLowerBound <- ZIO.succeed(
-        StartDates.startDateLowerBound(
+      amendmentEffectiveDateLowerBound <- ZIO.succeed(
+        AmendmentEffectiveDateCalculator.amendmentEffectiveDateLowerBound(
           item,
           subscription,
           invoicePreview,
@@ -158,9 +158,9 @@ object EstimationHandler extends CohortHandler {
           today
         )
       )
-      _ <- Logging.info(s"item: ${item.toString}, startDateLowerBound: ${startDateLowerBound}")
+      _ <- Logging.info(s"item: ${item.toString}, startDateLowerBound: ${amendmentEffectiveDateLowerBound}")
       result <- ZIO.fromEither(
-        EstimationResult(account, catalogue, subscription, invoicePreview, startDateLowerBound, cohortSpec)
+        EstimationResult(account, catalogue, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec)
       )
       _ <- Logging.info(s"item: ${item.toString}, estimation result: ${result}")
     } yield result

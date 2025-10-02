@@ -22,7 +22,7 @@ object CohortTableLive {
         for {
           subscriptionNumber <- getStringFromResults(cohortItem, keyAttribName)
           processingStage <- getCohortTableFilter(cohortItem, "processingStage")
-          startDate <- getOptionalDateFromResults(cohortItem, "startDate")
+          amendmentEffectiveDate <- getOptionalDateFromResults(cohortItem, "amendmentEffectiveDate")
           currency <- getOptionalStringFromResults(cohortItem, "currency")
           oldPrice <- getOptionalBigDecimalFromResults(cohortItem, "oldPrice")
           estimatedNewPrice <- getOptionalBigDecimalFromResults(cohortItem, "estimatedNewPrice")
@@ -48,7 +48,7 @@ object CohortTableLive {
         } yield CohortItem(
           subscriptionName = subscriptionNumber,
           processingStage = processingStage,
-          amendmentEffectiveDate = startDate,
+          amendmentEffectiveDate = amendmentEffectiveDate,
           currency = currency,
           oldPrice = oldPrice,
           estimatedNewPrice = estimatedNewPrice,
@@ -78,7 +78,9 @@ object CohortTableLive {
     cohortItem =>
       List(
         Option(stringFieldUpdate("processingStage", cohortItem.processingStage.value)),
-        cohortItem.amendmentEffectiveDate.map(startDate => dateFieldUpdate("startDate", startDate)),
+        cohortItem.amendmentEffectiveDate.map(amendmentEffectiveDate =>
+          dateFieldUpdate("amendmentEffectiveDate", amendmentEffectiveDate)
+        ),
         cohortItem.currency.map(currency => stringFieldUpdate("currency", currency)),
         cohortItem.oldPrice.map(oldPrice => bigDecimalFieldUpdate("oldPrice", oldPrice)),
         cohortItem.estimatedNewPrice
@@ -90,7 +92,6 @@ object CohortTableLive {
           .map(salesforcePriceRiseId => stringFieldUpdate("salesforcePriceRiseId", salesforcePriceRiseId)),
         cohortItem.whenSfShowEstimate
           .map(whenSfShowEstimate => instantFieldUpdate("whenSfShowEstimate", whenSfShowEstimate)),
-        cohortItem.amendmentEffectiveDate.map(startDate => dateFieldUpdate("startDate", startDate)),
         cohortItem.newPrice.map(newPrice => bigDecimalFieldUpdate("newPrice", newPrice)),
         cohortItem.newSubscriptionId
           .map(newSubscriptionId => stringFieldUpdate("newSubscriptionId", newSubscriptionId)),
@@ -142,26 +143,26 @@ object CohortTableLive {
 
         override def fetch(
             filter: CohortTableFilter,
-            latestStartDateInclusive: Option[LocalDate]
+            latestAmendmentEffectiveDateInclusive: Option[LocalDate]
         ): ZStream[Any, CohortFetchFailure, CohortItem] = {
           val indexName =
-            latestStartDateInclusive
+            latestAmendmentEffectiveDateInclusive
               .fold(ProcessingStageIndexName)(_ => ProcessingStageAndStartDateIndexName)
           val queryRequest =
             QueryRequest.builder
               .tableName(tableName)
               .indexName(indexName)
               .keyConditionExpression(
-                "processingStage = :processingStage" + latestStartDateInclusive.fold("") { _ =>
-                  " AND startDate <= :latestStartDateInclusive"
+                "processingStage = :processingStage" + latestAmendmentEffectiveDateInclusive.fold("") { _ =>
+                  " AND amendmentEffectiveDate <= :latestAmendmentEffectiveDateInclusive"
                 }
               )
               .expressionAttributeValues(
                 List(
                   Some(":processingStage" -> AttributeValue.builder.s(filter.value).build()),
-                  latestStartDateInclusive.map { latestStartDateInclusive =>
-                    ":latestStartDateInclusive" -> AttributeValue.builder
-                      .s(latestStartDateInclusive.toString)
+                  latestAmendmentEffectiveDateInclusive.map { latestAmendmentEffectiveDateInclusive =>
+                    ":latestAmendmentEffectiveDateInclusive" -> AttributeValue.builder
+                      .s(latestAmendmentEffectiveDateInclusive.toString)
                       .build()
                   }
                 ).flatten.toMap.asJava

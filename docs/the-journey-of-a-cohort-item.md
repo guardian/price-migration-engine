@@ -42,7 +42,7 @@ case class CohortItem(
     billingPeriod    : Option[String]     = None,
     oldPrice         : Option[BigDecimal] = None,
     estimatedNewPrice: Option[BigDecimal] = None,
-    startDate        : Option[LocalDate]  = None,
+    amendmentEffectiveDate : Option[LocalDate]  = None,
     newPrice         : Option[BigDecimal] = None,
 )
 ```
@@ -117,7 +117,7 @@ CohortItem(
     billingPeriod     = Some("Monthly")
     oldPrice          = Some(BigDecimal(52))
     estimatedNewPrice = Some(BigDecimal(61))
-    startDate         = Some(LocalDate.of(2024, 5, 10))
+    amendmentEffectiveDate = Some(LocalDate.of(2024, 5, 10))
 )
 ```
 
@@ -131,7 +131,7 @@ CohortItem(
     billingPeriod     = Some("Monthly")
     oldPrice          = Some(BigDecimal(52))
     estimatedNewPrice = Some(BigDecimal(61))
-    startDate         = Some(LocalDate.of(2024, 5, 10))
+    amendmentEffectiveDate = Some(LocalDate.of(2024, 5, 10))
 )
 ```
 
