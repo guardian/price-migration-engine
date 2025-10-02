@@ -302,9 +302,7 @@ object AmendmentHandler extends CohortHandler {
     } yield SuccessfulAmendmentResult(
       item.subscriptionName,
       amendmentEffectiveDate,
-      oldPrice,
       newPrice,
-      estimatedNewPrice,
       subscriptionAfterUpdate.id,
       whenDone
     )
@@ -497,9 +495,7 @@ object AmendmentHandler extends CohortHandler {
     } yield SuccessfulAmendmentResult(
       item.subscriptionName,
       amendmentEffectiveDate,
-      oldPrice,
       newPrice,
-      estimatedNewPrice,
       subscriptionAfterUpdate.id,
       whenDone
     )
