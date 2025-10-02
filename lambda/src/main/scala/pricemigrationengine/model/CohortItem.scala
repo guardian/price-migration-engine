@@ -21,6 +21,8 @@ case class CohortItem(
 
     // Price read from the post amendment subscription
     newPrice: Option[BigDecimal] = None,
+
+    //
     billingPeriod: Option[String] = None,
     amendmentEffectiveDate: Option[LocalDate] = None,
     salesforcePriceRiseId: Option[String] = None,
