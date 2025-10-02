@@ -479,7 +479,6 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
         subscription,
         oldPrice,
         estimatedNewPrice,
-        priceCap,
         invoicePreview
       ),
       Right(

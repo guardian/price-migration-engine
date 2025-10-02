@@ -10,7 +10,7 @@ class PriceCapTest extends munit.FunSuite {
       PriceCap.cappedPrice(
         oldPrice,
         uncappedNewPrice,
-        priceCappingMultiplier
+        Some(priceCappingMultiplier)
       ),
       BigDecimal(120)
     )
@@ -19,9 +19,9 @@ class PriceCapTest extends munit.FunSuite {
   test("priceCapNotification (no need to apply)") {
     val oldPrice = BigDecimal(100)
     val newPrice = BigDecimal(110)
-    val cap = 1.25
+    val cap = BigDecimal(1.25)
     assertEquals(
-      PriceCap.cappedPrice(oldPrice, newPrice, cap),
+      PriceCap.cappedPrice(oldPrice, newPrice, Some(cap)),
       BigDecimal(110)
     )
   }
@@ -29,9 +29,9 @@ class PriceCapTest extends munit.FunSuite {
   test("priceCapNotification (need to apply)") {
     val oldPrice = BigDecimal(100)
     val newPrice = BigDecimal(250)
-    val cap = 1.25
+    val cap = BigDecimal(1.25)
     assertEquals(
-      PriceCap.cappedPrice(oldPrice, newPrice, cap),
+      PriceCap.cappedPrice(oldPrice, newPrice, Some(cap)),
       BigDecimal(125)
     )
   }

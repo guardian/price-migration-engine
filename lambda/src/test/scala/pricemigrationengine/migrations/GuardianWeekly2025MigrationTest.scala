@@ -190,6 +190,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     val effectDate = LocalDate.of(2025, 11, 8) // "2025-11-08": Will be used in tiggerDates
     val oldPrice = BigDecimal(15.0)
     val estimatedNewPrice = BigDecimal(16.5)
+    val commsPrice = BigDecimal(16.5)
     val priceCap = BigDecimal(1.2)
 
     // So here, I think that the natural way to test is to compare Values.
@@ -206,8 +207,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
         effectDate,
         subscription,
         oldPrice,
-        estimatedNewPrice,
-        priceCap,
+        commsPrice,
         invoicePreview
       ),
       Right(
@@ -311,6 +311,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     val effectDate = LocalDate.of(2025, 11, 8) // "2025-11-08": Will be used in tiggerDates
     val oldPrice = BigDecimal(200.0)
     val estimatedNewPrice = BigDecimal(300.0)
+    val commsPrice = BigDecimal(240.0)
     val priceCap = BigDecimal(1.2)
 
     // So here, I think that the natural way to test is to compare Values.
@@ -327,8 +328,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
         effectDate,
         subscription,
         oldPrice,
-        estimatedNewPrice,
-        priceCap,
+        commsPrice,
         invoicePreview
       ),
       Right(
@@ -428,6 +428,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     val effectDate = LocalDate.of(2025, 11, 5) // "2025-11-08": Will be used in tiggerDates
     val oldPrice = BigDecimal(318.0)
     val estimatedNewPrice = BigDecimal(348.0)
+    val commsPrice = BigDecimal(348.0)
     val priceCap = BigDecimal(1.2)
 
     // So here, I think that the natural way to test is to compare Values.
@@ -444,8 +445,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
         effectDate,
         subscription,
         oldPrice,
-        estimatedNewPrice,
-        priceCap,
+        commsPrice,
         invoicePreview
       ),
       Right(
@@ -652,12 +652,12 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
 
     val oldPrice = BigDecimal(45)
     val estimatedNewPrice = BigDecimal(49.5)
-    val priceCap = 1.2
+    val priceCap = BigDecimal(1.2)
 
     val chargeOverrides = List(
       ZuoraOrdersApiPrimitives.chargeOverride(
         ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId,
-        PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap),
+        PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Some(priceCap)),
         "Quarter"
       )
     )
@@ -818,6 +818,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     val startDate = LocalDate.of(2025, 8, 11)
     val oldPrice = BigDecimal(45)
     val estimatedNewPrice = BigDecimal(49.5)
+    val commsPrice = BigDecimal(49.5)
 
     val cohortItem = CohortItem(
       subscriptionName = subscription.subscriptionNumber,
@@ -846,8 +847,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
         effectDate,
         subscription,
         oldPrice,
-        estimatedNewPrice,
-        priceCap,
+        commsPrice,
         invoicePreview
       ),
       Right(
@@ -975,6 +975,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     val startDate = LocalDate.of(2025, 8, 11)
     val oldPrice = BigDecimal(45)
     val estimatedNewPrice = BigDecimal(49.5)
+    val commsPrice = BigDecimal(49.5)
 
     val cohortItem = CohortItem(
       subscriptionName = subscription.subscriptionNumber,
@@ -1009,8 +1010,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
         effectDate,
         subscription,
         oldPrice,
-        estimatedNewPrice,
-        priceCap,
+        commsPrice,
         invoicePreview
       ),
       Right(
@@ -1118,6 +1118,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     val startDate = LocalDate.of(2025, 8, 5)
     val oldPrice = BigDecimal(67.5)
     val estimatedNewPrice = BigDecimal(87.0)
+    val commsPrice = BigDecimal(81.0)
 
     val cohortItem = CohortItem(
       subscriptionName = subscription.subscriptionNumber,
@@ -1152,8 +1153,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
         effectDate,
         subscription,
         oldPrice,
-        estimatedNewPrice,
-        priceCap,
+        commsPrice,
         invoicePreview
       ),
       Right(
