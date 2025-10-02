@@ -34,14 +34,14 @@ case class CohortItem(
     // cancellation journey of Supporter Plus subscriptions.
     // The default value is `None`, and if a none trivial value is present it represents
     // the date until when the item should be left alone and not being processed.
-    doNotProcessUntil: Option[LocalDate] = None, // [18]
+    doNotProcessUntil: Option[LocalDate] = None,
 
     // migrationExtraAttributes was introduced to allow a cohort item to hold
     // extra attributes that are migration dependent (specifically for the
     // Guardian Weekly 2025 migration), for if and when we need to perform
     // operations using parameters that are not hold into the Zuora subscription.
     // For more details about when and how to use that attribute, see the documentation.
-    migrationExtraAttributes: Option[String] = None, // [19]
+    migrationExtraAttributes: Option[String] = None,
 
     //
     cancellationReason: Option[String] = None,
