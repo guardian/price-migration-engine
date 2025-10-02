@@ -8,7 +8,7 @@ import java.time.{Instant, LocalDate}
 case class CohortItem(
     subscriptionName: String,
     processingStage: CohortTableFilter,
-    startDate: Option[LocalDate] = None,
+    amendmentEffectiveDate: Option[LocalDate] = None,
     currency: Option[Currency] = None,
     oldPrice: Option[BigDecimal] = None,
     estimatedNewPrice: Option[BigDecimal] = None,
@@ -69,7 +69,7 @@ object CohortItem {
       oldPrice = Some(result.oldPrice),
       estimatedNewPrice = Some(result.estimatedNewPrice),
       currency = Some(result.currency),
-      startDate = Some(result.startDate),
+      amendmentEffectiveDate = Some(result.startDate),
       billingPeriod = Some(result.billingPeriod),
       whenEstimationDone = Some(thisInstant)
     )
@@ -81,7 +81,7 @@ object CohortItem {
     CohortItem(
       result.subscriptionNumber,
       processingStage = AmendmentComplete,
-      startDate = Some(result.startDate),
+      amendmentEffectiveDate = Some(result.startDate),
       newPrice = Some(result.newPrice),
       newSubscriptionId = Some(result.newSubscriptionId),
       whenAmendmentDone = Some(result.whenDone)

@@ -114,7 +114,7 @@ object NotificationHandler extends CohortHandler {
         } else {
           ZIO.fail(
             NotificationNotEnoughLeadTimeFailure(
-              s"[notification] The start date of item ${cohortItem.subscriptionName} (startDate: ${cohortItem.startDate}) is too close to today ${today}"
+              s"[notification] The start date of item ${cohortItem.subscriptionName} (startDate: ${cohortItem.amendmentEffectiveDate}) is too close to today ${today}"
             )
           )
         }
@@ -147,7 +147,9 @@ object NotificationHandler extends CohortHandler {
       country <- ZIO.fromEither(country(cohortSpec, address))
       oldPrice <- ZIO.fromEither(requiredField(cohortItem.oldPrice, "CohortItem.oldPrice"))
       estimatedNewPrice <- ZIO.fromEither(requiredField(cohortItem.estimatedNewPrice, "CohortItem.estimatedNewPrice"))
-      startDate <- ZIO.fromEither(requiredField(cohortItem.startDate.map(_.toString()), "CohortItem.startDate"))
+      startDate <- ZIO.fromEither(
+        requiredField(cohortItem.amendmentEffectiveDate.map(_.toString()), "CohortItem.startDate")
+      )
       billingPeriod <- ZIO.fromEither(requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod"))
       paymentFrequency <- paymentFrequency(billingPeriod)
       currencyISOCode <- ZIO.fromEither(requiredField(cohortItem.currency, "CohortItem.currency"))
@@ -394,7 +396,7 @@ object NotificationHandler extends CohortHandler {
     if (today.isBefore(LocalDate.of(2020, 12, 1)) || cohortSpec.forceNotifications.contains(true)) {
       true
     } else {
-      cohortItem.startDate match {
+      cohortItem.amendmentEffectiveDate match {
         case Some(sd) => today.plusDays(minLeadTime(cohortSpec)).isBefore(sd)
         case _        => false
       }

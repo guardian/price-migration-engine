@@ -207,7 +207,9 @@ object AmendmentHandler extends CohortHandler {
     for {
       subscriptionBeforeUpdate <- fetchSubscription(item)
 
-      startDate <- ZIO.fromOption(item.startDate).orElseFail(DataExtractionFailure(s"No start date in $item"))
+      startDate <- ZIO
+        .fromOption(item.amendmentEffectiveDate)
+        .orElseFail(DataExtractionFailure(s"No start date in $item"))
 
       oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(DataExtractionFailure(s"No old price in $item"))
 
@@ -401,7 +403,9 @@ object AmendmentHandler extends CohortHandler {
     for {
       subscriptionBeforeUpdate <- fetchSubscription(item)
 
-      startDate <- ZIO.fromOption(item.startDate).orElseFail(DataExtractionFailure(s"No start date in $item"))
+      startDate <- ZIO
+        .fromOption(item.amendmentEffectiveDate)
+        .orElseFail(DataExtractionFailure(s"No start date in $item"))
 
       oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(DataExtractionFailure(s"No old price in $item"))
 
