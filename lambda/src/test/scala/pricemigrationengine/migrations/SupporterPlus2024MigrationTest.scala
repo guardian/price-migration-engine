@@ -725,7 +725,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
           currency = "AUD",
           oldPrice = BigDecimal(150.0),
           estimatedNewPrice = BigDecimal(200.0),
-          commsPrice = BigDecimal(200.0),
+          commsPrice = BigDecimal(190.50),
           billingPeriod = "Annual"
         )
       )
