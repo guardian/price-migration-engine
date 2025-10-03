@@ -212,8 +212,6 @@ object HomeDelivery2025Migration {
     // in the case of GuardianWeekly2025, for instance, is the price ratio from the old price to the new price
     // (both carried by the cohort item).
 
-    // Note that we do use `get` here. The cohort items always get them from the estimation step, but in the
-    // abnormal case it would not, we want the process to error and alarm.
     val priceRatio = commsPrice / oldPrice
 
     val order_opt = {
