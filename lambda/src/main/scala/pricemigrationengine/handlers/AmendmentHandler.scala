@@ -208,9 +208,9 @@ object AmendmentHandler extends CohortHandler {
 
       oldPrice <- ZIO.fromOption(item.oldPrice).orElseFail(DataExtractionFailure(s"No old price in $item"))
 
-      estimatedNewPrice <-
+      commsPrice <-
         ZIO
-          .fromOption(item.estimatedNewPrice)
+          .fromOption(item.commsPrice)
           .orElseFail(DataExtractionFailure(s"No estimated new price in $item"))
 
       invoicePreviewTargetDate = amendmentEffectiveDate.plusMonths(13)
@@ -232,8 +232,7 @@ object AmendmentHandler extends CohortHandler {
               subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
               mainChargeEffectDate = amendmentEffectiveDate,
               subscription = subscriptionBeforeUpdate,
-              oldPrice = oldPrice,
-              estimatedNewPrice = estimatedNewPrice
+              commsPrice = commsPrice
             )
           )
         case GuardianWeekly2025 =>

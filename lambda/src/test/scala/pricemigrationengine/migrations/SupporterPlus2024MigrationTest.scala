@@ -762,8 +762,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
         subscriptionNumber = subscription.subscriptionNumber,
         mainChargeEffectDate = LocalDate.of(2024, 11, 27),
         subscription = subscription,
-        oldPrice = 10,
-        estimatedNewPrice = 12
+        commsPrice = 12
       ),
       Right(
         ZuoraAmendmentOrderPayload(
@@ -856,8 +855,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
         subscriptionNumber = subscription.subscriptionNumber,
         mainChargeEffectDate = LocalDate.of(2024, 11, 27),
         subscription = subscription,
-        oldPrice = 10,
-        estimatedNewPrice = 11
+        commsPrice = 11
       ),
       Right(
         ZuoraAmendmentOrderPayload(
@@ -950,8 +948,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
         subscriptionNumber = subscription.subscriptionNumber,
         mainChargeEffectDate = LocalDate.of(2023, 11, 11),
         subscription = subscription,
-        oldPrice = 150,
-        estimatedNewPrice = 200
+        commsPrice = 190.5
       ),
       Right(
         ZuoraAmendmentOrderPayload(
@@ -1342,8 +1339,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
         subscriptionNumber = subscription.subscriptionNumber,
         mainChargeEffectDate = mainRatePlanEffectDate,
         subscription = subscription,
-        oldPrice = 95.0,
-        estimatedNewPrice = 101.0
+        commsPrice = 101.0
       ),
       Right(
         ZuoraAmendmentOrderPayload(

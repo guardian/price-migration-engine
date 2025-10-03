@@ -355,8 +355,7 @@ object SupporterPlus2024Migration {
       subscriptionNumber: String,
       mainChargeEffectDate: LocalDate,
       subscription: ZuoraSubscription,
-      oldPrice: BigDecimal,
-      estimatedNewPrice: BigDecimal
+      commsPrice: BigDecimal
   ): Either[Failure, ZuoraAmendmentOrderPayload] = {
     for {
       existingRatePlan <- getSupporterPlusV2RatePlan(subscription)
@@ -388,7 +387,7 @@ object SupporterPlus2024Migration {
       productRatePlanId = existingRatePlan.productRatePlanId,
       existingBaseProductRatePlanChargeId = existingBaseRatePlanCharge.productRatePlanChargeId,
       existingContributionRatePlanChargeId = existingContributionRatePlanCharge.productRatePlanChargeId,
-      newBaseAmount = PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Some(1.27)),
+      newBaseAmount = commsPrice,
       newContributionAmount = existingContributionPrice
     )
   }
