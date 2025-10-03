@@ -449,6 +449,7 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     val startDate = LocalDate.of(2025, 8, 23)
     val oldPrice = BigDecimal(779.88) // using the same number from the Newspaper2025P3Migration.priceData check
     val estimatedNewPrice = BigDecimal(839.88)
+    val commsPrice = BigDecimal(839.88)
 
     val cohortItem = CohortItem(
       subscriptionName = subscription.subscriptionNumber,
@@ -457,6 +458,7 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
       currency = Some("GBP"),
       oldPrice = Some(oldPrice),
       estimatedNewPrice = Some(estimatedNewPrice),
+      commsPrice = Some(commsPrice),
       billingPeriod = Some("Annual"),
       migrationExtraAttributes = None
     )
@@ -478,7 +480,7 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
         effectDate,
         subscription,
         oldPrice,
-        estimatedNewPrice,
+        commsPrice,
         invoicePreview
       ),
       Right(
