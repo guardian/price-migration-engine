@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.model.{AmendmentHelper, ZuoraOrdersApiPrimitives}
+import pricemigrationengine.model.{AmendmentHandlerHelper, ZuoraOrdersApiPrimitives}
 import pricemigrationengine.model.CohortTableFilter.{NotificationSendDateWrittenToSalesforce, ZuoraCancellation}
 import pricemigrationengine.model._
 import pricemigrationengine.migrations._
@@ -161,25 +161,25 @@ object AmendmentHandler extends CohortHandler {
     if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec)) {
       if (
         SI2025Extractions.subscriptionHasActiveDiscounts(subscriptionAfterUpdate, today)
-        || AmendmentHelper.newPriceHasBeenCappedAt20Percent(cohortItem.oldPrice.get, newPrice)
+        || AmendmentHandlerHelper.newPriceHasBeenCappedAt20Percent(cohortItem.oldPrice.get, newPrice)
         // Purposeful use of `.get` in the above as a cohortItem in Amendment step without
         // an `oldPrice` would be extremely pathological
       ) {
-        if (newPrice > estimatedNewPrice) {
+        if (newPrice < estimatedNewPrice) {
+          // should perform final check
+          // has active discount, therefore only performing the inequality check
+          // has passed the check
+          Right(())
+        } else {
           // should perform final check
           // has active discount, therefore only performing the inequality check
           // has failed the check
           Left(
             s"[6831cff2] Item ${cohortItem} has gone through the amendment step but has failed the final price check. Estimated price was ${estimatedNewPrice}, but the final price was ${newPrice} (nb: has discounts)"
           )
-        } else {
-          // should perform final check
-          // has active discount, therefore only performing the inequality check
-          // has passed the check
-          Right(())
         }
       } else {
-        if (AmendmentHelper.priceEquality(estimatedNewPrice, newPrice)) {
+        if (AmendmentHandlerHelper.priceEquality(estimatedNewPrice, newPrice)) {
           // should perform final check
           // has no active discount, therefore performing the "equality" check
           // has passed the check
@@ -267,7 +267,7 @@ object AmendmentHandler extends CohortHandler {
         Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)
 
       _ <- {
-        val test = AmendmentHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
+        val test = AmendmentHandlerHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
           item.billingPeriod,
           subscriptionAfterUpdate,
           invoicePreviewAfterUpdate
@@ -302,9 +302,7 @@ object AmendmentHandler extends CohortHandler {
     } yield SuccessfulAmendmentResult(
       item.subscriptionName,
       amendmentEffectiveDate,
-      oldPrice,
       newPrice,
-      estimatedNewPrice,
       subscriptionAfterUpdate.id,
       whenDone
     )
@@ -497,9 +495,7 @@ object AmendmentHandler extends CohortHandler {
     } yield SuccessfulAmendmentResult(
       item.subscriptionName,
       amendmentEffectiveDate,
-      oldPrice,
       newPrice,
-      estimatedNewPrice,
       subscriptionAfterUpdate.id,
       whenDone
     )

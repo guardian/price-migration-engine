@@ -1,6 +1,6 @@
 package pricemigrationengine.model
 
-object AmendmentHelper {
+object AmendmentHandlerHelper {
   def subscriptionHasCorrectBillingPeriodAfterUpdate(
       billingPeriodReferenceOpt: Option[String],
       subscriptionAfterUpdate: ZuoraSubscription,

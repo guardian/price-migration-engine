@@ -7,9 +7,7 @@ trait AmendmentResult
 case class SuccessfulAmendmentResult(
     subscriptionNumber: String,
     amendmentEffectiveDate: LocalDate,
-    oldPrice: BigDecimal,
     newPrice: BigDecimal,
-    estimatedNewPrice: BigDecimal,
     newSubscriptionId: ZuoraSubscriptionId,
     whenDone: Instant
 ) extends AmendmentResult
