@@ -3,7 +3,7 @@ package pricemigrationengine.model
 object EstimationHandlerHelper {
 
   def migrationCapRatio(cohortSpec: CohortSpec): Option[Double] = {
-    // This is where we declare the optional capping of each subscription
+    // This is where we declare the optional capping of each migration
     MigrationType(cohortSpec) match {
       case Test1                  => None
       case SupporterPlus2024      => None
