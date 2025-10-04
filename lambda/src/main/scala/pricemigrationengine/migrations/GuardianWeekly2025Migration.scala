@@ -31,12 +31,6 @@ object GuardianWeekly2025ExtraAttributes {
 object GuardianWeekly2025Migration {
 
   // ------------------------------------------------
-  // Price capping
-  // ------------------------------------------------
-
-  val priceCap = 1.20 // 20%
-
-  // ------------------------------------------------
   // Notification Timings
   // ------------------------------------------------
 
@@ -249,9 +243,7 @@ object GuardianWeekly2025Migration {
       subscriptionNumber: String,
       effectDate: LocalDate,
       zuora_subscription: ZuoraSubscription,
-      oldPrice: BigDecimal,
-      estimatedNewPrice: BigDecimal,
-      priceCap: BigDecimal,
+      commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
 
@@ -273,7 +265,7 @@ object GuardianWeekly2025Migration {
           val chargeOverrides = List(
             ZuoraOrdersApiPrimitives.chargeOverride(
               determineTargetRatePlanChargeId(ratePlan),
-              PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap),
+              commsPrice,
               BillingPeriod.toString(billingPeriod)
             )
           )
@@ -300,7 +292,7 @@ object GuardianWeekly2025Migration {
           val chargeOverrides = List(
             ZuoraOrdersApiPrimitives.chargeOverride(
               determineTargetRatePlanChargeId(ratePlan),
-              PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap),
+              commsPrice,
               BillingPeriod.toString(billingPeriod)
             )
           )

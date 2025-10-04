@@ -581,6 +581,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     val startDate = LocalDate.of(2025, 8, 5)
     val oldPrice = BigDecimal(67.5)
     val estimatedNewPrice = BigDecimal(87.0)
+    val commsPrice = estimatedNewPrice
 
     val cohortItem = CohortItem(
       subscriptionName = subscription.subscriptionNumber,
@@ -588,6 +589,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
       amendmentEffectiveDate = Some(startDate),
       currency = Some("EUR"),
       oldPrice = Some(oldPrice),
+      commsPrice = Some(commsPrice),
       estimatedNewPrice = Some(estimatedNewPrice),
       billingPeriod = Some("Quarter"),
       migrationExtraAttributes = None
@@ -610,8 +612,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
         effectDate,
         subscription,
         oldPrice,
-        estimatedNewPrice,
-        priceCap,
+        commsPrice,
         invoicePreview
       ),
       Right(
@@ -771,6 +772,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     val startDate = LocalDate.of(2025, 8, 5)
     val oldPrice = BigDecimal(67.5)
     val estimatedNewPrice = BigDecimal(87.0)
+    val commsPrice = estimatedNewPrice
 
     val cohortItem = CohortItem(
       subscriptionName = subscription.subscriptionNumber,
@@ -778,6 +780,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
       amendmentEffectiveDate = Some(startDate),
       currency = Some("EUR"),
       oldPrice = Some(oldPrice),
+      commsPrice = Some(commsPrice),
       estimatedNewPrice = Some(estimatedNewPrice),
       billingPeriod = Some("Quarter"),
       migrationExtraAttributes = Some("""{ "brandTitle": "Label 01", "removeDiscount": true }""")
@@ -800,8 +803,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
         effectDate,
         subscription,
         oldPrice,
-        estimatedNewPrice,
-        priceCap,
+        commsPrice,
         invoicePreview
       ),
       Right(

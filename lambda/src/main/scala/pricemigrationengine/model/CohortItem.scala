@@ -75,6 +75,7 @@ object CohortItem {
       processingStage = EstimationComplete,
       oldPrice = Some(result.oldPrice),
       estimatedNewPrice = Some(result.estimatedNewPrice),
+      commsPrice = Some(result.commsPrice),
       currency = Some(result.currency),
       amendmentEffectiveDate = Some(result.amendmentEffectiveDate),
       billingPeriod = Some(result.billingPeriod),

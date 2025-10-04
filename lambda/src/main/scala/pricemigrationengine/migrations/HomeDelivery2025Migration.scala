@@ -39,12 +39,6 @@ case class HomeDelivery2025NotificationData(
 object HomeDelivery2025Migration {
 
   // ------------------------------------------------
-  // Price capping
-  // ------------------------------------------------
-
-  val priceCap = 1.20
-
-  // ------------------------------------------------
   // Notification Timings
   // ------------------------------------------------
 
@@ -207,8 +201,7 @@ object HomeDelivery2025Migration {
       effectDate: LocalDate,
       zuora_subscription: ZuoraSubscription,
       oldPrice: BigDecimal,
-      estimatedNewPrice: BigDecimal,
-      priceCap: BigDecimal,
+      commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
     // This version of `amendmentOrderPayload`, applied to subscriptions with the active rate plan having
@@ -219,9 +212,7 @@ object HomeDelivery2025Migration {
     // in the case of GuardianWeekly2025, for instance, is the price ratio from the old price to the new price
     // (both carried by the cohort item).
 
-    // Note that we do use `get` here. The cohort items always get them from the estimation step, but in the
-    // abnormal case it would not, we want the process to error and alarm.
-    val priceRatio = estimatedNewPrice / oldPrice
+    val priceRatio = commsPrice / oldPrice
 
     val order_opt = {
       if (!decideShouldRemoveDiscount(cohortItem)) {
@@ -236,7 +227,7 @@ object HomeDelivery2025Migration {
           val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
             ratePlan.ratePlanCharges,
             priceRatio,
-            estimatedNewPrice,
+            commsPrice,
             BillingPeriod.toString(billingPeriod)
           )
           val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
@@ -262,7 +253,7 @@ object HomeDelivery2025Migration {
           val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
             ratePlan.ratePlanCharges,
             priceRatio,
-            estimatedNewPrice,
+            commsPrice,
             BillingPeriod.toString(billingPeriod)
           )
           val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)

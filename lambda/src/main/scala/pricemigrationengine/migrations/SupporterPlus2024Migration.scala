@@ -15,12 +15,6 @@ case class SupporterPlus2024NotificationData(
 
 object SupporterPlus2024Migration {
 
-  // ------------------------------------------------
-  // Static Data
-  // ------------------------------------------------
-
-  val priceCap = 1.27
-
   val maxLeadTime = 33
   val minLeadTime = 31
 
@@ -361,9 +355,7 @@ object SupporterPlus2024Migration {
       subscriptionNumber: String,
       mainChargeEffectDate: LocalDate,
       subscription: ZuoraSubscription,
-      oldPrice: BigDecimal,
-      estimatedNewPrice: BigDecimal,
-      priceCap: BigDecimal
+      commsPrice: BigDecimal
   ): Either[Failure, ZuoraAmendmentOrderPayload] = {
     for {
       existingRatePlan <- getSupporterPlusV2RatePlan(subscription)
@@ -395,7 +387,7 @@ object SupporterPlus2024Migration {
       productRatePlanId = existingRatePlan.productRatePlanId,
       existingBaseProductRatePlanChargeId = existingBaseRatePlanCharge.productRatePlanChargeId,
       existingContributionRatePlanChargeId = existingContributionRatePlanCharge.productRatePlanChargeId,
-      newBaseAmount = PriceCap.cappedPrice(oldPrice, estimatedNewPrice, priceCap),
+      newBaseAmount = commsPrice,
       newContributionAmount = existingContributionPrice
     )
   }

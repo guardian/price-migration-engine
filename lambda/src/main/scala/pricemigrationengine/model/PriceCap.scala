@@ -8,9 +8,14 @@ object PriceCap {
   def cappedPrice(
       oldPrice: BigDecimal,
       uncappedNewPrice: BigDecimal,
-      priceCappingMultiplier: BigDecimal
+      priceCappingMultiplierOpt: Option[BigDecimal]
   ): BigDecimal = {
-    // For a price cap of 20%, the priceCappingMultiplier is set to 1.2
-    List(uncappedNewPrice, oldPrice * priceCappingMultiplier).min
+    priceCappingMultiplierOpt match {
+      case None => uncappedNewPrice
+      case Some(priceCappingMultiplier) => {
+        // For a price cap of 20%, the priceCappingMultiplier is set to 1.2
+        List(uncappedNewPrice, oldPrice * priceCappingMultiplier).min
+      }
+    }
   }
 }

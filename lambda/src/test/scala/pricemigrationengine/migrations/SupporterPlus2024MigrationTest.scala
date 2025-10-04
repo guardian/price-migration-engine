@@ -698,6 +698,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
           currency = "GBP",
           oldPrice = BigDecimal(10.0),
           estimatedNewPrice = BigDecimal(12.0),
+          commsPrice = BigDecimal(12.0),
           billingPeriod = "Month"
         )
       )
@@ -724,6 +725,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
           currency = "AUD",
           oldPrice = BigDecimal(150.0),
           estimatedNewPrice = BigDecimal(200.0),
+          commsPrice = BigDecimal(190.50),
           billingPeriod = "Annual"
         )
       )
@@ -760,9 +762,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
         subscriptionNumber = subscription.subscriptionNumber,
         mainChargeEffectDate = LocalDate.of(2024, 11, 27),
         subscription = subscription,
-        oldPrice = 10,
-        estimatedNewPrice = 12,
-        priceCap = 1.27
+        commsPrice = 12
       ),
       Right(
         ZuoraAmendmentOrderPayload(
@@ -855,9 +855,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
         subscriptionNumber = subscription.subscriptionNumber,
         mainChargeEffectDate = LocalDate.of(2024, 11, 27),
         subscription = subscription,
-        oldPrice = 10,
-        estimatedNewPrice = 12,
-        priceCap = 1.1
+        commsPrice = 11
       ),
       Right(
         ZuoraAmendmentOrderPayload(
@@ -950,9 +948,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
         subscriptionNumber = subscription.subscriptionNumber,
         mainChargeEffectDate = LocalDate.of(2023, 11, 11),
         subscription = subscription,
-        oldPrice = 150,
-        estimatedNewPrice = 200,
-        priceCap = 1.27
+        commsPrice = 190.5
       ),
       Right(
         ZuoraAmendmentOrderPayload(
@@ -1343,9 +1339,7 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
         subscriptionNumber = subscription.subscriptionNumber,
         mainChargeEffectDate = mainRatePlanEffectDate,
         subscription = subscription,
-        oldPrice = 95.0,
-        estimatedNewPrice = 101.0,
-        priceCap = 1.2
+        commsPrice = 101.0
       ),
       Right(
         ZuoraAmendmentOrderPayload(
