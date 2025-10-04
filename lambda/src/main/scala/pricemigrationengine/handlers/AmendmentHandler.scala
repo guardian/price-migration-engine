@@ -160,7 +160,7 @@ object AmendmentHandler extends CohortHandler {
   ): Either[String, Unit] = {
     if (shouldPerformFinalPriceCheck(cohortSpec: CohortSpec)) {
       if (SI2025Extractions.subscriptionHasActiveDiscounts(subscriptionAfterUpdate, today)) {
-        if (newPrice < commsPrice) {
+        if (newPrice <= commsPrice) {
           // should perform final check
           // has active discount, therefore only performing the inequality check
           // has passed the check
