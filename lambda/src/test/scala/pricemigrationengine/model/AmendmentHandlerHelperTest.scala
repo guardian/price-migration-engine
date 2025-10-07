@@ -2,7 +2,7 @@ package pricemigrationengine.model
 
 import pricemigrationengine.Fixtures
 
-class AmendmentHelperTest extends munit.FunSuite {
+class AmendmentHandlerHelperTest extends munit.FunSuite {
 
   test("subscriptionHasCorrectBillingPeriodAfterUpdate is computed correctly") {
 
@@ -22,7 +22,7 @@ class AmendmentHelperTest extends munit.FunSuite {
       Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/277750-everyday-month/invoice-preview.json")
 
     assertEquals(
-      AmendmentHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
+      AmendmentHandlerHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
         Some("Annual"),
         subscription1,
         invoicePreview1
@@ -31,7 +31,7 @@ class AmendmentHelperTest extends munit.FunSuite {
     )
 
     assertEquals(
-      AmendmentHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
+      AmendmentHandlerHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
         Some("Annual"),
         subscription2, // this one is a Monthly
         invoicePreview2
@@ -40,7 +40,7 @@ class AmendmentHelperTest extends munit.FunSuite {
     )
 
     assertEquals(
-      AmendmentHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
+      AmendmentHandlerHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
         None, // Also testing that the answer should be None if the reference billing period is None
         subscription2,
         invoicePreview2

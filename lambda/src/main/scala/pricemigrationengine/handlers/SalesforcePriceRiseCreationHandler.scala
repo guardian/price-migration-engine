@@ -78,42 +78,20 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
         ZIO
           .fromOption(cohortItem.oldPrice)
           .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have an oldPrice"))
-      estimatedNewPrice <-
+      commsPrice <-
         ZIO
-          .fromOption(cohortItem.estimatedNewPrice)
+          .fromOption(cohortItem.commsPrice)
           .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have an estimatedNewPrice"))
       priceRiseDate <-
         ZIO
           .fromOption(cohortItem.amendmentEffectiveDate)
           .orElseFail(SalesforcePriceRiseWriteFailure(s"$cohortItem does not have a startDate"))
     } yield {
-      val estimatedPriceWithOptionalCapping = MigrationType(cohortSpec) match {
-        case Test1             => estimatedNewPrice // default value
-        case SupporterPlus2024 => estimatedNewPrice // [1]
-        case GuardianWeekly2025 =>
-          PriceCap.cappedPrice(oldPrice, estimatedNewPrice, GuardianWeekly2025Migration.priceCap)
-        case Newspaper2025P1 =>
-          PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025P1Migration.priceCap)
-        case HomeDelivery2025 =>
-          PriceCap.cappedPrice(oldPrice, estimatedNewPrice, HomeDelivery2025Migration.priceCap)
-        case Newspaper2025P3 =>
-          PriceCap.cappedPrice(oldPrice, estimatedNewPrice, Newspaper2025P3Migration.priceCap)
-        case ProductMigration2025N4 => estimatedNewPrice
-      }
-      // [1]
-      // (Comment group: 7992fa98)
-
-      // This value wasn't actually used because we did that step using a Ruby script (we did not run the
-      // SalesforcePriceRiseCreationHandler from the AWS step function).
-      // The problem was that from the CohortItem we only had the old base price and the new base price
-      // but not the contribution component, and therefore we could not compute the total which is what
-      // we need to send to Salesforce.
-
       SalesforcePriceRise(
         Some(subscription.Name),
         Some(subscription.Buyer__c),
         Some(oldPrice),
-        Some(estimatedPriceWithOptionalCapping),
+        Some(commsPrice),
         Some(priceRiseDate),
         Some(subscription.Id),
         Migration_Name__c = Some(cohortSpec.cohortName),

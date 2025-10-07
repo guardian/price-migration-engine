@@ -30,6 +30,7 @@ object CohortTableLive {
           whenEstimationDone <- getOptionalInstantFromResults(cohortItem, "whenEstimationDone")
           salesforcePriceRiseId <- getOptionalStringFromResults(cohortItem, "salesforcePriceRiseId")
           whenSfShowEstimate <- getOptionalInstantFromResults(cohortItem, "whenSfShowEstimate")
+          commsPrice <- getOptionalBigDecimalFromResults(cohortItem, "commsPrice")
           newPrice <- getOptionalBigDecimalFromResults(cohortItem, "newPrice")
           newSubscriptionId <- getOptionalStringFromResults(cohortItem, "newSubscriptionId")
           whenAmendmentDone <- getOptionalInstantFromResults(cohortItem, "whenAmendmentDone")
@@ -51,6 +52,7 @@ object CohortTableLive {
           amendmentEffectiveDate = amendmentEffectiveDate,
           currency = currency,
           oldPrice = oldPrice,
+          commsPrice = commsPrice,
           estimatedNewPrice = estimatedNewPrice,
           billingPeriod = billingPeriod,
           whenEstimationDone = whenEstimationDone,
@@ -93,6 +95,7 @@ object CohortTableLive {
         cohortItem.whenSfShowEstimate
           .map(whenSfShowEstimate => instantFieldUpdate("whenSfShowEstimate", whenSfShowEstimate)),
         cohortItem.newPrice.map(newPrice => bigDecimalFieldUpdate("newPrice", newPrice)),
+        cohortItem.commsPrice.map(commsPrice => bigDecimalFieldUpdate("commsPrice", commsPrice)),
         cohortItem.newSubscriptionId
           .map(newSubscriptionId => stringFieldUpdate("newSubscriptionId", newSubscriptionId)),
         cohortItem.whenAmendmentDone
