@@ -9,10 +9,16 @@ import java.time.{LocalDate, ZoneOffset}
 
 object SalesforceNotificationDateUpdateHandler extends CohortHandler {
 
+  private val batchSize = 1000
+
   def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with SalesforceClient, Failure, HandlerOutput] =
     for {
-      _ <- CohortTable.fetch(NotificationSendComplete, None).foreach(item => updateDateLetterSentInSF(cohortSpec, item))
-    } yield HandlerOutput(isComplete = true)
+      count <- CohortTable
+        .fetch(NotificationSendComplete, None)
+        .take(batchSize)
+        .mapZIO(item => updateDateLetterSentInSF(cohortSpec, item))
+        .runCount
+    } yield HandlerOutput(isComplete = count < batchSize)
 
   private def updateDateLetterSentInSF(
       cohortSpec: CohortSpec,
