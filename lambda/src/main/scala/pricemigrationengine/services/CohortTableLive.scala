@@ -172,6 +172,7 @@ object CohortTableLive {
               )
               .limit(cohortTableConfig.batchSize)
               .build()
+          logging.info(s"[72E0D1FC] queryRequest: ${queryRequest.toString}")
           dynamoDbZio.query(queryRequest).mapError(error => CohortFetchFailure(error.toString))
         }
 
