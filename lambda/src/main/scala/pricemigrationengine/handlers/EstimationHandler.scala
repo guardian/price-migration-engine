@@ -45,13 +45,19 @@ object EstimationHandler extends CohortHandler {
     for {
       _ <-
         if (CohortItem.isProcessable(item, today)) {
-          CohortTable
-            .update(
-              CohortItem(
-                subscriptionName = item.subscriptionName,
-                processingStage = ReadyForEstimation
-              )
+          for {
+            _ <- Logging.info(
+              s"[83433310] today is ${today.toString}, item in DoNotShowUntil: ${item.toString} is now processable"
             )
+            _ <- CohortTable
+              .update(
+                CohortItem(
+                  subscriptionName = item.subscriptionName,
+                  processingStage = ReadyForEstimation
+                )
+              )
+          } yield ZIO.succeed(())
+
         } else { ZIO.succeed(()) }
     } yield ()
   }
@@ -64,7 +70,7 @@ object EstimationHandler extends CohortHandler {
         .fetch(DoNotProcessUntil, None)
         .foreach { item =>
           for {
-            _ <- Logging.info(s"item in DoNotShowUntil stage: ${item.toString}")
+            _ <- Logging.info(s"[1beb60af] about to check item in DoNotShowUntil: ${item.toString}")
             _ <- monitorDoNotProcessUntilItem(today, item)
           } yield ()
         }
