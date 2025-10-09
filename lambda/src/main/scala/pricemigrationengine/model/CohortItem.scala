@@ -95,20 +95,6 @@ object CohortItem {
       whenAmendmentDone = Some(result.whenDone)
     )
 
-  def isProcessable(item: CohortItem, today: LocalDate): Boolean = {
-    // This function return a boolean indicating whether the item is processable
-    // defined as either doNotProcessUntil is None or is a date equal to today or in the past.
-    (item.processingStage != DoNotProcessUntil) || {
-      item.doNotProcessUntil match {
-        case None =>
-          throw new Exception(
-            s"(error: 588b7698) cohort item: ${item} is in DoNotProcessUntil stage but doesn't have a doNotProcessUntil attribute"
-          )
-        case Some(date) => date == today || today.isAfter(date)
-      }
-    }
-  }
-
   def billingPeriodToInt(period: String): Int = {
     // This function is used to convert a CohortItem's billingPeriod in to the number of months
     // that the billing period represents.

@@ -20,18 +20,6 @@ class CohortItemTest extends munit.FunSuite {
       true
     )
   }
-  test("CohortItem.isProcessable (other processingStage)") {
-    val item = CohortItem(
-      subscriptionName = "subscriptionName",
-      processingStage = CohortTableFilter.ReadyForEstimation,
-      doNotProcessUntil = None
-    )
-    val today = LocalDate.of(2024, 9, 9)
-    assertEquals(
-      CohortItem.isProcessable(item, today),
-      true
-    )
-  }
   test("CohortItem.isProcessable (DoNotProcessUntil, with no date set)") {
     val item = CohortItem(
       subscriptionName = "subscriptionName",
@@ -40,7 +28,7 @@ class CohortItemTest extends munit.FunSuite {
     )
     val today = LocalDate.of(2024, 9, 9)
     val exception = intercept[Exception] {
-      CohortItem.isProcessable(item, today)
+      ItemHibernation.isProcessable(item, today)
     }
     assertEquals(exception.getMessage.contains("(error: 588b7698)"), true)
   }
@@ -52,7 +40,7 @@ class CohortItemTest extends munit.FunSuite {
     )
     val today = LocalDate.of(2024, 9, 9)
     assertEquals(
-      CohortItem.isProcessable(item, today),
+      ItemHibernation.isProcessable(item, today),
       false
     )
   }
@@ -64,7 +52,7 @@ class CohortItemTest extends munit.FunSuite {
     )
     val today = LocalDate.of(2024, 9, 10)
     assertEquals(
-      CohortItem.isProcessable(item, today),
+      ItemHibernation.isProcessable(item, today),
       true
     )
   }
@@ -76,7 +64,7 @@ class CohortItemTest extends munit.FunSuite {
     )
     val today = LocalDate.of(2024, 9, 11)
     assertEquals(
-      CohortItem.isProcessable(item, today),
+      ItemHibernation.isProcessable(item, today),
       true
     )
   }
