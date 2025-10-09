@@ -8,7 +8,7 @@ object ItemHibernation {
     item.doNotProcessUntil match {
       case None =>
         throw new Exception(
-          s"(error: 588b7698) cohort item: ${item} is in DoNotProcessUntil stage but doesn't have a doNotProcessUntil attribute"
+          s"(error: 588b7698) cohort item: ${item} doesn't have a doNotProcessUntil attribute"
         )
       case Some(date) => date == today || today.isAfter(date)
     }
