@@ -14,8 +14,8 @@ object EstimationHandlerHelper {
       case ProductMigration2025N4 => None
       case Membership2025         => Some(1.3) // [1]
     }
-    // [1] The 30% cap on Membership2025 is not going to be applied to
-    // UK monthly subs moving from £7 to £10, which is a 42.86% increase
+    // [1] The 30% cap on Membership2025 is going to be applied
+    // unless the increase came from the price grid.
   }
 
   def commsPrice(cohortSpec: CohortSpec, oldPrice: BigDecimal, estimatedNewPriceUncapped: BigDecimal): BigDecimal = {
