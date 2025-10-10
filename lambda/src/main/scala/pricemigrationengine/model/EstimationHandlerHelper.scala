@@ -12,7 +12,10 @@ object EstimationHandlerHelper {
       case HomeDelivery2025       => Some(1.2)
       case Newspaper2025P3        => Some(1.2)
       case ProductMigration2025N4 => None
+      case Membership2025         => Some(1.3) // [1]
     }
+    // [1] The 30% cap on Membership2025 is going to be applied
+    // unless the increase came from the price grid.
   }
 
   def commsPrice(cohortSpec: CohortSpec, oldPrice: BigDecimal, estimatedNewPriceUncapped: BigDecimal): BigDecimal = {

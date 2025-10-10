@@ -9,6 +9,7 @@ import com.gu.i18n
 import pricemigrationengine.migrations.{
   GuardianWeekly2025Migration,
   HomeDelivery2025Migration,
+  Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
   ProductMigration2025N4Migration,
@@ -363,6 +364,7 @@ object NotificationHandler extends CohortHandler {
       case HomeDelivery2025       => HomeDelivery2025Migration.maxLeadTime
       case Newspaper2025P3        => Newspaper2025P3Migration.maxLeadTime
       case ProductMigration2025N4 => ProductMigration2025N4Migration.maxLeadTime
+      case Membership2025         => Membership2025Migration.maxLeadTime
     }
   }
 
@@ -375,6 +377,7 @@ object NotificationHandler extends CohortHandler {
       case HomeDelivery2025       => HomeDelivery2025Migration.minLeadTime
       case Newspaper2025P3        => Newspaper2025P3Migration.minLeadTime
       case ProductMigration2025N4 => ProductMigration2025N4Migration.minLeadTime
+      case Membership2025         => Membership2025Migration.minLeadTime
     }
   }
 

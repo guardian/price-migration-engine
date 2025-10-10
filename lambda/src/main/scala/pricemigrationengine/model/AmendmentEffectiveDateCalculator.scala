@@ -36,6 +36,7 @@ object AmendmentEffectiveDateCalculator {
       case HomeDelivery2025       => HomeDelivery2025Migration.subscriptionToLastPriceMigrationDate(subscription)
       case Newspaper2025P3        => Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate(subscription)
       case ProductMigration2025N4 => None
+      case Membership2025         => None
     }
   }
 
@@ -97,6 +98,7 @@ object AmendmentEffectiveDateCalculator {
         case HomeDelivery2025       => 1 // no spread for Home Delivery 2025
         case Newspaper2025P3        => 1 // no spread for Newspaper 2025 (Phase 3)
         case ProductMigration2025N4 => 1
+        case Membership2025         => 1
       }
     } else 1
   }
@@ -118,6 +120,7 @@ object AmendmentEffectiveDateCalculator {
       case HomeDelivery2025       => cohortSpecLowerBound(cohortSpec, today)
       case Newspaper2025P3        => cohortSpecLowerBound(cohortSpec, today)
       case ProductMigration2025N4 => cohortSpecLowerBound(cohortSpec, today)
+      case Membership2025         => cohortSpecLowerBound(cohortSpec, today)
     }
 
     // We now respect the policy of not increasing members during their first year
@@ -154,6 +157,7 @@ object AmendmentEffectiveDateCalculator {
       case HomeDelivery2025   => lowerBound3
       case Newspaper2025P3    => Newspaper2025P3Migration.computeAmendmentEffectiveDateLowerBound4(lowerBound3, item)
       case ProductMigration2025N4 => lowerBound3
+      case Membership2025         => lowerBound3
     }
 
     // Decide the spread period for this migration
