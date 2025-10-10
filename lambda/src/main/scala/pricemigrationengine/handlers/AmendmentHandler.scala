@@ -143,6 +143,7 @@ object AmendmentHandler extends CohortHandler {
       case HomeDelivery2025       => true
       case Newspaper2025P3        => true
       case ProductMigration2025N4 => false
+      case Membership2025         => true
     }
 
     // [1] We do not apply the check to the SupporterPlus2024 migration where, due to the way
@@ -246,6 +247,10 @@ object AmendmentHandler extends CohortHandler {
         case ProductMigration2025N4 =>
           ZIO.fail(
             MigrationRoutingFailure("ProductMigration2025N4 should not use doAmendment_ordersApi_typed_deprecated")
+          )
+        case Membership2025 =>
+          ZIO.fail(
+            MigrationRoutingFailure("Membership2025 should not use doAmendment_ordersApi_typed_deprecated")
           )
       }
       _ <- Logging.info(
@@ -366,6 +371,18 @@ object AmendmentHandler extends CohortHandler {
         )
       case ProductMigration2025N4 =>
         ProductMigration2025N4Migration.amendmentOrderPayload(
+          cohortItem,
+          orderDate,
+          accountNumber,
+          subscriptionNumber,
+          effectDate,
+          zuora_subscription,
+          oldPrice,
+          commsPrice,
+          invoiceList
+        )
+      case Membership2025 =>
+        Membership2025Migration.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
@@ -524,6 +541,12 @@ object AmendmentHandler extends CohortHandler {
           item: CohortItem
         )
       case ProductMigration2025N4 =>
+        doAmendment_ordersApi_json_values(
+          cohortSpec: CohortSpec,
+          catalogue: ZuoraProductCatalogue,
+          item: CohortItem
+        )
+      case Membership2025 =>
         doAmendment_ordersApi_json_values(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
