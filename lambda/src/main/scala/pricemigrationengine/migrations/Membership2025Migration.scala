@@ -2,16 +2,32 @@ package pricemigrationengine.migrations
 import pricemigrationengine.model.ZuoraRatePlan
 import pricemigrationengine.model._
 import pricemigrationengine.services.Zuora
+import pricemigrationengine.model.BillingPeriod
 
 import java.time.LocalDate
 import ujson._
-import upickle.default._
-import zio.ZIO
 
 object Membership2025Migration {
 
   val maxLeadTime = 35
   val minLeadTime = 33
+
+  val priceGridNewPrices: Map[(BillingPeriod, String), BigDecimal] = Map(
+    (Monthly, "GBP") -> BigDecimal(10.0),
+    (Monthly, "USD") -> BigDecimal(13.0),
+    (Monthly, "EUR") -> BigDecimal(12.0),
+    (Monthly, "AUD") -> BigDecimal(17.0),
+    (Monthly, "CAD") -> BigDecimal(15.0),
+    (Monthly, "NZD") -> BigDecimal(17.0),
+    (Monthly, "ROW") -> BigDecimal(13.0),
+    (Annual, "GBP") -> BigDecimal(100.0),
+    (Annual, "USD") -> BigDecimal(129.0),
+    (Annual, "EUR") -> BigDecimal(120.0),
+    (Annual, "AUD") -> BigDecimal(170.0),
+    (Annual, "CAD") -> BigDecimal(150.0),
+    (Annual, "NZD") -> BigDecimal(170.0),
+    (Annual, "ROW") -> BigDecimal(129.0),
+  )
 
   // -----------------------------------------------------
 
