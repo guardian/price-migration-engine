@@ -1,0 +1,31 @@
+{
+  "accountId": "ACCOUNT-ID",
+  "invoiceItems": [
+    {
+      "id": "7b2fb497e7d940d5abeac2286d048f84",
+      "subscriptionName": "SUBSCRIPTION-NUMBER",
+      "subscriptionId": "8a1299eb99e684dc0199ec488f176b8b",
+      "subscriptionNumber": "SUBSCRIPTION-NUMBER",
+      "serviceStartDate": "2026-03-31",
+      "serviceEndDate": "2027-03-30",
+      "chargeAmount": 75.0,
+      "chargeDescription": "",
+      "chargeName": "Supporter Membership - Annual",
+      "chargeNumber": "C-05198673",
+      "chargeId": "8a12981c8dd0800a018de96a229c0495",
+      "productName": "Supporter",
+      "quantity": 1,
+      "taxAmount": 0.0,
+      "unitOfMeasure": "",
+      "chargeDate": "2025-10-16 10:10:02",
+      "chargeType": "Recurring",
+      "processingType": "Charge",
+      "appliedToItemId": null,
+      "numberOfDeliveries": 0.0
+    }
+  ],
+  "creditMemoItems": [
+
+  ],
+  "success": true
+}
