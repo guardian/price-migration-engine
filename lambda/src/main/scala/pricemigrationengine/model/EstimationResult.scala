@@ -34,15 +34,29 @@ object EstimationResult {
         amendmentEffectiveDateLowerBound
       )
       priceData <- AmendmentData.priceData(account, subscription, cohortSpec, invoiceList)
-    } yield EstimationData(
-      subscription.subscriptionNumber,
-      amendmentEffectiveDate,
-      priceData.currency,
-      priceData.oldPrice,
-      priceData.newPrice, // aka: estimatedNewPrice
-      EstimationHandlerHelper.commsPrice(cohortSpec, priceData.oldPrice, priceData.newPrice),
-      priceData.billingPeriod
-    )
+    } yield MigrationType(cohortSpec) match {
+      case Membership2025 =>
+        EstimationData(
+          subscription.subscriptionNumber,
+          amendmentEffectiveDate,
+          priceData.currency,
+          priceData.oldPrice,
+          priceData.newPrice, // aka: estimatedNewPrice
+          EstimationHandlerHelper
+            .commsPriceForMembership2025(cohortSpec, priceData.oldPrice, priceData.newPrice, subscription, invoiceList),
+          priceData.billingPeriod
+        )
+      case _ =>
+        EstimationData(
+          subscription.subscriptionNumber,
+          amendmentEffectiveDate,
+          priceData.currency,
+          priceData.oldPrice,
+          priceData.newPrice, // aka: estimatedNewPrice
+          EstimationHandlerHelper.commsPrice(cohortSpec, priceData.oldPrice, priceData.newPrice),
+          priceData.billingPeriod
+        )
+    }
   }
 }
 
