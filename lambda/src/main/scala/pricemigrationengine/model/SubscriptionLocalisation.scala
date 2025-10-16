@@ -31,7 +31,7 @@ object SubscriptionLocalisation {
     // Author: Pascal
 
     // This currently implement a restrictive definition of ROW.
-    // See [What does ROW (Rest of World) means ?](docs/ROW-definition.md)
+    // See [What does ROW (Rest of World) means](docs/ROW-definition.md)
     // for the full definition
 
     // Note that GW2025 was actually using a much better definition (one covering USD and GBP)
