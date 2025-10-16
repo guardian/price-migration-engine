@@ -26,6 +26,22 @@ object SubscriptionLocalisation {
       invoiceList: ZuoraInvoiceList,
       account: ZuoraAccount
   ): Option[SubscriptionLocalisation] = {
+
+    // Date: October 2025
+    // Author: Pascal
+
+    // This currently implement a restrictive definition of ROW.
+    // See [What does ROW (Rest of World) means ?](docs/ROW-definition.md)
+    // for the full definition
+
+    // Note that GW2025 was actually using a much better definition (one covering USD and GBP)
+    // which has been moved to the GW2025 own's code
+    // here: https://github.com/guardian/price-migration-engine/pull/1275
+
+    // If one day another migration needs the multiple currencies version of the definition,
+    // then we should update this one, but then we should probably update the signature of
+    // the function so that it returns a currency and the localization
+
     for {
       ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(
         subscription,
