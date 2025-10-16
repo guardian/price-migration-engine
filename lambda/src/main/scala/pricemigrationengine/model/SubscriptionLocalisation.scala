@@ -33,10 +33,7 @@ object SubscriptionLocalisation {
       )
       currency <- SI2025Extractions.determineCurrency(ratePlan)
     } yield {
-      val country = account.soldToContact.country
-      val isROWUSD = currency == "USD" && country != "United States"
-      val isROWGBP = currency == "GBP" && country != "United Kingdom"
-      if (isROWUSD || isROWGBP) {
+      if (currency == "USD" && account.soldToContact.country != "United States") {
         RestOfWorld
       } else {
         Domestic
