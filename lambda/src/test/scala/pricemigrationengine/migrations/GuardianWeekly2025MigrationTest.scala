@@ -98,6 +98,30 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
   // performs some heavy lifting, consequently we can focus on the migration function
   // themselves.
 
+  test("determineSubscriptionLocalisation (3): ROW (GBP Variant, France address)") {
+    val subscription =
+      Fixtures.subscriptionFromJson(
+        "Migrations/GuardianWeekly2025/SubscriptionLocalisation/subscription3/subscription.json"
+      )
+    val account =
+      Fixtures.accountFromJson("Migrations/GuardianWeekly2025/SubscriptionLocalisation/subscription3/account.json")
+    val invoicePreview =
+      Fixtures.invoiceListFromJson(
+        "Migrations/GuardianWeekly2025/SubscriptionLocalisation/subscription3/invoice-preview.json"
+      )
+    val localization = GuardianWeekly2025Migration.determineSubscriptionLocalisation(
+      subscription,
+      invoicePreview,
+      account
+    )
+
+    assertEquals(subscription.ratePlans.headOption.get.ratePlanCharges.headOption.get.currency, "GBP")
+    assertEquals(account.soldToContact.country, "France")
+
+    // ROW (GBP Variant, France address)
+    assertEquals(localization, Some(RestOfWorld))
+  }
+
   test("GuardianWeekly2025Migration.priceLookUp") {
     assertEquals(
       GuardianWeekly2025Migration.priceLookUp(Domestic, Annual, "CAD"),

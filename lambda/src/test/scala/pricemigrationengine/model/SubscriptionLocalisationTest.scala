@@ -51,23 +51,4 @@ class SubscriptionLocalisationTest extends munit.FunSuite {
     // ROW (USD Variant, France address)
     assertEquals(localization, Some(RestOfWorld))
   }
-
-  test("determineSubscriptionLocalisation (3): ROW (GBP Variant, France address)") {
-    val subscription =
-      Fixtures.subscriptionFromJson("model/SubscriptionLocalisation/subscription3/subscription.json")
-    val account = Fixtures.accountFromJson("model/SubscriptionLocalisation/subscription3/account.json")
-    val invoicePreview =
-      Fixtures.invoiceListFromJson("model/SubscriptionLocalisation/subscription3/invoice-preview.json")
-    val localization = SubscriptionLocalisation.determineSubscriptionLocalisation(
-      subscription,
-      invoicePreview,
-      account
-    )
-
-    assertEquals(subscription.ratePlans.headOption.get.ratePlanCharges.headOption.get.currency, "GBP")
-    assertEquals(account.soldToContact.country, "France")
-
-    // ROW (GBP Variant, France address)
-    assertEquals(localization, Some(RestOfWorld))
-  }
 }
