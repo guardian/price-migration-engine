@@ -49,7 +49,7 @@ class Membership2025MigrationTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/Membership2025/sub4/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2025/sub4/invoice-preview.json")
 
-    // Non standard old price
+    // Non standard old price (Non Founder Supporter)
 
     assertEquals(
       Membership2025Migration.priceData(subscription, invoicePreview),
