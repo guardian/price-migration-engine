@@ -12,6 +12,23 @@ object Membership2025Migration {
   val maxLeadTime = 35
   val minLeadTime = 33
 
+  val priceGridStandardOldPrices: Map[(BillingPeriod, String), BigDecimal] = Map(
+    (Monthly, "GBP") -> BigDecimal(7.0),
+    (Monthly, "USD") -> BigDecimal(10.0),
+    (Monthly, "EUR") -> BigDecimal(10.0),
+    (Monthly, "AUD") -> BigDecimal(15.0),
+    (Monthly, "CAD") -> BigDecimal(13.0),
+    (Monthly, "NZD") -> BigDecimal(15.0),
+    (Monthly, "ROW") -> BigDecimal(10.0),
+    (Annual, "GBP") -> BigDecimal(80.0),
+    (Annual, "USD") -> BigDecimal(95.0),
+    (Annual, "EUR") -> BigDecimal(95.0),
+    (Annual, "AUD") -> BigDecimal(160.0),
+    (Annual, "CAD") -> BigDecimal(120.0),
+    (Annual, "NZD") -> BigDecimal(160.0),
+    (Annual, "ROW") -> BigDecimal(95.0),
+  )
+
   val priceGridNewPrices: Map[(BillingPeriod, String), BigDecimal] = Map(
     (Monthly, "GBP") -> BigDecimal(10.0),
     (Monthly, "USD") -> BigDecimal(13.0),
