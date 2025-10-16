@@ -48,6 +48,21 @@ object Membership2025Migration {
 
   // -----------------------------------------------------
 
+  def subscriptionHasStandardOldPrice(
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList
+  ): Option[Boolean] = {
+    // This function return Some(true) if the subscription's old price was the standard old price
+    // and Some(false) otherwise. We return None if the determination could not happen
+    for {
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
+      currency <- SI2025Extractions.determineCurrency(ratePlan)
+      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
+      oldPrice = SI2025Extractions.determineOldPrice(ratePlan)
+      standardOldPrice <- priceGridStandardOldPrices.get((billingPeriod, currency))
+    } yield oldPrice == standardOldPrice
+  }
+
   def priceData(
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,

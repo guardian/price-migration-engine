@@ -56,4 +56,32 @@ class Membership2025MigrationTest extends munit.FunSuite {
       Right(PriceData("GBP", BigDecimal(5), BigDecimal(10), "Month"))
     )
   }
+
+  test("standard old price detection for sub1") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2025/sub1/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Membership2025/sub1/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2025/sub1/invoice-preview.json")
+
+    // The standard of old price for uk (GBP monthlies is 7, so we expect a `true` here)
+
+    assertEquals(
+      Membership2025Migration.subscriptionHasStandardOldPrice(subscription, invoicePreview),
+      Some(true)
+    )
+  }
+
+  test("standard old price detection for sub2") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2025/sub2/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Membership2025/sub2/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2025/sub2/invoice-preview.json")
+
+    // sub2 is a variation of sub1 with a non standard old price to test the price capping
+    // The standard of old price for uk (GBP monthlies is 7, so we expect a `false` here)
+
+    assertEquals(
+      Membership2025Migration.subscriptionHasStandardOldPrice(subscription, invoicePreview),
+      Some(false)
+    )
+  }
+
 }
