@@ -84,4 +84,61 @@ class Membership2025MigrationTest extends munit.FunSuite {
     )
   }
 
+  test("EstimationHandlerHelper.commsPriceForMembership2025") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2025/sub1/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Membership2025/sub1/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2025/sub1/invoice-preview.json")
+
+    val cohortSpec = CohortSpec(
+      "Membership2025",
+      "none", // irrelevant
+      LocalDate.of(2025, 10, 16) // irrelevant
+    )
+
+    val commsPrice = EstimationHandlerHelper.commsPriceForMembership2025(
+      cohortSpec,
+      BigDecimal(7), // correct old price for sub1
+      BigDecimal(10), // price grid new price
+      subscription,
+      invoicePreview
+    )
+
+    // Here the old price of the sub is the old price of the price grid, so although
+    // the jump from 7 to 10 is bigger than the 30% price cap of this migration, we
+    // compute the comms price to be the intended new price of 10
+
+    assertEquals(
+      commsPrice,
+      BigDecimal(10)
+    )
+  }
+
+  test("EstimationHandlerHelper.commsPriceForMembership2025") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2025/sub2/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Membership2025/sub2/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2025/sub2/invoice-preview.json")
+
+    val cohortSpec = CohortSpec(
+      "Membership2025",
+      "none", // irrelevant
+      LocalDate.of(2025, 10, 16) // irrelevant
+    )
+
+    val commsPrice = EstimationHandlerHelper.commsPriceForMembership2025(
+      cohortSpec,
+      BigDecimal(2.5), // correct old price for sub1
+      BigDecimal(10), // price grid new price
+      subscription,
+      invoicePreview
+    )
+
+    // Here the old price of the sub is not the old price of the price grid,
+    // We apply the 30% cap
+
+    assertEquals(
+      commsPrice,
+      BigDecimal(3.25) // 2.5 * 1.3
+    )
+  }
+
 }
