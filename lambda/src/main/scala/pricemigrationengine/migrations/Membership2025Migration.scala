@@ -34,7 +34,24 @@ object Membership2025Migration {
   def priceData(
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
-  ): Either[DataExtractionFailure, PriceData] = ???
+  ): Either[DataExtractionFailure, PriceData] = {
+    val priceDataOpt = for {
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
+      currency <- SI2025Extractions.determineCurrency(ratePlan)
+      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
+      oldPrice = SI2025Extractions.determineOldPrice(ratePlan)
+      newPrice <- priceGridNewPrices.get((billingPeriod, currency))
+    } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
+    priceDataOpt match {
+      case Some(pricedata) => Right(pricedata)
+      case None =>
+        Left(
+          DataExtractionFailure(
+            s"[85bebc63] Could not determine PriceData for subscription ${subscription.subscriptionNumber}"
+          )
+        )
+    }
+  }
 
   def amendmentOrderPayload(
       cohortItem: CohortItem,
