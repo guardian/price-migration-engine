@@ -17,6 +17,7 @@ It currently consists in
 - [Notification windows](docs/notification-windows.md)
 - [The art of computing amendment effective dates](docs/amendment-effective-date-computation.md)
 - [The art of the cap; or how to gracefully cap prices in the engine](docs/the-art-of-the-cap.md)
+- [What does ROW (Rest of World) means ?](docs/ROW-definition.md)
 
 ### Operations:
 
