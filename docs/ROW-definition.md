@@ -1,5 +1,5 @@
 
-### What does ROW (Rest of World) means ?
+### What does ROW (Rest of World) mean ?
 
 Date: October 2025
 Author: Graham
