@@ -15,7 +15,7 @@ class Membership2025MigrationTest extends munit.FunSuite {
 
     assertEquals(
       Membership2025Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(3), BigDecimal(10), "Month"))
+      Right(PriceData("GBP", BigDecimal(7), BigDecimal(10), "Month"))
     )
   }
 }
