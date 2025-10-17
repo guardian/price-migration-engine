@@ -251,7 +251,7 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     // is correct, we are going to test all the intermediary values of the
     // for yield construct.
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
 
     assertEquals(
       ratePlan,
