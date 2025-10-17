@@ -31,9 +31,26 @@ object SI2025RateplanFromSubAndInvoices {
   ): Option[ZuoraRatePlan] =
     subscription.ratePlans.find(_.ratePlanCharges.exists(_.number == ratePlanChargeNumber))
 
-  // `determineRatePlan` is the main function of this object. Given a subscription and an invoice List
-  // it determines the rate plan that corresponds to the invoice list. This is a very reliable
-  // way of determining the rate plan that other data should be derived from.
+  def invoicePreviewToChargeNumbers(invoiceList: ZuoraInvoiceList): Seq[String] =
+    invoiceList.invoiceItems.map(invoiceItem => invoiceItem.chargeNumber)
+
+  def ratePlanChargeNumbersToUniqueMatchingRatePlan(
+      subscription: ZuoraSubscription,
+      ratePlanChargeNumbers: Seq[String]
+  ): Option[ZuoraRatePlan] = {
+    // Note that this function only return Some(thing) if `thing` was the only
+    // matching rate plan, hence the name.
+    val matchingRatePlans = ratePlanChargeNumbers.flatMap(ratePlanChargeNumber =>
+      ratePlanChargeNumberToMatchingRatePlan(
+        subscription,
+        ratePlanChargeNumber
+      )
+    )
+    matchingRatePlans.distinct match {
+      case Seq(single) => Some(single)
+      case _           => None
+    }
+  }
 
   def determineRatePlan_Deprecated(
       subscription: ZuoraSubscription,
@@ -46,6 +63,17 @@ object SI2025RateplanFromSubAndInvoices {
         ratePlanChargeNumber
       )
     } yield ratePlan
+  }
+
+  // `determineRatePlan` is the main function of this object. Given a subscription and an invoice List
+  // it determines the rate plan that corresponds to the invoice list. This is a very reliable
+  // way of determining the rate plan that other data should be derived from.
+
+  def determineRatePlan(subscription: ZuoraSubscription, invoiceList: ZuoraInvoiceList): Option[ZuoraRatePlan] = {
+    ratePlanChargeNumbersToUniqueMatchingRatePlan(
+      subscription,
+      invoicePreviewToChargeNumbers(invoiceList)
+    )
   }
 }
 
