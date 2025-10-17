@@ -44,7 +44,7 @@ object Membership2025Migration {
     println(s"[1f0e0b1a] invoiceList: ${invoiceList}")
     val priceDataOpt = for {
       ratePlan <- SI2025RateplanFromSubAndInvoices
-        .determineRatePlan_Deprecated(subscription, invoiceList)
+        .determineRatePlan(subscription, invoiceList)
         .map(logValue("ratePlan"))
       currency <- SI2025Extractions.determineCurrency(ratePlan).map(logValue("currency"))
       billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan).map(logValue("billingPeriod"))
