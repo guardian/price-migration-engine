@@ -32,6 +32,7 @@ It currently consists in
     - [Notes on prices](docs/notes-on-prices.md)
     - [Cohort Items](docs/cohort-items.md)
     - [Troubleshooting document](docs/troubleshooting.md)
+    - [Quirks of the Engine](docs/quirks.md)
 
 - Android Price Rises
     - [README](./android-price-rise/README.md)
