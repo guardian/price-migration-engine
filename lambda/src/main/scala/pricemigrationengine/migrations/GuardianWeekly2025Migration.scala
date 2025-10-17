@@ -159,7 +159,7 @@ object GuardianWeekly2025Migration {
       account: ZuoraAccount
   ): Option[SubscriptionLocalisation] = {
     for {
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(
         subscription,
         invoiceList
       )
@@ -199,7 +199,7 @@ object GuardianWeekly2025Migration {
     val priceDataOpt: Option[PriceData] = for {
       _ <- Some(()).map(logValue("initialization"))
       ratePlan <- SI2025RateplanFromSubAndInvoices
-        .determineRatePlan(subscription, invoiceList)
+        .determineRatePlan_Deprecated(subscription, invoiceList)
         .map(logValue("ratePlan"))
       currency <- SI2025Extractions
         .determineCurrency(ratePlan)
@@ -277,7 +277,7 @@ object GuardianWeekly2025Migration {
     val order_opt = {
       if (!decideShouldRemoveDiscount(cohortItem)) {
         for {
-          ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+          ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(zuora_subscription, invoiceList)
           billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
         } yield {
           val subscriptionRatePlanId = ratePlan.id
@@ -302,7 +302,7 @@ object GuardianWeekly2025Migration {
         }
       } else {
         for {
-          ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+          ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(zuora_subscription, invoiceList)
           billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
           discount <- SI2025Extractions.getDiscountByRatePlanName(zuora_subscription, "Percentage")
         } yield {

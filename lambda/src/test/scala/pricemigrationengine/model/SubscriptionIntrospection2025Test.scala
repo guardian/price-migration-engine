@@ -133,7 +133,7 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     val invoicePreview =
       Fixtures.invoiceListFromJson("model/SubscriptionIntrospection2025/subscription1/invoice-preview.json")
     val chargeNumber =
-      SI2025RateplanFromSubAndInvoices.invoicePreviewToChargeNumber(invoicePreview)
+      SI2025RateplanFromSubAndInvoices.invoicePreviewToChargeNumber_Deprecated(invoicePreview)
     assertEquals(chargeNumber, Some("C-05719965"))
   }
 

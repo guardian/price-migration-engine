@@ -8,7 +8,10 @@ object AmendmentHandlerHelper {
   ): Option[Boolean] = {
     for {
       billingPeriodReference <- billingPeriodReferenceOpt
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscriptionAfterUpdate, invoicePreviewAfterUpdate)
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(
+        subscriptionAfterUpdate,
+        invoicePreviewAfterUpdate
+      )
       billingPeriodAfterUpdate <- SI2025Extractions.determineBillingPeriod(ratePlan)
     } yield billingPeriodReference == BillingPeriod.toString(billingPeriodAfterUpdate)
   }

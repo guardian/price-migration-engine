@@ -43,7 +43,7 @@ object SubscriptionLocalisation {
     // the function so that it returns a currency and the localization
 
     for {
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(
         subscription,
         invoiceList
       )
