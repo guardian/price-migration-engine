@@ -31,16 +31,25 @@ object Membership2025Migration {
 
   // -----------------------------------------------------
 
+  def logValue[T](label: String)(value: T): T = {
+    println(s"$label: $value")
+    value
+  }
+
   def priceData(
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
   ): Either[DataExtractionFailure, PriceData] = {
+    println(s"[7909e3a4] subscription: ${subscription}")
+    println(s"[1f0e0b1a] invoiceList: ${invoiceList}")
     val priceDataOpt = for {
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
-      currency <- SI2025Extractions.determineCurrency(ratePlan)
-      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
-      oldPrice = SI2025Extractions.determineOldPrice(ratePlan)
-      newPrice <- priceGridNewPrices.get((billingPeriod, currency))
+      ratePlan <- SI2025RateplanFromSubAndInvoices
+        .determineRatePlan(subscription, invoiceList)
+        .map(logValue("ratePlan"))
+      currency <- SI2025Extractions.determineCurrency(ratePlan).map(logValue("currency"))
+      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan).map(logValue("billingPeriod"))
+      oldPrice = logValue("oldPrice")(SI2025Extractions.determineOldPrice(ratePlan))
+      newPrice <- priceGridNewPrices.get((billingPeriod, currency)).map(logValue("newPrice"))
     } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
