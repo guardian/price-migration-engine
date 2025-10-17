@@ -1,6 +1,8 @@
 package pricemigrationengine.model
 
 import pricemigrationengine.Fixtures
+import pricemigrationengine.migrations.Membership2025Migration
+
 import java.time.LocalDate
 
 class SI2025ExtractionsTest extends munit.FunSuite {
@@ -55,7 +57,7 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     )
   }
 
-  test("SI2025RateplanFromSubAndInvoices.determineRatePlan") {
+  test("SI2025RateplanFromSubAndInvoices.determineRatePlan (1)") {
     val subscription =
       Fixtures.subscriptionFromJson(
         "model/SubscriptionIntrospection2025/subscription5-multiple-products-in-invoice-preview/subscription.json"
@@ -74,6 +76,56 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     assertEquals(
       ratePlan.get.ratePlanName,
       "Supporter - annual (2023 Price)"
+    )
+  }
+
+  test("SI2025RateplanFromSubAndInvoices.determineRatePlan (2)") {
+    val subscription =
+      Fixtures.subscriptionFromJson(
+        "model/SubscriptionIntrospection2025/subscription6-multiple-products-in-invoice-preview/subscription.json"
+      )
+
+    val invoiceList =
+      Fixtures.invoiceListFromJson(
+        "model/SubscriptionIntrospection2025/subscription6-multiple-products-in-invoice-preview/invoice-preview.json"
+      )
+
+    // Here we test that we determine the right rate plan using the `SubAndInvoices` method
+    // in the case of two products in the invoice preview.
+
+    val ratePlan =
+      SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList).get
+    assertEquals(
+      ratePlan.ratePlanName,
+      "Supporter - monthly (2023 Price)"
+    )
+
+    assertEquals(
+      SI2025Extractions.determineCurrency(ratePlan).get,
+      "GBP"
+    )
+
+    assertEquals(
+      SI2025Extractions.determineBillingPeriod(ratePlan).get,
+      Monthly
+    )
+
+    assertEquals(
+      SI2025Extractions.determineOldPrice(ratePlan),
+      BigDecimal(7.0)
+    )
+
+    assertEquals(
+      Membership2025Migration.priceGridNewPrices.get((Monthly, "GBP")).get,
+      BigDecimal(10.0)
+    )
+
+    assertEquals(
+      Membership2025Migration.priceData(
+        subscription,
+        invoiceList,
+      ),
+      Right(PriceData("GBP", BigDecimal(7.0), BigDecimal(10.0), "Month"))
     )
   }
 
