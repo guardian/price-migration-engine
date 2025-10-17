@@ -146,7 +146,7 @@ class HomeDelivery2025MigrationTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("Migrations/HomeDelivery2025/A-S00252266/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/HomeDelivery2025/A-S00252266/invoice-preview.json")
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
     assertEquals(
       HomeDelivery2025Migration.decideDeliveryPattern(ratePlan),
       Some(HomeDelivery2025Sixday)
@@ -161,7 +161,7 @@ class HomeDelivery2025MigrationTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("Migrations/HomeDelivery2025/A-S00256852/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/HomeDelivery2025/A-S00256852/invoice-preview.json")
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
     assertEquals(
       HomeDelivery2025Migration.decideDeliveryPattern(ratePlan),
       Some(HomeDelivery2025Weekend)
@@ -176,7 +176,7 @@ class HomeDelivery2025MigrationTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("Migrations/HomeDelivery2025/GA0000464/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/HomeDelivery2025/GA0000464/invoice-preview.json")
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
     assertEquals(
       HomeDelivery2025Migration.decideDeliveryPattern(ratePlan),
       Some(HomeDelivery2025Saturday)
@@ -191,7 +191,7 @@ class HomeDelivery2025MigrationTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("Migrations/HomeDelivery2025/GA0004508/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/HomeDelivery2025/GA0004508/invoice-preview.json")
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
     assertEquals(
       HomeDelivery2025Migration.decideDeliveryPattern(ratePlan),
       Some(HomeDelivery2025Weekend)
@@ -206,7 +206,7 @@ class HomeDelivery2025MigrationTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("Migrations/HomeDelivery2025/GA0006731/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/HomeDelivery2025/GA0006731/invoice-preview.json")
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
     assertEquals(
       HomeDelivery2025Migration.decideDeliveryPattern(ratePlan),
       Some(HomeDelivery2025Saturday)
@@ -228,7 +228,7 @@ class HomeDelivery2025MigrationTest extends munit.FunSuite {
     // is correct, we are going to test all the intermediary values of the
     // for yield construct.
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
 
     assertEquals(
       ratePlan,
@@ -397,7 +397,7 @@ class HomeDelivery2025MigrationTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/HomeDelivery2025/A-S00256852/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/HomeDelivery2025/A-S00256852/invoice-preview.json")
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
     val deliveryPattern = HomeDelivery2025Migration.decideDeliveryPattern(ratePlan).get
 
     assertEquals(
@@ -426,7 +426,7 @@ class HomeDelivery2025MigrationTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/HomeDelivery2025/GA0000464/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/HomeDelivery2025/GA0000464/invoice-preview.json")
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
     val deliveryPattern = HomeDelivery2025Migration.decideDeliveryPattern(ratePlan).get
 
     assertEquals(
@@ -455,7 +455,7 @@ class HomeDelivery2025MigrationTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/HomeDelivery2025/GA0004508/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/HomeDelivery2025/GA0004508/invoice-preview.json")
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
     val deliveryPattern = HomeDelivery2025Migration.decideDeliveryPattern(ratePlan).get
 
     assertEquals(
@@ -484,7 +484,7 @@ class HomeDelivery2025MigrationTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/HomeDelivery2025/GA0006731/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/HomeDelivery2025/GA0006731/invoice-preview.json")
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
     val deliveryPattern = HomeDelivery2025Migration.decideDeliveryPattern(ratePlan).get
 
     assertEquals(
@@ -520,7 +520,7 @@ class HomeDelivery2025MigrationTest extends munit.FunSuite {
     val invoicePreview =
       Fixtures.invoiceListFromJson("Migrations/HomeDelivery2025/A-S01588918-EstimationFailed/invoice-preview.json")
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
     val deliveryPattern = HomeDelivery2025Migration.decideDeliveryPattern(ratePlan).get
 
     assertEquals(

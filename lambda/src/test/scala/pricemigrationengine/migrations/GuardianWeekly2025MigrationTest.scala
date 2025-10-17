@@ -552,7 +552,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     // Here we test correct extraction of the rateplan
     // The subscription has an active Discount, a removed rate plan and the currently active "Guardian Weekly - Domestic"
 
-    val rateplan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview)
+    val rateplan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview)
 
     assertEquals(
       rateplan,
@@ -1257,7 +1257,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     val invoicePreview =
       Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2025/73291-GW-ROW-EUR/invoice-preview.json")
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
     val ratePlanName = ratePlan.ratePlanName
     val currency = SI2025Extractions.determineCurrency(ratePlan).get
 
