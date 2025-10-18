@@ -129,6 +129,57 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     )
   }
 
+  test("SI2025RateplanFromSubAndInvoices.determineRatePlan (3)") {
+    val subscription =
+      Fixtures.subscriptionFromJson(
+        "model/SubscriptionIntrospection2025/subscription7-product-and-discount-in-invoice-preview/subscription.json"
+      )
+
+    val invoiceList =
+      Fixtures.invoiceListFromJson(
+        "model/SubscriptionIntrospection2025/subscription7-product-and-discount-in-invoice-preview/invoice-preview.json"
+      )
+
+    // In this case we have two active products on the subscription itself, and one of them
+    // is a discount. This is a particular case of the more general case of handling
+    // more than one discounts on the subscription while looking for the target rate plan.
+
+    val ratePlan =
+      SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList).get
+    assertEquals(
+      ratePlan.ratePlanName,
+      "Supporter - annual (2023 Price)"
+    )
+
+    assertEquals(
+      SI2025Extractions.determineCurrency(ratePlan).get,
+      "GBP"
+    )
+
+    assertEquals(
+      SI2025Extractions.determineBillingPeriod(ratePlan).get,
+      Annual
+    )
+
+    assertEquals(
+      SI2025Extractions.determineOldPrice(ratePlan),
+      BigDecimal(75.0)
+    )
+
+    assertEquals(
+      Membership2025Migration.priceGridNewPrices.get((Annual, "GBP")).get,
+      BigDecimal(100.0)
+    )
+
+    assertEquals(
+      Membership2025Migration.priceData(
+        subscription,
+        invoiceList,
+      ),
+      Right(PriceData("GBP", BigDecimal(75.0), BigDecimal(100.0), "Annual"))
+    )
+  }
+
   // ----------------------------------------------------
   // SI2025RateplanFromSub
   // ----------------------------------------------------
