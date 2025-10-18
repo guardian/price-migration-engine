@@ -8,7 +8,7 @@ object AmendmentHandlerHelper {
   ): Option[Boolean] = {
     for {
       billingPeriodReference <- billingPeriodReferenceOpt
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(
         subscriptionAfterUpdate,
         invoicePreviewAfterUpdate
       )

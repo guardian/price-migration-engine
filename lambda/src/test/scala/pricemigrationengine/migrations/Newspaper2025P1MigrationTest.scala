@@ -125,7 +125,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
   test("decideProductType (276579)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/276579/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/276579/invoice-preview.json")
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
     assertEquals(
       Newspaper2025P1Migration.decideProductType(ratePlan),
       Some(Newspaper2025P1Voucher)
@@ -135,7 +135,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
   test("decideProductType (280828)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/280828/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/280828/invoice-preview.json")
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
     assertEquals(
       Newspaper2025P1Migration.decideProductType(ratePlan),
       Some(Newspaper2025P1Voucher)
@@ -145,7 +145,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
   test("decideProductType (296144)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/296144/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/296144/invoice-preview.json")
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
     assertEquals(
       Newspaper2025P1Migration.decideProductType(ratePlan),
       Some(Newspaper2025P1Voucher)
@@ -155,7 +155,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
   test("decideProductType (A-S00553498)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/A-S00553498/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/A-S00553498/invoice-preview.json")
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
     assertEquals(
       Newspaper2025P1Migration.decideProductType(ratePlan),
       Some(Newspaper2025P1HomeDelivery)
@@ -167,7 +167,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
   test("decidePlusType (276579)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/276579/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/276579/invoice-preview.json")
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
     assertEquals(
       Newspaper2025P1Migration.decidePlusType(ratePlan),
       Some(Newspaper2025P1SixdayPlus)
@@ -177,7 +177,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
   test("decidePlusType (280828)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/280828/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/280828/invoice-preview.json")
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
     assertEquals(
       Newspaper2025P1Migration.decidePlusType(ratePlan),
       Some(Newspaper2025P1EverydayPlus)
@@ -187,7 +187,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
   test("decidePlusType (296144)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/296144/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/296144/invoice-preview.json")
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
     assertEquals(
       Newspaper2025P1Migration.decidePlusType(ratePlan),
       Some(Newspaper2025P1SixdayPlus)
@@ -197,7 +197,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
   test("decidePlusType (A-S00553498)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/A-S00553498/subscription.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/A-S00553498/invoice-preview.json")
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
     assertEquals(
       Newspaper2025P1Migration.decidePlusType(ratePlan),
       Some(Newspaper2025P1EverydayPlus)
@@ -228,7 +228,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     // is correct, we are going to test all the intermediary values of the
     // for yield construct.
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
 
     assertEquals(
       ratePlan,
@@ -427,7 +427,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     // Here we check the rate plan product name and rate plan name
     // and then we perform the main test Newspaper2025P1Migration.priceData
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
 
     assertEquals(
       ratePlan.productName,
@@ -462,7 +462,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     // Here we check the rate plan product name and rate plan name
     // and then we perform the main test Newspaper2025P1Migration.priceData
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
 
     assertEquals(
       ratePlan.productName,
@@ -497,7 +497,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     // Here we check the rate plan product name and rate plan name
     // and then we perform the main test Newspaper2025P1Migration.priceData
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
 
     assertEquals(
       ratePlan.productName,
@@ -542,7 +542,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     val invoicePreview =
       Fixtures.invoiceListFromJson("Migrations/Newspaper2025P1/344070-EstimationFailed/invoice-preview.json")
 
-    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoicePreview).get
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
 
     assertEquals(
       ratePlan.productName,
