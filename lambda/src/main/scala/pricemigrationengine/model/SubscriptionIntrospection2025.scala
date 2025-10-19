@@ -31,8 +31,8 @@ object SI2025RateplanFromSubAndInvoices {
       .filter(ratePlan => ratePlan.productName != "Discounts")
       .find(_.ratePlanCharges.exists(_.number == ratePlanChargeNumber))
 
-  def invoicePreviewToChargeNumbers(invoiceList: ZuoraInvoiceList): Seq[String] =
-    invoiceList.invoiceItems.map(invoiceItem => invoiceItem.chargeNumber)
+  def invoicePreviewToUniqueChargeNumbers(invoiceList: ZuoraInvoiceList): Seq[String] =
+    invoiceList.invoiceItems.map(invoiceItem => invoiceItem.chargeNumber).distinct
 
   def ratePlanChargeNumbersToUniqueMatchingNonDiscountRatePlan(
       subscription: ZuoraSubscription,
@@ -59,7 +59,7 @@ object SI2025RateplanFromSubAndInvoices {
   def determineRatePlan(subscription: ZuoraSubscription, invoiceList: ZuoraInvoiceList): Option[ZuoraRatePlan] = {
     ratePlanChargeNumbersToUniqueMatchingNonDiscountRatePlan(
       subscription,
-      invoicePreviewToChargeNumbers(invoiceList)
+      invoicePreviewToUniqueChargeNumbers(invoiceList)
     )
   }
 }
