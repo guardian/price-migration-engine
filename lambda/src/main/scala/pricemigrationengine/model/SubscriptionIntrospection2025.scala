@@ -31,17 +31,25 @@ object SI2025RateplanFromSubAndInvoices {
   ): Option[ZuoraRatePlan] =
     subscription.ratePlans.find(_.ratePlanCharges.exists(_.number == ratePlanChargeNumber))
 
+  def ratePlanChargeNumberToMatchingNonDiscountRatePlan(
+      subscription: ZuoraSubscription,
+      ratePlanChargeNumber: String
+  ): Option[ZuoraRatePlan] =
+    subscription.ratePlans
+      .filter(ratePlan => ratePlan.productName != "Discounts")
+      .find(_.ratePlanCharges.exists(_.number == ratePlanChargeNumber))
+
   def invoicePreviewToChargeNumbers(invoiceList: ZuoraInvoiceList): Seq[String] =
     invoiceList.invoiceItems.map(invoiceItem => invoiceItem.chargeNumber)
 
-  def ratePlanChargeNumbersToUniqueMatchingRatePlan(
+  def ratePlanChargeNumbersToUniqueMatchingNonDiscountRatePlan(
       subscription: ZuoraSubscription,
       ratePlanChargeNumbers: Seq[String]
   ): Option[ZuoraRatePlan] = {
     // Note that this function only return Some(thing) if `thing` was the only
     // matching rate plan, hence the name.
     val matchingRatePlans = ratePlanChargeNumbers.flatMap(ratePlanChargeNumber =>
-      ratePlanChargeNumberToMatchingRatePlan(
+      ratePlanChargeNumberToMatchingNonDiscountRatePlan(
         subscription,
         ratePlanChargeNumber
       )
@@ -70,7 +78,7 @@ object SI2025RateplanFromSubAndInvoices {
   // way of determining the rate plan that other data should be derived from.
 
   def determineRatePlan(subscription: ZuoraSubscription, invoiceList: ZuoraInvoiceList): Option[ZuoraRatePlan] = {
-    ratePlanChargeNumbersToUniqueMatchingRatePlan(
+    ratePlanChargeNumbersToUniqueMatchingNonDiscountRatePlan(
       subscription,
       invoicePreviewToChargeNumbers(invoiceList)
     )
