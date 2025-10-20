@@ -22,14 +22,6 @@ import java.time.LocalDate
  */
 
 object SI2025RateplanFromSubAndInvoices {
-  def invoicePreviewToChargeNumber_Deprecated(invoiceList: ZuoraInvoiceList): Option[String] =
-    invoiceList.invoiceItems.headOption.map(invoiceItem => invoiceItem.chargeNumber)
-
-  def ratePlanChargeNumberToMatchingRatePlan(
-      subscription: ZuoraSubscription,
-      ratePlanChargeNumber: String
-  ): Option[ZuoraRatePlan] =
-    subscription.ratePlans.find(_.ratePlanCharges.exists(_.number == ratePlanChargeNumber))
 
   def ratePlanChargeNumberToMatchingNonDiscountRatePlan(
       subscription: ZuoraSubscription,
@@ -39,8 +31,8 @@ object SI2025RateplanFromSubAndInvoices {
       .filter(ratePlan => ratePlan.productName != "Discounts")
       .find(_.ratePlanCharges.exists(_.number == ratePlanChargeNumber))
 
-  def invoicePreviewToChargeNumbers(invoiceList: ZuoraInvoiceList): Seq[String] =
-    invoiceList.invoiceItems.map(invoiceItem => invoiceItem.chargeNumber)
+  def invoicePreviewToUniqueChargeNumbers(invoiceList: ZuoraInvoiceList): Seq[String] =
+    invoiceList.invoiceItems.map(invoiceItem => invoiceItem.chargeNumber).distinct
 
   def ratePlanChargeNumbersToUniqueMatchingNonDiscountRatePlan(
       subscription: ZuoraSubscription,
@@ -60,19 +52,6 @@ object SI2025RateplanFromSubAndInvoices {
     }
   }
 
-  def determineRatePlan_Deprecated(
-      subscription: ZuoraSubscription,
-      invoiceList: ZuoraInvoiceList
-  ): Option[ZuoraRatePlan] = {
-    for {
-      ratePlanChargeNumber <- SI2025RateplanFromSubAndInvoices.invoicePreviewToChargeNumber_Deprecated(invoiceList)
-      ratePlan <- SI2025RateplanFromSubAndInvoices.ratePlanChargeNumberToMatchingRatePlan(
-        subscription,
-        ratePlanChargeNumber
-      )
-    } yield ratePlan
-  }
-
   // `determineRatePlan` is the main function of this object. Given a subscription and an invoice List
   // it determines the rate plan that corresponds to the invoice list. This is a very reliable
   // way of determining the rate plan that other data should be derived from.
@@ -80,7 +59,7 @@ object SI2025RateplanFromSubAndInvoices {
   def determineRatePlan(subscription: ZuoraSubscription, invoiceList: ZuoraInvoiceList): Option[ZuoraRatePlan] = {
     ratePlanChargeNumbersToUniqueMatchingNonDiscountRatePlan(
       subscription,
-      invoicePreviewToChargeNumbers(invoiceList)
+      invoicePreviewToUniqueChargeNumbers(invoiceList)
     )
   }
 }
@@ -198,7 +177,7 @@ object SI2025Templates {
       invoiceList: ZuoraInvoiceList
   ): Either[DataExtractionFailure, PriceData] = {
     val priceDataOpt: Option[PriceData] = for {
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoiceList)
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
       currency <- SI2025Extractions.determineCurrency(ratePlan)
       oldPrice = SI2025Extractions.determineOldPrice(ratePlan: ZuoraRatePlan)
       newPrice = BigDecimal(

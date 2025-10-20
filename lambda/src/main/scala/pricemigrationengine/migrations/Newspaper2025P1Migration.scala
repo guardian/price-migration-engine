@@ -215,7 +215,7 @@ object Newspaper2025P1Migration {
       account: ZuoraAccount
   ): Either[DataExtractionFailure, PriceData] = {
     val priceDataOpt: Option[PriceData] = for {
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoiceList)
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
       currency <- SI2025Extractions.determineCurrency(ratePlan)
       oldPrice = SI2025Extractions.determineOldPrice(ratePlan)
       billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
@@ -259,7 +259,7 @@ object Newspaper2025P1Migration {
     val order_opt = {
       if (!decideShouldRemoveDiscount(cohortItem)) {
         for {
-          ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(zuora_subscription, invoiceList)
+          ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
           billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
         } yield {
           val subscriptionRatePlanId = ratePlan.id
@@ -283,7 +283,7 @@ object Newspaper2025P1Migration {
         }
       } else {
         for {
-          ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(zuora_subscription, invoiceList)
+          ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
           billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
           discount <- SI2025Extractions.getDiscountByRatePlanName(zuora_subscription, "Adjustment")
         } yield {
