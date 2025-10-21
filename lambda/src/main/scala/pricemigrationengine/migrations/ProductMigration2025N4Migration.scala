@@ -253,6 +253,7 @@ object ProductMigration2025N4Migration {
       charges = List(
         N4Charge(name = "Saturday", charge = BigDecimal(10.56), chargeId = "2c92a0fd56fe26b60157042fcd462666"),
         N4Charge(name = "Tuesday", charge = BigDecimal(8.04), chargeId = "2c92a0fd56fe26b6015709ca144a646a"),
+        N4Charge(name = "Monday", charge = BigDecimal(8.04), chargeId = "2c92a0fd56fe270b015709c90c291c49"),
         N4Charge(name = "Thursday", charge = BigDecimal(8.04), chargeId = "2c92a0fd56fe270b015709cc16f92645"),
         N4Charge(name = "Wednesday", charge = BigDecimal(8.04), chargeId = "2c92a0ff56fe33f0015709cac4561bf3"),
         N4Charge(name = "Sunday", charge = BigDecimal(10.56), chargeId = "2c92a0ff56fe33f5015709c80af30495"),
