@@ -108,11 +108,8 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
     // to perform the Salesforce price rise creation, due to the extra computation required to compute
     // the correct price.
 
-    // [2] We are preventing this step for the moment while running the Estimation step
-
     MigrationType(input) match {
       case SupporterPlus2024 => ZIO.succeed(HandlerOutput(isComplete = true)) // See [1] above
-      case Membership2025    => ZIO.succeed(HandlerOutput(isComplete = true)) // See [2] above
       case _ =>
         main(input).provideSome[Logging](
           EnvConfig.cohortTable.layer,
