@@ -42,9 +42,9 @@ lazy val lambda = (project in file("lambda"))
   .settings(
     name := "price-migration-engine-lambda",
     dependencyOverrides ++= Seq(
-      "io.netty" % "netty-handler" % "4.2.6.Final",
-      "io.netty" % "netty-codec-base" % "4.2.6.Final",
-      "io.netty" % "netty-codec" % "4.2.6.Final"
+      "io.netty" % "netty-handler" % "4.2.7.Final",
+      "io.netty" % "netty-codec-base" % "4.2.7.Final",
+      "io.netty" % "netty-codec" % "4.2.7.Final"
     ),
     libraryDependencies ++= Seq(
       zio,

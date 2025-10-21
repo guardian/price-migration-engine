@@ -85,7 +85,7 @@ object ProductMigration2025N4Migration {
       invoiceList: ZuoraInvoiceList,
   ): Either[DataExtractionFailure, PriceData] = {
     val priceDataOpt: Option[PriceData] = for {
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan_Deprecated(subscription, invoiceList)
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
       currency <- SI2025Extractions.determineCurrency(ratePlan)
       oldPrice = SI2025Extractions.determineOldPrice(ratePlan)
       billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)

@@ -11,52 +11,6 @@ class SI2025ExtractionsTest extends munit.FunSuite {
   // SI2025RateplanFromSubAndInvoices
   // ----------------------------------------------------
 
-  test("SI2025RateplanFromSubAndInvoices.ratePlanChargeNumberToMatchingRatePlan") {
-    val subscription =
-      Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription1/subscription.json")
-
-    val ratePlan =
-      SI2025RateplanFromSubAndInvoices.ratePlanChargeNumberToMatchingRatePlan(
-        subscription,
-        "C-05719965" // <- value from the previous test, otherwise can be read from the fixture data.
-      )
-    assertEquals(
-      ratePlan,
-      Some(
-        ZuoraRatePlan(
-          id = "8a12865b96d3500b0196e182a5685157",
-          productName = "Guardian Weekly - Domestic",
-          productRatePlanId = "2c92a0fe6619b4b301661aa494392ee2",
-          ratePlanName = "GW Oct 18 - Quarterly - Domestic",
-          ratePlanCharges = List(
-            ZuoraRatePlanCharge(
-              productRatePlanChargeId = "2c92a0fe6619b4b601661aa8b74e623f",
-              name = "GW Oct 18 - Quarterly - Domestic",
-              number = "C-05719965",
-              currency = "USD",
-              price = Some(BigDecimal(90.0)),
-              billingPeriod = Some("Quarter"),
-              chargedThroughDate = Some(LocalDate.of(2025, 8, 18)),
-              processedThroughDate = Some(LocalDate.of(2025, 5, 18)),
-              specificBillingPeriod = None,
-              endDateCondition = Some("Subscription_End"),
-              upToPeriodsType = None,
-              upToPeriods = None,
-              billingDay = Some("ChargeTriggerDay"),
-              triggerEvent = Some("CustomerAcceptance"),
-              triggerDate = None,
-              discountPercentage = None,
-              originalOrderDate = Some(LocalDate.of(2024, 6, 30)),
-              effectiveStartDate = Some(LocalDate.of(2024, 8, 18)),
-              effectiveEndDate = Some(LocalDate.of(2026, 5, 18))
-            )
-          ),
-          lastChangeType = Some("Add")
-        )
-      )
-    )
-  }
-
   test("SI2025RateplanFromSubAndInvoices.determineRatePlan (1)") {
     val subscription =
       Fixtures.subscriptionFromJson(
@@ -126,6 +80,57 @@ class SI2025ExtractionsTest extends munit.FunSuite {
         invoiceList,
       ),
       Right(PriceData("GBP", BigDecimal(7.0), BigDecimal(10.0), "Month"))
+    )
+  }
+
+  test("SI2025RateplanFromSubAndInvoices.determineRatePlan (3)") {
+    val subscription =
+      Fixtures.subscriptionFromJson(
+        "model/SubscriptionIntrospection2025/subscription7-product-and-discount-in-invoice-preview/subscription.json"
+      )
+
+    val invoiceList =
+      Fixtures.invoiceListFromJson(
+        "model/SubscriptionIntrospection2025/subscription7-product-and-discount-in-invoice-preview/invoice-preview.json"
+      )
+
+    // In this case we have two active products on the subscription itself, and one of them
+    // is a discount. This is a particular case of the more general case of handling
+    // more than one discounts on the subscription while looking for the target rate plan.
+
+    val ratePlan =
+      SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList).get
+    assertEquals(
+      ratePlan.ratePlanName,
+      "Supporter - annual (2023 Price)"
+    )
+
+    assertEquals(
+      SI2025Extractions.determineCurrency(ratePlan).get,
+      "GBP"
+    )
+
+    assertEquals(
+      SI2025Extractions.determineBillingPeriod(ratePlan).get,
+      Annual
+    )
+
+    assertEquals(
+      SI2025Extractions.determineOldPrice(ratePlan),
+      BigDecimal(75.0)
+    )
+
+    assertEquals(
+      Membership2025Migration.priceGridNewPrices.get((Annual, "GBP")).get,
+      BigDecimal(100.0)
+    )
+
+    assertEquals(
+      Membership2025Migration.priceData(
+        subscription,
+        invoiceList,
+      ),
+      Right(PriceData("GBP", BigDecimal(75.0), BigDecimal(100.0), "Annual"))
     )
   }
 
