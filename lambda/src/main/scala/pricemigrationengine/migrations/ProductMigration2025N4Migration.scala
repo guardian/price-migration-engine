@@ -145,7 +145,7 @@ object ProductMigration2025N4Migration {
         N4Charge(name = "Friday", charge = BigDecimal(9.65), chargeId = "2c92a0fd560d138801561364cad96af7"),
         N4Charge(name = "Thursday", charge = BigDecimal(9.65), chargeId = "2c92a0fe560d3104015613640f555223"),
         N4Charge(name = "Sunday", charge = BigDecimal(12.67), chargeId = "2c92a0fe560d31040156136626dd5d1b"),
-        N4Charge(name = "Monday", charge = BigDecimal(12.40), chargeId = "2c92a0ff560d31190156134be59060f4"),
+        N4Charge(name = "Monday", charge = BigDecimal(9.65), chargeId = "2c92a0ff560d31190156134be59060f4"),
         N4Charge(name = "Tuesday", charge = BigDecimal(9.65), chargeId = "2c92a0ff560d311b015613623e050a63"),
         N4Charge(name = "Saturday", charge = BigDecimal(12.67), chargeId = "2c92a0ff560d311c0156136573e366f3"),
         N4Charge(name = "Digital Pack", charge = BigDecimal(10.40), chargeId = "2c92a0fd560d132901561367b2f17763")
@@ -188,7 +188,7 @@ object ProductMigration2025N4Migration {
         N4Charge(name = "Saturday", charge = BigDecimal(13.14), chargeId = "8a12994696d3587b0196d4844b5f3c15"),
         N4Charge(name = "Wednesday", charge = BigDecimal(10.01), chargeId = "8a12994696d3587b0196d48449893bed"),
         N4Charge(name = "Friday", charge = BigDecimal(10.01), chargeId = "8a12994696d3587b0196d48449893bed"),
-        N4Charge(name = "Thursday", charge = BigDecimal(12.67), chargeId = "8a12994696d3587b0196d4844a473bfd"),
+        N4Charge(name = "Thursday", charge = BigDecimal(10.01), chargeId = "8a12994696d3587b0196d4844a473bfd"),
         N4Charge(name = "Monday", charge = BigDecimal(10.01), chargeId = "8a12994696d3587b0196d4844aa13c05"),
         N4Charge(name = "Tuesday", charge = BigDecimal(10.01), chargeId = "8a12994696d3587b0196d4844aff3c0d")
       )
@@ -199,14 +199,14 @@ object ProductMigration2025N4Migration {
       targetRatePlanName = "Everyday+",
       targetRatePlanId = "8a1280be96d33dbf0196d48a632616f4",
       charges = List(
-        N4Charge(name = "Wednesday", charge = BigDecimal(9.65), chargeId = "2c92a0fc560d13390156136324931d21"),
-        N4Charge(name = "Friday", charge = BigDecimal(9.65), chargeId = "2c92a0fd560d138801561364cad96af7"),
-        N4Charge(name = "Thursday", charge = BigDecimal(9.65), chargeId = "2c92a0fe560d3104015613640f555223"),
-        N4Charge(name = "Sunday", charge = BigDecimal(12.67), chargeId = "2c92a0fe560d31040156136626dd5d1b"),
-        N4Charge(name = "Monday", charge = BigDecimal(9.65), chargeId = "2c92a0ff560d31190156134be59060f4"),
-        N4Charge(name = "Tuesday", charge = BigDecimal(9.65), chargeId = "2c92a0ff560d311b015613623e050a63"),
-        N4Charge(name = "Saturday", charge = BigDecimal(12.67), chargeId = "2c92a0ff560d311c0156136573e366f3"),
-        N4Charge(name = "Digital Pack", charge = BigDecimal(10.40), chargeId = "2c92a0fd560d132901561367b2f17763")
+        N4Charge(name = "Digital Pack", charge = BigDecimal(10.40), chargeId = "8a12904196d3586d0196d48bff216382"),
+        N4Charge(name = "Sunday", charge = BigDecimal(12.67), chargeId = "8a1280be96d33dbf0196d48a634b16f6"),
+        N4Charge(name = "Wednesday", charge = BigDecimal(9.65), chargeId = "8a1280be96d33dbf0196d48a638d16fe"),
+        N4Charge(name = "Friday", charge = BigDecimal(9.65), chargeId = "8a1280be96d33dbf0196d48a63cf1706"),
+        N4Charge(name = "Thursday", charge = BigDecimal(9.65), chargeId = "8a1280be96d33dbf0196d48a6414170f"),
+        N4Charge(name = "Monday", charge = BigDecimal(9.65), chargeId = "8a1280be96d33dbf0196d48a645c1718"),
+        N4Charge(name = "Tuesday", charge = BigDecimal(9.65), chargeId = "8a1280be96d33dbf0196d48a64a21720"),
+        N4Charge(name = "Saturday", charge = BigDecimal(12.67), chargeId = "8a1280be96d33dbf0196d48a64f21728")
       )
     ),
     "2c92a0ff56fe33f00157040f9a537f4b" -> N4Target(
@@ -264,7 +264,7 @@ object ProductMigration2025N4Migration {
       productName = "Newspaper Digital Voucher",
       sourceRatePlanName = "Saturday",
       targetRatePlanName = "Saturday+",
-      targetRatePlanId = "2c92a00870ec598001710740c6672ee7",
+      targetRatePlanId = "2c92a00870ec598001710740ce702ff0",
       charges = List(
         N4Charge(name = "Saturday", charge = BigDecimal(8.78), chargeId = "2c92a00870ec598001710740cf1e2ffc"),
         N4Charge(name = "Digipack", charge = BigDecimal(7.21), chargeId = "2c92a00870ec598001710740cea02ff4")
@@ -309,7 +309,7 @@ object ProductMigration2025N4Migration {
         N4Charge(name = "Wednesday", charge = BigDecimal(8.04), chargeId = "2c92a00870ec598001710740d7493084"),
         N4Charge(name = "Sunday", charge = BigDecimal(10.56), chargeId = "2c92a00870ec598001710740d7e2308d"),
         N4Charge(name = "Friday", charge = BigDecimal(8.04), chargeId = "2c92a00870ec598001710740d8873096"),
-        N4Charge(name = "Digipack", charge = BigDecimal(8.67), chargeId = "2c92a00870ec598001710740d8873096")
+        N4Charge(name = "Digipack", charge = BigDecimal(8.67), chargeId = "2c92a00870ec598001710740d4143037")
       )
     )
   )
