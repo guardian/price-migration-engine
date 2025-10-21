@@ -349,6 +349,15 @@ object SupporterPlus2024Migration {
     )
   }
 
+  def decideContributionRatePlanEffectDate(subscription: ZuoraSubscription): Option[LocalDate] = {
+    subscription.ratePlans
+      .filter(rp => rp.productName == "Supporter Plus")
+      .flatMap(rp => rp.ratePlanCharges)
+      .filter(charge => charge.name == "Contribution")
+      .flatMap(charge => charge.processedThroughDate)
+      .maxOption
+  }
+
   def amendmentOrderPayload(
       orderDate: LocalDate,
       accountNumber: String,
@@ -372,7 +381,7 @@ object SupporterPlus2024Migration {
           s"[e4e702b6] Could not extract existing contribution price for subscription ${subscription.subscriptionNumber}"
         )
       )
-      contributionRatePlanEffectDate <- existingContributionRatePlanCharge.processedThroughDate.toRight(
+      contributionRatePlanEffectDate <- decideContributionRatePlanEffectDate(subscription).toRight(
         DataExtractionFailure(
           s"[f17691aa] Could not extract existing contribution processedThroughDate for subscription ${subscription.subscriptionNumber}"
         )
