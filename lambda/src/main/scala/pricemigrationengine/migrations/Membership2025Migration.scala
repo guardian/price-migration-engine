@@ -29,6 +29,26 @@ object Membership2025Migration {
     (Annual, "ROW") -> BigDecimal(129.0),
   )
 
+  def brazeName(cohortItem: CohortItem): Option[String] = {
+    /*
+      - SV_MB_PriceRiseMonthly_2025 (MONTHLY)
+        f0ee9579-7f59-41aa-9d4a-41dfc0b4edfa
+
+      - SV_MB_PriceRiseAnnual_2025 (ANNUAL)
+        78d377ca-9f32-4ae2-b8da-c5c678fde5b6
+     */
+
+    for {
+      billingPeriod <- cohortItem.billingPeriod
+    } yield {
+      billingPeriod match {
+        case "Month"  => "SV_MB_PriceRiseMonthly_2025"
+        case "Annual" => "SV_MB_PriceRiseAnnual_2025"
+        case _        => throw new Exception("[5cd26ca0] unexpected Membership2025 cohort item billing period")
+      }
+    }
+  }
+
   // -----------------------------------------------------
 
   def logValue[T](label: String)(value: T): T = {
