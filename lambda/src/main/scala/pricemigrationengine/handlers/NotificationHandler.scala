@@ -610,7 +610,7 @@ object NotificationHandler extends CohortHandler {
         ZIO
           .fromOption(Membership2025Migration.brazeName(item))
           .orElseFail(
-            DataExtractionFailure(s"[b9d223be] could not determine brazeName for ProductMigration2025N4, item: ${item}")
+            DataExtractionFailure(s"[b9d223be] could not determine brazeName for Membership2025, item: ${item}")
           )
       case _ => ZIO.succeed(cohortSpec.brazeName)
     }
