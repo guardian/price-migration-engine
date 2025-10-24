@@ -29,23 +29,19 @@ object NotificationHandler extends CohortHandler {
   val Cancelled_Status = "Cancelled"
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    MigrationType(input) match {
-      case Membership2025 => ZIO.succeed(HandlerOutput(isComplete = true))
-      case _ =>
-        main(input).provideSome[Logging](
-          EnvConfig.salesforce.layer,
-          EnvConfig.cohortTable.layer,
-          EnvConfig.emailSender.layer,
-          EnvConfig.zuora.layer,
-          EnvConfig.stage.layer,
-          DynamoDBClientLive.impl,
-          DynamoDBZIOLive.impl,
-          CohortTableLive.impl(input),
-          SalesforceClientLive.impl,
-          EmailSenderLive.impl,
-          ZuoraLive.impl
-        )
-    }
+    main(input).provideSome[Logging](
+      EnvConfig.salesforce.layer,
+      EnvConfig.cohortTable.layer,
+      EnvConfig.emailSender.layer,
+      EnvConfig.zuora.layer,
+      EnvConfig.stage.layer,
+      DynamoDBClientLive.impl,
+      DynamoDBZIOLive.impl,
+      CohortTableLive.impl(input),
+      SalesforceClientLive.impl,
+      EmailSenderLive.impl,
+      ZuoraLive.impl
+    )
   }
 
   def main(
@@ -451,7 +447,6 @@ object NotificationHandler extends CohortHandler {
           _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
           _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
         } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
-
         address.fold(
           _ => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))),
           value => Right(value)
@@ -465,7 +460,17 @@ object NotificationHandler extends CohortHandler {
           _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
           _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
         } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
-
+        address.fold(
+          _ => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))),
+          value => Right(value)
+        )
+      }
+      case Membership2025 => {
+        val address = (for {
+          billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
+          _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
+          _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
+        } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
         address.fold(
           _ => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))),
           value => Right(value)
@@ -581,16 +586,11 @@ object NotificationHandler extends CohortHandler {
   // -------------------------------------------------------------------
   // Braze names
 
-  // This function was introduced in September 2024, when as part of SupporterPlus2024 we integrated two different
-  // email templates in Braze to serve communication to the users.
-
+  // This function was introduced in September 2024, when as part of SupporterPlus2024 we
+  // integrated two different email templates in Braze to serve communication to the users.
   // Traditionally the name of the campaign or canvas has been part of the CohortSpec, making
   // `cohortSpec.brazeName` the default carrier of this information, but in the case of SupporterPlus 2024
-  // we have two canvases and need to decide one depending on the structure of the subscription. Once
-  // SupporterPlus2024 finished, we may decide to go back to a simpler format, or keep that function, depending
-  // on the likelihood of Marketing adopting this variation in the future.
-
-  // In September 2025, this function has been extended for ProductMigration2025N4, which uses 3 canvases
+  // we have two canvases and need to decide one depending on the structure of the subscription.
 
   def brazeName(cohortSpec: CohortSpec, item: CohortItem): ZIO[Zuora, Failure, String] = {
     MigrationType(cohortSpec) match {
@@ -605,6 +605,12 @@ object NotificationHandler extends CohortHandler {
           .fromOption(ProductMigration2025N4Migration.brazeName(item))
           .orElseFail(
             DataExtractionFailure(s"[] could not determine brazeName for ProductMigration2025N4, item: ${item}")
+          )
+      case Membership2025 =>
+        ZIO
+          .fromOption(Membership2025Migration.brazeName(item))
+          .orElseFail(
+            DataExtractionFailure(s"[b9d223be] could not determine brazeName for Membership2025, item: ${item}")
           )
       case _ => ZIO.succeed(cohortSpec.brazeName)
     }
