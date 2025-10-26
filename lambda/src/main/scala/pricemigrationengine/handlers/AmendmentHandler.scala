@@ -55,24 +55,20 @@ object AmendmentHandler extends CohortHandler {
           .takeWhileZIO(_ =>
             // When we reach the deadline, we ignore later items from the array.
             // They will be picked up by the next run of the lambda.
+            // If we reach the deadline, isComplete will be false.
             Clock.nanoTime.map(_ < deadline)
           )
           .mapZIO(item =>
             amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
           )
-          .collect {
-            // Here we are only counting `SuccessfulAmendmentResult`
-            // and `SubscriptionCancelledInZuoraAmendmentResult`.
-            // This will ensure that `AmendmentPreventedDueToLockResult` and `AmendmentPostponed`
-            // are not counted, which would cause the lambda to return `HandlerOutput(true)`
-            // too early.
-            case s: AARSuccessfulAmendment          => s
-            case c: AARSubscriptionCancelledInZuora => c
-          }
           .runCount
       }
-
-    } yield HandlerOutput(isComplete = count < batchSize)
+      now <- Clock.nanoTime
+    } yield {
+      val reachedDeadline = now >= deadline
+      val isComplete = (count < batchSize) && !reachedDeadline
+      HandlerOutput(isComplete = isComplete)
+    }
   }
 
   private def amend(
