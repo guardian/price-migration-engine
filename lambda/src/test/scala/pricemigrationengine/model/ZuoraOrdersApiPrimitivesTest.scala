@@ -592,7 +592,7 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
     )
 
     // We can then perform a manual check that the sum of prices is indeed equal
-    // to the estimated new prices:
+    // to the estimated new price:
     // 88.47 = 13.43 + 3 + 13.44 + 18.28 + 13.44 + 13.44 + 13.44
   }
 
