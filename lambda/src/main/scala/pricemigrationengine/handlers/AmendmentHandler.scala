@@ -73,7 +73,7 @@ object AmendmentHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
-  ): ZIO[CohortTable with Zuora with Logging, Failure, AmendmentResult] =
+  ): ZIO[CohortTable with Zuora with Logging, Failure, AmendmentAttemptResult] =
     doAmendment(cohortSpec, catalogue, item).foldZIO(
       failure = {
         case _: SubscriptionCancelledInZuoraFailure => {
@@ -570,6 +570,5 @@ object AmendmentHandler extends CohortHandler {
           ZuoraLive.impl
         )
     }
-
   }
 }
