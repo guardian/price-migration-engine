@@ -2,7 +2,7 @@ package pricemigrationengine.model
 
 import java.time.{Instant, LocalDate}
 
-trait AmendmentAttemptResult
+sealed trait AmendmentAttemptResult
 
 // The "AAR" prefix means "Amendment Attempt Result"
 
@@ -23,5 +23,12 @@ case class AAROperationPreventedDueToLockResult(
 ) extends AmendmentAttemptResult
 
 case class AAROperationPostponed(
+    subscriptionNumber: String
+) extends AmendmentAttemptResult
+
+// This case was introduced for the ProductMigration2025N4, where the users
+// had the option to opt out from the product migration, determined by a flag
+// set in Salesforce
+case class AARUserOptOut(
     subscriptionNumber: String
 ) extends AmendmentAttemptResult

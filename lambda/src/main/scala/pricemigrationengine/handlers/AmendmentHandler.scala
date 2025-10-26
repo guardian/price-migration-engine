@@ -1,7 +1,11 @@
 package pricemigrationengine.handlers
 
 import pricemigrationengine.model.{AmendmentHandlerHelper, ZuoraOrdersApiPrimitives}
-import pricemigrationengine.model.CohortTableFilter.{NotificationSendDateWrittenToSalesforce, ZuoraCancellation}
+import pricemigrationengine.model.CohortTableFilter.{
+  NotificationSendDateWrittenToSalesforce,
+  ZuoraCancellation,
+  UserOptOut
+}
 import pricemigrationengine.model._
 import pricemigrationengine.migrations._
 import pricemigrationengine.services._
@@ -105,8 +109,25 @@ object AmendmentHandler extends CohortHandler {
         }
         case e => ZIO.fail(e)
       },
-      success = { result =>
-        CohortTable.update(CohortItem.fromSuccessfulAmendmentResult(result)).as(result)
+      success = {
+        case result: AARSuccessfulAmendment =>
+          CohortTable.update(CohortItem.fromSuccessfulAmendmentResult(result)).as(result)
+        case result: AARUserOptOut =>
+          CohortTable
+            .update(
+              CohortItem(
+                result.subscriptionNumber,
+                processingStage = UserOptOut
+              )
+            )
+            .as(result)
+        case _ =>
+          ZIO
+            .fail(
+              AmendmentFailure(
+                s"[7f2bf362] unexpected successful AmendmentAttemptResult while processing subscription: ${item.subscriptionName}"
+              )
+            )
       }
     )
 
@@ -507,7 +528,7 @@ object AmendmentHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
-  ): ZIO[Zuora with Logging, Failure, AARSuccessfulAmendment] = {
+  ): ZIO[Zuora with Logging, Failure, AmendmentAttemptResult] = {
     MigrationType(cohortSpec) match {
       case Test1 => ZIO.fail(ConfigFailure("Branch not supported"))
       case SupporterPlus2024 =>
