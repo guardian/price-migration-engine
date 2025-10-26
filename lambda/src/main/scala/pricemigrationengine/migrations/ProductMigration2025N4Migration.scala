@@ -113,6 +113,10 @@ object ProductMigration2025N4Migration {
 
   // -----------------------------------------------------
 
+  // Note that we have 15 entries instead of 16, because we are missing
+  // Newspaper - National Delivery / Saturday, which didn't show up in the
+  // pre migration checks.
+
   val n4TargetMapping: Map[String, N4Target] = Map(
     "2c92a0fd5e1dcf0d015e3cb39d0a7ddb" -> N4Target(
       productName = "Newspaper Delivery",
@@ -187,7 +191,7 @@ object ProductMigration2025N4Migration {
         N4Charge(name = "Digital Pack", charge = BigDecimal(10.80), chargeId = "8a12979796d358720196d4878ee0421f"),
         N4Charge(name = "Saturday", charge = BigDecimal(13.14), chargeId = "8a12994696d3587b0196d4844b5f3c15"),
         N4Charge(name = "Wednesday", charge = BigDecimal(10.01), chargeId = "8a12994696d3587b0196d48449893bed"),
-        N4Charge(name = "Friday", charge = BigDecimal(10.01), chargeId = "8a12994696d3587b0196d48449893bed"),
+        N4Charge(name = "Friday", charge = BigDecimal(10.01), chargeId = "8a12994696d3587b0196d48449f33bf5"),
         N4Charge(name = "Thursday", charge = BigDecimal(10.01), chargeId = "8a12994696d3587b0196d4844a473bfd"),
         N4Charge(name = "Monday", charge = BigDecimal(10.01), chargeId = "8a12994696d3587b0196d4844aa13c05"),
         N4Charge(name = "Tuesday", charge = BigDecimal(10.01), chargeId = "8a12994696d3587b0196d4844aff3c0d")
