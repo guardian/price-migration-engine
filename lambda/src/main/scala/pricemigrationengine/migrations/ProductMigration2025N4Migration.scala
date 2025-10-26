@@ -333,5 +333,53 @@ object ProductMigration2025N4Migration {
       oldPrice: BigDecimal,
       commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList,
-  ): Either[Failure, Value] = ???
+  ): Either[Failure, Value] = {
+
+    // This version of `amendmentOrderPayload`, applied to subscriptions with the active rate plan having
+    // several charges (one per delivery day), is using ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides
+    // which maps the rate plan's rate plan charges to an array of charge overrides json objects.
+
+    // The important preliminary here, which wasn't needed in the simpler case of a single rate plan charge
+    // in the case of GuardianWeekly2025, for instance, is the price ratio from the old price to the new price
+    // (both carried by the cohort item).
+
+    val priceRatio = commsPrice / oldPrice
+
+    val order_opt = {
+      for {
+        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+        billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
+      } yield {
+        val subscriptionRatePlanId = ratePlan.id
+        val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
+        val triggerDateString = effectDate.toString
+        val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
+        val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
+          ratePlan.ratePlanCharges,
+          priceRatio,
+          commsPrice,
+          BillingPeriod.toString(billingPeriod)
+        )
+        val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+        val order_subscription =
+          ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
+        ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
+          orderDate.toString,
+          accountNumber,
+          order_subscription
+        )
+      }
+    }
+
+    order_opt match {
+      case Some(order) => Right(order)
+      case None =>
+        Left(
+          DataExtractionFailure(
+            s"[9f480e70] Could not compute amendmentOrderPayload for subscription ${subscriptionNumber}"
+          )
+        )
+    }
+  }
+
 }

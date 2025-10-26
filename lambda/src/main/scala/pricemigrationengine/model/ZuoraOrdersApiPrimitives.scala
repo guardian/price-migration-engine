@@ -128,7 +128,7 @@ object ZuoraOrdersApiPrimitives {
       billingPeriod: String
   ): List[Value] = {
 
-    // This functions is a more general case of the previous function (`chargeOverride`)
+    // This function is a more general case of the previous function (`chargeOverride`)
     // We originally introduced `chargeOverride` for price increases that have a single charge
     // in the rate plan that is being price increased, but cases such as Newspaper2025(P1) and
     // HomeDelivery2025 have rate plans containing charges for each day of the week (or a subset
@@ -138,8 +138,7 @@ object ZuoraOrdersApiPrimitives {
     // An additional complexity is that in the simple case, we know the listing price
     // which is the price we are moving to. In the case of a migration involving increases
     // across different charges, we instead are going to provide the effective increase ratio.
-    // For instance if the old price of the entire subscription was £50 and the new price (the price
-    // carried by the cohort item, in other words the price we communicated to the user) is
+    // For instance if the old price of the entire subscription was £50 and the commsPrice is
     // £60, which corresponds to a 20% increase, and assuming that the individual charges before
     // price increase are £10, £20, £7 and £13 (note that the sum of values is 50), then the new
     // post price increase charges should be 10 + 20%, 20 + 20%, 7 +20% and 13 + 20%.
@@ -147,11 +146,11 @@ object ZuoraOrdersApiPrimitives {
     // price increase ratio (we express the percentage as a ratio, so for instance a 20% increase
     // will be a price ratio of 1.2).
 
-    // Following the "pennies incident" of 12th September 2025 (date at which it was reported),
-    // were it was highlighted that the default rounding down after a percentage increase in the
-    // computation of the charge override prices, we added the target price, the estimated new price,
-    // to the parameters of this function. We must ensure that after ratio increase and truncation, the
-    // sum of all charge prices is equal to the estimated new price.
+    // Following the September 2025 "pennies incident", we added the commsPrice to the
+    // parameters of this function. This was because a percentage increase (in the computation of
+    // the charge override prices) followed by a rounding down (to keep the prices to two decimals),
+    // we can end up in a total price lower than the commsPrice. We must ensure that after ratio
+    // increase and rounding (or truncation), that the sum of all charge prices is equal to the commsPrice.
 
     val ratePlanChargesWithUpdatedPrices = ratePlanCharges.map { rpc =>
       val newPrice = rpc.price.map(p => (p * priceRatio).setScale(2, RoundingMode.DOWN))
@@ -200,10 +199,10 @@ object ZuoraOrdersApiPrimitives {
     val totalListPriceFromJsonArray: Double =
       jsonData.map(js => js("pricing")("recurringFlatFee")("listPrice").num).sum
 
-    // We perform a check and throw an exception if the sum do not match within margin error
+    // We perform a check and throw an exception if the sums do not match within margin error
     if ((targetNewPrice.doubleValue - totalListPriceFromJsonArray) > 0.001) {
       throw new Exception(
-        s"[] failed equality assertion with ratePlanCharges: ${ratePlanCharges}, priceRatio: ${priceRatio}, targetNewPrice: ${targetNewPrice}, jsonData: ${jsonData.toString()}"
+        s"[328c6657] failed equality assertion with ratePlanCharges: ${ratePlanCharges}, priceRatio: ${priceRatio}, targetNewPrice: ${targetNewPrice}, jsonData: ${jsonData.toString()}"
       )
     }
 
