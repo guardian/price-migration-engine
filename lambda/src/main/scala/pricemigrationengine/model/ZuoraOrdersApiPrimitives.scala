@@ -163,13 +163,13 @@ object ZuoraOrdersApiPrimitives {
     // We now need to ensure that the total prices are the estimated new prices (this is not
     // automatically true due to the roundings)
 
-    val totalPrice = ratePlanChargesWithUpdatedPrices.map(_.price.get).sum // [1]
+    val totalPriceUsingUpdatedPrices = ratePlanChargesWithUpdatedPrices.map(_.price.get).sum // [1]
 
     // [1] The `get` method here *will* cause a runtime exception if it turns out that
     // the rate plan charge didn't have a price attached to it. This is a very pathological situation
     // and will cause the engine to crashland in flames and alarm, but this is what we want.
 
-    val difference = targetNewPrice - totalPrice
+    val difference = targetNewPrice - totalPriceUsingUpdatedPrices
 
     // `difference` is now what we need to add to one of the legs.
 
@@ -196,15 +196,16 @@ object ZuoraOrdersApiPrimitives {
       )
     }
 
+    // --------------------------------------------------------------------------------------
+    // We perform a check and throw an exception if the sums do not match within margin error
     val totalListPriceFromJsonArray: Double =
       jsonData.map(js => js("pricing")("recurringFlatFee")("listPrice").num).sum
-
-    // We perform a check and throw an exception if the sums do not match within margin error
     if ((targetNewPrice.doubleValue - totalListPriceFromJsonArray) > 0.001) {
       throw new Exception(
         s"[328c6657] failed equality assertion with ratePlanCharges: ${ratePlanCharges}, priceRatio: ${priceRatio}, targetNewPrice: ${targetNewPrice}, jsonData: ${jsonData.toString()}"
       )
     }
+    // --------------------------------------------------------------------------------------
 
     jsonData
   }
