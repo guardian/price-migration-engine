@@ -4,7 +4,9 @@ import java.time.{Instant, LocalDate}
 
 trait AmendmentAttemptResult
 
-case class SuccessfulAmendmentResult(
+// The "AAR" prefix means "Amendment Attempt Result"
+
+case class AARSuccessfulAmendment(
     subscriptionNumber: String,
     amendmentEffectiveDate: LocalDate,
     newPrice: BigDecimal,
@@ -12,14 +14,14 @@ case class SuccessfulAmendmentResult(
     whenDone: Instant
 ) extends AmendmentAttemptResult
 
-case class SubscriptionCancelledInZuoraAmendmentResult(
+case class AARSubscriptionCancelledInZuora(
     subscriptionNumber: String
 ) extends AmendmentAttemptResult
 
-case class AmendmentPreventedDueToLockResult(
+case class AAROperationPreventedDueToLockResult(
     subscriptionNumber: String
 ) extends AmendmentAttemptResult
 
-case class AmendmentPostponed(
+case class AAROperationPostponed(
     subscriptionNumber: String
 ) extends AmendmentAttemptResult

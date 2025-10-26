@@ -60,8 +60,8 @@ object AmendmentHandler extends CohortHandler {
             // This will ensure that `AmendmentPreventedDueToLockResult` and `AmendmentPostponed`
             // are not counted, which would cause the lambda to return `HandlerOutput(true)`
             // too early.
-            case s: SuccessfulAmendmentResult                   => s
-            case c: SubscriptionCancelledInZuoraAmendmentResult => c
+            case s: AARSuccessfulAmendment          => s
+            case c: AARSubscriptionCancelledInZuora => c
           }
           .runCount
       }
@@ -88,20 +88,20 @@ object AmendmentHandler extends CohortHandler {
                 processingStage = ZuoraCancellation
               )
             )
-            .as(SubscriptionCancelledInZuoraAmendmentResult(item.subscriptionName))
+            .as(AARSubscriptionCancelledInZuora(item.subscriptionName))
         }
         case e: ZuoraUpdateFailure => {
           // We are only interested in the ZuoraUpdateFailures corresponding to message
           // "Operation failed due to a lock competition"
           // We succeed them without cohort item update to be done later.
           if (e.reason.contains("lock competition")) {
-            ZIO.succeed(AmendmentPreventedDueToLockResult(subscriptionNumber = item.subscriptionName))
+            ZIO.succeed(AAROperationPreventedDueToLockResult(subscriptionNumber = item.subscriptionName))
           } else {
             ZIO.fail(e)
           }
         }
         case e: ZuoraAmendmentPayloadBuildingFailure => {
-          ZIO.succeed(AmendmentPostponed(subscriptionNumber = item.subscriptionName))
+          ZIO.succeed(AAROperationPostponed(subscriptionNumber = item.subscriptionName))
         }
         case e => ZIO.fail(e)
       },
@@ -199,7 +199,7 @@ object AmendmentHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
-  ): ZIO[Zuora with Logging, Failure, SuccessfulAmendmentResult] = {
+  ): ZIO[Zuora with Logging, Failure, AARSuccessfulAmendment] = {
     for {
       subscriptionBeforeUpdate <- fetchSubscription(item)
 
@@ -297,7 +297,7 @@ object AmendmentHandler extends CohortHandler {
         )
 
       whenDone <- Clock.instant
-    } yield SuccessfulAmendmentResult(
+    } yield AARSuccessfulAmendment(
       item.subscriptionName,
       amendmentEffectiveDate,
       newPrice,
@@ -400,7 +400,7 @@ object AmendmentHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
-  ): ZIO[Zuora with Logging, Failure, SuccessfulAmendmentResult] = {
+  ): ZIO[Zuora with Logging, Failure, AARSuccessfulAmendment] = {
     for {
       subscriptionBeforeUpdate <- fetchSubscription(item)
 
@@ -494,7 +494,7 @@ object AmendmentHandler extends CohortHandler {
         .mapError(message => AmendmentFailure(message))
 
       whenDone <- Clock.instant
-    } yield SuccessfulAmendmentResult(
+    } yield AARSuccessfulAmendment(
       item.subscriptionName,
       amendmentEffectiveDate,
       newPrice,
@@ -507,7 +507,7 @@ object AmendmentHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
-  ): ZIO[Zuora with Logging, Failure, SuccessfulAmendmentResult] = {
+  ): ZIO[Zuora with Logging, Failure, AARSuccessfulAmendment] = {
     MigrationType(cohortSpec) match {
       case Test1 => ZIO.fail(ConfigFailure("Branch not supported"))
       case SupporterPlus2024 =>
