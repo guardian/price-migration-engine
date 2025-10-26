@@ -282,7 +282,7 @@ object NotificationHandler extends CohortHandler {
         contact.IdentityID__c
       )
 
-      _ <- Logging.info(s"item: ${cohortItem.toString}, estimation result: ${emailMessage.toString}")
+      _ <- Logging.info(s"item: ${cohortItem.toString}, message: ${emailMessage.toString}")
 
       _ <- EmailSender.sendEmail(emailMessage)
 
