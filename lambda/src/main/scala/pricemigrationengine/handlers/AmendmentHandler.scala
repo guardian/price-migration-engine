@@ -21,7 +21,9 @@ object AmendmentHandler extends CohortHandler {
 
   private val batchSize = 15
 
-  private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] = {
+  private def main(
+      cohortSpec: CohortSpec
+  ): ZIO[Logging with CohortTable with Zuora with SalesforceClient, Failure, HandlerOutput] = {
     for {
 
       // The batch size of this lambda is particularly low (currently 15)
@@ -77,7 +79,7 @@ object AmendmentHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
-  ): ZIO[CohortTable with Zuora with Logging, Failure, AmendmentAttemptResult] =
+  ): ZIO[CohortTable with Zuora with Logging with SalesforceClient, Failure, AmendmentAttemptResult] =
     doAmendment(cohortSpec, catalogue, item).foldZIO(
       failure = {
         case _: SubscriptionCancelledInZuoraFailure => {
@@ -528,7 +530,7 @@ object AmendmentHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
-  ): ZIO[Zuora with Logging, Failure, AmendmentAttemptResult] = {
+  ): ZIO[Zuora with Logging with SalesforceClient, Failure, AmendmentAttemptResult] = {
     MigrationType(cohortSpec) match {
       case Test1 => ZIO.fail(ConfigFailure("Branch not supported"))
       case SupporterPlus2024 =>
@@ -561,12 +563,31 @@ object AmendmentHandler extends CohortHandler {
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
-      case ProductMigration2025N4 =>
-        doAmendment_ordersApi_json_values(
-          cohortSpec: CohortSpec,
-          catalogue: ZuoraProductCatalogue,
-          item: CohortItem
-        )
+      case ProductMigration2025N4 => {
+        for {
+          salesforcePriceRiseId <- ZIO
+            .fromOption(item.salesforcePriceRiseId)
+            .orElseFail(AmendmentFailure(s"Missing salesforcePriceRiseId for ${item.subscriptionName}"))
+          priceRise <- SalesforceClient.getPriceRise(salesforcePriceRiseId)
+          optOutFlag <- ZIO
+            .fromOption(priceRise.Customer_Opt_Out__c)
+            .orElseFail(
+              AmendmentFailure(
+                s"Missing Customer_Opt_Out__c in price rise $salesforcePriceRiseId, subscription: ${item.subscriptionName}"
+              )
+            )
+          result <-
+            if (optOutFlag)
+              ZIO.succeed(AARUserOptOut(item.subscriptionName))
+            else
+              doAmendment_ordersApi_json_values(
+                cohortSpec,
+                catalogue,
+                item
+              )
+        } yield result
+      }
+
       case Membership2025 =>
         doAmendment_ordersApi_json_values(
           cohortSpec: CohortSpec,
@@ -588,7 +609,9 @@ object AmendmentHandler extends CohortHandler {
           DynamoDBZIOLive.impl,
           DynamoDBClientLive.impl,
           CohortTableLive.impl(input),
-          ZuoraLive.impl
+          ZuoraLive.impl,
+          EnvConfig.salesforce.layer,
+          SalesforceClientLive.impl
         )
     }
   }
