@@ -143,7 +143,7 @@ object NotificationHandler extends CohortHandler {
       firstName <- ZIO.fromEither(firstName(contact))
       lastName <- ZIO.fromEither(requiredField(contact.LastName, "Contact.LastName"))
       address <- ZIO.fromEither(targetAddress(cohortSpec, contact))
-      street <- ZIO.fromEither(requiredField(address.street, "Contact.OtherAddress.street"))
+      street <- ZIO.fromEither(targetStreet(cohortSpec, address.street))
       postalCode = address.postalCode.getOrElse("")
       country <- ZIO.fromEither(country(cohortSpec, address))
       amendmentEffectiveDate <- ZIO.fromEither(
@@ -417,6 +417,13 @@ object NotificationHandler extends CohortHandler {
     field match {
       case Some(value) => Right(value)
       case None        => Left(NotificationHandlerFailure(s"$fieldName is a required field"))
+    }
+  }
+
+  def targetStreet(cohortSpec: CohortSpec, street: Option[String]): Either[NotificationHandlerFailure, String] = {
+    MigrationType(cohortSpec) match {
+      case Membership2025 => Right(street.getOrElse(""))
+      case _              => requiredField(street, "Contact.OtherAddress.street")
     }
   }
 
