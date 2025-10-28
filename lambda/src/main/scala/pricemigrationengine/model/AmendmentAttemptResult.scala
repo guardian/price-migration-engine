@@ -2,7 +2,7 @@ package pricemigrationengine.model
 
 import java.time.{Instant, LocalDate}
 
-trait AmendmentResult
+trait AmendmentAttemptResult
 
 case class SuccessfulAmendmentResult(
     subscriptionNumber: String,
@@ -10,16 +10,16 @@ case class SuccessfulAmendmentResult(
     newPrice: BigDecimal,
     newSubscriptionId: ZuoraSubscriptionId,
     whenDone: Instant
-) extends AmendmentResult
+) extends AmendmentAttemptResult
 
 case class SubscriptionCancelledInZuoraAmendmentResult(
     subscriptionNumber: String
-) extends AmendmentResult
+) extends AmendmentAttemptResult
 
 case class AmendmentPreventedDueToLockResult(
     subscriptionNumber: String
-) extends AmendmentResult
+) extends AmendmentAttemptResult
 
 case class AmendmentPostponed(
     subscriptionNumber: String
-) extends AmendmentResult
+) extends AmendmentAttemptResult
