@@ -17,7 +17,9 @@ object AmendmentHandler extends CohortHandler {
 
   private val batchSize = 15
 
-  private def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] = {
+  private def main(
+      cohortSpec: CohortSpec
+  ): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] = {
     for {
 
       // The batch size of this lambda is particularly low (currently 15)
@@ -49,24 +51,20 @@ object AmendmentHandler extends CohortHandler {
           .takeWhileZIO(_ =>
             // When we reach the deadline, we ignore later items from the array.
             // They will be picked up by the next run of the lambda.
+            // If we reach the deadline, isComplete will be false.
             Clock.nanoTime.map(_ < deadline)
           )
           .mapZIO(item =>
             amend(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
           )
-          .collect {
-            // Here we are only counting `SuccessfulAmendmentResult`
-            // and `SubscriptionCancelledInZuoraAmendmentResult`.
-            // This will ensure that `AmendmentPreventedDueToLockResult` and `AmendmentPostponed`
-            // are not counted, which would cause the lambda to return `HandlerOutput(true)`
-            // too early.
-            case s: SuccessfulAmendmentResult                   => s
-            case c: SubscriptionCancelledInZuoraAmendmentResult => c
-          }
           .runCount
       }
-
-    } yield HandlerOutput(isComplete = count < batchSize)
+      now <- Clock.nanoTime
+    } yield {
+      val reachedDeadline = now >= deadline
+      val isComplete = (count < batchSize) && !reachedDeadline
+      HandlerOutput(isComplete = isComplete)
+    }
   }
 
   private def amend(
@@ -389,7 +387,6 @@ object AmendmentHandler extends CohortHandler {
           subscriptionNumber,
           effectDate,
           zuora_subscription,
-          oldPrice,
           commsPrice,
           invoiceList
         )
@@ -556,20 +553,14 @@ object AmendmentHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    // [1] We are preventing the amendment of ProductMigration2025N4 items
-    MigrationType(input) match {
-      case ProductMigration2025N4 => ZIO.succeed(HandlerOutput(isComplete = true)) // See [1] above
-      case _ =>
-        main(input).provideSome[Logging](
-          EnvConfig.cohortTable.layer,
-          EnvConfig.zuora.layer,
-          EnvConfig.stage.layer,
-          DynamoDBZIOLive.impl,
-          DynamoDBClientLive.impl,
-          CohortTableLive.impl(input),
-          ZuoraLive.impl
-        )
-    }
-
+    main(input).provideSome[Logging](
+      EnvConfig.cohortTable.layer,
+      EnvConfig.zuora.layer,
+      EnvConfig.stage.layer,
+      DynamoDBZIOLive.impl,
+      DynamoDBClientLive.impl,
+      CohortTableLive.impl(input),
+      ZuoraLive.impl
+    )
   }
 }
