@@ -401,4 +401,122 @@ class Membership2025MigrationTest extends munit.FunSuite {
       )
     )
   }
+
+  test("amendment payload for sub4") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Membership2025/sub4/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Membership2025/sub4/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2025/sub4/invoice-preview.json")
+
+    // Non standard old price (Non Founder Supporter)
+    // PriceData("GBP", BigDecimal(5), BigDecimal(10), "Month")
+
+    // Non price grid old price, capping applies
+    val cappedPrice = BigDecimal(7.15) // 5 at +43%, 2 decimals
+
+    val cohortItem: CohortItem = CohortItem(
+      subscriptionName = "subscriptionNumber",
+      processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
+      currency = Some("GBP"),
+
+      // Pre migration price
+      oldPrice = Some(BigDecimal(2.5)),
+
+      // Price derived from the Estimation step, without capping
+      estimatedNewPrice = Some(BigDecimal(10)),
+
+      // Price (with possible capping) used in the communication to the user and sent to Salesforce
+      commsPrice = Some(cappedPrice),
+
+      //
+      billingPeriod = Some("Month")
+    )
+
+    val payload = Membership2025Migration.amendmentOrderPayload(
+      cohortItem,
+      LocalDate.of(2025, 10, 28),
+      "accountNumber",
+      "subscriptionNumber",
+      LocalDate.of(2025, 11, 17),
+      subscription,
+      cohortItem.commsPrice.get,
+      invoicePreview,
+    )
+
+    assertEquals(
+      payload,
+      Right(
+        ujson.read(
+          s"""{
+             |    "orderDate": "2025-10-28",
+             |    "existingAccountNumber": "accountNumber",
+             |    "subscriptions": [
+             |        {
+             |            "subscriptionNumber": "subscriptionNumber",
+             |            "orderActions": [
+             |                {
+             |                    "type": "RemoveProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-11-17"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-11-17"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-11-17"
+             |                        }
+             |                    ],
+             |                    "removeProduct": {
+             |                        "ratePlanId": "8a128bc49498ceb60194ab2b75fc5746"
+             |                    }
+             |                },
+             |                {
+             |                    "type": "AddProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-11-17"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-11-17"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-11-17"
+             |                        }
+             |                    ],
+             |                    "addProduct": {
+             |                        "productRatePlanId": "2c92a0f94c547592014c69f5b0ff4f7e",
+             |                        "chargeOverrides": [
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0f94c547592014c69f5b1204f80",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 7.15
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            }
+             |                        ]
+             |                    }
+             |                }
+             |            ]
+             |        }
+             |    ],
+             |    "processingOptions": {
+             |        "runBilling": false,
+             |        "collectPayment": false
+             |    }
+             |}""".stripMargin
+        )
+      )
+    )
+  }
+
 }
