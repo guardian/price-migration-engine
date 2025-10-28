@@ -85,7 +85,7 @@ object CohortItem {
   def fromNoPriceIncreaseEstimationResult(result: EstimationData): UIO[CohortItem] =
     fromSuccessfulEstimationResult(result).map(_.copy(processingStage = NoPriceIncrease))
 
-  def fromSuccessfulAmendmentResult(result: SuccessfulAmendmentResult): CohortItem =
+  def fromSuccessfulAmendmentResult(result: AARSuccessfulAmendment): CohortItem =
     CohortItem(
       result.subscriptionNumber,
       processingStage = AmendmentComplete,
