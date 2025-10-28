@@ -1,5 +1,7 @@
 package pricemigrationengine.model
 
+import scala.math.BigDecimal.RoundingMode
+
 object PriceCap {
 
   // Directive:
@@ -14,7 +16,8 @@ object PriceCap {
       case None => uncappedNewPrice
       case Some(priceCappingMultiplier) => {
         // For a price cap of 20%, the priceCappingMultiplier is set to 1.2
-        List(uncappedNewPrice, oldPrice * priceCappingMultiplier).min
+        val cappedPrice = (oldPrice * priceCappingMultiplier).setScale(2, RoundingMode.DOWN)
+        List(uncappedNewPrice, cappedPrice).min
       }
     }
   }
