@@ -212,7 +212,7 @@ object NotificationHandler extends CohortHandler {
 
       brazeName <- brazeName(cohortSpec, cohortItem)
 
-      emailMessage = EmailMessage(
+      message = EmailMessage(
         EmailPayload(
           Address = contact.Email,
           ContactAttributes = EmailPayloadContactAttributes(
@@ -282,9 +282,13 @@ object NotificationHandler extends CohortHandler {
         contact.IdentityID__c
       )
 
-      _ <- Logging.info(s"item: ${cohortItem.toString}, message: ${emailMessage.toString}")
+      _ <- Logging.info(s"item: ${cohortItem.toString}, message: ${message.toString}")
 
-      _ <- EmailSender.sendEmail(emailMessage)
+      _ <- ZIO.when(!NotificationHandlerHelper.messageIsWellFormed(cohortSpec, message))(
+        ZIO.fail(NotificationHandlerFailure(s"item: ${cohortItem.toString} has failed email integrity check"))
+      )
+
+      _ <- EmailSender.sendEmail(message)
 
       _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete)
     } yield ()
