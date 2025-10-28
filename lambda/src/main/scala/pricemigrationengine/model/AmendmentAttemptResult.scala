@@ -14,18 +14,6 @@ case class AARSuccessfulAmendment(
     whenDone: Instant
 ) extends AmendmentAttemptResult
 
-case class AARSubscriptionCancelledInZuora(
-    subscriptionNumber: String
-) extends AmendmentAttemptResult
-
-case class AAROperationPreventedDueToLockResult(
-    subscriptionNumber: String
-) extends AmendmentAttemptResult
-
-case class AAROperationPostponed(
-    subscriptionNumber: String
-) extends AmendmentAttemptResult
-
 // This case was introduced for the ProductMigration2025N4, where the users
 // had the option to opt out from the product migration, determined by a flag
 // set in Salesforce
