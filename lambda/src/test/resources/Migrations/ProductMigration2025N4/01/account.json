@@ -1,0 +1,74 @@
+{
+  "basicInfo": {
+    "id": "id",
+    "name": "name",
+    "accountNumber": "accountNumber",
+    "notes": null,
+    "status": "Active",
+    "crmId": "crmId",
+    "batch": "Batch1",
+    "invoiceTemplateId": "2c92a0fb49377eae014951ca848e074b",
+    "communicationProfileId": null,
+    "profileNumber": null,
+    "purchaseOrderNumber": null,
+    "customerServiceRepName": null,
+    "ScrubbedOn__c": null,
+    "IdentityId__c": "IdentityId__c",
+    "sfContactId__c": "sfContactId__c",
+    "CCURN__c": null,
+    "SpecialDeliveryInstructions__c": null,
+    "NonStandardDataReason__c": null,
+    "Scrubbed__c": false,
+    "ProcessingAdvice__c": "NoAdvice",
+    "CreatedRequestId__c": "CreatedRequestId__c",
+    "RetryStatus__c": null,
+    "salesRep": null,
+    "creditMemoTemplateId": null,
+    "debitMemoTemplateId": null,
+    "summaryStatementTemplateId": null,
+    "sequenceSetId": null
+  },
+  "billingAndPayment": {
+    "billCycleDay": 9,
+    "currency": "GBP",
+    "paymentTerm": "Due Upon Receipt",
+    "paymentGateway": "Stripe PaymentIntents GNM Membership",
+    "paymentGatewayNumber": "PG-00000008",
+    "defaultPaymentMethodId": "8a128f2a92c3416e0192f30aa4d966a0",
+    "invoiceDeliveryPrefsPrint": false,
+    "invoiceDeliveryPrefsEmail": false,
+    "autoPay": true,
+    "additionalEmailAddresses": [
+
+    ],
+    "paymentMethodCascadingConsent": false,
+    "gatewayRoutingEligible": null
+  },
+  "metrics": {
+    "balance": 0.0,
+    "currency": "GBP",
+    "totalInvoiceBalance": 0.0,
+    "creditBalance": 0.0,
+    "totalDebitMemoBalance": 0.0,
+    "unappliedPaymentAmount": 0.0,
+    "unappliedCreditMemoAmount": 0.0,
+    "contractedMrr": 20.99
+  },
+  "billToContact": null,
+  "soldToContact": {
+    "country": "United Kingdom"
+  },
+  "taxInfo": {
+    "exemptStatus": "No",
+    "exemptCertificateId": null,
+    "exemptCertificateType": null,
+    "exemptIssuingJurisdiction": null,
+    "exemptEffectiveDate": null,
+    "exemptExpirationDate": null,
+    "exemptDescription": null,
+    "exemptEntityUseCode": null,
+    "companyCode": null,
+    "VATId": null
+  },
+  "success": true
+}
