@@ -93,7 +93,7 @@ object AmendmentHandler extends CohortHandler {
           // "Operation failed due to a lock competition"
           // We succeed them without cohort item update to be done later.
           if (e.reason.contains("lock competition")) {
-            ZIO.succeed(AmendmentPreventedDueToLockResult(subscriptionNumber = item.subscriptionName))
+            ZIO.succeed(AAROperationPreventedDueToLockResult(subscriptionNumber = item.subscriptionName))
           } else {
             ZIO.fail(e)
           }

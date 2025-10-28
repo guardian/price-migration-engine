@@ -18,7 +18,7 @@ case class AARSubscriptionCancelledInZuora(
     subscriptionNumber: String
 ) extends AmendmentAttemptResult
 
-case class AmendmentPreventedDueToLockResult(
+case class AAROperationPreventedDueToLockResult(
     subscriptionNumber: String
 ) extends AmendmentAttemptResult
 
