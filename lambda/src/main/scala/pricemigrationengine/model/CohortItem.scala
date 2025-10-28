@@ -85,16 +85,6 @@ object CohortItem {
   def fromNoPriceIncreaseEstimationResult(result: EstimationData): UIO[CohortItem] =
     fromSuccessfulEstimationResult(result).map(_.copy(processingStage = NoPriceIncrease))
 
-  def fromSuccessfulAmendmentResult(result: AARSuccessfulAmendment): CohortItem =
-    CohortItem(
-      result.subscriptionNumber,
-      processingStage = AmendmentComplete,
-      amendmentEffectiveDate = Some(result.amendmentEffectiveDate),
-      newPrice = Some(result.newPrice),
-      newSubscriptionId = Some(result.newSubscriptionId),
-      whenAmendmentDone = Some(result.whenDone)
-    )
-
   def billingPeriodToInt(period: String): Int = {
     // This function is used to convert a CohortItem's billingPeriod in to the number of months
     // that the billing period represents.

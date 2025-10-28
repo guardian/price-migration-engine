@@ -60,7 +60,8 @@ object AmendmentHandler extends CohortHandler {
             Clock.nanoTime.map(_ < deadline)
           )
           .mapZIO(item =>
-            performAmendment(cohortSpec, catalogue, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
+            performAmendmentAttempt(cohortSpec, catalogue, item)
+              .tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
           )
           .runCount
       }
@@ -72,7 +73,7 @@ object AmendmentHandler extends CohortHandler {
     }
   }
 
-  private def performAmendment(
+  private def performAmendmentAttempt(
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
@@ -131,11 +132,6 @@ object AmendmentHandler extends CohortHandler {
           } else {
             ZIO.fail(e)
           }
-        }
-        case e: ZuoraAmendmentPayloadBuildingFailure => {
-          // In this case we do not mutate the cohort item, which will be picked
-          // up at the next run of the lambda
-          ZIO.succeed(())
         }
         case e => ZIO.fail(e)
       },
