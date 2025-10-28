@@ -37,6 +37,9 @@ It currently consists in
 - Android Price Rises
     - [README](./android-price-rise/README.md)
 
+### Tools:
+
+See [tools/README.md](tools/README.md)
 
 ### Further documentations:
 
