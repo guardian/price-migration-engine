@@ -4,7 +4,9 @@ import java.time.{Instant, LocalDate}
 
 trait AmendmentAttemptResult
 
-case class SuccessfulAmendmentResult(
+// The "AAR" prefix means "Amendment Attempt Result"
+
+case class AARSuccessfulAmendment(
     subscriptionNumber: String,
     amendmentEffectiveDate: LocalDate,
     newPrice: BigDecimal,
