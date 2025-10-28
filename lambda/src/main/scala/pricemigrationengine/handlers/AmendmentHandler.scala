@@ -389,7 +389,6 @@ object AmendmentHandler extends CohortHandler {
           subscriptionNumber,
           effectDate,
           zuora_subscription,
-          oldPrice,
           commsPrice,
           invoiceList
         )
@@ -556,20 +555,14 @@ object AmendmentHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    // [1] We are preventing the amendment of ProductMigration2025N4 items
-    MigrationType(input) match {
-      case ProductMigration2025N4 => ZIO.succeed(HandlerOutput(isComplete = true)) // See [1] above
-      case _ =>
-        main(input).provideSome[Logging](
-          EnvConfig.cohortTable.layer,
-          EnvConfig.zuora.layer,
-          EnvConfig.stage.layer,
-          DynamoDBZIOLive.impl,
-          DynamoDBClientLive.impl,
-          CohortTableLive.impl(input),
-          ZuoraLive.impl
-        )
-    }
-
+    main(input).provideSome[Logging](
+      EnvConfig.cohortTable.layer,
+      EnvConfig.zuora.layer,
+      EnvConfig.stage.layer,
+      DynamoDBZIOLive.impl,
+      DynamoDBClientLive.impl,
+      CohortTableLive.impl(input),
+      ZuoraLive.impl
+    )
   }
 }
