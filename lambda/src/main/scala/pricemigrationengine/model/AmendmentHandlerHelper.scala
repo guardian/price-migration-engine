@@ -28,6 +28,33 @@ object AmendmentHandlerHelper {
     } yield billingPeriodReference == BillingPeriod.toString(billingPeriodAfterUpdate)
   }
 
+  def postAmendmentBillingPeriodCheck(
+      item: CohortItem,
+      subscriptionAfterUpdate: ZuoraSubscription,
+      invoicePreviewAfterUpdate: ZuoraInvoiceList
+  ): Either[Failure, Unit] = {
+    val result = AmendmentHandlerHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
+      item.billingPeriod,
+      subscriptionAfterUpdate,
+      invoicePreviewAfterUpdate
+    )
+    result match {
+      case None =>
+        Left(
+          DataExtractionFailure(
+            s"[b001b590] could not perform the billing period check with subscription: ${item.subscriptionName}"
+          )
+        )
+      case Some(false) =>
+        Left(
+          AmendmentFailure(
+            s"[f2e43c45] subscription: ${item.subscriptionName}, has failed the post amendment billing period check"
+          )
+        )
+      case Some(true) => Right(())
+    }
+  }
+
   def priceEquality(float1: BigDecimal, float2: BigDecimal): Boolean = {
     (float1 - float2).abs < 0.001
   }
