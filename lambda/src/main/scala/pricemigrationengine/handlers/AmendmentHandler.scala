@@ -71,12 +71,20 @@ object AmendmentHandler extends CohortHandler {
     }
   }
 
+  private def performAmendment(
+      cohortSpec: CohortSpec,
+      catalogue: ZuoraProductCatalogue,
+      item: CohortItem
+  ): ZIO[CohortTable with Zuora with Logging with SalesforceClient, Failure, Unit] = {
+    ???
+  }
+
   private def amend(
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
   ): ZIO[CohortTable with Zuora with Logging with SalesforceClient, Failure, AmendmentAttemptResult] =
-    doAmendment(cohortSpec, catalogue, item).foldZIO(
+    performAmendmentMigrationDispatch(cohortSpec, catalogue, item).foldZIO(
       failure = {
         case _: SubscriptionCancelledInZuoraFailure => {
           // This happens when the subscription was cancelled in Zuora
@@ -521,7 +529,7 @@ object AmendmentHandler extends CohortHandler {
     )
   }
 
-  private def doAmendment(
+  private def performAmendmentMigrationDispatch(
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
