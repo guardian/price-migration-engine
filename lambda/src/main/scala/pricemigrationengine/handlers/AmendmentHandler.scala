@@ -2,9 +2,10 @@ package pricemigrationengine.handlers
 
 import pricemigrationengine.model.{AmendmentHandlerHelper, ZuoraOrdersApiPrimitives}
 import pricemigrationengine.model.CohortTableFilter.{
+  AmendmentComplete,
   NotificationSendDateWrittenToSalesforce,
-  ZuoraCancellation,
-  UserOptOut
+  UserOptOut,
+  ZuoraCancellation
 }
 import pricemigrationengine.model._
 import pricemigrationengine.migrations._
@@ -69,6 +70,67 @@ object AmendmentHandler extends CohortHandler {
       val isComplete = (count < batchSize) && !reachedDeadline
       HandlerOutput(isComplete = isComplete)
     }
+  }
+
+  private def performAmendment(
+      cohortSpec: CohortSpec,
+      catalogue: ZuoraProductCatalogue,
+      item: CohortItem
+  ): ZIO[CohortTable with Zuora with Logging with SalesforceClient, Failure, Unit] = {
+    // This function performs the amendment (through the migration dispatch)
+    // and updates the Cohort Item.
+    for {
+      result <- performAmendmentMigrationDispatch(cohortSpec, catalogue, item)
+      _ <- result match {
+        case r: AARSuccessfulAmendment => {
+          CohortTable.update(
+            CohortItem(
+              r.subscriptionNumber,
+              processingStage = AmendmentComplete,
+              amendmentEffectiveDate = Some(r.amendmentEffectiveDate),
+              newPrice = Some(r.newPrice),
+              newSubscriptionId = Some(r.newSubscriptionId),
+              whenAmendmentDone = Some(r.whenDone)
+            )
+          )
+        }
+        case r: AARSubscriptionCancelledInZuora => {
+          CohortTable
+            .update(
+              CohortItem(
+                r.subscriptionNumber,
+                processingStage = ZuoraCancellation
+              )
+            )
+        }
+        case r: AAROperationPreventedDueToLockResult => {
+          // In this case we do not mutate the cohort item, which will be picked
+          // up at the next run of the lambda
+          ZIO.succeed(())
+        }
+        case r: AAROperationPostponed => {
+          // In this case we do not mutate the cohort item, which will be picked
+          // up at the next run of the lambda
+          ZIO.succeed(())
+        }
+        case r: AARUserOptOut => {
+          CohortTable
+            .update(
+              CohortItem(
+                r.subscriptionNumber,
+                processingStage = UserOptOut
+              )
+            )
+        }
+        case _ =>
+          ZIO
+            .fail(
+              AmendmentFailure(
+                s"[7f2bf362] unexpected amendment attempt result while processing subscription: ${item.subscriptionName}"
+              )
+            )
+      }
+    } yield ()
   }
 
   private def amend(
