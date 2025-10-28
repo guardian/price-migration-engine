@@ -282,7 +282,7 @@ object NotificationHandler extends CohortHandler {
         contact.IdentityID__c
       )
 
-      _ <- Logging.info(s"item: ${cohortItem.toString}, estimation result: ${message.toString}")
+      _ <- Logging.info(s"item: ${cohortItem.toString}, message: ${message.toString}")
 
       _ <- ZIO.when(!NotificationHandlerHelper.messageIsWellFormed(cohortSpec, message))(
         ZIO.fail(NotificationHandlerFailure(s"item: ${cohortItem.toString} has failed email integrity check"))

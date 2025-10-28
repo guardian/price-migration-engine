@@ -31,6 +31,8 @@ object CohortTableFilter {
 
   case object DoNotProcessUntil extends CohortTableFilter { override val value: String = "DoNotProcessUntil" }
 
+  case object UserOptOut extends CohortTableFilter { override val value: String = "UserOptOut" }
+
   // ++++++++++ Exceptional states ++++++++++
 
   case object ZuoraCancellation extends CohortTableFilter { override val value: String = "ZuoraCancellation" }
