@@ -99,7 +99,7 @@ object AmendmentHandler extends CohortHandler {
           }
         }
         case e: ZuoraAmendmentPayloadBuildingFailure => {
-          ZIO.succeed(AmendmentPostponed(subscriptionNumber = item.subscriptionName))
+          ZIO.succeed(AAROperationPostponed(subscriptionNumber = item.subscriptionName))
         }
         case e => ZIO.fail(e)
       },

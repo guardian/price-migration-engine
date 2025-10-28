@@ -22,6 +22,6 @@ case class AAROperationPreventedDueToLockResult(
     subscriptionNumber: String
 ) extends AmendmentAttemptResult
 
-case class AmendmentPostponed(
+case class AAROperationPostponed(
     subscriptionNumber: String
 ) extends AmendmentAttemptResult
