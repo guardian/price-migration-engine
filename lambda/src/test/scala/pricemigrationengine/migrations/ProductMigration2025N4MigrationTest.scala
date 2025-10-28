@@ -1266,4 +1266,168 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     )
   }
 
+  test("amendment payload for 10") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/ProductMigration2025N4/10/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/ProductMigration2025N4/10/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/10/invoice-preview.json")
+
+    assertEquals(
+      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(61.99), BigDecimal(61.99), "Month")) // [1]
+    )
+
+    // [1] Product migration the old and new prices are the same
+
+    val payload = ProductMigration2025N4Migration.amendmentOrderPayload(
+      LocalDate.of(2025, 10, 28),
+      "accountNumber",
+      "subscriptionNumber",
+      LocalDate.of(2025, 11, 17),
+      subscription,
+      invoicePreview,
+    )
+
+    assertEquals(
+      payload,
+      Right(
+        ujson.read(
+          s"""{
+             |    "orderDate": "2025-10-28",
+             |    "existingAccountNumber": "accountNumber",
+             |    "subscriptions": [
+             |        {
+             |            "subscriptionNumber": "subscriptionNumber",
+             |            "orderActions": [
+             |                {
+             |                    "type": "RemoveProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-11-17"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-11-17"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-11-17"
+             |                        }
+             |                    ],
+             |                    "removeProduct": {
+             |                        "ratePlanId": "8a129bd5993a10c301994afeaa324d05"
+             |                    }
+             |                },
+             |                {
+             |                    "type": "AddProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-11-17"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-11-17"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-11-17"
+             |                        }
+             |                    ],
+             |                    "addProduct": {
+             |                        "productRatePlanId": "2c92a0fc56fe26ba0157040c5ea17f6a",
+             |                        "chargeOverrides": [
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fc56fe26ba015709cf4bbd3d1c",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 8.39
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709ced61a032e",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 8.39
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709cfc1500a2e",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 8.39
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709d078df4a80",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 11.01
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fe56fe33ff015704325d87494c",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 8.39
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709cdedbd246b",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 8.39
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f3015709d10a436f52",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 9.03
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            }
+             |                        ]
+             |                    }
+             |                }
+             |            ]
+             |        }
+             |    ],
+             |    "processingOptions": {
+             |        "runBilling": false,
+             |        "collectPayment": false
+             |    }
+             |}""".stripMargin
+        )
+      )
+    )
+  }
+
 }
