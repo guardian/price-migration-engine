@@ -14,7 +14,7 @@ case class AARSuccessfulAmendment(
     whenDone: Instant
 ) extends AmendmentAttemptResult
 
-case class SubscriptionCancelledInZuoraAmendmentResult(
+case class AARSubscriptionCancelledInZuora(
     subscriptionNumber: String
 ) extends AmendmentAttemptResult
 

@@ -86,7 +86,7 @@ object AmendmentHandler extends CohortHandler {
                 processingStage = ZuoraCancellation
               )
             )
-            .as(SubscriptionCancelledInZuoraAmendmentResult(item.subscriptionName))
+            .as(AARSubscriptionCancelledInZuora(item.subscriptionName))
         }
         case e: ZuoraUpdateFailure => {
           // We are only interested in the ZuoraUpdateFailures corresponding to message
