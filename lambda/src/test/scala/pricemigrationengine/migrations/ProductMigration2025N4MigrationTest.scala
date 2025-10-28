@@ -1509,7 +1509,7 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
              |                                    }
              |                                },
              |                                "billing": {
-             |                                    "billingPeriod": "Month"
+             |                                    "billingPeriod": "Quarter"
              |                                }
              |                            },
              |                            {
@@ -1520,7 +1520,7 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
              |                                    }
              |                                },
              |                                "billing": {
-             |                                    "billingPeriod": "Month"
+             |                                    "billingPeriod": "Quarter"
              |                                }
              |                            },
              |                            {
@@ -1531,7 +1531,7 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
              |                                    }
              |                                },
              |                                "billing": {
-             |                                    "billingPeriod": "Month"
+             |                                    "billingPeriod": "Quarter"
              |                                }
              |                            },
              |                            {
@@ -1542,7 +1542,7 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
              |                                    }
              |                                },
              |                                "billing": {
-             |                                    "billingPeriod": "Month"
+             |                                    "billingPeriod": "Quarter"
              |                                }
              |                            },
              |                            {
@@ -1553,7 +1553,7 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
              |                                    }
              |                                },
              |                                "billing": {
-             |                                    "billingPeriod": "Month"
+             |                                    "billingPeriod": "Quarter"
              |                                }
              |                            },
              |                            {
@@ -1564,7 +1564,7 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
              |                                    }
              |                                },
              |                                "billing": {
-             |                                    "billingPeriod": "Month"
+             |                                    "billingPeriod": "Quarter"
              |                                }
              |                            },
              |                            {
@@ -1575,7 +1575,7 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
              |                                    }
              |                                },
              |                                "billing": {
-             |                                    "billingPeriod": "Month"
+             |                                    "billingPeriod": "Quarter"
              |                                }
              |                            },
              |                            {
@@ -1586,7 +1586,7 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
              |                                    }
              |                                },
              |                                "billing": {
-             |                                    "billingPeriod": "Month"
+             |                                    "billingPeriod": "Quarter"
              |                                }
              |                            }
              |                        ]

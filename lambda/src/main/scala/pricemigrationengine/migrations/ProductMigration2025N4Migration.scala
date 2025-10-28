@@ -1,6 +1,5 @@
 package pricemigrationengine.migrations
-import pricemigrationengine.model.ZuoraRatePlan
-import pricemigrationengine.model._
+import pricemigrationengine.model.{BillingPeriod, ZuoraRatePlan, _}
 import pricemigrationengine.services.Zuora
 
 import java.time.LocalDate
@@ -325,7 +324,11 @@ object ProductMigration2025N4Migration {
     n4TargetMapping.get(sourceRatePlanId)
   }
 
-  def n4TargetToChargeOverrides(sourceRatePlan: ZuoraRatePlan, n4Target: N4Target): List[Value] = {
+  def n4TargetToChargeOverrides(
+      sourceRatePlan: ZuoraRatePlan,
+      billingPeriod: BillingPeriod,
+      n4Target: N4Target
+  ): List[Value] = {
 
     // Author: Pascal
     // Date: 28 October 2025
@@ -389,7 +392,7 @@ object ProductMigration2025N4Migration {
           )
         ),
         "billing" -> Obj(
-          "billingPeriod" -> Str("Month")
+          "billingPeriod" -> Str(BillingPeriod.toString(billingPeriod))
         )
       )
     }
@@ -409,12 +412,14 @@ object ProductMigration2025N4Migration {
       for {
         sourceRatePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
         sourceRatePlanId = sourceRatePlan.productRatePlanId
+        billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(sourceRatePlan)
         n4Target <- decideN4Target(sourceRatePlanId)
       } yield {
         val subscriptionRatePlanId = sourceRatePlan.id
         val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
         val triggerDateString = effectDate.toString
-        val chargeOverrides: List[Value] = n4TargetToChargeOverrides(sourceRatePlan: ZuoraRatePlan, n4Target)
+        val chargeOverrides: List[Value] =
+          n4TargetToChargeOverrides(sourceRatePlan: ZuoraRatePlan, billingPeriod, n4Target)
         val addProduct =
           ZuoraOrdersApiPrimitives.addProduct(triggerDateString, n4Target.targetRatePlanId, chargeOverrides)
         val order_subscription =
@@ -437,5 +442,4 @@ object ProductMigration2025N4Migration {
         )
     }
   }
-
 }
