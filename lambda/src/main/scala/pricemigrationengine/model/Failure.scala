@@ -31,7 +31,6 @@ case class ZuoraOrderFailure(reason: String) extends Failure
 case class SubscriptionCancelledInZuoraFailure(reason: String) extends Failure
 case class ZuoraAsynchronousOrderRequestFailure(reason: String) extends Failure
 case class ZuoraGetJobStatusFailure(reason: String) extends Failure
-case class ZuoraAmendmentPayloadBuildingFailure(reason: String) extends Failure
 
 case class RatePlansProbeFailure(reason: String) extends Failure
 
