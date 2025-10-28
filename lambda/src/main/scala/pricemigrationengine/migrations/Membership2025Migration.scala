@@ -89,8 +89,66 @@ object Membership2025Migration {
       subscriptionNumber: String,
       effectDate: LocalDate,
       zuora_subscription: ZuoraSubscription,
-      oldPrice: BigDecimal,
       commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList,
-  ): Either[Failure, Value] = ???
+  ): Either[Failure, Value] = {
+
+    // We have two notions of subscription here.
+    // There is the Zuora subscription which is one of the arguments, and there is
+    // the notion of subscription as defined in the Zuora Order API documentation,
+    // which roughly translates to a collections of { actions / atomic mutations } in Zuora
+
+    val order_opt = {
+      for {
+        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+        billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
+      } yield {
+        val subscriptionRatePlanId = ratePlan.id
+        val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
+        val triggerDateString = effectDate.toString
+
+        // Here we do an "in place" price rise, therefore we are targeting the productRatePlanId that the active rate plan already has
+        val productRatePlanId = ratePlan.productRatePlanId
+
+        // Here we know that the product only has one charge, so we read it from the first ratePlanCharge
+        // With that said, we are going to check a couple of assertions and error if we are not meeting them
+        if (ratePlan.ratePlanCharges.size != 1) {
+          throw new Exception(
+            s"[c5736744] subscription number: ${subscriptionNumber}, active rate plan (id: ${subscriptionRatePlanId}) has more than one charge, which is unexpected for this product"
+          )
+        }
+        val productRatePlanChargeId = ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId
+
+        // We have just one charge for the add product payload fragment
+        val chargeOverrides = List(
+          ZuoraOrdersApiPrimitives.chargeOverride(
+            productRatePlanChargeId,
+            commsPrice,
+            BillingPeriod.toString(billingPeriod)
+          )
+        )
+        val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+
+        val order_subscription =
+          ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
+
+        ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
+          orderDate.toString,
+          accountNumber,
+          order_subscription
+        )
+      }
+    }
+
+    order_opt match {
+      case Some(order) => Right(order)
+      case None =>
+        Left(
+          DataExtractionFailure(
+            s"[ee2a0cdb] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
+          )
+        )
+    }
+  }
+
 }
