@@ -1458,6 +1458,9 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
   }
 
   test("amendment payload for 11") {
+    // 11 Newspaper Voucher / Everyday / Quarterly
+    // 16 Newspaper Voucher / Everyday / Annual
+
     val subscription = Fixtures.subscriptionFromJson("Migrations/ProductMigration2025N4/11/subscription.json")
     val account = Fixtures.accountFromJson("Migrations/ProductMigration2025N4/11/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/11/invoice-preview.json")
@@ -2213,6 +2216,187 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
 
     // 10.56 + 8.04 + 8.04 + 8.04 + 8.04 + 10.56 + 8.04 + 8.67
     // => 69.99 ✅
+  }
+
+  test("amendment payload for 16") {
+    // 11 Newspaper Voucher / Everyday / Quarterly
+    // 16 Newspaper Voucher / Everyday / Annual
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/ProductMigration2025N4/16/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/ProductMigration2025N4/16/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/16/invoice-preview.json")
+
+    assertEquals(
+      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(839.88), BigDecimal(839.88), "Annual")) // [1]
+    )
+
+    // [1] Product migration the old and new prices are the same
+
+    val payload = ProductMigration2025N4Migration.amendmentOrderPayload(
+      LocalDate.of(2025, 10, 28),
+      "accountNumber",
+      "subscriptionNumber",
+      LocalDate.of(2025, 11, 17),
+      subscription,
+      invoicePreview,
+    )
+
+    assertEquals(
+      payload,
+      Right(
+        ujson.read(
+          s"""{
+             |    "orderDate": "2025-10-28",
+             |    "existingAccountNumber": "accountNumber",
+             |    "subscriptions": [
+             |        {
+             |            "subscriptionNumber": "subscriptionNumber",
+             |            "orderActions": [
+             |                {
+             |                    "type": "RemoveProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-11-17"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-11-17"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-11-17"
+             |                        }
+             |                    ],
+             |                    "removeProduct": {
+             |                        "ratePlanId": "8a12992c998d8ae201998df35bbb65f5"
+             |                    }
+             |                },
+             |                {
+             |                    "type": "AddProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2025-11-17"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2025-11-17"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2025-11-17"
+             |                        }
+             |                    ],
+             |                    "addProduct": {
+             |                        "productRatePlanId": "2c92a0ff56fe33f50157040bbdcf3ae4",
+             |                        "chargeOverrides": [
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b60157042fcd462666",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 126.72
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709ca144a646a",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 96.48
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe270b015709c90c291c49",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 96.48
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe270b015709cc16f92645",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 96.48
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f0015709cac4561bf3",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 96.48
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709c80af30495",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 126.72
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709cce7ad1aea",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 96.48
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fc56fe26ba01570418eddd26e1",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 104.04
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
+             |                                }
+             |                            }
+             |                        ]
+             |                    }
+             |                }
+             |            ]
+             |        }
+             |    ],
+             |    "processingOptions": {
+             |        "runBilling": false,
+             |        "collectPayment": false
+             |    }
+             |}""".stripMargin
+        )
+      )
+    )
+
+    // 126.72 + 96.48 + 96.48 + 96.48 + 96.48 + 126.72 + 96.48 + 104.04
+    // => 839.88 ✅
   }
 
   test("basic scala") {
