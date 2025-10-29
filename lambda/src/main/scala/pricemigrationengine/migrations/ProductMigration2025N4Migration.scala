@@ -443,7 +443,7 @@ object ProductMigration2025N4Migration {
     }
   }
 
-  def postAmendmentIntegrityCheck(
+  def postAmendmentStructureIntegrityCheck(
       subscriptionBefore: ZuoraSubscription,
       subscriptionAfter: ZuoraSubscription
   ): Either[String, Unit] = {

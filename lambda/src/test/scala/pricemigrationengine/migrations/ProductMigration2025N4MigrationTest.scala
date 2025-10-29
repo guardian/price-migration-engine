@@ -2231,7 +2231,7 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     // 02-after-correct was built to pass the integrity check
 
     assertEquals(
-      ProductMigration2025N4Migration.postAmendmentIntegrityCheck(
+      ProductMigration2025N4Migration.postAmendmentStructureIntegrityCheck(
         subscriptionBefore,
         subscriptionAfter
       ),
@@ -2250,7 +2250,7 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     // on the number of charges
 
     val result = ProductMigration2025N4Migration
-      .postAmendmentIntegrityCheck(
+      .postAmendmentStructureIntegrityCheck(
         subscriptionBefore,
         subscriptionAfter
       )
@@ -2275,7 +2275,7 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     // on the name of the extra check
 
     val result = ProductMigration2025N4Migration
-      .postAmendmentIntegrityCheck(
+      .postAmendmentStructureIntegrityCheck(
         subscriptionBefore,
         subscriptionAfter
       )

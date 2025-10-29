@@ -365,7 +365,7 @@ object AmendmentHandler extends CohortHandler {
       _ <- (MigrationType(cohortSpec) match {
         case ProductMigration2025N4 =>
           ZIO.fromEither(
-            ProductMigration2025N4Migration.postAmendmentIntegrityCheck(
+            ProductMigration2025N4Migration.postAmendmentStructureIntegrityCheck(
               subscriptionBeforeUpdate,
               subscriptionAfterUpdate
             )
