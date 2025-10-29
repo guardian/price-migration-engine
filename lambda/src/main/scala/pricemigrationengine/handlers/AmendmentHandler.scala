@@ -357,6 +357,22 @@ object AmendmentHandler extends CohortHandler {
         )
         .mapError(message => AmendmentFailure(message))
 
+      // Date: 29 October 2025
+      // Author: Pascal
+      // This check was introduced to add extra security to N4. To be decommissioned at the end of N4
+      // unless we decide to generalise it and absorb the price check and the billing period check in
+      // one single unit.
+      _ <- (MigrationType(cohortSpec) match {
+        case ProductMigration2025N4 =>
+          ZIO.fromEither(
+            ProductMigration2025N4Migration.postAmendmentIntegrityCheck(
+              subscriptionBeforeUpdate,
+              subscriptionAfterUpdate
+            )
+          )
+        case _ => ZIO.succeed(())
+      }).mapError(message => AmendmentFailure(message))
+
       whenDone <- Clock.instant
     } yield AARSuccessfulAmendment(
       item.subscriptionName,

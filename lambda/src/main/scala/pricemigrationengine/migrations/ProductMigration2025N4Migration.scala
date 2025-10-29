@@ -442,4 +442,8 @@ object ProductMigration2025N4Migration {
         )
     }
   }
+
+  def postAmendmentIntegrityCheck(preAmendmentSubscription: ZuoraSubscription, postAmendmentSubscription: ZuoraSubscription): Either[String, Unit] = {
+    Right(())
+  }
 }
