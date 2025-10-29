@@ -443,7 +443,51 @@ object ProductMigration2025N4Migration {
     }
   }
 
-  def postAmendmentIntegrityCheck(preAmendmentSubscription: ZuoraSubscription, postAmendmentSubscription: ZuoraSubscription): Either[String, Unit] = {
-    Right(())
+  def postAmendmentIntegrityCheck(
+      subscriptionBefore: ZuoraSubscription,
+      subscriptionAfter: ZuoraSubscription
+  ): Either[String, Unit] = {
+    // The N4 re-structure the subscription from DeliveryPattern to DeliveryPattern+, which means that
+    // the post amendment version always has one more charge than the pre amendment version and the extra
+    // charge is always called "Digital Pack" or "Digipack"
+    for {
+      ratePlanBefore <- SI2025RateplanFromSub
+        .determineRatePlan(subscriptionBefore)
+        .toRight("[4b2de813] could not determine the ratePlanBefore")
+      ratePlanAfter <- SI2025RateplanFromSub
+        .determineRatePlan(subscriptionAfter)
+        .toRight("[2640215b] could not determine the ratePlanAfter")
+      data <- {
+        val chargesBefore = ratePlanBefore.ratePlanCharges
+        val chargesAfter = ratePlanAfter.ratePlanCharges
+        if (chargesBefore.size + 1 != chargesAfter.size) {
+          Left(
+            s"[68eb28cc] Failing the post amendment integrity check on size, subscription number: ${subscriptionBefore.subscriptionNumber}, found ${chargesBefore.size} charges before, and ${chargesAfter.size} charges after, chargesBefore: ${chargesBefore}, chargesAfter: ${chargesAfter}"
+          )
+        } else {
+          Right((chargesBefore, chargesAfter))
+        }
+      }
+      diff <- {
+        val chargesBefore = data._1
+        val chargesAfter = data._2
+        val namesBefore = chargesBefore.map(_.name)
+        val namesAfter = chargesAfter.map(_.name)
+        val d = namesAfter.diff(namesBefore)
+
+        if (d.size != 1)
+          Left(
+            s"[beaa7748] Failing the post amendment integrity check on the diff size..."
+          )
+        else Right(d)
+      }
+      _ <- {
+        if (List("Digital Pack", "Digipack").contains(diff.head)) Right(())
+        else
+          Left(
+            s"[d2bccdbd] Failing the post amendment integrity check on the digi pack name..."
+          )
+      }
+    } yield ()
   }
 }
