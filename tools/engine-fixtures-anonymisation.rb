@@ -47,6 +47,7 @@ subscription = JSON.parse(IO.read(subscription_filepath))
 }
 subscription["billToContact"] = nil
 subscription["soldToContact"] = nil
+subscription["CreatedByCSR__c"] = nil
 File.open(subscription_filepath, "w"){|f| f.puts(JSON.pretty_generate(subscription)) }
 
 # ----------------------------------------------------

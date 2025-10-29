@@ -43,7 +43,7 @@
   "TrialPeriodDays__c": null,
   "CreatedRequestId__c": null,
   "AcquisitionSource__c": "CSR",
-  "CreatedByCSR__c": "Miracle Jolasun",
+  "CreatedByCSR__c": null,
   "CASSubscriberID__c": null,
   "LastPriceChangeDate__c": null,
   "InitialPromotionCode__c": null,
