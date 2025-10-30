@@ -269,8 +269,9 @@ object ZuoraLive {
         private def jobMonitor(jobId: String): ZIO[Any, Any, Either[String, Unit]] = {
           // This function takes a jobId, from an async processing request and either
           // 1. Returns Right(Unit) is the job has completed normally, this should result in a ZIO succeed of the calling code
-          // 2. Return Left[String] if we encountered a Failure from Zuora, this should result in a ZIO fail of the calling code
-          // 3. A Failure if the processing could not completed, essentially if the .retry failed.
+          // 2. Returns Left[String] if we encountered a Failure from Zuora, this should result in a ZIO fail of the calling code
+          // 3. A Failure if the processing could not completed (either successfully in Zuora or as a failure in Zuora),
+          //    essentially if the .retry failed, this should result in a ZIO fail of the calling code
           (for {
             jobReport <- getJobReport(jobId)
             _ <- logging.info(
