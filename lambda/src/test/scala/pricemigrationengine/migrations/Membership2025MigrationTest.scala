@@ -519,4 +519,43 @@ class Membership2025MigrationTest extends munit.FunSuite {
     )
   }
 
+  test("braze name (1)") {
+    val cohortItem = CohortItem(
+      subscriptionName = "A0001",
+      processingStage = CohortTableFilter.SalesforcePriceRiseCreationComplete, // exact value here doesn't matter
+      billingPeriod = Some("Month"), // this value is not going to have an effect
+      ex_membership2025_country = Some("United States")
+    )
+    assertEquals(
+      Membership2025Migration.brazeName(cohortItem),
+      Some("SV_MB_PriceRiseUSA_2025")
+    )
+  }
+
+  test("braze name (2)") {
+    val cohortItem = CohortItem(
+      subscriptionName = "A0001",
+      processingStage = CohortTableFilter.SalesforcePriceRiseCreationComplete, // exact value here doesn't matter
+      billingPeriod = Some("Month"),
+      ex_membership2025_country = Some("France")
+    )
+    assertEquals(
+      Membership2025Migration.brazeName(cohortItem),
+      Some("SV_MB_PriceRiseMonthly_2025")
+    )
+  }
+
+  test("braze name (3)") {
+    val cohortItem = CohortItem(
+      subscriptionName = "A0001",
+      processingStage = CohortTableFilter.SalesforcePriceRiseCreationComplete, // exact value here doesn't matter
+      billingPeriod = Some("Annual"),
+      ex_membership2025_country = Some("France")
+    )
+    assertEquals(
+      Membership2025Migration.brazeName(cohortItem),
+      Some("SV_MB_PriceRiseAnnual_2025")
+    )
+  }
+
 }

@@ -46,6 +46,7 @@ object CohortTableLive {
           ex_2025N4_canvas <- getOptionalStringFromResults(cohortItem, "ex_2025N4_canvas")
           ex_2025N4_rateplan_current <- getOptionalStringFromResults(cohortItem, "ex_2025N4_rateplan_current")
           ex_2025N4_rateplan_target <- getOptionalStringFromResults(cohortItem, "ex_2025N4_rateplan_target")
+          ex_membership2025_country <- getOptionalStringFromResults(cohortItem, "ex_membership2025_country")
         } yield CohortItem(
           subscriptionName = subscriptionNumber,
           processingStage = processingStage,
@@ -70,7 +71,8 @@ object CohortTableLive {
           ex_2025N4_group = ex_2025N4_group,
           ex_2025N4_canvas = ex_2025N4_canvas,
           ex_2025N4_rateplan_current = ex_2025N4_rateplan_current,
-          ex_2025N4_rateplan_target = ex_2025N4_rateplan_target
+          ex_2025N4_rateplan_target = ex_2025N4_rateplan_target,
+          ex_membership2025_country = ex_membership2025_country
         )
       )
       .mapError(e => DynamoDBZIOError(e))
@@ -120,6 +122,7 @@ object CohortTableLive {
         cohortItem.ex_2025N4_canvas.map(value => stringFieldUpdate("ex_2025N4_canvas", value)),
         cohortItem.ex_2025N4_rateplan_current.map(value => stringFieldUpdate("ex_2025N4_rateplan_current", value)),
         cohortItem.ex_2025N4_rateplan_target.map(value => stringFieldUpdate("ex_2025N4_rateplan_target", value)),
+        cohortItem.ex_membership2025_country.map(value => stringFieldUpdate("ex_membership2025_country", value))
       ).flatten.toMap.asJava
 
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =

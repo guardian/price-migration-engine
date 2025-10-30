@@ -63,6 +63,9 @@ case class CohortItem(
     ex_2025N4_canvas: Option[String] = None,
     ex_2025N4_rateplan_current: Option[String] = None,
     ex_2025N4_rateplan_target: Option[String] = None,
+
+    // Membership2025
+    ex_membership2025_country: Option[String] = None,
 )
 
 object CohortItem {
