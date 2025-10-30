@@ -95,6 +95,12 @@ The various statuses are given below:
 }
 
 {
+    "Build": "2806",
+    "CohortName": "Membership2025",
+    "INFO": "[4b4e379c] jobReport: AsyncJobReport(Failed,Some([40000020]: Rate plan \"Non Founder Supporter - monthly\" is not effective on the contract effective date of 03/12/2025.))"
+}
+
+{
   "status" : "Completed",
   "errors" : null,
   "result" : {
@@ -121,4 +127,5 @@ case class AsyncJobReport(status: String, errors: Option[String])
 object AsyncJobReport {
   implicit val reader: Reader[AsyncJobReport] = macroR
   def isReady(report: AsyncJobReport): Boolean = report.status == "Completed"
+  def hasFailed(report: AsyncJobReport): Boolean = report.status == "Failed"
 }
