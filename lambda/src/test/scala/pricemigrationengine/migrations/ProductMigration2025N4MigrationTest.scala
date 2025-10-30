@@ -2398,4 +2398,78 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     // 126.72 + 96.48 + 96.48 + 96.48 + 96.48 + 126.72 + 96.48 + 104.04
     // => 839.88 ✅
   }
+
+  test("basic scala") {
+    val list1 = List("1", "a", "c")
+    val list2 = List("1", "a", "d")
+    assertEquals(list1.diff(list2), List("c"))
+  }
+
+  test("postAmendmentIntegrityCheck (02-after-correct)") {
+    val subscriptionBefore =
+      Fixtures.subscriptionFromJson("Migrations/ProductMigration2025N4/Tegridy-Farms/01-before/subscription.json")
+    val subscriptionAfter = Fixtures.subscriptionFromJson(
+      "Migrations/ProductMigration2025N4/Tegridy-Farms/02-after-correct/subscription.json"
+    )
+
+    // 02-after-correct was built to pass the integrity check
+
+    assertEquals(
+      ProductMigration2025N4Migration.postAmendmentStructureIntegrityCheck(
+        subscriptionBefore,
+        subscriptionAfter
+      ),
+      Right(())
+    )
+  }
+
+  test("postAmendmentIntegrityCheck (03-after-incorrect-number-of-charges)") {
+    val subscriptionBefore =
+      Fixtures.subscriptionFromJson("Migrations/ProductMigration2025N4/Tegridy-Farms/01-before/subscription.json")
+    val subscriptionAfter = Fixtures.subscriptionFromJson(
+      "Migrations/ProductMigration2025N4/Tegridy-Farms/03-after-incorrect-number-of-charges/subscription.json"
+    )
+
+    // 03-after-incorrect-number-of-charges was built to fail the integrity check
+    // on the number of charges
+
+    val result = ProductMigration2025N4Migration
+      .postAmendmentStructureIntegrityCheck(
+        subscriptionBefore,
+        subscriptionAfter
+      )
+
+    assertEquals(
+      result match {
+        case Left(message) => message.contains("68eb28cc")
+        case _             => false
+      },
+      true
+    )
+  }
+
+  test("postAmendmentIntegrityCheck (04-after-incorrect-extra-name)") {
+    val subscriptionBefore =
+      Fixtures.subscriptionFromJson("Migrations/ProductMigration2025N4/Tegridy-Farms/01-before/subscription.json")
+    val subscriptionAfter = Fixtures.subscriptionFromJson(
+      "Migrations/ProductMigration2025N4/Tegridy-Farms/04-after-incorrect-extra-name/subscription.json"
+    )
+
+    // 04-after-incorrect-extra-name was built to fail the integrity check
+    // on the name of the extra check
+
+    val result = ProductMigration2025N4Migration
+      .postAmendmentStructureIntegrityCheck(
+        subscriptionBefore,
+        subscriptionAfter
+      )
+
+    assertEquals(
+      result match {
+        case Left(message) => message.contains("d2bccdbd")
+        case _             => false
+      },
+      true
+    )
+  }
 }
