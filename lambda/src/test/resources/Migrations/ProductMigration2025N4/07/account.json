@@ -1,0 +1,63 @@
+{
+  "basicInfo": {
+    "id": "id",
+    "name": "name",
+    "accountNumber": "accountNumber",
+    "notes": null,
+    "status": "Active",
+    "crmId": "crmId",
+    "batch": "Batch1",
+    "invoiceTemplateId": "2c92a0fb49377eae014951ca848e074b",
+    "communicationProfileId": "2c92a0f9456e27a4014570f3aed41be2",
+    "profileNumber": "CP-00000001",
+    "purchaseOrderNumber": null,
+    "customerServiceRepName": null,
+    "ScrubbedOn__c": null,
+    "IdentityId__c": "IdentityId__c",
+    "sfContactId__c": "sfContactId__c",
+    "CCURN__c": null,
+    "SpecialDeliveryInstructions__c": null,
+    "NonStandardDataReason__c": null,
+    "Scrubbed__c": null,
+    "ProcessingAdvice__c": null,
+    "CreatedRequestId__c": "CreatedRequestId__c",
+    "RetryStatus__c": null,
+    "salesRep": null,
+    "creditMemoTemplateId": null,
+    "debitMemoTemplateId": null,
+    "summaryStatementTemplateId": null,
+    "sequenceSetId": null
+  },
+  "billingAndPayment": {
+    "billCycleDay": 11,
+    "currency": "GBP",
+    "paymentTerm": "Due Upon Receipt",
+    "paymentGateway": "GoCardless",
+    "paymentGatewayNumber": "PG-00000003",
+    "defaultPaymentMethodId": "2c92a0ff58bdf4ee0159004cbcc54809",
+    "invoiceDeliveryPrefsPrint": false,
+    "invoiceDeliveryPrefsEmail": true,
+    "autoPay": true,
+    "additionalEmailAddresses": [
+
+    ],
+    "paymentMethodCascadingConsent": false,
+    "gatewayRoutingEligible": null
+  },
+  "metrics": {
+    "balance": 0.0,
+    "currency": "GBP",
+    "totalInvoiceBalance": 0.0,
+    "creditBalance": 0.0,
+    "totalDebitMemoBalance": 0.0,
+    "unappliedPaymentAmount": 0.0,
+    "unappliedCreditMemoAmount": 0.0,
+    "contractedMrr": 83.99
+  },
+  "billToContact": null,
+  "soldToContact": {
+    "country": "United Kingdom"
+  },
+  "taxInfo": null,
+  "success": true
+}

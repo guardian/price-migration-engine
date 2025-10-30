@@ -1,12 +1,13 @@
 package pricemigrationengine.migrations
-import pricemigrationengine.model.ZuoraRatePlan
-import pricemigrationengine.model._
+import pricemigrationengine.model.{BillingPeriod, ZuoraRatePlan, _}
 import pricemigrationengine.services.Zuora
 
 import java.time.LocalDate
 import ujson._
 import upickle.default._
 import zio.ZIO
+
+import scala.math.BigDecimal.RoundingMode
 
 case class ProductMigration2025N4NotificationData(
     brandTitle: String,
@@ -323,44 +324,104 @@ object ProductMigration2025N4Migration {
     n4TargetMapping.get(sourceRatePlanId)
   }
 
+  def n4TargetToChargeOverrides(
+      sourceRatePlan: ZuoraRatePlan,
+      billingPeriod: BillingPeriod,
+      n4Target: N4Target
+  ): List[Value] = {
+
+    // Author: Pascal
+    // Date: 28 October 2025
+
+    // This function is an adaptation of ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides
+    // for the case of ProductMigration2025N4. Indeed ratePlanChargesToChargeOverrides takes
+    // a List[ZuoraRatePlanCharge] whereas for N4 we start from a n4Target which has similar information
+    // but presented differently
+
+    // Note: This function _could_ be made generic (using a more universal version of N4Target)
+    // and added to ZuoraOrdersApiPrimitives, which can be used in the future when we need to
+    // perform a product or price migration when the target rate plans have a different
+    // structure than the source rate plan, and notably a different charge distribution
+
+    val sourceRatePlanTotalPrice: BigDecimal = sourceRatePlan.ratePlanCharges.flatMap(charge => charge.price).sum
+    val targetRatePlanTotalPrice: BigDecimal = n4Target.charges.map(n4charge => n4charge.charge).sum
+
+    // We want the n4Target to be modified to bring the total charges from N4Charges to par with
+    // sourceRatePlanTotalPrice, so that the price is invariant for the user, despite the product
+    // re-structuration
+
+    val correctionFactor: BigDecimal = sourceRatePlanTotalPrice / targetRatePlanTotalPrice
+
+    val n4ChargesPriceCorrected1: List[N4Charge] = n4Target.charges.map { n4charge =>
+      val chargeCorrected = (n4charge.charge * correctionFactor).setScale(2, RoundingMode.DOWN)
+      n4charge.copy(charge = chargeCorrected)
+    }
+
+    // At this point, there is one more thing we need to do: ensure that the correction factor
+    // followed by rounding, has not shifted the price by pennies.
+
+    val n4ChargesPriceCorrected1TotalPrice = n4ChargesPriceCorrected1.map(n4charge => n4charge.charge).sum
+    val difference = sourceRatePlanTotalPrice - n4ChargesPriceCorrected1TotalPrice
+
+    // `difference` is now what we need to add to one of the legs.
+
+    val firstN4ChargeAdjusted: List[N4Charge] = n4ChargesPriceCorrected1.take(1).map { n4charge =>
+      n4charge.copy(charge = n4charge.charge + difference)
+    }
+
+    val n4ChargesPriceCorrected2 = firstN4ChargeAdjusted ++ n4ChargesPriceCorrected1.drop(1)
+
+    // We perform a check and throw an exception if the sums do not match within margin error
+    if ((n4ChargesPriceCorrected2.map(n4charge => n4charge.charge).sum - sourceRatePlanTotalPrice) > 0.001) {
+      throw new Exception(
+        s"[e56cf056] failed equality assertion with sourceRatePlan: ${sourceRatePlan}, n4Target: ${n4Target}, sourceRatePlanTotalPrice: ${sourceRatePlanTotalPrice}, targetRatePlanTotalPrice: ${targetRatePlanTotalPrice} correctionFactor: ${correctionFactor}, n4ChargesPriceCorrected1: ${n4ChargesPriceCorrected1}, n4ChargesPriceCorrected2: ${n4ChargesPriceCorrected2}"
+      )
+    }
+
+    val n4TargetCorrected: N4Target = n4Target.copy(charges = n4ChargesPriceCorrected2)
+
+    // By now we have a N4Target, n4TargetCorrected, with prices/charges that have been updated
+    // to sum to sourceRatePlanTotalPrice exactly. We can now start building the JSON charge overrides
+
+    val jsonData = n4TargetCorrected.charges.map { n4charge =>
+      Obj(
+        "productRatePlanChargeId" -> Str(n4charge.chargeId),
+        "pricing" -> Obj(
+          "recurringFlatFee" -> Obj(
+            "listPrice" -> Num(n4charge.charge.doubleValue)
+          )
+        ),
+        "billing" -> Obj(
+          "billingPeriod" -> Str(BillingPeriod.toString(billingPeriod))
+        )
+      )
+    }
+
+    jsonData
+  }
+
   def amendmentOrderPayload(
-      cohortItem: CohortItem,
       orderDate: LocalDate,
       accountNumber: String,
       subscriptionNumber: String,
       effectDate: LocalDate,
       zuora_subscription: ZuoraSubscription,
-      oldPrice: BigDecimal,
-      commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
-
-    // This version of `amendmentOrderPayload`, applied to subscriptions with the active rate plan having
-    // several charges (one per delivery day), is using ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides
-    // which maps the rate plan's rate plan charges to an array of charge overrides json objects.
-
-    // The important preliminary here, which wasn't needed in the simpler case of a single rate plan charge
-    // in the case of GuardianWeekly2025, for instance, is the price ratio from the old price to the new price
-    // (both carried by the cohort item).
-
-    val priceRatio = commsPrice / oldPrice
-
     val order_opt = {
       for {
-        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
-        billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
+        sourceRatePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+        sourceRatePlanId = sourceRatePlan.productRatePlanId
+        billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(sourceRatePlan)
+        n4Target <- decideN4Target(sourceRatePlanId)
       } yield {
-        val subscriptionRatePlanId = ratePlan.id
+        val subscriptionRatePlanId = sourceRatePlan.id
         val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
         val triggerDateString = effectDate.toString
-        val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
-        val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
-          ratePlan.ratePlanCharges,
-          priceRatio,
-          commsPrice,
-          BillingPeriod.toString(billingPeriod)
-        )
-        val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+        val chargeOverrides: List[Value] =
+          n4TargetToChargeOverrides(sourceRatePlan: ZuoraRatePlan, billingPeriod, n4Target)
+        val addProduct =
+          ZuoraOrdersApiPrimitives.addProduct(triggerDateString, n4Target.targetRatePlanId, chargeOverrides)
         val order_subscription =
           ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
         ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
@@ -376,10 +437,9 @@ object ProductMigration2025N4Migration {
       case None =>
         Left(
           DataExtractionFailure(
-            s"[9f480e70] Could not compute amendmentOrderPayload for subscription ${subscriptionNumber}"
+            s"[17ea43a1] Could not compute N4 amendmentOrderPayload for subscription ${subscriptionNumber}"
           )
         )
     }
   }
-
 }

@@ -185,14 +185,11 @@ object AmendmentHandlerHelper {
         )
       case ProductMigration2025N4 =>
         ProductMigration2025N4Migration.amendmentOrderPayload(
-          cohortItem,
           orderDate,
           accountNumber,
           subscriptionNumber,
           effectDate,
           zuora_subscription,
-          oldPrice,
-          commsPrice,
           invoiceList
         )
       case Membership2025 =>
