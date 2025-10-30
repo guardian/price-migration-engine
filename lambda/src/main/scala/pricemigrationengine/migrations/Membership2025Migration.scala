@@ -89,6 +89,31 @@ object Membership2025Migration {
     }
   }
 
+  def decideTargetProductRatePlanId(sourceProductRatePlan: String): String = {
+    // This function performs the following mapping:
+    //
+    // [Non Founder Supporter - monthly] (2c92a0f94c547592014c69f5b0ff4f7e) -> [Supporter - monthly (2023 Price)] (8a1287c586832d250186a2040b1548fe)
+    // [Non Founder Supporter - annual]  (2c92a0fb4c5481db014c69f4a1e03bbd) -> [Supporter - monthly (2023 Price)] (8a129ce886834fa90186a20c3ee70b6a)
+    // [Supporter - monthly (2023 Price)] -> (itself)
+    // [Supporter - annual (2023 Price)]  -> (itself)
+
+    sourceProductRatePlan match {
+      case "2c92a0f94c547592014c69f5b0ff4f7e" => "8a1287c586832d250186a2040b1548fe"
+      case "2c92a0fb4c5481db014c69f4a1e03bbd" => "8a129ce886834fa90186a20c3ee70b6a"
+      case _                                  => sourceProductRatePlan
+    }
+  }
+
+  def decideTargetProductRatePlanChargeId(targetProductRatePlanId: String): String = {
+    // [Supporter - monthly (2023 Price)] (8a1287c586832d250186a2040b1548fe) -> (8a12800986832d1d0186a20bf5136471) # monthly rate plan charge Id
+    // [Supporter - annual (2023 Price)]  (8a129ce886834fa90186a20c3ee70b6a) -> (8a129ce886834fa90186a20c3f4f0b6c) # annual rate plan charge Id
+    targetProductRatePlanId match {
+      case "8a1287c586832d250186a2040b1548fe" => "8a12800986832d1d0186a20bf5136471"
+      case "8a129ce886834fa90186a20c3ee70b6a" => "8a129ce886834fa90186a20c3f4f0b6c"
+      case _                                  => throw new Exception("[47607ece] How did this happen ? 🤔")
+    }
+  }
+
   def amendmentOrderPayload(
       cohortItem: CohortItem,
       orderDate: LocalDate,
@@ -115,7 +140,7 @@ object Membership2025Migration {
         val triggerDateString = effectDate.toString
 
         // Here we do an "in place" price rise, therefore we are targeting the productRatePlanId that the active rate plan already has
-        val productRatePlanId = ratePlan.productRatePlanId
+        val targetProductRatePlanId = decideTargetProductRatePlanId(ratePlan.productRatePlanId)
 
         // Here we know that the product only has one charge, so we read it from the first ratePlanCharge
         // With that said, we are going to check a couple of assertions and error if we are not meeting them
@@ -124,17 +149,18 @@ object Membership2025Migration {
             s"[c5736744] subscription number: ${subscriptionNumber}, active rate plan (id: ${subscriptionRatePlanId}) has more than one charge, which is unexpected for this product"
           )
         }
-        val productRatePlanChargeId = ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId
+        val targetProductRatePlanChargeId = decideTargetProductRatePlanChargeId(targetProductRatePlanId)
 
         // We have just one charge for the add product payload fragment
         val chargeOverrides = List(
           ZuoraOrdersApiPrimitives.chargeOverride(
-            productRatePlanChargeId,
+            targetProductRatePlanChargeId,
             commsPrice,
             BillingPeriod.toString(billingPeriod)
           )
         )
-        val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+        val addProduct =
+          ZuoraOrdersApiPrimitives.addProduct(triggerDateString, targetProductRatePlanId, chargeOverrides)
 
         val order_subscription =
           ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))

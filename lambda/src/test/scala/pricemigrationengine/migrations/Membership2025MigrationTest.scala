@@ -410,6 +410,8 @@ class Membership2025MigrationTest extends munit.FunSuite {
     // Non standard old price (Non Founder Supporter)
     // PriceData("GBP", BigDecimal(5), BigDecimal(10), "Month")
 
+    // Note that in this case we are performing a product migration in addition of the price migration
+
     // Non price grid old price, capping applies
     val cappedPrice = BigDecimal(7.15) // 5 at +43%, 2 decimals
 
@@ -490,10 +492,10 @@ class Membership2025MigrationTest extends munit.FunSuite {
              |                        }
              |                    ],
              |                    "addProduct": {
-             |                        "productRatePlanId": "2c92a0f94c547592014c69f5b0ff4f7e",
+             |                        "productRatePlanId": "8a1287c586832d250186a2040b1548fe",
              |                        "chargeOverrides": [
              |                            {
-             |                                "productRatePlanChargeId": "2c92a0f94c547592014c69f5b1204f80",
+             |                                "productRatePlanChargeId": "8a12800986832d1d0186a20bf5136471",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 7.15
