@@ -266,6 +266,34 @@ object ZuoraLive {
             )
         }
 
+        private def jobMonitor(jobId: String): ZIO[Any, Any, Either[String, Unit]] = {
+          // This function takes a jobId, from an async processing request and either
+          // 1. Returns Right(Unit) is the job has completed normally, this should result in a ZIO succeed of the calling code
+          // 2. Return Left[String] if we encountered a Failure from Zuora, this should result in a ZIO fail of the calling code
+          // 3. A Failure if the processing could not completed, essentially if the .retry failed.
+          (for {
+            jobReport <- getJobReport(jobId)
+            _ <- logging.info(
+              s"[4b4e379c] jobReport: ${jobReport}"
+            )
+            result <- {
+              if (AsyncJobReport.isReady(jobReport)) { ZIO.succeed(Right(())) }
+              else if (AsyncJobReport.hasFailed(jobReport)) {
+                ZIO.succeed(Left(jobReport.errors.getOrElse("(empty errors string from the job report)")))
+              } else {
+                // Although we are raising a ZIO.fail here,
+                // This case only means that we are waiting for results
+                ZIO.fail(())
+              }
+            }
+
+          } yield result)
+            .retry(
+              // Query every 2 seconds for a total of 150 times (eg: 5 minutes)
+              Schedule.spaced(2.second) && Schedule.recurs(150)
+            )
+        }
+
         override def applyOrderAsynchronously(
             subscriptionNumber: String,
             payload: Value,
@@ -307,22 +335,19 @@ object ZuoraLive {
             _ <- logging.info(
               s"[fe478094] submitted asynchronous order for subscription ${subscriptionNumber}, operation: ${operationDescriptionForLogging}, submission ticket: ${submissionTicket}"
             )
-            _ <- (for {
-              jobReport <- getJobReport(submissionTicket.jobId)
-              _ <- logging.info(
-                s"[4b4e379c] jobReport: ${jobReport}"
-              )
-              _ <-
-                if (AsyncJobReport.isReady(jobReport)) { ZIO.unit }
-                else { ZIO.fail(()) }
-            } yield ())
-              .retry(
-                // Query every 2 seconds for a total of 150 times (eg: 5 minutes)
-                Schedule.spaced(2.second) && Schedule.recurs(150)
-              )
+            monitorResult <- jobMonitor(submissionTicket.jobId)
               .mapError(e =>
+                // Look like we have timed out during the monitoring and the .retry gave up
                 ZuoraAsynchronousOrderRequestFailure(
                   s"[462b80c6] error while evaluating asynchronous job report 🤔, jobId: ${submissionTicket.jobId}, error: ${e}"
+                )
+              )
+            _ <- ZIO
+              .fromEither(monitorResult)
+              .mapError(e =>
+                // Looks like Zuora properly failed the request.
+                ZuoraAsynchronousOrderRequestFailure(
+                  s"[5eed7eb0] We got a Left from the monitor 🤔, jobId: ${submissionTicket.jobId}, error: ${e}"
                 )
               )
             _ <- logging.info(
