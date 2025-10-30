@@ -536,7 +536,7 @@ class Membership2025MigrationTest extends munit.FunSuite {
     val cohortItem = CohortItem(
       subscriptionName = "A0001",
       processingStage = CohortTableFilter.SalesforcePriceRiseCreationComplete, // exact value here doesn't matter
-      billingPeriod = Some("Month"), // this value is not going to have an effect
+      billingPeriod = Some("Month"),
       ex_membership2025_country = Some("France")
     )
     assertEquals(
@@ -549,7 +549,7 @@ class Membership2025MigrationTest extends munit.FunSuite {
     val cohortItem = CohortItem(
       subscriptionName = "A0001",
       processingStage = CohortTableFilter.SalesforcePriceRiseCreationComplete, // exact value here doesn't matter
-      billingPeriod = Some("Annual"), // this value is not going to have an effect
+      billingPeriod = Some("Annual"),
       ex_membership2025_country = Some("France")
     )
     assertEquals(
