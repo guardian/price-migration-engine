@@ -36,15 +36,22 @@ object Membership2025Migration {
 
       - SV_MB_PriceRiseAnnual_2025 (ANNUAL)
         78d377ca-9f32-4ae2-b8da-c5c678fde5b6
+
+      - SV_MB_PriceRiseUSA_2025
+        a0c5fba6-0496-443b-ae1c-ea2b5c4135b2
+
+        The US customers canvas, takes priority over the first two
      */
 
     for {
       billingPeriod <- cohortItem.billingPeriod
+      country <- cohortItem.ex_membership2025_country
     } yield {
-      billingPeriod match {
-        case "Month"  => "SV_MB_PriceRiseMonthly_2025"
-        case "Annual" => "SV_MB_PriceRiseAnnual_2025"
-        case _        => throw new Exception("[5cd26ca0] unexpected Membership2025 cohort item billing period")
+      (country, billingPeriod) match {
+        case ("United States", _) => "SV_MB_PriceRiseUSA_2025"
+        case (_, "Month")         => "SV_MB_PriceRiseMonthly_2025"
+        case (_, "Annual")        => "SV_MB_PriceRiseAnnual_2025"
+        case _ => throw new Exception("[5cd26ca0] unexpected Membership2025 cohort item billing period")
       }
     }
   }
