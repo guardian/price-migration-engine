@@ -91,7 +91,7 @@ object SI2025Extractions {
 
   def determineBillingPeriod(
       ratePlan: ZuoraRatePlan
-  ): Option[BillingPeriod] = ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
+  ): Option[BillingPeriod] = ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
 
   def determineOldPrice(ratePlan: ZuoraRatePlan): BigDecimal = {
     ratePlan.ratePlanCharges.foldLeft(BigDecimal(0))((price: BigDecimal, ratePlanCharge: ZuoraRatePlanCharge) =>

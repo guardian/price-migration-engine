@@ -412,7 +412,7 @@ object ProductMigration2025N4Migration {
       for {
         sourceRatePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
         sourceRatePlanId = sourceRatePlan.productRatePlanId
-        billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(sourceRatePlan)
+        billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(sourceRatePlan)
         n4Target <- decideN4Target(sourceRatePlanId)
       } yield {
         val subscriptionRatePlanId = sourceRatePlan.id
