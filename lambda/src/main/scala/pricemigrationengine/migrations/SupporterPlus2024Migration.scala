@@ -170,7 +170,9 @@ object SupporterPlus2024Migration {
   def newBaseAmount(subscription: ZuoraSubscription): Either[Failure, Option[BigDecimal]] = {
     for {
       ratePlan <- getSupporterPlusV2RatePlan(subscription)
-      billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan).toRight(DataExtractionFailure(""))
+      billingPeriod <- ZuoraRatePlan
+        .ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
+        .toRight(DataExtractionFailure(""))
       ratePlanCharge <- getSupporterPlusBaseRatePlanCharge(subscription.subscriptionNumber, ratePlan)
       currency = ratePlanCharge.currency
       oldBaseAmountOpt <- previousBaseAmount(subscription)
@@ -278,7 +280,9 @@ object SupporterPlus2024Migration {
   ): Either[Failure, PriceData] = {
     for {
       ratePlan <- getSupporterPlusV2RatePlan(subscription)
-      billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan).toRight(DataExtractionFailure(""))
+      billingPeriod <- ZuoraRatePlan
+        .ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
+        .toRight(DataExtractionFailure(""))
       ratePlanCharge <- getSupporterPlusBaseRatePlanCharge(subscription.subscriptionNumber, ratePlan)
       currency = ratePlanCharge.currency
       oldPrice <- ratePlanCharge.price.toRight(DataExtractionFailure(""))

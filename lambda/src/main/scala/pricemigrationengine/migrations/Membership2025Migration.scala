@@ -133,7 +133,7 @@ object Membership2025Migration {
     val order_opt = {
       for {
         ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
-        billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
+        billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
       } yield {
         val subscriptionRatePlanId = ratePlan.id
         val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)

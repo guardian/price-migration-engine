@@ -260,7 +260,7 @@ object Newspaper2025P1Migration {
       if (!decideShouldRemoveDiscount(cohortItem)) {
         for {
           ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
-          billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
+          billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
         } yield {
           val subscriptionRatePlanId = ratePlan.id
           val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
@@ -284,7 +284,7 @@ object Newspaper2025P1Migration {
       } else {
         for {
           ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
-          billingPeriod <- ZuoraRatePlan.ratePlanToBillingPeriod(ratePlan)
+          billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
           discount <- SI2025Extractions.getDiscountByRatePlanName(zuora_subscription, "Adjustment")
         } yield {
           val subscriptionRatePlanId = ratePlan.id
