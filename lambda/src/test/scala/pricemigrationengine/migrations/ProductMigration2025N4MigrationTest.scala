@@ -2414,10 +2414,13 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
 
     // 02-after-correct was built to pass the integrity check
 
+    val today = LocalDate.of(2023, 1, 1)
+
     assertEquals(
       ProductMigration2025N4Migration.postAmendmentStructureIntegrityCheck(
         subscriptionBefore,
-        subscriptionAfter
+        subscriptionAfter,
+        today
       ),
       Right(())
     )
@@ -2433,10 +2436,13 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     // 03-after-incorrect-number-of-charges was built to fail the integrity check
     // on the number of charges
 
+    val today = LocalDate.of(2023, 1, 1)
+
     val result = ProductMigration2025N4Migration
       .postAmendmentStructureIntegrityCheck(
         subscriptionBefore,
-        subscriptionAfter
+        subscriptionAfter,
+        today
       )
 
     assertEquals(
@@ -2458,10 +2464,13 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     // 04-after-incorrect-extra-name was built to fail the integrity check
     // on the name of the extra check
 
+    val today = LocalDate.of(2023, 1, 1)
+
     val result = ProductMigration2025N4Migration
       .postAmendmentStructureIntegrityCheck(
         subscriptionBefore,
-        subscriptionAfter
+        subscriptionAfter,
+        today
       )
 
     assertEquals(

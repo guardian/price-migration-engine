@@ -141,8 +141,10 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     // "GW Oct 18 - Monthly - Domestic",
     // "originalOrderDate": "2024-04-13"
 
+    val today = LocalDate.of(2023, 1, 1)
+
     assertEquals(
-      GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription),
+      GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription, today),
       Some(LocalDate.of(2024, 4, 13))
     )
   }
@@ -154,8 +156,10 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     // "ratePlanName": "GW Oct 18 - Annual - Domestic",
     // "originalOrderDate": "2024-11-05",
 
+    val today = LocalDate.of(2023, 1, 1)
+
     assertEquals(
-      GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription),
+      GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription, today),
       Some(LocalDate.of(2024, 11, 5))
     )
   }

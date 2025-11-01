@@ -367,7 +367,8 @@ object AmendmentHandler extends CohortHandler {
           ZIO.fromEither(
             ProductMigration2025N4Migration.postAmendmentStructureIntegrityCheck(
               subscriptionBeforeUpdate,
-              subscriptionAfterUpdate
+              subscriptionAfterUpdate,
+              today
             )
           )
         case _ => ZIO.succeed(())

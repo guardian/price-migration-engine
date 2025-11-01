@@ -138,15 +138,17 @@ class SI2025ExtractionsTest extends munit.FunSuite {
   // SI2025RateplanFromSub
   // ----------------------------------------------------
 
-  // Subscription 2
-  // Was selected due to having an active discount alongside the rate plan
-  // and the discount comes first to test that discounts are filtered out
+  test("SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan (subscription2)") {
+    // Subscription 2
+    // Was selected due to having an active discount alongside the rate plan
+    // and the discount comes first to test that discounts are filtered out
 
-  test("SI2025RateplanFromSub.determineRatePlan (subscription2)") {
     val subscription =
       Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription2/subscription.json")
 
-    val ratePlan = SI2025RateplanFromSub.determineRatePlan(subscription)
+    val today = LocalDate.of(2023, 1, 1)
+
+    val ratePlan = SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription, today)
     assertEquals(
       ratePlan,
       Some(
@@ -181,6 +183,22 @@ class SI2025ExtractionsTest extends munit.FunSuite {
           lastChangeType = Some("Add")
         )
       )
+    )
+  }
+
+  test("SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan (subscription8)") {
+    // This sub has two active rate plans, so technically it would fail
+    // `SI2025RateplanFromSub.determineRatePlan`, but on of the rate plans
+    // is a [GW Oct 18 - Six for Six - ROW] which expired in 2021-01-15 but has not been removed.
+    val subscription =
+      Fixtures.subscriptionFromJson(
+        "model/SubscriptionIntrospection2025/subscription8-two-active-rate-plans-one-zombie/subscription.json"
+      )
+    val today = LocalDate.of(2025, 1, 1)
+
+    assertEquals(
+      SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription, today).isDefined,
+      true
     )
   }
 
