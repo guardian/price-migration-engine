@@ -156,7 +156,7 @@ object Newspaper2025P3Migration {
 
   def subscriptionToLastPriceMigrationDate(subscription: ZuoraSubscription): Option[LocalDate] = {
     for {
-      ratePlan <- SI2025RateplanFromSub.determineRatePlan(subscription)
+      ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription)
       date <- SI2025Extractions.determineLastPriceMigrationDate(ratePlan)
     } yield date
   }

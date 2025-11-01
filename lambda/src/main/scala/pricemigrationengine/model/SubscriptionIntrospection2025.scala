@@ -73,11 +73,22 @@ object SI2025RateplanFromSub {
   // from AmendmentEffectiveDateCalculator to determine the last price migration
   // date in a context where we only have access to the subscription.
 
-  def determineRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
+  def determineActiveNonDiscountRatePlans(subscription: ZuoraSubscription): List[ZuoraRatePlan] = {
     subscription.ratePlans
       .filter(ratePlan => ZuoraRatePlan.ratePlanIsActive(ratePlan))
-      .find(ratePlan => ratePlan.productName != "Discounts")
+      .filter(ratePlan => ratePlan.productName != "Discounts")
+  }
 
+  def uniquelyDeterminedActiveNonDiscountRatePlan(subscription: ZuoraSubscription): Option[ZuoraRatePlan] = {
+    val ratePlans = determineActiveNonDiscountRatePlans(subscription: ZuoraSubscription)
+    ratePlans.size match {
+      case 0 => None
+      case 1 => ratePlans.headOption
+      case _ =>
+        throw new Exception(
+          s"[152845b3] failing to determine unique rate plan for subscription: ${subscription.subscriptionNumber}"
+        )
+    }
   }
 }
 

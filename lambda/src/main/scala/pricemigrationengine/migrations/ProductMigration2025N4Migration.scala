@@ -452,10 +452,10 @@ object ProductMigration2025N4Migration {
     // charge is always called "Digital Pack" or "Digipack"
     for {
       ratePlanBefore <- SI2025RateplanFromSub
-        .determineRatePlan(subscriptionBefore)
+        .uniquelyDeterminedActiveNonDiscountRatePlan(subscriptionBefore)
         .toRight("[4b2de813] could not determine the ratePlanBefore")
       ratePlanAfter <- SI2025RateplanFromSub
-        .determineRatePlan(subscriptionAfter)
+        .uniquelyDeterminedActiveNonDiscountRatePlan(subscriptionAfter)
         .toRight("[2640215b] could not determine the ratePlanAfter")
       data <- {
         val chargesBefore = ratePlanBefore.ratePlanCharges
