@@ -445,17 +445,18 @@ object ProductMigration2025N4Migration {
 
   def postAmendmentStructureIntegrityCheck(
       subscriptionBefore: ZuoraSubscription,
-      subscriptionAfter: ZuoraSubscription
+      subscriptionAfter: ZuoraSubscription,
+      today: LocalDate
   ): Either[String, Unit] = {
     // The N4 re-structure the subscription from DeliveryPattern to DeliveryPattern+, which means that
     // the post amendment version always has one more charge than the pre amendment version and the extra
     // charge is always called "Digital Pack" or "Digipack"
     for {
       ratePlanBefore <- SI2025RateplanFromSub
-        .uniquelyDeterminedActiveNonDiscountRatePlan(subscriptionBefore)
+        .uniquelyDeterminedActiveNonDiscountRatePlan(subscriptionBefore, today)
         .toRight("[4b2de813] could not determine the ratePlanBefore")
       ratePlanAfter <- SI2025RateplanFromSub
-        .uniquelyDeterminedActiveNonDiscountRatePlan(subscriptionAfter)
+        .uniquelyDeterminedActiveNonDiscountRatePlan(subscriptionAfter, today)
         .toRight("[2640215b] could not determine the ratePlanAfter")
       data <- {
         val chargesBefore = ratePlanBefore.ratePlanCharges

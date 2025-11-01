@@ -146,7 +146,9 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     val subscription =
       Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription2/subscription.json")
 
-    val ratePlan = SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription)
+    val today = LocalDate.of(2023, 1, 1)
+
+    val ratePlan = SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription, today)
     assertEquals(
       ratePlan,
       Some(
@@ -192,10 +194,12 @@ class SI2025ExtractionsTest extends munit.FunSuite {
       Fixtures.subscriptionFromJson(
         "model/SubscriptionIntrospection2025/subscription8-two-active-rate-plans-one-zombie/subscription.json"
       )
-    // assertEquals(
-    //  SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription).isDefined,
-    //  true
-    // )
+    val today = LocalDate.of(2025, 1, 1)
+
+    assertEquals(
+      SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription, today).isDefined,
+      true
+    )
   }
 
   // ----------------------------------------------------

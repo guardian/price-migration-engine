@@ -27,14 +27,18 @@ object AmendmentEffectiveDateCalculator {
   }
 
   // This function returns the optional date of the last price rise.
-  def lastPriceRiseDate(cohortSpec: CohortSpec, subscription: ZuoraSubscription): Option[LocalDate] = {
+  def lastPriceRiseDate(
+      cohortSpec: CohortSpec,
+      subscription: ZuoraSubscription,
+      today: LocalDate
+  ): Option[LocalDate] = {
     MigrationType(cohortSpec) match {
-      case Test1                  => None // default value
-      case SupporterPlus2024      => None
-      case GuardianWeekly2025     => GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription)
-      case Newspaper2025P1        => Newspaper2025P1Migration.subscriptionToLastPriceMigrationDate(subscription)
-      case HomeDelivery2025       => HomeDelivery2025Migration.subscriptionToLastPriceMigrationDate(subscription)
-      case Newspaper2025P3        => Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate(subscription)
+      case Test1              => None // default value
+      case SupporterPlus2024  => None
+      case GuardianWeekly2025 => GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription, today)
+      case Newspaper2025P1    => Newspaper2025P1Migration.subscriptionToLastPriceMigrationDate(subscription, today)
+      case HomeDelivery2025   => HomeDelivery2025Migration.subscriptionToLastPriceMigrationDate(subscription, today)
+      case Newspaper2025P3    => Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate(subscription, today)
       case ProductMigration2025N4 => None
       case Membership2025         => None
     }
@@ -74,11 +78,12 @@ object AmendmentEffectiveDateCalculator {
   def noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(
       cohortSpec: CohortSpec,
       subscription: ZuoraSubscription,
+      today: LocalDate,
       lowerBound1: LocalDate
   ): LocalDate = {
     Date.datesMax(
       lowerBound1,
-      lastPriceRiseDate(cohortSpec, subscription).map(date => date.plusMonths(12)).getOrElse(lowerBound1)
+      lastPriceRiseDate(cohortSpec, subscription, today).map(date => date.plusMonths(12)).getOrElse(lowerBound1)
     )
   }
 
@@ -134,7 +139,7 @@ object AmendmentEffectiveDateCalculator {
     // This doesn't apply to ProductMigration2025N4 which is not a price rise
     val lowerBound3 = MigrationType(cohortSpec) match {
       case ProductMigration2025N4 => lowerBound2
-      case _ => noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, lowerBound2)
+      case _ => noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
     }
 
     // With GuardianWeekly2025, we were given lower bounds in the Marketing spreadsheet

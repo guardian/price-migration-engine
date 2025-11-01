@@ -283,5 +283,4 @@ class ZuoraRatePlanTest extends munit.FunSuite {
       Right(false) // it's active and expired before today
     )
   }
-
 }
