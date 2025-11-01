@@ -61,47 +61,9 @@ object NotificationHandler extends CohortHandler {
               .filter(item => item.subscriptionName == subscriptionNumber)
         }
       )
-        .mapZIO(item =>
-          MigrationType(cohortSpec) match {
-            case SupporterPlus2024 => {
-              for {
-                subscription <- Zuora.fetchSubscription(item.subscriptionName)
-                _ <-
-                  if (SupporterPlus2024Migration.isUnderActiveCancellationSavePolicy(subscription, today)) {
-                    updateItemToDoNotProcessUntil(item, subscription)
-                  } else {
-                    sendNotification(cohortSpec)(item, today)
-                  }
-              } yield ()
-            }
-            case _ => sendNotification(cohortSpec)(item, today)
-          }
-        )
+        .mapZIO(item => sendNotification(cohortSpec)(item, today))
         .runCount
     } yield HandlerOutput(isComplete = count < batchSize)
-  }
-
-  def updateItemToDoNotProcessUntil(
-      item: CohortItem,
-      subscription: ZuoraSubscription
-  ): ZIO[CohortTable with Zuora, Failure, Unit] = {
-    for {
-      cancellationDate <- ZIO
-        .fromOption(SupporterPlus2024Migration.cancellationSaveDiscountEffectiveDate(subscription))
-        .orElseFail(DataExtractionFailure(s"Could not extract cancellation date for item ${item}"))
-      billingPeriod <- ZIO
-        .fromOption(item.billingPeriod)
-        .orElseFail(DataExtractionFailure(s"Could not extract billing period for item ${item}"))
-      months <- ZIO.succeed(CohortItem.billingPeriodToInt(billingPeriod))
-      _ <- CohortTable
-        .update(
-          CohortItem(
-            subscriptionName = item.subscriptionName,
-            processingStage = DoNotProcessUntil,
-            doNotProcessUntil = Some(cancellationDate.plusMonths(List(months * 2, 6).max))
-          )
-        )
-    } yield ()
   }
 
   def sendNotification(cohortSpec: CohortSpec)(

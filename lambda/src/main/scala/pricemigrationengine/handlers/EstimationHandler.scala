@@ -19,30 +19,7 @@ object EstimationHandler extends CohortHandler {
 
   def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
-      // DoNotProcessUntil
       today <- Clock.currentDateTime.map(_.toLocalDate)
-      _ <- CohortTable
-        .fetch(DoNotProcessUntil, None)
-        .runForeach { item =>
-          for {
-            _ <- Logging.info(s"[1beb60af] DoNotProcessUntil: about to check: ${item.toString}")
-            _ <- ZIO.when(ItemHibernation.isProcessable(item, today)) {
-              for {
-                _ <- Logging.info(
-                  s"[83433310] DoNotProcessUntil: today is ${today.toString}, moving ${item.toString} back to ReadyForEstimation"
-                )
-                _ <- CohortTable
-                  .update(
-                    CohortItem(
-                      subscriptionName = item.subscriptionName,
-                      processingStage = ReadyForEstimation
-                    )
-                  )
-              } yield ()
-            }
-          } yield ()
-        }
-      // Estimation
       catalogue <- Zuora.fetchProductCatalogue
       count <- (
         cohortSpec.subscriptionNumber match {
