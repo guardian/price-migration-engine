@@ -28,14 +28,6 @@ case class CohortItem(
     salesforcePriceRiseId: Option[String] = None,
     newSubscriptionId: Option[ZuoraSubscriptionId] = None,
 
-    // comment group: 6157ec78
-    // `doNotProcessUntil` was introduced in July 2024 as a simple way to support
-    // the "cancellation saves" feature that has been introduced this month and affecting the
-    // cancellation journey of Supporter Plus subscriptions.
-    // The default value is `None`, and if a none trivial value is present it represents
-    // the date until when the item should be left alone and not being processed.
-    doNotProcessUntil: Option[LocalDate] = None,
-
     // migrationExtraAttributes was introduced to allow a cohort item to hold
     // extra attributes that are migration dependent (specifically for the
     // Guardian Weekly 2025 migration), for if and when we need to perform
