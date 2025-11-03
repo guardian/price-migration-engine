@@ -66,13 +66,7 @@ CohortItem(
 
 In this stage the engine essentially is saying "I have recorded this subscription number and it's ready to be Estimated"
 
-### The Estimation Stage (part 1)
-
-The first step of the Estimation stage is to run a maintenance function called `monitorDoNotProcessUntil` from the Estimation handler. This function requests items in processing stage `DoNotProcessUntil` and looks up the attribute `doNotProcessUntil`, which is a LocalDate, and check whether that date in in the past (or today). If that date is in the past, then the item is going to be migrated to processing stage `ReadyForEstimation`, otherwise the item is left untouched.
-
-The reason for the extistence of the `DoNotProcessUntil` processing stage is that it was the simplest way to handle the existence of cancellation saves and the business requirement to leave a subscription alone for a certain period of time (6 months) if, at notification state, the item carries a cancellation discount. If and when we observe such a thing, we put the item in processing stage `DoNotProcessUntil`, and then update the value of the attribute `doNotProcessUntil` to be the date until when the item needs to be left alone. On that future date (or shortly after) the item can be processed again and the way this happens is to move it to `ReadyForEstimation` waiting for it to be estimated (again).
-
-### The Estimation Stage (part 2)
+### The Estimation Stage
 
 The estimation stage has several purposes, in fact 3 main purposes 
 
@@ -137,11 +131,7 @@ CohortItem(
 
 Then, the cohort item is going to.... sleep. It's going to sleep as long as it take for it to be at the start date minus about 40 days. This might take a few days or up to a year.
 
-### Notification (part 1)
-
-In the case of migration SupporterPlus2024, the first operation is to check whether the item is under an active cancellation save. By definition, an "active" cancellation save is a cancellation save that was issued less than 6 months ago. If the item is found in that state, its processing stage become `DoNotProcessUntil` and the value of `doNotProcessUntil` is updated to become the effective date of the cancelation save plus 6 months.
-
-### Notification (part 2)
+### Notification 
 
 Today is now `LocalDate.of(2024, 5, 10)` minus about 40 days. The engine sees a subscription in `SalesforcePriceRiceCreationComplete` stage ready to be user notified. The engine is going to perform a certain number of lookups and will send a message to a queue that will eventually be delivered to Braze (triggering the sending of an email, or sending an additional request to an external company for a letter to be printed and delivered).
 
