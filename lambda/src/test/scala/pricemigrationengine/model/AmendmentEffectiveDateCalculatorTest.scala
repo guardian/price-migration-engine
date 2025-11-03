@@ -54,6 +54,7 @@ class AmendmentEffectiveDateCalculatorTest extends munit.FunSuite {
       AmendmentEffectiveDateCalculator.noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(
         cohortSpec,
         subscription,
+        today,
         lowerBound2
       )
 
@@ -152,6 +153,7 @@ class AmendmentEffectiveDateCalculatorTest extends munit.FunSuite {
       AmendmentEffectiveDateCalculator.noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(
         cohortSpec,
         subscription,
+        today,
         lowerBound2
       )
 

@@ -208,8 +208,9 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
 
   test("subscriptionToLastPriceMigrationDate (A-S00553498)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2025P1/A-S00553498/subscription.json")
+    val today = LocalDate.of(2023, 1, 1)
     assertEquals(
-      Newspaper2025P1Migration.subscriptionToLastPriceMigrationDate(subscription),
+      Newspaper2025P1Migration.subscriptionToLastPriceMigrationDate(subscription, today),
       Some(LocalDate.of(2024, 4, 6))
     )
   }

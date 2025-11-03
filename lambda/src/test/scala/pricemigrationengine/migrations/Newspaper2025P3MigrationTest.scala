@@ -154,8 +154,10 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/277291-everyday-annual/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/277291-everyday-annual/invoice-preview.json")
 
+    val today = LocalDate.of(2023, 1, 1)
+
     assertEquals(
-      Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate(subscription),
+      Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate(subscription, today),
       Some(LocalDate.of(2024, 11, 27))
     )
   }
@@ -167,8 +169,10 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/412032-sixday-annual/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/412032-sixday-annual/invoice-preview.json")
 
+    val today = LocalDate.of(2023, 1, 1)
+
     assertEquals(
-      Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate(subscription),
+      Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate(subscription, today),
       Some(LocalDate.of(2024, 8, 12))
     )
   }
@@ -183,7 +187,10 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/277291-everyday-annual/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/277291-everyday-annual/invoice-preview.json")
 
-    val ratePlan = SI2025RateplanFromSub.determineRatePlan(subscription: ZuoraSubscription).get
+    val today = LocalDate.of(2023, 1, 1)
+
+    val ratePlan =
+      SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription: ZuoraSubscription, today).get
 
     assertEquals(
       Newspaper2025P3Migration.decideDeliveryPattern(ratePlan),
@@ -198,7 +205,10 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/277750-everyday-month/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/277750-everyday-month/invoice-preview.json")
 
-    val ratePlan = SI2025RateplanFromSub.determineRatePlan(subscription: ZuoraSubscription).get
+    val today = LocalDate.of(2023, 1, 1)
+
+    val ratePlan =
+      SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription: ZuoraSubscription, today).get
 
     assertEquals(
       Newspaper2025P3Migration.decideDeliveryPattern(ratePlan),
@@ -213,7 +223,10 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/412032-sixday-annual/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/412032-sixday-annual/invoice-preview.json")
 
-    val ratePlan = SI2025RateplanFromSub.determineRatePlan(subscription: ZuoraSubscription).get
+    val today = LocalDate.of(2023, 1, 1)
+
+    val ratePlan =
+      SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription: ZuoraSubscription, today).get
 
     assertEquals(
       Newspaper2025P3Migration.decideDeliveryPattern(ratePlan),
@@ -228,7 +241,10 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     // val account = Fixtures.accountFromJson("Migrations/Newspaper2025P3/A-S02075439-saturday-month/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/A-S02075439-saturday-month/invoice-preview.json")
 
-    val ratePlan = SI2025RateplanFromSub.determineRatePlan(subscription: ZuoraSubscription).get
+    val today = LocalDate.of(2023, 1, 1)
+
+    val ratePlan =
+      SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription: ZuoraSubscription, today).get
 
     assertEquals(
       Newspaper2025P3Migration.decideDeliveryPattern(ratePlan),

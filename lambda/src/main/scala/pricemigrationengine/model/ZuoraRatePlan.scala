@@ -1,7 +1,9 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.model.OptionReader // not sure why this import is needed as should be visible implicitly
+import pricemigrationengine.model.OptionReader
 import upickle.default._
+
+import java.time.LocalDate
 
 case class ZuoraRatePlan(
     id: String,
@@ -52,5 +54,19 @@ object ZuoraRatePlan {
     //     - Defined and value is "Add"     -> Active rate plan
     //     - Defined and value is "Remove"  -> Non active rate plan
     !ratePlan.lastChangeType.contains("Remove")
+  }
+
+  def ratePlanMaxExpirationDateFromCharges(ratePlan: ZuoraRatePlan): Either[String, LocalDate] = {
+    val dates: List[Option[LocalDate]] = ratePlan.ratePlanCharges.map(charge => charge.effectiveEndDate)
+    dates.flatten match {
+      case Nil      => Left(s"Could not determine date situation for rate plan: ${ratePlan}")
+      case nonEmpty => Right(nonEmpty.max)
+    }
+  }
+
+  def ratePlanIsActiveAndNotExpired(ratePlan: ZuoraRatePlan, today: LocalDate): Either[String, Boolean] = {
+    val isActive = ratePlanIsActive(ratePlan)
+    val expirationDate = ratePlanMaxExpirationDateFromCharges(ratePlan)
+    expirationDate.map(date => isActive && (today.isBefore(date) || today == date))
   }
 }
