@@ -67,6 +67,6 @@ object ZuoraRatePlan {
   def ratePlanIsActiveAndNotExpired(ratePlan: ZuoraRatePlan, today: LocalDate): Either[String, Boolean] = {
     val isActive = ratePlanIsActive(ratePlan)
     val expirationDate = ratePlanMaxExpirationDateFromCharges(ratePlan)
-    expirationDate.map(date => isActive && today.isBefore(date))
+    expirationDate.map(date => isActive && (today.isBefore(date) || today == date))
   }
 }
