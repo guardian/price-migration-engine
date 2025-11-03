@@ -192,7 +192,7 @@ object AmendmentHandler extends CohortHandler {
       _ <- renewSubscription(subscriptionBeforeUpdate, subscriptionBeforeUpdate.termEndDate, account)
 
       order <- MigrationType(cohortSpec) match {
-        case Test1 => ZIO.fail(ConfigFailure("Branch not supported"))
+        case Test1             => ZIO.fail(ConfigFailure("Branch not supported"))
         case SupporterPlus2024 =>
           ZIO.fromEither(
             SupporterPlus2024Migration.amendmentOrderPayload(
@@ -390,7 +390,7 @@ object AmendmentHandler extends CohortHandler {
       item: CohortItem
   ): ZIO[Zuora with Logging with SalesforceClient, Failure, AmendmentAttemptResult] = {
     MigrationType(cohortSpec) match {
-      case Test1 => ZIO.fail(ConfigFailure("Branch not supported"))
+      case Test1             => ZIO.fail(ConfigFailure("Branch not supported"))
       case SupporterPlus2024 =>
         doAmendment_ordersApi_typed_deprecated(
           cohortSpec: CohortSpec,

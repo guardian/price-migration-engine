@@ -219,7 +219,7 @@ object GuardianWeekly2025Migration {
     } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
-      case None =>
+      case None            =>
         Left(
           DataExtractionFailure(s"Could not determine PriceData for subscription ${subscription.subscriptionNumber}")
         )
@@ -337,7 +337,7 @@ object GuardianWeekly2025Migration {
 
     order_opt match {
       case Some(order) => Right(order)
-      case None =>
+      case None        =>
         Left(
           DataExtractionFailure(
             s"[e5bd98d7] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"

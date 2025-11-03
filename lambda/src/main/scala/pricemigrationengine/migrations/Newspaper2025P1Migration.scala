@@ -225,7 +225,7 @@ object Newspaper2025P1Migration {
     } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
-      case None =>
+      case None            =>
         Left(
           DataExtractionFailure(
             s"[d2307855] Could not determine PriceData for subscription ${subscription.subscriptionNumber}"
@@ -316,7 +316,7 @@ object Newspaper2025P1Migration {
 
     order_opt match {
       case Some(order) => Right(order)
-      case None =>
+      case None        =>
         Left(
           DataExtractionFailure(
             s"[01700e84] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"

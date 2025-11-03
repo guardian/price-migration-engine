@@ -211,7 +211,7 @@ object SI2025Templates {
     } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
-      case None =>
+      case None            =>
         Left(
           DataExtractionFailure(s"Could not determine PriceData for subscription ${subscription.subscriptionNumber}")
         )

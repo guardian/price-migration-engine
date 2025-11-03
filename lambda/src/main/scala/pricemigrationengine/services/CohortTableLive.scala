@@ -39,7 +39,6 @@ object CohortTableLive {
             getOptionalInstantFromResults(cohortItem, "whenNotificationSentWrittenToSalesforce")
           cancellationReason <-
             getOptionalStringFromResults(cohortItem, "cancellationReason")
-          doNotProcessUntil <- getOptionalDateFromResults(cohortItem, "doNotProcessUntil")
           migrationExtraAttributes <- getOptionalStringFromResults(cohortItem, "migrationExtraAttributes")
           ex_2025N4_label <- getOptionalStringFromResults(cohortItem, "ex_2025N4_label")
           ex_2025N4_group <- getOptionalStringFromResults(cohortItem, "ex_2025N4_group")
@@ -65,7 +64,6 @@ object CohortTableLive {
           whenNotificationSent = whenNotificationSent,
           whenNotificationSentWrittenToSalesforce = whenNotificationSentWrittenToSalesforce,
           cancellationReason = cancellationReason,
-          doNotProcessUntil = doNotProcessUntil,
           migrationExtraAttributes = migrationExtraAttributes,
           ex_2025N4_label = ex_2025N4_label,
           ex_2025N4_group = ex_2025N4_group,
@@ -115,7 +113,6 @@ object CohortTableLive {
           instantFieldUpdate("whenAmendmentWrittenToSalesforce", instant)
         ),
         cohortItem.cancellationReason.map(reason => stringFieldUpdate("cancellationReason", reason)),
-        cohortItem.doNotProcessUntil.map(date => dateFieldUpdate("doNotProcessUntil", date)),
         cohortItem.migrationExtraAttributes.map(extra => stringFieldUpdate("migrationExtraAttributes", extra)),
         cohortItem.ex_2025N4_label.map(value => stringFieldUpdate("ex_2025N4_label", value)),
         cohortItem.ex_2025N4_group.map(value => stringFieldUpdate("ex_2025N4_group", value)),
