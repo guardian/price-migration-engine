@@ -2,12 +2,15 @@ package pricemigrationengine.model
 
 import java.time.LocalDate
 
-sealed trait RateplansProbeResult
-object ShouldProceed extends RateplansProbeResult
-object ShouldCancel extends RateplansProbeResult
-object IndeterminateConclusion extends RateplansProbeResult
+sealed trait RatePlanProbeResult
 
-object RateplansProbe {
+// The prefix "RPP" means "Rate Plans Probe"
+
+object RPPShouldProceed extends RatePlanProbeResult
+object RPPCancelledInZuora extends RatePlanProbeResult
+object IndeterminateConclusion extends RatePlanProbeResult
+
+object RatePlanProbe {
 
   /*
     Date: 07th February 2024
@@ -26,7 +29,7 @@ object RateplansProbe {
     sleep before the notification step (and not before the amendment step), we should perform that check before the
     Notification step is performed
 
-    The main logic used in RateplansProbe is that since we cannot have programmatic (API) access
+    The main logic used in RatePlanProbe is that since we cannot have programmatic (API) access
     to the list of all amendments of a subscription, then we are going to work off the subscription
     itself by probing its rate plans.
 
@@ -72,19 +75,19 @@ object RateplansProbe {
     ratePlans.filter(ratePlan => ratePlan.productName != "Discounts")
   }
 
-  def probe(subscription: ZuoraSubscription, date: LocalDate): RateplansProbeResult = {
+  def probe(subscription: ZuoraSubscription, date: LocalDate): RatePlanProbeResult = {
     // This function takes a subscription (in intended circumstances that would be a subscription that has slept for
     // a while and is about to be notified+amended) and decides whether or not to pursue. The return value is not a Boolean
-    // but a RateplansProbeResult. The interesting case is IndeterminateConclusion which will cause the engine to fail
+    // but a RatePlanProbeResult. The interesting case is IndeterminateConclusion which will cause the engine to fail
     // This is on purpose and by design. Upon such a failure the engine operators should look up the subscription,
     // identify the type of rate plan that filtered away by selectNonTrivialRatePlans and decide the correct
     // course of action.
 
     if (subscription.status == "Cancelled") {
-      ShouldCancel
+      RPPCancelledInZuora
     } else {
       if (selectNonTrivialRatePlans(addedRatePlansAfterDate(subscription, date)).isEmpty) {
-        ShouldProceed
+        RPPShouldProceed
       } else {
         IndeterminateConclusion
       }
