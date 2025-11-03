@@ -288,7 +288,7 @@ object NotificationHandler extends CohortHandler {
   ): ZIO[CohortTable with Zuora with SalesforceClient with Logging, Failure, Unit] = {
     for {
       _ <- RatePlanProbe.probe(subscription: ZuoraSubscription, date) match {
-        case RPPShouldProceed => ZIO.succeed(())
+        case RPPShouldProceed    => ZIO.succeed(())
         case RPPCancelledInZuora =>
           updateCohortItemForZuoraCancellation(
             cohortSpec,
@@ -424,7 +424,7 @@ object NotificationHandler extends CohortHandler {
 
     MigrationType(cohortSpec) match {
       case SupporterPlus2024 => testCompatibleEmptySalesforceAddress(contact)
-      case Newspaper2025P3 => {
+      case Newspaper2025P3   => {
         // For Newspaper2025P3, we tolerate a missing delivery address and we will rely on the user getting an email.
         // For this, we compute the SalesforceAddress as the usual case, but if we get a Left,
         // we serve the null SalesforceAddress we introduced for SupporterPlus2024

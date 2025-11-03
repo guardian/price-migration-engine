@@ -133,7 +133,7 @@ object AmendmentHandlerHelper {
       invoiceList: ZuoraInvoiceList
   ): Either[Failure, Value] = {
     MigrationType(cohortSpec) match {
-      case Test1 => Left(ConfigFailure("case not supported"))
+      case Test1             => Left(ConfigFailure("case not supported"))
       case SupporterPlus2024 =>
         Left(MigrationRoutingFailure("SupporterPlus2024 should not use doAmendment_ordersApi_json_values"))
       case GuardianWeekly2025 =>
