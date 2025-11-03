@@ -103,7 +103,7 @@ object ProductMigration2025N4Migration {
     } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
-      case None =>
+      case None            =>
         Left(
           DataExtractionFailure(
             s"[9ac10338] Could not determine PriceData for subscription ${subscription.subscriptionNumber}"
@@ -434,7 +434,7 @@ object ProductMigration2025N4Migration {
 
     order_opt match {
       case Some(order) => Right(order)
-      case None =>
+      case None        =>
         Left(
           DataExtractionFailure(
             s"[17ea43a1] Could not compute N4 amendmentOrderPayload for subscription ${subscriptionNumber}"

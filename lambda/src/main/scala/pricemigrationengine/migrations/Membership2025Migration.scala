@@ -80,7 +80,7 @@ object Membership2025Migration {
     } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
-      case None =>
+      case None            =>
         Left(
           DataExtractionFailure(
             s"[85bebc63] Could not determine PriceData for subscription ${subscription.subscriptionNumber}"
@@ -175,7 +175,7 @@ object Membership2025Migration {
 
     order_opt match {
       case Some(order) => Right(order)
-      case None =>
+      case None        =>
         Left(
           DataExtractionFailure(
             s"[ee2a0cdb] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"

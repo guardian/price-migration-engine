@@ -110,7 +110,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
 
     MigrationType(input) match {
       case SupporterPlus2024 => ZIO.succeed(HandlerOutput(isComplete = true)) // See [1] above
-      case _ =>
+      case _                 =>
         main(input).provideSome[Logging](
           EnvConfig.cohortTable.layer,
           EnvConfig.salesforce.layer,
