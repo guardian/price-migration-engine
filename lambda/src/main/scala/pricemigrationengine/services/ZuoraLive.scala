@@ -13,7 +13,7 @@ object ZuoraLive {
 
   private val apiVersion = "v1"
 
-  private val connTimeout = HttpOptions.connTimeout(30.seconds.toMillis.toInt)
+  private val connTimeout = HttpOptions.connTimeout(120.seconds.toMillis.toInt)
   private val readTimeout = HttpOptions.readTimeout(120.seconds.toMillis.toInt)
 
   private case class AccessToken(access_token: String)
