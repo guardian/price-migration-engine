@@ -113,7 +113,7 @@ class AmendmentDataTest extends munit.FunSuite {
   }
 
   test("totalChargeAmount: is correct where invoice preview has multiple subscriptions") {
-    val fixtureSet = "Core/InvoicePreviewWithMultipleSubs"
+    val fixtureSet = "model/AmendmentData/InvoicePreviewWithMultipleSubs"
     val totalChargeAmount = AmendmentData.totalChargeAmount(
       subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json"),
       invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json"),
