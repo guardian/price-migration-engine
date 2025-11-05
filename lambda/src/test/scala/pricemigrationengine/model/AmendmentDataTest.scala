@@ -13,7 +13,7 @@ class AmendmentDataTest extends munit.FunSuite {
   private def migrationStartDate = LocalDate.of(2021, 1, 25)
 
   test("nextserviceStartDate: billing date is first after migration start date") {
-    val invoiceList = invoiceListFromJson("Core/AmendmentData/Misc/InvoicePreview.json")
+    val invoiceList = invoiceListFromJson("model/AmendmentData/Misc/InvoicePreview.json")
     val subscription = subscriptionFromJson("Handlers/EstimationHandler/Monthly/Subscription.json")
     val serviceStartDate = AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = migrationStartDate)
     assertEquals(serviceStartDate, Right(LocalDate.of(2021, 2, 8)))
@@ -24,16 +24,16 @@ class AmendmentDataTest extends munit.FunSuite {
   private def migrationStartDate2022 = LocalDate.of(2022, 10, 10)
 
   test("nextserviceStartDate: billing date is first after migration start date (Everyday+Delivery)") {
-    val invoiceList = invoiceListFromJson("Core/AmendmentData/Everyday+/InvoicePreview.json")
-    val subscription = subscriptionFromJson("Core/AmendmentData/Everyday+/Subscription.json")
+    val invoiceList = invoiceListFromJson("model/AmendmentData/Everyday+/InvoicePreview.json")
+    val subscription = subscriptionFromJson("model/AmendmentData/Everyday+/Subscription.json")
     val serviceStartDate =
       AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
     assertEquals(serviceStartDate, Right(LocalDate.of(2022, 4, 19)))
   }
 
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date") {
-    val invoiceList = invoiceListFromJson("Core/AmendmentData/Misc/InvoicePreviewTermEndsBeforeMigration.json")
-    val subscription = subscriptionFromJson("Core/AmendmentData/Monthly/Subscription.json")
+    val invoiceList = invoiceListFromJson("model/AmendmentData/Misc/InvoicePreviewTermEndsBeforeMigration.json")
+    val subscription = subscriptionFromJson("model/AmendmentData/Monthly/Subscription.json")
     val serviceStartDate =
       AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = LocalDate.of(2021, 5, 25))
     assertEquals(
@@ -43,8 +43,8 @@ class AmendmentDataTest extends munit.FunSuite {
   }
 
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date (SundayDelivery)") {
-    val invoiceList = invoiceListFromJson("Core/AmendmentData/Sunday/InvoicePreview.json")
-    val subscription = subscriptionFromJson("Core/AmendmentData/Sunday/Subscription.json")
+    val invoiceList = invoiceListFromJson("model/AmendmentData/Sunday/InvoicePreview.json")
+    val subscription = subscriptionFromJson("model/AmendmentData/Sunday/Subscription.json")
     val serviceStartDate =
       AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
     assertEquals(
@@ -54,8 +54,8 @@ class AmendmentDataTest extends munit.FunSuite {
   }
 
   test("nextserviceStartDate: calculation fails if there are no invoices after migration start date (SixdayDelivery)") {
-    val invoiceList = invoiceListFromJson("Core/AmendmentData/Sixday/InvoicePreview.json")
-    val subscription = subscriptionFromJson("Core/AmendmentData/Sixday/Subscription.json")
+    val invoiceList = invoiceListFromJson("model/AmendmentData/Sixday/InvoicePreview.json")
+    val subscription = subscriptionFromJson("model/AmendmentData/Sixday/Subscription.json")
     val serviceStartDate =
       AmendmentData.nextServiceStartDate(invoiceList, subscription, onOrAfter = deliveryMigrationStartDate)
     assertEquals(
@@ -77,7 +77,7 @@ class AmendmentDataTest extends munit.FunSuite {
   }
 
   test("totalChargeAmount: is correct for a discounted taxable product") {
-    val fixtureSet = "Core/AmendmentData/Everyday+Discounted"
+    val fixtureSet = "model/AmendmentData/Everyday+Discounted"
     val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
     val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
     val serviceStartDate = LocalDate.of(2020, 6, 9)
@@ -86,7 +86,7 @@ class AmendmentDataTest extends munit.FunSuite {
   }
 
   test("totalChargeAmount: is correct for a discounted non-taxable product") {
-    val fixtureSet = "Core/AmendmentData/Discount25%"
+    val fixtureSet = "model/AmendmentData/Discount25%"
     val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
     val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
     val serviceStartDate = LocalDate.of(2020, 7, 16)
@@ -95,7 +95,7 @@ class AmendmentDataTest extends munit.FunSuite {
   }
 
   test("totalChargeAmount: is correct for a discounted newspaper delivery taxable product (25%)") {
-    val fixtureSet = "Core/AmendmentData/Waitrose25%Discount"
+    val fixtureSet = "model/AmendmentData/Waitrose25%Discount"
     val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
     val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
     val serviceStartDate = LocalDate.of(2022, 6, 26)
@@ -104,7 +104,7 @@ class AmendmentDataTest extends munit.FunSuite {
   }
 
   test("totalChargeAmount: is correct for pre-2020 newspaper delivery taxable product") {
-    val fixtureSet = "Core/AmendmentData/Pre2020SixDay"
+    val fixtureSet = "model/AmendmentData/Pre2020SixDay"
     val subscription = subscriptionFromJson(s"$fixtureSet/Subscription.json")
     val invoiceList = invoiceListFromJson(s"$fixtureSet/InvoicePreview.json")
     val serviceStartDate = LocalDate.of(2022, 4, 18)
