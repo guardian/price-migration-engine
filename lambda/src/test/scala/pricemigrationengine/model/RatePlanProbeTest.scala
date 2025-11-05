@@ -10,14 +10,14 @@ class RatePlanProbeTest extends munit.FunSuite {
 
   test("ratePlanDate is correct") {
     val subscription =
-      Fixtures.subscriptionFromJson("Core/RatePlanProbe/NewspaperHomeDelivery-Quarterly/subscription.json")
+      Fixtures.subscriptionFromJson("model/RatePlanProbe/NewspaperHomeDelivery-Quarterly/subscription.json")
     val ratePlan = subscription.ratePlans.headOption.get // we get the first rate plan
     assertEquals(RatePlanProbe.ratePlanDate(ratePlan: ZuoraRatePlan), Some(LocalDate.of(2023, 10, 19)))
   }
 
   test("addedRatePlansAfterDate is correct") {
     val subscription =
-      Fixtures.subscriptionFromJson("Core/RatePlanProbe/NewspaperHomeDelivery-Quarterly/subscription.json")
+      Fixtures.subscriptionFromJson("model/RatePlanProbe/NewspaperHomeDelivery-Quarterly/subscription.json")
 
     // The subscription has 41 subscriptions but only 39 have the "lastChangeType" set to "Add";
     // one is set to "Remove" and the last one is not set.
@@ -38,7 +38,7 @@ class RatePlanProbeTest extends munit.FunSuite {
 
   test("selectNonTrivialRatePlans is correct") {
     val subscription =
-      Fixtures.subscriptionFromJson("Core/RatePlanProbe/NewspaperHomeDelivery-Quarterly/subscription.json")
+      Fixtures.subscriptionFromJson("model/RatePlanProbe/NewspaperHomeDelivery-Quarterly/subscription.json")
 
     // There is one active non trivial rate plan if we count since inception
 
@@ -71,7 +71,7 @@ class RatePlanProbeTest extends munit.FunSuite {
 
   test("probe is correct") {
     val subscription =
-      Fixtures.subscriptionFromJson("Core/RatePlanProbe/NewspaperHomeDelivery-Quarterly-Cancelled/subscription.json")
+      Fixtures.subscriptionFromJson("model/RatePlanProbe/NewspaperHomeDelivery-Quarterly-Cancelled/subscription.json")
     assertEquals(
       RatePlanProbe.probe(subscription, LocalDate.of(2024, 1, 1)),
       RPPCancelledInZuora
