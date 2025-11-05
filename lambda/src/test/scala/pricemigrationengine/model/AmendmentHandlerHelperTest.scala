@@ -12,15 +12,15 @@ class AmendmentHandlerHelperTest extends munit.FunSuite {
 
     // 277291-everyday-annual
     val subscription1 =
-      Fixtures.subscriptionFromJson("model/AmendmentHandlerHelperTest/277291-everyday-annual/subscription.json")
+      Fixtures.subscriptionFromJson("model/AmendmentHandlerHelper/277291-everyday-annual/subscription.json")
     val invoicePreview1 =
-      Fixtures.invoiceListFromJson("model/AmendmentHandlerHelperTest/277291-everyday-annual/invoice-preview.json")
+      Fixtures.invoiceListFromJson("model/AmendmentHandlerHelper/277291-everyday-annual/invoice-preview.json")
 
     // 277750-everyday-month
     val subscription2 =
-      Fixtures.subscriptionFromJson("model/AmendmentHandlerHelperTest/277750-everyday-month/subscription.json")
+      Fixtures.subscriptionFromJson("model/AmendmentHandlerHelper/277750-everyday-month/subscription.json")
     val invoicePreview2 =
-      Fixtures.invoiceListFromJson("model/AmendmentHandlerHelperTest/277750-everyday-month/invoice-preview.json")
+      Fixtures.invoiceListFromJson("model/AmendmentHandlerHelper/277750-everyday-month/invoice-preview.json")
 
     assertEquals(
       AmendmentHandlerHelper.subscriptionHasCorrectBillingPeriodAfterUpdate(
@@ -53,9 +53,9 @@ class AmendmentHandlerHelperTest extends munit.FunSuite {
   test("subscriptionHasCorrectBillingPeriodAfterUpdate is computed correctly (2)") {
 
     val subscription =
-      Fixtures.subscriptionFromJson("model/AmendmentHandlerHelperTest/1761090945067/subscription.json")
+      Fixtures.subscriptionFromJson("model/AmendmentHandlerHelper/1761090945067/subscription.json")
     val invoicePreview =
-      Fixtures.invoiceListFromJson("model/AmendmentHandlerHelperTest/1761090945067/invoice-preview.json")
+      Fixtures.invoiceListFromJson("model/AmendmentHandlerHelper/1761090945067/invoice-preview.json")
 
     assertEquals(
       SI2025RateplanFromSubAndInvoices.invoicePreviewToUniqueChargeNumbers(invoicePreview),
