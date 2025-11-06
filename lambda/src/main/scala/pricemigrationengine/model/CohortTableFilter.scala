@@ -50,6 +50,6 @@ object CohortTableFilter {
     NotificationSendComplete,
     NotificationSendDateWrittenToSalesforce,
     AmendmentComplete
-    // AmendmentWrittenToSalesforce (is the terminal state of a normal migration, but not querable)
+    // AmendmentWrittenToSalesforce (is the terminal state of a normal migration, but not queryable)
   )
 }
