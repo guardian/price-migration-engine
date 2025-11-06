@@ -205,13 +205,13 @@ As a result, the operational directive with this state is that it's ok not to wo
 observe it, then it's also ok to double check them. If the sub has a confirmed empty invoice preview (for instance because 
 the rate plans are expired but the subscription was not cancelled), then it can manually be moved to `ExcludedFromMigration`, 
 or better, cancelled and then manually moved (back) to `ZuoraCancellation`. If on the other hand it was a mis-classification 
-then the item should be put in `ReadyForEstimation`. Consequently, the ideal situation is a migration 
+then the item should be put back in `ReadyForEstimation`. Consequently, the ideal situation is a migration 
 without `EstimationStepEmptyZuoraInvoicePreview` which indicates that either it never happened or any occurrence of it 
 was double-checked by the steward(s).
 
 Note that there was another way to deal with `EstimationStepEmptyZuoraInvoicePreview`, which would simply be to teach 
-the engine to retry those items later (for instance a day), but then we would need to encode a counter so that it 
-gives up after a certain number of days, but Pascal estimated that this full automation, for an event very rare wasn't 
+the engine to retry those items later (for instance a day later), but then we would need to encode a counter so that it 
+gives up after a certain number of days, but Pascal estimated that this full automation, for an event extremely rare wasn't 
 worth the (heavy) extra cost in the design of the estimation Handler.
 
 ### Processing Lambdas
