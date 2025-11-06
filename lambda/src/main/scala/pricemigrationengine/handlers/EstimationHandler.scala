@@ -65,7 +65,7 @@ object EstimationHandler extends CohortHandler {
             .update(
               CohortItem(
                 item.subscriptionName,
-                processingStage = ZuoraEmptyInvoicePreview
+                processingStage = EstimationStepEmptyZuoraInvoicePreview
               )
             )
             .as(result)

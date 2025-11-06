@@ -33,35 +33,23 @@ object CohortTableFilter {
 
   // ++++++++++ Exceptional states ++++++++++
 
-  case object ZuoraCancellation extends CohortTableFilter { override val value: String = "ZuoraCancellation" }
-  case object ZuoraEmptyInvoicePreview extends CohortTableFilter {
-    override val value: String = "ZuoraEmptyInvoicePreview"
-  }
-
-  // General termination processing state. This is a terminal state for a cohort item
-  // It is used when the processing of a cohort items cannot pursue (for another reason than)
-  // the subscription having been cancelled in Zuora
-  case object Cancelled extends CohortTableFilter { override val value: String = "Cancelled" }
-
-  /*
-   * Status of a sub where the estimation indicates that its price will not increase,
-   * so is ineligible for further processing.
-   */
   case object NoPriceIncrease extends CohortTableFilter { override val value: String = "NoPriceIncrease" }
+  case object EstimationStepEmptyZuoraInvoicePreview extends CohortTableFilter {
+    override val value: String = "EstimationStepEmptyZuoraInvoicePreview"
+  }
+  case object ZuoraCancellation extends CohortTableFilter { override val value: String = "ZuoraCancellation" }
 
-  // +++++++++++++++++++++
+  // ++++++++++++++++++++++++++++++++++++++++
 
   // Remember to update when adding a state that is being used to query cohort items
-  // In alphabetical order
+  // (In the order they normally happen)
   val allQueryableStates: Set[CohortTableFilter] = Set(
-    AmendmentComplete,
-    AmendmentWrittenToSalesforce,
-    Cancelled,
+    ReadyForEstimation,
     EstimationComplete,
-    NoPriceIncrease,
+    SalesforcePriceRiseCreationComplete,
     NotificationSendComplete,
     NotificationSendDateWrittenToSalesforce,
-    ReadyForEstimation,
-    SalesforcePriceRiseCreationComplete,
+    AmendmentComplete
+    // AmendmentWrittenToSalesforce (is the terminal state of a normal migration, but not querable)
   )
 }
