@@ -148,7 +148,7 @@ class SI2025ExtractionsTest extends munit.FunSuite {
 
     val today = LocalDate.of(2023, 1, 1)
 
-    val ratePlan = SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription, today)
+    val ratePlan = SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(subscription, today)
     assertEquals(
       ratePlan,
       Some(
@@ -197,7 +197,7 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     val today = LocalDate.of(2025, 1, 1)
 
     assertEquals(
-      SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription, today).isDefined,
+      SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(subscription, today).isDefined,
       true
     )
   }

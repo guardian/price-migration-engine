@@ -190,7 +190,9 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     val today = LocalDate.of(2023, 1, 1)
 
     val ratePlan =
-      SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription: ZuoraSubscription, today).get
+      SI2025RateplanFromSub
+        .uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(subscription: ZuoraSubscription, today)
+        .get
 
     assertEquals(
       Newspaper2025P3Migration.decideDeliveryPattern(ratePlan),
@@ -208,7 +210,9 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     val today = LocalDate.of(2023, 1, 1)
 
     val ratePlan =
-      SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription: ZuoraSubscription, today).get
+      SI2025RateplanFromSub
+        .uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(subscription: ZuoraSubscription, today)
+        .get
 
     assertEquals(
       Newspaper2025P3Migration.decideDeliveryPattern(ratePlan),
@@ -226,7 +230,9 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     val today = LocalDate.of(2023, 1, 1)
 
     val ratePlan =
-      SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription: ZuoraSubscription, today).get
+      SI2025RateplanFromSub
+        .uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(subscription: ZuoraSubscription, today)
+        .get
 
     assertEquals(
       Newspaper2025P3Migration.decideDeliveryPattern(ratePlan),
@@ -244,7 +250,9 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     val today = LocalDate.of(2023, 1, 1)
 
     val ratePlan =
-      SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountRatePlan(subscription: ZuoraSubscription, today).get
+      SI2025RateplanFromSub
+        .uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(subscription: ZuoraSubscription, today)
+        .get
 
     assertEquals(
       Newspaper2025P3Migration.decideDeliveryPattern(ratePlan),
