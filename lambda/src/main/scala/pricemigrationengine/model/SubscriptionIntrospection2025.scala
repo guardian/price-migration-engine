@@ -88,7 +88,7 @@ object SI2025RateplanFromSub {
       .filter(ratePlan => ratePlan.productName != "Discounts")
   }
 
-  def uniquelyDeterminedActiveNonDiscountRatePlan(
+  def uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
       subscription: ZuoraSubscription,
       today: LocalDate
   ): Option[ZuoraRatePlan] = {
