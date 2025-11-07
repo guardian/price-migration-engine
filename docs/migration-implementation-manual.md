@@ -96,7 +96,4 @@ A migration is completed when every item of the cohort table is in either of the
 
 - `AmendmentWrittenToSalesforce`
 - `ZuoraCancellation`
-- `EstimationFailed`
-- `NotificationSendFailed`
-- `AmendmentFailed`
-- `Cancelled`
+
