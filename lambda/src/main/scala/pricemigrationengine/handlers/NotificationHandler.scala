@@ -101,7 +101,7 @@ object NotificationHandler extends CohortHandler {
             )
           )
         }
-      _ <- cohortItemRatePlansChecks(cohortSpec, cohortItem)
+      _ <- ZIO.when(!cohortSpec.forceNotifications.contains(true))(cohortItemRatePlansChecks(cohortSpec, cohortItem))
       sfSubscription <-
         SalesforceClient
           .getSubscriptionByName(cohortItem.subscriptionName)

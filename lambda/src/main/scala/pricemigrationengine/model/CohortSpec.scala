@@ -30,9 +30,13 @@ import java.util
   *   cohort items causing timeouts in Zuora. This attribute is not intended to be used by the state machine.
   *
   * @param forceNotifications
-  *   When present, and if true, will override the Notification
-  *   handler's `thereIsEnoughNotificationLeadTime` check. This allows sending notifications
-  *   before the -30 days deadline, but after they have exited their migration notification window
+  *   When present, and if true, it will
+  *   1. override the Notification handler's `thereIsEnoughNotificationLeadTime` check.
+  *      This allows sending notifications before the -30 days deadline, but after they have
+  *      exited their migration notification window.
+  *   2. Disable the cohortItemRatePlansChecks (to allow sending a notification after the amendment has been
+  *      done on the subscription. Example: the week-end Latcham API outage in Nov 2025 where we needed to
+  *      resend some notifications when the cohort item was already in AmendmentWrittenToSalesforce)
   */
 case class CohortSpec(
     cohortName: String,
