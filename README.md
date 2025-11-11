@@ -16,6 +16,10 @@ It currently consists in
 - [Coding directives](docs/coding-directives.md)
 - [Operational Directives](docs/operational-directives.md)
 
+### Future price migrations special directives
+
+- In late 2026, there will be the next Supporter Plus price migration. To avoid the billing date misalignement problem we encountered in 2025, there should be a product re-structuration performed as part of the price migration to align the billing dates of the main charge and the extra contribution. Note that we also have a [permanent stop](https://github.com/guardian/price-migration-engine/pull/1307) to prevent processing such rate plans across all products.
+
 ### Web Price Rises
 
 - [Notification windows](docs/notification-windows.md)
