@@ -91,7 +91,7 @@ object NotificationHandler extends CohortHandler {
       today: LocalDate
   ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging with Zuora, Failure, Unit] = {
     for {
-      _ <-
+      _ <- ZIO.when(!cohortSpec.forceNotifications.contains(true))(
         if (thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem)) {
           ZIO.succeed(())
         } else {
@@ -101,7 +101,8 @@ object NotificationHandler extends CohortHandler {
             )
           )
         }
-      _ <- cohortItemRatePlansChecks(cohortSpec, cohortItem)
+      )
+      _ <- ZIO.when(!cohortSpec.forceNotifications.contains(true))(cohortItemRatePlansChecks(cohortSpec, cohortItem))
       sfSubscription <-
         SalesforceClient
           .getSubscriptionByName(cohortItem.subscriptionName)
@@ -362,8 +363,7 @@ object NotificationHandler extends CohortHandler {
 
   def thereIsEnoughNotificationLeadTime(cohortSpec: CohortSpec, today: LocalDate, cohortItem: CohortItem): Boolean = {
     // To help with backward compatibility with existing tests, we apply this condition from 1st Dec 2020.
-    // We also default to true if `cohortSpec.forceNotifications` is `Some(true)`
-    if (today.isBefore(LocalDate.of(2020, 12, 1)) || cohortSpec.forceNotifications.contains(true)) {
+    if (today.isBefore(LocalDate.of(2020, 12, 1))) {
       true
     } else {
       cohortItem.amendmentEffectiveDate match {
