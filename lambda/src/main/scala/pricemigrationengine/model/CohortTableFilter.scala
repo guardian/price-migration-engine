@@ -5,44 +5,32 @@ sealed trait CohortTableFilter { val value: String }
 // When adding a state, remember to update 'all'.
 object CohortTableFilter {
 
-  // ++++++++++ Normal states ++++++++++
+  // normal workflow states
 
   case object ReadyForEstimation extends CohortTableFilter { override val value: String = "ReadyForEstimation" }
-
   case object EstimationComplete extends CohortTableFilter { override val value: String = "EstimationComplete" }
-
   case object SalesforcePriceRiseCreationComplete extends CohortTableFilter {
     override val value: String = "SalesforcePriceRiseCreationComplete"
   }
-
   case object NotificationSendComplete extends CohortTableFilter {
     override val value: String = "NotificationSendComplete"
   }
-
   case object NotificationSendDateWrittenToSalesforce extends CohortTableFilter {
     override val value: String = "NotificationSendDateWrittenToSalesforce"
   }
-
   case object AmendmentComplete extends CohortTableFilter { override val value: String = "AmendmentComplete" }
-
   case object AmendmentWrittenToSalesforce extends CohortTableFilter {
     override val value: String = "AmendmentWrittenToSalesforce"
   }
 
-  case object UserOptOut extends CohortTableFilter { override val value: String = "UserOptOut" }
-
-  // ++++++++++ Exceptional states ++++++++++
+  // other terminal states
 
   case object NoPriceIncrease extends CohortTableFilter { override val value: String = "NoPriceIncrease" }
-  case object EstimationStepEmptyZuoraInvoicePreview extends CohortTableFilter {
-    override val value: String = "EstimationStepEmptyZuoraInvoicePreview"
-  }
   case object ZuoraCancellation extends CohortTableFilter { override val value: String = "ZuoraCancellation" }
+  case object UserOptOut extends CohortTableFilter { override val value: String = "UserOptOut" } // [1]
 
-  // ++++++++++++++++++++++++++++++++++++++++
+  // [1] UserOptOut was added for the October 2025 print product migration
 
-  // Remember to update when adding a state that is being used to query cohort items
-  // (In the order they normally happen)
   val allQueryableStates: Set[CohortTableFilter] = Set(
     ReadyForEstimation,
     EstimationComplete,

@@ -4,5 +4,3 @@ The engine strive to be a fully automatic system, but occasionaly a manual opera
 
 - The engine alarms. That typically happens in the morning and should be looked at. Nobody is immediately affected when that happens but the alarm could be related to a time critical operation.
 
-- We observed an occurence of the processing state `EstimationStepEmptyZuoraInvoicePreview`. The actions to be taken are described in the document called "The journey of a cohort item", section "So, what's the deal with EstimationStepEmptyZuoraInvoicePreview ?"
-
