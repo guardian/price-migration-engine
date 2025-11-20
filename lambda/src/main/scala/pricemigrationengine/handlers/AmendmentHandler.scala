@@ -76,7 +76,7 @@ object AmendmentHandler extends CohortHandler {
     }
   }
 
-  def performN4Unlock(): ZIO[CohortTable with Zuora with Logging with SalesforceClient, Failure, Unit] = {
+  def performN4Unlock(): ZIO[CohortTable with Logging, Failure, Unit] = {
     // This effect performs the monitoring of N4 items and unlock those for which delayN4AmendmentUntil
     // has been reached. The unlocking corresponds to moving the items from
     // NotificationSendDateWrittenToSalesforceN4HOLD to NotificationSendDateWrittenToSalesforce
