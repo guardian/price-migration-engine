@@ -27,9 +27,14 @@ object CohortTableFilter {
 
   case object NoPriceIncrease extends CohortTableFilter { override val value: String = "NoPriceIncrease" }
   case object ZuoraCancellation extends CohortTableFilter { override val value: String = "ZuoraCancellation" }
-  case object UserOptOut extends CohortTableFilter { override val value: String = "UserOptOut" } // [1]
 
-  // [1] UserOptOut was added for the October 2025 print product migration
+  // exceptional states
+
+  // UserOptOut was added for the October 2025 print product migration
+  case object UserOptOut extends CohortTableFilter { override val value: String = "UserOptOut" }
+  case object NotificationSendDateWrittenToSalesforceN4HOLD extends CohortTableFilter {
+    override val value: String = "NotificationSendDateWrittenToSalesforceN4HOLD"
+  }
 
   val allQueryableStates: Set[CohortTableFilter] = Set(
     ReadyForEstimation,
@@ -37,6 +42,7 @@ object CohortTableFilter {
     SalesforcePriceRiseCreationComplete,
     NotificationSendComplete,
     NotificationSendDateWrittenToSalesforce,
+    NotificationSendDateWrittenToSalesforceN4HOLD,
     AmendmentComplete
     // AmendmentWrittenToSalesforce (is the terminal state of a normal migration, but not queryable)
   )
