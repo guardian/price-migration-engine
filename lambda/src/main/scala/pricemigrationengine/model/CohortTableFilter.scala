@@ -33,7 +33,8 @@ object CohortTableFilter {
   // Support for the October 2025 print product migration
   //  - UserOptOut: state in which we park the subscriptions for which a user has decided to opt out of the product migration
   //  - NotificationSendDateWrittenToSalesforceN4HOLD: is the state in which some subscription remain until they have undergone
-  //      a price migration. It is therefore used to delay the product migration of such subscriptions
+  //      a price migration. It is therefore used to delay the product migration of such subscriptions.
+  //      This state is to be removed at the end of N4, in November 2026.
   case object UserOptOut extends CohortTableFilter { override val value: String = "UserOptOut" }
   case object NotificationSendDateWrittenToSalesforceN4HOLD extends CohortTableFilter {
     override val value: String = "NotificationSendDateWrittenToSalesforceN4HOLD"
