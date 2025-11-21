@@ -251,6 +251,10 @@ object AmendmentHandler extends CohortHandler {
           ZIO.fail(
             MigrationRoutingFailure("Membership2025 should not use doAmendment_ordersApi_typed_deprecated")
           )
+        case DigiSubs2025 =>
+          ZIO.fail(
+            MigrationRoutingFailure("DigiSubs2025 should not use doAmendment_ordersApi_typed_deprecated")
+          )
       }
       _ <- Logging.info(
         s"Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
@@ -478,6 +482,12 @@ object AmendmentHandler extends CohortHandler {
       }
 
       case Membership2025 =>
+        doAmendment_ordersApi_json_values(
+          cohortSpec: CohortSpec,
+          catalogue: ZuoraProductCatalogue,
+          item: CohortItem
+        )
+      case DigiSubs2025 =>
         doAmendment_ordersApi_json_values(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,

@@ -54,6 +54,7 @@ object NotificationHandlerHelper {
         ).forall(identity)
       }
       case Membership2025 => true
+      case DigiSubs2025   => true
     }
   }
 }
