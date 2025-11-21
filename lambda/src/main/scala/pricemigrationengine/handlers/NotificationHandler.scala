@@ -7,6 +7,7 @@ import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
 import pricemigrationengine.migrations.{
+  DigiSubs2025Migration,
   GuardianWeekly2025Migration,
   HomeDelivery2025Migration,
   Membership2025Migration,
@@ -345,6 +346,7 @@ object NotificationHandler extends CohortHandler {
       case Newspaper2025P3        => Newspaper2025P3Migration.maxLeadTime
       case ProductMigration2025N4 => ProductMigration2025N4Migration.maxLeadTime
       case Membership2025         => Membership2025Migration.maxLeadTime
+      case DigiSubs2025           => DigiSubs2025Migration.maxLeadTime
     }
   }
 
@@ -358,6 +360,7 @@ object NotificationHandler extends CohortHandler {
       case Newspaper2025P3        => Newspaper2025P3Migration.minLeadTime
       case ProductMigration2025N4 => ProductMigration2025N4Migration.minLeadTime
       case Membership2025         => Membership2025Migration.minLeadTime
+      case DigiSubs2025           => DigiSubs2025Migration.minLeadTime
     }
   }
 

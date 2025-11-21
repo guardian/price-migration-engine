@@ -1,6 +1,7 @@
 package pricemigrationengine.model
 
 import pricemigrationengine.migrations.{
+  DigiSubs2025Migration,
   GuardianWeekly2025Migration,
   HomeDelivery2025Migration,
   Membership2025Migration,
@@ -69,6 +70,7 @@ object AmendmentHandlerHelper {
       case Newspaper2025P3        => true
       case ProductMigration2025N4 => false
       case Membership2025         => true
+      case DigiSubs2025           => true
     }
 
     // [1] We do not apply the check to the SupporterPlus2024 migration where, due to the way
@@ -194,6 +196,17 @@ object AmendmentHandlerHelper {
         )
       case Membership2025 =>
         Membership2025Migration.amendmentOrderPayload(
+          cohortItem,
+          orderDate,
+          accountNumber,
+          subscriptionNumber,
+          effectDate,
+          zuora_subscription,
+          commsPrice,
+          invoiceList
+        )
+      case DigiSubs2025 =>
+        DigiSubs2025Migration.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
