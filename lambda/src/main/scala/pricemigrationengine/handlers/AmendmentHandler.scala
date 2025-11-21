@@ -4,6 +4,7 @@ import pricemigrationengine.model.{AmendmentHandlerHelper, ZuoraOrdersApiPrimiti
 import pricemigrationengine.model.CohortTableFilter.{
   AmendmentComplete,
   NotificationSendDateWrittenToSalesforce,
+  NotificationSendDateWrittenToSalesforceN4HOLD,
   UserOptOut,
   ZuoraCancellation
 }
@@ -40,6 +41,8 @@ object AmendmentHandler extends CohortHandler {
       startingTime <- Clock.nanoTime
       deadline = startingTime + 10.minutes.toNanos
 
+      _ <- performN4Unlock() // Remove this at the end of N4, in November 2026
+
       catalogue <- Zuora.fetchProductCatalogue
       count <- {
         val items = cohortSpec.subscriptionNumber match {
@@ -71,6 +74,34 @@ object AmendmentHandler extends CohortHandler {
       val isComplete = (count < batchSize) && !reachedDeadline
       HandlerOutput(isComplete = isComplete)
     }
+  }
+
+  def performN4Unlock(): ZIO[CohortTable with Logging, Failure, Unit] = {
+    // This effect performs the monitoring of N4 items and unlock those for which delayN4AmendmentUntil
+    // has been reached. The unlocking corresponds to moving the items from
+    // NotificationSendDateWrittenToSalesforceN4HOLD to NotificationSendDateWrittenToSalesforce
+
+    // This function will be removed at the end of N4, in November 2026
+
+    for {
+      today <- Clock.currentDateTime.map(_.toLocalDate)
+      _ <- CohortTable
+        .fetch(NotificationSendDateWrittenToSalesforceN4HOLD, None)
+        .mapZIO(item =>
+          item.delayN4AmendmentUntil match {
+            case Some(unlockDate) if Date.equalOrInOrder(unlockDate, today) => {
+              CohortTable.update(
+                CohortItem(
+                  item.subscriptionName,
+                  processingStage = NotificationSendDateWrittenToSalesforce,
+                )
+              )
+            }
+            case _ => ZIO.unit
+          }
+        )
+        .runDrain
+    } yield ()
   }
 
   private def performAmendmentAttempt(
