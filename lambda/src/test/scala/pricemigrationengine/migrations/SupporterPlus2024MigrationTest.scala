@@ -681,13 +681,13 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/monthly/subscription.json")
     val invoices = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2024/monthly/invoices.json")
     val account = Fixtures.accountFromJson("Migrations/SupporterPlus2024/monthly/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("Migrations/SupporterPlus2024/monthly/catalogue.json")
+    // val catalogue = Fixtures.productCatalogueFromJson("Migrations/SupporterPlus2024/monthly/catalogue.json")
 
     val cohortSpec = CohortSpec("SupporterPlus2024", "", LocalDate.of(2024, 9, 9))
 
     val startDateLowerBound = LocalDate.of(2024, 9, 9)
 
-    val estimationResult = EstimationResult(account, catalogue, subscription, invoices, startDateLowerBound, cohortSpec)
+    val estimationResult = EstimationResult(account, subscription, invoices, startDateLowerBound, cohortSpec)
 
     assertEquals(
       estimationResult,
@@ -708,13 +708,13 @@ class SupporterPlus2024MigrationTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2024/annual/subscription.json")
     val invoices = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2024/annual/invoices.json")
     val account = Fixtures.accountFromJson("Migrations/SupporterPlus2024/annual/account.json")
-    val catalogue = Fixtures.productCatalogueFromJson("Migrations/SupporterPlus2024/annual/catalogue.json")
+    // val catalogue = Fixtures.productCatalogueFromJson("Migrations/SupporterPlus2024/annual/catalogue.json")
 
     val cohortSpec = CohortSpec("SupporterPlus2024", "", LocalDate.of(2024, 9, 9))
 
     val startDateLowerBound = LocalDate.of(2024, 9, 9)
 
-    val estimationResult = EstimationResult(account, catalogue, subscription, invoices, startDateLowerBound, cohortSpec)
+    val estimationResult = EstimationResult(account, subscription, invoices, startDateLowerBound, cohortSpec)
 
     assertEquals(
       estimationResult,
