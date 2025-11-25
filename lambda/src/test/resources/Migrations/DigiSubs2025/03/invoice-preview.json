@@ -1,0 +1,31 @@
+{
+  "accountId": "accountId",
+  "invoiceItems": [
+    {
+      "id": "2c9ef1b194a84ccb9004f4192c252a9b",
+      "subscriptionName": "subscriptionName",
+      "subscriptionId": "subscriptionId",
+      "subscriptionNumber": "subscriptionNumber",
+      "serviceStartDate": "2026-09-28",
+      "serviceEndDate": "2027-09-27",
+      "chargeAmount": 149.0,
+      "chargeDescription": "",
+      "chargeName": "Digital Pack Annual",
+      "chargeNumber": "C-07246298",
+      "chargeId": "8a1288a7993307bb01993e6bc4bc1fb0",
+      "productName": "Digital Pack",
+      "quantity": 1,
+      "taxAmount": 0.0,
+      "unitOfMeasure": "",
+      "chargeDate": "2025-11-25 13:26:08",
+      "chargeType": "Recurring",
+      "processingType": "Charge",
+      "appliedToItemId": null,
+      "numberOfDeliveries": 0.0
+    }
+  ],
+  "creditMemoItems": [
+
+  ],
+  "success": true
+}
