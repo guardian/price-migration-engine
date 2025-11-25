@@ -9,9 +9,9 @@ import java.time.LocalDate
 class AmendmentEffectiveDateCalculatorTest extends munit.FunSuite {
 
   test("lowerBound (1)") {
-    val subscription = Fixtures.subscriptionFromJson("model/StartDates/subscription1/subscription.json")
-    val account = Fixtures.accountFromJson("model/StartDates/subscription1/account.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("model/StartDates/subscription1/invoice-preview.json")
+    val subscription = Fixtures.subscriptionFromJson("model/AmendmentEffectiveDateCalculator/subscription1/subscription.json")
+    val account = Fixtures.accountFromJson("model/AmendmentEffectiveDateCalculator/subscription1/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("model/AmendmentEffectiveDateCalculator/subscription1/invoice-preview.json")
 
     val cohortItem = CohortItem("SUBSCRIPTION-NUMBER", ReadyForEstimation)
     val today = LocalDate.of(2025, 7, 1) // 1 July 2025
@@ -104,9 +104,9 @@ class AmendmentEffectiveDateCalculatorTest extends munit.FunSuite {
   }
 
   test("lowerBound (2): with extended attributes") {
-    val subscription = Fixtures.subscriptionFromJson("model/StartDates/subscription1/subscription.json")
-    val account = Fixtures.accountFromJson("model/StartDates/subscription1/account.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("model/StartDates/subscription1/invoice-preview.json")
+    val subscription = Fixtures.subscriptionFromJson("model/AmendmentEffectiveDateCalculator/subscription1/subscription.json")
+    val account = Fixtures.accountFromJson("model/AmendmentEffectiveDateCalculator/subscription1/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("model/AmendmentEffectiveDateCalculator/subscription1/invoice-preview.json")
 
     val cohortItem = CohortItem(
       "SUBSCRIPTION-NUMBER",
