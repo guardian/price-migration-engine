@@ -9,9 +9,11 @@ import java.time.LocalDate
 class AmendmentEffectiveDateCalculatorTest extends munit.FunSuite {
 
   test("lowerBound (1)") {
-    val subscription = Fixtures.subscriptionFromJson("model/AmendmentEffectiveDateCalculator/subscription1/subscription.json")
+    val subscription =
+      Fixtures.subscriptionFromJson("model/AmendmentEffectiveDateCalculator/subscription1/subscription.json")
     val account = Fixtures.accountFromJson("model/AmendmentEffectiveDateCalculator/subscription1/account.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("model/AmendmentEffectiveDateCalculator/subscription1/invoice-preview.json")
+    val invoicePreview =
+      Fixtures.invoiceListFromJson("model/AmendmentEffectiveDateCalculator/subscription1/invoice-preview.json")
 
     val cohortItem = CohortItem("SUBSCRIPTION-NUMBER", ReadyForEstimation)
     val today = LocalDate.of(2025, 7, 1) // 1 July 2025
@@ -104,9 +106,11 @@ class AmendmentEffectiveDateCalculatorTest extends munit.FunSuite {
   }
 
   test("lowerBound (2): with extended attributes") {
-    val subscription = Fixtures.subscriptionFromJson("model/AmendmentEffectiveDateCalculator/subscription1/subscription.json")
+    val subscription =
+      Fixtures.subscriptionFromJson("model/AmendmentEffectiveDateCalculator/subscription1/subscription.json")
     val account = Fixtures.accountFromJson("model/AmendmentEffectiveDateCalculator/subscription1/account.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("model/AmendmentEffectiveDateCalculator/subscription1/invoice-preview.json")
+    val invoicePreview =
+      Fixtures.invoiceListFromJson("model/AmendmentEffectiveDateCalculator/subscription1/invoice-preview.json")
 
     val cohortItem = CohortItem(
       "SUBSCRIPTION-NUMBER",
@@ -213,5 +217,36 @@ class AmendmentEffectiveDateCalculatorTest extends munit.FunSuite {
     // [1]
     // Which is higher than LocalDate.of(2026, 2, 24) computed in the previous test and
     // Equal to the extra attributes
+  }
+
+  test("no price rise during first year after acquisition policy") {
+
+    // subscription-03 : Digital Pack Annual  (acquisition: 2025-09-12) : Annually (customer acceptable date: 2025-09-28)
+    // subscription-04 : Digital Pack Monthly (acquisition: 2025-11-19) : Monthly  (customer acceptance date: 2025-12-05)
+
+    // Current date is 2025-11-25
+
+    // For subscription 03 we expect min [2025-11-25, 2025-09-28 + 12 months] = 2026-09-28
+    // For subscription 04 we expect min [2025-11-25, 2025-12-05 + 12 months] = 2026-12-05
+
+    val subscription03 =
+      Fixtures.subscriptionFromJson("model/AmendmentEffectiveDateCalculator/subscription-03/subscription.json")
+
+    val subscription04 =
+      Fixtures.subscriptionFromJson("model/AmendmentEffectiveDateCalculator/subscription-04/subscription.json")
+
+    val currentDate = LocalDate.of(2025, 11, 25)
+
+    assertEquals(
+      AmendmentEffectiveDateCalculator
+        .noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(currentDate, subscription03),
+      LocalDate.of(2026, 9, 28)
+    )
+
+    assertEquals(
+      AmendmentEffectiveDateCalculator
+        .noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(currentDate, subscription04),
+      LocalDate.of(2026, 12, 5)
+    )
   }
 }
