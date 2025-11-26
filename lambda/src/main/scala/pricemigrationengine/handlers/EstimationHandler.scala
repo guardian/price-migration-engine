@@ -87,6 +87,9 @@ object EstimationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       today: LocalDate,
   ): ZIO[Zuora with Logging, Failure, EstimationData] = {
+    // The use of the product catalogue in the computation of EstimationResult was removed in
+    // Nov 2025 as part as setting up DigiSubs2025. We can also simplify the signature
+    // of `doEstimation` in the future.
     for {
       subscription <-
         Zuora
@@ -111,7 +114,7 @@ object EstimationHandler extends CohortHandler {
         s"item: ${item.toString}, amendmentEffectiveDateLowerBound: ${amendmentEffectiveDateLowerBound}"
       )
       result <- ZIO.fromEither(
-        EstimationResult(account, catalogue, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec)
+        EstimationResult(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec)
       )
       _ <- Logging.info(s"item: ${item.toString}, estimation result: ${result}")
     } yield result

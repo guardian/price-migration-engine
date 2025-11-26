@@ -21,7 +21,6 @@ case class EstimationData(
 object EstimationResult {
   def apply(
       account: ZuoraAccount,
-      catalogue: ZuoraProductCatalogue,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       amendmentEffectiveDateLowerBound: LocalDate,
@@ -47,4 +46,3 @@ object EstimationResult {
 }
 
 case class SubscriptionCancelledInZuoraEstimationResult(subscriptionNumber: String) extends EstimationResult
-case class EmptyInvoicePreviewZuoraEstimationResult(subscriptionNumber: String) extends EstimationResult
