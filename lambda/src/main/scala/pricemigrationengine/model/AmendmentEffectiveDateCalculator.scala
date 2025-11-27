@@ -71,7 +71,7 @@ object AmendmentEffectiveDateCalculator {
       lowerbound: LocalDate,
       subscription: ZuoraSubscription
   ): LocalDate = {
-    Date.datesMax(lowerbound, subscription.customerAcceptanceDate.plusMonths(12))
+    Date.datesMax(lowerbound, subscription.subscriptionStartDate.plusMonths(12))
   }
 
   // This function implements the policy of not price rising a subscription less than a year after the optional
