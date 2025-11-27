@@ -11,6 +11,7 @@ case class ZuoraSubscription(
     version: Int,
     customerAcceptanceDate: LocalDate,
     contractEffectiveDate: LocalDate,
+    subscriptionStartDate: LocalDate,
     ratePlans: List[ZuoraRatePlan],
     accountNumber: String,
     accountId: String,

@@ -4,6 +4,16 @@ import java.time.LocalDate
 
 class DateTest extends munit.FunSuite {
 
+  test("Date.dateMax") {
+    assertEquals(
+      Date.datesMax(
+        LocalDate.of(2025, 11, 20),
+        LocalDate.of(2025, 11, 19)
+      ),
+      LocalDate.of(2025, 11, 20)
+    )
+  }
+
   test("Date.equalOrInOrder (1)") {
     assertEquals(
       Date.equalOrInOrder(
