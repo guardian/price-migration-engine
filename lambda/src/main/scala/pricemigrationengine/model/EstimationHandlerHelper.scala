@@ -8,7 +8,6 @@ object EstimationHandlerHelper {
     // This is where we declare the optional capping of each migration
     MigrationType(cohortSpec) match {
       case Test1                  => None
-      case SupporterPlus2024      => Some(1.27)
       case GuardianWeekly2025     => Some(1.2)
       case Newspaper2025P1        => Some(1.2)
       case HomeDelivery2025       => Some(1.2)

@@ -7,8 +7,7 @@ import pricemigrationengine.migrations.{
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
-  ProductMigration2025N4Migration,
-  SupporterPlus2024Migration
+  ProductMigration2025N4Migration
 }
 
 import java.time.LocalDate
@@ -98,7 +97,6 @@ object AmendmentData {
   ): Either[Failure, PriceData] = {
     MigrationType(cohortSpec) match {
       case Test1                  => Left(ConfigFailure("Branch not supported"))
-      case SupporterPlus2024      => SupporterPlus2024Migration.priceData(subscription)
       case GuardianWeekly2025     => GuardianWeekly2025Migration.priceData(subscription, invoiceList, account)
       case Newspaper2025P1        => Newspaper2025P1Migration.priceData(subscription, invoiceList, account)
       case HomeDelivery2025       => HomeDelivery2025Migration.priceData(subscription, invoiceList, account)

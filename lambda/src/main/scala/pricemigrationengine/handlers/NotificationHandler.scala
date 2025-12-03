@@ -13,8 +13,7 @@ import pricemigrationengine.migrations.{
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
-  ProductMigration2025N4Migration,
-  SupporterPlus2024Migration
+  ProductMigration2025N4Migration
 }
 import pricemigrationengine.model.RatePlanProbe
 
@@ -147,23 +146,6 @@ object NotificationHandler extends CohortHandler {
       _ <- logMissingEmailAddress(cohortItem, contact)
 
       // ----------------------------------------------------
-      // Data for SupporterPlus2024
-      // (Comment Group: 602514a6-5e53)
-      // This section and the corresponding section below should be removed as part of the
-      // SupporterPlus2024 decommissioning.
-      supporterPlus2024NotificationData <- SupporterPlus2024Migration.buildSupporterPlus2024NotificationData(
-        cohortSpec,
-        cohortItem.subscriptionName
-      )
-      sp2024ContributionAmountWithCurrencySymbol = supporterPlus2024NotificationData.contributionAmount
-        .map(a => s"${currencySymbol}${a.toString()}")
-      sp2024PreviousCombinedAmountWithCurrencySymbol = supporterPlus2024NotificationData.previousCombinedAmount
-        .map(a => s"${currencySymbol}${a.toString()}")
-      sp2024NewCombinedAmountWithCurrencySymbol = supporterPlus2024NotificationData.newCombinedAmount
-        .map(a => s"${currencySymbol}${a.toString()}")
-      // ----------------------------------------------------
-
-      // ----------------------------------------------------
       // Data for Newspaper2025P1
       // (Comment Group: 571dac68)
       // This section and the corresponding section below should be removed as part of the
@@ -219,21 +201,6 @@ object NotificationHandler extends CohortHandler {
               payment_frequency = paymentFrequency,
               subscription_id = cohortItem.subscriptionName,
               product_type = sfSubscription.Product_Type__c.getOrElse(""),
-
-              // -------------------------------------------------------------
-              // SupporterPlus 2024 extension
-              // [1]
-              // (Comment group: 7992fa98)
-              // (Comment Group: 602514a6-5e53)
-              // For SupporterPlus2024, we did not use that value. Instead we used the data provided by the
-              // extension below. That value was the new base price, but we needed a different data distribution
-              // to be able to fill the email template. That distribution is given by the next section.
-              // This section and the corresponding section above should be removed as part of the
-              // SupporterPlus2024 decommissioning.
-              sp2024_contribution_amount = sp2024ContributionAmountWithCurrencySymbol,
-              sp2024_previous_combined_amount = sp2024PreviousCombinedAmountWithCurrencySymbol,
-              sp2024_new_combined_amount = sp2024NewCombinedAmountWithCurrencySymbol,
-              // -------------------------------------------------------------
 
               // -------------------------------------------------------------
               // Newspaper2025P1 extension
@@ -339,7 +306,6 @@ object NotificationHandler extends CohortHandler {
   def maxLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
       case Test1                  => 35
-      case SupporterPlus2024      => SupporterPlus2024Migration.maxLeadTime
       case GuardianWeekly2025     => GuardianWeekly2025Migration.maxLeadTime
       case Newspaper2025P1        => Newspaper2025P1Migration.maxLeadTime
       case HomeDelivery2025       => HomeDelivery2025Migration.maxLeadTime
@@ -353,7 +319,6 @@ object NotificationHandler extends CohortHandler {
   def minLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
       case Test1                  => 33
-      case SupporterPlus2024      => SupporterPlus2024Migration.minLeadTime
       case GuardianWeekly2025     => GuardianWeekly2025Migration.minLeadTime
       case Newspaper2025P1        => Newspaper2025P1Migration.minLeadTime
       case HomeDelivery2025       => HomeDelivery2025Migration.minLeadTime
@@ -426,11 +391,9 @@ object NotificationHandler extends CohortHandler {
     }
 
     MigrationType(cohortSpec) match {
-      case SupporterPlus2024 => testCompatibleEmptySalesforceAddress(contact)
-      case Newspaper2025P3   => {
+      case Newspaper2025P3 => {
         // For Newspaper2025P3, we tolerate a missing delivery address and we will rely on the user getting an email.
         // For this, we compute the SalesforceAddress as the usual case, but if we get a Left,
-        // we serve the null SalesforceAddress we introduced for SupporterPlus2024
         val address = (for {
           billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
           _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
@@ -488,7 +451,6 @@ object NotificationHandler extends CohortHandler {
     // the 2024 print migration, "United Kingdom" can be substituted for missing values considering
     // that we are only delivery in the UK.
     MigrationType(cohortSpec) match {
-      case SupporterPlus2024      => Right(address.country.getOrElse(""))
       case Newspaper2025P1        => Right(address.country.getOrElse("United Kingdom"))
       case HomeDelivery2025       => Right(address.country.getOrElse("United Kingdom"))
       case Newspaper2025P3        => Right(address.country.getOrElse("United Kingdom"))
@@ -552,20 +514,12 @@ object NotificationHandler extends CohortHandler {
   // -------------------------------------------------------------------
   // Braze names
 
-  // This function was introduced in September 2024, when as part of SupporterPlus2024 we
-  // integrated two different email templates in Braze to serve communication to the users.
   // Traditionally the name of the campaign or canvas has been part of the CohortSpec, making
-  // `cohortSpec.brazeName` the default carrier of this information, but in the case of SupporterPlus 2024
-  // we have two canvases and need to decide one depending on the structure of the subscription.
+  // `cohortSpec.brazeName` the default carrier of this information, but for some migrations
+  // we have several canvases and we want to select one depending on the subscription.
 
   def brazeName(cohortSpec: CohortSpec, item: CohortItem): ZIO[Zuora, Failure, String] = {
     MigrationType(cohortSpec) match {
-      case SupporterPlus2024 => {
-        for {
-          subscription <- Zuora.fetchSubscription(item.subscriptionName)
-          bn <- ZIO.fromEither(SupporterPlus2024Migration.brazeName(subscription))
-        } yield bn
-      }
       case ProductMigration2025N4 =>
         ZIO
           .fromOption(ProductMigration2025N4Migration.brazeName(item))

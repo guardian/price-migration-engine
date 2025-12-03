@@ -223,18 +223,7 @@ object AmendmentHandler extends CohortHandler {
       _ <- renewSubscription(subscriptionBeforeUpdate, subscriptionBeforeUpdate.termEndDate, account)
 
       order <- MigrationType(cohortSpec) match {
-        case Test1             => ZIO.fail(ConfigFailure("Branch not supported"))
-        case SupporterPlus2024 =>
-          ZIO.fromEither(
-            SupporterPlus2024Migration.amendmentOrderPayload(
-              orderDate = LocalDate.now(),
-              accountNumber = account.basicInfo.accountNumber,
-              subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
-              mainChargeEffectDate = amendmentEffectiveDate,
-              subscription = subscriptionBeforeUpdate,
-              commsPrice = commsPrice
-            )
-          )
+        case Test1              => ZIO.fail(ConfigFailure("Branch not supported"))
         case GuardianWeekly2025 =>
           ZIO.fail(MigrationRoutingFailure("GuardianWeekly2025 should not use doAmendment_ordersApi_typed_deprecated"))
         case Newspaper2025P1 =>
@@ -425,13 +414,7 @@ object AmendmentHandler extends CohortHandler {
       item: CohortItem
   ): ZIO[Zuora with Logging with SalesforceClient, Failure, AmendmentAttemptResult] = {
     MigrationType(cohortSpec) match {
-      case Test1             => ZIO.fail(ConfigFailure("Branch not supported"))
-      case SupporterPlus2024 =>
-        doAmendment_ordersApi_typed_deprecated(
-          cohortSpec: CohortSpec,
-          catalogue: ZuoraProductCatalogue,
-          item: CohortItem
-        )
+      case Test1              => ZIO.fail(ConfigFailure("Branch not supported"))
       case GuardianWeekly2025 =>
         doAmendment_ordersApi_json_values(
           cohortSpec: CohortSpec,
