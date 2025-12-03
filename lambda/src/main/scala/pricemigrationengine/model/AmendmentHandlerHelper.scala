@@ -63,7 +63,6 @@ object AmendmentHandlerHelper {
   private def shouldPerformFinalPriceCheck(cohortSpec: CohortSpec): Boolean = {
     MigrationType(cohortSpec) match {
       case Test1                  => true // default value
-      case SupporterPlus2024      => false // [1]
       case GuardianWeekly2025     => true
       case Newspaper2025P1        => true
       case HomeDelivery2025       => true
@@ -72,10 +71,6 @@ object AmendmentHandlerHelper {
       case Membership2025         => true
       case DigiSubs2025           => true
     }
-
-    // [1] We do not apply the check to the SupporterPlus2024 migration where, due to the way
-    // the prices are computed, the new price can be higher than the
-    // estimated price (which wasn't including the extra contribution).
   }
 
   def postAmendmentPriceCheck(
@@ -135,9 +130,7 @@ object AmendmentHandlerHelper {
       invoiceList: ZuoraInvoiceList
   ): Either[Failure, Value] = {
     MigrationType(cohortSpec) match {
-      case Test1             => Left(ConfigFailure("case not supported"))
-      case SupporterPlus2024 =>
-        Left(MigrationRoutingFailure("SupporterPlus2024 should not use doAmendment_ordersApi_json_values"))
+      case Test1              => Left(ConfigFailure("case not supported"))
       case GuardianWeekly2025 =>
         GuardianWeekly2025Migration.amendmentOrderPayload(
           cohortItem,

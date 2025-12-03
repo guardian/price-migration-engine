@@ -34,7 +34,6 @@ object AmendmentEffectiveDateCalculator {
   ): Option[LocalDate] = {
     MigrationType(cohortSpec) match {
       case Test1              => None // default value
-      case SupporterPlus2024  => None
       case GuardianWeekly2025 => GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription, today)
       case Newspaper2025P1    => Newspaper2025P1Migration.subscriptionToLastPriceMigrationDate(subscription, today)
       case HomeDelivery2025   => HomeDelivery2025Migration.subscriptionToLastPriceMigrationDate(subscription, today)
@@ -98,7 +97,6 @@ object AmendmentEffectiveDateCalculator {
     if (isMonthlySubscription(subscription, invoicePreview)) {
       MigrationType(cohortSpec) match {
         case Test1                  => 1 // default value
-        case SupporterPlus2024      => 1 // no spread for S+2024 monthlies
         case GuardianWeekly2025     => 1 // no spread for Guardian Weekly 2025
         case Newspaper2025P1        => 1 // no spread for Newspaper 2025
         case HomeDelivery2025       => 1 // no spread for Home Delivery 2025
@@ -149,7 +147,6 @@ object AmendmentEffectiveDateCalculator {
       // but at that point if we really want to carry on testing the migration extended attributes as
       // part of start date computations we can move the code to Test1's own migration module
       case Test1 => GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound4(lowerBound3, item) // [1]
-      case SupporterPlus2024  => lowerBound3
       case GuardianWeekly2025 => GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound4(lowerBound3, item)
       case Newspaper2025P1    => lowerBound3
       case HomeDelivery2025   => lowerBound3

@@ -15,7 +15,6 @@ object NotificationHandlerHelper {
 
     MigrationType(cohortSpec) match {
       case Test1              => true
-      case SupporterPlus2024  => true
       case GuardianWeekly2025 => true
       case Newspaper2025P1    => {
         List(

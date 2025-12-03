@@ -102,24 +102,14 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
   }
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
-    // [1]
-    // (Comment group: 7992fa98)
-    // We are not running this lambda for SupporterPlus2024, because we, instead, used a Ruby script
-    // to perform the Salesforce price rise creation, due to the extra computation required to compute
-    // the correct price.
-
-    MigrationType(input) match {
-      case SupporterPlus2024 => ZIO.succeed(HandlerOutput(isComplete = true)) // See [1] above
-      case _                 =>
-        main(input).provideSome[Logging](
-          EnvConfig.cohortTable.layer,
-          EnvConfig.salesforce.layer,
-          EnvConfig.stage.layer,
-          DynamoDBZIOLive.impl,
-          DynamoDBClientLive.impl,
-          CohortTableLive.impl(input),
-          SalesforceClientLive.impl
-        )
-    }
+    main(input).provideSome[Logging](
+      EnvConfig.cohortTable.layer,
+      EnvConfig.salesforce.layer,
+      EnvConfig.stage.layer,
+      DynamoDBZIOLive.impl,
+      DynamoDBClientLive.impl,
+      CohortTableLive.impl(input),
+      SalesforceClientLive.impl
+    )
   }
 }
