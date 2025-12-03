@@ -211,5 +211,4 @@ object AmendmentHandlerHelper {
         )
     }
   }
-
 }
