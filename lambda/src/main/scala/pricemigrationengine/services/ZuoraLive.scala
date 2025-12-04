@@ -238,8 +238,14 @@ object ZuoraLive {
               s"[4b4e379c] jobReport: ${jobReport}"
             )
             result <- {
-              if (AsyncJobReport.isReady(jobReport)) { ZIO.succeed(Right(())) }
-              else if (AsyncJobReport.hasFailed(jobReport)) {
+              if (AsyncJobReport.isCompletedCompleted(jobReport)) { ZIO.succeed(Right(())) }
+              else if (AsyncJobReport.isCompleted(jobReport) && !AsyncJobReport.isCompletedCompleted(jobReport)) {
+                ZIO.succeed(
+                  Left(
+                    "[8a50192a] The process has completed but not with a completed result. Should investigate. (Possibly and order in Pending state)."
+                  )
+                )
+              } else if (AsyncJobReport.hasFailed(jobReport)) {
                 ZIO.succeed(Left(jobReport.errors.getOrElse("(empty errors string from the job report)")))
               } else {
                 // Although we are raising a ZIO.fail here,

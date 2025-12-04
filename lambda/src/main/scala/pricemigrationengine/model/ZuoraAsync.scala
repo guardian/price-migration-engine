@@ -95,9 +95,10 @@ The various statuses are given below:
 }
 
 {
-    "Build": "2806",
-    "CohortName": "Membership2025",
-    "INFO": "[4b4e379c] jobReport: AsyncJobReport(Failed,Some([40000020]: Rate plan \"Non Founder Supporter - monthly\" is not effective on the contract effective date of 03/12/2025.))"
+  "status" : "Failed",
+  "errors" : "[40000020]: Rate plan \"Non Founder Supporter - monthly\" is not effective on the contract effective date of 03/12/2025.",
+  "result" : null,
+  "success" : true
 }
 
 {
@@ -113,8 +114,42 @@ The various statuses are given below:
   "success" : true
 }
 
-The above process is identical for subscription amendment (meaning product migration)
-orders
+----------
+### Checking the result.status
+
+In some circumstances, we get a "Completed" status, but the embedded result has status "Pending". This can happen
+when the payload is not correct and instead of Zuora returning a "status":"Failed", it returns a
+"status":"Completed", but with a result's "status": Pending". See difference between both below.
+
+{
+  "status" : "Completed",
+  "errors" : null,
+  "result" : {
+    "orderNumber" : "O-05577502",
+    "accountNumber" : "[removed]",
+    "status" : "Pending",
+    "subscriptions" : [ {
+      "subscriptionNumber" : "[removed]"
+    } ],
+    "jobType" : "AsyncCreateOrder"
+  },
+  "success" : true
+}
+
+{
+  "status" : "Completed",
+  "errors" : null,
+  "result" : {
+    "orderNumber" : "O-05577509",
+    "accountNumber" : "[removed]",
+    "status" : "Completed",
+    "subscriptionNumbers" : [ "[removed]" ],
+    "jobType" : "AsyncCreateOrder"
+  },
+  "success" : true
+}
+
+We need to check result.status as well. And we should fail our own processing if it's not "Completed"
 
  */
 
@@ -123,9 +158,18 @@ object AsyncJobSubmissionTicket {
   implicit val reader: Reader[AsyncJobSubmissionTicket] = macroR
 }
 
-case class AsyncJobReport(status: String, errors: Option[String])
+case class AsyncJobReportResult(status: String)
+object AsyncJobReportResult {
+  implicit val reader: Reader[AsyncJobReportResult] = macroR
+}
+
+case class AsyncJobReport(status: String, errors: Option[String], result: AsyncJobReportResult)
 object AsyncJobReport {
   implicit val reader: Reader[AsyncJobReport] = macroR
-  def isReady(report: AsyncJobReport): Boolean = report.status == "Completed"
+  def isCompleted(report: AsyncJobReport): Boolean = report.status == "Completed"
+  def isCompletedCompleted(report: AsyncJobReport): Boolean = {
+    // Funny name for a function, but it does a perfect job expressing the state.
+    isCompleted(report) && report.result.status == "Completed"
+  }
   def hasFailed(report: AsyncJobReport): Boolean = report.status == "Failed"
 }
