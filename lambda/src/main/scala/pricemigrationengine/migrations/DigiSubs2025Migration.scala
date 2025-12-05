@@ -38,10 +38,6 @@ object DigiSubs2025Migration {
     (Annual, "NZD") -> BigDecimal(300.0),
   )
 
-  def priceGrid(billingPeriod: BillingPeriod, currency: String): Option[BigDecimal] = {
-    priceGrid.get((billingPeriod, currency))
-  }
-
   def logValue[T](label: String)(value: T): T = {
     println(s"$label: $value")
     value
@@ -70,6 +66,35 @@ object DigiSubs2025Migration {
             s"[399494ef] Could not determine PriceData for subscription ${subscription.subscriptionNumber}"
           )
         )
+    }
+  }
+
+  def brazeName(cohortItem: CohortItem): Option[String] = {
+    /*
+      Canvases:
+          For all USD supporters:
+              SV_DP_PriceRiseUSAnnuals011225
+              c1c16ea3-0290-4bb7-a0cf-57a7ccf174f0
+
+          For non-USD supporters paying monthly:
+              SV_DPPriceRiseUKROWMonthlies011225
+              d2d8f5a3-daec-4ce4-b78c-c367a4736262
+
+          For non-USD supporters paying annually:
+              SV_DP_PriceRiseUKROWAnnuals011225
+              a6dde8ce-0c38-4b00-844a-b10bed1c6a25
+     */
+
+    for {
+      billingPeriod <- cohortItem.billingPeriod
+      currency <- cohortItem.currency
+    } yield {
+      (currency, billingPeriod) match {
+        case ("USD", _)    => "SV_DP_PriceRiseUSAnnuals011225"
+        case (_, "Month")  => "SV_DPPriceRiseUKROWMonthlies011225"
+        case (_, "Annual") => "SV_DP_PriceRiseUKROWAnnuals011225"
+        case _             => throw new Exception(s"[0a2e8eb6] unexpected case, cohort item: ${cohortItem}")
+      }
     }
   }
 
