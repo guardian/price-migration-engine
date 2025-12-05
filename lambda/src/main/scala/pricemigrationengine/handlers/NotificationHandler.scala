@@ -428,6 +428,17 @@ object NotificationHandler extends CohortHandler {
           value => Right(value)
         )
       }
+      case DigiSubs2025 => {
+        val address = (for {
+          billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
+          _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
+          _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
+        } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
+        address.fold(
+          _ => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))),
+          value => Right(value)
+        )
+      }
       case _ =>
         (for {
           billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
@@ -524,13 +535,19 @@ object NotificationHandler extends CohortHandler {
         ZIO
           .fromOption(ProductMigration2025N4Migration.brazeName(item))
           .orElseFail(
-            DataExtractionFailure(s"[] could not determine brazeName for ProductMigration2025N4, item: ${item}")
+            DataExtractionFailure(s"[0cbdf70b] could not determine brazeName for ProductMigration2025N4, item: ${item}")
           )
       case Membership2025 =>
         ZIO
           .fromOption(Membership2025Migration.brazeName(item))
           .orElseFail(
             DataExtractionFailure(s"[b9d223be] could not determine brazeName for Membership2025, item: ${item}")
+          )
+      case DigiSubs2025 =>
+        ZIO
+          .fromOption(DigiSubs2025Migration.brazeName(item))
+          .orElseFail(
+            DataExtractionFailure(s"[e3f83ac4] could not determine brazeName for DigiSubs2025, item: ${item}")
           )
       case _ => ZIO.succeed(cohortSpec.brazeName)
     }
