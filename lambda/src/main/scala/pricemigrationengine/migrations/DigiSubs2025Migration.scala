@@ -76,7 +76,7 @@ object DigiSubs2025Migration {
               SV_DP_PriceRiseUSAnnuals011225
               c1c16ea3-0290-4bb7-a0cf-57a7ccf174f0
 
-          For non-USD supporters paying monthly:
+          For non-USD supporters paying monthly and quarterly:
               SV_DPPriceRiseUKROWMonthlies011225
               d2d8f5a3-daec-4ce4-b78c-c367a4736262
 
@@ -90,10 +90,11 @@ object DigiSubs2025Migration {
       currency <- cohortItem.currency
     } yield {
       (currency, billingPeriod) match {
-        case ("USD", _)    => "SV_DP_PriceRiseUSAnnuals011225"
-        case (_, "Month")  => "SV_DPPriceRiseUKROWMonthlies011225"
-        case (_, "Annual") => "SV_DP_PriceRiseUKROWAnnuals011225"
-        case _             => throw new Exception(s"[0a2e8eb6] unexpected case, cohort item: ${cohortItem}")
+        case ("USD", _)     => "SV_DP_PriceRiseUSAnnuals011225"
+        case (_, "Month")   => "SV_DPPriceRiseUKROWMonthlies011225"
+        case (_, "Quarter") => "SV_DPPriceRiseUKROWMonthlies011225"
+        case (_, "Annual")  => "SV_DP_PriceRiseUKROWAnnuals011225"
+        case _              => throw new Exception(s"[0a2e8eb6] unexpected case, cohort item: ${cohortItem}")
       }
     }
   }
