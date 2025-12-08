@@ -370,6 +370,7 @@ object NotificationHandler extends CohortHandler {
   def targetStreet(cohortSpec: CohortSpec, street: Option[String]): Either[NotificationHandlerFailure, String] = {
     MigrationType(cohortSpec) match {
       case Membership2025 => Right(street.getOrElse(""))
+      case DigiSubs2025   => Right(street.getOrElse(""))
       case _              => requiredField(street, "Contact.OtherAddress.street")
     }
   }
