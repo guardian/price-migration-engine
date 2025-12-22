@@ -183,4 +183,256 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     // The subscription is so recent that its price is already the target price of
     // the migration. This is going to result in a NoPriceIncrease processing state.
   }
+
+  test("amendment payload for 01") {
+    // 01 : Digital Pack Monthly   : 15/06/2016 : Monthly
+    val subscription = Fixtures.subscriptionFromJson("Migrations/DigiSubs2025/01/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/DigiSubs2025/01/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/DigiSubs2025/01/invoice-preview.json")
+
+    // Estimation Data from above
+    /*
+      EstimationData(
+        subscriptionName = subscription.subscriptionNumber,
+        amendmentEffectiveDate =
+          LocalDate.of(2026, 2, 15), // The first billing period after amendmentEffectiveDateLowerBound
+        currency = "GBP",
+        oldPrice = BigDecimal(14.99),
+        estimatedNewPrice = BigDecimal(18.0),
+        commsPrice = BigDecimal(18.0),
+        billingPeriod = "Month"
+      )
+     */
+
+    val cohortItem: CohortItem = CohortItem(
+      subscriptionName = "subscriptionNumber",
+      processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
+      currency = Some("GBP"),
+
+      // Pre migration price
+      oldPrice = Some(BigDecimal(18.0)),
+
+      // Price derived from the Estimation step, without capping
+      estimatedNewPrice = Some(BigDecimal(18.0)),
+
+      // Price (with possible capping) used in the communication to the user and sent to Salesforce
+      commsPrice = Some(BigDecimal(18.0)),
+
+      //
+      billingPeriod = Some("Month")
+    )
+
+    val payload = DigiSubs2025Migration.amendmentOrderPayload(
+      cohortItem,
+      LocalDate.of(2025, 12, 20), // order date
+      "accountNumber",
+      "subscriptionNumber",
+      LocalDate.of(2026, 2, 15), // effect date, from the estimation data
+      subscription, // Zuora subscription
+      BigDecimal(18.0), // comms price
+      invoicePreview,
+    )
+
+    assertEquals(
+      payload,
+      Right(
+        ujson.read(
+          s"""{
+             |    "orderDate": "2025-12-20",
+             |    "existingAccountNumber": "accountNumber",
+             |    "subscriptions": [
+             |        {
+             |            "subscriptionNumber": "subscriptionNumber",
+             |            "orderActions": [
+             |                {
+             |                    "type": "RemoveProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2026-02-15"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2026-02-15"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2026-02-15"
+             |                        }
+             |                    ],
+             |                    "removeProduct": {
+             |                        "ratePlanId": "8a129276976df790019771a286c00071"
+             |                    }
+             |                },
+             |                {
+             |                    "type": "AddProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2026-02-15"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2026-02-15"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2026-02-15"
+             |                        }
+             |                    ],
+             |                    "addProduct": {
+             |                        "productRatePlanId": "2c92a0fb4edd70c8014edeaa4eae220a",
+             |                        "chargeOverrides": [
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fb4edd70c9014edeaa50342192",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 18
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            }
+             |                        ]
+             |                    }
+             |                }
+             |            ]
+             |        }
+             |    ],
+             |    "processingOptions": {
+             |        "runBilling": false,
+             |        "collectPayment": false
+             |    }
+             |}""".stripMargin
+        )
+      )
+    )
+  }
+
+  test("amendment payload for 03") {
+    // 03 : Digital Pack Annual    : 12/09/2025 : Annually
+    val subscription = Fixtures.subscriptionFromJson("Migrations/DigiSubs2025/03/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/DigiSubs2025/03/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/DigiSubs2025/03/invoice-preview.json")
+
+    // Estimation Data from above
+    /*
+        EstimationData(
+          subscriptionName = subscription.subscriptionNumber,
+          amendmentEffectiveDate =
+            LocalDate.of(2026, 9, 28), // The first Annual billing period after amendmentEffectiveDateLowerBound
+          currency = "GBP",
+          oldPrice = BigDecimal(149.0),
+          estimatedNewPrice = BigDecimal(180.0),
+          commsPrice = BigDecimal(180.0),
+          billingPeriod = "Annual"
+        )
+     */
+
+    val cohortItem: CohortItem = CohortItem(
+      subscriptionName = "subscriptionNumber",
+      processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
+      currency = Some("GBP"),
+
+      // Pre migration price
+      oldPrice = Some(BigDecimal(149.0)),
+
+      // Price derived from the Estimation step, without capping
+      estimatedNewPrice = Some(BigDecimal(180.0)),
+
+      // Price (with possible capping) used in the communication to the user and sent to Salesforce
+      commsPrice = Some(BigDecimal(180.0)),
+
+      //
+      billingPeriod = Some("Annual")
+    )
+
+    val payload = DigiSubs2025Migration.amendmentOrderPayload(
+      cohortItem,
+      LocalDate.of(2025, 12, 20), // order date
+      "accountNumber",
+      "subscriptionNumber",
+      LocalDate.of(2026, 9, 28), // effect date, from the estimation data
+      subscription, // Zuora subscription
+      BigDecimal(180.0), // comms price
+      invoicePreview,
+    )
+
+    assertEquals(
+      payload,
+      Right(
+        ujson.read(
+          s"""{
+             |    "orderDate": "2025-12-20",
+             |    "existingAccountNumber": "accountNumber",
+             |    "subscriptions": [
+             |        {
+             |            "subscriptionNumber": "subscriptionNumber",
+             |            "orderActions": [
+             |                {
+             |                    "type": "RemoveProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2026-09-28"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2026-09-28"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2026-09-28"
+             |                        }
+             |                    ],
+             |                    "removeProduct": {
+             |                        "ratePlanId": "8a1288a7993307bb01993e6bc4a61fac"
+             |                    }
+             |                },
+             |                {
+             |                    "type": "AddProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2026-09-28"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2026-09-28"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2026-09-28"
+             |                        }
+             |                    ],
+             |                    "addProduct": {
+             |                        "productRatePlanId": "2c92a0fb4edd70c8014edeaa4e972204",
+             |                        "chargeOverrides": [
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fb4edd70c9014edeaa5001218c",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 180
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Annual"
+             |                                }
+             |                            }
+             |                        ]
+             |                    }
+             |                }
+             |            ]
+             |        }
+             |    ],
+             |    "processingOptions": {
+             |        "runBilling": false,
+             |        "collectPayment": false
+             |    }
+             |}""".stripMargin
+        )
+      )
+    )
+  }
 }
