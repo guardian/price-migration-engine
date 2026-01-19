@@ -3,7 +3,6 @@ package pricemigrationengine.model
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
   GuardianWeekly2025Migration,
-  HomeDelivery2025Migration,
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
@@ -99,7 +98,6 @@ object AmendmentData {
       case Test1                  => Left(ConfigFailure("Branch not supported"))
       case GuardianWeekly2025     => GuardianWeekly2025Migration.priceData(subscription, invoiceList, account)
       case Newspaper2025P1        => Newspaper2025P1Migration.priceData(subscription, invoiceList, account)
-      case HomeDelivery2025       => HomeDelivery2025Migration.priceData(subscription, invoiceList, account)
       case Newspaper2025P3        => Newspaper2025P3Migration.priceData(subscription, invoiceList, account)
       case ProductMigration2025N4 => ProductMigration2025N4Migration.priceData(subscription, invoiceList)
       case Membership2025         => Membership2025Migration.priceData(subscription, invoiceList)
