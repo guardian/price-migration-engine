@@ -1,12 +1,7 @@
 package pricemigrationengine.model
 
 import pricemigrationengine.handlers.NotificationHandler
-import pricemigrationengine.migrations.{
-  GuardianWeekly2025Migration,
-  HomeDelivery2025Migration,
-  Newspaper2025P1Migration,
-  Newspaper2025P3Migration
-}
+import pricemigrationengine.migrations.{GuardianWeekly2025Migration, Newspaper2025P1Migration, Newspaper2025P3Migration}
 import scala.util.Random
 import java.time.LocalDate
 
@@ -36,7 +31,6 @@ object AmendmentEffectiveDateCalculator {
       case Test1              => None // default value
       case GuardianWeekly2025 => GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription, today)
       case Newspaper2025P1    => Newspaper2025P1Migration.subscriptionToLastPriceMigrationDate(subscription, today)
-      case HomeDelivery2025   => HomeDelivery2025Migration.subscriptionToLastPriceMigrationDate(subscription, today)
       case Newspaper2025P3    => Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate(subscription, today)
       case ProductMigration2025N4 => None
       case Membership2025         => None
@@ -99,7 +93,6 @@ object AmendmentEffectiveDateCalculator {
         case Test1                  => 1 // default value
         case GuardianWeekly2025     => 1 // no spread for Guardian Weekly 2025
         case Newspaper2025P1        => 1 // no spread for Newspaper 2025
-        case HomeDelivery2025       => 1 // no spread for Home Delivery 2025
         case Newspaper2025P3        => 1 // no spread for Newspaper 2025 (Phase 3)
         case ProductMigration2025N4 => 1
         case Membership2025         => 1
@@ -149,7 +142,6 @@ object AmendmentEffectiveDateCalculator {
       case Test1 => GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound4(lowerBound3, item) // [1]
       case GuardianWeekly2025 => GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound4(lowerBound3, item)
       case Newspaper2025P1    => lowerBound3
-      case HomeDelivery2025   => lowerBound3
       case Newspaper2025P3    => Newspaper2025P3Migration.computeAmendmentEffectiveDateLowerBound4(lowerBound3, item)
       case ProductMigration2025N4 => lowerBound3
       case Membership2025         => lowerBound3

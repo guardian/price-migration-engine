@@ -338,12 +338,6 @@ object AmendmentHandler extends CohortHandler {
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
-      case HomeDelivery2025 =>
-        doAmendment_ordersApi_json_values(
-          cohortSpec: CohortSpec,
-          catalogue: ZuoraProductCatalogue,
-          item: CohortItem
-        )
       case Newspaper2025P3 =>
         doAmendment_ordersApi_json_values(
           cohortSpec: CohortSpec,

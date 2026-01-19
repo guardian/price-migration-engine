@@ -27,11 +27,6 @@ case class EmailPayloadSubscriberAttributes(
     // -----------------------------------------------
 
     // -----------------------------------------------
-    // HomeDelivery2025 (extension)
-    homedelivery2025_brand_title: Option[String] = None,
-    // -----------------------------------------------
-
-    // -----------------------------------------------
     // Newspaper2025P3 (extension)
     newspaper2025_phase3_brand_title: Option[String] = None,
     // -----------------------------------------------

@@ -3,7 +3,6 @@ package pricemigrationengine.model
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
   GuardianWeekly2025Migration,
-  HomeDelivery2025Migration,
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
@@ -65,7 +64,6 @@ object AmendmentHandlerHelper {
       case Test1                  => true // default value
       case GuardianWeekly2025     => true
       case Newspaper2025P1        => true
-      case HomeDelivery2025       => true
       case Newspaper2025P3        => true
       case ProductMigration2025N4 => false
       case Membership2025         => true
@@ -144,18 +142,6 @@ object AmendmentHandlerHelper {
         )
       case Newspaper2025P1 =>
         Newspaper2025P1Migration.amendmentOrderPayload(
-          cohortItem,
-          orderDate,
-          accountNumber,
-          subscriptionNumber,
-          effectDate,
-          zuora_subscription,
-          oldPrice,
-          commsPrice,
-          invoiceList
-        )
-      case HomeDelivery2025 =>
-        HomeDelivery2025Migration.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
