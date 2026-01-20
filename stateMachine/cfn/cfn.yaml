@@ -129,7 +129,7 @@ Resources:
           - PriceMigrationLambdaRole
           - Arn
       MemorySize: 1536
-      Runtime: java11
+      Runtime: java25
       Timeout: 900
 
   PriceMigrationLambdaScheduleRule:
