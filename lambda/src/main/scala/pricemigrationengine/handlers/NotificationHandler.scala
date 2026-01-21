@@ -9,7 +9,6 @@ import com.gu.i18n
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
   GuardianWeekly2025Migration,
-  HomeDelivery2025Migration,
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
@@ -154,13 +153,6 @@ object NotificationHandler extends CohortHandler {
       // ----------------------------------------------------
 
       // ----------------------------------------------------
-      // Data for HomeDelivery2025
-      // This section and the corresponding section below should be removed as part of the
-      // HomeDelivery2025 decommissioning.
-      homedelivery2025NotificationData <- HomeDelivery2025Migration.getNotificationData(cohortSpec, cohortItem)
-      // ----------------------------------------------------
-
-      // ----------------------------------------------------
       // Data for Newspaper2025P3
       newspaper2025P3NotificationData <- Newspaper2025P3Migration.getNotificationData(cohortSpec, cohortItem)
       // ----------------------------------------------------
@@ -208,13 +200,6 @@ object NotificationHandler extends CohortHandler {
               // This section and the corresponding section above should be removed as part of the
               // Newspaper2025P1 decommissioning.
               newspaper2025_brand_title = Some(newspaper2025P1NotificationData.brandTitle),
-              // -------------------------------------------------------------
-
-              // -------------------------------------------------------------
-              // HomeDelivery2025 extension
-              // This section and the corresponding section above should be removed as part of the
-              // HomeDelivery decommissioning.
-              homedelivery2025_brand_title = Some(homedelivery2025NotificationData.brandTitle),
               // -------------------------------------------------------------
 
               // -------------------------------------------------------------
@@ -308,7 +293,6 @@ object NotificationHandler extends CohortHandler {
       case Test1                  => 35
       case GuardianWeekly2025     => GuardianWeekly2025Migration.maxLeadTime
       case Newspaper2025P1        => Newspaper2025P1Migration.maxLeadTime
-      case HomeDelivery2025       => HomeDelivery2025Migration.maxLeadTime
       case Newspaper2025P3        => Newspaper2025P3Migration.maxLeadTime
       case ProductMigration2025N4 => ProductMigration2025N4Migration.maxLeadTime
       case Membership2025         => Membership2025Migration.maxLeadTime
@@ -321,7 +305,6 @@ object NotificationHandler extends CohortHandler {
       case Test1                  => 33
       case GuardianWeekly2025     => GuardianWeekly2025Migration.minLeadTime
       case Newspaper2025P1        => Newspaper2025P1Migration.minLeadTime
-      case HomeDelivery2025       => HomeDelivery2025Migration.minLeadTime
       case Newspaper2025P3        => Newspaper2025P3Migration.minLeadTime
       case ProductMigration2025N4 => ProductMigration2025N4Migration.minLeadTime
       case Membership2025         => Membership2025Migration.minLeadTime
@@ -464,7 +447,6 @@ object NotificationHandler extends CohortHandler {
     // that we are only delivery in the UK.
     MigrationType(cohortSpec) match {
       case Newspaper2025P1        => Right(address.country.getOrElse("United Kingdom"))
-      case HomeDelivery2025       => Right(address.country.getOrElse("United Kingdom"))
       case Newspaper2025P3        => Right(address.country.getOrElse("United Kingdom"))
       case ProductMigration2025N4 => Right(address.country.getOrElse(""))
       case Membership2025         => Right(address.country.getOrElse(""))

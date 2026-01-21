@@ -24,14 +24,6 @@ object NotificationHandlerHelper {
           )
         ).forall(identity)
       }
-      case HomeDelivery2025 => {
-        List(
-          assertNonTrivialValue(
-            "homedelivery2025_brand_title",
-            message.To.ContactAttributes.SubscriberAttributes.homedelivery2025_brand_title
-          )
-        ).forall(identity)
-      }
       case Newspaper2025P3 => {
         List(
           assertNonTrivialValue(

@@ -1,12 +1,5 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.migrations.{
-  GuardianWeekly2025Migration,
-  HomeDelivery2025Migration,
-  Newspaper2025P1Migration,
-  Newspaper2025P3Migration,
-  ProductMigration2025N4Migration
-}
 import pricemigrationengine.model.CohortTableFilter.{EstimationComplete, SalesforcePriceRiseCreationComplete}
 import pricemigrationengine.model._
 import pricemigrationengine.services._
