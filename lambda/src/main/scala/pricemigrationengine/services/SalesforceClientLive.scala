@@ -175,6 +175,9 @@ object SalesforceClientLive {
           val request =
             basicRequest
               .patch(
+                // Note the use of unsafeParse here. The interpolated string is the correct url
+                // but `.patch` requires a URI and `Uri(string)` performs escaping. To avoid that
+                // we use the `unsafeParse` variant
                 Uri.unsafeParse(
                   s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/$priceRiseId"
                 )
