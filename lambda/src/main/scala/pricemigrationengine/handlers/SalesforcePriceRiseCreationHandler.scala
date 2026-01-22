@@ -102,7 +102,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
       DynamoDBZIOLive.impl,
       DynamoDBClientLive.impl,
       CohortTableLive.impl(input),
-      SalesforceClientLive.impl
+      SalesforceClientLive.impl,
     )
   }
 }
