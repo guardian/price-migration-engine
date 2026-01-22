@@ -175,7 +175,9 @@ object SalesforceClientLive {
           val request =
             basicRequest
               .patch(
-                Uri(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/$priceRiseId")
+                Uri.unsafeParse(
+                  s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/$priceRiseId"
+                )
               )
               .body(serialisePriceRise(priceRise))
               .header("Authorization", s"Bearer ${auth.access_token}")
