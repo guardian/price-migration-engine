@@ -15,10 +15,11 @@ import zio.{IO, ZIO, ZLayer}
 import pricemigrationengine.model.OptionReader
 import pricemigrationengine.model.OptionWriter
 import pricemigrationengine.services
-
 import sttp.client4._
 import sttp.client4.Backend
 import sttp.client4.httpclient.zio.HttpClientZioBackend
+import sttp.model.Uri
+
 import scala.concurrent.duration._
 import zio.Task
 
@@ -174,7 +175,7 @@ object SalesforceClientLive {
           val request =
             basicRequest
               .patch(
-                uri"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/$priceRiseId"
+                Uri(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/$priceRiseId")
               )
               .body(serialisePriceRise(priceRise))
               .header("Authorization", s"Bearer ${auth.access_token}")
