@@ -16,7 +16,11 @@ import pricemigrationengine.model.OptionReader
 import pricemigrationengine.model.OptionWriter
 import pricemigrationengine.services
 
-import scala.concurrent.duration.{Duration, SECONDS}
+import sttp.client4._
+import sttp.client4.Backend
+import sttp.client4.httpclient.zio.HttpClientZioBackend
+import scala.concurrent.duration._
+import zio.Task
 
 object SalesforceClientLive {
 
@@ -37,9 +41,10 @@ object SalesforceClientLive {
       js => js.num // read as number
     )
 
-  private val timeout = Duration(30, SECONDS).toMillis.toInt
-  private val connTimeout = HttpOptions.connTimeout(timeout)
-  private val readTimeout = HttpOptions.readTimeout(timeout)
+  private val requestTimeout: Duration = 30.seconds
+  private val scalajTimeoutMs = 30.seconds.toMillis.toInt
+  private val connTimeout = HttpOptions.connTimeout(scalajTimeoutMs)
+  private val readTimeout = HttpOptions.readTimeout(scalajTimeoutMs)
 
   private val salesforceApiPathPrefixToVersion = "services/data/v60.0"
 
@@ -58,6 +63,42 @@ object SalesforceClientLive {
         if ((response.code / 100) == 2) { ZIO.succeed(response) }
         else { ZIO.fail(SalesforceClientFailure(failureMessage(request, response))) }
     } yield valid200Response
+
+  val sttpBackendLayer: ZLayer[Any, Throwable, Backend[Task]] =
+    ZLayer.scoped {
+      HttpClientZioBackend.scoped()
+    }
+
+  private def sendRequestSttpClient4(
+      request: Request[String]
+  ): ZIO[Backend[Task], SalesforceClientFailure, Response[String]] =
+    for {
+      backend <- ZIO.service[Backend[Task]]
+      response <- backend
+        .send(request)
+        .mapError(ex =>
+          SalesforceClientFailure(
+            s"Request for ${request.method} ${request.uri} failed: $ex"
+          )
+        )
+
+      _ <-
+        if (response.code.isSuccess)
+          ZIO.unit
+        else
+          ZIO.fail(
+            SalesforceClientFailure(
+              s"""
+                 |(error: 4d8d6c12)
+                 |Salesforce request failed
+                 |Method: ${request.method}
+                 |URI: ${request.uri}
+                 |Status: ${response.code}
+                 |Body: ${response.body}
+                 |""".stripMargin
+            )
+          )
+    } yield response
 
   private def sendRequestAndParseResponse[A](request: HttpRequest)(implicit reader: Reader[A]) =
     for {
@@ -129,14 +170,30 @@ object SalesforceClientLive {
             priceRiseId: String,
             priceRise: SalesforcePriceRise
         ): IO[SalesforceClientFailure, Unit] = {
-          sendRequest(
-            Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/$priceRiseId")
-              .postData(serialisePriceRise(priceRise))
-              .method("PATCH")
+
+          val request =
+            basicRequest
+              .patch(
+                uri"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/$priceRiseId"
+              )
+              .body(serialisePriceRise(priceRise))
               .header("Authorization", s"Bearer ${auth.access_token}")
-              .header("Content-Type", "application/json")
-          ).unit
-        } <* logging.info(s"[bb7d65d1] Successfully updated Price_Rise__c object, priceRiseId: ${priceRiseId}")
+              .contentType("application/json")
+              .response(asStringAlways)
+              .readTimeout(requestTimeout)
+
+          sendRequestSttpClient4(request)
+            .provideSomeLayer(
+              sttpBackendLayer.mapError { throwable =>
+                SalesforceClientFailure(
+                  s"Failed to initialize HTTP backend: ${throwable.getMessage}"
+                )
+              }
+            )
+            .unit
+            .tapError(failure => logging.error(s"[bb7d65d1] Failed to update Price_Rise__c object: $failure"))
+            .tap(_ => logging.info(s"[bb7d65d1] Successfully updated Price_Rise__c object, priceRiseId: $priceRiseId"))
+        }
 
         override def getPriceRise(priceRiseId: String): IO[SalesforceClientFailure, SalesforcePriceRise] =
           sendRequestAndParseResponse[SalesforcePriceRise](
