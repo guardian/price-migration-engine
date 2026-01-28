@@ -220,7 +220,7 @@ object SalesforceClientLive {
         override def getPriceRise(priceRiseId: String): IO[SalesforceClientFailure, SalesforcePriceRise] = {
 
           val request = basicRequest
-            .patch(
+            .get(
               // Note the use of unsafeParse here. The interpolated string is the correct url
               // but `.patch` requires a URI and `Uri(string)` performs escaping. To avoid that
               // we use the `unsafeParse` variant
