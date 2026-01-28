@@ -18,6 +18,7 @@ import pricemigrationengine.services
 import sttp.client4._
 import sttp.client4.Backend
 import sttp.client4.httpclient.zio.HttpClientZioBackend
+import sttp.client4.httpclient.zio._
 import sttp.model.Uri
 
 import scala.concurrent.duration._
@@ -49,13 +50,13 @@ object SalesforceClientLive {
 
   private val salesforceApiPathPrefixToVersion = "services/data/v60.0"
 
+  // old utilities
+
   private def requestAsMessage(request: HttpRequest) =
     s"${request.method} ${request.url}"
 
   private def failureMessage(request: HttpRequest, response: HttpResponse[String]) =
     requestAsMessage(request) + s" returned status ${response.code} with body:${response.body}"
-
-  // old utilities
 
   private def sendRequest_old(request: HttpRequest) =
     for {
@@ -79,41 +80,57 @@ object SalesforceClientLive {
 
   // new utilities
 
-  val sttpBackendLayer: ZLayer[Any, Throwable, Backend[Task]] =
-    ZLayer.scoped {
-      HttpClientZioBackend.scoped()
-    }
-
   private def performRequestSttpClient4(
       request: Request[String]
-  ): ZIO[Backend[Task], SalesforceClientFailure, Response[String]] = {
-    for {
-      backend <- ZIO.service[Backend[Task]]
-      response <- backend
-        .send(request)
-        .mapError(ex =>
-          SalesforceClientFailure(
-            s"Request for ${request.method} ${request.uri} failed: $ex"
-          )
-        )
-
-      _ <-
-        if (response.code.isSuccess)
-          ZIO.unit
-        else
-          ZIO.fail(
+  ): ZIO[Any, SalesforceClientFailure, Response[String]] = {
+    ZIO.scoped {
+      for {
+        backend <- HttpClientZioBackend
+          .scoped()
+          .mapError(ex =>
             SalesforceClientFailure(
-              s"""
-                 |(error: 4d8d6c12)
-                 |Salesforce request failed
-                 |Method: ${request.method}
-                 |URI: ${request.uri}
-                 |Status: ${response.code}
-                 |Body: ${response.body}
-                 |""".stripMargin
+              s"Failed to create STTP backend: $ex"
             )
           )
-    } yield response
+        response <- backend
+          .send(request)
+          .mapError(ex =>
+            SalesforceClientFailure(
+              s"Request for ${request.method} ${request.uri} failed: $ex"
+            )
+          )
+
+        _ <-
+          if (response.code.isSuccess)
+            ZIO.unit
+          else
+            ZIO.fail(
+              SalesforceClientFailure(
+                s"""
+                   |(error: 4d8d6c12)
+                   |Salesforce request failed
+                   |Method: ${request.method}
+                   |URI: ${request.uri}
+                   |Status: ${response.code}
+                   |Body: ${response.body}
+                   |""".stripMargin
+              )
+            )
+      } yield response
+    }
+  }
+
+  private def performRequestAndParseAnswer[A](
+      request: Request[String]
+  )(implicit reader: Reader[A]): ZIO[Any, SalesforceClientFailure, A] = {
+    for {
+      successfulResponse <- performRequestSttpClient4(request)
+      body = successfulResponse.body
+      _ <- ZIO.logInfo(s"[66412c75] successful response body: ${body}")
+      parsedResponse <- ZIO
+        .attempt(read[A](body))
+        .mapError(ex => SalesforceClientFailure(s"[de6f48da] failed to deserialise: ${body}, error: ${ex}"))
+    } yield parsedResponse
   }
 
   // Layer
@@ -195,29 +212,35 @@ object SalesforceClientLive {
               .response(asStringAlways)
               .readTimeout(requestTimeout)
 
-          performRequestSttpClient4(request)
-            .provideSomeLayer(
-              sttpBackendLayer.mapError { throwable =>
-                SalesforceClientFailure(
-                  s"Failed to initialize HTTP backend: ${throwable.getMessage}"
-                )
-              }
-            )
-            .unit
+          performRequestSttpClient4(request).unit
             .tapError(failure => logging.error(s"[bb7d65d1] Failed to update Price_Rise__c object: $failure"))
             .tap(_ => logging.info(s"[bb7d65d1] Successfully updated Price_Rise__c object, priceRiseId: $priceRiseId"))
         }
 
-        override def getPriceRise(priceRiseId: String): IO[SalesforceClientFailure, SalesforcePriceRise] =
-          sendRequestAndParseResponse_old[SalesforcePriceRise](
-            Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/${priceRiseId}")
-              .header("Authorization", s"Bearer ${auth.access_token}")
-              .method("GET")
-          ).tap(priceRise =>
-            logging.info(
-              s"[774f676b] Successfully retrieved Salesforce price rise object, priceRiseId: ${priceRiseId}, priceRise: ${priceRise}"
+        override def getPriceRise(priceRiseId: String): IO[SalesforceClientFailure, SalesforcePriceRise] = {
+
+          val request = basicRequest
+            .patch(
+              // Note the use of unsafeParse here. The interpolated string is the correct url
+              // but `.patch` requires a URI and `Uri(string)` performs escaping. To avoid that
+              // we use the `unsafeParse` variant
+              Uri.unsafeParse(
+                s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/${priceRiseId}"
+              )
             )
-          )
+            .header("Authorization", s"Bearer ${auth.access_token}")
+            .contentType("application/json")
+            .response(asStringAlways)
+            .readTimeout(requestTimeout)
+
+          for {
+            priceRise <- performRequestAndParseAnswer[SalesforcePriceRise](request).tap(priceRise =>
+              logging.info(
+                s"[774f676b] Successfully retrieved Salesforce price rise object, priceRiseId: ${priceRiseId}, priceRise: ${priceRise}"
+              )
+            )
+          } yield priceRise
+        }
 
       }
     }
