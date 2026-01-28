@@ -133,6 +133,13 @@ object SalesforceClientLive {
     } yield parsedResponse
   }
 
+  private def makeURI(url: String): Uri = {
+    // Note the use of unsafeParse here. The interpolated string is the correct url
+    // but `.patch` requires a URI and `Uri(string)` performs escaping. To avoid that
+    // we use the `unsafeParse` variant
+    Uri.unsafeParse(url)
+  }
+
   // Layer
 
   val impl: ZLayer[SalesforceConfig with Logging, SalesforceClientFailure, SalesforceClient] =
@@ -199,10 +206,7 @@ object SalesforceClientLive {
           val request =
             basicRequest
               .patch(
-                // Note the use of unsafeParse here. The interpolated string is the correct url
-                // but `.patch` requires a URI and `Uri(string)` performs escaping. To avoid that
-                // we use the `unsafeParse` variant
-                Uri.unsafeParse(
+                makeURI(
                   s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/$priceRiseId"
                 )
               )
@@ -221,12 +225,7 @@ object SalesforceClientLive {
 
           val request = basicRequest
             .get(
-              // Note the use of unsafeParse here. The interpolated string is the correct url
-              // but `.patch` requires a URI and `Uri(string)` performs escaping. To avoid that
-              // we use the `unsafeParse` variant
-              Uri.unsafeParse(
-                s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/${priceRiseId}"
-              )
+              makeURI(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/${priceRiseId}")
             )
             .header("Authorization", s"Bearer ${auth.access_token}")
             .contentType("application/json")
