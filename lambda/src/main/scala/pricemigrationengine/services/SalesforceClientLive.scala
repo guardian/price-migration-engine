@@ -55,7 +55,9 @@ object SalesforceClientLive {
   private def failureMessage(request: HttpRequest, response: HttpResponse[String]) =
     requestAsMessage(request) + s" returned status ${response.code} with body:${response.body}"
 
-  private def sendRequest(request: HttpRequest) =
+  // old utilities
+
+  private def sendRequest_old(request: HttpRequest) =
     for {
       response <- ZIO
         .attempt(request.option(connTimeout).option(readTimeout).asString)
@@ -64,6 +66,18 @@ object SalesforceClientLive {
         if ((response.code / 100) == 2) { ZIO.succeed(response) }
         else { ZIO.fail(SalesforceClientFailure(failureMessage(request, response))) }
     } yield valid200Response
+
+  private def sendRequestAndParseResponse_old[A](request: HttpRequest)(implicit reader: Reader[A]) =
+    for {
+      valid200Response <- sendRequest_old(request)
+      body = valid200Response.body
+      _ <- ZIO.logInfo(s"[5b58d83c] Salesforce GET body: ${body}")
+      parsedResponse <- ZIO
+        .attempt(read[A](body))
+        .mapError(ex => SalesforceClientFailure(s"${requestAsMessage(request)} failed to deserialise: $ex"))
+    } yield parsedResponse
+
+  // new utilities
 
   val sttpBackendLayer: ZLayer[Any, Throwable, Backend[Task]] =
     ZLayer.scoped {
@@ -101,21 +115,13 @@ object SalesforceClientLive {
           )
     } yield response
 
-  private def sendRequestAndParseResponse[A](request: HttpRequest)(implicit reader: Reader[A]) =
-    for {
-      valid200Response <- sendRequest(request)
-      body = valid200Response.body
-      _ <- ZIO.logInfo(s"[5b58d83c] Salesforce GET body: ${body}")
-      parsedResponse <- ZIO
-        .attempt(read[A](body))
-        .mapError(ex => SalesforceClientFailure(s"${requestAsMessage(request)} failed to deserialise: $ex"))
-    } yield parsedResponse
+  // Layer
 
   val impl: ZLayer[SalesforceConfig with Logging, SalesforceClientFailure, SalesforceClient] =
     ZLayer.fromZIO {
 
       def auth(config: SalesforceConfig, logging: Logging) = {
-        sendRequestAndParseResponse[SalesforceAuthDetails](
+        sendRequestAndParseResponse_old[SalesforceAuthDetails](
           Http(s"${config.authUrl}/services/oauth2/token")
             .postForm(
               Seq(
@@ -140,7 +146,7 @@ object SalesforceClientLive {
         override def getSubscriptionByName(
             subscriptionName: String
         ): IO[SalesforceClientFailure, SalesforceSubscription] =
-          sendRequestAndParseResponse[SalesforceSubscription](
+          sendRequestAndParseResponse_old[SalesforceSubscription](
             Http(
               s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/SF_Subscription__c/Name/$subscriptionName"
             )
@@ -151,7 +157,7 @@ object SalesforceClientLive {
           )
 
         override def getContact(contactId: String): IO[SalesforceClientFailure, SalesforceContact] =
-          sendRequestAndParseResponse[SalesforceContact](
+          sendRequestAndParseResponse_old[SalesforceContact](
             Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Contact/$contactId")
               .header("Authorization", s"Bearer ${auth.access_token}")
               .method("GET")
@@ -160,7 +166,7 @@ object SalesforceClientLive {
         override def createPriceRise(
             priceRise: SalesforcePriceRise
         ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] =
-          sendRequestAndParseResponse[SalesforcePriceRiseCreationResponse](
+          sendRequestAndParseResponse_old[SalesforcePriceRiseCreationResponse](
             Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/")
               .postData(serialisePriceRise(priceRise))
               .header("Authorization", s"Bearer ${auth.access_token}")
@@ -202,7 +208,7 @@ object SalesforceClientLive {
         }
 
         override def getPriceRise(priceRiseId: String): IO[SalesforceClientFailure, SalesforcePriceRise] =
-          sendRequestAndParseResponse[SalesforcePriceRise](
+          sendRequestAndParseResponse_old[SalesforcePriceRise](
             Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/${priceRiseId}")
               .header("Authorization", s"Bearer ${auth.access_token}")
               .method("GET")
