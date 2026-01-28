@@ -84,9 +84,9 @@ object SalesforceClientLive {
       HttpClientZioBackend.scoped()
     }
 
-  private def sendRequestSttpClient4(
+  private def performRequestSttpClient4(
       request: Request[String]
-  ): ZIO[Backend[Task], SalesforceClientFailure, Response[String]] =
+  ): ZIO[Backend[Task], SalesforceClientFailure, Response[String]] = {
     for {
       backend <- ZIO.service[Backend[Task]]
       response <- backend
@@ -114,6 +114,7 @@ object SalesforceClientLive {
             )
           )
     } yield response
+  }
 
   // Layer
 
@@ -194,7 +195,7 @@ object SalesforceClientLive {
               .response(asStringAlways)
               .readTimeout(requestTimeout)
 
-          sendRequestSttpClient4(request)
+          performRequestSttpClient4(request)
             .provideSomeLayer(
               sttpBackendLayer.mapError { throwable =>
                 SalesforceClientFailure(
