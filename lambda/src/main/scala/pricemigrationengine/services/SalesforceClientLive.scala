@@ -66,7 +66,7 @@ object SalesforceClientLive {
         else { ZIO.fail(SalesforceClientFailure(failureMessage(request, response))) }
     } yield valid200Response
 
-  private def sendRequestSttpClient4(
+  private def performRequestSttpClient4(
       request: Request[String]
   ): ZIO[Any, SalesforceClientFailure, Response[String]] =
     ZIO.scoped {
@@ -192,7 +192,7 @@ object SalesforceClientLive {
               .response(asStringAlways)
               .readTimeout(requestTimeout)
 
-          sendRequestSttpClient4(request).unit
+          performRequestSttpClient4(request).unit
             .tapError(failure => logging.error(s"[bb7d65d1] Failed to update Price_Rise__c object: $failure"))
             .tap(_ => logging.info(s"[bb7d65d1] Successfully updated Price_Rise__c object, priceRiseId: $priceRiseId"))
         }
