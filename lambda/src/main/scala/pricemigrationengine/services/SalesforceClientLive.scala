@@ -18,6 +18,7 @@ import pricemigrationengine.services
 import sttp.client4._
 import sttp.client4.Backend
 import sttp.client4.httpclient.zio.HttpClientZioBackend
+import sttp.client4.httpclient.zio._
 import sttp.model.Uri
 
 import scala.concurrent.duration._
@@ -55,7 +56,7 @@ object SalesforceClientLive {
   private def failureMessage(request: HttpRequest, response: HttpResponse[String]) =
     requestAsMessage(request) + s" returned status ${response.code} with body:${response.body}"
 
-  private def sendRequest(request: HttpRequest) =
+  private def sendRequest_old(request: HttpRequest) =
     for {
       response <- ZIO
         .attempt(request.option(connTimeout).option(readTimeout).asString)
@@ -65,45 +66,48 @@ object SalesforceClientLive {
         else { ZIO.fail(SalesforceClientFailure(failureMessage(request, response))) }
     } yield valid200Response
 
-  val sttpBackendLayer: ZLayer[Any, Throwable, Backend[Task]] =
-    ZLayer.scoped {
-      HttpClientZioBackend.scoped()
-    }
-
   private def sendRequestSttpClient4(
       request: Request[String]
-  ): ZIO[Backend[Task], SalesforceClientFailure, Response[String]] =
-    for {
-      backend <- ZIO.service[Backend[Task]]
-      response <- backend
-        .send(request)
-        .mapError(ex =>
-          SalesforceClientFailure(
-            s"Request for ${request.method} ${request.uri} failed: $ex"
-          )
-        )
-
-      _ <-
-        if (response.code.isSuccess)
-          ZIO.unit
-        else
-          ZIO.fail(
+  ): ZIO[Any, SalesforceClientFailure, Response[String]] =
+    ZIO.scoped {
+      for {
+        backend <- HttpClientZioBackend
+          .scoped()
+          .mapError(ex =>
             SalesforceClientFailure(
-              s"""
-                 |(error: 4d8d6c12)
-                 |Salesforce request failed
-                 |Method: ${request.method}
-                 |URI: ${request.uri}
-                 |Status: ${response.code}
-                 |Body: ${response.body}
-                 |""".stripMargin
+              s"Failed to create STTP backend: $ex"
             )
           )
-    } yield response
+        response <- backend
+          .send(request)
+          .mapError(ex =>
+            SalesforceClientFailure(
+              s"Request for ${request.method} ${request.uri} failed: $ex"
+            )
+          )
 
-  private def sendRequestAndParseResponse[A](request: HttpRequest)(implicit reader: Reader[A]) =
+        _ <-
+          if (response.code.isSuccess)
+            ZIO.unit
+          else
+            ZIO.fail(
+              SalesforceClientFailure(
+                s"""
+                   |(error: 4d8d6c12)
+                   |Salesforce request failed
+                   |Method: ${request.method}
+                   |URI: ${request.uri}
+                   |Status: ${response.code}
+                   |Body: ${response.body}
+                   |""".stripMargin
+              )
+            )
+      } yield response
+    }
+
+  private def sendRequestAndParseResponse_old[A](request: HttpRequest)(implicit reader: Reader[A]) =
     for {
-      valid200Response <- sendRequest(request)
+      valid200Response <- sendRequest_old(request)
       body = valid200Response.body
       _ <- ZIO.logInfo(s"[5b58d83c] Salesforce GET body: ${body}")
       parsedResponse <- ZIO
@@ -115,7 +119,7 @@ object SalesforceClientLive {
     ZLayer.fromZIO {
 
       def auth(config: SalesforceConfig, logging: Logging) = {
-        sendRequestAndParseResponse[SalesforceAuthDetails](
+        sendRequestAndParseResponse_old[SalesforceAuthDetails](
           Http(s"${config.authUrl}/services/oauth2/token")
             .postForm(
               Seq(
@@ -140,7 +144,7 @@ object SalesforceClientLive {
         override def getSubscriptionByName(
             subscriptionName: String
         ): IO[SalesforceClientFailure, SalesforceSubscription] =
-          sendRequestAndParseResponse[SalesforceSubscription](
+          sendRequestAndParseResponse_old[SalesforceSubscription](
             Http(
               s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/SF_Subscription__c/Name/$subscriptionName"
             )
@@ -151,7 +155,7 @@ object SalesforceClientLive {
           )
 
         override def getContact(contactId: String): IO[SalesforceClientFailure, SalesforceContact] =
-          sendRequestAndParseResponse[SalesforceContact](
+          sendRequestAndParseResponse_old[SalesforceContact](
             Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Contact/$contactId")
               .header("Authorization", s"Bearer ${auth.access_token}")
               .method("GET")
@@ -160,7 +164,7 @@ object SalesforceClientLive {
         override def createPriceRise(
             priceRise: SalesforcePriceRise
         ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] =
-          sendRequestAndParseResponse[SalesforcePriceRiseCreationResponse](
+          sendRequestAndParseResponse_old[SalesforcePriceRiseCreationResponse](
             Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/")
               .postData(serialisePriceRise(priceRise))
               .header("Authorization", s"Bearer ${auth.access_token}")
@@ -188,21 +192,13 @@ object SalesforceClientLive {
               .response(asStringAlways)
               .readTimeout(requestTimeout)
 
-          sendRequestSttpClient4(request)
-            .provideSomeLayer(
-              sttpBackendLayer.mapError { throwable =>
-                SalesforceClientFailure(
-                  s"Failed to initialize HTTP backend: ${throwable.getMessage}"
-                )
-              }
-            )
-            .unit
+          sendRequestSttpClient4(request).unit
             .tapError(failure => logging.error(s"[bb7d65d1] Failed to update Price_Rise__c object: $failure"))
             .tap(_ => logging.info(s"[bb7d65d1] Successfully updated Price_Rise__c object, priceRiseId: $priceRiseId"))
         }
 
         override def getPriceRise(priceRiseId: String): IO[SalesforceClientFailure, SalesforcePriceRise] =
-          sendRequestAndParseResponse[SalesforcePriceRise](
+          sendRequestAndParseResponse_old[SalesforcePriceRise](
             Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/${priceRiseId}")
               .header("Authorization", s"Bearer ${auth.access_token}")
               .method("GET")
