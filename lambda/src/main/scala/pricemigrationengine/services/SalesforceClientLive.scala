@@ -50,6 +50,8 @@ object SalesforceClientLive {
 
   private val salesforceApiPathPrefixToVersion = "services/data/v60.0"
 
+  // old utilities
+
   private def requestAsMessage(request: HttpRequest) =
     s"${request.method} ${request.url}"
 
@@ -65,6 +67,18 @@ object SalesforceClientLive {
         if ((response.code / 100) == 2) { ZIO.succeed(response) }
         else { ZIO.fail(SalesforceClientFailure(failureMessage(request, response))) }
     } yield valid200Response
+
+  private def sendRequestAndParseResponse_old[A](request: HttpRequest)(implicit reader: Reader[A]) =
+    for {
+      valid200Response <- sendRequest_old(request)
+      body = valid200Response.body
+      _ <- ZIO.logInfo(s"[5b58d83c] Salesforce GET body: ${body}")
+      parsedResponse <- ZIO
+        .attempt(read[A](body))
+        .mapError(ex => SalesforceClientFailure(s"${requestAsMessage(request)} failed to deserialise: $ex"))
+    } yield parsedResponse
+
+  // new utilities
 
   private def performRequestSttpClient4(
       request: Request[String]
@@ -104,16 +118,6 @@ object SalesforceClientLive {
             )
       } yield response
     }
-
-  private def sendRequestAndParseResponse_old[A](request: HttpRequest)(implicit reader: Reader[A]) =
-    for {
-      valid200Response <- sendRequest_old(request)
-      body = valid200Response.body
-      _ <- ZIO.logInfo(s"[5b58d83c] Salesforce GET body: ${body}")
-      parsedResponse <- ZIO
-        .attempt(read[A](body))
-        .mapError(ex => SalesforceClientFailure(s"${requestAsMessage(request)} failed to deserialise: $ex"))
-    } yield parsedResponse
 
   val impl: ZLayer[SalesforceConfig with Logging, SalesforceClientFailure, SalesforceClient] =
     ZLayer.fromZIO {
