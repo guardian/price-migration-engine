@@ -241,7 +241,6 @@ object SalesforceClientLive {
             )
           } yield priceRise
         }
-
       }
     }
 
