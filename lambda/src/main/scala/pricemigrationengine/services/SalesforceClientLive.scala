@@ -9,20 +9,15 @@ import pricemigrationengine.model.{
   SalesforcePriceRise,
   SalesforceSubscription
 }
-import scalaj.http.{Http, HttpOptions, HttpRequest, HttpResponse}
+
 import upickle.default._
 import zio.{IO, ZIO, ZLayer}
-import pricemigrationengine.model.OptionReader
-import pricemigrationengine.model.OptionWriter
 import pricemigrationengine.services
 import sttp.client4._
-import sttp.client4.Backend
 import sttp.client4.httpclient.zio.HttpClientZioBackend
-import sttp.client4.httpclient.zio._
 import sttp.model.Uri
 
 import scala.concurrent.duration._
-import zio.Task
 
 object SalesforceClientLive {
 
@@ -37,6 +32,7 @@ object SalesforceClientLive {
   implicit private val salesforceAddressRW: ReadWriter[SalesforceAddress] = macroRW
   implicit private val salesforceContactRW: ReadWriter[SalesforceContact] = macroRW
 
+  // Do not remove this:
   implicit private val bigDecimalRW: ReadWriter[BigDecimal] =
     readwriter[ujson.Value].bimap[BigDecimal](
       bd => ujson.Num(bd.toDouble), // write
@@ -44,41 +40,8 @@ object SalesforceClientLive {
     )
 
   private val requestTimeout: Duration = 30.seconds
-  private val scalajTimeoutMs = 30.seconds.toMillis.toInt
-  private val connTimeout = HttpOptions.connTimeout(scalajTimeoutMs)
-  private val readTimeout = HttpOptions.readTimeout(scalajTimeoutMs)
 
   private val salesforceApiPathPrefixToVersion = "services/data/v60.0"
-
-  // old utilities
-
-  private def requestAsMessage(request: HttpRequest) =
-    s"${request.method} ${request.url}"
-
-  private def failureMessage(request: HttpRequest, response: HttpResponse[String]) =
-    requestAsMessage(request) + s" returned status ${response.code} with body:${response.body}"
-
-  private def sendRequest_old(request: HttpRequest) =
-    for {
-      response <- ZIO
-        .attempt(request.option(connTimeout).option(readTimeout).asString)
-        .mapError(ex => SalesforceClientFailure(s"Request for ${requestAsMessage(request)} failed: $ex"))
-      valid200Response <-
-        if ((response.code / 100) == 2) { ZIO.succeed(response) }
-        else { ZIO.fail(SalesforceClientFailure(failureMessage(request, response))) }
-    } yield valid200Response
-
-  private def sendRequestAndParseResponse_old[A](request: HttpRequest)(implicit reader: Reader[A]) =
-    for {
-      valid200Response <- sendRequest_old(request)
-      body = valid200Response.body
-      _ <- ZIO.logInfo(s"[5b58d83c] Salesforce GET body: ${body}")
-      parsedResponse <- ZIO
-        .attempt(read[A](body))
-        .mapError(ex => SalesforceClientFailure(s"${requestAsMessage(request)} failed to deserialise: $ex"))
-    } yield parsedResponse
-
-  // new utilities
 
   private def performRequestSttpClient4(
       request: Request[String]
@@ -145,11 +108,14 @@ object SalesforceClientLive {
   val impl: ZLayer[SalesforceConfig with Logging, SalesforceClientFailure, SalesforceClient] =
     ZLayer.fromZIO {
 
-      def auth(config: SalesforceConfig, logging: Logging) = {
-        sendRequestAndParseResponse_old[SalesforceAuthDetails](
-          Http(s"${config.authUrl}/services/oauth2/token")
-            .postForm(
-              Seq(
+      def auth(config: SalesforceConfig, logging: Logging): IO[SalesforceClientFailure, SalesforceAuthDetails] = {
+        val request =
+          basicRequest
+            .post(
+              makeURI(s"${config.authUrl}/services/oauth2/token")
+            )
+            .body(
+              Map(
                 "grant_type" -> "password",
                 "client_id" -> config.clientId,
                 "client_secret" -> config.clientSecret,
@@ -157,10 +123,16 @@ object SalesforceClientLive {
                 "password" -> s"${config.password}${config.token}"
               )
             )
-        )
-      } <* logging.info(
-        s"[c6f8f9f7] Authenticated with salesforce using user:${config.userName} and client: ${config.clientId}"
-      )
+            .contentType("application/x-www-form-urlencoded")
+            .response(asStringAlways)
+
+        for {
+          authorization <- performRequestAndParseAnswer[SalesforceAuthDetails](request)
+          _ <- logging.info(
+            s"[c6f8f9f7] Authenticated with salesforce using user:${config.userName} and client: ${config.clientId}"
+          )
+        } yield authorization
+      }
 
       for {
         config <- ZIO.service[SalesforceConfig]
