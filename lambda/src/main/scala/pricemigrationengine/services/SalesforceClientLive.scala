@@ -170,39 +170,71 @@ object SalesforceClientLive {
 
         override def getSubscriptionByName(
             subscriptionName: String
-        ): IO[SalesforceClientFailure, SalesforceSubscription] =
-          sendRequestAndParseResponse_old[SalesforceSubscription](
-            Http(
-              s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/SF_Subscription__c/Name/$subscriptionName"
+        ): IO[SalesforceClientFailure, SalesforceSubscription] = {
+          val request = basicRequest
+            .get(
+              makeURI(
+                s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/SF_Subscription__c/Name/$subscriptionName"
+              )
             )
-              .header("Authorization", s"Bearer ${auth.access_token}")
-              .method("GET")
-          ).tap(subscription =>
-            logging.info(s"[ce8f4177] Successfully loaded subscription ${subscription.Name} from Salesforce")
-          )
+            .header("Authorization", s"Bearer ${auth.access_token}")
+            .contentType("application/json")
+            .response(asStringAlways)
+            .readTimeout(requestTimeout)
 
-        override def getContact(contactId: String): IO[SalesforceClientFailure, SalesforceContact] =
-          sendRequestAndParseResponse_old[SalesforceContact](
-            Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Contact/$contactId")
-              .header("Authorization", s"Bearer ${auth.access_token}")
-              .method("GET")
-          ).tap(contact => logging.info(s"[0309af88] Successfully loaded contact: ${contact.Id}"))
+          for {
+            subscription <- performRequestAndParseAnswer[SalesforceSubscription](request).tap(subscription =>
+              logging.info(s"[ce8f4177] Successfully loaded subscription ${subscription.Name} from Salesforce")
+            )
+          } yield subscription
+        }
+
+        override def getContact(contactId: String): IO[SalesforceClientFailure, SalesforceContact] = {
+          val request = basicRequest
+            .get(
+              makeURI(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Contact/$contactId")
+            )
+            .header("Authorization", s"Bearer ${auth.access_token}")
+            .contentType("application/json")
+            .response(asStringAlways)
+            .readTimeout(requestTimeout)
+
+          for {
+            contact <- performRequestAndParseAnswer[SalesforceContact](request).tap(contact =>
+              logging.info(s"[0309af88] Successfully loaded contact: ${contact.Id}")
+            )
+          } yield contact
+        }
 
         override def createPriceRise(
             priceRise: SalesforcePriceRise
-        ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] =
-          sendRequestAndParseResponse_old[SalesforcePriceRiseCreationResponse](
-            Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/")
-              .postData(serialisePriceRise(priceRise))
+        ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] = {
+          val request =
+            basicRequest
+              .post(
+                makeURI(
+                  s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/"
+                )
+              )
+              .body(serialisePriceRise(priceRise))
               .header("Authorization", s"Bearer ${auth.access_token}")
-              .header("Content-Type", "application/json")
-          ).tap(priceRiseId => logging.info(s"[e3e340a7] Successfully created Price_Rise__c object: ${priceRiseId.id}"))
+              .contentType("application/json")
+              .response(asStringAlways)
+              .readTimeout(requestTimeout)
+
+          for {
+            priceRise <- performRequestAndParseAnswer[SalesforcePriceRiseCreationResponse](request).tap(priceRise =>
+              logging.info(
+                s"[e3e340a7] Successfully created Price_Rise__c object: ${priceRise.id}"
+              )
+            )
+          } yield priceRise
+        }
 
         override def updatePriceRise(
             priceRiseId: String,
             priceRise: SalesforcePriceRise
         ): IO[SalesforceClientFailure, Unit] = {
-
           val request =
             basicRequest
               .patch(
@@ -222,7 +254,6 @@ object SalesforceClientLive {
         }
 
         override def getPriceRise(priceRiseId: String): IO[SalesforceClientFailure, SalesforcePriceRise] = {
-
           val request = basicRequest
             .get(
               makeURI(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/${priceRiseId}")
