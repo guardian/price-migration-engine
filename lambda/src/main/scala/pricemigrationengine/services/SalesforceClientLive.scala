@@ -82,7 +82,7 @@ object SalesforceClientLive {
 
   private def performRequestSttpClient4(
       request: Request[String]
-  ): ZIO[Any, SalesforceClientFailure, Response[String]] =
+  ): ZIO[Any, SalesforceClientFailure, Response[String]] = {
     ZIO.scoped {
       for {
         backend <- HttpClientZioBackend
@@ -118,6 +118,29 @@ object SalesforceClientLive {
             )
       } yield response
     }
+  }
+
+  private def performRequestAndParseAnswer[A](
+      request: Request[String]
+  )(implicit reader: Reader[A]): ZIO[Any, SalesforceClientFailure, A] = {
+    for {
+      successfulResponse <- performRequestSttpClient4(request)
+      body = successfulResponse.body
+      _ <- ZIO.logInfo(s"[66412c75] successful response body: ${body}")
+      parsedResponse <- ZIO
+        .attempt(read[A](body))
+        .mapError(ex => SalesforceClientFailure(s"[de6f48da] failed to deserialise: ${body}, error: ${ex}"))
+    } yield parsedResponse
+  }
+
+  private def makeURI(url: String): Uri = {
+    // Note the use of unsafeParse here. The interpolated string is the correct url
+    // but `.patch` requires a URI and `Uri(string)` performs escaping. To avoid that
+    // we use the `unsafeParse` variant
+    Uri.unsafeParse(url)
+  }
+
+  // Layer
 
   val impl: ZLayer[SalesforceConfig with Logging, SalesforceClientFailure, SalesforceClient] =
     ZLayer.fromZIO {
@@ -183,10 +206,7 @@ object SalesforceClientLive {
           val request =
             basicRequest
               .patch(
-                // Note the use of unsafeParse here. The interpolated string is the correct url
-                // but `.patch` requires a URI and `Uri(string)` performs escaping. To avoid that
-                // we use the `unsafeParse` variant
-                Uri.unsafeParse(
+                makeURI(
                   s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/$priceRiseId"
                 )
               )
@@ -201,17 +221,25 @@ object SalesforceClientLive {
             .tap(_ => logging.info(s"[bb7d65d1] Successfully updated Price_Rise__c object, priceRiseId: $priceRiseId"))
         }
 
-        override def getPriceRise(priceRiseId: String): IO[SalesforceClientFailure, SalesforcePriceRise] =
-          sendRequestAndParseResponse_old[SalesforcePriceRise](
-            Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/${priceRiseId}")
-              .header("Authorization", s"Bearer ${auth.access_token}")
-              .method("GET")
-          ).tap(priceRise =>
-            logging.info(
-              s"[774f676b] Successfully retrieved Salesforce price rise object, priceRiseId: ${priceRiseId}, priceRise: ${priceRise}"
-            )
-          )
+        override def getPriceRise(priceRiseId: String): IO[SalesforceClientFailure, SalesforcePriceRise] = {
 
+          val request = basicRequest
+            .get(
+              makeURI(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/${priceRiseId}")
+            )
+            .header("Authorization", s"Bearer ${auth.access_token}")
+            .contentType("application/json")
+            .response(asStringAlways)
+            .readTimeout(requestTimeout)
+
+          for {
+            priceRise <- performRequestAndParseAnswer[SalesforcePriceRise](request).tap(priceRise =>
+              logging.info(
+                s"[774f676b] Successfully retrieved Salesforce price rise object, priceRiseId: ${priceRiseId}, priceRise: ${priceRise}"
+              )
+            )
+          } yield priceRise
+        }
       }
     }
 
