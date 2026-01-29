@@ -170,16 +170,24 @@ object SalesforceClientLive {
 
         override def getSubscriptionByName(
             subscriptionName: String
-        ): IO[SalesforceClientFailure, SalesforceSubscription] =
-          sendRequestAndParseResponse_old[SalesforceSubscription](
-            Http(
-              s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/SF_Subscription__c/Name/$subscriptionName"
+        ): IO[SalesforceClientFailure, SalesforceSubscription] = {
+          val request = basicRequest
+            .get(
+              makeURI(
+                s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/SF_Subscription__c/Name/$subscriptionName"
+              )
             )
-              .header("Authorization", s"Bearer ${auth.access_token}")
-              .method("GET")
-          ).tap(subscription =>
-            logging.info(s"[ce8f4177] Successfully loaded subscription ${subscription.Name} from Salesforce")
-          )
+            .header("Authorization", s"Bearer ${auth.access_token}")
+            .contentType("application/json")
+            .response(asStringAlways)
+            .readTimeout(requestTimeout)
+
+          for {
+            subscription <- performRequestAndParseAnswer[SalesforceSubscription](request).tap(subscription =>
+              logging.info(s"[ce8f4177] Successfully loaded subscription ${subscription.Name} from Salesforce")
+            )
+          } yield subscription
+        }
 
         override def getContact(contactId: String): IO[SalesforceClientFailure, SalesforceContact] = {
           val request = basicRequest
