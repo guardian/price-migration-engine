@@ -190,13 +190,28 @@ object SalesforceClientLive {
 
         override def createPriceRise(
             priceRise: SalesforcePriceRise
-        ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] =
-          sendRequestAndParseResponse_old[SalesforcePriceRiseCreationResponse](
-            Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/")
-              .postData(serialisePriceRise(priceRise))
+        ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] = {
+          val request =
+            basicRequest
+              .post(
+                makeURI(
+                  s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/"
+                )
+              )
+              .body(serialisePriceRise(priceRise))
               .header("Authorization", s"Bearer ${auth.access_token}")
-              .header("Content-Type", "application/json")
-          ).tap(priceRiseId => logging.info(s"[e3e340a7] Successfully created Price_Rise__c object: ${priceRiseId.id}"))
+              .contentType("application/json")
+              .response(asStringAlways)
+              .readTimeout(requestTimeout)
+
+          for {
+            priceRise <- performRequestAndParseAnswer[SalesforcePriceRiseCreationResponse](request).tap(priceRise =>
+              logging.info(
+                s"[e3e340a7] Successfully created Price_Rise__c object: ${priceRise.id}"
+              )
+            )
+          } yield priceRise
+        }
 
         override def updatePriceRise(
             priceRiseId: String,
