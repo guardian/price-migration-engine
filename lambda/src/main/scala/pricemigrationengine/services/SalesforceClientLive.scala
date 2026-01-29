@@ -181,12 +181,22 @@ object SalesforceClientLive {
             logging.info(s"[ce8f4177] Successfully loaded subscription ${subscription.Name} from Salesforce")
           )
 
-        override def getContact(contactId: String): IO[SalesforceClientFailure, SalesforceContact] =
-          sendRequestAndParseResponse_old[SalesforceContact](
-            Http(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Contact/$contactId")
-              .header("Authorization", s"Bearer ${auth.access_token}")
-              .method("GET")
-          ).tap(contact => logging.info(s"[0309af88] Successfully loaded contact: ${contact.Id}"))
+        override def getContact(contactId: String): IO[SalesforceClientFailure, SalesforceContact] = {
+          val request = basicRequest
+            .get(
+              makeURI(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Contact/$contactId")
+            )
+            .header("Authorization", s"Bearer ${auth.access_token}")
+            .contentType("application/json")
+            .response(asStringAlways)
+            .readTimeout(requestTimeout)
+
+          for {
+            contact <- performRequestAndParseAnswer[SalesforceContact](request).tap(contact =>
+              logging.info(s"[0309af88] Successfully loaded contact: ${contact.Id}")
+            )
+          } yield contact
+        }
 
         override def createPriceRise(
             priceRise: SalesforcePriceRise
@@ -217,7 +227,6 @@ object SalesforceClientLive {
             priceRiseId: String,
             priceRise: SalesforcePriceRise
         ): IO[SalesforceClientFailure, Unit] = {
-
           val request =
             basicRequest
               .patch(
@@ -237,7 +246,6 @@ object SalesforceClientLive {
         }
 
         override def getPriceRise(priceRiseId: String): IO[SalesforceClientFailure, SalesforcePriceRise] = {
-
           val request = basicRequest
             .get(
               makeURI(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/${priceRiseId}")
