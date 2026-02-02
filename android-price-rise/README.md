@@ -32,8 +32,6 @@ The first script, for instance, works as follows:
 - It reads in a CSV file with the new prices for each product_id/region (see testPriceRise.csv for an example).
 - For each product_id, it fetches the existing Rate Plan from the Google API. It then sends a modified version of this Rate Plan to the PATCH endpoint, based on the prices from the CSV.
 
-The first script output a file at a location specified by the user.
-
 Notes:
 
 - When we ran the scripts for the Android price rise in Feb 2025, the `regionsVersion.version` needed to be updated from being `2022/02` to `2025/01`. It is possible that the version might need to be updated in the future. If the script fails, the error message will indicate what value should be used.
@@ -60,11 +58,9 @@ $ yarn install
 
 ```
 INPUT_FILE_PATH=/path/to/datafile.csv \
-OUTPUT_FILE_PATH=/path/to/output.csv \
 yarn android-price-migration-p1 [--dry-run]
 
 INPUT_FILE_PATH=/path/to/datafile.csv \
-OUTPUT_FILE_PATH=/path/to/output.csv \
 yarn android-price-migration-p2 [--dry-run]
 ```
 

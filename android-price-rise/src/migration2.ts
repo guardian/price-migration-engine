@@ -9,9 +9,9 @@ const packageName = 'com.guardian';
 // productId is like this 'com.guardian.subscription.annual.14.freetrial'
 // basePlanId is like this 'p1m'
 
-const dataFilePath = process.env.FILE_PATH;
+const dataFilePath = process.env.INPUT_FILE_PATH;
 if (!dataFilePath) {
-  console.log('Missing FILE_PATH');
+  console.log('Missing INPUT_FILE_PATH');
   process.exit(1);
 }
 

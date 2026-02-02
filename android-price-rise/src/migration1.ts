@@ -1,6 +1,5 @@
 // Read the README.md for instructions on when and how to run this script.
 
-import fs from 'fs';
 import type { androidpublisher_v3 } from '@googleapis/androidpublisher';
 import { regionsThatAllowOptOut } from './getRegionsThatAllowOptOut';
 import { getClient } from './googleClient';
@@ -15,15 +14,7 @@ if (!inputDataFilePath) {
   process.exit(1);
 }
 
-const outputFilePath = process.env.OUTPUT_FILE_PATH;
-if (!outputFilePath) {
-  console.log('Missing OUTPUT_FILE_PATH');
-  process.exit(1);
-}
-
 const DRY_RUN = process.argv.includes('--dry-run');
-const writeStream = fs.createWriteStream(outputFilePath);
-writeStream.write('productId,regionCode,currency,oldPrice,newPrice,pcIncrease\n');
 if (DRY_RUN) {
   console.log('*****DRY RUN*****');
 }
@@ -133,7 +124,7 @@ const updateRegionalConfig = (
   return {
     ...regionalConfig,
     price: buildPrice(
-      currency,
+      priceDetails.currency,
       priceDetails.price,
     ),
   };
@@ -213,7 +204,4 @@ main()
     console.log('Error:');
     console.log(err);
     process.exitCode = 1;
-  })
-  .finally(() => {
-    writeStream.close();
   });
