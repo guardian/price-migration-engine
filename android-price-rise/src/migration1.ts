@@ -1,6 +1,5 @@
 // Read the README.md for instructions on when and how to run this script.
 
-import fs from 'fs';
 import type { androidpublisher_v3 } from '@googleapis/androidpublisher';
 import { regionsThatAllowOptOut } from './getRegionsThatAllowOptOut';
 import { getClient } from './googleClient';
@@ -15,15 +14,7 @@ if (!inputDataFilePath) {
   process.exit(1);
 }
 
-const outputFilePath = process.env.OUTPUT_FILE_PATH;
-if (!outputFilePath) {
-  console.log('Missing OUTPUT_FILE_PATH');
-  process.exit(1);
-}
-
 const DRY_RUN = process.argv.includes('--dry-run');
-const writeStream = fs.createWriteStream(outputFilePath);
-writeStream.write('productId,regionCode,currency,oldPrice,newPrice,pcIncrease\n');
 if (DRY_RUN) {
   console.log('*****DRY RUN*****');
 }
@@ -31,75 +22,11 @@ if (DRY_RUN) {
 const priceRiseData = parsePriceRiseCsv(inputDataFilePath);
 
 const buildPrice = (
-  currency: string,
-  price: number,
-): androidpublisher_v3.Schema$Money => {
-  const [units, nanos] = price.toFixed(2).split('.');
-  return {
-    currencyCode: currency,
-    units: units,
-    nanos: parseInt(`${nanos}0000000`),
-  };
-  /*
-    price example:
-    {
-      "currencyCode": "AED",
-      "units": "36",
-      "nanos": 690000000
-    }
-  */
-};
-
-const buildPrice_20260202 = (
   regionCode: string,
   currency: string,
   price: number,
 ): androidpublisher_v3.Schema$Money => {
   const [units, nanos] = price.toFixed(2).split('.');
-
-  // The Bulgarian override:
-  // From Google we get
-  /*
-    {
-      "regionCode": "BG",
-      "newSubscriberAvailability": true,
-      "price": {
-        "currencyCode": "EUR",
-        "units": "9",
-        "nanos": 250000000
-      }
-    }
-
-  and the natural transform is
-
-    {
-      "regionCode": "BG",
-      "newSubscriberAvailability": true,
-      "price": {
-        "currencyCode": "EUR",
-        "units": "17",
-        "nanos": 50000000
-      }
-    }
-
-    But we want to change the currency to BGN
-
-    {
-      "regionCode": "BG",
-      "newSubscriberAvailability": true,
-      "price": {
-        "currencyCode": "BGN",
-        "units": "17",
-        "nanos": 50000000
-      }
-    }
-
-  */
-
-  if (regionCode === "BG") {
-    currency = "BGN"
-  }
-
   return {
     currencyCode: currency,
     units: units,
@@ -183,23 +110,11 @@ const updateRegionalConfig = (
     );
   }
 
-  const currency = regionalConfig.price?.currencyCode ?? priceDetails.currency;
-
-  const currentPrice = `${regionalConfig.price?.units ?? 0}.${
-    regionalConfig.price?.nanos?.toString().slice(0, 2) ?? '00'
-  }`;
-
-  const pcIncrease = (priceDetails.price - parseFloat(currentPrice)) / parseFloat(currentPrice);
-
-  writeStream.write(
-    `${productId},${regionalConfig.regionCode},${currency},${currentPrice},${priceDetails.price},${pcIncrease}\n`,
-  );
-
   return {
     ...regionalConfig,
-    price: buildPrice_20260202(
+    price: buildPrice(
       regionalConfig.regionCode,
-      currency,
+      priceDetails.currency,
       priceDetails.price,
     ),
   };
@@ -214,7 +129,6 @@ const updatePrices = (
   const updatedRegionalConfigs = basePlan.regionalConfigs?.map(
     (regionalConfig) => updateRegionalConfig(regionalConfig, googleRegionPriceMap, productId),
   );
-
   return {
     ...basePlan,
     regionalConfigs: updatedRegionalConfigs,
@@ -279,7 +193,4 @@ main()
     console.log('Error:');
     console.log(err);
     process.exitCode = 1;
-  })
-  .finally(() => {
-    writeStream.close();
   });
