@@ -42,6 +42,14 @@ const buildPrice = (
     units: units,
     nanos: parseInt(`${nanos}0000000`),
   };
+  /*
+    price example:
+    {
+      "currencyCode": "AED",
+      "units": "36",
+      "nanos": 690000000
+    }
+  */
 };
 
 /**
@@ -121,47 +129,64 @@ const updatePrices = (
   };
 };
 
-getClient()
-  .then((client) =>
-    Promise.all(
-      // For each product_id in priceRiseData, update the prices in each region
-      Object.entries(priceRiseData).map(([productId, regionPriceMap]) => {
-        console.log(
-          `Updating productId ${productId} in ${
-            Object.keys(regionPriceMap).length
-          } regions`,
-        );
+async function main() {
+  const client = await getClient();
 
-        return getProductIdCurrentBasePlan(client, packageName, productId)
-          .then((currentBasePlan) => {
-            return updatePrices(currentBasePlan, regionPriceMap, productId);
-          })
-          .then((updatedBasePlan: androidpublisher_v3.Schema$BasePlan) => {
-            if (!DRY_RUN) {
-              // https://developers.google.com/android-publisher/api-ref/rest/v3/monetization.subscriptions/patch
-              return client.monetization.subscriptions
-                .patch({
-                  packageName,
-                  productId,
-                  'regionsVersion.version': '2025/01',
-                  updateMask: 'basePlans',
-                  requestBody: {
-                    productId,
-                    packageName,
-                    basePlans: [updatedBasePlan],
-                  },
-                })
-                .then((response) => {
-                  console.log('Updated prices for', productId);
-                });
-            }
-          });
-      }),
-    ),
-  )
+  for (const [productId, regionPriceMap] of Object.entries(priceRiseData)) {
+
+    console.log(
+      `Updating productId ${productId} in ${
+        Object.keys(regionPriceMap).length
+      } regions`,
+    );
+
+    const currentBasePlan = await getProductIdCurrentBasePlan(
+      client,
+      packageName,
+      productId,
+    );
+
+    console.log(
+      `productId ${productId} currentBasePlan: ${JSON.stringify(
+        currentBasePlan,
+      )}`,
+    );
+
+    const updatedBasePlan = updatePrices(
+      currentBasePlan,
+      regionPriceMap,
+      productId,
+    );
+
+    if (!DRY_RUN) {
+      console.log(
+        `productId ${productId} updatedBasePlan: ${JSON.stringify(
+          updatedBasePlan,
+        )}`,
+      );
+
+      await client.monetization.subscriptions.patch({
+        packageName,
+        productId,
+        'regionsVersion.version': '2025/01',
+        updateMask: 'basePlans',
+        requestBody: {
+          productId,
+          packageName,
+          basePlans: [updatedBasePlan],
+        },
+      });
+
+      console.log('Updated prices for', productId);
+    }
+  }  
+}
+
+main()
   .catch((err) => {
     console.log('Error:');
     console.log(err);
+    process.exitCode = 1;
   })
   .finally(() => {
     writeStream.close();

@@ -42,7 +42,7 @@ Note: There is an important difference between the two scripts. The first one ca
 
 ### Preparations
 
-To connect to the play store, the script will be using credentials stored in AWS Parameter Store. So give yourself the following Janus credentials.
+To connect to the play store, the script will be using credentials stored in AWS Parameter Store. So give yourself the `mobile` Janus credentials, and note that it's to use the following object.
 
 ```
 account: mobile
@@ -61,11 +61,11 @@ $ yarn install
 ```
 INPUT_FILE_PATH=/path/to/datafile.csv \
 OUTPUT_FILE_PATH=/path/to/output.csv \
-yarn android-price-migration-p1 --dry-run [--dry-run]
+yarn android-price-migration-p1 [--dry-run]
 
 INPUT_FILE_PATH=/path/to/datafile.csv \
 OUTPUT_FILE_PATH=/path/to/output.csv \
-yarn android-price-migration-p2 --dry-run [--dry-run]
+yarn android-price-migration-p2 [--dry-run]
 ```
 
 You can use the `--dry-run` parameter to check the changes before running with side effects.
