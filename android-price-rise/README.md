@@ -61,11 +61,11 @@ $ yarn install
 ```
 INPUT_FILE_PATH=/path/to/datafile.csv \
 OUTPUT_FILE_PATH=/path/to/output.csv \
-yarn android-price-migration-p1 --dry-run [--dry-run]
+yarn android-price-migration-p1 [--dry-run]
 
 INPUT_FILE_PATH=/path/to/datafile.csv \
 OUTPUT_FILE_PATH=/path/to/output.csv \
-yarn android-price-migration-p2 --dry-run [--dry-run]
+yarn android-price-migration-p2 [--dry-run]
 ```
 
 You can use the `--dry-run` parameter to check the changes before running with side effects.
