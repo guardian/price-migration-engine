@@ -42,7 +42,7 @@ Note: There is an important difference between the two scripts. The first one ca
 
 ### Preparations
 
-To connect to the play store, the script will be using credentials stored in AWS Parameter Store. So give yourself the following Janus credentials.
+To connect to the play store, the script will be using credentials stored in AWS Parameter Store. So give yourself the `mobile` Janus credentials, and note that it's to use the following object.
 
 ```
 account: mobile
