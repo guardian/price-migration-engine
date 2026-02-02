@@ -35,6 +35,47 @@ const buildPrice = (
   price: number,
 ): androidpublisher_v3.Schema$Money => {
   const [units, nanos] = price.toFixed(2).split('.');
+
+
+  // The Bulgarian override:
+  // From Google we get
+  /*
+    {
+      "regionCode": "BG",
+      "newSubscriberAvailability": true,
+      "price": {
+        "currencyCode": "EUR",
+        "units": "9",
+        "nanos": 250000000
+      }
+    }
+
+  and the natural transform is
+
+    {
+      "regionCode": "BG",
+      "newSubscriberAvailability": true,
+      "price": {
+        "currencyCode": "EUR",
+        "units": "17",
+        "nanos": 50000000
+      }
+    }
+
+    But we want to change the currency to BGN
+
+    {
+      "regionCode": "BG",
+      "newSubscriberAvailability": true,
+      "price": {
+        "currencyCode": "BGN",
+        "units": "17",
+        "nanos": 50000000
+      }
+    }
+
+  */
+
   return {
     currencyCode: currency,
     units: units,
