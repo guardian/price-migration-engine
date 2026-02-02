@@ -77,64 +77,78 @@ const getProductIdCurrentBasePlan = async (
   return bp;
 };
 
+type RegionalConfig = NonNullable<
+  androidpublisher_v3.Schema$BasePlan['regionalConfigs']
+>[number];
+
+const updateRegionalConfig = (
+  regionalConfig: RegionalConfig,
+  googleRegionPriceMap: RegionPriceMap,
+  productId: string,
+): RegionalConfig => {
+
+  // console.log(`regionalConfig: ${JSON.stringify(regionalConfig)}`);
+  /*
+    regional config example:
+    {
+      "regionCode": "CO",
+      "newSubscriberAvailability": true,
+      "price": {
+        "currencyCode": "COP",
+        "units": "39195",
+        "nanos": 110000000
+      }
+    }
+  */
+
+  if ( !regionalConfig.regionCode || !googleRegionPriceMap[regionalConfig.regionCode] ) {
+    return regionalConfig;
+  }
+
+  if (!regionsThatAllowOptOut.has(regionalConfig.regionCode)) {
+    console.log(`Skipping region that doesn't allow opt-outs: ${regionalConfig.regionCode}`);
+    return regionalConfig;
+  }
+
+  const priceDetails = googleRegionPriceMap[regionalConfig.regionCode];
+
+  if (regionalConfig.price?.currencyCode !== priceDetails.currency) {
+    console.log(
+      `Currency mismatch for ${productId} in ${regionalConfig.regionCode}: ${regionalConfig.price?.currencyCode} -> ${priceDetails.currency}`,
+    );
+  }
+
+  const currency = regionalConfig.price?.currencyCode ?? priceDetails.currency;
+
+  const currentPrice = `${regionalConfig.price?.units ?? 0}.${
+    regionalConfig.price?.nanos?.toString().slice(0, 2) ?? '00'
+  }`;
+
+  const pcIncrease = (priceDetails.price - parseFloat(currentPrice)) / parseFloat(currentPrice);
+
+  writeStream.write(
+    `${productId},${regionalConfig.regionCode},${currency},${currentPrice},${priceDetails.price},${pcIncrease}\n`,
+  );
+
+  return {
+    ...regionalConfig,
+    price: buildPrice(
+      currency,
+      priceDetails.price,
+    ),
+  };
+};
+
 // Returns a new BasePlan with updated prices
 const updatePrices = (
   basePlan: androidpublisher_v3.Schema$BasePlan,
   googleRegionPriceMap: RegionPriceMap,
   productId: string,
 ): androidpublisher_v3.Schema$BasePlan => {
-  const updatedRegionalConfigs = basePlan.regionalConfigs?.map((regionalConfig) => {
-
-      // console.log(`regionalConfig: ${JSON.stringify(regionalConfig)}`);
-      /*
-        regional config example:
-        {
-          "regionCode": "CO",
-          "newSubscriberAvailability": true,
-          "price": {
-            "currencyCode": "COP",
-            "units": "39195",
-            "nanos": 110000000
-          }
-        }
-      */
-
-      if (regionalConfig.regionCode && googleRegionPriceMap[regionalConfig.regionCode]) {
-
-        if (!regionsThatAllowOptOut.has(regionalConfig.regionCode)) {
-          console.log(`Skipping region that doesn't allow opt-outs: ${regionalConfig.regionCode}`);
-          return regionalConfig;
-        }
-
-        const priceDetails = googleRegionPriceMap[regionalConfig.regionCode];
-
-        if (regionalConfig.price?.currencyCode !== priceDetails.currency) {
-          console.log(
-            `Currency mismatch for ${productId} in ${regionalConfig.regionCode}: ${regionalConfig.price?.currencyCode} -> ${priceDetails.currency}`,
-          );
-        }
-
-        const currency = regionalConfig.price?.currencyCode ?? priceDetails.currency;
-
-        const currentPrice = `${regionalConfig.price?.units ?? 0}.${
-          regionalConfig.price?.nanos?.toString().slice(0, 2) ?? '00'
-        }`;
-
-        const pcIncrease = (priceDetails.price - parseFloat(currentPrice)) / parseFloat(currentPrice);
-
-        writeStream.write(
-          `${productId},${regionalConfig.regionCode},${currency},${currentPrice},${priceDetails.price},${pcIncrease}\n`,
-        );
-        return {
-          ...regionalConfig,
-          price: buildPrice(currency, priceDetails.price),
-        };
-      }
-
-      // No mapping for this product_id/region, don't change it
-      return regionalConfig;
-    },
+  const updatedRegionalConfigs = basePlan.regionalConfigs?.map(
+    (regionalConfig) => updateRegionalConfig(regionalConfig, googleRegionPriceMap, productId),
   );
+
   return {
     ...basePlan,
     regionalConfigs: updatedRegionalConfigs,
