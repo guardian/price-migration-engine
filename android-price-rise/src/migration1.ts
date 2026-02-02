@@ -132,56 +132,54 @@ const updatePrices = (
 async function main() {
   const client = await getClient();
 
-  await Promise.all(
-    Object.entries(priceRiseData).map(async ([productId, regionPriceMap]) => {
-      console.log(
-        `Updating productId ${productId} in ${
-          Object.keys(regionPriceMap).length
-        } regions`,
-      );
+  for (const [productId, regionPriceMap] of Object.entries(priceRiseData)) {
 
-      const currentBasePlan = await getProductIdCurrentBasePlan(
-        client,
-        packageName,
-        productId,
-      );
+    console.log(
+      `Updating productId ${productId} in ${
+        Object.keys(regionPriceMap).length
+      } regions`,
+    );
 
+    const currentBasePlan = await getProductIdCurrentBasePlan(
+      client,
+      packageName,
+      productId,
+    );
+
+    console.log(
+      `productId ${productId} currentBasePlan: ${JSON.stringify(
+        currentBasePlan,
+      )}`,
+    );
+
+    const updatedBasePlan = updatePrices(
+      currentBasePlan,
+      regionPriceMap,
+      productId,
+    );
+
+    if (!DRY_RUN) {
       console.log(
-        `productId ${productId} currentBasePlan: ${JSON.stringify(
-          currentBasePlan,
+        `productId ${productId} updatedBasePlan: ${JSON.stringify(
+          updatedBasePlan,
         )}`,
       );
 
-      const updatedBasePlan = updatePrices(
-        currentBasePlan,
-        regionPriceMap,
+      await client.monetization.subscriptions.patch({
+        packageName,
         productId,
-      );
-
-      if (!DRY_RUN) {
-        console.log(
-          `productId ${productId} updatedBasePlan: ${JSON.stringify(
-            updatedBasePlan,
-          )}`,
-        );
-
-        await client.monetization.subscriptions.patch({
-          packageName,
+        'regionsVersion.version': '2025/01',
+        updateMask: 'basePlans',
+        requestBody: {
           productId,
-          'regionsVersion.version': '2025/01',
-          updateMask: 'basePlans',
-          requestBody: {
-            productId,
-            packageName,
-            basePlans: [updatedBasePlan],
-          },
-        });
+          packageName,
+          basePlans: [updatedBasePlan],
+        },
+      });
 
-        console.log('Updated prices for', productId);
-      }
-
-    })
-  );
+      console.log('Updated prices for', productId);
+    }
+  }  
 }
 
  main()
