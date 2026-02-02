@@ -22,7 +22,6 @@ if (DRY_RUN) {
 const priceRiseData = parsePriceRiseCsv(inputDataFilePath);
 
 const buildPrice = (
-  regionCode: string,
   currency: string,
   price: number,
 ): androidpublisher_v3.Schema$Money => {
@@ -113,7 +112,6 @@ const updateRegionalConfig = (
   return {
     ...regionalConfig,
     price: buildPrice(
-      regionalConfig.regionCode,
       priceDetails.currency,
       priceDetails.price,
     ),
