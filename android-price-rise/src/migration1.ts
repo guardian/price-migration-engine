@@ -182,7 +182,7 @@ async function main() {
   }  
 }
 
- main()
+main()
   .catch((err) => {
     console.log('Error:');
     console.log(err);
