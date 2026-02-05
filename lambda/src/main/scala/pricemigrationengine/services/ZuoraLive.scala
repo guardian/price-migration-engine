@@ -9,6 +9,10 @@ import zio._
 import java.time.LocalDate
 import ujson._
 
+import sttp.client4._
+import sttp.client4.httpclient.zio.HttpClientZioBackend
+import sttp.model.Uri
+
 object ZuoraLive {
 
   private val apiVersion = "v1"
@@ -58,6 +62,59 @@ object ZuoraLive {
   private def failureMessage(request: HttpRequest, t: Throwable) =
     s"[08ee1348] Request for ${request.method} ${request.url} returned error ${t.toString}"
 
+  private def performRequestSttpClient4(
+      request: Request[String]
+  ): ZIO[Any, ZuoraFetchFailure, Response[String]] = {
+    ZIO.scoped {
+      for {
+        backend <- HttpClientZioBackend
+          .scoped()
+          .mapError(ex =>
+            ZuoraFetchFailure(
+              s"Failed to create STTP backend: $ex"
+            )
+          )
+        response <- backend
+          .send(request)
+          .mapError(ex =>
+            ZuoraFetchFailure(
+              s"Request for ${request.method} ${request.uri} failed: $ex"
+            )
+          )
+
+        _ <-
+          if (response.code.isSuccess)
+            ZIO.unit
+          else
+            ZIO.fail(
+              ZuoraFetchFailure(
+                s"""
+                   |(error: 5b325714)
+                   |Zuora request failed
+                   |Method: ${request.method}
+                   |URI: ${request.uri}
+                   |Status: ${response.code}
+                   |Body: ${response.body}
+                   |""".stripMargin
+              )
+            )
+      } yield response
+    }
+  }
+
+  private def performRequestAndParseAnswer[A](
+      request: Request[String]
+  )(implicit reader: Reader[A]): ZIO[Any, ZuoraFetchFailure, A] = {
+    for {
+      successfulResponse <- performRequestSttpClient4(request)
+      body = successfulResponse.body
+      _ <- ZIO.logInfo(s"[e2b0236b] successful response body: ${body}")
+      parsedResponse <- ZIO
+        .attempt(read[A](body))
+        .mapError(ex => ZuoraFetchFailure(s"[c6691aea] failed to deserialise: ${body}, error: ${ex}"))
+    } yield parsedResponse
+  }
+
   val impl: ZLayer[ZuoraConfig with Logging, ConfigFailure, Zuora] =
     ZLayer.fromZIO(
       for {
@@ -72,16 +129,23 @@ object ZuoraLive {
         private def retry[E, A](effect: => ZIO[Any, E, A]) =
           effect.retry(exponential(1.second) && recurs(5))
 
-        private def get[A: Reader](path: String, params: Map[String, String] = Map.empty) = {
-          for {
-            a <- retry(
-              handleRequest[A](
-                Http(s"${config.apiHost}/$apiVersion/$path")
-                  .params(params)
-                  .header("Authorization", s"Bearer $accessToken")
-              ).mapError(e => ZuoraFetchFailure(e.reason))
-            )
-          } yield a
+        private def get[A: Reader](
+            path: String,
+            params: Map[String, String] = Map.empty
+        ): ZIO[Any, ZuoraFetchFailure, A] = {
+          val request =
+            basicRequest
+              .get(
+                uri"${config.apiHost}/$apiVersion/$path"
+                  .addParams(params)
+              )
+              .header("Authorization", s"Bearer $accessToken")
+              .response(asStringAlways)
+
+          retry(
+            performRequestAndParseAnswer[A](request)
+              .mapError(e => ZuoraFetchFailure(e.reason))
+          )
         }
 
         private def post[A: Reader](path: String, body: String) =
