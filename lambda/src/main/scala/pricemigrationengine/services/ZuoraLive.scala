@@ -1,7 +1,6 @@
 package pricemigrationengine.services
 
 import pricemigrationengine.model._
-import scalaj.http.{Http, HttpOptions, HttpRequest, HttpResponse}
 import upickle.default.{ReadWriter, Reader, macroRW, read, write}
 import zio.Schedule.{exponential, recurs}
 import zio._
@@ -35,13 +34,6 @@ object ZuoraLive {
       chargeTypeToExclude: String
   )
   private implicit val rwInvoicePreviewRequest: ReadWriter[InvoicePreviewRequest] = macroRW
-
-  private def failureMessage(request: HttpRequest, response: HttpResponse[String]) = {
-    s"[a16466b3] Request for ${request.method} ${request.url} returned status ${response.code} with body:${response.body}"
-  }
-
-  private def failureMessage(request: HttpRequest, t: Throwable) =
-    s"[08ee1348] Request for ${request.method} ${request.url} returned error ${t.toString}"
 
   private def performRequestSttpClient4(
       request: Request[String]
