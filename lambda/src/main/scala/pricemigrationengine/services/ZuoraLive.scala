@@ -11,8 +11,6 @@ import sttp.client4._
 import sttp.client4.httpclient.zio.HttpClientZioBackend
 import sttp.model.Uri
 
-import scala.concurrent.duration.Duration
-
 object ZuoraLive {
 
   private val apiVersion = "v1"
