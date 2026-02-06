@@ -115,6 +115,13 @@ object ZuoraLive {
     } yield parsedResponse
   }
 
+  private def makeURI(url: String): Uri = {
+    // Note the use of unsafeParse here. The interpolated string is the correct url
+    // but `.patch` requires a URI and `Uri(string)` performs escaping. To avoid that
+    // we use the `unsafeParse` variant
+    Uri.unsafeParse(url)
+  }
+
   val impl: ZLayer[ZuoraConfig with Logging, ConfigFailure, Zuora] =
     ZLayer.fromZIO(
       for {
@@ -135,10 +142,7 @@ object ZuoraLive {
         ): ZIO[Any, ZuoraFetchFailure, A] = {
           val request =
             basicRequest
-              .get(
-                uri"${config.apiHost}/$apiVersion/$path"
-                  .addParams(params)
-              )
+              .get(makeURI(s"${config.apiHost}/$apiVersion/$path").addParams(params))
               .header("Authorization", s"Bearer $accessToken")
               .response(asStringAlways)
 
