@@ -8,17 +8,22 @@ import zio._
 
 import java.time.LocalDate
 import ujson._
-
 import sttp.client4._
 import sttp.client4.httpclient.zio.HttpClientZioBackend
 import sttp.model.Uri
+
+import scala.concurrent.duration.Duration
 
 object ZuoraLive {
 
   private val apiVersion = "v1"
 
-  private val connTimeout = HttpOptions.connTimeout(120.seconds.toMillis.toInt)
-  private val readTimeout = HttpOptions.readTimeout(120.seconds.toMillis.toInt)
+  // Full import to avoid conflicting with the zio import
+  private val readTimeoutSttpClient4: scala.concurrent.duration.Duration =
+    scala.concurrent.duration.Duration(
+      120,
+      scala.concurrent.duration.SECONDS
+    )
 
   private case class AccessToken(access_token: String)
   private implicit val rwAccessToken: ReadWriter[AccessToken] = macroRW
@@ -30,30 +35,6 @@ object ZuoraLive {
       chargeTypeToExclude: String
   )
   private implicit val rwInvoicePreviewRequest: ReadWriter[InvoicePreviewRequest] = macroRW
-
-  /*
-   * The access token is generated outside the ZIO framework so that it's only fetched once.
-   * There has to be a better way to do this, but don't know what it is at the moment.
-   * Possibly memoize the value at a higher level.
-   * Will return to it.
-   */
-  private def fetchedAccessToken(config: ZuoraConfig) = {
-    val request = Http(s"${config.apiHost}/oauth/token")
-      .postForm(
-        Seq(
-          "grant_type" -> "client_credentials",
-          "client_id" -> config.clientId,
-          "client_secret" -> config.clientSecret
-        )
-      )
-    val response = request.asString
-    val body = response.body
-    if (response.code == 200) {
-      Right(read[AccessToken](body).access_token)
-        .orElse(Left(ZuoraFetchFailure(failureMessage(request, response))))
-    } else
-      Left(ZuoraFetchFailure(failureMessage(request, response)))
-  }
 
   private def failureMessage(request: HttpRequest, response: HttpResponse[String]) = {
     s"[a16466b3] Request for ${request.method} ${request.url} returned status ${response.code} with body:${response.body}"
@@ -102,6 +83,39 @@ object ZuoraLive {
     }
   }
 
+  private def fetchedAccessToken(config: ZuoraConfig): ZIO[Any, ZuoraFetchFailure, String] = {
+    val request =
+      basicRequest
+        .post(makeURI(s"${config.apiHost}/oauth/token"))
+        .body(
+          Map(
+            "grant_type" -> "client_credentials",
+            "client_id" -> config.clientId,
+            "client_secret" -> config.clientSecret
+          )
+        )
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .response(asStringAlways)
+        .readTimeout(readTimeoutSttpClient4)
+
+    performRequestSttpClient4(request).flatMap { response =>
+      if (response.code.isSuccess) {
+        ZIO
+          .attempt(read[AccessToken](response.body).access_token)
+          .mapError(_ => ZuoraFetchFailure(s"Failed to parse access token: ${response.body}"))
+      } else {
+        ZIO.fail(ZuoraFetchFailure(s"""
+          |(error: 8b79c2ed)
+          |Zuora request failed
+          |Method: ${request.method}
+          |URI: ${request.uri}
+          |Status: ${response.code}
+          |Body: ${response.body}
+          |""".stripMargin))
+      }
+    }
+  }
+
   private def performRequestAndParseAnswer[A](
       request: Request[String]
   )(implicit reader: Reader[A]): ZIO[Any, ZuoraFetchFailure, A] = {
@@ -127,8 +141,7 @@ object ZuoraLive {
       for {
         logging <- ZIO.service[Logging]
         config <- ZIO.service[ZuoraConfig]
-        accessToken <- ZIO
-          .fromEither(fetchedAccessToken(config))
+        accessToken <- fetchedAccessToken(config)
           .mapError(failure => ConfigFailure(failure.reason))
           .tap(token => logging.info(s"Fetched Zuora access token: $token"))
       } yield new Zuora {
@@ -152,38 +165,19 @@ object ZuoraLive {
           )
         }
 
-        private def post[A: Reader](path: String, body: String) =
-          for {
-            a <- handleRequest[A](
-              Http(s"${config.apiHost}/$apiVersion/$path")
-                .header("Authorization", s"Bearer $accessToken")
-                .header("Content-Type", "application/json")
-                .postData(body)
-            ).mapError(e => ZuoraUpdateFailure(e.reason))
-          } yield a
+        private def post[A: Reader](path: String, body: String) = {
+          val request =
+            basicRequest
+              .post(makeURI(s"${config.apiHost}/$apiVersion/$path"))
+              .body(body)
+              .header("Authorization", s"Bearer $accessToken")
+              .contentType("application/json")
+              .response(asStringAlways)
+              .readTimeout(readTimeoutSttpClient4)
 
-        private def put[A: Reader](path: String, body: String) =
-          for {
-            a <- handleRequest[A](
-              Http(s"${config.apiHost}/$apiVersion/$path")
-                .header("Authorization", s"Bearer $accessToken")
-                .header("Content-Type", "application/json")
-                .put(body)
-            ).mapError(e => ZuoraUpdateFailure(e.reason))
-          } yield a
-
-        private def handleRequest[A: Reader](request: HttpRequest) =
-          for {
-            response <-
-              ZIO
-                .attempt(request.option(connTimeout).option(readTimeout).asString)
-                .mapError(e => ZuoraFailure(failureMessage(request, e)))
-                .filterOrElseWith(_.code == 200)(response => ZIO.fail(ZuoraFailure(failureMessage(request, response))))
-            a <-
-              ZIO
-                .attempt(read[A](response.body))
-                .orElseFail(ZuoraFailure(failureMessage(request, response)))
-          } yield a
+          performRequestAndParseAnswer[A](request)
+            .mapError(e => ZuoraUpdateFailure(e.reason))
+        }
 
         override def fetchSubscription(subscriptionNumber: String): ZIO[Any, ZuoraFetchFailure, ZuoraSubscription] =
           get[ZuoraSubscription](s"subscriptions/$subscriptionNumber")
