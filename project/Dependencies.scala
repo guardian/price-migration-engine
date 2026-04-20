@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  private val zioVersion = "2.1.24"
+  private val zioVersion = "2.1.25"
   private val awsSdkVersion = "2.42.23"
 
   lazy val awsDynamoDb = "software.amazon.awssdk" % "dynamodb" % awsSdkVersion
@@ -16,8 +16,8 @@ object Dependencies {
   lazy val zioMock = "dev.zio" %% "zio-mock" % "1.0.0-RC12"
   lazy val upickle = "com.lihaoyi" %% "upickle" % "4.4.3"
   lazy val awsLambda = "com.amazonaws" % "aws-lambda-java-core" % "1.4.0"
-  lazy val http_sttp_client4_core = "com.softwaremill.sttp.client4" %% "core" % "4.0.19"
-  lazy val http_sttp_client4_zio = "com.softwaremill.sttp.client4" %% "zio" % "4.0.19"
+  lazy val http_sttp_client4_core = "com.softwaremill.sttp.client4" %% "core" % "4.0.21"
+  lazy val http_sttp_client4_zio = "com.softwaremill.sttp.client4" %% "zio" % "4.0.21"
   lazy val munit = "org.scalameta" %% "munit" % "1.2.4"
   lazy val commonsCsv = "org.apache.commons" % "commons-csv" % "1.14.1"
   lazy val slf4jNop = "org.slf4j" % "slf4j-nop" % "2.0.17"
