@@ -31,7 +31,7 @@ jobs:
           cache: sbt
 
       - name: Setup SBT
-        uses: sbt/setup-sbt@v1
+        uses: sbt/setup-sbt@v1.1.22
 
       - name: Test PR from forked repo
         if: env.isPrFromForkedRepo == 'true'
