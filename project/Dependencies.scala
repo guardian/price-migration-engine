@@ -20,5 +20,5 @@ object Dependencies {
   lazy val http_sttp_client4_zio = "com.softwaremill.sttp.client4" %% "zio" % "4.0.23"
   lazy val munit = "org.scalameta" %% "munit" % "1.3.0"
   lazy val commonsCsv = "org.apache.commons" % "commons-csv" % "1.14.1"
-  lazy val slf4jNop = "org.slf4j" % "slf4j-nop" % "2.0.17"
+  lazy val slf4jNop = "org.slf4j" % "slf4j-nop" % "2.0.18"
 }
