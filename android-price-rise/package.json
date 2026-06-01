@@ -38,6 +38,8 @@
   },
   "resolutions": {
     "braces": "3.0.3",
-    "jws": "4.0.1"
+    "jws": "4.0.1",
+    "minimatch": "9.0.7",
+    "serialize-javascript": "7.0.3"
   }
 }
