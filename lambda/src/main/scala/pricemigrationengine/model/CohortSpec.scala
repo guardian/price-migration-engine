@@ -38,6 +38,10 @@ import java.util
   *      done on the subscription. Example: the week-end Latcham API outage in Nov 2025 where we needed to
   *      resend some notifications when the cohort item was already in AmendmentWrittenToSalesforce)
   */
+
+// In case of changes in this file, please keep documentation file
+// `docs/amendment-effective-date-computation.md` in sync.
+
 case class CohortSpec(
     cohortName: String,
     brazeName: String,
