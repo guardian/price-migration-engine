@@ -5,7 +5,7 @@ CohortSpec is the object that lambdas of the state machine take as input. They m
 
 Note that `brazeName` is not always specified. For migrations using more than one braze canvases, the dispatch to the right name is hardcoded in the migration code and we can submit empty string to `brazeName`.
 
-An additional mandatory attribute is the earliest ammandment effective date is is used as the starting point of the notifications and amendment dates. See [amendment-effective-date-computation.md](./amendment-effective-date-computation.md) for details.
+An additional mandatory attribute is the earliest amendment effective date, which is used as the starting point of the notifications and amendment dates. See [amendment-effective-date-computation.md](./amendment-effective-date-computation.md) for details.
 
 We also have two optional attributes: `subscriptionNumber` and `forceNotifications`. 
 
