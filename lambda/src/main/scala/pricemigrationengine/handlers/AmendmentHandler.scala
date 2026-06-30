@@ -146,6 +146,8 @@ object AmendmentHandler extends CohortHandler {
     } yield ()).foldZIO(
       failure = {
         case e: SubscriptionCancelledInZuoraFailure => {
+          // This case happens when being thrown by
+          // AmendmentHandler.fetchSubscription
           CohortTable
             .update(
               CohortItem(
@@ -155,9 +157,9 @@ object AmendmentHandler extends CohortHandler {
             )
         }
         case e: ZuoraUpdateFailure => {
-          // We are only interested in the ZuoraUpdateFailures corresponding to message
-          // "Operation failed due to a lock competition"
-          // We succeed them without cohort item update to be done later.
+          // If the failure was a lock competition, we do not want to alarm by reporting a
+          // ZIO.fail. Instead, we return a ZIO.succeed, and the item will be retried
+          // in the next run of the lambda.
           if (e.reason.contains("lock competition")) {
             ZIO.succeed(())
           } else {
