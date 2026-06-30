@@ -112,7 +112,7 @@ object AmendmentHandler extends CohortHandler {
     // This function performs the amendment (through the migration dispatch)
     // and updates the Cohort Item.
     (for {
-      result <- amendmentMigrationDispatch(cohortSpec, catalogue, item)
+      result <- performAmendmentAttemptWithResult(cohortSpec, catalogue, item)
       _ <- result match {
         case r: AARSuccessfulAmendment => {
           CohortTable.update(
@@ -146,6 +146,8 @@ object AmendmentHandler extends CohortHandler {
     } yield ()).foldZIO(
       failure = {
         case e: SubscriptionCancelledInZuoraFailure => {
+          // This case happens when being thrown by
+          // AmendmentHandler.fetchSubscription
           CohortTable
             .update(
               CohortItem(
@@ -155,9 +157,9 @@ object AmendmentHandler extends CohortHandler {
             )
         }
         case e: ZuoraUpdateFailure => {
-          // We are only interested in the ZuoraUpdateFailures corresponding to message
-          // "Operation failed due to a lock competition"
-          // We succeed them without cohort item update to be done later.
+          // If the failure was a lock competition, we do not want to alarm by reporting a
+          // ZIO.fail. Instead, we return a ZIO.succeed, and the item will be retried
+          // in the next run of the lambda.
           if (e.reason.contains("lock competition")) {
             ZIO.succeed(())
           } else {
@@ -194,7 +196,7 @@ object AmendmentHandler extends CohortHandler {
     } yield ()
   }
 
-  private def doAmendment_ordersApi_json_values(
+  private def doAmendmentUsingOrdersApiWithJsonValues(
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
@@ -319,7 +321,7 @@ object AmendmentHandler extends CohortHandler {
     )
   }
 
-  private def amendmentMigrationDispatch(
+  private def performAmendmentAttemptWithResult(
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
@@ -327,19 +329,19 @@ object AmendmentHandler extends CohortHandler {
     MigrationType(cohortSpec) match {
       case Test1              => ZIO.fail(ConfigFailure("Branch not supported"))
       case GuardianWeekly2025 =>
-        doAmendment_ordersApi_json_values(
+        doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
       case Newspaper2025P1 =>
-        doAmendment_ordersApi_json_values(
+        doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
       case Newspaper2025P3 =>
-        doAmendment_ordersApi_json_values(
+        doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
@@ -361,7 +363,7 @@ object AmendmentHandler extends CohortHandler {
             if (optOutFlag)
               ZIO.succeed(AARUserOptOut(item.subscriptionName))
             else
-              doAmendment_ordersApi_json_values(
+              doAmendmentUsingOrdersApiWithJsonValues(
                 cohortSpec,
                 catalogue,
                 item
@@ -370,19 +372,19 @@ object AmendmentHandler extends CohortHandler {
       }
 
       case Membership2025 =>
-        doAmendment_ordersApi_json_values(
+        doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
       case DigiSubs2025 =>
-        doAmendment_ordersApi_json_values(
+        doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
       case SupporterPlus2026 =>
-        doAmendment_ordersApi_json_values(
+        doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
