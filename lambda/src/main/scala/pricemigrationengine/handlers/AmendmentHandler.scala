@@ -194,7 +194,7 @@ object AmendmentHandler extends CohortHandler {
     } yield ()
   }
 
-  private def doAmendment_ordersApi_json_values(
+  private def doAmendmentUsingOrdersApiWithJsonValues(
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
@@ -327,19 +327,19 @@ object AmendmentHandler extends CohortHandler {
     MigrationType(cohortSpec) match {
       case Test1              => ZIO.fail(ConfigFailure("Branch not supported"))
       case GuardianWeekly2025 =>
-        doAmendment_ordersApi_json_values(
+        doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
       case Newspaper2025P1 =>
-        doAmendment_ordersApi_json_values(
+        doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
       case Newspaper2025P3 =>
-        doAmendment_ordersApi_json_values(
+        doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
@@ -361,7 +361,7 @@ object AmendmentHandler extends CohortHandler {
             if (optOutFlag)
               ZIO.succeed(AARUserOptOut(item.subscriptionName))
             else
-              doAmendment_ordersApi_json_values(
+              doAmendmentUsingOrdersApiWithJsonValues(
                 cohortSpec,
                 catalogue,
                 item
@@ -370,19 +370,19 @@ object AmendmentHandler extends CohortHandler {
       }
 
       case Membership2025 =>
-        doAmendment_ordersApi_json_values(
+        doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
       case DigiSubs2025 =>
-        doAmendment_ordersApi_json_values(
+        doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
       case SupporterPlus2026 =>
-        doAmendment_ordersApi_json_values(
+        doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
           catalogue: ZuoraProductCatalogue,
           item: CohortItem
