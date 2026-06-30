@@ -112,7 +112,7 @@ object AmendmentHandler extends CohortHandler {
     // This function performs the amendment (through the migration dispatch)
     // and updates the Cohort Item.
     (for {
-      result <- amendmentMigrationDispatch(cohortSpec, catalogue, item)
+      result <- performAmendmentAttemptWithResult(cohortSpec, catalogue, item)
       _ <- result match {
         case r: AARSuccessfulAmendment => {
           CohortTable.update(
@@ -319,7 +319,7 @@ object AmendmentHandler extends CohortHandler {
     )
   }
 
-  private def amendmentMigrationDispatch(
+  private def performAmendmentAttemptWithResult(
       cohortSpec: CohortSpec,
       catalogue: ZuoraProductCatalogue,
       item: CohortItem
