@@ -35,6 +35,7 @@ object AmendmentEffectiveDateCalculator {
       case ProductMigration2025N4 => None
       case Membership2025         => None
       case DigiSubs2025           => None
+      case SupporterPlus2026      => None
     }
   }
 
@@ -97,6 +98,7 @@ object AmendmentEffectiveDateCalculator {
         case ProductMigration2025N4 => 1
         case Membership2025         => 1
         case DigiSubs2025           => 3 // 3 Months for DigiSubs2025
+        case SupporterPlus2026      => 1 // no spread for SupporterPlus2026
       }
     } else 1
   }
@@ -146,6 +148,7 @@ object AmendmentEffectiveDateCalculator {
       case ProductMigration2025N4 => lowerBound3
       case Membership2025         => lowerBound3
       case DigiSubs2025           => lowerBound3
+      case SupporterPlus2026      => lowerBound3
     }
 
     // Decide the spread period for this migration
