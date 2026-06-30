@@ -12,7 +12,8 @@ import pricemigrationengine.migrations.{
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
-  ProductMigration2025N4Migration
+  ProductMigration2025N4Migration,
+  SupporterPlus2026Migration
 }
 import pricemigrationengine.model.RatePlanProbe
 
@@ -297,6 +298,7 @@ object NotificationHandler extends CohortHandler {
       case ProductMigration2025N4 => ProductMigration2025N4Migration.maxLeadTime
       case Membership2025         => Membership2025Migration.maxLeadTime
       case DigiSubs2025           => DigiSubs2025Migration.maxLeadTime
+      case SupporterPlus2026      => SupporterPlus2026Migration.maxLeadTime
     }
   }
 
@@ -309,6 +311,7 @@ object NotificationHandler extends CohortHandler {
       case ProductMigration2025N4 => ProductMigration2025N4Migration.minLeadTime
       case Membership2025         => Membership2025Migration.minLeadTime
       case DigiSubs2025           => DigiSubs2025Migration.minLeadTime
+      case SupporterPlus2026      => SupporterPlus2026Migration.minLeadTime
     }
   }
 

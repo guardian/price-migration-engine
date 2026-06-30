@@ -14,6 +14,7 @@ object EstimationHandlerHelper {
       case ProductMigration2025N4 => None
       case Membership2025         => Some(1.43)
       case DigiSubs2025           => Some(1.25)
+      case SupporterPlus2026      => None
     }
   }
 

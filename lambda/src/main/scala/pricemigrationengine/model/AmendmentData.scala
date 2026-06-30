@@ -6,7 +6,8 @@ import pricemigrationengine.migrations.{
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
-  ProductMigration2025N4Migration
+  ProductMigration2025N4Migration,
+  SupporterPlus2026Migration
 }
 
 import java.time.LocalDate
@@ -102,6 +103,7 @@ object AmendmentData {
       case ProductMigration2025N4 => ProductMigration2025N4Migration.priceData(subscription, invoiceList)
       case Membership2025         => Membership2025Migration.priceData(subscription, invoiceList)
       case DigiSubs2025           => DigiSubs2025Migration.priceData(subscription, invoiceList)
+      case SupporterPlus2026      => SupporterPlus2026Migration.priceData(subscription, invoiceList)
     }
   }
 }
