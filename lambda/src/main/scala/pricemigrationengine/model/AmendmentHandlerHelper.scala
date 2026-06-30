@@ -6,7 +6,8 @@ import pricemigrationengine.migrations.{
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
-  ProductMigration2025N4Migration
+  ProductMigration2025N4Migration,
+  SupporterPlus2026Migration
 }
 import ujson.Value
 
@@ -68,6 +69,7 @@ object AmendmentHandlerHelper {
       case ProductMigration2025N4 => false
       case Membership2025         => true
       case DigiSubs2025           => true
+      case SupporterPlus2026      => true
     }
   }
 
@@ -194,6 +196,10 @@ object AmendmentHandlerHelper {
           zuora_subscription,
           commsPrice,
           invoiceList
+        )
+      case SupporterPlus2026 =>
+        SupporterPlus2026Migration.amendmentOrderPayload(
+          cohortItem
         )
     }
   }
