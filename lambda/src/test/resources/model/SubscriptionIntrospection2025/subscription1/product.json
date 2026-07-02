@@ -18781,5 +18781,6 @@
     "productFeatures" : [ ]
   } ],
   "nextPage" : "/v1/catalog/products?page=2&pageSize=10",
-  "success" : true
+  "success" : true,
+  "gu:sanitised": true
 }

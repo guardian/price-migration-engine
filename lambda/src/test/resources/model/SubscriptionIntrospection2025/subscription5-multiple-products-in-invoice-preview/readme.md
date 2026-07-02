@@ -21,7 +21,8 @@ This subscription has the property that at the time it was captured (17 October 
   "chargeType": "Recurring",
   "processingType": "Charge",
   "appliedToItemId": null,
-  "numberOfDeliveries": 0.0
+  "numberOfDeliveries": 0.0,
+  "gu:sanitised": true
 }
 ```
 
@@ -54,6 +55,7 @@ A latter invoice preview items was the one we were looking for, and the charge n
   "chargeType": "Recurring",
   "processingType": "Charge",
   "appliedToItemId": null,
-  "numberOfDeliveries": 0.0
+  "numberOfDeliveries": 0.0,
+  "gu:sanitised": true
 }
 ```
