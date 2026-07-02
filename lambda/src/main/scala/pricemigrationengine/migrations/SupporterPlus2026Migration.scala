@@ -71,12 +71,33 @@ object SupporterPlus2026Migration {
   // - amendmentOrderPayload is used in the Amendment handler
   // ------------------------------------------------
 
+  def logValue[T](label: String)(value: T): T = {
+    println(s"$label: $value")
+    value
+  }
+
   def priceData(
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
   ): Either[DataExtractionFailure, PriceData] = {
-    // not yet implemented
-    ???
+    val priceDataOpt = for {
+      ratePlan <- SI2025RateplanFromSubAndInvoices
+        .determineRatePlan(subscription, invoiceList)
+        .map(logValue("ratePlan"))
+      currency <- SI2025Extractions.determineCurrency(ratePlan).map(logValue("currency"))
+      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan).map(logValue("billingPeriod"))
+      oldPrice = logValue("oldPrice")(SI2025Extractions.determineOldPrice(ratePlan))
+      newPrice <- priceGridNewPrices.get((billingPeriod, currency)).map(logValue("newPrice"))
+    } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
+    priceDataOpt match {
+      case Some(pricedata) => Right(pricedata)
+      case None            =>
+        Left(
+          DataExtractionFailure(
+            s"[e0254802] Could not determine PriceData for subscription ${subscription.subscriptionNumber}"
+          )
+        )
+    }
   }
 
   def amendmentOrderPayload(cohortItem: CohortItem): Either[Failure, Value] = {
