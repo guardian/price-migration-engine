@@ -470,7 +470,7 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     val invoicePreview =
       Fixtures.invoiceListFromJson("Migrations/Newspaper2025P3/277291-everyday-annual/invoice-preview.json")
 
-    val startDate = LocalDate.of(2025, 8, 23)
+    val amendmentEffectiveDate = LocalDate.of(2025, 8, 23)
     val oldPrice = BigDecimal(779.88) // using the same number from the Newspaper2025P3Migration.priceData check
     val estimatedNewPrice = BigDecimal(839.88)
     val commsPrice = BigDecimal(839.88)
@@ -478,7 +478,7 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     val cohortItem = CohortItem(
       subscriptionName = subscription.subscriptionNumber,
       processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
-      amendmentEffectiveDate = Some(startDate),
+      amendmentEffectiveDate = Some(amendmentEffectiveDate),
       currency = Some("GBP"),
       oldPrice = Some(oldPrice),
       estimatedNewPrice = Some(estimatedNewPrice),
@@ -492,7 +492,7 @@ class Newspaper2025P3MigrationTest extends munit.FunSuite {
     val orderDate = LocalDate.of(2025, 7, 20) // LocalDate.now()
     val accountNumber = subscription.accountNumber
     val subscriptionNumber = subscription.subscriptionNumber
-    val effectDate = startDate
+    val effectDate = amendmentEffectiveDate
     val priceCap = 1.2
 
     assertEquals(
