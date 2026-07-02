@@ -48,6 +48,7 @@ subscription = JSON.parse(IO.read(subscription_filepath))
 subscription["billToContact"] = nil
 subscription["soldToContact"] = nil
 subscription["CreatedByCSR__c"] = nil
+subscription["gu:sanitised"] = true
 File.open(subscription_filepath, "w"){|f| f.puts(JSON.pretty_generate(subscription)) }
 
 # ----------------------------------------------------
@@ -69,6 +70,7 @@ account["billToContact"] = nil
 account["soldToContact"] = {
     "country" => account["soldToContact"]["country"]
 }
+account["gu:sanitised"] = true
 File.open(account_filepath, "w"){|f| f.puts(JSON.pretty_generate(account)) }
 
 # ----------------------------------------------------
@@ -83,4 +85,5 @@ invoice_preview["invoiceItems"] = invoice_preview["invoiceItems"]
         invoiceItem["subscriptionNumber"] = "subscriptionNumber"
         invoiceItem
     }
+invoice_preview["gu:sanitised"] = true
 File.open(invoice_preview_filepath, "w"){|f| f.puts(JSON.pretty_generate(invoice_preview)) }
