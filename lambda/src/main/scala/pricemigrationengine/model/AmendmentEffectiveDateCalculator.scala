@@ -166,18 +166,36 @@ object AmendmentEffectiveDateCalculator {
 
     var lowerBound5 = lowerBound4.plusMonths(randomDelayInMonths)
 
+    // --------------------------------------------------------------------------------
     // Special SupporterPlus2026
+
     // For this migration we have the requirement to migrate the monthlies over 6 weeks,
     // which is a non standard calculation. The main function is implemented in
     // SupporterPlus2026Migration.monthliesOverSixWeeks
     // and here we call it just for that migration
 
-    MigrationType(cohortSpec) match {
+    val lowerbound6 = MigrationType(cohortSpec) match {
       case SupporterPlus2026 =>
         item.billingPeriod
           .map(bp => SupporterPlus2026Migration.monthliesOverSixWeeks(lowerBound5, BillingPeriod.fromString(bp)))
           .getOrElse(lowerBound5)
       case _ => lowerBound5
     }
+
+    // We also have the requirement to apply a one year policy to annual subs with an active discount
+    // We cannot price rise a sub within a year after the end of the discount.
+
+    val lowerbound7 = MigrationType(cohortSpec) match {
+      case SupporterPlus2026 =>
+        item.billingPeriod.map(bp => BillingPeriod.fromString(bp)) match {
+          case Some(Annual) => SupporterPlus2026Migration.annualWithDiscountOneYearPolicy(lowerbound6, subscription)
+          case _            => lowerbound6
+        }
+      case _ => lowerbound6
+    }
+
+    // --------------------------------------------------------------------------------
+
+    lowerbound7
   }
 }

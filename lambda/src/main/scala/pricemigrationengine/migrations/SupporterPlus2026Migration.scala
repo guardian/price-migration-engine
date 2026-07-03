@@ -41,7 +41,7 @@ object SupporterPlus2026Migration {
   // Helpers
   // ------------------------------------------------
 
-  def monthliesOverSixWeeks(migrationDate: LocalDate, billingPeriod: BillingPeriod): LocalDate = {
+  def monthliesOverSixWeeks(cursorDate: LocalDate, billingPeriod: BillingPeriod): LocalDate = {
     // This function takes a migration date and  billing period and either return the same
     // migration date, or return the migration date plus a number of months randomly chosen between
     // 0 and 1. This is to ensure that the migration of monthlies is done over 6 weeks.
@@ -51,12 +51,28 @@ object SupporterPlus2026Migration {
     // If the migration date falls between 19 August and 30th August, we make a random choice and then
     // possibly add one month.
 
-    (migrationDate, billingPeriod) match {
-      case (_, Annual)                                          => migrationDate
+    (cursorDate, billingPeriod) match {
+      case (_, Annual)                                          => cursorDate
       case (date, _) if date.isAfter(LocalDate.of(2026, 8, 31)) => date
       case (date, _)                                            => {
         val shift = Random.nextInt(2) // decide a random integer in the interval [0, 1]
         date.plusMonths(shift)
+      }
+    }
+  }
+
+  def annualWithDiscountOneYearPolicy(cursorDate: LocalDate, subscription: ZuoraSubscription): LocalDate = {
+    val activeDiscounts =
+      SI2025Extractions.getActiveDiscountsPossiblyAfterEffectiveEndDate(subscription)
+    if (activeDiscounts.isEmpty) {
+      cursorDate
+    } else {
+      val maxEndDateOpt = activeDiscounts
+        .flatMap(_.ratePlanCharges.map(_.effectiveEndDate))
+        .max
+      maxEndDateOpt match {
+        case Some(date) => date.plusMonths(12)
+        case None       => cursorDate
       }
     }
   }
