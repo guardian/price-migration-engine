@@ -295,5 +295,6 @@
       "externallyManagedPlanId": null
     }
   ],
-  "externallyManagedBy": null
+  "externallyManagedBy": null,
+  "gu:sanitised": true
 }

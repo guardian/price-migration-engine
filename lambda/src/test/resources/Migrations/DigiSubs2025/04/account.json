@@ -70,5 +70,6 @@
     "companyCode": null,
     "VATId": null
   },
-  "success": true
+  "success": true,
+  "gu:sanitised": true
 }

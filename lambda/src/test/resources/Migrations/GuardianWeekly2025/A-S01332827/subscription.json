@@ -944,5 +944,6 @@
   "updateTime": "2025-07-04 14:11:36",
   "scheduledCancelDate": null,
   "scheduledSuspendDate": null,
-  "scheduledResumeDate": null
+  "scheduledResumeDate": null,
+  "gu:sanitised": true
 }

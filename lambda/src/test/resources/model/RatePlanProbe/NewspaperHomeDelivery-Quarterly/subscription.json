@@ -3785,5 +3785,6 @@
     "startDate" : "2024-11-05",
     "endDate" : null,
     "status" : "OutOfTerm"
-  } ]
+  } ],
+  "gu:sanitised": true
 }

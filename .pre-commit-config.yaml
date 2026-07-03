@@ -1,0 +1,7 @@
+repos:
+  - repo: local
+    hooks:
+      - id: check-fixtures-anonymization
+        name: check-fixtures-anonymization.rb
+        entry: tools/check-fixtures-anonymization.rb
+        language: script
