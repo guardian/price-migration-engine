@@ -31,6 +31,7 @@ end
 
 # ----------------------------------------------------
 # Anonymize subscription
+
 puts "processing subscription"
 subscription = JSON.parse(File.read(subscription_filepath))
 [
@@ -53,6 +54,7 @@ File.open(subscription_filepath, "w"){|f| f.puts(JSON.pretty_generate(subscripti
 
 # ----------------------------------------------------
 # Anonymize account
+
 puts "processing account"
 account = JSON.parse(File.read(account_filepath))
 [
@@ -75,6 +77,7 @@ File.open(account_filepath, "w"){|f| f.puts(JSON.pretty_generate(account)) }
 
 # ----------------------------------------------------
 # Anonymize invoice preview
+
 puts "processing invoice preview"
 invoice_preview = JSON.parse(File.read(invoice_preview_filepath))
 invoice_preview["accountId"] = "accountId"
