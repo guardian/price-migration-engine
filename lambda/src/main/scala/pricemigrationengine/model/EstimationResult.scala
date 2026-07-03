@@ -46,3 +46,4 @@ object EstimationResult {
 }
 
 case class SubscriptionCancelledInZuoraEstimationResult(subscriptionNumber: String) extends EstimationResult
+case class SubscriptionAutoRenewIsFalseEstimationResult(subscriptionNumber: String) extends EstimationResult
