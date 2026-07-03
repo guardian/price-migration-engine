@@ -421,4 +421,113 @@ class SupporterPlus2026Test extends munit.FunSuite {
     // Here the billing period was set to month, to force a different date. In this case we
     // return the earliest possible date from the cohort specs
   }
+
+  test("priceData [01]") {
+    // 01:
+    // Monthly USD
+    // Acquired in 30 Jun 2026, used to test the basic 1 year policy.
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
+
+    assertEquals(
+      SupporterPlus2026Migration.priceData(subscription, invoicePreview),
+      Right(PriceData("USD", BigDecimal(15.0), BigDecimal(18.0), "Month"))
+    )
+  }
+
+  test("priceData [01-variant1-non-zero-contribution]") {
+    // Monthly,USD
+    // Acquired in 30 Jun 2026, used to test the basic 1 year policy.
+
+    // This is a copy of [01] with an extra contribution artificially set to 89.0.
+    // This is to test that the old price is picked up accurately.
+
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/subscription.json")
+    val account =
+      Fixtures.accountFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson(
+      "Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/invoice-preview.json"
+    )
+
+    val ratePlan = SI2025RateplanFromSub
+      .uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
+        subscription,
+        LocalDate.of(2026, 7, 3)
+      )
+      .get
+
+    // Here we want to highly the difference between the standard
+    // SI2025Extractions.determineOldPrice(ratePlan: ZuoraRatePlan)
+    // and
+    // SupporterPlus2026Migration.determineOldPrice(ratePlan: ZuoraRatePlan)
+
+    assertEquals(
+      SI2025Extractions.determineOldPrice(ratePlan),
+      BigDecimal(104.0) // 89.0 + 15
+    )
+
+    assertEquals(
+      SupporterPlus2026Migration.determineOldPrice(ratePlan),
+      BigDecimal(15.0)
+    )
+
+    // Here we need to have the same price data as the original version, thereby showing that we have
+    // picked up only the main charge
+
+    assertEquals(
+      SupporterPlus2026Migration.priceData(subscription, invoicePreview),
+      Right(PriceData("USD", BigDecimal(15.0), BigDecimal(18.0), "Month"))
+    )
+  }
+
+  test("priceData [02]") {
+    // 02:
+    // Monthly, GBP
+    // Acquired in 2 Aug 2017, used to test the basic 1 year policy (in this case it is irrelevant)
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/02/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/02/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/02/invoice-preview.json")
+
+    assertEquals(
+      SupporterPlus2026Migration.priceData(subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(12.0), BigDecimal(14.0), "Month"))
+    )
+  }
+
+  test("priceData [03]") {
+
+    /*
+      03:
+
+      Annually EUR
+      Acquired on 26 Nov 2016
+      Got that one to test the one year discount policy.
+
+      The discount has dates
+        "effectiveStartDate": "2024-12-20"
+        "effectiveEndDate": "2025-12-20"
+
+      The supporter plus rate plan has dates
+        "effectiveStartDate": "2024-12-20"
+        "effectiveEndDate": "2026-12-20"
+
+      The discount ended less than a year ago, but one year after the end is the price rise date
+      This is a edge case and we expect the price rise to happen on 2026-12-20
+     */
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/03/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/03/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/03/invoice-preview.json")
+
+    // Here we do not need to do the discount variants.
+
+    assertEquals(
+      SupporterPlus2026Migration.priceData(subscription, invoicePreview),
+      Right(PriceData("EUR", BigDecimal(120.0), BigDecimal(140.0), "Annual"))
+    )
+  }
 }
