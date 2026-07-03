@@ -17,7 +17,8 @@ case class ZuoraSubscription(
     accountId: String,
     status: String,
     termStartDate: LocalDate,
-    termEndDate: LocalDate
+    termEndDate: LocalDate,
+    autoRenew: Boolean
 )
 
 object ZuoraSubscription {

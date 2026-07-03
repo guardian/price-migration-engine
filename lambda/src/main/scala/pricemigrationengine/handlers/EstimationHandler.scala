@@ -59,6 +59,16 @@ object EstimationHandler extends CohortHandler {
               )
             )
             .as(result)
+        case _: SubscriptionAutoRenewIsFalseFailure =>
+          val result = SubscriptionAutoRenewIsFalseEstimationResult(item.subscriptionName)
+          CohortTable
+            .update(
+              CohortItem(
+                item.subscriptionName,
+                processingStage = EstimationNotPossible
+              )
+            )
+            .as(result)
         case e => ZIO.fail(e)
       },
       success = { result =>
@@ -96,6 +106,9 @@ object EstimationHandler extends CohortHandler {
           .fetchSubscription(item.subscriptionName)
           .filterOrFail(_.status != "Cancelled")(
             SubscriptionCancelledInZuoraFailure(s"subscription ${item.subscriptionName} has been cancelled in Zuora")
+          )
+          .filterOrFail(_.autoRenew)(
+            SubscriptionAutoRenewIsFalseFailure(s"subscription ${item.subscriptionName} autoRenew flag is false")
           )
       account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
       invoicePreviewTargetDate = cohortSpec.earliestAmendmentEffectiveDate.plusMonths(16)

@@ -115,7 +115,7 @@ CohortItem(
 )
 ```
 
-At this stage the cohort items has been "estimated". Technically the cohort item is now in processing stage `EstimationComplete`. With that said, the engine is immediately going to create a record in Salesforce to mark the subscription in Salesforce with the new post migration price. At this point the processing stage is now `SalesforcePriceRiceCreationComplete`.
+At this stage the cohort items has been "estimated". Technically the cohort item is now in processing stage `EstimationComplete`. With that said, the engine is immediately going to create a record in Salesforce to mark the subscription in Salesforce with the new post migration price. After which point the processing stage is going to be `SalesforcePriceRiceCreationComplete`.
 
 ```
 CohortItem(
@@ -130,6 +130,8 @@ CohortItem(
 ```
 
 Then, the cohort item is going to.... sleep. It's going to sleep as long as it take for it to be at the start date minus about 40 days. This might take a few days or up to a year.
+
+Note that the Estimation step can fail. The item ends up in processing stage `ZuoraCancellation` if the subscription was cancelled in Zuora before the estimation step starts, or can end up in `EstimationNotPossible` if the data in Zuora didn't allow for an estimation. An example of this is subscriptions with their `autoRenew` flag set to false (this break the retrieval of the invoice preview, for instance).
 
 ### Notification 
 
