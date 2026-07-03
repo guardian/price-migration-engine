@@ -139,7 +139,7 @@ object SI2025Extractions {
     } yield date
   }
 
-  def getDiscountByRatePlanName(subscription: ZuoraSubscription, ratePlanName: String): Option[ZuoraRatePlan] = {
+  def getActiveDiscountByRatePlanName(subscription: ZuoraSubscription, ratePlanName: String): Option[ZuoraRatePlan] = {
     // The product name is always "Discount", but the ratePlanName is more freeform.
     // I have noticed
     // ratePlanName: "Percentage"
@@ -158,14 +158,15 @@ object SI2025Extractions {
     // in Marketing spreadsheets and as we have highlighted in the body of function `getDiscountByRatePlanName`
     // those are not even always equal to the rate plan names but may appear as substring.
 
-    var a = getDiscountByRatePlanName(subscription: ZuoraSubscription, "Percentage")
-    var b = getDiscountByRatePlanName(subscription: ZuoraSubscription, "Adjustment")
+    var a = getActiveDiscountByRatePlanName(subscription: ZuoraSubscription, "Percentage")
+    var b = getActiveDiscountByRatePlanName(subscription: ZuoraSubscription, "Adjustment")
     a.orElse(b)
   }
 
-  def getActiveDiscounts(subscription: ZuoraSubscription, today: LocalDate): List[ZuoraRatePlan] = {
-    // Note that some discounts are listed as "Add"'ed but are not active in the sense that
-    // their effective end date is in the past. Those are removed to
+  def getActiveDiscountsNotActiveAfterEffectiveEndDate(
+      subscription: ZuoraSubscription,
+      today: LocalDate
+  ): List[ZuoraRatePlan] = {
     subscription.ratePlans
       .filter(ratePlan => ZuoraRatePlan.ratePlanIsActive(ratePlan))
       .filter(ratePlan => ratePlan.productName == "Discounts")
@@ -176,8 +177,16 @@ object SI2025Extractions {
       )
   }
 
+  def getActiveDiscountsPossiblyAfterEffectiveEndDate(
+      subscription: ZuoraSubscription,
+  ): List[ZuoraRatePlan] = {
+    subscription.ratePlans
+      .filter(ratePlan => ZuoraRatePlan.ratePlanIsActive(ratePlan))
+      .filter(ratePlan => ratePlan.productName == "Discounts")
+  }
+
   def subscriptionHasActiveDiscounts(subscription: ZuoraSubscription, today: LocalDate): Boolean = {
-    getActiveDiscounts(subscription: ZuoraSubscription, today).nonEmpty
+    getActiveDiscountsNotActiveAfterEffectiveEndDate(subscription: ZuoraSubscription, today).nonEmpty
   }
 }
 

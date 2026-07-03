@@ -41,7 +41,7 @@ object SupporterPlus2026Migration {
   // Helpers
   // ------------------------------------------------
 
-  def monthliesOverSixWeeks(migrationDate: LocalDate, billingPeriod: BillingPeriod): LocalDate = {
+  def monthliesOverSixWeeks(cursorDate: LocalDate, billingPeriod: BillingPeriod): LocalDate = {
     // This function takes a migration date and  billing period and either return the same
     // migration date, or return the migration date plus a number of months randomly chosen between
     // 0 and 1. This is to ensure that the migration of monthlies is done over 6 weeks.
@@ -51,12 +51,28 @@ object SupporterPlus2026Migration {
     // If the migration date falls between 19 August and 30th August, we make a random choice and then
     // possibly add one month.
 
-    (migrationDate, billingPeriod) match {
-      case (_, Annual)                                          => migrationDate
+    (cursorDate, billingPeriod) match {
+      case (_, Annual)                                          => cursorDate
       case (date, _) if date.isAfter(LocalDate.of(2026, 8, 31)) => date
       case (date, _)                                            => {
         val shift = Random.nextInt(2) // decide a random integer in the interval [0, 1]
         date.plusMonths(shift)
+      }
+    }
+  }
+
+  def annualWithDiscountOneYearPolicy(cursorDate: LocalDate, subscription: ZuoraSubscription): LocalDate = {
+    val activeDiscounts =
+      SI2025Extractions.getActiveDiscountsPossiblyAfterEffectiveEndDate(subscription)
+    if (activeDiscounts.isEmpty) {
+      cursorDate
+    } else {
+      val maxEndDateOpt = activeDiscounts
+        .flatMap(_.ratePlanCharges.map(_.effectiveEndDate))
+        .max
+      maxEndDateOpt match {
+        case Some(date) => date.plusMonths(12)
+        case None       => cursorDate
       }
     }
   }
@@ -71,12 +87,33 @@ object SupporterPlus2026Migration {
   // - amendmentOrderPayload is used in the Amendment handler
   // ------------------------------------------------
 
+  def logValue[T](label: String)(value: T): T = {
+    println(s"$label: $value")
+    value
+  }
+
   def priceData(
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
   ): Either[DataExtractionFailure, PriceData] = {
-    // not yet implemented
-    ???
+    val priceDataOpt = for {
+      ratePlan <- SI2025RateplanFromSubAndInvoices
+        .determineRatePlan(subscription, invoiceList)
+        .map(logValue("ratePlan"))
+      currency <- SI2025Extractions.determineCurrency(ratePlan).map(logValue("currency"))
+      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan).map(logValue("billingPeriod"))
+      oldPrice = logValue("oldPrice")(SI2025Extractions.determineOldPrice(ratePlan))
+      newPrice <- priceGridNewPrices.get((billingPeriod, currency)).map(logValue("newPrice"))
+    } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
+    priceDataOpt match {
+      case Some(pricedata) => Right(pricedata)
+      case None            =>
+        Left(
+          DataExtractionFailure(
+            s"[e0254802] Could not determine PriceData for subscription ${subscription.subscriptionNumber}"
+          )
+        )
+    }
   }
 
   def amendmentOrderPayload(cohortItem: CohortItem): Either[Failure, Value] = {
