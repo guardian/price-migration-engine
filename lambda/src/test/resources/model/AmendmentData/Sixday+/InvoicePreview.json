@@ -443,5 +443,6 @@
       "appliedToItemId": null
     }
   ],
-  "success": true
+  "success": true,
+  "gu:sanitised": true
 }

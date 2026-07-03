@@ -1,7 +1,12 @@
 package pricemigrationengine.model
 
 import pricemigrationengine.handlers.NotificationHandler
-import pricemigrationengine.migrations.{GuardianWeekly2025Migration, Newspaper2025P1Migration, Newspaper2025P3Migration}
+import pricemigrationengine.migrations.{
+  GuardianWeekly2025Migration,
+  Newspaper2025P1Migration,
+  Newspaper2025P3Migration,
+  SupporterPlus2026Migration
+}
 import scala.util.Random
 import java.time.LocalDate
 
@@ -159,6 +164,20 @@ object AmendmentEffectiveDateCalculator {
     // Decides an integer in the interval [0, spreadPeriod-1]
     // The default spread period is 1
 
-    lowerBound4.plusMonths(randomDelayInMonths)
+    var lowerBound5 = lowerBound4.plusMonths(randomDelayInMonths)
+
+    // Special SupporterPlus2026
+    // For this migration we have the requirement to migrate the monthlies over 6 weeks,
+    // which is a non standard calculation. The main function is implemented in
+    // SupporterPlus2026Migration.monthliesOverSixWeeks
+    // and here we call it just for that migration
+
+    MigrationType(cohortSpec) match {
+      case SupporterPlus2026 =>
+        item.billingPeriod
+          .map(bp => SupporterPlus2026Migration.monthliesOverSixWeeks(lowerBound5, BillingPeriod.fromString(bp)))
+          .getOrElse(lowerBound5)
+      case _ => lowerBound5
+    }
   }
 }
