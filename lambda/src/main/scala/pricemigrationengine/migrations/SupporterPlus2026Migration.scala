@@ -92,6 +92,14 @@ object SupporterPlus2026Migration {
     value
   }
 
+  def determineOldPrice(ratePlan: ZuoraRatePlan): BigDecimal = {
+    ratePlan.ratePlanCharges
+      .filter(rpc => rpc.name != "Contribution")
+      .foldLeft(BigDecimal(0))((price: BigDecimal, ratePlanCharge: ZuoraRatePlanCharge) =>
+        price + ratePlanCharge.price.getOrElse(BigDecimal(0))
+      )
+  }
+
   def priceData(
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
@@ -102,7 +110,7 @@ object SupporterPlus2026Migration {
         .map(logValue("ratePlan"))
       currency <- SI2025Extractions.determineCurrency(ratePlan).map(logValue("currency"))
       billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan).map(logValue("billingPeriod"))
-      oldPrice = logValue("oldPrice")(SI2025Extractions.determineOldPrice(ratePlan))
+      oldPrice = logValue("oldPrice")(determineOldPrice(ratePlan))
       newPrice <- priceGridNewPrices.get((billingPeriod, currency)).map(logValue("newPrice"))
     } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
