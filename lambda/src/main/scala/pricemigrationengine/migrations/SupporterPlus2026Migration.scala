@@ -19,6 +19,25 @@ object SupporterPlus2026Migration {
   val minLeadTime = 33
 
   // ------------------------------------------------
+  // Price Grid
+  // ------------------------------------------------
+
+  val priceGridNewPrices: Map[(BillingPeriod, String), BigDecimal] = Map(
+    (Monthly, "GBP") -> BigDecimal(14.0),
+    (Monthly, "USD") -> BigDecimal(18.0),
+    (Monthly, "EUR") -> BigDecimal(14.0),
+    (Monthly, "AUD") -> BigDecimal(25.0),
+    (Monthly, "CAD") -> BigDecimal(18.0),
+    (Monthly, "NZD") -> BigDecimal(25.0),
+    (Annual, "GBP") -> BigDecimal(140.0),
+    (Annual, "USD") -> BigDecimal(180.0),
+    (Annual, "EUR") -> BigDecimal(140.0),
+    (Annual, "AUD") -> BigDecimal(250.0),
+    (Annual, "CAD") -> BigDecimal(180.0),
+    (Annual, "NZD") -> BigDecimal(250.0),
+  )
+
+  // ------------------------------------------------
   // Helpers
   // ------------------------------------------------
 
