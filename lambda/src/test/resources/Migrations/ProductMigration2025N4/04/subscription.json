@@ -10540,5 +10540,6 @@
   "scheduledCancelDate": null,
   "scheduledSuspendDate": null,
   "scheduledResumeDate": null,
-  "communicationProfileId": null
+  "communicationProfileId": null,
+  "gu:sanitised": true
 }

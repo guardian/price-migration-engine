@@ -32,7 +32,7 @@ end
 # ----------------------------------------------------
 # Anonymize subscription
 puts "processing subscription"
-subscription = JSON.parse(IO.read(subscription_filepath))
+subscription = JSON.parse(File.read(subscription_filepath))
 [
     "id", 
     "accountId",
@@ -48,12 +48,13 @@ subscription = JSON.parse(IO.read(subscription_filepath))
 subscription["billToContact"] = nil
 subscription["soldToContact"] = nil
 subscription["CreatedByCSR__c"] = nil
+subscription["gu:sanitised"] = true
 File.open(subscription_filepath, "w"){|f| f.puts(JSON.pretty_generate(subscription)) }
 
 # ----------------------------------------------------
 # Anonymize account
 puts "processing account"
-account = JSON.parse(IO.read(account_filepath))
+account = JSON.parse(File.read(account_filepath))
 [
     "id",
     "name",
@@ -69,12 +70,13 @@ account["billToContact"] = nil
 account["soldToContact"] = {
     "country" => account["soldToContact"]["country"]
 }
+account["gu:sanitised"] = true
 File.open(account_filepath, "w"){|f| f.puts(JSON.pretty_generate(account)) }
 
 # ----------------------------------------------------
 # Anonymize invoice preview
 puts "processing invoice preview"
-invoice_preview = JSON.parse(IO.read(invoice_preview_filepath))
+invoice_preview = JSON.parse(File.read(invoice_preview_filepath))
 invoice_preview["accountId"] = "accountId"
 invoice_preview["invoiceItems"] = invoice_preview["invoiceItems"]
     .map{|invoiceItem|
@@ -83,4 +85,5 @@ invoice_preview["invoiceItems"] = invoice_preview["invoiceItems"]
         invoiceItem["subscriptionNumber"] = "subscriptionNumber"
         invoiceItem
     }
+invoice_preview["gu:sanitised"] = true
 File.open(invoice_preview_filepath, "w"){|f| f.puts(JSON.pretty_generate(invoice_preview)) }

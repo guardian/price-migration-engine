@@ -49,5 +49,6 @@
   "creditMemoItems": [
 
   ],
-  "success": true
+  "success": true,
+  "gu:sanitised": true
 }
