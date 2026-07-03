@@ -285,7 +285,7 @@ object Newspaper2025P1Migration {
         for {
           ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
           billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
-          discount <- SI2025Extractions.getDiscountByRatePlanName(zuora_subscription, "Adjustment")
+          discount <- SI2025Extractions.getActiveDiscountByRatePlanName(zuora_subscription, "Adjustment")
         } yield {
           val subscriptionRatePlanId = ratePlan.id
           val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
