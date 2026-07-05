@@ -60,9 +60,31 @@ object NotificationHandler extends CohortHandler {
               .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
               .filter(item => item.subscriptionName == subscriptionNumber)
         }
-      )
-        .mapZIO(item => sendNotification(cohortSpec)(item, today))
-        .runCount
+      ).mapZIO { item =>
+        for {
+          subscription <- Zuora.fetchSubscription(item.subscriptionName)
+          hasCorrectProduct = SI2025RateplanFromSub
+            .uniquelyDeterminedActiveNonDiscountNonExpiredRatePlanHasGivenProductNameDefaultToTrue(
+              subscription,
+              today,
+              NotificationHandlerHelper.expectedProductNameOpt(cohortSpec)
+            )
+          result <-
+            if (hasCorrectProduct) {
+              sendNotification(cohortSpec)(item, today)
+            } else {
+              CohortTable
+                .update(
+                  CohortItem(
+                    item.subscriptionName,
+                    processingStage = ExcludedFromMigration,
+                    cancellationReason = Some("excluded from migration due to unexpected product name")
+                  )
+                )
+                .as(())
+            }
+        } yield result
+      }.runCount
     } yield HandlerOutput(isComplete = count < batchSize)
   }
 
