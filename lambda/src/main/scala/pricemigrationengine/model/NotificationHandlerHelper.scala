@@ -49,4 +49,17 @@ object NotificationHandlerHelper {
       case SupporterPlus2026 => true
     }
   }
+
+  def expectedProductNameOpt(cohortSpec: CohortSpec): Option[String] = {
+    MigrationType(cohortSpec) match {
+      case Test1                  => None
+      case GuardianWeekly2025     => None
+      case Newspaper2025P1        => None
+      case Newspaper2025P3        => None
+      case ProductMigration2025N4 => None
+      case Membership2025         => None
+      case DigiSubs2025           => None
+      case SupporterPlus2026      => Some("Supporter Plus")
+    }
+  }
 }
