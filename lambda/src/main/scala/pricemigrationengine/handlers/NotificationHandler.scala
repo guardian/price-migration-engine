@@ -60,31 +60,7 @@ object NotificationHandler extends CohortHandler {
               .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
               .filter(item => item.subscriptionName == subscriptionNumber)
         }
-      ).mapZIO { item =>
-        for {
-          subscription <- Zuora.fetchSubscription(item.subscriptionName)
-          hasCorrectProduct = SI2025RateplanFromSub
-            .uniquelyDeterminedActiveNonDiscountNonExpiredRatePlanHasGivenProductNameDefaultToTrue(
-              subscription,
-              today,
-              NotificationHandlerHelper.expectedProductNameOpt(cohortSpec)
-            )
-          result <-
-            if (hasCorrectProduct) {
-              sendNotification(cohortSpec)(item, today)
-            } else {
-              CohortTable
-                .update(
-                  CohortItem(
-                    item.subscriptionName,
-                    processingStage = ExcludedFromMigration,
-                    cancellationReason = Some("excluded from migration due to unexpected product name")
-                  )
-                )
-                .as(())
-            }
-        } yield result
-      }.runCount
+      ).mapZIO { item => performProductNameCheckAndSendNotification(cohortSpec, item, today) }.runCount
     } yield HandlerOutput(isComplete = count < batchSize)
   }
 
@@ -106,6 +82,44 @@ object NotificationHandler extends CohortHandler {
         s"Subscription ${item.subscriptionName} has been cancelled in Zuora, price rise notification not sent"
       )
     } yield ()
+  }
+
+  def performProductNameCheckAndSendNotification(
+      cohortSpec: CohortSpec,
+      item: CohortItem,
+      date: LocalDate
+  ): ZIO[CohortTable with SalesforceClient with EmailSender with Zuora with Logging, Failure, Unit] = {
+    for {
+      subscription <- Zuora.fetchSubscription(item.subscriptionName)
+      ratePlan <- ZIO
+        .fromOption(
+          SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
+            subscription,
+            date
+          )
+        )
+        .orElseFail(DataExtractionFailure(s"[cd6e6562] could not determine rate plan for item $item"))
+      hasCorrectProductName = NotificationHandlerHelper
+        .checkProductName(
+          ratePlan,
+          date,
+          NotificationHandlerHelper.expectedProductNameOpt(cohortSpec)
+        )
+      result <-
+        if (hasCorrectProductName) {
+          sendNotification(cohortSpec)(item, date)
+        } else {
+          CohortTable
+            .update(
+              CohortItem(
+                item.subscriptionName,
+                processingStage = ExcludedFromMigration,
+                cancellationReason = Some(s"item $item excluded from migration due to unexpected product name")
+              )
+            )
+            .as(())
+        }
+    } yield result
   }
 
   def sendNotification(cohortSpec: CohortSpec)(
