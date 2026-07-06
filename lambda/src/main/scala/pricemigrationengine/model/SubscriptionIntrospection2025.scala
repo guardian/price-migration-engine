@@ -102,32 +102,6 @@ object SI2025RateplanFromSub {
         )
     }
   }
-
-  def uniquelyDeterminedActiveNonDiscountNonExpiredRatePlanHasGivenProductNameDefaultToTrue(
-      subscription: ZuoraSubscription,
-      today: LocalDate,
-      productNameOpt: Option[String]
-  ): Boolean = {
-    // This function essentially returns `true` if the uniquely contextual
-    // rate plan product name is what we expect. This was introduced to
-    // ensure that at Notification time or Amendment time the subscription
-    // has not moved to a different product. This can happen to, for instance,
-    // to Supporter Plus subs that can be transmuted to Digital Packs
-
-    productNameOpt match {
-      case Some(productName) => {
-        val ratePlanOpt = uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
-          subscription: ZuoraSubscription,
-          today: LocalDate
-        )
-        ratePlanOpt match {
-          case Some(ratePlan) => ratePlan.productName == productName
-          case None           => false
-        }
-      }
-      case None => true // for backward compatibility when the information is not available for previous subs
-    }
-  }
 }
 
 object SI2025Extractions {

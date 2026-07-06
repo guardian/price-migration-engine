@@ -1,5 +1,6 @@
 package pricemigrationengine.model
 
+import java.time.LocalDate
 import pricemigrationengine.model.membershipworkflow.EmailMessage
 
 object NotificationHandlerHelper {
@@ -60,6 +61,24 @@ object NotificationHandlerHelper {
       case Membership2025         => None
       case DigiSubs2025           => None
       case SupporterPlus2026      => Some("Supporter Plus")
+    }
+  }
+
+  def checkProductName(
+      ratePlan: ZuoraRatePlan,
+      today: LocalDate,
+      productNameOpt: Option[String]
+  ): Boolean = {
+    // This function essentially returns `true` if the rate plan product name is
+    // what we expect. This was introduced to ensure that at Notification time
+    // the subscription has not moved to a different product. This can happen to,
+    // for instance, to Supporter Plus subs that can be transmuted to Digital Packs
+
+    productNameOpt match {
+      case Some(productName) => {
+        ratePlan.productName == productName
+      }
+      case None => true // for backward compatibility when the information is not available for previous subs
     }
   }
 }
