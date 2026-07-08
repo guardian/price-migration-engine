@@ -9,6 +9,12 @@ import zio.ZIO
 
 import scala.util.Random
 
+case class SP2026EmailExtraAttributes(
+    contributionAmount: BigDecimal,
+    currentCombinedAmount: BigDecimal,
+    newCombinedAmount: BigDecimal
+)
+
 object SupporterPlus2026Migration {
 
   // ------------------------------------------------
@@ -75,6 +81,33 @@ object SupporterPlus2026Migration {
         case None       => cursorDate
       }
     }
+  }
+
+  def subscriptionToContributionAmount(subscription: ZuoraSubscription): Option[BigDecimal] = {
+    for {
+      ratePlan <- subscription.ratePlans
+        .filter(ratePlan => ZuoraRatePlan.ratePlanIsActive(ratePlan))
+        .find(ratePlan => ratePlan.productName == "Supporter Plus")
+      ratePlanCharge <- ratePlan.ratePlanCharges.find(rpc => rpc.name == "Contribution")
+      price <- ratePlanCharge.price
+    } yield price
+  }
+
+  def extractEmailExtraAttributes(
+      subscription: ZuoraSubscription,
+      cohortItem: CohortItem
+  ): Option[SP2026EmailExtraAttributes] = {
+    for {
+      contributionAmount <- subscriptionToContributionAmount(subscription)
+      currentBaseAmount <- cohortItem.oldPrice
+      currentCombinedAmount = currentBaseAmount + contributionAmount
+      futureBaseAmount <- cohortItem.commsPrice
+      futureCombinedAmount = futureBaseAmount + contributionAmount
+    } yield SP2026EmailExtraAttributes(
+      contributionAmount,
+      currentCombinedAmount,
+      futureCombinedAmount
+    )
   }
 
   // ------------------------------------------------
