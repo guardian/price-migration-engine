@@ -60,7 +60,12 @@ object NotificationHandler extends CohortHandler {
               .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
               .filter(item => item.subscriptionName == subscriptionNumber)
         }
-      ).mapZIO { item => performProductNameCheckAndSendNotification(cohortSpec, item, today) }.runCount
+      ).mapZIO { item =>
+        for {
+          subscription <- Zuora.fetchSubscription(item.subscriptionName)
+          _ <- performProductNameCheckAndSendNotification(cohortSpec, item, subscription, today)
+        } yield ()
+      }.runCount
     } yield HandlerOutput(isComplete = count < batchSize)
   }
 
@@ -87,10 +92,10 @@ object NotificationHandler extends CohortHandler {
   def performProductNameCheckAndSendNotification(
       cohortSpec: CohortSpec,
       item: CohortItem,
+      subscription: ZuoraSubscription,
       date: LocalDate
   ): ZIO[CohortTable with SalesforceClient with EmailSender with Zuora with Logging, Failure, Unit] = {
     for {
-      subscription <- Zuora.fetchSubscription(item.subscriptionName)
       ratePlan <- ZIO
         .fromOption(
           SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
