@@ -63,7 +63,12 @@ object NotificationHandler extends CohortHandler {
       ).mapZIO { item =>
         for {
           subscription <- Zuora.fetchSubscription(item.subscriptionName)
-          _ <- performProductNameCheckAndSendNotification(cohortSpec, item, subscription, today)
+          _ <-
+            if (subscription.status == "Cancelled") {
+              updateCohortItemForZuoraCancellation(cohortSpec, item)
+            } else {
+              performProductNameCheckAndSendNotification(cohortSpec, item, subscription, today)
+            }
         } yield ()
       }.runCount
     } yield HandlerOutput(isComplete = count < batchSize)
