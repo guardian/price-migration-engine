@@ -590,6 +590,10 @@ object NotificationHandler extends CohortHandler {
       zuoraSubscription: ZuoraSubscription
   ): ZIO[Zuora, Failure, String] = {
     MigrationType(cohortSpec) match {
+      case Test1                  => ZIO.succeed("unspecified")
+      case GuardianWeekly2025     => ZIO.succeed("SV_GW_PriceRise2025")
+      case Newspaper2025P1        => ZIO.succeed("SV_NP_PriceRise_2025")
+      case Newspaper2025P3        => ZIO.succeed("SV_NP_PriceRise_VoucherSubCard2025")
       case ProductMigration2025N4 =>
         ZIO
           .fromOption(ProductMigration2025N4Migration.brazeName(item))
@@ -614,7 +618,6 @@ object NotificationHandler extends CohortHandler {
           .orElseFail(
             DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
           )
-      case _ => ZIO.succeed(cohortSpec.brazeName)
     }
   }
 }
