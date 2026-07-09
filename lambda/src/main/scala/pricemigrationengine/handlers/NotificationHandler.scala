@@ -580,10 +580,6 @@ object NotificationHandler extends CohortHandler {
   // -------------------------------------------------------------------
   // Braze names
 
-  // Traditionally the name of the campaign or canvas has been part of the CohortSpec, making
-  // `cohortSpec.brazeName` the default carrier of this information, but for some migrations
-  // we have several canvases and we want to select one depending on the subscription.
-
   def brazeName(
       cohortSpec: CohortSpec,
       item: CohortItem,

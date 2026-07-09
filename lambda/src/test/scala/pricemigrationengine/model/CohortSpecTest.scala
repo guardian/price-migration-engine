@@ -10,7 +10,6 @@ class CohortSpecTest extends munit.FunSuite {
 
   private val cohortSpec = CohortSpec(
     cohortName = "Home Delivery 2018",
-    brazeName = "cmp123",
     earliestAmendmentEffectiveDate = LocalDate.of(2020, 1, 2)
   )
 
@@ -20,7 +19,6 @@ class CohortSpecTest extends munit.FunSuite {
   test("fromDynamoDbItem: should include all fields") {
     val item = Map(
       "cohortName" -> AttributeValue.builder.s("Home Delivery 2018").build(),
-      "brazeName" -> AttributeValue.builder.s("cmp123").build(),
       "earliestAmendmentEffectiveDate" -> AttributeValue.builder.s("2020-01-02").build()
     ).asJava
     assertEquals(
@@ -35,9 +33,5 @@ class CohortSpecTest extends munit.FunSuite {
 
   test("isValid: should be false when the cohort name has trailing whitespace") {
     assertFalse(isValid(cohortSpec.copy(cohortName = "Home Delivery 2018 ")))
-  }
-
-  test("isValid: should be false when the campaign name contains an illegal character") {
-    assertFalse(isValid(cohortSpec.copy(brazeName = "vc:ppr321")))
   }
 }
