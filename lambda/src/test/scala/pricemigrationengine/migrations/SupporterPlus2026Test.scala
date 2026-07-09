@@ -575,6 +575,8 @@ class SupporterPlus2026Test extends munit.FunSuite {
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
 
+    val cohortSpec = CohortSpec("SupporterPlus2026", "unspecified", LocalDate.of(2026, 7, 1))
+
     // Note that we are defining the CohortItem only with the attributes we need
     // That particular value would not happen in the wild.
     val cohortItem = CohortItem(
@@ -587,12 +589,12 @@ class SupporterPlus2026Test extends munit.FunSuite {
     val contribution = BigDecimal(0.0) // 01 carries 0.0
 
     assertEquals(
-      SupporterPlus2026Migration.extractEmailExtraAttributes(subscription, cohortItem),
+      SupporterPlus2026Migration.extractEmailExtraAttributes(cohortSpec, cohortItem, subscription),
       Some(
         SP2026EmailExtraAttributes(
-          contribution,
-          BigDecimal(12.0),
-          BigDecimal(14.0)
+          contribution.toString(),
+          "12.0",
+          "14.0"
         )
       )
     )
@@ -611,6 +613,8 @@ class SupporterPlus2026Test extends munit.FunSuite {
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/invoice-preview.json"
 
+    val cohortSpec = CohortSpec("SupporterPlus2026", "unspecified", LocalDate.of(2026, 7, 1))
+
     // Note that we are defining the CohortItem only with the attributes we need
     // That particular value would not happen in the wild.
     val cohortItem = CohortItem(
@@ -623,12 +627,12 @@ class SupporterPlus2026Test extends munit.FunSuite {
     val contribution = BigDecimal(89.0) // 01 carries 89.0
 
     assertEquals(
-      SupporterPlus2026Migration.extractEmailExtraAttributes(subscription, cohortItem),
+      SupporterPlus2026Migration.extractEmailExtraAttributes(cohortSpec, cohortItem, subscription),
       Some(
         SP2026EmailExtraAttributes(
-          contribution,
-          BigDecimal(12.0 + 89.0),
-          BigDecimal(14.0 + 89.0)
+          contribution.toString(),
+          "101.0",
+          "103.0"
         )
       )
     )
