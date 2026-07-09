@@ -46,4 +46,6 @@ Now the question is. Could not have `ProductMigration2025N4NotificationData` def
 ProductMigration2025N4NotificationData(None, None)
 ```
 
-Answer here is that this would complicate the code in the Notification handler, in the case of `Some` values.
+The answer here is that this would complicate the code in the Notification handler, in the case of `Some` values.
+
+One refactoring we could do one day that would simplify the situation and add flexibility is simply to define `EmailPayloadSubscriberAttributes` as a Map[String, String] rather than a Scala class used by all migrations. `EmailPayloadSubscriberAttributes` is indeed not used for anything else than generating JSON.
