@@ -117,7 +117,7 @@ object NotificationHandler extends CohortHandler {
         )
       result <-
         if (hasCorrectProductName) {
-          sendNotification(cohortSpec)(item, date)
+          sendNotification(cohortSpec, subscription)(item, date)
         } else {
           CohortTable
             .update(
@@ -132,7 +132,7 @@ object NotificationHandler extends CohortHandler {
     } yield result
   }
 
-  def sendNotification(cohortSpec: CohortSpec)(
+  def sendNotification(cohortSpec: CohortSpec, zuoraSubscription: ZuoraSubscription)(
       cohortItem: CohortItem,
       today: LocalDate
   ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging with Zuora, Failure, Unit] = {
@@ -158,7 +158,7 @@ object NotificationHandler extends CohortHandler {
         if (sfSubscription.Status__c == Cancelled_Status) {
           updateCohortItemForZuoraCancellation(cohortSpec, cohortItem)
         } else {
-          sendNotification(cohortSpec, cohortItem, sfSubscription)
+          sendNotification(cohortSpec, cohortItem, sfSubscription, zuoraSubscription)
         }
     } yield ()
   }
@@ -166,7 +166,8 @@ object NotificationHandler extends CohortHandler {
   def sendNotification(
       cohortSpec: CohortSpec,
       cohortItem: CohortItem,
-      sfSubscription: SalesforceSubscription
+      sfSubscription: SalesforceSubscription,
+      zuoraSubscription: ZuoraSubscription
   ): ZIO[Zuora with EmailSender with SalesforceClient with CohortTable with Logging, Failure, Unit] =
     for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
@@ -217,7 +218,21 @@ object NotificationHandler extends CohortHandler {
           .orElseFail(DataExtractionFailure(s"[c20f44b1] How did we get here ? 🤔"))
       // ----------------------------------------------------
 
-      brazeName <- brazeName(cohortSpec, cohortItem)
+      // ----------------------------------------------------
+      // Data for SupporterPlus2026
+      supporterPlus2026ExtraData <-
+        ZIO
+          .fromOption(
+            SupporterPlus2026Migration.extractEmailExtraAttributes(
+              cohortSpec,
+              cohortItem,
+              zuoraSubscription,
+            )
+          )
+          .orElseFail(DataExtractionFailure(s"[2ae40ea0] How did we get here ? 🤔"))
+      // ----------------------------------------------------
+
+      brazeName <- brazeName(cohortSpec, cohortItem, zuoraSubscription)
 
       message = EmailMessage(
         EmailPayload(
@@ -258,6 +273,13 @@ object NotificationHandler extends CohortHandler {
               // ProductMigration2025N4 extension
               newspaper2025_phase4_brand_title = Some(productMigration2025N4NotificationData.brandTitle),
               newspaper2025_phase4_formstack_url = Some(productMigration2025N4NotificationData.formstackUrl),
+              // -------------------------------------------------------------
+
+              // -------------------------------------------------------------
+              // SupporterPlus2026 extension
+              sp2026_contribution_amount = Some(supporterPlus2026ExtraData.contributionAmount),
+              sp2026_current_combined_amount = Some(supporterPlus2026ExtraData.currentCombinedAmount),
+              sp2026_new_combined_amount = Some(supporterPlus2026ExtraData.newCombinedAmount)
               // -------------------------------------------------------------
             )
           )
@@ -562,7 +584,11 @@ object NotificationHandler extends CohortHandler {
   // `cohortSpec.brazeName` the default carrier of this information, but for some migrations
   // we have several canvases and we want to select one depending on the subscription.
 
-  def brazeName(cohortSpec: CohortSpec, item: CohortItem): ZIO[Zuora, Failure, String] = {
+  def brazeName(
+      cohortSpec: CohortSpec,
+      item: CohortItem,
+      zuoraSubscription: ZuoraSubscription
+  ): ZIO[Zuora, Failure, String] = {
     MigrationType(cohortSpec) match {
       case ProductMigration2025N4 =>
         ZIO
@@ -581,6 +607,12 @@ object NotificationHandler extends CohortHandler {
           .fromOption(DigiSubs2025Migration.brazeName(item))
           .orElseFail(
             DataExtractionFailure(s"[e3f83ac4] could not determine brazeName for DigiSubs2025, item: ${item}")
+          )
+      case SupporterPlus2026 =>
+        ZIO
+          .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
+          .orElseFail(
+            DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
           )
       case _ => ZIO.succeed(cohortSpec.brazeName)
     }

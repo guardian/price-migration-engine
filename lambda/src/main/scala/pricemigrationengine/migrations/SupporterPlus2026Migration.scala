@@ -10,9 +10,9 @@ import zio.ZIO
 import scala.util.Random
 
 case class SP2026EmailExtraAttributes(
-    contributionAmount: BigDecimal,
-    currentCombinedAmount: BigDecimal,
-    newCombinedAmount: BigDecimal
+    contributionAmount: String,
+    currentCombinedAmount: String,
+    newCombinedAmount: String
 )
 
 object SupporterPlus2026Migration {
@@ -94,20 +94,75 @@ object SupporterPlus2026Migration {
   }
 
   def extractEmailExtraAttributes(
+      cohortSpec: CohortSpec,
+      cohortItem: CohortItem,
       subscription: ZuoraSubscription,
-      cohortItem: CohortItem
   ): Option[SP2026EmailExtraAttributes] = {
+
+    MigrationType(cohortSpec) match {
+      case SupporterPlus2026 => {
+        for {
+          contributionAmount <- subscriptionToContributionAmount(subscription)
+          currentBaseAmount <- cohortItem.oldPrice
+          currentCombinedAmount = currentBaseAmount + contributionAmount
+          futureBaseAmount <- cohortItem.commsPrice
+          futureCombinedAmount = futureBaseAmount + contributionAmount
+        } yield SP2026EmailExtraAttributes(
+          contributionAmount.toString(),
+          currentCombinedAmount.toString(),
+          futureCombinedAmount.toString()
+        )
+      }
+      case _ =>
+        Some(
+          // Date: 9th July 2026
+          // For Tom reading this... Same as usual, I can't return a None
+          // and the case class cannot have its fields defined as Options :)
+          SP2026EmailExtraAttributes(
+            "",
+            "",
+            ""
+          )
+        )
+    }
+
+  }
+
+  def brazeName(cohortItem: CohortItem, subscription: ZuoraSubscription): Option[String] = {
+    /*
+        Canvases:
+
+        Name       : SV_SP_PriceRiseMonthlyNoCont2026
+        ID         : d7181793-e2b4-45fc-a3fa-2fdd274d6ca7
+        Description: Monthly S+ without a contribution
+
+        Name       : SV_SP_PriceRiseAnnualNoCont2026
+        ID         : 302c16dd-a3a9-4d01-a01e-324fadee6d7c
+        Description: Annual S+ without a contribution
+
+        Name       : SV_SP_PriceRiseMonthlyWithCont2026
+        ID         : 725a9aab-45d4-481f-aa91-ca539c3e6ffc
+        Description: Monthly S+ with contribution
+
+        Name       : SV_SP_PriceRiseAnnualWithCont2026
+        ID         : 293edcd5-2db9-4296-bcac-c07b69b8fe8c
+        Description: Annual S+ with contribution
+     */
+
     for {
+      billingPeriod <- cohortItem.billingPeriod
       contributionAmount <- subscriptionToContributionAmount(subscription)
-      currentBaseAmount <- cohortItem.oldPrice
-      currentCombinedAmount = currentBaseAmount + contributionAmount
-      futureBaseAmount <- cohortItem.commsPrice
-      futureCombinedAmount = futureBaseAmount + contributionAmount
-    } yield SP2026EmailExtraAttributes(
-      contributionAmount,
-      currentCombinedAmount,
-      futureCombinedAmount
-    )
+      hasNonZeroContribution = contributionAmount > 0
+    } yield {
+      (billingPeriod, hasNonZeroContribution) match {
+        case ("Month", false)  => "SV_SP_PriceRiseMonthlyNoCont2026"
+        case ("Month", true)   => "SV_SP_PriceRiseMonthlyWithCont2026"
+        case ("Annual", false) => "SV_SP_PriceRiseAnnualNoCont2026"
+        case ("Annual", true)  => "SV_SP_PriceRiseAnnualWithCont2026"
+        case _                 =>
+          throw new Exception(s"[fb8cdf0e] unexpected case, cohort item: ${cohortItem}, subscription: ${subscription}")
+      }
+    }
   }
 
   // ------------------------------------------------
