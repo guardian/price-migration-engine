@@ -52,7 +52,6 @@ class SupporterPlus2026Test extends munit.FunSuite {
 
     val cohortSpec = CohortSpec(
       "SupporterPlus2026",
-      "",
       LocalDate.of(2026, 9, 19),
     )
 
@@ -183,7 +182,6 @@ class SupporterPlus2026Test extends munit.FunSuite {
 
     val cohortSpec = CohortSpec(
       "SupporterPlus2026",
-      "",
       LocalDate.of(2026, 9, 19),
     )
 
@@ -237,7 +235,6 @@ class SupporterPlus2026Test extends munit.FunSuite {
 
     val cohortSpec = CohortSpec(
       "SupporterPlus2026",
-      "",
       LocalDate.of(2026, 9, 19),
     )
 
@@ -292,7 +289,6 @@ class SupporterPlus2026Test extends munit.FunSuite {
 
     val cohortSpec = CohortSpec(
       "SupporterPlus2026",
-      "",
       LocalDate.of(2026, 9, 19),
     )
 
@@ -347,7 +343,6 @@ class SupporterPlus2026Test extends munit.FunSuite {
 
     val cohortSpec = CohortSpec(
       "SupporterPlus2026",
-      "",
       LocalDate.of(2026, 9, 19),
     )
 
@@ -401,7 +396,6 @@ class SupporterPlus2026Test extends munit.FunSuite {
 
     val cohortSpec = CohortSpec(
       "SupporterPlus2026",
-      "",
       LocalDate.of(2026, 9, 19),
     )
 
@@ -575,7 +569,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
 
-    val cohortSpec = CohortSpec("SupporterPlus2026", "unspecified", LocalDate.of(2026, 7, 1))
+    val cohortSpec = CohortSpec("SupporterPlus2026", LocalDate.of(2026, 7, 1))
 
     // Note that we are defining the CohortItem only with the attributes we need
     // That particular value would not happen in the wild.
@@ -613,7 +607,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/invoice-preview.json"
 
-    val cohortSpec = CohortSpec("SupporterPlus2026", "unspecified", LocalDate.of(2026, 7, 1))
+    val cohortSpec = CohortSpec("SupporterPlus2026", LocalDate.of(2026, 7, 1))
 
     // Note that we are defining the CohortItem only with the attributes we need
     // That particular value would not happen in the wild.

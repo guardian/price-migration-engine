@@ -83,7 +83,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/DigiSubs2025/01/invoice-preview.json")
 
     val amendmentEffectiveDateLowerBound = LocalDate.of(2026, 2, 1)
-    val cohortSpec = CohortSpec("DigiSubs2025", "unspecified", LocalDate.of(2025, 11, 25))
+    val cohortSpec = CohortSpec("DigiSubs2025", LocalDate.of(2025, 11, 25))
 
     assertEquals(
       EstimationResult.apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec),
@@ -109,7 +109,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/DigiSubs2025/02/invoice-preview.json")
 
     val amendmentEffectiveDateLowerBound = LocalDate.of(2026, 2, 1)
-    val cohortSpec = CohortSpec("DigiSubs2025", "unspecified", LocalDate.of(2025, 11, 25))
+    val cohortSpec = CohortSpec("DigiSubs2025", LocalDate.of(2025, 11, 25))
 
     assertEquals(
       EstimationResult.apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec),
@@ -135,7 +135,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/DigiSubs2025/03/invoice-preview.json")
 
     val amendmentEffectiveDateLowerBound = LocalDate.of(2026, 2, 1)
-    val cohortSpec = CohortSpec("DigiSubs2025", "unspecified", LocalDate.of(2025, 11, 25))
+    val cohortSpec = CohortSpec("DigiSubs2025", LocalDate.of(2025, 11, 25))
 
     assertEquals(
       EstimationResult.apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec),
@@ -161,7 +161,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/DigiSubs2025/04/invoice-preview.json")
 
     val amendmentEffectiveDateLowerBound = LocalDate.of(2026, 2, 1)
-    val cohortSpec = CohortSpec("DigiSubs2025", "unspecified", LocalDate.of(2025, 11, 25))
+    val cohortSpec = CohortSpec("DigiSubs2025", LocalDate.of(2025, 11, 25))
 
     assertEquals(
       EstimationResult.apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec),
