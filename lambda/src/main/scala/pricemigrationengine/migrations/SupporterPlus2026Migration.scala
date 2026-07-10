@@ -83,6 +83,78 @@ object SupporterPlus2026Migration {
     }
   }
 
+  def oneYearSinceLastProductSwitchPolicyGetProductRatePlanPairOpt(
+      lowerBound0: LocalDate,
+      subscription: ZuoraSubscription
+  ) = {
+    for {
+      ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
+        subscription,
+        lowerBound0
+      )
+      ratePlanCharge <- ratePlan.ratePlanCharges.find(rpc => rpc.name.contains("Supporter"))
+    } yield (ratePlan.productName, ratePlanCharge.name)
+  }
+
+  def oneYearSinceLastProductSwitchPolicyGetRatePlans(
+      subscription: ZuoraSubscription,
+      productName: String,
+      ratePlanChargeName: String
+  ): List[ZuoraRatePlan] = {
+    subscription.ratePlans
+      .filter(rp => rp.productName == productName)
+      .filter(rp => rp.ratePlanCharges.exists(rpc => rpc.name == ratePlanChargeName))
+  }
+
+  def oneYearSinceLastProductSwitchPolicyOldestEffectiveStartDate(
+      lowerBound0: LocalDate,
+      ratePlans: List[ZuoraRatePlan]
+  ): LocalDate = {
+    ratePlans
+      .flatMap(_.ratePlanCharges)
+      .flatMap(_.effectiveStartDate)
+      .filter(date => !date.isBefore(lowerBound0))
+      .minOption
+      .getOrElse(lowerBound0)
+  }
+
+  def oneYearSinceLastProductSwitchPolicy(lowerBound0: LocalDate, subscription: ZuoraSubscription): LocalDate = {
+    /*
+       Here we implement the policy that we do not want to price rise within a year after the last product switch, if there was one.
+       Interestingly the date of the last product switch is not the start date of the current rate plan.
+
+       For instance, considering a subscription with the following history
+          Supporter / Non Founder Supporter - annual from 2015-12-14 to 2023-12-14
+          Supporter / Supporter - annual (2023 Price) from 2023-12-14 to 2023-12-14 (looks like they changed their mind)
+          Contributor / Annual Contribution from 2023-12-14 to 2024-05-20
+          Supporter Plus / Supporter Plus V2 - Annual from 2024-05-20 to 2025-05-20
+          Supporter Plus / Supporter Plus V2 - Annual from 2025-05-20 to 2027-05-20
+
+       We are after 2024-05-20
+     */
+
+    // We first identify the current active product name / rate plan name
+    // Then we retrive all the rate plans matching the pairs and re return the oldest rate plan charge effectiveStartDate
+
+    oneYearSinceLastProductSwitchPolicyGetProductRatePlanPairOpt(lowerBound0, subscription) match {
+      case None =>
+        throw new Exception(
+          s"[16ce454a] this is not expected to happen, subscription number: ${subscription.subscriptionNumber}"
+        )
+      case Some((productName, ratePlanChargeName)) => {
+        val ratePlans = oneYearSinceLastProductSwitchPolicyGetRatePlans(
+          subscription,
+          productName,
+          ratePlanChargeName
+        )
+        oneYearSinceLastProductSwitchPolicyOldestEffectiveStartDate(
+          lowerBound0,
+          ratePlans
+        ).plusMonths(12)
+      }
+    }
+  }
+
   def computeAmendmentEffectiveDateLowerBound(
       lowerBound0: LocalDate,
       item: CohortItem,
@@ -105,6 +177,13 @@ object SupporterPlus2026Migration {
       case Some(Annual) => annualWithDiscountOneYearPolicy(lowerBound1, subscription)
       case _            => lowerBound1
     }
+
+    // We also implement the requirement to apply a one year delay policy after the "latest product switch"
+    // where "latest product switch" is defined that the earliest date the sub has been running this particular product name, rate plan name
+    // It's a stronger condition than global 1y policy.
+
+    // keeping  lowerBound2 for the moment
+    // val lowerBound3 = oneYearSinceLastProductSwitchPolicy(lowerBound2, subscription)
 
     lowerBound2
   }
