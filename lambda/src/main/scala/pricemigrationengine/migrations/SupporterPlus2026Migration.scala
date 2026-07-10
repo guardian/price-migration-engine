@@ -67,18 +67,19 @@ object SupporterPlus2026Migration {
     }
   }
 
-  def annualWithDiscountOneYearPolicy(cursorDate: LocalDate, subscription: ZuoraSubscription): LocalDate = {
+  def annualWithDiscountOneYearPolicy(lowerBound: LocalDate, subscription: ZuoraSubscription): LocalDate = {
+    // returns the { lowerbound } or { the max end date of all sub + 1 year }, whichever is highest
     val activeDiscounts =
       SI2025Extractions.getActiveDiscountsPossiblyAfterEffectiveEndDate(subscription)
     if (activeDiscounts.isEmpty) {
-      cursorDate
+      lowerBound
     } else {
       val maxEndDateOpt = activeDiscounts
         .flatMap(_.ratePlanCharges.map(_.effectiveEndDate))
         .max
       maxEndDateOpt match {
-        case Some(date) => date.plusMonths(12)
-        case None       => cursorDate
+        case Some(date) => Date.datesMax(date.plusMonths(12), lowerBound)
+        case None       => lowerBound
       }
     }
   }
@@ -182,10 +183,9 @@ object SupporterPlus2026Migration {
     // where "latest product switch" is defined that the earliest date the sub has been running this particular product name, rate plan name
     // It's a stronger condition than global 1y policy.
 
-    // keeping  lowerBound2 for the moment
-    // val lowerBound3 = oneYearSinceLastProductSwitchPolicy(lowerBound2, subscription)
+    val lowerBound3 = oneYearSinceLastProductSwitchPolicy(lowerBound2, subscription)
 
-    lowerBound2
+    lowerBound3
   }
 
   def subscriptionToContributionAmount(subscription: ZuoraSubscription): Option[BigDecimal] = {
