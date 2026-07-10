@@ -79,7 +79,7 @@ class AmendmentEffectiveDateCalculatorTest extends munit.FunSuite {
 
     // Here nothing happens because the cohort item didn't have extended attributes
 
-    val lowerBound4 = GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound4(lowerBound3, cohortItem)
+    val lowerBound4 = GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, cohortItem)
 
     assertEquals(
       lowerBound3,
@@ -188,7 +188,7 @@ class AmendmentEffectiveDateCalculatorTest extends munit.FunSuite {
 
     // Here we have extended attributes: {"earliestMigrationDate":"2026-03-19"}
 
-    val lowerBound4 = GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound4(lowerBound3, cohortItem)
+    val lowerBound4 = GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, cohortItem)
 
     assertEquals(
       lowerBound4,
