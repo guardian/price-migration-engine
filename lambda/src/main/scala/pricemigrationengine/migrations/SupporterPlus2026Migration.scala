@@ -84,39 +84,38 @@ object SupporterPlus2026Migration {
     }
   }
 
-  def oneYearSinceLastProductSwitchPolicyGetProductRatePlanPairOpt(
-      lowerBound0: LocalDate,
+  def oneYearSinceLastProductSwitchPolicyGetProductNameRatePlanNamePairOpt(
+      date: LocalDate,
       subscription: ZuoraSubscription
   ) = {
     for {
       ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
         subscription,
-        lowerBound0
+        date
       )
-      ratePlanCharge <- ratePlan.ratePlanCharges.find(rpc => rpc.name.contains("Supporter"))
-    } yield (ratePlan.productName, ratePlanCharge.name)
+    } yield (ratePlan.productName, ratePlan.ratePlanName)
   }
 
   def oneYearSinceLastProductSwitchPolicyGetRatePlans(
       subscription: ZuoraSubscription,
       productName: String,
-      ratePlanChargeName: String
+      ratePlanName: String
   ): List[ZuoraRatePlan] = {
     subscription.ratePlans
       .filter(rp => rp.productName == productName)
-      .filter(rp => rp.ratePlanCharges.exists(rpc => rpc.name == ratePlanChargeName))
+      .filter(rp => rp.ratePlanName == ratePlanName)
   }
 
-  def oneYearSinceLastProductSwitchPolicyOldestEffectiveStartDate(
+  def oneYearSinceLastProductSwitchPolicyRatePlansToLowerBoundEffectiveDate(
       lowerBound0: LocalDate,
       ratePlans: List[ZuoraRatePlan]
   ): LocalDate = {
-    ratePlans
+    val dateOpt = ratePlans
       .flatMap(_.ratePlanCharges)
       .flatMap(_.effectiveStartDate)
-      .filter(date => !date.isBefore(lowerBound0))
       .minOption
-      .getOrElse(lowerBound0)
+
+    dateOpt.map(date => Date.datesMax(date.plusMonths(12), lowerBound0)).getOrElse(lowerBound0)
   }
 
   def oneYearSinceLastProductSwitchPolicy(lowerBound0: LocalDate, subscription: ZuoraSubscription): LocalDate = {
@@ -137,7 +136,7 @@ object SupporterPlus2026Migration {
     // We first identify the current active product name / rate plan name
     // Then we retrive all the rate plans matching the pairs and re return the oldest rate plan charge effectiveStartDate
 
-    oneYearSinceLastProductSwitchPolicyGetProductRatePlanPairOpt(lowerBound0, subscription) match {
+    oneYearSinceLastProductSwitchPolicyGetProductNameRatePlanNamePairOpt(lowerBound0, subscription) match {
       case None =>
         throw new Exception(
           s"[16ce454a] this is not expected to happen, subscription number: ${subscription.subscriptionNumber}"
@@ -148,10 +147,10 @@ object SupporterPlus2026Migration {
           productName,
           ratePlanChargeName
         )
-        oneYearSinceLastProductSwitchPolicyOldestEffectiveStartDate(
+        oneYearSinceLastProductSwitchPolicyRatePlansToLowerBoundEffectiveDate(
           lowerBound0,
           ratePlans
-        ).plusMonths(12)
+        )
       }
     }
   }

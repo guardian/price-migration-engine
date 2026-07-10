@@ -337,4 +337,241 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
   }
 
+  test(
+    "SupporterPlus2026Migration.oneYearSinceLastProductSwitchPolicyGetProductNameRatePlanNamePairOpt (1) simple case, one rate plan"
+  ) {
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
+
+    val today = LocalDate.of(2026, 7, 10)
+
+    // Testing that we correctly read the pair in a very simple case
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyGetProductNameRatePlanNamePairOpt(today, subscription),
+      Some(("Supporter Plus", "Supporter Plus V2 - Monthly"))
+    )
+  }
+
+  test(
+    "SupporterPlus2026Migration.oneYearSinceLastProductSwitchPolicyGetProductNameRatePlanNamePairOpt (2) more complex case, multiple products"
+  ) {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/02/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/02/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/02/invoice-preview.json")
+
+    val today = LocalDate.of(2026, 7, 10)
+
+    // We have multiple products, some expired on this sub, here the determination is easy, because
+    // we are essentially reading the uniquely determined active rate plan
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyGetProductNameRatePlanNamePairOpt(today, subscription),
+      Some(("Supporter Plus", "Supporter Plus V2 - Monthly"))
+    )
+  }
+
+  test(
+    "SupporterPlus2026Migration.oneYearSinceLastProductSwitchPolicyGetRatePlans (1) simple case, one rate plan"
+  ) {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
+
+    val today = LocalDate.of(2026, 7, 10)
+
+    // Here we want to check that we retrieve just one rate plan, with the correct names
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyGetRatePlans(
+          subscription,
+          "Supporter Plus",
+          "Supporter Plus V2 - Monthly"
+        )
+        .size,
+      1
+    )
+
+    // We also want to check that if we are submitting incorrect names, then we get empty list
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyGetRatePlans(
+          subscription,
+          "Supporter Minus",
+          "Supporter Plus V2 - Monthly"
+        )
+        .size,
+      0
+    )
+  }
+
+  test(
+    "SupporterPlus2026Migration.oneYearSinceLastProductSwitchPolicyGetRatePlans (2) more complex case, multiple products"
+  ) {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/02/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/02/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/02/invoice-preview.json")
+
+    val today = LocalDate.of(2026, 7, 10)
+
+    // Here, we retrieve 2 rate plans, because although just one is active with the corresponding names
+    // (the one compatible with today's date)
+
+    // We have the following on the sub
+    // (Supporter Plus, "Supporter Plus V2 - Monthly") from 2023-07-30 to 2024-10-30
+    // (Supporter Plus, "Supporter Plus V2 - Monthly") from 2024-10-30 to 2026-08-02
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyGetRatePlans(
+          subscription,
+          "Supporter Plus",
+          "Supporter Plus V2 - Monthly"
+        )
+        .size,
+      2
+    )
+
+    // We also want to check that if we are submitting incorrect names, then we get empty list
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyGetRatePlans(
+          subscription,
+          "Supporter Minus",
+          "Supporter Plus V2 - Monthly"
+        )
+        .size,
+      0
+    )
+  }
+
+  test(
+    "SupporterPlus2026Migration.oneYearSinceLastProductSwitchPolicyRatePlansToLowerBoundEffectiveDate (1) simple case, one rate plan"
+  ) {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
+
+    val today = LocalDate.of(2026, 7, 10)
+
+    val ratePlans = SupporterPlus2026Migration
+      .oneYearSinceLastProductSwitchPolicyGetRatePlans(
+        subscription,
+        "Supporter Plus",
+        "Supporter Plus V2 - Monthly"
+      )
+
+    // Here we have one rate plan and the following dates
+    // "effectiveStartDate": "2026-06-30",
+    // "effectiveEndDate": "2027-06-30",
+
+    // We expect the lowerbound to raise to { 2026-06-30 + 1 year } == 2027-06-30
+    // In this case, we get the same value as the standard 1 year policy by the way
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyRatePlansToLowerBoundEffectiveDate(
+          today,
+          ratePlans
+        ),
+      LocalDate.of(2027, 6, 30)
+    )
+  }
+
+  test(
+    "SupporterPlus2026Migration.oneYearSinceLastProductSwitchPolicyRatePlansToLowerBoundEffectiveDate (2) more complex case, multiple products"
+  ) {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/02/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/02/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/02/invoice-preview.json")
+
+    // We have the following on the sub
+    // (Supporter Plus, "Supporter Plus V2 - Monthly") from 2023-07-30 to 2024-10-30
+    // (Supporter Plus, "Supporter Plus V2 - Monthly") from 2024-10-30 to 2026-08-02
+
+    val ratePlans = SupporterPlus2026Migration
+      .oneYearSinceLastProductSwitchPolicyGetRatePlans(
+        subscription,
+        "Supporter Plus",
+        "Supporter Plus V2 - Monthly"
+      )
+
+    // Here the reference date is the old start date, meaning 2023-07-30
+    // That plus 1 year is 2024-07-30
+    // With today at LocalDate.of(2026, 7, 10), we are getting today
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyRatePlansToLowerBoundEffectiveDate(
+          LocalDate.of(2026, 7, 10),
+          ratePlans
+        ),
+      LocalDate.of(2026, 7, 10)
+    )
+
+    // But with today at LocalDate.of(2023, 1, 1), just to see the computation raise to 2024-07-30,
+    // have
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyRatePlansToLowerBoundEffectiveDate(
+          LocalDate.of(2023, 1, 1),
+          ratePlans
+        ),
+      LocalDate.of(2024, 7, 30)
+    )
+  }
+
+  test(
+    "SupporterPlus2026Migration.oneYearSinceLastProductSwitchPolicy (1) simple case, one rate plan"
+  ) {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
+
+    // Here we have one rate plan and the following dates
+    // "effectiveStartDate": "2026-06-30",
+    // "effectiveEndDate": "2027-06-30",
+
+    val today = LocalDate.of(2026, 7, 10)
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicy(
+          today,
+          subscription
+        ),
+      LocalDate.of(2027, 6, 30) // one year later the effectiveStartDate
+    )
+  }
+
+  test(
+    "SupporterPlus2026Migration.oneYearSinceLastProductSwitchPolicy (2) more complex case, multiple products"
+  ) {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/02/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/02/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/02/invoice-preview.json")
+
+    // We have the following on the sub
+    // (Supporter Plus, "Supporter Plus V2 - Monthly") from 2023-07-30 to 2024-10-30
+    // (Supporter Plus, "Supporter Plus V2 - Monthly") from 2024-10-30 to 2026-08-02
+
+    val today = LocalDate.of(2026, 7, 10)
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicy(
+          today,
+          subscription
+        ),
+      LocalDate.of(2026, 7, 10) // policy didn't change anything
+    )
+  }
+
 }
