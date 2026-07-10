@@ -83,6 +83,32 @@ object SupporterPlus2026Migration {
     }
   }
 
+  def computeAmendmentEffectiveDateLowerBound(
+      lowerBound0: LocalDate,
+      item: CohortItem,
+      subscription: ZuoraSubscription
+  ): LocalDate = {
+    // For this migration we have the requirement to migrate the monthlies over 6 weeks,
+    // which is a non standard calculation. The main function is implemented in
+    // monthliesOverSixWeeks
+    // and here we call it just for that migration
+
+    val lowerBound1 = item.billingPeriod
+      .map(bp => monthliesOverSixWeeks(lowerBound0, BillingPeriod.fromString(bp)))
+      .getOrElse(lowerBound0)
+
+    // We also have the requirement to apply a one year policy to annual subs with an active discount
+    // We cannot price rise a sub within a year after the end of the discount.
+    // Implemented in annualWithDiscountOneYearPolicy
+
+    val lowerBound2 = item.billingPeriod.map(bp => BillingPeriod.fromString(bp)) match {
+      case Some(Annual) => annualWithDiscountOneYearPolicy(lowerBound1, subscription)
+      case _            => lowerBound1
+    }
+
+    lowerBound2
+  }
+
   def subscriptionToContributionAmount(subscription: ZuoraSubscription): Option[BigDecimal] = {
     for {
       ratePlan <- subscription.ratePlans
