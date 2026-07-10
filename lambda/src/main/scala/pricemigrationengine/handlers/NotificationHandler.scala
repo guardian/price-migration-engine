@@ -277,9 +277,10 @@ object NotificationHandler extends CohortHandler {
 
               // -------------------------------------------------------------
               // SupporterPlus2026 extension
-              sp2026_contribution_amount = Some(supporterPlus2026ExtraData.contributionAmount),
-              sp2026_current_combined_amount = Some(supporterPlus2026ExtraData.currentCombinedAmount),
-              sp2026_new_combined_amount = Some(supporterPlus2026ExtraData.newCombinedAmount)
+              sp2026_contribution_amount = Some(s"${currencySymbol}${supporterPlus2026ExtraData.contributionAmount}"),
+              sp2026_current_combined_amount =
+                Some(s"${currencySymbol}${supporterPlus2026ExtraData.currentCombinedAmount}"),
+              sp2026_new_combined_amount = Some(s"${currencySymbol}${supporterPlus2026ExtraData.newCombinedAmount}")
               // -------------------------------------------------------------
             )
           )
