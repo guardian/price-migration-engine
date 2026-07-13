@@ -727,4 +727,136 @@ class SupporterPlus2026Test extends munit.FunSuite {
       )
     )
   }
+
+  test("amendment payload (2)") {
+
+    // Monthly,USD
+    // Acquired in 30 Jun 2026, used to test the basic 1 year policy.
+    // This is a copy of [01] with an extra contribution artificially set to 89.0.
+    // This is to test that the old price is picked up accurately.
+
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/subscription.json")
+    val account =
+      Fixtures.accountFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson(
+      "Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/invoice-preview.json"
+    )
+
+    val cohortItem: CohortItem = CohortItem(
+      subscriptionName = "subscriptionNumber",
+      processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
+      currency = Some("USD"),
+
+      // Pre migration price
+      oldPrice = Some(BigDecimal(15.0)),
+
+      // Price derived from the Estimation step, without capping
+      estimatedNewPrice = Some(BigDecimal(18.0)),
+
+      // Price (with possible capping) used in the communication to the user and sent to Salesforce
+      commsPrice = Some(BigDecimal(18.0)),
+
+      //
+      billingPeriod = Some("Month")
+    )
+
+    val payload = SupporterPlus2026Migration.amendmentOrderPayload(
+      cohortItem,
+      LocalDate.of(2026, 7, 13), // order date
+      "accountNumber",
+      "subscriptionNumber",
+      LocalDate.of(2026, 8, 30), // effect date
+      subscription, // Zuora subscription
+      BigDecimal(18.0), // comms price
+      invoicePreview,
+    )
+
+    assertEquals(
+      payload,
+      Right(
+        ujson.read(
+          s"""{
+             |    "orderDate": "2026-07-13",
+             |    "existingAccountNumber": "accountNumber",
+             |    "subscriptions": [
+             |        {
+             |            "subscriptionNumber": "subscriptionNumber",
+             |            "orderActions": [
+             |                {
+             |                    "type": "RemoveProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2026-08-30"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2026-08-30"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2026-08-30"
+             |                        }
+             |                    ],
+             |                    "removeProduct": {
+             |                        "ratePlanId": "8a128f5e9f01fcf4019f1af23b1d7f59"
+             |                    }
+             |                },
+             |                {
+             |                    "type": "AddProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2026-08-30"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2026-08-30"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2026-08-30"
+             |                        }
+             |                    ],
+             |                    "addProduct": {
+             |                        "productRatePlanId": "8a128ed885fc6ded018602296ace3eb8",
+             |                        "chargeOverrides": [
+             |                            {
+             |                                "productRatePlanChargeId": "8a128ed885fc6ded018602296af13eba",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 18
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "8a128d7085fc6dec01860234cd075270",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 89
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            }
+             |                        ]
+             |                    }
+             |                }
+             |            ]
+             |        }
+             |    ],
+             |    "processingOptions": {
+             |        "runBilling": false,
+             |        "collectPayment": false
+             |    }
+             |}""".stripMargin
+        )
+      )
+    )
+  }
 }
