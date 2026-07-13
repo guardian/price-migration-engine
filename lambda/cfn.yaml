@@ -365,7 +365,7 @@ Resources:
         Fn::GetAtt:
           - PriceMigrationEngineTableCreateLambdaRole
           - Arn
-      MemorySize: 1536
+      MemorySize: 4096
       Runtime: java25
       Timeout: 900
     DependsOn:
@@ -389,7 +389,7 @@ Resources:
         Fn::GetAtt:
           - PriceMigrationEngineSubscriptionIdUploadLambdaRole
           - Arn
-      MemorySize: 1536
+      MemorySize: 4096
       Runtime: java25
       Timeout: 900
     DependsOn:
@@ -414,7 +414,7 @@ Resources:
         Fn::GetAtt:
           - PriceMigrationEngineEstimationLambdaRole
           - Arn
-      MemorySize: 1536
+      MemorySize: 4096
       Runtime: java25
       Timeout: 900
     DependsOn:
@@ -438,7 +438,7 @@ Resources:
         Fn::GetAtt:
           - PriceMigrationEngineSalesforcePriceCreationLambdaRole
           - Arn
-      MemorySize: 1536
+      MemorySize: 4096
       Runtime: java25
       Timeout: 900
     DependsOn:
@@ -462,7 +462,7 @@ Resources:
         Fn::GetAtt:
           - PriceMigrationEngineAmendmentLambdaRole
           - Arn
-      MemorySize: 1536
+      MemorySize: 4096
       Runtime: java25
       Timeout: 900
     DependsOn:
@@ -488,7 +488,7 @@ Resources:
         Fn::GetAtt:
           - PriceMigrationEngineNotificationLambdaRole
           - Arn
-      MemorySize: 1536
+      MemorySize: 4096
       Runtime: java25
       Timeout: 900
     DependsOn:
@@ -512,7 +512,7 @@ Resources:
         Fn::GetAtt:
           - PriceMigrationEngineSalesforceNotificationDateUpdateLambdaRole
           - Arn
-      MemorySize: 1536
+      MemorySize: 4096
       Runtime: java25
       Timeout: 900
     DependsOn:
@@ -538,7 +538,7 @@ Resources:
         Fn::GetAtt:
           - PriceMigrationEngineSalesforceAmendmentUpdateLambdaRole
           - Arn
-      MemorySize: 1536
+      MemorySize: 4096
       Runtime: java25
       Timeout: 900
 
