@@ -133,27 +133,18 @@ object AmendmentEffectiveDateCalculator {
       case _ => noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
     }
 
-    // With GuardianWeekly2025, we were given lower bounds in the Marketing spreadsheet
-    // that was the first use of the new cohortItem's migrationExtraAttributes. If we expect a
-    // migration to provide it own lowerbound computation, we do it here, otherwise we identity
-    // on lowerBound3
+    // Migration specific date calculations
+
     val lowerBound4 = MigrationType(cohortSpec) match {
-      // [1]
-      // Date: June 2025
-      // Author: Pascal
-      // (Comment group: ef77de28)
-      // Here I am re-using GuardianWeekly2025Migration's function, for testing.
-      // Technically this test will break when GuardianWeekly2025 is decommissioned in October 2026,
-      // but at that point if we really want to carry on testing the migration extended attributes as
-      // part of start date computations we can move the code to Test1's own migration module
-      case Test1 => GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound4(lowerBound3, item) // [1]
-      case GuardianWeekly2025 => GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound4(lowerBound3, item)
+      case Test1 => GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item) // [1]
+      case GuardianWeekly2025 => GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item)
       case Newspaper2025P1    => lowerBound3
-      case Newspaper2025P3    => Newspaper2025P3Migration.computeAmendmentEffectiveDateLowerBound4(lowerBound3, item)
+      case Newspaper2025P3    => Newspaper2025P3Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item)
       case ProductMigration2025N4 => lowerBound3
       case Membership2025         => lowerBound3
       case DigiSubs2025           => lowerBound3
-      case SupporterPlus2026      => lowerBound3
+      case SupporterPlus2026      =>
+        SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
     }
 
     // Decide the spread period for this migration
@@ -164,38 +155,8 @@ object AmendmentEffectiveDateCalculator {
     // Decides an integer in the interval [0, spreadPeriod-1]
     // The default spread period is 1
 
-    var lowerBound5 = lowerBound4.plusMonths(randomDelayInMonths)
+    val lowerBound5 = lowerBound4.plusMonths(randomDelayInMonths)
 
-    // --------------------------------------------------------------------------------
-    // Special SupporterPlus2026
-
-    // For this migration we have the requirement to migrate the monthlies over 6 weeks,
-    // which is a non standard calculation. The main function is implemented in
-    // SupporterPlus2026Migration.monthliesOverSixWeeks
-    // and here we call it just for that migration
-
-    val lowerbound6 = MigrationType(cohortSpec) match {
-      case SupporterPlus2026 =>
-        item.billingPeriod
-          .map(bp => SupporterPlus2026Migration.monthliesOverSixWeeks(lowerBound5, BillingPeriod.fromString(bp)))
-          .getOrElse(lowerBound5)
-      case _ => lowerBound5
-    }
-
-    // We also have the requirement to apply a one year policy to annual subs with an active discount
-    // We cannot price rise a sub within a year after the end of the discount.
-
-    val lowerbound7 = MigrationType(cohortSpec) match {
-      case SupporterPlus2026 =>
-        item.billingPeriod.map(bp => BillingPeriod.fromString(bp)) match {
-          case Some(Annual) => SupporterPlus2026Migration.annualWithDiscountOneYearPolicy(lowerbound6, subscription)
-          case _            => lowerbound6
-        }
-      case _ => lowerbound6
-    }
-
-    // --------------------------------------------------------------------------------
-
-    lowerbound7
+    lowerBound5
   }
 }

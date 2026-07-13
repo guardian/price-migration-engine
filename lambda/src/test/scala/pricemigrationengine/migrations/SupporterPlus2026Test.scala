@@ -7,7 +7,7 @@ import pricemigrationengine.Fixtures
 import java.time.LocalDate
 
 class SupporterPlus2026Test extends munit.FunSuite {
-  test("date calculation") {
+  test("monthliesOverSixWeeks date calculations") {
     assertEquals(
       SupporterPlus2026Migration.monthliesOverSixWeeks(LocalDate.of(2026, 7, 20), Annual),
       LocalDate.of(2026, 7, 20)
@@ -22,10 +22,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
   }
 
-  test("price data [01]") {
-    // 01: Monthly USD
-    // Acquired in 30 Jun 2026, used to test the basic 1 year policy.
-
+  test("price data (1)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
@@ -36,49 +33,39 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
   }
 
-  test("1 year policy [01]") {
-    // 01:
-    // Monthly USD
-    // Acquired in 30 Jun 2026, used to test the basic 1 year policy.
-
+  test("standard 1 year policy (1)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
 
-    val cohortItem = CohortItem(
-      subscriptionName = subscription.subscriptionNumber,
-      processingStage = CohortTableFilter.ReadyForEstimation,
-    )
+    val lowerBound = LocalDate.of(2026, 7, 2)
 
-    val cohortSpec = CohortSpec(
-      "SupporterPlus2026",
-      "",
-      LocalDate.of(2026, 9, 19),
-    )
-
-    val today = LocalDate.of(2026, 7, 2)
+    // The subscription was acquired on 2026-06-30, we expect the lowerbound to be updated to 2027-06-30
 
     assertEquals(
-      AmendmentEffectiveDateCalculator.amendmentEffectiveDateLowerBound(
-        cohortItem: CohortItem,
-        subscription: ZuoraSubscription,
-        invoicePreview: ZuoraInvoiceList,
-        cohortSpec: CohortSpec,
-        today: LocalDate
-      ),
+      AmendmentEffectiveDateCalculator.noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound, subscription),
       LocalDate.of(2027, 6, 30)
     )
+  }
 
-    // Here we observe that the 1 year policy is applied as AmendmentEffectiveDateCalculator.amendmentEffectiveDateLowerBound
-    // returns the date a year after the acquisition date.
+  test("standard 1 year policy (2)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/02/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/02/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/02/invoice-preview.json")
+
+    val lowerBound = LocalDate.of(2026, 7, 2)
+
+    // The subscription was acquired on 2 Aug 2017, we expect the lowerbound to not change
+
+    assertEquals(
+      AmendmentEffectiveDateCalculator.noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound, subscription),
+      LocalDate.of(2026, 7, 2)
+    )
   }
 
   test("get active discounts") {
     /*
       05:
-
-      This one is a manually modified variant of 05. We shifted the discount dates to end later.
-      We expect the price rise date to not be the next billing date, but the one after
 
       Annually EUR
       Acquired on 26 Nov 2016
@@ -134,12 +121,9 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
   }
 
-  test("SupporterPlus2026Migration.annualWithDiscountOneYearPolicy") {
+  test("SupporterPlus2026Migration.annualWithDiscountOneYearPolicy (1)") {
     /*
       05:
-
-      This one is a manually modified variant of 05. We shifted the discount dates to end later.
-      We expect the price rise date to not be the next billing date, but the one after
 
       Annually EUR
       Acquired on 26 Nov 2016
@@ -158,275 +142,43 @@ class SupporterPlus2026Test extends munit.FunSuite {
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/05/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/05/invoice-preview.json")
 
+    // The discounts end on 2025-12-30, we expect the lower bound to rise to 2026-12-30
+
     assertEquals(
       SupporterPlus2026Migration.annualWithDiscountOneYearPolicy(LocalDate.of(2026, 7, 2), subscription),
       LocalDate.of(2026, 12, 30)
     )
-
-    // Here we observe that we returned the max effective discount end date plus one year
   }
 
-  test("1 year policy [02]") {
-    // 02:
-    // Monthly, GBP
-    // Acquired in 2 Aug 2017, used to test the basic 1 year policy (in this case it is irrelevant)
-
-    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/02/subscription.json")
-    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/02/account.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/02/invoice-preview.json")
-
-    val cohortItem = CohortItem(
-      subscriptionName = subscription.subscriptionNumber,
-      processingStage = CohortTableFilter.ReadyForEstimation,
-      billingPeriod = Some("Month")
-    )
-
-    val cohortSpec = CohortSpec(
-      "SupporterPlus2026",
-      "",
-      LocalDate.of(2026, 9, 19),
-    )
-
-    val today = LocalDate.of(2026, 7, 2)
-
-    assertEquals(
-      AmendmentEffectiveDateCalculator.amendmentEffectiveDateLowerBound(
-        cohortItem: CohortItem,
-        subscription: ZuoraSubscription,
-        invoicePreview: ZuoraInvoiceList,
-        cohortSpec: CohortSpec,
-        today: LocalDate
-      ),
-      LocalDate.of(2026, 9, 19)
-    )
-
-    // Here the subscription is ready to be price risen as soon as possible. The lowerbound
-    // is equal to the CohortSpec's earliest amendment effective date.
-  }
-
-  test("1 year policy [03]") {
-
+  test("SupporterPlus2026Migration.annualWithDiscountOneYearPolicy (2)") {
     /*
-      03:
+      06:
 
       Annually EUR
       Acquired on 26 Nov 2016
-      Got that one to test the one year discount policy.
 
       The discount has dates
-        "effectiveStartDate": "2024-12-20"
-        "effectiveEndDate": "2025-12-20"
-
-      The supporter plus rate plan has dates
-        "effectiveStartDate": "2024-12-20"
-        "effectiveEndDate": "2026-12-20"
-
-      The discount ended less than a year ago, but one year after the end is the price rise date
-      This is a edge case and we expect the price rise to happen on 2026-12-20
-     */
-
-    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/03/subscription.json")
-    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/03/account.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/03/invoice-preview.json")
-
-    val cohortItem = CohortItem(
-      subscriptionName = subscription.subscriptionNumber,
-      processingStage = CohortTableFilter.ReadyForEstimation,
-      billingPeriod = Some("Annual")
-    )
-
-    val cohortSpec = CohortSpec(
-      "SupporterPlus2026",
-      "",
-      LocalDate.of(2026, 9, 19),
-    )
-
-    val today = LocalDate.of(2026, 7, 2)
-
-    assertEquals(
-      AmendmentEffectiveDateCalculator.amendmentEffectiveDateLowerBound(
-        cohortItem: CohortItem,
-        subscription: ZuoraSubscription,
-        invoicePreview: ZuoraInvoiceList,
-        cohortSpec: CohortSpec,
-        today: LocalDate
-      ),
-      LocalDate.of(2026, 12, 20)
-    )
-
-    // Here the subscription is ready to be price risen one year after the end of the discount.
-    // Discount ended in 2025-12-20.
-    // We are still going to be price risen on that date as it's billing date
-  }
-
-  test("1 year policy [04]") {
-
-    /*
-      04:
-
-      This one is a manually modified variant of 03. We shifted the discount dates to end earlier.
-      We expect the price rise date to be the next billind date.
-
-      Annually EUR
-      Acquired on 26 Nov 2016
-      Got that one to test the one year discount policy.
-
-      The discount has dates
-        "effectiveStartDate": "2024-11-10"
-        "effectiveEndDate": "2025-11-10"
+        "effectiveStartDate": "2020-12-30",
+        "effectiveEndDate": "2021-12-30",
 
       The supporter plus rate plan has dates
         "effectiveStartDate": "2024-12-20"
         "effectiveEndDate": "2026-12-20"
      */
 
-    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/04/subscription.json")
-    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/04/account.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/04/invoice-preview.json")
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/06/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/06/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/06/invoice-preview.json")
 
-    val cohortItem = CohortItem(
-      subscriptionName = subscription.subscriptionNumber,
-      processingStage = CohortTableFilter.ReadyForEstimation,
-      billingPeriod = Some("Annual")
-    )
-
-    val cohortSpec = CohortSpec(
-      "SupporterPlus2026",
-      "",
-      LocalDate.of(2026, 9, 19),
-    )
-
-    val today = LocalDate.of(2026, 7, 2)
+    // The discounts endded on 2021-12-30, the lower bound should remain the same
 
     assertEquals(
-      AmendmentEffectiveDateCalculator.amendmentEffectiveDateLowerBound(
-        cohortItem: CohortItem,
-        subscription: ZuoraSubscription,
-        invoicePreview: ZuoraInvoiceList,
-        cohortSpec: CohortSpec,
-        today: LocalDate
-      ),
-      LocalDate.of(2026, 11, 10)
+      SupporterPlus2026Migration.annualWithDiscountOneYearPolicy(LocalDate.of(2026, 7, 2), subscription),
+      LocalDate.of(2026, 7, 2)
     )
-
-    // Here the subscription is ready to be price risen one year after the end of the discount.
-    // Discount ended in 2025-11-10.
-    // We are still going to be price risen on 2026-12-20
   }
 
-  test("1 year policy [05]") {
-
-    /*
-      05:
-
-      This one is a manually modified variant of 05. We shifted the discount dates to end later.
-      We expect the price rise date to not be the next billing date, but the one after
-
-      Annually EUR
-      Acquired on 26 Nov 2016
-      Got that one to test the one year discount policy.
-
-      The discount has dates
-        "effectiveStartDate": "2024-12-30"
-        "effectiveEndDate": "2025-12-30"
-
-      The supporter plus rate plan has dates
-        "effectiveStartDate": "2024-12-20"
-        "effectiveEndDate": "2026-12-20"
-     */
-
-    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/05/subscription.json")
-    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/05/account.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/05/invoice-preview.json")
-
-    val cohortItem = CohortItem(
-      subscriptionName = subscription.subscriptionNumber,
-      processingStage = CohortTableFilter.ReadyForEstimation,
-      billingPeriod = Some("Annual")
-    )
-
-    val cohortSpec = CohortSpec(
-      "SupporterPlus2026",
-      "",
-      LocalDate.of(2026, 9, 19),
-    )
-
-    val today = LocalDate.of(2026, 7, 2)
-
-    assertEquals(
-      AmendmentEffectiveDateCalculator.amendmentEffectiveDateLowerBound(
-        cohortItem: CohortItem,
-        subscription: ZuoraSubscription,
-        invoicePreview: ZuoraInvoiceList,
-        cohortSpec: CohortSpec,
-        today: LocalDate
-      ),
-      LocalDate.of(2026, 12, 30)
-    )
-
-    // Here we expect the price rise date to be at least 2025-12-30 (end date of the discount plus one year).
-    // This means that we cannot price rise on the next billing date of 2026-12-20
-  }
-
-  test("1 year policy [05] (with incorrect billing period)") {
-
-    /*
-      05:
-
-      This one is a manually modified variant of 05. We shifted the discount dates to end later.
-      We expect the price rise date to not be the next billing date, but the one after
-
-      Annually EUR
-      Acquired on 26 Nov 2016
-      Got that one to test the one year discount policy.
-
-      The discount has dates
-        "effectiveStartDate": "2024-12-30"
-        "effectiveEndDate": "2025-12-30"
-
-      The supporter plus rate plan has dates
-        "effectiveStartDate": "2024-12-20"
-        "effectiveEndDate": "2026-12-20"
-     */
-
-    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/05/subscription.json")
-    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/05/account.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/05/invoice-preview.json")
-
-    val cohortItem = CohortItem(
-      subscriptionName = subscription.subscriptionNumber,
-      processingStage = CohortTableFilter.ReadyForEstimation,
-      billingPeriod = Some("Month")
-    )
-
-    val cohortSpec = CohortSpec(
-      "SupporterPlus2026",
-      "",
-      LocalDate.of(2026, 9, 19),
-    )
-
-    val today = LocalDate.of(2026, 7, 2)
-
-    assertEquals(
-      AmendmentEffectiveDateCalculator.amendmentEffectiveDateLowerBound(
-        cohortItem: CohortItem,
-        subscription: ZuoraSubscription,
-        invoicePreview: ZuoraInvoiceList,
-        cohortSpec: CohortSpec,
-        today: LocalDate
-      ),
-      LocalDate.of(2026, 9, 19)
-    )
-
-    // Here the billing period was set to month, to force a different date. In this case we
-    // return the earliest possible date from the cohort specs
-  }
-
-  test("priceData [01]") {
-    // 01:
-    // Monthly USD
-    // Acquired in 30 Jun 2026, used to test the basic 1 year policy.
-
+  test("priceData (1)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
     val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
@@ -437,14 +189,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
   }
 
-  test("priceData [01-variant1-non-zero-contribution]") {
-    // 01-variant1-non-zero-contribution:
-    // Monthly,USD
-    // Acquired in 30 Jun 2026, used to test the basic 1 year policy.
-
-    // This is a copy of [01] with an extra contribution artificially set to 89.0.
-    // This is to test that the old price is picked up accurately.
-
+  test("priceData (2) [01-variant1-non-zero-contribution]") {
     val subscription =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/subscription.json")
     val account =
@@ -484,11 +229,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
   }
 
-  test("priceData [02]") {
-    // 02:
-    // Monthly, GBP
-    // Acquired in 2 Aug 2017, used to test the basic 1 year policy (in this case it is irrelevant)
-
+  test("priceData (3)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/02/subscription.json")
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/02/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/02/invoice-preview.json")
@@ -499,27 +240,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
   }
 
-  test("priceData [03]") {
-
-    /*
-      03:
-
-      Annually EUR
-      Acquired on 26 Nov 2016
-      Got that one to test the one year discount policy.
-
-      The discount has dates
-        "effectiveStartDate": "2024-12-20"
-        "effectiveEndDate": "2025-12-20"
-
-      The supporter plus rate plan has dates
-        "effectiveStartDate": "2024-12-20"
-        "effectiveEndDate": "2026-12-20"
-
-      The discount ended less than a year ago, but one year after the end is the price rise date
-      This is a edge case and we expect the price rise to happen on 2026-12-20
-     */
-
+  test("priceData (4)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/03/subscription.json")
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/03/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/03/invoice-preview.json")
@@ -532,11 +253,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
   }
 
-  test("subscriptionToContributionAmount [01]") {
-    // 01:
-    // Monthly USD
-    // Acquired in 30 Jun 2026, used to test the basic 1 year policy.
-
+  test("subscriptionToContributionAmount (1)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
@@ -547,14 +264,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
   }
 
-  test("subscriptionToContributionAmount [01-variant1-non-zero-contribution]") {
-    // 01-variant1-non-zero-contribution:
-    // Monthly,USD
-    // Acquired in 30 Jun 2026, used to test the basic 1 year policy.
-
-    // This is a copy of [01] with an extra contribution artificially set to 89.0.
-    // This is to test that the old price is picked up accurately.
-
+  test("subscriptionToContributionAmount (2) [01-variant1-non-zero-contribution]") {
     val subscription =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/subscription.json")
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/account.json")
@@ -566,14 +276,12 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
   }
 
-  test("extractEmailExtraAttributes [01]") {
-    // 01:
-    // Monthly USD
-    // Acquired in 30 Jun 2026, used to test the basic 1 year policy.
-
+  test("extractEmailExtraAttributes (1)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
+
+    val cohortSpec = CohortSpec("SupporterPlus2026", LocalDate.of(2026, 7, 1))
 
     // Note that we are defining the CohortItem only with the attributes we need
     // That particular value would not happen in the wild.
@@ -587,29 +295,24 @@ class SupporterPlus2026Test extends munit.FunSuite {
     val contribution = BigDecimal(0.0) // 01 carries 0.0
 
     assertEquals(
-      SupporterPlus2026Migration.extractEmailExtraAttributes(subscription, cohortItem),
+      SupporterPlus2026Migration.extractEmailExtraAttributes(cohortSpec, cohortItem, subscription),
       Some(
         SP2026EmailExtraAttributes(
-          contribution,
-          BigDecimal(12.0),
-          BigDecimal(14.0)
+          contribution.toString(),
+          "12.0",
+          "14.0"
         )
       )
     )
   }
 
-  test("extractEmailExtraAttributes [01-variant1-non-zero-contribution]") {
-    // 01-variant1-non-zero-contribution:
-    // Monthly,USD
-    // Acquired in 30 Jun 2026, used to test the basic 1 year policy.
-
-    // This is a copy of [01] with an extra contribution artificially set to 89.0.
-    // This is to test that the old price is picked up accurately.
-
+  test("extractEmailExtraAttributes (2) [01-variant1-non-zero-contribution]") {
     val subscription =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/subscription.json")
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/invoice-preview.json"
+
+    val cohortSpec = CohortSpec("SupporterPlus2026", LocalDate.of(2026, 7, 1))
 
     // Note that we are defining the CohortItem only with the attributes we need
     // That particular value would not happen in the wild.
@@ -623,14 +326,251 @@ class SupporterPlus2026Test extends munit.FunSuite {
     val contribution = BigDecimal(89.0) // 01 carries 89.0
 
     assertEquals(
-      SupporterPlus2026Migration.extractEmailExtraAttributes(subscription, cohortItem),
+      SupporterPlus2026Migration.extractEmailExtraAttributes(cohortSpec, cohortItem, subscription),
       Some(
         SP2026EmailExtraAttributes(
-          contribution,
-          BigDecimal(12.0 + 89.0),
-          BigDecimal(14.0 + 89.0)
+          contribution.toString(),
+          "101.0",
+          "103.0"
         )
       )
+    )
+  }
+
+  test(
+    "SupporterPlus2026Migration.oneYearSinceLastProductSwitchPolicyGetProductNameRatePlanNamePairOpt (1) simple case, one rate plan"
+  ) {
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
+
+    val today = LocalDate.of(2026, 7, 10)
+
+    // Testing that we correctly read the pair in a very simple case
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyGetProductNameRatePlanNamePairOpt(today, subscription),
+      Some(("Supporter Plus", "Supporter Plus V2 - Monthly"))
+    )
+  }
+
+  test(
+    "SupporterPlus2026Migration.oneYearSinceLastProductSwitchPolicyGetProductNameRatePlanNamePairOpt (2) more complex case, multiple products"
+  ) {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/02/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/02/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/02/invoice-preview.json")
+
+    val today = LocalDate.of(2026, 7, 10)
+
+    // We have multiple products, some expired on this sub, here the determination is easy, because
+    // we are essentially reading the uniquely determined active rate plan
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyGetProductNameRatePlanNamePairOpt(today, subscription),
+      Some(("Supporter Plus", "Supporter Plus V2 - Monthly"))
+    )
+  }
+
+  test(
+    "SupporterPlus2026Migration.oneYearSinceLastProductSwitchPolicyGetRatePlans (1) simple case, one rate plan"
+  ) {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
+
+    val today = LocalDate.of(2026, 7, 10)
+
+    // Here we want to check that we retrieve just one rate plan, with the correct names
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyGetRatePlans(
+          subscription,
+          "Supporter Plus",
+          "Supporter Plus V2 - Monthly"
+        )
+        .size,
+      1
+    )
+
+    // We also want to check that if we are submitting incorrect names, then we get empty list
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyGetRatePlans(
+          subscription,
+          "Supporter Minus",
+          "Supporter Plus V2 - Monthly"
+        )
+        .size,
+      0
+    )
+  }
+
+  test(
+    "SupporterPlus2026Migration.oneYearSinceLastProductSwitchPolicyGetRatePlans (2) more complex case, multiple products"
+  ) {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/02/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/02/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/02/invoice-preview.json")
+
+    val today = LocalDate.of(2026, 7, 10)
+
+    // Here, we retrieve 2 rate plans, because although just one is active with the corresponding names
+    // (the one compatible with today's date)
+
+    // We have the following on the sub
+    // (Supporter Plus, "Supporter Plus V2 - Monthly") from 2023-07-30 to 2024-10-30
+    // (Supporter Plus, "Supporter Plus V2 - Monthly") from 2024-10-30 to 2026-08-02
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyGetRatePlans(
+          subscription,
+          "Supporter Plus",
+          "Supporter Plus V2 - Monthly"
+        )
+        .size,
+      2
+    )
+
+    // We also want to check that if we are submitting incorrect names, then we get empty list
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyGetRatePlans(
+          subscription,
+          "Supporter Minus",
+          "Supporter Plus V2 - Monthly"
+        )
+        .size,
+      0
+    )
+  }
+
+  test(
+    "SupporterPlus2026Migration.oneYearSinceLastProductSwitchPolicyRatePlansToLowerBoundEffectiveDate (1) simple case, one rate plan"
+  ) {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
+
+    val today = LocalDate.of(2026, 7, 10)
+
+    val ratePlans = SupporterPlus2026Migration
+      .oneYearSinceLastProductSwitchPolicyGetRatePlans(
+        subscription,
+        "Supporter Plus",
+        "Supporter Plus V2 - Monthly"
+      )
+
+    // Here we have one rate plan and the following dates
+    // "effectiveStartDate": "2026-06-30",
+    // "effectiveEndDate": "2027-06-30",
+
+    // We expect the lowerbound to raise to { 2026-06-30 + 1 year } == 2027-06-30
+    // In this case, we get the same value as the standard 1 year policy by the way
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyRatePlansToLowerBoundEffectiveDate(
+          today,
+          ratePlans
+        ),
+      LocalDate.of(2027, 6, 30)
+    )
+  }
+
+  test(
+    "SupporterPlus2026Migration.oneYearSinceLastProductSwitchPolicyRatePlansToLowerBoundEffectiveDate (2) more complex case, multiple products"
+  ) {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/02/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/02/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/02/invoice-preview.json")
+
+    // We have the following on the sub
+    // (Supporter Plus, "Supporter Plus V2 - Monthly") from 2023-07-30 to 2024-10-30
+    // (Supporter Plus, "Supporter Plus V2 - Monthly") from 2024-10-30 to 2026-08-02
+
+    val ratePlans = SupporterPlus2026Migration
+      .oneYearSinceLastProductSwitchPolicyGetRatePlans(
+        subscription,
+        "Supporter Plus",
+        "Supporter Plus V2 - Monthly"
+      )
+
+    // Here the reference date is the old start date, meaning 2023-07-30
+    // That plus 1 year is 2024-07-30
+    // With today at LocalDate.of(2026, 7, 10), we are getting today
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyRatePlansToLowerBoundEffectiveDate(
+          LocalDate.of(2026, 7, 10),
+          ratePlans
+        ),
+      LocalDate.of(2026, 7, 10)
+    )
+
+    // But with today at LocalDate.of(2023, 1, 1), just to see the computation raise to 2024-07-30,
+    // have
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicyRatePlansToLowerBoundEffectiveDate(
+          LocalDate.of(2023, 1, 1),
+          ratePlans
+        ),
+      LocalDate.of(2024, 7, 30)
+    )
+  }
+
+  test(
+    "SupporterPlus2026Migration.oneYearSinceLastProductSwitchPolicy (1) simple case, one rate plan"
+  ) {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
+
+    // Here we have one rate plan and the following dates
+    // "effectiveStartDate": "2026-06-30",
+    // "effectiveEndDate": "2027-06-30",
+
+    val today = LocalDate.of(2026, 7, 10)
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicy(
+          today,
+          subscription
+        ),
+      LocalDate.of(2027, 6, 30) // one year later the effectiveStartDate
+    )
+  }
+
+  test(
+    "SupporterPlus2026Migration.oneYearSinceLastProductSwitchPolicy (2) more complex case, multiple products"
+  ) {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/02/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/02/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/02/invoice-preview.json")
+
+    // We have the following on the sub
+    // (Supporter Plus, "Supporter Plus V2 - Monthly") from 2023-07-30 to 2024-10-30
+    // (Supporter Plus, "Supporter Plus V2 - Monthly") from 2024-10-30 to 2026-08-02
+
+    val today = LocalDate.of(2026, 7, 10)
+
+    assertEquals(
+      SupporterPlus2026Migration
+        .oneYearSinceLastProductSwitchPolicy(
+          today,
+          subscription
+        ),
+      LocalDate.of(2026, 7, 10) // policy didn't change anything
     )
   }
 

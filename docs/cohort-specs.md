@@ -1,9 +1,7 @@
 
 ## CohortSpec
 
-CohortSpec is the object that lambdas of the state machine take as input. They mostly specify the particular cohort that the lambda is going to run against (`cohortName`) and the name of the Braze canvas or campaign attached to it (`brazeName`).
-
-Note that `brazeName` is not always specified. For migrations using more than one braze canvases, the dispatch to the right name is hardcoded in the migration code and we can submit empty string to `brazeName`.
+CohortSpec is the object that lambdas of the state machine take as input. They mostly specify the particular cohort that the lambda is going to run against (`cohortName`).
 
 An additional mandatory attribute is the earliest amendment effective date, which is used as the starting point of the notifications and amendment dates. See [amendment-effective-date-computation.md](./amendment-effective-date-computation.md) for details.
 

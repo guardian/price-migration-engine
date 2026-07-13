@@ -37,7 +37,6 @@ Do not forget to set the correct cohort specifications (see example below, but u
 ```
 {
     "cohortName":"migration-name",
-    "brazeName":"any-name",
     "earliestAmendmentEffectiveDate":"2024-05-20" 
 }
 ```
