@@ -199,7 +199,14 @@ object AmendmentHandlerHelper {
         )
       case SupporterPlus2026 =>
         SupporterPlus2026Migration.amendmentOrderPayload(
-          cohortItem
+          cohortItem,
+          orderDate,
+          accountNumber,
+          subscriptionNumber,
+          effectDate,
+          zuora_subscription,
+          commsPrice,
+          invoiceList
         )
     }
   }
