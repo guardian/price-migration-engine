@@ -67,18 +67,90 @@ object SupporterPlus2026Migration {
     }
   }
 
-  def annualWithDiscountOneYearPolicy(cursorDate: LocalDate, subscription: ZuoraSubscription): LocalDate = {
+  def annualWithDiscountOneYearPolicy(lowerBound: LocalDate, subscription: ZuoraSubscription): LocalDate = {
+    // returns the { lowerbound } or { the max end date of all sub + 1 year }, whichever is highest
     val activeDiscounts =
       SI2025Extractions.getActiveDiscountsPossiblyAfterEffectiveEndDate(subscription)
     if (activeDiscounts.isEmpty) {
-      cursorDate
+      lowerBound
     } else {
       val maxEndDateOpt = activeDiscounts
         .flatMap(_.ratePlanCharges.map(_.effectiveEndDate))
         .max
       maxEndDateOpt match {
-        case Some(date) => date.plusMonths(12)
-        case None       => cursorDate
+        case Some(date) => Date.datesMax(date.plusMonths(12), lowerBound)
+        case None       => lowerBound
+      }
+    }
+  }
+
+  def oneYearSinceLastProductSwitchPolicyGetProductNameRatePlanNamePairOpt(
+      date: LocalDate,
+      subscription: ZuoraSubscription
+  ) = {
+    for {
+      ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
+        subscription,
+        date
+      )
+    } yield (ratePlan.productName, ratePlan.ratePlanName)
+  }
+
+  def oneYearSinceLastProductSwitchPolicyGetRatePlans(
+      subscription: ZuoraSubscription,
+      productName: String,
+      ratePlanName: String
+  ): List[ZuoraRatePlan] = {
+    subscription.ratePlans
+      .filter(rp => rp.productName == productName)
+      .filter(rp => rp.ratePlanName == ratePlanName)
+  }
+
+  def oneYearSinceLastProductSwitchPolicyRatePlansToLowerBoundEffectiveDate(
+      lowerBound0: LocalDate,
+      ratePlans: List[ZuoraRatePlan]
+  ): LocalDate = {
+    val dateOpt = ratePlans
+      .flatMap(_.ratePlanCharges)
+      .flatMap(_.effectiveStartDate)
+      .minOption
+
+    dateOpt.map(date => Date.datesMax(date.plusMonths(12), lowerBound0)).getOrElse(lowerBound0)
+  }
+
+  def oneYearSinceLastProductSwitchPolicy(lowerBound0: LocalDate, subscription: ZuoraSubscription): LocalDate = {
+    /*
+       Here we implement the policy that we do not want to price rise within a year after the last product switch, if there was one.
+       Interestingly the date of the last product switch is not the start date of the current rate plan.
+
+       For instance, considering a subscription with the following history
+          Supporter / Non Founder Supporter - annual from 2015-12-14 to 2023-12-14
+          Supporter / Supporter - annual (2023 Price) from 2023-12-14 to 2023-12-14 (looks like they changed their mind)
+          Contributor / Annual Contribution from 2023-12-14 to 2024-05-20
+          Supporter Plus / Supporter Plus V2 - Annual from 2024-05-20 to 2025-05-20
+          Supporter Plus / Supporter Plus V2 - Annual from 2025-05-20 to 2027-05-20
+
+       We are after 2024-05-20
+     */
+
+    // We first identify the current active product name / rate plan name
+    // Then we retrive all the rate plans matching the pairs and re return the oldest rate plan charge effectiveStartDate
+
+    oneYearSinceLastProductSwitchPolicyGetProductNameRatePlanNamePairOpt(lowerBound0, subscription) match {
+      case None =>
+        throw new Exception(
+          s"[16ce454a] this is not expected to happen, subscription number: ${subscription.subscriptionNumber}"
+        )
+      case Some((productName, ratePlanChargeName)) => {
+        val ratePlans = oneYearSinceLastProductSwitchPolicyGetRatePlans(
+          subscription,
+          productName,
+          ratePlanChargeName
+        )
+        oneYearSinceLastProductSwitchPolicyRatePlansToLowerBoundEffectiveDate(
+          lowerBound0,
+          ratePlans
+        )
       }
     }
   }
@@ -106,7 +178,13 @@ object SupporterPlus2026Migration {
       case _            => lowerBound1
     }
 
-    lowerBound2
+    // We also implement the requirement to apply a one year delay policy after the "latest product switch"
+    // where "latest product switch" is defined that the earliest date the sub has been running this particular product name, rate plan name
+    // It's a stronger condition than global 1y policy.
+
+    val lowerBound3 = oneYearSinceLastProductSwitchPolicy(lowerBound2, subscription)
+
+    lowerBound3
   }
 
   def subscriptionToContributionAmount(subscription: ZuoraSubscription): Option[BigDecimal] = {
