@@ -9,6 +9,12 @@ import zio.ZIO
 
 import scala.util.Random
 
+case class SP2026EmailExtraAttributes(
+    contributionAmount: String,
+    currentCombinedAmount: String,
+    newCombinedAmount: String
+)
+
 object SupporterPlus2026Migration {
 
   // ------------------------------------------------
@@ -61,18 +67,204 @@ object SupporterPlus2026Migration {
     }
   }
 
-  def annualWithDiscountOneYearPolicy(cursorDate: LocalDate, subscription: ZuoraSubscription): LocalDate = {
+  def annualWithDiscountOneYearPolicy(lowerBound: LocalDate, subscription: ZuoraSubscription): LocalDate = {
+    // returns the { lowerbound } or { the max end date of all sub + 1 year }, whichever is highest
     val activeDiscounts =
       SI2025Extractions.getActiveDiscountsPossiblyAfterEffectiveEndDate(subscription)
     if (activeDiscounts.isEmpty) {
-      cursorDate
+      lowerBound
     } else {
       val maxEndDateOpt = activeDiscounts
         .flatMap(_.ratePlanCharges.map(_.effectiveEndDate))
         .max
       maxEndDateOpt match {
-        case Some(date) => date.plusMonths(12)
-        case None       => cursorDate
+        case Some(date) => Date.datesMax(date.plusMonths(12), lowerBound)
+        case None       => lowerBound
+      }
+    }
+  }
+
+  def oneYearSinceLastProductSwitchPolicyGetProductNameRatePlanNamePairOpt(
+      date: LocalDate,
+      subscription: ZuoraSubscription
+  ) = {
+    for {
+      ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
+        subscription,
+        date
+      )
+    } yield (ratePlan.productName, ratePlan.ratePlanName)
+  }
+
+  def oneYearSinceLastProductSwitchPolicyGetRatePlans(
+      subscription: ZuoraSubscription,
+      productName: String,
+      ratePlanName: String
+  ): List[ZuoraRatePlan] = {
+    subscription.ratePlans
+      .filter(rp => rp.productName == productName)
+      .filter(rp => rp.ratePlanName == ratePlanName)
+  }
+
+  def oneYearSinceLastProductSwitchPolicyRatePlansToLowerBoundEffectiveDate(
+      lowerBound0: LocalDate,
+      ratePlans: List[ZuoraRatePlan]
+  ): LocalDate = {
+    val dateOpt = ratePlans
+      .flatMap(_.ratePlanCharges)
+      .flatMap(_.effectiveStartDate)
+      .minOption
+
+    dateOpt.map(date => Date.datesMax(date.plusMonths(12), lowerBound0)).getOrElse(lowerBound0)
+  }
+
+  def oneYearSinceLastProductSwitchPolicy(lowerBound0: LocalDate, subscription: ZuoraSubscription): LocalDate = {
+    /*
+       Here we implement the policy that we do not want to price rise within a year after the last product switch, if there was one.
+       Interestingly the date of the last product switch is not the start date of the current rate plan.
+
+       For instance, considering a subscription with the following history
+          Supporter / Non Founder Supporter - annual from 2015-12-14 to 2023-12-14
+          Supporter / Supporter - annual (2023 Price) from 2023-12-14 to 2023-12-14 (looks like they changed their mind)
+          Contributor / Annual Contribution from 2023-12-14 to 2024-05-20
+          Supporter Plus / Supporter Plus V2 - Annual from 2024-05-20 to 2025-05-20
+          Supporter Plus / Supporter Plus V2 - Annual from 2025-05-20 to 2027-05-20
+
+       We are after 2024-05-20
+     */
+
+    // We first identify the current active product name / rate plan name
+    // Then we retrive all the rate plans matching the pairs and re return the oldest rate plan charge effectiveStartDate
+
+    oneYearSinceLastProductSwitchPolicyGetProductNameRatePlanNamePairOpt(lowerBound0, subscription) match {
+      case None =>
+        throw new Exception(
+          s"[16ce454a] this is not expected to happen, subscription number: ${subscription.subscriptionNumber}"
+        )
+      case Some((productName, ratePlanChargeName)) => {
+        val ratePlans = oneYearSinceLastProductSwitchPolicyGetRatePlans(
+          subscription,
+          productName,
+          ratePlanChargeName
+        )
+        oneYearSinceLastProductSwitchPolicyRatePlansToLowerBoundEffectiveDate(
+          lowerBound0,
+          ratePlans
+        )
+      }
+    }
+  }
+
+  def computeAmendmentEffectiveDateLowerBound(
+      lowerBound0: LocalDate,
+      item: CohortItem,
+      subscription: ZuoraSubscription
+  ): LocalDate = {
+    // For this migration we have the requirement to migrate the monthlies over 6 weeks,
+    // which is a non standard calculation. The main function is implemented in
+    // monthliesOverSixWeeks
+    // and here we call it just for that migration
+
+    val lowerBound1 = item.billingPeriod
+      .map(bp => monthliesOverSixWeeks(lowerBound0, BillingPeriod.fromString(bp)))
+      .getOrElse(lowerBound0)
+
+    // We also have the requirement to apply a one year policy to annual subs with an active discount
+    // We cannot price rise a sub within a year after the end of the discount.
+    // Implemented in annualWithDiscountOneYearPolicy
+
+    val lowerBound2 = item.billingPeriod.map(bp => BillingPeriod.fromString(bp)) match {
+      case Some(Annual) => annualWithDiscountOneYearPolicy(lowerBound1, subscription)
+      case _            => lowerBound1
+    }
+
+    // We also implement the requirement to apply a one year delay policy after the "latest product switch"
+    // where "latest product switch" is defined that the earliest date the sub has been running this particular product name, rate plan name
+    // It's a stronger condition than global 1y policy.
+
+    val lowerBound3 = oneYearSinceLastProductSwitchPolicy(lowerBound2, subscription)
+
+    lowerBound3
+  }
+
+  def subscriptionToContributionAmount(subscription: ZuoraSubscription): Option[BigDecimal] = {
+    for {
+      ratePlan <- subscription.ratePlans
+        .filter(ratePlan => ZuoraRatePlan.ratePlanIsActive(ratePlan))
+        .find(ratePlan => ratePlan.productName == "Supporter Plus")
+      ratePlanCharge <- ratePlan.ratePlanCharges.find(rpc => rpc.name == "Contribution")
+      price <- ratePlanCharge.price
+    } yield price
+  }
+
+  def extractEmailExtraAttributes(
+      cohortSpec: CohortSpec,
+      cohortItem: CohortItem,
+      subscription: ZuoraSubscription,
+  ): Option[SP2026EmailExtraAttributes] = {
+
+    MigrationType(cohortSpec) match {
+      case SupporterPlus2026 => {
+        for {
+          contributionAmount <- subscriptionToContributionAmount(subscription)
+          currentBaseAmount <- cohortItem.oldPrice
+          currentCombinedAmount = currentBaseAmount + contributionAmount
+          futureBaseAmount <- cohortItem.commsPrice
+          futureCombinedAmount = futureBaseAmount + contributionAmount
+        } yield SP2026EmailExtraAttributes(
+          contributionAmount.toString(),
+          currentCombinedAmount.toString(),
+          futureCombinedAmount.toString()
+        )
+      }
+      case _ =>
+        Some(
+          // Date: 9th July 2026
+          // For Tom reading this... Same as usual, I can't return a None
+          // and the case class cannot have its fields defined as Options :)
+          SP2026EmailExtraAttributes(
+            "",
+            "",
+            ""
+          )
+        )
+    }
+
+  }
+
+  def brazeName(cohortItem: CohortItem, subscription: ZuoraSubscription): Option[String] = {
+    /*
+        Canvases:
+
+        Name       : SV_SP_PriceRiseMonthlyNoCont2026
+        ID         : d7181793-e2b4-45fc-a3fa-2fdd274d6ca7
+        Description: Monthly S+ without a contribution
+
+        Name       : SV_SP_PriceRiseAnnualNoCont2026
+        ID         : 302c16dd-a3a9-4d01-a01e-324fadee6d7c
+        Description: Annual S+ without a contribution
+
+        Name       : SV_SP_PriceRiseMonthlyWithCont2026
+        ID         : 725a9aab-45d4-481f-aa91-ca539c3e6ffc
+        Description: Monthly S+ with contribution
+
+        Name       : SV_SP_PriceRiseAnnualWithCont2026
+        ID         : 293edcd5-2db9-4296-bcac-c07b69b8fe8c
+        Description: Annual S+ with contribution
+     */
+
+    for {
+      billingPeriod <- cohortItem.billingPeriod
+      contributionAmount <- subscriptionToContributionAmount(subscription)
+      hasNonZeroContribution = contributionAmount > 0
+    } yield {
+      (billingPeriod, hasNonZeroContribution) match {
+        case ("Month", false)  => "SV_SP_PriceRiseMonthlyNoCont2026"
+        case ("Month", true)   => "SV_SP_PriceRiseMonthlyWithCont2026"
+        case ("Annual", false) => "SV_SP_PriceRiseAnnualNoCont2026"
+        case ("Annual", true)  => "SV_SP_PriceRiseAnnualWithCont2026"
+        case _                 =>
+          throw new Exception(s"[fb8cdf0e] unexpected case, cohort item: ${cohortItem}, subscription: ${subscription}")
       }
     }
   }
