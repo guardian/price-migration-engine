@@ -316,8 +316,82 @@ object SupporterPlus2026Migration {
     }
   }
 
-  def amendmentOrderPayload(cohortItem: CohortItem): Either[Failure, Value] = {
-    // not yet implemented
-    ???
+  def amendmentOrderPayload(
+      cohortItem: CohortItem,
+      orderDate: LocalDate,
+      accountNumber: String,
+      subscriptionNumber: String,
+      effectDate: LocalDate,
+      zuora_subscription: ZuoraSubscription,
+      commsPrice: BigDecimal,
+      invoiceList: ZuoraInvoiceList,
+  ): Either[Failure, Value] = {
+    // We have two notions of subscription here.
+    // There is the Zuora subscription which is one of the arguments, and there is
+    // the notion of subscription as defined in the Zuora Order API documentation,
+    // which roughly translates to a collections of { actions / atomic mutations } in Zuora
+
+    val order_opt = {
+      for {
+        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+        billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
+      } yield {
+        val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, ratePlan.id)
+        val triggerDateString = effectDate.toString
+
+        // Here we do an "in place" price rise, therefore we are targeting the productRatePlanId that the active rate plan already has
+        val targetProductRatePlanId = ratePlan.productRatePlanId
+
+        // SupporterPlus rate plans have two charges. One we are price rising and the other one that is invariant.
+        if (ratePlan.ratePlanCharges.size != 2) {
+          throw new Exception(
+            s"[2e24a9f8] subscription number: ${subscriptionNumber}, active rate plan (id: ${ratePlan.id}) does not have exactly two charges, which is unexpected for this product"
+          )
+        }
+
+        val baseCharge = ratePlan.ratePlanCharges
+          .find(rpc => rpc.name.contains("Supporter"))
+          .get // we want to fail noisily if the extraction is not defined here
+
+        val contributionCharge = ratePlan.ratePlanCharges
+          .find(rpc => rpc.name.contains("Contribution"))
+          .get // we want to fail noisily if the extraction is not defined here
+
+        val chargeOverrides = List(
+          ZuoraOrdersApiPrimitives.chargeOverride(
+            baseCharge.productRatePlanChargeId,
+            commsPrice, // new price
+            BillingPeriod.toString(billingPeriod)
+          ),
+          ZuoraOrdersApiPrimitives.chargeOverride(
+            contributionCharge.productRatePlanChargeId,
+            contributionCharge.price.get, // same price
+            BillingPeriod.toString(billingPeriod)
+          )
+        )
+
+        val addProduct =
+          ZuoraOrdersApiPrimitives.addProduct(triggerDateString, targetProductRatePlanId, chargeOverrides)
+
+        val order_subscription =
+          ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
+
+        ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
+          orderDate.toString,
+          accountNumber,
+          order_subscription
+        )
+      }
+    }
+
+    order_opt match {
+      case Some(order) => Right(order)
+      case None        =>
+        Left(
+          DataExtractionFailure(
+            s"[52480576] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
+          )
+        )
+    }
   }
 }
