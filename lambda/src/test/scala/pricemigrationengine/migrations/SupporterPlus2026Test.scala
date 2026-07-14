@@ -602,6 +602,44 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
   }
 
+  test("EstimationResult (2)") {
+
+    // Monthly,USD
+    // Acquired in 30 Jun 2026, used to test the basic 1 year policy.
+
+    // This is a copy of [01] with an extra contribution artificially set to 89.0.
+    // This is to test that the old price is picked up accurately.
+
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/subscription.json")
+    val account =
+      Fixtures.accountFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson(
+      "Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/invoice-preview.json"
+    )
+
+    val amendmentEffectiveDateLowerBound = LocalDate.of(2026, 8, 1)
+    val cohortSpec = CohortSpec("SupporterPlus2026", LocalDate.of(2026, 8, 19))
+
+    // Here the Estimation is identical to that of '[01]', because the extra contribution amount
+    // is not affecting it
+
+    assertEquals(
+      EstimationResult.apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec),
+      Right(
+        EstimationData(
+          subscriptionName = subscription.subscriptionNumber,
+          amendmentEffectiveDate = LocalDate.of(2026, 8, 30),
+          currency = "USD",
+          oldPrice = BigDecimal(15.0),
+          estimatedNewPrice = BigDecimal(18.0),
+          commsPrice = BigDecimal(18.0),
+          billingPeriod = "Month"
+        )
+      )
+    )
+  }
+
   test("amendment payload (1)") {
 
     // Monthly,USD
