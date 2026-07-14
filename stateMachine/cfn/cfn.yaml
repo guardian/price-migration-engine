@@ -128,7 +128,7 @@ Resources:
         Fn::GetAtt:
           - PriceMigrationLambdaRole
           - Arn
-      MemorySize: 1536
+      MemorySize: 2048
       Runtime: java25
       Timeout: 900
 
