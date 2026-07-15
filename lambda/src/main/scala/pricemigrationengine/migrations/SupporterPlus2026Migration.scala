@@ -187,6 +187,16 @@ object SupporterPlus2026Migration {
     lowerBound3
   }
 
+  def subscriptionToSupporterBaseAmount(subscription: ZuoraSubscription): Option[BigDecimal] = {
+    for {
+      ratePlan <- subscription.ratePlans
+        .filter(ratePlan => ZuoraRatePlan.ratePlanIsActive(ratePlan))
+        .find(ratePlan => ratePlan.productName == "Supporter Plus")
+      ratePlanCharge <- ratePlan.ratePlanCharges.find(rpc => rpc.name.contains("Supporter"))
+      price <- ratePlanCharge.price
+    } yield price
+  }
+
   def subscriptionToContributionAmount(subscription: ZuoraSubscription): Option[BigDecimal] = {
     for {
       ratePlan <- subscription.ratePlans
@@ -206,10 +216,10 @@ object SupporterPlus2026Migration {
     MigrationType(cohortSpec) match {
       case SupporterPlus2026 => {
         for {
+          currentBaseAmount <- subscriptionToSupporterBaseAmount(subscription)
           contributionAmount <- subscriptionToContributionAmount(subscription)
-          currentBaseAmount <- cohortItem.oldPrice
           currentCombinedAmount = currentBaseAmount + contributionAmount
-          futureBaseAmount <- cohortItem.commsPrice
+          futureBaseAmount <- cohortItem.commsPrice // new base price
           futureCombinedAmount = futureBaseAmount + contributionAmount
         } yield SP2026EmailExtraAttributes(
           contributionAmount.toString(),
