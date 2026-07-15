@@ -495,6 +495,17 @@ object NotificationHandler extends CohortHandler {
           value => Right(value)
         )
       }
+      case SupporterPlus2026 => {
+        val address = (for {
+          billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
+          _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
+          _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
+        } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
+        address.fold(
+          _ => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))),
+          value => Right(value)
+        )
+      }
       case _ =>
         (for {
           billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
