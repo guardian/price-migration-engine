@@ -22,6 +22,53 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
   }
 
+  test("subscriptionToSupporterBaseAmount (1)") {
+    val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
+
+    assertEquals(
+      SupporterPlus2026Migration.subscriptionToSupporterBaseAmount(subscription),
+      Some(BigDecimal(15.0))
+    )
+  }
+
+  test("subscriptionToSupporterBaseAmount (2)") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/invoice-preview.json")
+
+    assertEquals(
+      SupporterPlus2026Migration.subscriptionToSupporterBaseAmount(subscription),
+      Some(BigDecimal(15.0))
+    )
+  }
+
+  test("subscriptionToContributionAmount (1)") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json"
+
+    assertEquals(
+      SupporterPlus2026Migration.subscriptionToContributionAmount(subscription),
+      Some(BigDecimal(0.0))
+    )
+  }
+
+  test("subscriptionToContributionAmount (2)") {
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/invoice-preview.json"
+
+    assertEquals(
+      SupporterPlus2026Migration.subscriptionToContributionAmount(subscription),
+      Some(BigDecimal(89.0))
+    )
+  }
+
   test("price data (1)") {
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
@@ -277,6 +324,9 @@ class SupporterPlus2026Test extends munit.FunSuite {
   }
 
   test("extractEmailExtraAttributes (1)") {
+    // Monthly,USD
+    // Acquired in 30 Jun 2026, used to test the basic 1 year policy.
+
     val subscription = Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01/subscription.json")
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
@@ -288,8 +338,8 @@ class SupporterPlus2026Test extends munit.FunSuite {
     val cohortItem = CohortItem(
       subscriptionName = subscription.subscriptionNumber,
       processingStage = CohortTableFilter.SalesforcePriceRiseCreationComplete,
-      oldPrice = Some(BigDecimal(12.0)), // we can pass any amount here, doesn't have to be consistent with subscription
-      commsPrice = Some(14.0), // we can pass any amount here, doesn't have to be consistent with subscription
+      oldPrice = Some(BigDecimal(15.0)),
+      commsPrice = Some(18.0),
     )
 
     val contribution = BigDecimal(0.0) // 01 carries 0.0
@@ -299,14 +349,19 @@ class SupporterPlus2026Test extends munit.FunSuite {
       Some(
         SP2026EmailExtraAttributes(
           contribution.toString(),
-          "12.0",
-          "14.0"
+          "15.0",
+          "18.0"
         )
       )
     )
   }
 
   test("extractEmailExtraAttributes (2) [01-variant1-non-zero-contribution]") {
+    // Monthly,USD
+    // Acquired in 30 Jun 2026, used to test the basic 1 year policy.
+    // This is a copy of [01] with an extra contribution artificially set to 89.0.
+    // This is to test that the old price is picked up accurately.
+
     val subscription =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/subscription.json")
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/account.json")
@@ -319,8 +374,8 @@ class SupporterPlus2026Test extends munit.FunSuite {
     val cohortItem = CohortItem(
       subscriptionName = subscription.subscriptionNumber,
       processingStage = CohortTableFilter.SalesforcePriceRiseCreationComplete,
-      oldPrice = Some(BigDecimal(12.0)), // we can pass any amount here, doesn't have to be consistent with subscription
-      commsPrice = Some(14.0), // we can pass any amount here, doesn't have to be consistent with subscription
+      oldPrice = Some(BigDecimal(15.0)), // + 89 extra contribution
+      commsPrice = Some(18.0), // post price rise
     )
 
     val contribution = BigDecimal(89.0) // 01 carries 89.0
@@ -330,8 +385,8 @@ class SupporterPlus2026Test extends munit.FunSuite {
       Some(
         SP2026EmailExtraAttributes(
           contribution.toString(),
-          "101.0",
-          "103.0"
+          "104.0",
+          "107.0"
         )
       )
     )
