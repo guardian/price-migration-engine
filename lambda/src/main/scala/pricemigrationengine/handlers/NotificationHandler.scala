@@ -535,6 +535,7 @@ object NotificationHandler extends CohortHandler {
       case ProductMigration2025N4 => Right(address.country.getOrElse(""))
       case Membership2025         => Right(address.country.getOrElse(""))
       case DigiSubs2025           => Right(address.country.getOrElse(""))
+      case SupporterPlus2026      => Right(address.country.getOrElse(""))
       case _                      => requiredField(address.country, "Contact.OtherAddress.country")
     }
   }
