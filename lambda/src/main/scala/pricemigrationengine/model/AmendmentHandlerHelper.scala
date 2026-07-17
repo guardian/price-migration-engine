@@ -69,7 +69,7 @@ object AmendmentHandlerHelper {
       case ProductMigration2025N4 => false
       case Membership2025         => true
       case DigiSubs2025           => true
-      case SupporterPlus2026      => true
+      case SupporterPlus2026      => false
     }
   }
 
