@@ -112,10 +112,10 @@ object ZuoraLive {
     for {
       successfulResponse <- performRequestSttpClient4(request)
       body = successfulResponse.body
-      _ <- ZIO.logInfo(s"[e2b0236b] successful response body: ${body}")
       parsedResponse <- ZIO
         .attempt(read[A](body))
         .mapError(ex => ZuoraFetchFailure(s"[c6691aea] failed to deserialise: ${body}, error: ${ex}"))
+      _ <- ZIO.logInfo(s"[e2b0236b] parsedResponse: ${parsedResponse}")
     } yield parsedResponse
   }
 
