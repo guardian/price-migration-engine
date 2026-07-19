@@ -135,7 +135,7 @@ The schedule will be printed to the standard output (your terminal), just redire
 
 ### The product catalogue 
 
-The last file we use is the zuora producr catalogue. It was actually used in in the test of legacy code because legacy code was using the product catalogue to retrieve information that we are now hardcoding in migration specific code.
+The last file we use is the Zuora product catalogue. It was actually used in in the test of legacy code because legacy code was using the product catalogue to retrieve information that we are now hardcoding in migration specific code.
 
 The curl is
 

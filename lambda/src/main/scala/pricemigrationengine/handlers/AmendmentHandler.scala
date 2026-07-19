@@ -63,7 +63,7 @@ object AmendmentHandler extends CohortHandler {
             Clock.nanoTime.map(_ < deadline)
           )
           .mapZIO(item =>
-            performAmendmentAttempt(cohortSpec, catalogue, item)
+            performAmendmentAttempt(cohortSpec, item)
               .tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
           )
           .runCount
@@ -106,13 +106,12 @@ object AmendmentHandler extends CohortHandler {
 
   private def performAmendmentAttempt(
       cohortSpec: CohortSpec,
-      catalogue: ZuoraProductCatalogue,
       item: CohortItem
   ): ZIO[CohortTable with Zuora with Logging with SalesforceClient, Failure, Unit] = {
     // This function performs the amendment (through the migration dispatch)
     // and updates the Cohort Item.
     (for {
-      result <- performAmendmentAttemptWithResult(cohortSpec, catalogue, item)
+      result <- performAmendmentAttemptWithResult(cohortSpec, item)
       _ <- result match {
         case r: AARSuccessfulAmendment => {
           CohortTable.update(
@@ -198,7 +197,6 @@ object AmendmentHandler extends CohortHandler {
 
   private def doAmendmentUsingOrdersApiWithJsonValues(
       cohortSpec: CohortSpec,
-      catalogue: ZuoraProductCatalogue,
       item: CohortItem
   ): ZIO[Zuora with Logging, Failure, AARSuccessfulAmendment] = {
     for {
@@ -323,7 +321,6 @@ object AmendmentHandler extends CohortHandler {
 
   private def performAmendmentAttemptWithResult(
       cohortSpec: CohortSpec,
-      catalogue: ZuoraProductCatalogue,
       item: CohortItem
   ): ZIO[Zuora with Logging with SalesforceClient, Failure, AmendmentAttemptResult] = {
     MigrationType(cohortSpec) match {
@@ -331,19 +328,16 @@ object AmendmentHandler extends CohortHandler {
       case GuardianWeekly2025 =>
         doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
-          catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
       case Newspaper2025P1 =>
         doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
-          catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
       case Newspaper2025P3 =>
         doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
-          catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
       case ProductMigration2025N4 => {
@@ -365,7 +359,6 @@ object AmendmentHandler extends CohortHandler {
             else
               doAmendmentUsingOrdersApiWithJsonValues(
                 cohortSpec,
-                catalogue,
                 item
               )
         } yield result
@@ -374,19 +367,16 @@ object AmendmentHandler extends CohortHandler {
       case Membership2025 =>
         doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
-          catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
       case DigiSubs2025 =>
         doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
-          catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
       case SupporterPlus2026 =>
         doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
-          catalogue: ZuoraProductCatalogue,
           item: CohortItem
         )
     }

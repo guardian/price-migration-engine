@@ -20,7 +20,6 @@ object EstimationHandler extends CohortHandler {
   def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Zuora, Failure, HandlerOutput] =
     for {
       today <- Clock.currentDateTime.map(_.toLocalDate)
-      catalogue <- Zuora.fetchProductCatalogue
       count <- (
         cohortSpec.subscriptionNumber match {
           case None =>
@@ -33,21 +32,18 @@ object EstimationHandler extends CohortHandler {
               .filter(item => item.subscriptionName == subscriptionNumber)
         }
       )
-        .mapZIO(item =>
-          estimate(catalogue, cohortSpec)(today, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
-        )
+        .mapZIO(item => estimate(cohortSpec)(today, item).tapBoth(Logging.logFailure(item), Logging.logSuccess(item)))
         .runCount
         .tapError(e => Logging.error(e.toString))
     } yield HandlerOutput(isComplete = count < batchSize)
 
   private[handlers] def estimate(
-      catalogue: ZuoraProductCatalogue,
       cohortSpec: CohortSpec
   )(
       today: LocalDate,
       item: CohortItem,
   ): ZIO[CohortTable with Zuora with Logging, Failure, EstimationResult] =
-    doEstimation(catalogue, item, cohortSpec, today).foldZIO(
+    doEstimation(item, cohortSpec, today).foldZIO(
       failure = {
         case _: SubscriptionCancelledInZuoraFailure =>
           val result = SubscriptionCancelledInZuoraEstimationResult(item.subscriptionName)
@@ -92,7 +88,6 @@ object EstimationHandler extends CohortHandler {
     )
 
   private def doEstimation(
-      catalogue: ZuoraProductCatalogue,
       item: CohortItem,
       cohortSpec: CohortSpec,
       today: LocalDate,
