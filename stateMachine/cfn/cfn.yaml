@@ -322,7 +322,7 @@ Resources:
                 "Resource": "${UpdatingSalesforceWithNotificationsLambdaArn}",
                 "InputPath": "$.cohortSpec",
                 "ResultPath": "$.result",
-                "Next": "Amending",
+                "Next": "IsUpdatingSalesforceWithNotificationsComplete",
                 "Retry": [
                   {
                     "ErrorEquals": [
@@ -335,6 +335,18 @@ Resources:
                     "BackoffRate": 2
                   }
                 ]
+              },
+              "IsUpdatingSalesforceWithNotificationsComplete": {
+                "Type": "Choice",
+                "Comment": "Is the notifications Salesforce update step complete?",
+                "Choices": [
+                  {
+                    "Variable": "$.result.isComplete",
+                    "BooleanEquals": false,
+                    "Next": "UpdatingSalesforceWithNotifications"
+                  }
+                ],
+                "Default": "Amending"
               },
               "Amending": {
                 "Type": "Task",
