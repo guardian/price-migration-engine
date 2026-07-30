@@ -45,9 +45,13 @@ object NotificationHandlerHelper {
           ),
         ).forall(identity)
       }
-      case Membership2025    => true
-      case DigiSubs2025      => true
-      case SupporterPlus2026 => true
+      case Membership2025      => true
+      case DigiSubs2025        => true
+      case SupporterPlus2026   => true
+      case SupporterPlus2026N2 => true
+      case SupporterPlus2026N3 => true
+      case SupporterPlus2026N4 => true
+      case SupporterPlus2026N5 => true
     }
   }
 
@@ -61,6 +65,10 @@ object NotificationHandlerHelper {
       case Membership2025         => None
       case DigiSubs2025           => None
       case SupporterPlus2026      => Some("Supporter Plus")
+      case SupporterPlus2026N2    => Some("Supporter Plus")
+      case SupporterPlus2026N3    => Some("Supporter Plus")
+      case SupporterPlus2026N4    => Some("Supporter Plus")
+      case SupporterPlus2026N5    => Some("Supporter Plus")
     }
   }
 
