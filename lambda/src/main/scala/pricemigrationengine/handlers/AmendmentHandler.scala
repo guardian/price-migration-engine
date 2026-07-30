@@ -49,6 +49,7 @@ object AmendmentHandler extends CohortHandler {
           case None =>
             CohortTable
               .fetch(NotificationSendDateWrittenToSalesforce, None)
+              .filter(item => Dispatch.belongs(cohortSpec, item))
               .take(batchSize)
           case Some(subscriptionNumber) =>
             CohortTable

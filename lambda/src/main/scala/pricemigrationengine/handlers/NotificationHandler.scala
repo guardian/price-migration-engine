@@ -54,6 +54,7 @@ object NotificationHandler extends CohortHandler {
           case None =>
             CohortTable
               .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+              .filter(item => Dispatch.belongs(cohortSpec, item))
               .take(batchSize)
           case Some(subscriptionNumber) =>
             CohortTable
