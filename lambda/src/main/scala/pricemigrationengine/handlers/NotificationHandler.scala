@@ -82,7 +82,7 @@ object NotificationHandler extends CohortHandler {
             )
             .orElseFail(
               DataExtractionFailure(
-                s"[0c1a6fc5] could not determine SubscriptionNotificationAnalyseResult for item $item"
+                s"[0c1a6fc5] could not determine SubscriptionNotificationAnalyseResult for item {$item}"
               )
             )
           _ <- evaluateAnalyseResult(
@@ -165,10 +165,10 @@ object NotificationHandler extends CohortHandler {
       cohortItem: CohortItem,
   ): ZIO[Zuora with EmailSender with SalesforceClient with CohortTable with Logging, Failure, Unit] =
     for {
+      _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       sfSubscription <-
         SalesforceClient
           .getSubscriptionByName(cohortItem.subscriptionName)
-      _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
       firstName <- ZIO.fromEither(firstName(contact))
       lastName <- ZIO.fromEither(requiredField(contact.LastName, "Contact.LastName"))
