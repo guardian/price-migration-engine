@@ -17,7 +17,7 @@ import pricemigrationengine.migrations.{
 }
 import pricemigrationengine.model.RatePlanProbe
 
-import java.time.{LocalDate, ZoneId}
+import java.time.{LocalDate, ZoneId, ZoneOffset}
 import java.time.format.DateTimeFormatter
 
 object NotificationHandler extends CohortHandler {
@@ -68,7 +68,7 @@ object NotificationHandler extends CohortHandler {
             .fromOption(item.whenEstimationDone)
             .mapError(ex => DataExtractionFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
           ratePlanProbeResult <- ZIO.succeed(
-            RatePlanProbe.probe(subscription: ZuoraSubscription, LocalDate.from(estimationInstant))
+            RatePlanProbe.probe(subscription: ZuoraSubscription, LocalDate.ofInstant(estimationInstant, ZoneOffset.UTC))
           )
           analyseResult <- ZIO
             .fromOption(
