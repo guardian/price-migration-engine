@@ -24,9 +24,9 @@ object NotificationHandler extends CohortHandler {
 
   private val batchSize = 150
 
-  val Successful = 1
-  val Unsuccessful = 0
-  val Cancelled_Status = "Cancelled"
+  // -----------------------------------------
+  // Primary Logic
+  // -----------------------------------------
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     main(input).provideSome[Logging](
@@ -64,18 +64,82 @@ object NotificationHandler extends CohortHandler {
       ).mapZIO { item =>
         for {
           subscription <- Zuora.fetchSubscription(item.subscriptionName)
-          _ <-
-            if (subscription.status == "Cancelled") {
-              updateCohortItemForZuoraCancellation(cohortSpec, item)
-            } else {
-              performProductNameCheckAndSendNotification(cohortSpec, item, subscription, today)
-            }
+          estimationInstant <- ZIO
+            .fromOption(item.whenEstimationDone)
+            .mapError(ex => DataExtractionFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
+          ratePlanProbeResult <- ZIO.succeed(
+            RatePlanProbe.probe(subscription: ZuoraSubscription, LocalDate.from(estimationInstant))
+          )
+          analyseResult <- ZIO
+            .fromOption(
+              SubscriptionNotificationAnalyseResult.analyseSubscriptionForNotification(
+                cohortSpec,
+                subscription,
+                item,
+                today,
+                ratePlanProbeResult
+              )
+            )
+            .orElseFail(
+              DataExtractionFailure(
+                s"[0c1a6fc5] could not determine SubscriptionNotificationAnalyseResult for item $item"
+              )
+            )
+          _ <- evaluateAnalyseResult(
+            cohortSpec,
+            item,
+            subscription,
+            analyseResult
+          )
+
         } yield ()
       }.runCount
     } yield HandlerOutput(isComplete = count < batchSize)
   }
 
-  private def updateCohortItemForZuoraCancellation(
+  def evaluateAnalyseResult(
+      cohortSpec: CohortSpec,
+      item: CohortItem,
+      zuoraSubscription: ZuoraSubscription,
+      analyseResult: SubscriptionNotificationAnalyseResult
+  ): ZIO[CohortTable with SalesforceClient with Logging with EmailSender with Zuora, Failure, Unit] = {
+    analyseResult match {
+      case SNARReadyToNotify             => sendNotification(cohortSpec, zuoraSubscription, item)
+      case SNARCancelledInZuora          => updateCohortItemToReflectZuoraCancellation(cohortSpec, item)
+      case SNARExcludeFromMigration      => updateCohortItemToExcludeFromMigration(item)
+      case SNARMissingNotificationWindow =>
+        ZIO.fail(
+          NotificationHandlerFailure(
+            s"[71edb83e] we are missing the notification window for ${item} (SubscriptionNotificationAnalyseResult). Please investigate."
+          )
+        )
+    }
+  }
+
+  // -----------------------------------------
+  // Helpers
+  // -----------------------------------------
+
+  private def updateCohortItemToExcludeFromMigration(
+      item: CohortItem
+  ): ZIO[CohortTable with SalesforceClient with Logging, Failure, Unit] = {
+    for {
+      _ <- CohortTable
+        .update(
+          CohortItem(
+            item.subscriptionName,
+            processingStage = ExcludedFromMigration,
+            cancellationReason =
+              Some("(cause: fae335fc) excluded from migration by SubscriptionNotificationAnalyseResult")
+          )
+        )
+      _ <- Logging.info(
+        s"Subscription ${item.subscriptionName} has been excluded from migration by SubscriptionNotificationAnalyseResult"
+      )
+    } yield ()
+  }
+
+  private def updateCohortItemToReflectZuoraCancellation(
       cohortSpec: CohortSpec,
       item: CohortItem
   ): ZIO[CohortTable with SalesforceClient with Logging, Failure, Unit] = {
@@ -95,82 +159,15 @@ object NotificationHandler extends CohortHandler {
     } yield ()
   }
 
-  def performProductNameCheckAndSendNotification(
+  def sendNotification(
       cohortSpec: CohortSpec,
-      item: CohortItem,
-      subscription: ZuoraSubscription,
-      date: LocalDate
-  ): ZIO[CohortTable with SalesforceClient with EmailSender with Zuora with Logging, Failure, Unit] = {
-    for {
-      ratePlan <- ZIO
-        .fromOption(
-          SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
-            subscription,
-            date
-          )
-        )
-        .orElseFail(DataExtractionFailure(s"[cd6e6562] could not determine rate plan for item $item"))
-      hasCorrectProductName = NotificationHandlerHelper
-        .checkProductName(
-          ratePlan,
-          date,
-          NotificationHandlerHelper.expectedProductNameOpt(cohortSpec)
-        )
-      result <-
-        if (hasCorrectProductName) {
-          sendNotification(cohortSpec, subscription)(item, date)
-        } else {
-          CohortTable
-            .update(
-              CohortItem(
-                item.subscriptionName,
-                processingStage = ExcludedFromMigration,
-                cancellationReason = Some(s"item $item excluded from migration due to unexpected product name")
-              )
-            )
-            .as(())
-        }
-    } yield result
-  }
-
-  def sendNotification(cohortSpec: CohortSpec, zuoraSubscription: ZuoraSubscription)(
+      zuoraSubscription: ZuoraSubscription,
       cohortItem: CohortItem,
-      today: LocalDate
-  ): ZIO[EmailSender with SalesforceClient with CohortTable with Logging with Zuora, Failure, Unit] = {
+  ): ZIO[Zuora with EmailSender with SalesforceClient with CohortTable with Logging, Failure, Unit] =
     for {
-      _ <- ZIO.when(!cohortSpec.forceNotifications.contains(true))(
-        if (thereIsEnoughNotificationLeadTime(cohortSpec, today, cohortItem)) {
-          ZIO.succeed(())
-        } else {
-          ZIO.fail(
-            NotificationNotEnoughLeadTimeFailure(
-              s"[notification] The start date of item ${cohortItem.subscriptionName} (startDate: ${cohortItem.amendmentEffectiveDate}) is too close to today ${today}"
-            )
-          )
-        }
-      )
-      _ <- ZIO.when(!cohortSpec.forceNotifications.contains(true))(cohortItemRatePlansChecks(cohortSpec, cohortItem))
       sfSubscription <-
         SalesforceClient
           .getSubscriptionByName(cohortItem.subscriptionName)
-      // Interestingly, here we do not check whether the subscription has been
-      // cancelled in Zuora, but in Salesforce.
-      _ <-
-        if (sfSubscription.Status__c == Cancelled_Status) {
-          updateCohortItemForZuoraCancellation(cohortSpec, cohortItem)
-        } else {
-          sendNotification(cohortSpec, cohortItem, sfSubscription, zuoraSubscription)
-        }
-    } yield ()
-  }
-
-  def sendNotification(
-      cohortSpec: CohortSpec,
-      cohortItem: CohortItem,
-      sfSubscription: SalesforceSubscription,
-      zuoraSubscription: ZuoraSubscription
-  ): ZIO[Zuora with EmailSender with SalesforceClient with CohortTable with Logging, Failure, Unit] =
-    for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
       firstName <- ZIO.fromEither(firstName(contact))
@@ -303,51 +300,6 @@ object NotificationHandler extends CohortHandler {
     } yield ()
 
   // -------------------------------------------------------------------
-  // Subscription Rate Plan Checks
-
-  private def subscriptionRatePlansCheck(
-      cohortSpec: CohortSpec,
-      item: CohortItem,
-      subscription: ZuoraSubscription,
-      date: LocalDate
-  ): ZIO[CohortTable with Zuora with SalesforceClient with Logging, Failure, Unit] = {
-    for {
-      _ <- RatePlanProbe.probe(subscription: ZuoraSubscription, date) match {
-        case RPPShouldProceed    => ZIO.succeed(())
-        case RPPCancelledInZuora =>
-          updateCohortItemForZuoraCancellation(
-            cohortSpec,
-            item
-          )
-        case IndeterminateConclusion =>
-          ZIO.fail(
-            RatePlanProbeFailure(
-              s"[4f7589ea] NotificationHandler probeRatePlans could not determine a probe outcome for cohort item ${item}. Please investigate."
-            )
-          )
-      }
-    } yield ()
-  }
-
-  private def cohortItemRatePlansChecks(
-      cohortSpec: CohortSpec,
-      item: CohortItem
-  ): ZIO[CohortTable with Zuora with SalesforceClient with Logging, Failure, Unit] = {
-    for {
-      subscription <- Zuora.fetchSubscription(item.subscriptionName)
-      estimationInstant <- ZIO
-        .fromOption(item.whenEstimationDone)
-        .mapError(ex => DataExtractionFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
-      _ <- subscriptionRatePlansCheck(
-        cohortSpec,
-        item,
-        subscription,
-        estimationInstant.atZone(ZoneId.of("Europe/London")).toLocalDate
-      )
-    } yield ()
-  }
-
-  // -------------------------------------------------------------------
   // Notification Windows
 
   // For general information about the notification period see the docs/notification-periods.md
@@ -393,20 +345,8 @@ object NotificationHandler extends CohortHandler {
     }
   }
 
-  def thereIsEnoughNotificationLeadTime(cohortSpec: CohortSpec, today: LocalDate, cohortItem: CohortItem): Boolean = {
-    // To help with backward compatibility with existing tests, we apply this condition from 1st Dec 2020.
-    if (today.isBefore(LocalDate.of(2020, 12, 1))) {
-      true
-    } else {
-      cohortItem.amendmentEffectiveDate match {
-        case Some(sd) => today.plusDays(minLeadTime(cohortSpec)).isBefore(sd)
-        case _        => false
-      }
-    }
-  }
-
   // -------------------------------------------------------------------
-  // Support Functions
+  // Data Extraction Functions
 
   def currencyISOtoSymbol(iso: String): ZIO[Any, Nothing, String] = {
     ZIO.succeed(i18n.Currency.fromString(iso: String).map(_.identifier).getOrElse(""))
