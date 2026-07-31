@@ -433,11 +433,30 @@ object NotificationHandler extends CohortHandler {
 
   def targetStreet(cohortSpec: CohortSpec, street: Option[String]): Either[NotificationHandlerFailure, String] = {
     MigrationType(cohortSpec) match {
-      case Membership2025    => Right(street.getOrElse(""))
-      case DigiSubs2025      => Right(street.getOrElse(""))
-      case SupporterPlus2026 => Right(street.getOrElse(""))
-      case _                 => requiredField(street, "Contact.OtherAddress.street")
+      case Membership2025      => Right(street.getOrElse(""))
+      case DigiSubs2025        => Right(street.getOrElse(""))
+      case SupporterPlus2026   => Right(street.getOrElse(""))
+      case SupporterPlus2026N2 => Right(street.getOrElse(""))
+      case SupporterPlus2026N3 => Right(street.getOrElse(""))
+      case SupporterPlus2026N4 => Right(street.getOrElse(""))
+      case SupporterPlus2026N5 => Right(street.getOrElse(""))
+      case _                   => requiredField(street, "Contact.OtherAddress.street")
     }
+  }
+
+  def targetAddressNotRequired(
+      cohortSpec: CohortSpec,
+      contact: SalesforceContact
+  ): Either[NotificationHandlerFailure, SalesforceAddress] = {
+    val address = (for {
+      billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
+      _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
+      _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
+    } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
+    address.fold(
+      _ => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))),
+      value => Right(value)
+    )
   }
 
   def targetAddress(
@@ -505,18 +524,12 @@ object NotificationHandler extends CohortHandler {
           value => Right(value)
         )
       }
-      case SupporterPlus2026 => {
-        val address = (for {
-          billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
-          _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
-          _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
-        } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
-        address.fold(
-          _ => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))),
-          value => Right(value)
-        )
-      }
-      case _ =>
+      case SupporterPlus2026   => targetAddressNotRequired(cohortSpec, contact)
+      case SupporterPlus2026N2 => targetAddressNotRequired(cohortSpec, contact)
+      case SupporterPlus2026N3 => targetAddressNotRequired(cohortSpec, contact)
+      case SupporterPlus2026N4 => targetAddressNotRequired(cohortSpec, contact)
+      case SupporterPlus2026N5 => targetAddressNotRequired(cohortSpec, contact)
+      case _                   =>
         (for {
           billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
           _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
@@ -545,6 +558,10 @@ object NotificationHandler extends CohortHandler {
       case Membership2025         => Right(address.country.getOrElse(""))
       case DigiSubs2025           => Right(address.country.getOrElse(""))
       case SupporterPlus2026      => Right(address.country.getOrElse(""))
+      case SupporterPlus2026N2    => Right(address.country.getOrElse(""))
+      case SupporterPlus2026N3    => Right(address.country.getOrElse(""))
+      case SupporterPlus2026N4    => Right(address.country.getOrElse(""))
+      case SupporterPlus2026N5    => Right(address.country.getOrElse(""))
       case _                      => requiredField(address.country, "Contact.OtherAddress.country")
     }
   }
