@@ -54,6 +54,7 @@ object NotificationHandler extends CohortHandler {
           case None =>
             CohortTable
               .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+              .filter(item => Dispatch.belongs(cohortSpec, item))
               .take(batchSize)
           case Some(subscriptionNumber) =>
             CohortTable
@@ -368,6 +369,10 @@ object NotificationHandler extends CohortHandler {
       case Membership2025         => Membership2025Migration.maxLeadTime
       case DigiSubs2025           => DigiSubs2025Migration.maxLeadTime
       case SupporterPlus2026      => SupporterPlus2026Migration.maxLeadTime
+      case SupporterPlus2026N2    => SupporterPlus2026Migration.maxLeadTime
+      case SupporterPlus2026N3    => SupporterPlus2026Migration.maxLeadTime
+      case SupporterPlus2026N4    => SupporterPlus2026Migration.maxLeadTime
+      case SupporterPlus2026N5    => SupporterPlus2026Migration.maxLeadTime
     }
   }
 
@@ -381,6 +386,10 @@ object NotificationHandler extends CohortHandler {
       case Membership2025         => Membership2025Migration.minLeadTime
       case DigiSubs2025           => DigiSubs2025Migration.minLeadTime
       case SupporterPlus2026      => SupporterPlus2026Migration.minLeadTime
+      case SupporterPlus2026N2    => SupporterPlus2026Migration.minLeadTime
+      case SupporterPlus2026N3    => SupporterPlus2026Migration.minLeadTime
+      case SupporterPlus2026N4    => SupporterPlus2026Migration.minLeadTime
+      case SupporterPlus2026N5    => SupporterPlus2026Migration.minLeadTime
     }
   }
 
@@ -424,11 +433,30 @@ object NotificationHandler extends CohortHandler {
 
   def targetStreet(cohortSpec: CohortSpec, street: Option[String]): Either[NotificationHandlerFailure, String] = {
     MigrationType(cohortSpec) match {
-      case Membership2025    => Right(street.getOrElse(""))
-      case DigiSubs2025      => Right(street.getOrElse(""))
-      case SupporterPlus2026 => Right(street.getOrElse(""))
-      case _                 => requiredField(street, "Contact.OtherAddress.street")
+      case Membership2025      => Right(street.getOrElse(""))
+      case DigiSubs2025        => Right(street.getOrElse(""))
+      case SupporterPlus2026   => Right(street.getOrElse(""))
+      case SupporterPlus2026N2 => Right(street.getOrElse(""))
+      case SupporterPlus2026N3 => Right(street.getOrElse(""))
+      case SupporterPlus2026N4 => Right(street.getOrElse(""))
+      case SupporterPlus2026N5 => Right(street.getOrElse(""))
+      case _                   => requiredField(street, "Contact.OtherAddress.street")
     }
+  }
+
+  def targetAddressNotRequired(
+      cohortSpec: CohortSpec,
+      contact: SalesforceContact
+  ): Either[NotificationHandlerFailure, SalesforceAddress] = {
+    val address = (for {
+      billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
+      _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
+      _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
+    } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
+    address.fold(
+      _ => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))),
+      value => Right(value)
+    )
   }
 
   def targetAddress(
@@ -496,18 +524,12 @@ object NotificationHandler extends CohortHandler {
           value => Right(value)
         )
       }
-      case SupporterPlus2026 => {
-        val address = (for {
-          billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
-          _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
-          _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
-        } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
-        address.fold(
-          _ => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))),
-          value => Right(value)
-        )
-      }
-      case _ =>
+      case SupporterPlus2026   => targetAddressNotRequired(cohortSpec, contact)
+      case SupporterPlus2026N2 => targetAddressNotRequired(cohortSpec, contact)
+      case SupporterPlus2026N3 => targetAddressNotRequired(cohortSpec, contact)
+      case SupporterPlus2026N4 => targetAddressNotRequired(cohortSpec, contact)
+      case SupporterPlus2026N5 => targetAddressNotRequired(cohortSpec, contact)
+      case _                   =>
         (for {
           billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
           _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
@@ -536,6 +558,10 @@ object NotificationHandler extends CohortHandler {
       case Membership2025         => Right(address.country.getOrElse(""))
       case DigiSubs2025           => Right(address.country.getOrElse(""))
       case SupporterPlus2026      => Right(address.country.getOrElse(""))
+      case SupporterPlus2026N2    => Right(address.country.getOrElse(""))
+      case SupporterPlus2026N3    => Right(address.country.getOrElse(""))
+      case SupporterPlus2026N4    => Right(address.country.getOrElse(""))
+      case SupporterPlus2026N5    => Right(address.country.getOrElse(""))
       case _                      => requiredField(address.country, "Contact.OtherAddress.country")
     }
   }
@@ -623,6 +649,30 @@ object NotificationHandler extends CohortHandler {
             DataExtractionFailure(s"[e3f83ac4] could not determine brazeName for DigiSubs2025, item: ${item}")
           )
       case SupporterPlus2026 =>
+        ZIO
+          .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
+          .orElseFail(
+            DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
+          )
+      case SupporterPlus2026N2 =>
+        ZIO
+          .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
+          .orElseFail(
+            DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
+          )
+      case SupporterPlus2026N3 =>
+        ZIO
+          .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
+          .orElseFail(
+            DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
+          )
+      case SupporterPlus2026N4 =>
+        ZIO
+          .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
+          .orElseFail(
+            DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
+          )
+      case SupporterPlus2026N5 =>
         ZIO
           .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
           .orElseFail(

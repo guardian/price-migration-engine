@@ -37,6 +37,7 @@ It currently consists in
 - [Cohort Items](docs/cohort-items.md)
 - [Troubleshooting document](docs/troubleshooting.md)
 - [Quirks of the Engine](docs/quirks.md)
+- [Dispatch, dealing with unusually large migration](docs/dispatch.md)
 
 ### Android Price Rises
 

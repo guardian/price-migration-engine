@@ -41,6 +41,10 @@ object AmendmentEffectiveDateCalculator {
       case Membership2025         => None
       case DigiSubs2025           => None
       case SupporterPlus2026      => None
+      case SupporterPlus2026N2    => None
+      case SupporterPlus2026N3    => None
+      case SupporterPlus2026N4    => None
+      case SupporterPlus2026N5    => None
     }
   }
 
@@ -104,6 +108,10 @@ object AmendmentEffectiveDateCalculator {
         case Membership2025         => 1
         case DigiSubs2025           => 3 // 3 Months for DigiSubs2025
         case SupporterPlus2026      => 1 // no spread for SupporterPlus2026
+        case SupporterPlus2026N2    => 1 // no spread for SupporterPlus2026
+        case SupporterPlus2026N3    => 1 // no spread for SupporterPlus2026
+        case SupporterPlus2026N4    => 1 // no spread for SupporterPlus2026
+        case SupporterPlus2026N5    => 1 // no spread for SupporterPlus2026
       }
     } else 1
   }
@@ -144,6 +152,14 @@ object AmendmentEffectiveDateCalculator {
       case Membership2025         => lowerBound3
       case DigiSubs2025           => lowerBound3
       case SupporterPlus2026      =>
+        SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
+      case SupporterPlus2026N2 =>
+        SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
+      case SupporterPlus2026N3 =>
+        SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
+      case SupporterPlus2026N4 =>
+        SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
+      case SupporterPlus2026N5 =>
         SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
     }
 
