@@ -15,6 +15,10 @@ object EstimationHandlerHelper {
       case Membership2025         => Some(1.43)
       case DigiSubs2025           => Some(1.25)
       case SupporterPlus2026      => None
+      case SupporterPlus2026N2    => None
+      case SupporterPlus2026N3    => None
+      case SupporterPlus2026N4    => None
+      case SupporterPlus2026N5    => None
     }
   }
 

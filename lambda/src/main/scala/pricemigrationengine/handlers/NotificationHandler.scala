@@ -54,6 +54,7 @@ object NotificationHandler extends CohortHandler {
           case None =>
             CohortTable
               .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+              .filter(item => Dispatch.belongs(cohortSpec, item))
               .take(batchSize)
           case Some(subscriptionNumber) =>
             CohortTable
@@ -368,6 +369,10 @@ object NotificationHandler extends CohortHandler {
       case Membership2025         => Membership2025Migration.maxLeadTime
       case DigiSubs2025           => DigiSubs2025Migration.maxLeadTime
       case SupporterPlus2026      => SupporterPlus2026Migration.maxLeadTime
+      case SupporterPlus2026N2    => SupporterPlus2026Migration.maxLeadTime
+      case SupporterPlus2026N3    => SupporterPlus2026Migration.maxLeadTime
+      case SupporterPlus2026N4    => SupporterPlus2026Migration.maxLeadTime
+      case SupporterPlus2026N5    => SupporterPlus2026Migration.maxLeadTime
     }
   }
 
@@ -381,6 +386,10 @@ object NotificationHandler extends CohortHandler {
       case Membership2025         => Membership2025Migration.minLeadTime
       case DigiSubs2025           => DigiSubs2025Migration.minLeadTime
       case SupporterPlus2026      => SupporterPlus2026Migration.minLeadTime
+      case SupporterPlus2026N2    => SupporterPlus2026Migration.minLeadTime
+      case SupporterPlus2026N3    => SupporterPlus2026Migration.minLeadTime
+      case SupporterPlus2026N4    => SupporterPlus2026Migration.minLeadTime
+      case SupporterPlus2026N5    => SupporterPlus2026Migration.minLeadTime
     }
   }
 
@@ -623,6 +632,30 @@ object NotificationHandler extends CohortHandler {
             DataExtractionFailure(s"[e3f83ac4] could not determine brazeName for DigiSubs2025, item: ${item}")
           )
       case SupporterPlus2026 =>
+        ZIO
+          .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
+          .orElseFail(
+            DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
+          )
+      case SupporterPlus2026N2 =>
+        ZIO
+          .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
+          .orElseFail(
+            DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
+          )
+      case SupporterPlus2026N3 =>
+        ZIO
+          .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
+          .orElseFail(
+            DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
+          )
+      case SupporterPlus2026N4 =>
+        ZIO
+          .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
+          .orElseFail(
+            DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
+          )
+      case SupporterPlus2026N5 =>
         ZIO
           .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
           .orElseFail(

@@ -70,6 +70,10 @@ object AmendmentHandlerHelper {
       case Membership2025         => true
       case DigiSubs2025           => true
       case SupporterPlus2026      => false
+      case SupporterPlus2026N2    => false
+      case SupporterPlus2026N3    => false
+      case SupporterPlus2026N4    => false
+      case SupporterPlus2026N5    => false
     }
   }
 
@@ -198,6 +202,50 @@ object AmendmentHandlerHelper {
           invoiceList
         )
       case SupporterPlus2026 =>
+        SupporterPlus2026Migration.amendmentOrderPayload(
+          cohortItem,
+          orderDate,
+          accountNumber,
+          subscriptionNumber,
+          effectDate,
+          zuora_subscription,
+          commsPrice,
+          invoiceList
+        )
+      case SupporterPlus2026N2 =>
+        SupporterPlus2026Migration.amendmentOrderPayload(
+          cohortItem,
+          orderDate,
+          accountNumber,
+          subscriptionNumber,
+          effectDate,
+          zuora_subscription,
+          commsPrice,
+          invoiceList
+        )
+      case SupporterPlus2026N3 =>
+        SupporterPlus2026Migration.amendmentOrderPayload(
+          cohortItem,
+          orderDate,
+          accountNumber,
+          subscriptionNumber,
+          effectDate,
+          zuora_subscription,
+          commsPrice,
+          invoiceList
+        )
+      case SupporterPlus2026N4 =>
+        SupporterPlus2026Migration.amendmentOrderPayload(
+          cohortItem,
+          orderDate,
+          accountNumber,
+          subscriptionNumber,
+          effectDate,
+          zuora_subscription,
+          commsPrice,
+          invoiceList
+        )
+      case SupporterPlus2026N5 =>
         SupporterPlus2026Migration.amendmentOrderPayload(
           cohortItem,
           orderDate,
