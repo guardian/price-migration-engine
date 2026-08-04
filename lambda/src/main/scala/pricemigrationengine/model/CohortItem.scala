@@ -59,6 +59,9 @@ case class CohortItem(
 
     // Membership2025
     ex_membership2025_country: Option[String] = None,
+
+    // Membership2025
+    ex_sp2026_notification_active_rateplan_id: Option[String] = None
 )
 
 object CohortItem {
