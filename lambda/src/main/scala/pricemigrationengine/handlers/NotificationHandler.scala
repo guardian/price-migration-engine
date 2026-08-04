@@ -61,40 +61,45 @@ object NotificationHandler extends CohortHandler {
               .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
               .filter(item => item.subscriptionName == subscriptionNumber)
         }
-      ).mapZIO { item =>
-        for {
-          subscription <- Zuora.fetchSubscription(item.subscriptionName)
-          estimationInstant <- ZIO
-            .fromOption(item.whenEstimationDone)
-            .mapError(ex => DataExtractionFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
-          ratePlanProbeResult <- ZIO.succeed(
-            RatePlanProbe.probe(subscription: ZuoraSubscription, LocalDate.ofInstant(estimationInstant, ZoneOffset.UTC))
-          )
-          analyseResult <- ZIO
-            .fromOption(
-              SubscriptionNotificationAnalyseResult.analyseSubscriptionForNotification(
-                cohortSpec,
-                subscription,
-                item,
-                today,
-                ratePlanProbeResult
-              )
-            )
-            .orElseFail(
-              DataExtractionFailure(
-                s"[0c1a6fc5] could not determine SubscriptionNotificationAnalyseResult for item {$item}"
-              )
-            )
-          _ <- evaluateAnalyseResult(
-            cohortSpec,
-            item,
-            subscription,
-            analyseResult
-          )
-
-        } yield ()
-      }.runCount
+      ).mapZIO { item => processCohortItem(cohortSpec, item, today) }.runCount
     } yield HandlerOutput(isComplete = count < batchSize)
+  }
+
+  def processCohortItem(
+      cohortSpec: CohortSpec,
+      item: CohortItem,
+      date: LocalDate
+  ): ZIO[CohortTable with SalesforceClient with Logging with EmailSender with Zuora, Failure, Unit] = {
+    for {
+      subscription <- Zuora.fetchSubscription(item.subscriptionName)
+      estimationInstant <- ZIO
+        .fromOption(item.whenEstimationDone)
+        .mapError(ex => DataExtractionFailure(s"[3026515c] Could not extract whenEstimationDone from item ${item}"))
+      ratePlanProbeResult <- ZIO.succeed(
+        RatePlanProbe.probe(subscription: ZuoraSubscription, LocalDate.ofInstant(estimationInstant, ZoneOffset.UTC))
+      )
+      analyseResult <- ZIO
+        .fromOption(
+          SubscriptionNotificationAnalyseResult.analyseSubscriptionForNotification(
+            cohortSpec,
+            subscription,
+            item,
+            date,
+            ratePlanProbeResult
+          )
+        )
+        .orElseFail(
+          DataExtractionFailure(
+            s"[0c1a6fc5] could not determine SubscriptionNotificationAnalyseResult for item {$item}"
+          )
+        )
+      _ <- evaluateAnalyseResult(
+        cohortSpec,
+        item,
+        subscription,
+        analyseResult
+      )
+    } yield ()
   }
 
   def evaluateAnalyseResult(

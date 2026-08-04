@@ -259,3 +259,24 @@ object AmendmentHandlerHelper {
     }
   }
 }
+
+sealed trait SubscriptionAmendmentAnalyseResult
+
+// "SAAR" means "Subscription Amendment Analyse Result"
+
+object SAARReadyToAmend extends SubscriptionAmendmentAnalyseResult
+object SAARCancelledInZuora extends SubscriptionAmendmentAnalyseResult
+object SAARExcludeFromMigration extends SubscriptionAmendmentAnalyseResult
+
+object SubscriptionAmendmentAnalyseResult {
+  def analyseSubscriptionForAmendment(
+      item: CohortItem,
+      subscription: ZuoraSubscription
+  ): Option[SubscriptionAmendmentAnalyseResult] = {
+    if (subscription.status == "Cancelled") {
+      Some(SAARCancelledInZuora)
+    } else {
+      Some(SAARReadyToAmend)
+    }
+  }
+}
