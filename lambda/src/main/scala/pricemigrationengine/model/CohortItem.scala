@@ -60,7 +60,18 @@ case class CohortItem(
     // Membership2025
     ex_membership2025_country: Option[String] = None,
 
-    // Membership2025
+    // SupporterPlus2026
+    // Date: 04 August 2026
+    // Author: Pascal
+    // comment code: f4cb8d58
+    //
+    // This new attribute is introduced specifically for SupporterPlus2026, to
+    // support a novel way to perform amendment step rate plan monitoring, as part of
+    // introducing a delay between the notification step and the amendment step for that migration.
+    // This, because recording the subscription rate plan id is indeed the best way to detect mutations.
+    // We could generalise this and use it between the estimation step and the notification step
+    // as an even more efficient replacement for the checks that at performed in the prelude of the
+    // Notification handler.
     ex_sp2026_notification_active_rateplan_id: Option[String] = None
 )
 

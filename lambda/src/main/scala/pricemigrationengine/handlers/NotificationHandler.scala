@@ -301,7 +301,7 @@ object NotificationHandler extends CohortHandler {
 
       _ <- EmailSender.sendEmail(message)
 
-      _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete)
+      _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete, zuoraSubscription)
     } yield ()
 
   // -------------------------------------------------------------------
@@ -525,7 +525,11 @@ object NotificationHandler extends CohortHandler {
       .fromOption(BillingPeriod.notificationPaymentFrequencyMapping.get(billingPeriod))
       .orElseFail(EmailSenderFailure(s"No payment frequency mapping found for billing period: $billingPeriod"))
 
-  private def updateCohortItemStatus(subscriptionNumber: String, processingStage: CohortTableFilter) = {
+  private def updateCohortItemStatus(
+      subscriptionNumber: String,
+      processingStage: CohortTableFilter,
+      subscription: ZuoraSubscription
+  ) = {
     for {
       now <- Clock.instant
       _ <-
@@ -534,7 +538,11 @@ object NotificationHandler extends CohortHandler {
             CohortItem(
               subscriptionName = subscriptionNumber,
               processingStage = processingStage,
-              whenNotificationSent = Some(now)
+              whenNotificationSent = Some(now),
+              ex_sp2026_notification_active_rateplan_id = NotificationHandlerHelper.zuoraSubscriptionToActiveRatePlanId(
+                subscription: ZuoraSubscription,
+                LocalDate.ofInstant(now, ZoneOffset.UTC)
+              )
             )
           )
           .mapError { error =>

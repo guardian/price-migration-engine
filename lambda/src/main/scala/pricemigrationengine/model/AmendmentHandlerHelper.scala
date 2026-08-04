@@ -267,16 +267,74 @@ sealed trait SubscriptionAmendmentAnalyseResult
 object SAARReadyToAmend extends SubscriptionAmendmentAnalyseResult
 object SAARCancelledInZuora extends SubscriptionAmendmentAnalyseResult
 object SAARExcludeFromMigration extends SubscriptionAmendmentAnalyseResult
+object SAARFailNoisily extends SubscriptionAmendmentAnalyseResult
 
 object SubscriptionAmendmentAnalyseResult {
-  def analyseSubscriptionForAmendment(
+
+  def weHaveSubscriptionRatePlanConsistency(
       item: CohortItem,
-      subscription: ZuoraSubscription
+      subscription: ZuoraSubscription,
+      today: LocalDate
+  ): Option[Boolean] = {
+    // Here we want to check that the subscription main rate plan id has the same value as
+    // attribute `ex_sp2026_notification_active_rateplan_id`
+    for {
+      recordedRatePlanId <-
+        item.ex_sp2026_notification_active_rateplan_id
+      ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
+        subscription,
+        today
+      )
+    } yield recordedRatePlanId == ratePlan.id
+  }
+
+  def analyseSupporterPlus2026(
+      item: CohortItem,
+      subscription: ZuoraSubscription,
+      today: LocalDate
+  ): Option[SubscriptionAmendmentAnalyseResult] = {
+    weHaveSubscriptionRatePlanConsistency(
+      item,
+      subscription,
+      today
+    ) match {
+      case None              => Some(SAARFailNoisily)
+      case Some(consistency) =>
+        if (consistency) {
+          Some(SAARReadyToAmend)
+        } else {
+          Some(SAARExcludeFromMigration)
+        }
+    }
+  }
+
+  def analyseSubscriptionForAmendment(
+      cohortSpec: CohortSpec,
+      item: CohortItem,
+      subscription: ZuoraSubscription,
+      today: LocalDate
   ): Option[SubscriptionAmendmentAnalyseResult] = {
     if (subscription.status == "Cancelled") {
       Some(SAARCancelledInZuora)
     } else {
-      Some(SAARReadyToAmend)
+      // Note that the reason why we are choosing not to apply the SupporterPlus2026 analyse
+      // to other migration, is because although we noted how useful it is (see comment f4cb8d58)
+      // I do not want to use a migration specific attribute to do so. If we want to extend this to
+      // other migrations we will have to introduce a general CohortItem attribute.
+      MigrationType(cohortSpec) match {
+        case Test1                  => Some(SAARReadyToAmend)
+        case GuardianWeekly2025     => Some(SAARReadyToAmend)
+        case Newspaper2025P1        => Some(SAARReadyToAmend)
+        case Newspaper2025P3        => Some(SAARReadyToAmend)
+        case ProductMigration2025N4 => Some(SAARReadyToAmend)
+        case Membership2025         => Some(SAARReadyToAmend)
+        case DigiSubs2025           => Some(SAARReadyToAmend)
+        case SupporterPlus2026      => analyseSupporterPlus2026(item, subscription, today)
+        case SupporterPlus2026N2    => analyseSupporterPlus2026(item, subscription, today)
+        case SupporterPlus2026N3    => analyseSupporterPlus2026(item, subscription, today)
+        case SupporterPlus2026N4    => analyseSupporterPlus2026(item, subscription, today)
+        case SupporterPlus2026N5    => analyseSupporterPlus2026(item, subscription, today)
+      }
     }
   }
 }

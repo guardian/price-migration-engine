@@ -86,6 +86,15 @@ object NotificationHandlerHelper {
       }
     }
   }
+
+  def zuoraSubscriptionToActiveRatePlanId(subscription: ZuoraSubscription, today: LocalDate): Option[String] = {
+    for {
+      ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
+        subscription: ZuoraSubscription,
+        today: LocalDate
+      )
+    } yield ratePlan.id
+  }
 }
 
 sealed trait SubscriptionNotificationAnalyseResult

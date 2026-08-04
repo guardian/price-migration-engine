@@ -14,7 +14,7 @@ import pricemigrationengine.migrations._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 
-import java.time.LocalDate
+import java.time.{LocalDate, ZoneOffset}
 import zio._
 import ujson._
 
@@ -70,12 +70,15 @@ object AmendmentHandler extends CohortHandler {
       item: CohortItem
   ): ZIO[CohortTable with SalesforceClient with Logging with Zuora, Failure, Unit] = {
     for {
+      now <- Clock.instant
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
       analyseResult <- ZIO
         .fromOption(
           SubscriptionAmendmentAnalyseResult.analyseSubscriptionForAmendment(
+            cohortSpec,
             item,
-            subscription
+            subscription,
+            LocalDate.ofInstant(now, ZoneOffset.UTC)
           )
         )
         .orElseFail(
@@ -120,6 +123,12 @@ object AmendmentHandler extends CohortHandler {
               processingStage = ExcludedFromMigration
             )
           )
+      case SAARFailNoisily =>
+        ZIO.fail(
+          AmendmentFailure(
+            s"[908d45f0] Processing SAARFailNoisily from the amendment handler for ${item}. Please investigate."
+          )
+        )
     }
   }
 
