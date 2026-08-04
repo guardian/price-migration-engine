@@ -11,7 +11,7 @@ import pricemigrationengine.migrations.{
 }
 import ujson.Value
 
-import java.time.LocalDate
+import java.time.{Instant, LocalDate, Duration}
 
 object AmendmentHandlerHelper {
   def subscriptionHasCorrectBillingPeriodAfterUpdate(
@@ -258,6 +258,33 @@ object AmendmentHandlerHelper {
         )
     }
   }
+
+  def isReadyToAmend(cohortSpec: CohortSpec, item: CohortItem, now: Instant): Boolean = {
+    def itIs5DaysAfterNotification(item: CohortItem): Boolean = {
+      // Here we are going to `.get` an option knowing that a missing value will cause a runtime error and stop the handler
+      val cursor =
+        now.minus(
+          Duration.ofDays(4)
+        ) // now - 4 days, meaning that the amendment could happen 4 days or 5 days later, depending on the exact time of the day
+      val notificationInstant = item.whenNotificationSent.get
+      notificationInstant.isBefore(cursor)
+    }
+    MigrationType(cohortSpec) match {
+      case Test1                  => true
+      case GuardianWeekly2025     => true
+      case Newspaper2025P1        => true
+      case Newspaper2025P3        => true
+      case ProductMigration2025N4 => true
+      case Membership2025         => true
+      case DigiSubs2025           => true
+      case SupporterPlus2026      => itIs5DaysAfterNotification(item)
+      case SupporterPlus2026N2    => itIs5DaysAfterNotification(item)
+      case SupporterPlus2026N3    => itIs5DaysAfterNotification(item)
+      case SupporterPlus2026N4    => itIs5DaysAfterNotification(item)
+      case SupporterPlus2026N5    => itIs5DaysAfterNotification(item)
+    }
+  }
+
 }
 
 sealed trait SubscriptionAmendmentAnalyseResult
