@@ -130,15 +130,45 @@ object AmendmentEffectiveDateCalculator {
     // We now respect the policy of not increasing members during their first year
     // This doesn't apply to ProductMigration2025N4 which is not a price rise
     val lowerBound2 = MigrationType(cohortSpec) match {
+      case Test1                  => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case GuardianWeekly2025     => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Newspaper2025P1        => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Newspaper2025P3        => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case ProductMigration2025N4 => lowerBound1
-      case _                      => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Membership2025         => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case DigiSubs2025           => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case SupporterPlus2026      => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case SupporterPlus2026N2    => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case SupporterPlus2026N3    => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case SupporterPlus2026N4    => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case SupporterPlus2026N5    => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
     }
 
     // And the policy not to price rise a sub twice within 12 months of any possible price rise
     // This doesn't apply to ProductMigration2025N4 which is not a price rise
     val lowerBound3 = MigrationType(cohortSpec) match {
+      case Test1 => noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case GuardianWeekly2025 =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Newspaper2025P1 =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Newspaper2025P3 =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
       case ProductMigration2025N4 => lowerBound2
-      case _ => noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Membership2025         =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case DigiSubs2025 =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case SupporterPlus2026 =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case SupporterPlus2026N2 =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case SupporterPlus2026N3 =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case SupporterPlus2026N4 =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case SupporterPlus2026N5 =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
     }
 
     // Migration specific date calculations

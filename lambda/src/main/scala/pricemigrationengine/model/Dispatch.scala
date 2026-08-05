@@ -30,13 +30,18 @@ object Dispatch {
    */
   def belongs(cohortSpec: CohortSpec, cohortItem: CohortItem): Boolean = {
     MigrationType(cohortSpec) match {
-      case SupporterPlus2026   => evaluate(cohortItem.subscriptionName, 1)
-      case SupporterPlus2026N2 => evaluate(cohortItem.subscriptionName, 2)
-      case SupporterPlus2026N3 => evaluate(cohortItem.subscriptionName, 3)
-      case SupporterPlus2026N4 => evaluate(cohortItem.subscriptionName, 4)
-      case SupporterPlus2026N5 => evaluate(cohortItem.subscriptionName, 5)
-      // default to true for the others
-      case _ => true
+      case Test1                  => true
+      case GuardianWeekly2025     => true
+      case Newspaper2025P1        => true
+      case Newspaper2025P3        => true
+      case ProductMigration2025N4 => true
+      case Membership2025         => true
+      case DigiSubs2025           => true
+      case SupporterPlus2026      => evaluate(cohortItem.subscriptionName, 1)
+      case SupporterPlus2026N2    => evaluate(cohortItem.subscriptionName, 2)
+      case SupporterPlus2026N3    => evaluate(cohortItem.subscriptionName, 3)
+      case SupporterPlus2026N4    => evaluate(cohortItem.subscriptionName, 4)
+      case SupporterPlus2026N5    => evaluate(cohortItem.subscriptionName, 5)
     }
   }
 

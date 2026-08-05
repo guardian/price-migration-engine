@@ -229,7 +229,6 @@ object SupporterPlus2026Migration {
       cohortItem: CohortItem,
       subscription: ZuoraSubscription,
   ): Option[SP2026EmailExtraAttributes] = {
-
     MigrationType(cohortSpec) match {
       case SupporterPlus2026   => buildEmailExtraAttributes(cohortItem, subscription)
       case SupporterPlus2026N2 => buildEmailExtraAttributes(cohortItem, subscription)
