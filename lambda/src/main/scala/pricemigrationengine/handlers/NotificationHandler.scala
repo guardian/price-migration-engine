@@ -381,19 +381,22 @@ object NotificationHandler extends CohortHandler {
 
   def targetStreet(cohortSpec: CohortSpec, street: Option[String]): Either[NotificationHandlerFailure, String] = {
     MigrationType(cohortSpec) match {
-      case Membership2025      => Right(street.getOrElse(""))
-      case DigiSubs2025        => Right(street.getOrElse(""))
-      case SupporterPlus2026   => Right(street.getOrElse(""))
-      case SupporterPlus2026N2 => Right(street.getOrElse(""))
-      case SupporterPlus2026N3 => Right(street.getOrElse(""))
-      case SupporterPlus2026N4 => Right(street.getOrElse(""))
-      case SupporterPlus2026N5 => Right(street.getOrElse(""))
-      case _                   => requiredField(street, "Contact.OtherAddress.street")
+      case Test1                  => requiredField(street, "Contact.OtherAddress.street")
+      case GuardianWeekly2025     => requiredField(street, "Contact.OtherAddress.street")
+      case Newspaper2025P1        => requiredField(street, "Contact.OtherAddress.street")
+      case Newspaper2025P3        => requiredField(street, "Contact.OtherAddress.street")
+      case ProductMigration2025N4 => requiredField(street, "Contact.OtherAddress.street")
+      case Membership2025         => Right(street.getOrElse(""))
+      case DigiSubs2025           => Right(street.getOrElse(""))
+      case SupporterPlus2026      => Right(street.getOrElse(""))
+      case SupporterPlus2026N2    => Right(street.getOrElse(""))
+      case SupporterPlus2026N3    => Right(street.getOrElse(""))
+      case SupporterPlus2026N4    => Right(street.getOrElse(""))
+      case SupporterPlus2026N5    => Right(street.getOrElse(""))
     }
   }
 
   def targetAddressNotRequired(
-      cohortSpec: CohortSpec,
       contact: SalesforceContact
   ): Either[NotificationHandlerFailure, SalesforceAddress] = {
     val address = (for {
@@ -407,82 +410,34 @@ object NotificationHandler extends CohortHandler {
     )
   }
 
+  def targetAddressRequired(
+      contact: SalesforceContact
+  ): Either[NotificationHandlerFailure, SalesforceAddress] = {
+    (for {
+      billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
+      _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
+      _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
+    } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
+  }
+
   def targetAddress(
       cohortSpec: CohortSpec,
       contact: SalesforceContact
   ): Either[NotificationHandlerFailure, SalesforceAddress] = {
-    def testCompatibleEmptySalesforceAddress(
-        contact: SalesforceContact
-    ): Either[NotificationHandlerFailure, SalesforceAddress] = {
-      (for {
-        billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
-        _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
-        _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
-      } yield billingAddress).left.flatMap(_ =>
-        Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some("")))
-      )
-    }
 
     MigrationType(cohortSpec) match {
-      case Newspaper2025P3 => {
-        // For Newspaper2025P3, we tolerate a missing delivery address and we will rely on the user getting an email.
-        // For this, we compute the SalesforceAddress as the usual case, but if we get a Left,
-        val address = (for {
-          billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
-          _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
-          _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
-        } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
-        address.fold(
-          _ => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))),
-          value => Right(value)
-        )
-      }
-      case ProductMigration2025N4 => {
-        // We do not need the Contact.MailingAddress for ProductMigration2025N4
-        // Here we prevent NotificationHandlerFailure(Contact.MailingAddress is a required field)
-        val address = (for {
-          billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
-          _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
-          _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
-        } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
-        address.fold(
-          _ => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))),
-          value => Right(value)
-        )
-      }
-      case Membership2025 => {
-        val address = (for {
-          billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
-          _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
-          _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
-        } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
-        address.fold(
-          _ => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))),
-          value => Right(value)
-        )
-      }
-      case DigiSubs2025 => {
-        val address = (for {
-          billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
-          _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
-          _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
-        } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
-        address.fold(
-          _ => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))),
-          value => Right(value)
-        )
-      }
-      case SupporterPlus2026   => targetAddressNotRequired(cohortSpec, contact)
-      case SupporterPlus2026N2 => targetAddressNotRequired(cohortSpec, contact)
-      case SupporterPlus2026N3 => targetAddressNotRequired(cohortSpec, contact)
-      case SupporterPlus2026N4 => targetAddressNotRequired(cohortSpec, contact)
-      case SupporterPlus2026N5 => targetAddressNotRequired(cohortSpec, contact)
-      case _                   =>
-        (for {
-          billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
-          _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
-          _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
-        } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
+      case Test1                  => targetAddressRequired(contact)
+      case GuardianWeekly2025     => targetAddressRequired(contact)
+      case Newspaper2025P1        => targetAddressRequired(contact)
+      case Newspaper2025P3        => targetAddressNotRequired(contact)
+      case ProductMigration2025N4 => targetAddressNotRequired(contact)
+      case Membership2025         => targetAddressNotRequired(contact)
+      case DigiSubs2025           => targetAddressNotRequired(contact)
+      case SupporterPlus2026      => targetAddressNotRequired(contact)
+      case SupporterPlus2026N2    => targetAddressNotRequired(contact)
+      case SupporterPlus2026N3    => targetAddressNotRequired(contact)
+      case SupporterPlus2026N4    => targetAddressNotRequired(contact)
+      case SupporterPlus2026N5    => targetAddressNotRequired(contact)
     }
   }
 
@@ -495,11 +450,9 @@ object NotificationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       address: SalesforceAddress
   ): Either[NotificationHandlerFailure, String] = {
-    // The country is usually a required field, this came from the old print migrations. It was
-    // not required for the 2023 digital migrations. Although technically required for
-    // the 2024 print migration, "United Kingdom" can be substituted for missing values considering
-    // that we are only delivery in the UK.
     MigrationType(cohortSpec) match {
+      case Test1                  => requiredField(address.country, "Contact.OtherAddress.country")
+      case GuardianWeekly2025     => requiredField(address.country, "Contact.OtherAddress.country")
       case Newspaper2025P1        => Right(address.country.getOrElse("United Kingdom"))
       case Newspaper2025P3        => Right(address.country.getOrElse("United Kingdom"))
       case ProductMigration2025N4 => Right(address.country.getOrElse(""))
@@ -510,7 +463,6 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2026N3    => Right(address.country.getOrElse(""))
       case SupporterPlus2026N4    => Right(address.country.getOrElse(""))
       case SupporterPlus2026N5    => Right(address.country.getOrElse(""))
-      case _                      => requiredField(address.country, "Contact.OtherAddress.country")
     }
   }
 
