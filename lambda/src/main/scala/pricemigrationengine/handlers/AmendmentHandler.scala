@@ -86,7 +86,6 @@ object AmendmentHandler extends CohortHandler {
       _ <- evaluateAnalyseResult(
         cohortSpec,
         item,
-        subscription,
         analyseResult
       )
     } yield ()
@@ -95,7 +94,6 @@ object AmendmentHandler extends CohortHandler {
   def evaluateAnalyseResult(
       cohortSpec: CohortSpec,
       item: CohortItem,
-      zuoraSubscription: ZuoraSubscription,
       analyseResult: SubscriptionAmendmentAnalyseResult
   ): ZIO[CohortTable with SalesforceClient with Logging with Zuora, Failure, Unit] = {
     analyseResult match {
