@@ -152,9 +152,7 @@ object AmendmentHandler extends CohortHandler {
   private def performAmendmentAttempt(
       cohortSpec: CohortSpec,
       item: CohortItem
-  ): ZIO[Zuora with Logging with SalesforceClient, Failure, Option[CohortItem]] = {
-    // This function performs the amendment (through the migration dispatch)
-    // and updates the Cohort Item.
+  ): ZIO[Zuora with Logging with SalesforceClient, Failure, Option[CohortItem]] =
     (for {
       result <- performAmendmentAttemptWithResult(cohortSpec, item)
       updatedItem <- result match {
@@ -190,8 +188,8 @@ object AmendmentHandler extends CohortHandler {
       failure = {
         case e: ZuoraUpdateFailure => {
           // If the failure was a lock competition, we do not want to alarm by reporting a
-          // ZIO.fail. Instead, we return a ZIO.succeed, and the item will be retried
-          // in the next run of the lambda.
+          // ZIO.fail. Instead, we return a ZIO.none to leave the item untouched in dynamo,
+          // and the item will be retried in the next run of the lambda.
           if (e.reason.contains("lock competition")) {
             ZIO.none
           } else {
@@ -202,7 +200,6 @@ object AmendmentHandler extends CohortHandler {
       },
       success = { update => ZIO.some(update) }
     )
-  }
 
   private def renewSubscription(
       subscription: ZuoraSubscription,
