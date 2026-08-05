@@ -78,7 +78,7 @@ You learn from your mistake.
 
 ### Scheduled notifications
 
-One year later you need to do another price rise. This time you are going to raise your pains au raisin, from £1.5 to £1.7. Learning from past experiences, you ask your computer to compute the next possible price rise billing date for each customer (meaning for each subscription), but, instead of sending all the letters in one go, you actually ask your program to compute the price rise billing date minus 40 days and to write this down as a the notification date. Then, you have a daily process that scans your price rise database and, everyday, if it sees that it was the day of a notification, then that letter is automatically printed and sent. Then the program also marks that school has having been notified and clears it for a price rise 40 days later at the originally agreed price rise billing date.
+One year later you need to do another price rise. This time you are going to raise your pains au raisin, from £1.5 to £1.7. Learning from past experiences, you ask your computer to compute the next possible price rise billing date for each customer (meaning for each subscription), but, instead of sending all the letters in one go, you actually ask your program to compute the price rise billing date minus 40 days and to write this down as the "notification date". Then, you have a daily process that scans your price rise database and, everyday, if it sees that it was the day of a notification, then that letter is automatically printed and sent. Then the program also marks that school has having been notified and clears it for a price rise 40 days later at the originally agreed price rise billing date.
 
 Yes, occasionally your phone rings, once every couple of days, but then you have all the time you need to properly talk to the calling School and, when relevant, to convince them not to cancel their subscriptions in exchange for a nice custom discount.
 
@@ -88,7 +88,7 @@ You now have a good method for rising your prices, and due to sharp increase in 
 
 Due to the amazing work of your engineering team, your price riser maintains separate databases, for each price rise and computes itself the right notification dates, the right price rise billing dates, and automatically performs updates in your customer relationship management software and your billing software as well.
 
-In other words, each day, your program checks the status of each subscription in each independent price rise database and determines if it should let it sleep or it's time to perform an action and move that subscription from one state to another. (There is a precise sequence of steps a subscription goes through as part of being price rised, from the original registration of that subscription for price rise to the price rise for that subscription having completed, weeks, months, or up to a year later.)
+In other words, each day, your program checks the status of each subscription in each independent price rise database and determines if it should let it sleep or it's time to perform an action and move that subscription from one state to another. (There is a precise sequence of steps a subscription goes through as part of being price risen, from the original registration of that subscription for price rise to the price rise for that subscription having completed, weeks, months, or up to a year later.)
 
 
 ### Price rises at the Guardian. 
