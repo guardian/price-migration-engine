@@ -88,7 +88,7 @@ You now have a good method for rising your prices, and due to sharp increase in 
 
 Due to the amazing work of your engineering team, your price riser maintains separate databases, for each price rise and computes itself the right notification dates, the right price rise billing dates, and automatically performs updates in your customer relationship management software and your billing software as well.
 
-In other words, each day, your program checks the status of each subscription in each independent price rise database and determines if it should let it sleep or it's time to perform an action and move that subscription from one state to another. (There is a precise sequence of steps a subscription goes through as part of being price rised, from the original registration of that subscription for price rise to the price rise for that subscription having completed, weeks, months, or up to a year later.)
+In other words, each day, your program checks the status of each subscription in each independent price rise database and determines if it should let it sleep or it's time to perform an action and move that subscription from one state to another. (There is a precise sequence of steps a subscription goes through as part of being price risen, from the original registration of that subscription for price rise to the price rise for that subscription having completed, weeks, months, or up to a year later.)
 
 
 ### Price rises at the Guardian. 
