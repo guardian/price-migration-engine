@@ -260,10 +260,10 @@ object AmendmentHandlerHelper {
   }
 
   def isReadyToAmend(cohortSpec: CohortSpec, item: CohortItem, now: Instant): Boolean = {
-    def itIs5DaysAfterNotification(item: CohortItem): Boolean = {
-      // Now minus 4 days, meaning that the amendment could happen 4 days
-      // or 5 days later, depending on the exact time of the day
-      val cursor = now.minus(Duration.ofDays(4))
+    def itIsFewDaysAfterNotification(item: CohortItem): Boolean = {
+      // Now minus 3 days, meaning that the amendment could happen 3 days
+      // or 4 days later, depending on the exact time of the day
+      val cursor = now.minus(Duration.ofDays(3))
 
       // Here we are going to `.get` an option knowing that a missing value will cause
       // a runtime error and stop the handler
@@ -279,11 +279,11 @@ object AmendmentHandlerHelper {
       case ProductMigration2025N4 => true
       case Membership2025         => true
       case DigiSubs2025           => true
-      case SupporterPlus2026      => itIs5DaysAfterNotification(item)
-      case SupporterPlus2026N2    => itIs5DaysAfterNotification(item)
-      case SupporterPlus2026N3    => itIs5DaysAfterNotification(item)
-      case SupporterPlus2026N4    => itIs5DaysAfterNotification(item)
-      case SupporterPlus2026N5    => itIs5DaysAfterNotification(item)
+      case SupporterPlus2026      => itIsFewDaysAfterNotification(item)
+      case SupporterPlus2026N2    => itIsFewDaysAfterNotification(item)
+      case SupporterPlus2026N3    => itIsFewDaysAfterNotification(item)
+      case SupporterPlus2026N4    => itIsFewDaysAfterNotification(item)
+      case SupporterPlus2026N5    => itIsFewDaysAfterNotification(item)
     }
   }
 
