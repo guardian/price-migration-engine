@@ -266,7 +266,8 @@ object AmendmentHandlerHelper {
       val cursor = now.minus(Duration.ofDays(3))
 
       // Here we are going to `.get` an option knowing that a missing value will cause
-      // a runtime error and stop the handler
+      // a runtime error and stop the handler. If that value is not set, it means that
+      // something incredibly wrong happened during notification and the CohortItem is corrupted.
       val notificationInstant = item.whenNotificationSent.get
 
       notificationInstant.isBefore(cursor)
