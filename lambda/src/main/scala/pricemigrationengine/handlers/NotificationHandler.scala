@@ -93,6 +93,9 @@ object NotificationHandler extends CohortHandler {
             s"[0c1a6fc5] could not determine SubscriptionNotificationAnalyseResult for item {$item}"
           )
         )
+      _ <- Logging.info(
+        s"[dc6a8cb4] analyse subscription for notification, item: ${item}, result: ${SubscriptionNotificationAnalyseResult.toString(analyseResult)}"
+      )
       _ <- evaluateAnalyseResult(
         cohortSpec,
         item,

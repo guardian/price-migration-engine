@@ -298,6 +298,15 @@ object SAARFailNoisily extends SubscriptionAmendmentAnalyseResult
 
 object SubscriptionAmendmentAnalyseResult {
 
+  def toString(result: SubscriptionAmendmentAnalyseResult): String = {
+    result match {
+      case SAARReadyToAmend         => "SAARReadyToAmend"
+      case SAARCancelledInZuora     => "SAARCancelledInZuora"
+      case SAARExcludeFromMigration => "SAARExcludeFromMigration"
+      case SAARFailNoisily          => "SAARFailNoisily"
+    }
+  }
+
   def weHaveSubscriptionRatePlanConsistency(
       item: CohortItem,
       subscription: ZuoraSubscription,

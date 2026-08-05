@@ -86,6 +86,9 @@ object AmendmentHandler extends CohortHandler {
             s"[0c1a6fc5] could not determine SubscriptionAmendmentAnalyseResult for item {$item}"
           )
         )
+      _ <- Logging.info(
+        s"[470b97f8] analyse subscription for amendment, item: ${item}, result: ${SubscriptionAmendmentAnalyseResult.toString(analyseResult)}"
+      )
       _ <- evaluateAnalyseResult(
         cohortSpec,
         item,
