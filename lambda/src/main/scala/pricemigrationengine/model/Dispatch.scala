@@ -5,7 +5,7 @@ import scala.util.hashing.MurmurHash3
 object Dispatch {
 
   /*
-    The Displach functionality was introduced to help with SupporterPlus2026
+    The Dispatch functionality was introduced to help with SupporterPlus2026
     https://github.com/guardian/price-migration-engine/pull/1500
 
     ... and the `evaluate` function is the core of it. It takes a string (essentially a subscription number)

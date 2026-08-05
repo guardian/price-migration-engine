@@ -3,6 +3,7 @@ package pricemigrationengine.handlers
 import pricemigrationengine.model.{AmendmentHandlerHelper, ZuoraOrdersApiPrimitives}
 import pricemigrationengine.model.CohortTableFilter.{
   AmendmentComplete,
+  ExcludedFromMigration,
   NotificationSendDateWrittenToSalesforce,
   NotificationSendDateWrittenToSalesforceN4HOLD,
   UserOptOut,
@@ -21,29 +22,19 @@ import ujson._
   */
 object AmendmentHandler extends CohortHandler {
 
-  private val batchSize = 15
+  // The exact value doesn't matter because this handler monitors its own run time,
+  // but the variable itself is used to detect the end of the daily process.
+  private val batchSize = 100
 
   private def main(
       cohortSpec: CohortSpec
   ): ZIO[Logging with CohortTable with Zuora with SalesforceClient, Failure, HandlerOutput] = {
     for {
-
-      // The batch size of this lambda is particularly low (currently 15)
-      // which should be plenty of time (observations show that it runs in 4 minutes in average)
-      // but the refactoring we made here: https://github.com/guardian/price-migration-engine/pull/1221
-      // (retry of the invoice preview retrieval) means that we have much less control
-      // over the total time taken by the run.
-
-      // Specifically in one instance an item took 13 minutes to complete, which caused issues
-      // for the lambda itself. To address this problem we monitor the time since the start
-      // of the run, and exit after 10 minutes.
-
       startingTime <- Clock.nanoTime
       deadline = startingTime + 10.minutes.toNanos
 
       _ <- performN4Unlock() // Remove this at the end of N4, in November 2026
 
-      catalogue <- Zuora.fetchProductCatalogue
       count <- {
         val items = cohortSpec.subscriptionNumber match {
           case None =>
@@ -63,17 +54,70 @@ object AmendmentHandler extends CohortHandler {
             // If we reach the deadline, isComplete will be false.
             Clock.nanoTime.map(_ < deadline)
           )
-          .mapZIO(item =>
-            performAmendmentAttempt(cohortSpec, item)
-              .tapBoth(Logging.logFailure(item), Logging.logSuccess(item))
-          )
+          .mapZIO(item => processCohortItem(cohortSpec, item))
           .runCount
       }
-      now <- Clock.nanoTime
+      endingTime <- Clock.nanoTime
     } yield {
-      val reachedDeadline = now >= deadline
+      val reachedDeadline = endingTime >= deadline
       val isComplete = (count < batchSize) && !reachedDeadline
       HandlerOutput(isComplete = isComplete)
+    }
+  }
+
+  def processCohortItem(
+      cohortSpec: CohortSpec,
+      item: CohortItem
+  ): ZIO[CohortTable with SalesforceClient with Logging with Zuora, Failure, Unit] = {
+    for {
+      subscription <- Zuora.fetchSubscription(item.subscriptionName)
+      analyseResult <- ZIO
+        .fromOption(
+          SubscriptionAmendmentAnalyseResult.analyseSubscriptionForAmendment(
+            item,
+            subscription
+          )
+        )
+        .orElseFail(
+          DataExtractionFailure(
+            s"[0c1a6fc5] could not determine SubscriptionAmendmentAnalyseResult for item {$item}"
+          )
+        )
+      _ <- evaluateAnalyseResult(
+        cohortSpec,
+        item,
+        analyseResult
+      )
+    } yield ()
+  }
+
+  def evaluateAnalyseResult(
+      cohortSpec: CohortSpec,
+      item: CohortItem,
+      analyseResult: SubscriptionAmendmentAnalyseResult
+  ): ZIO[CohortTable with SalesforceClient with Logging with Zuora, Failure, Unit] = {
+    analyseResult match {
+      case SAARReadyToAmend =>
+        performAmendmentAttempt(
+          cohortSpec,
+          item
+        )
+      case SAARCancelledInZuora =>
+        CohortTable
+          .update(
+            CohortItem(
+              item.subscriptionName,
+              processingStage = ZuoraCancellation
+            )
+          )
+      case SAARExcludeFromMigration =>
+        CohortTable
+          .update(
+            CohortItem(
+              item.subscriptionName,
+              processingStage = ExcludedFromMigration
+            )
+          )
     }
   }
 
@@ -145,17 +189,6 @@ object AmendmentHandler extends CohortHandler {
       }
     } yield ()).foldZIO(
       failure = {
-        case e: SubscriptionCancelledInZuoraFailure => {
-          // This case happens when being thrown by
-          // AmendmentHandler.fetchSubscription
-          CohortTable
-            .update(
-              CohortItem(
-                item.subscriptionName,
-                processingStage = ZuoraCancellation
-              )
-            )
-        }
         case e: ZuoraUpdateFailure => {
           // If the failure was a lock competition, we do not want to alarm by reporting a
           // ZIO.fail. Instead, we return a ZIO.succeed, and the item will be retried
@@ -171,13 +204,6 @@ object AmendmentHandler extends CohortHandler {
       success = { _ => ZIO.succeed(()) }
     )
   }
-
-  private def fetchSubscription(item: CohortItem): ZIO[Zuora, Failure, ZuoraSubscription] =
-    Zuora
-      .fetchSubscription(item.subscriptionName)
-      .filterOrFail(_.status != "Cancelled")(
-        SubscriptionCancelledInZuoraFailure(s"subscription ${item.subscriptionName} has been cancelled in Zuora")
-      )
 
   private def renewSubscription(
       subscription: ZuoraSubscription,
@@ -201,7 +227,7 @@ object AmendmentHandler extends CohortHandler {
       item: CohortItem
   ): ZIO[Zuora with Logging, Failure, AARSuccessfulAmendment] = {
     for {
-      subscriptionBeforeUpdate <- fetchSubscription(item)
+      subscriptionBeforeUpdate <- Zuora.fetchSubscription(item.subscriptionName)
 
       amendmentEffectiveDate <- ZIO
         .fromOption(item.amendmentEffectiveDate)
@@ -270,7 +296,7 @@ object AmendmentHandler extends CohortHandler {
 
       _ <- Zuora.applyOrderAsynchronously(subscriptionBeforeUpdate.subscriptionNumber, order, "subscription amendment")
 
-      subscriptionAfterUpdate <- fetchSubscription(item)
+      subscriptionAfterUpdate <- Zuora.fetchSubscription(item.subscriptionName)
 
       invoicePreviewAfterUpdate <-
         Zuora.fetchInvoicePreview(subscriptionAfterUpdate.accountId, invoicePreviewTargetDate)

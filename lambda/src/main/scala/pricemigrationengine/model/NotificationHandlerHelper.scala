@@ -99,6 +99,15 @@ object SNARMissingNotificationWindow extends SubscriptionNotificationAnalyseResu
 
 object SubscriptionNotificationAnalyseResult {
 
+  def toString(result: SubscriptionNotificationAnalyseResult): String = {
+    result match {
+      case SNARReadyToNotify             => "SNARReadyToNotify"
+      case SNARCancelledInZuora          => "SNARCancelledInZuora"
+      case SNARExcludeFromMigration      => "SNARExcludeFromMigration"
+      case SNARMissingNotificationWindow => "SNARMissingNotificationWindow"
+    }
+  }
+
   def analyseSubscriptionForNotification_Legacy(
       ratePlanProbeResult: RatePlanProbeResult
   ): Option[SubscriptionNotificationAnalyseResult] = {
