@@ -207,6 +207,23 @@ object SupporterPlus2026Migration {
     } yield price
   }
 
+  def buildEmailExtraAttributes(
+      cohortItem: CohortItem,
+      subscription: ZuoraSubscription
+  ): Option[SP2026EmailExtraAttributes] = {
+    for {
+      currentBaseAmount <- subscriptionToSupporterBaseAmount(subscription)
+      contributionAmount <- subscriptionToContributionAmount(subscription)
+      currentCombinedAmount = currentBaseAmount + contributionAmount
+      futureBaseAmount <- cohortItem.commsPrice // new base price
+      futureCombinedAmount = futureBaseAmount + contributionAmount
+    } yield SP2026EmailExtraAttributes(
+      contributionAmount.toString(),
+      currentCombinedAmount.toString(),
+      futureCombinedAmount.toString()
+    )
+  }
+
   def extractEmailExtraAttributes(
       cohortSpec: CohortSpec,
       cohortItem: CohortItem,
@@ -214,20 +231,12 @@ object SupporterPlus2026Migration {
   ): Option[SP2026EmailExtraAttributes] = {
 
     MigrationType(cohortSpec) match {
-      case SupporterPlus2026 => {
-        for {
-          currentBaseAmount <- subscriptionToSupporterBaseAmount(subscription)
-          contributionAmount <- subscriptionToContributionAmount(subscription)
-          currentCombinedAmount = currentBaseAmount + contributionAmount
-          futureBaseAmount <- cohortItem.commsPrice // new base price
-          futureCombinedAmount = futureBaseAmount + contributionAmount
-        } yield SP2026EmailExtraAttributes(
-          contributionAmount.toString(),
-          currentCombinedAmount.toString(),
-          futureCombinedAmount.toString()
-        )
-      }
-      case _ =>
+      case SupporterPlus2026   => buildEmailExtraAttributes(cohortItem, subscription)
+      case SupporterPlus2026N2 => buildEmailExtraAttributes(cohortItem, subscription)
+      case SupporterPlus2026N3 => buildEmailExtraAttributes(cohortItem, subscription)
+      case SupporterPlus2026N4 => buildEmailExtraAttributes(cohortItem, subscription)
+      case SupporterPlus2026N5 => buildEmailExtraAttributes(cohortItem, subscription)
+      case _                   =>
         Some(
           // Date: 9th July 2026
           // For Tom reading this... Same as usual, I can't return a None
