@@ -14,7 +14,7 @@ import pricemigrationengine.migrations._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 
-import java.time.LocalDate
+import java.time.{LocalDate, ZoneOffset}
 import zio._
 import ujson._
 
@@ -30,16 +30,16 @@ object AmendmentHandler extends CohortHandler {
       cohortSpec: CohortSpec
   ): ZIO[Logging with CohortTable with Zuora with SalesforceClient, Failure, HandlerOutput] = {
     for {
+      now <- Clock.instant
       startingTime <- Clock.nanoTime
       deadline = startingTime + 10.minutes.toNanos
-
       _ <- performN4Unlock() // Remove this at the end of N4, in November 2026
-
       count <- {
         val items = cohortSpec.subscriptionNumber match {
           case None =>
             CohortTable
               .fetch(NotificationSendDateWrittenToSalesforce, None)
+              .filter(item => AmendmentHandlerHelper.isReadyToAmend(cohortSpec, item, now))
               .filter(item => Dispatch.belongs(cohortSpec, item))
               .take(batchSize)
           case Some(subscriptionNumber) =>
@@ -71,12 +71,15 @@ object AmendmentHandler extends CohortHandler {
       item: CohortItem
   ): ZIO[SalesforceClient with Logging with Zuora, Failure, Option[CohortItem]] = {
     for {
+      now <- Clock.instant
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
       analyseResult <- ZIO
         .fromOption(
           SubscriptionAmendmentAnalyseResult.analyseSubscriptionForAmendment(
+            cohortSpec,
             item,
-            subscription
+            subscription,
+            LocalDate.ofInstant(now, ZoneOffset.UTC)
           )
         )
         .orElseFail(
@@ -84,6 +87,9 @@ object AmendmentHandler extends CohortHandler {
             s"[0c1a6fc5] could not determine SubscriptionAmendmentAnalyseResult for item {$item}"
           )
         )
+      _ <- Logging.info(
+        s"[470b97f8] analyse subscription for amendment, item: ${item}, result: ${SubscriptionAmendmentAnalyseResult.toString(analyseResult)}"
+      )
       maybeUpdate <- evaluateAnalyseResult(
         cohortSpec,
         item,
@@ -116,6 +122,12 @@ object AmendmentHandler extends CohortHandler {
           CohortItem(
             item.subscriptionName,
             processingStage = ExcludedFromMigration
+          )
+        )
+      case SAARFailNoisily =>
+        ZIO.fail(
+          AmendmentFailure(
+            s"[908d45f0] Processing SAARFailNoisily from the amendment handler for ${item}. Please investigate."
           )
         )
     }
