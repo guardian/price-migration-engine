@@ -110,7 +110,6 @@ object AmendmentHandler extends CohortHandler {
           item
         )
       case SAARCancelledInZuora =>
-
         ZIO.some(
           CohortItem(
             item.subscriptionName,
