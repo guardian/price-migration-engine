@@ -163,7 +163,7 @@ object SI2025Extractions {
     a.orElse(b)
   }
 
-  def getActiveDiscountsNotActiveAfterEffectiveEndDate(
+  def getActiveDiscountsSelectIfTodayIsBeforeEffectiveEndDate(
       subscription: ZuoraSubscription,
       today: LocalDate
   ): List[ZuoraRatePlan] = {
@@ -177,7 +177,7 @@ object SI2025Extractions {
       )
   }
 
-  def getActiveDiscountsPossiblyAfterEffectiveEndDate(
+  def getAllActiveDiscountsIncludingPossiblyAfterEffectiveEndDate(
       subscription: ZuoraSubscription,
   ): List[ZuoraRatePlan] = {
     subscription.ratePlans
@@ -186,7 +186,7 @@ object SI2025Extractions {
   }
 
   def subscriptionHasActiveDiscounts(subscription: ZuoraSubscription, today: LocalDate): Boolean = {
-    getActiveDiscountsNotActiveAfterEffectiveEndDate(subscription: ZuoraSubscription, today).nonEmpty
+    getActiveDiscountsSelectIfTodayIsBeforeEffectiveEndDate(subscription: ZuoraSubscription, today).nonEmpty
   }
 }
 
