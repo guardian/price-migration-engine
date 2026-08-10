@@ -310,7 +310,7 @@ object SubscriptionAmendmentAnalyseResult {
     }
   }
 
-  def weHaveSubscriptionRatePlanConsistency(
+  def subscriptionIsAmendableSupporterPlus2026(
       item: CohortItem,
       subscription: ZuoraSubscription,
       today: LocalDate
@@ -332,7 +332,7 @@ object SubscriptionAmendmentAnalyseResult {
       subscription: ZuoraSubscription,
       today: LocalDate
   ): Option[SubscriptionAmendmentAnalyseResult] = {
-    weHaveSubscriptionRatePlanConsistency(
+    subscriptionIsAmendableSupporterPlus2026(
       item,
       subscription,
       today

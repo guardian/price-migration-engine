@@ -132,7 +132,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/05/invoice-preview.json")
 
     assertEquals(
-      SI2025Extractions.getActiveDiscountsPossiblyAfterEffectiveEndDate(subscription),
+      SI2025Extractions.getAllActiveDiscountsIncludingPossiblyAfterEffectiveEndDate(subscription),
       List(
         ZuoraRatePlan(
           id = "8a128f399b353104019b39fc32a763dc",
