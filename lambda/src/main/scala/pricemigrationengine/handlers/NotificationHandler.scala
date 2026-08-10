@@ -304,7 +304,7 @@ object NotificationHandler extends CohortHandler {
 
       _ <- EmailSender.sendEmail(message)
 
-      _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete, zuoraSubscription)
+      _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete)
     } yield ()
 
   // -------------------------------------------------------------------
@@ -482,8 +482,7 @@ object NotificationHandler extends CohortHandler {
 
   private def updateCohortItemStatus(
       subscriptionNumber: String,
-      processingStage: CohortTableFilter,
-      subscription: ZuoraSubscription
+      processingStage: CohortTableFilter
   ) = {
     for {
       now <- Clock.instant
@@ -493,11 +492,7 @@ object NotificationHandler extends CohortHandler {
             CohortItem(
               subscriptionName = subscriptionNumber,
               processingStage = processingStage,
-              whenNotificationSent = Some(now),
-              ex_sp2026_notification_active_rateplan_id = NotificationHandlerHelper.zuoraSubscriptionToActiveRatePlanId(
-                subscription: ZuoraSubscription,
-                LocalDate.ofInstant(now, ZoneOffset.UTC)
-              )
+              whenNotificationSent = Some(now)
             )
           )
           .mapError { error =>
