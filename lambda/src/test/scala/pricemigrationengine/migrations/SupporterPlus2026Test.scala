@@ -1134,7 +1134,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
 
     assertEquals(
-      SubscriptionAmendmentAnalyseResult.subscriptionIsAmendableSupporterPlus2026(
+      AmendmentHandlerHelper.subscriptionIsAmendableSupporterPlus2026(
         cohortItem,
         subscription,
         today
@@ -1158,7 +1158,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     val today = LocalDate.of(2026, 8, 10)
 
     assertEquals(
-      SubscriptionAmendmentAnalyseResult.analyseSupporterPlus2026(
+      AmendmentHandlerHelper.analyseSupporterPlus2026(
         cohortItem,
         subscription,
         today
