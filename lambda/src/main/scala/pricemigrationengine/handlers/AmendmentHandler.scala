@@ -55,6 +55,7 @@ object AmendmentHandler extends CohortHandler {
             Clock.nanoTime.map(_ < deadline)
           )
           .mapZIO(item => processCohortItem(cohortSpec, item))
+          .mapZIO(_.map(CohortTable.update).getOrElse(ZIO.unit))
           .runCount
       }
       endingTime <- Clock.nanoTime
@@ -68,13 +69,13 @@ object AmendmentHandler extends CohortHandler {
   def processCohortItem(
       cohortSpec: CohortSpec,
       item: CohortItem
-  ): ZIO[CohortTable with SalesforceClient with Logging with Zuora, Failure, Unit] = {
+  ): ZIO[SalesforceClient with Logging with Zuora, Failure, Option[CohortItem]] = {
     for {
       now <- Clock.instant
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
       analyseResult <- ZIO
         .fromOption(
-          SubscriptionAmendmentAnalyseResult.analyseSubscriptionForAmendment(
+          AmendmentHandlerHelper.analyseSubscriptionForAmendment(
             cohortSpec,
             item,
             subscription,
@@ -89,41 +90,39 @@ object AmendmentHandler extends CohortHandler {
       _ <- Logging.info(
         s"[470b97f8] analyse subscription for amendment, item: ${item}, result: ${SubscriptionAmendmentAnalyseResult.toString(analyseResult)}"
       )
-      _ <- evaluateAnalyseResult(
+      maybeUpdate <- evaluateAnalyseResult(
         cohortSpec,
         item,
         analyseResult
       )
-    } yield ()
+    } yield maybeUpdate
   }
 
   def evaluateAnalyseResult(
       cohortSpec: CohortSpec,
       item: CohortItem,
       analyseResult: SubscriptionAmendmentAnalyseResult
-  ): ZIO[CohortTable with SalesforceClient with Logging with Zuora, Failure, Unit] = {
-    analyseResult match {
+  ): ZIO[SalesforceClient with Logging with Zuora, Failure, Option[CohortItem]] = for {
+    maybeUpdate <- analyseResult match {
       case SAARReadyToAmend =>
         performAmendmentAttempt(
           cohortSpec,
           item
         )
       case SAARCancelledInZuora =>
-        CohortTable
-          .update(
-            CohortItem(
-              item.subscriptionName,
-              processingStage = ZuoraCancellation
-            )
+        ZIO.some(
+          CohortItem(
+            item.subscriptionName,
+            processingStage = ZuoraCancellation
           )
+        )
       case SAARExcludeFromMigration =>
-        CohortTable
-          .update(
-            CohortItem(
-              item.subscriptionName,
-              processingStage = ExcludedFromMigration
-            )
+        ZIO.some(
+          CohortItem(
+            item.subscriptionName,
+            processingStage = ExcludedFromMigration
           )
+        )
       case SAARFailNoisily =>
         ZIO.fail(
           AmendmentFailure(
@@ -131,7 +130,7 @@ object AmendmentHandler extends CohortHandler {
           )
         )
     }
-  }
+  } yield maybeUpdate
 
   def performN4Unlock(): ZIO[CohortTable with Logging, Failure, Unit] = {
     // This effect performs the monitoring of N4 items and unlock those for which delayN4AmendmentUntil
@@ -164,14 +163,12 @@ object AmendmentHandler extends CohortHandler {
   private def performAmendmentAttempt(
       cohortSpec: CohortSpec,
       item: CohortItem
-  ): ZIO[CohortTable with Zuora with Logging with SalesforceClient, Failure, Unit] = {
-    // This function performs the amendment (through the migration dispatch)
-    // and updates the Cohort Item.
+  ): ZIO[Zuora with Logging with SalesforceClient, Failure, Option[CohortItem]] =
     (for {
       result <- performAmendmentAttemptWithResult(cohortSpec, item)
-      _ <- result match {
+      updatedItem <- result match {
         case r: AARSuccessfulAmendment => {
-          CohortTable.update(
+          ZIO.succeed(
             CohortItem(
               r.subscriptionNumber,
               processingStage = AmendmentComplete,
@@ -183,13 +180,12 @@ object AmendmentHandler extends CohortHandler {
           )
         }
         case r: AARUserOptOut => {
-          CohortTable
-            .update(
-              CohortItem(
-                r.subscriptionNumber,
-                processingStage = UserOptOut
-              )
+          ZIO.succeed(
+            CohortItem(
+              r.subscriptionNumber,
+              processingStage = UserOptOut
             )
+          )
         }
         case _ =>
           ZIO
@@ -199,23 +195,22 @@ object AmendmentHandler extends CohortHandler {
               )
             )
       }
-    } yield ()).foldZIO(
+    } yield updatedItem).foldZIO(
       failure = {
         case e: ZuoraUpdateFailure => {
           // If the failure was a lock competition, we do not want to alarm by reporting a
-          // ZIO.fail. Instead, we return a ZIO.succeed, and the item will be retried
-          // in the next run of the lambda.
+          // ZIO.fail. Instead, we return a ZIO.none to leave the item untouched in dynamo,
+          // and the item will be retried in the next run of the lambda.
           if (e.reason.contains("lock competition")) {
-            ZIO.succeed(())
+            ZIO.none
           } else {
             ZIO.fail(e)
           }
         }
         case e => ZIO.fail(e)
       },
-      success = { _ => ZIO.succeed(()) }
+      success = { update => ZIO.some(update) }
     )
-  }
 
   private def renewSubscription(
       subscription: ZuoraSubscription,
