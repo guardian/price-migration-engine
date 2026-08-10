@@ -75,7 +75,7 @@ object AmendmentHandler extends CohortHandler {
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
       analyseResult <- ZIO
         .fromOption(
-          SubscriptionAmendmentAnalyseResult.analyseSubscriptionForAmendment(
+          AmendmentHandlerHelper.analyseSubscriptionForAmendment(
             cohortSpec,
             item,
             subscription,
