@@ -322,7 +322,7 @@ object SubscriptionAmendmentAnalyseResult {
       )
       subscriptionBillingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
       itemBillingPeriod <- item.billingPeriod
-    } yield ratePlan.ratePlanName == "Supporter Plus" &&
+    } yield ratePlan.productName == "Supporter Plus" &&
       BillingPeriod.toString(subscriptionBillingPeriod) == itemBillingPeriod
   }
 
