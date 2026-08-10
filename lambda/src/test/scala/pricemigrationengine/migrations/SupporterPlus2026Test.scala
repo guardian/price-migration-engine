@@ -1092,4 +1092,78 @@ class SupporterPlus2026Test extends munit.FunSuite {
       )
     )
   }
+  test("AmendmentPreludeCheck subscriptionIsAmendableSupporterPlus2026 [07-amendment-prelude-check]") {
+
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/07-amendment-prelude-check/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/07-amendment-prelude-check/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/07-amendment-prelude-check/invoice-preview.json"
+
+    val cohortItem = CohortItem(
+      subscriptionName = subscription.subscriptionNumber,
+      processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
+      billingPeriod = Some("Month")
+    )
+
+    val today = LocalDate.of(2026, 8, 10)
+
+    val ratePlan = SI2025RateplanFromSub
+      .uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
+        subscription,
+        today
+      )
+      .get
+
+    assertEquals(
+      ratePlan.productName,
+      "Supporter Plus"
+    )
+
+    val subscriptionBillingPeriod = SI2025Extractions.determineBillingPeriod(ratePlan)
+
+    assertEquals(
+      subscriptionBillingPeriod,
+      Some(Monthly)
+    )
+
+    val itemBillingPeriod = cohortItem.billingPeriod
+
+    assertEquals(
+      itemBillingPeriod,
+      Some("Month")
+    )
+
+    assertEquals(
+      SubscriptionAmendmentAnalyseResult.subscriptionIsAmendableSupporterPlus2026(
+        cohortItem,
+        subscription,
+        today
+      ),
+      Some(true)
+    )
+  }
+  test("AmendmentPreludeCheck analyseSupporterPlus2026 [07-amendment-prelude-check]") {
+
+    val subscription =
+      Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/07-amendment-prelude-check/subscription.json")
+    // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/07-amendment-prelude-check/account.json")
+    // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/07-amendment-prelude-check/invoice-preview.json"
+
+    val cohortItem = CohortItem(
+      subscriptionName = subscription.subscriptionNumber,
+      processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
+      billingPeriod = Some("Month")
+    )
+
+    val today = LocalDate.of(2026, 8, 10)
+
+    assertEquals(
+      SubscriptionAmendmentAnalyseResult.analyseSupporterPlus2026(
+        cohortItem,
+        subscription,
+        today
+      ),
+      Some(SAARReadyToAmend)
+    )
+  }
 }
