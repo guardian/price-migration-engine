@@ -70,7 +70,7 @@ object SupporterPlus2026Migration {
   def annualWithDiscountOneYearPolicy(lowerBound: LocalDate, subscription: ZuoraSubscription): LocalDate = {
     // returns the { lowerbound } or { the max end date of all sub + 1 year }, whichever is highest
     val activeDiscounts =
-      SI2025Extractions.getActiveDiscountsPossiblyAfterEffectiveEndDate(subscription)
+      SI2025Extractions.getAllActiveDiscountsIncludingPossiblyAfterEffectiveEndDate(subscription)
     if (activeDiscounts.isEmpty) {
       lowerBound
     } else {

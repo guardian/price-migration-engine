@@ -75,7 +75,7 @@ object AmendmentHandler extends CohortHandler {
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
       analyseResult <- ZIO
         .fromOption(
-          SubscriptionAmendmentAnalyseResult.analyseSubscriptionForAmendment(
+          AmendmentHandlerHelper.analyseSubscriptionForAmendment(
             cohortSpec,
             item,
             subscription,
@@ -110,7 +110,6 @@ object AmendmentHandler extends CohortHandler {
           item
         )
       case SAARCancelledInZuora =>
-
         ZIO.some(
           CohortItem(
             item.subscriptionName,

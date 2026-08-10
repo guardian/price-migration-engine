@@ -11,7 +11,7 @@ import pricemigrationengine.migrations.{
 }
 import ujson.Value
 
-import java.time.{Instant, LocalDate, Duration}
+import java.time.{Duration, Instant, LocalDate}
 
 object AmendmentHandlerHelper {
   def subscriptionHasCorrectBillingPeriodAfterUpdate(
@@ -287,44 +287,20 @@ object AmendmentHandlerHelper {
       case SupporterPlus2026N5    => itIsFewDaysAfterNotification(item)
     }
   }
-
-}
-
-sealed trait SubscriptionAmendmentAnalyseResult
-
-// "SAAR" means "Subscription Amendment Analyse Result"
-
-object SAARReadyToAmend extends SubscriptionAmendmentAnalyseResult
-object SAARCancelledInZuora extends SubscriptionAmendmentAnalyseResult
-object SAARExcludeFromMigration extends SubscriptionAmendmentAnalyseResult
-object SAARFailNoisily extends SubscriptionAmendmentAnalyseResult
-
-object SubscriptionAmendmentAnalyseResult {
-
-  def toString(result: SubscriptionAmendmentAnalyseResult): String = {
-    result match {
-      case SAARReadyToAmend         => "SAARReadyToAmend"
-      case SAARCancelledInZuora     => "SAARCancelledInZuora"
-      case SAARExcludeFromMigration => "SAARExcludeFromMigration"
-      case SAARFailNoisily          => "SAARFailNoisily"
-    }
-  }
-
-  def weHaveSubscriptionRatePlanConsistency(
+  def subscriptionIsAmendableSupporterPlus2026(
       item: CohortItem,
       subscription: ZuoraSubscription,
       today: LocalDate
   ): Option[Boolean] = {
-    // Here we want to check that the subscription main rate plan id has the same value as
-    // attribute `ex_sp2026_notification_active_rateplan_id`
     for {
-      recordedRatePlanId <-
-        item.ex_sp2026_notification_active_rateplan_id
       ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
         subscription,
         today
       )
-    } yield recordedRatePlanId == ratePlan.id
+      subscriptionBillingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
+      itemBillingPeriod <- item.billingPeriod
+    } yield ratePlan.productName == "Supporter Plus" &&
+      BillingPeriod.toString(subscriptionBillingPeriod) == itemBillingPeriod
   }
 
   def analyseSupporterPlus2026(
@@ -332,7 +308,7 @@ object SubscriptionAmendmentAnalyseResult {
       subscription: ZuoraSubscription,
       today: LocalDate
   ): Option[SubscriptionAmendmentAnalyseResult] = {
-    weHaveSubscriptionRatePlanConsistency(
+    subscriptionIsAmendableSupporterPlus2026(
       item,
       subscription,
       today
