@@ -19,6 +19,7 @@ class AmendmentEffectiveDateCalculatorTest extends munit.FunSuite {
     val today = LocalDate.of(2025, 7, 1) // 1 July 2025
     val cohortSpec = CohortSpec(
       cohortName = "Test1",
+      active = true,
       earliestAmendmentEffectiveDate = LocalDate.of(2025, 9, 10) // 10 Sept 2025
     )
 
@@ -119,6 +120,7 @@ class AmendmentEffectiveDateCalculatorTest extends munit.FunSuite {
     val today = LocalDate.of(2025, 7, 1) // 1 July 2025
     val cohortSpec = CohortSpec(
       cohortName = "Test1",
+      active = true,
       earliestAmendmentEffectiveDate = LocalDate.of(2025, 9, 10) // 10 Sept 2025
     )
 

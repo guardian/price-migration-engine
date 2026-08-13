@@ -6,6 +6,7 @@ class DispatchTest extends munit.FunSuite {
   test("Dispatch (1)") {
     val cohortSpec = CohortSpec(
       cohortName = "DigiSubs2025",
+      active = true,
       earliestAmendmentEffectiveDate = LocalDate.of(2026, 2, 1)
     )
 
@@ -28,6 +29,7 @@ class DispatchTest extends munit.FunSuite {
   test("Dispatch (2)") {
     val cohortSpec = CohortSpec(
       cohortName = "SupporterPlus2026",
+      active = true,
       earliestAmendmentEffectiveDate = LocalDate.of(2026, 8, 1)
     )
 
@@ -53,6 +55,7 @@ class DispatchTest extends munit.FunSuite {
 
     val cohortSpec = CohortSpec(
       cohortName = "SupporterPlus2026N4",
+      active = true,
       earliestAmendmentEffectiveDate = LocalDate.of(2026, 8, 1)
     )
 
