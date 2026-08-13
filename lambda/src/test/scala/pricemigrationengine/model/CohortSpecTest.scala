@@ -11,7 +11,6 @@ class CohortSpecTest extends munit.FunSuite {
   private val cohortSpec = CohortSpec(
     cohortName = "HomeDelivery2018",
     active = true,
-    earliestAmendmentEffectiveDate = LocalDate.of(2020, 1, 2)
   )
 
   private def assertTrue(obtained: Boolean): Unit = assertEquals(obtained, true)

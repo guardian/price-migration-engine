@@ -12,11 +12,7 @@ import java.util
   * @param cohortName
   *   Name that uniquely identifies a cohort, eg. "Vouchers2020"
   *
-  * @param earliestAmendmentEffectiveDate
-  *   Earliest date on which any sub in the cohort can have price migrated. The actual date for any sub will depend on
-  *   its billing dates.
-  *
-  * @param subscriptionNumber
+  * @param subscriptionNumber (optional)
   *   subscriptionNumber is an optional attribute, which, when present, and in the correct context (eg:
   *   estimation handler, notification handler and amendment handler) is going to cause the handler to run
   *   on this one specified subscription, rather than a subset of the cohort table. Note that for security,
@@ -24,7 +20,7 @@ import java.util
   *   handler. This attribute was added to CohortSpec in August 2025, to help with rescuing some print migration
   *   cohort items causing timeouts in Zuora. This attribute is not intended to be used by the state machine.
   *
-  * @param forceNotifications
+  * @param forceNotifications (optional)
   *   When present, and if true, it will
   *   1. override the Notification handler's `thereIsEnoughNotificationLeadTime` check.
   *      This allows sending notifications before the -30 days deadline, but after they have
@@ -39,7 +35,6 @@ import java.util
 
 case class CohortSpec(
     cohortName: String,
-    earliestAmendmentEffectiveDate: LocalDate,
     active: Boolean,
     subscriptionNumber: Option[String] = None,
     forceNotifications: Option[Boolean] = None,
@@ -68,10 +63,8 @@ object CohortSpec {
     (for {
       cohortName <- getStringFromResults(values, "cohortName")
       status <- getBooleanFromResults(values, "active")
-      earliestAmendmentEffectiveDate <- getDateFromResults(values, "earliestAmendmentEffectiveDate")
     } yield CohortSpec(
       cohortName,
-      earliestAmendmentEffectiveDate,
       status
     )).left.map(e => CohortSpecFetchFailure(e))
 }

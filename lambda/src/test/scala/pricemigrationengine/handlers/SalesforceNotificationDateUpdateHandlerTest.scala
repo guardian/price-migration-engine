@@ -85,7 +85,7 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
     val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
 
     val cohortSpec: CohortSpec =
-      CohortSpec("Test1", LocalDate.of(2022, 1, 1), active = true)
+      CohortSpec("Test1", active = true)
 
     val cohortItem = CohortItem(
       subscriptionName = subscriptionName,
