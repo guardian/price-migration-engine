@@ -18,6 +18,7 @@ class CohortTableLiveTest extends munit.FunSuite {
 
   private val cohortSpec = CohortSpec(
     cohortName = "name",
+    active = true,
     earliestAmendmentEffectiveDate = LocalDate.of(2020, 1, 1)
   )
 

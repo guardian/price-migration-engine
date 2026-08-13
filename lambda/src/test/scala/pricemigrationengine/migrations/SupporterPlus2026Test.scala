@@ -331,7 +331,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
 
-    val cohortSpec = CohortSpec("SupporterPlus2026", LocalDate.of(2026, 7, 1))
+    val cohortSpec = CohortSpec("SupporterPlus2026", LocalDate.of(2026, 7, 1), active = true)
 
     // Note that we are defining the CohortItem only with the attributes we need
     // That particular value would not happen in the wild.
@@ -367,7 +367,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/account.json")
     // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01-variant1-non-zero-contribution/invoice-preview.json"
 
-    val cohortSpec = CohortSpec("SupporterPlus2026", LocalDate.of(2026, 7, 1))
+    val cohortSpec = CohortSpec("SupporterPlus2026", LocalDate.of(2026, 7, 1), active = true)
 
     // Note that we are defining the CohortItem only with the attributes we need
     // That particular value would not happen in the wild.
@@ -639,7 +639,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
 
     val amendmentEffectiveDateLowerBound = LocalDate.of(2026, 8, 1)
-    val cohortSpec = CohortSpec("SupporterPlus2026", LocalDate.of(2026, 8, 19))
+    val cohortSpec = CohortSpec("SupporterPlus2026", LocalDate.of(2026, 8, 19), active = true)
 
     assertEquals(
       EstimationResult.apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec),
@@ -674,7 +674,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
 
     val amendmentEffectiveDateLowerBound = LocalDate.of(2026, 8, 1)
-    val cohortSpec = CohortSpec("SupporterPlus2026", LocalDate.of(2026, 8, 19))
+    val cohortSpec = CohortSpec("SupporterPlus2026", LocalDate.of(2026, 8, 19), active = true)
 
     // Here the Estimation is identical to that of '[01]', because the extra contribution amount
     // is not affecting it

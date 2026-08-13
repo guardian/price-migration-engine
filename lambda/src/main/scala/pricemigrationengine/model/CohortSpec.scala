@@ -40,6 +40,7 @@ import java.util
 case class CohortSpec(
     cohortName: String,
     earliestAmendmentEffectiveDate: LocalDate,
+    active: Boolean,
     subscriptionNumber: Option[String] = None,
     forceNotifications: Option[Boolean] = None,
 ) {
@@ -66,9 +67,11 @@ object CohortSpec {
   def fromDynamoDbItem(values: util.Map[String, AttributeValue]): Either[CohortSpecFetchFailure, CohortSpec] =
     (for {
       cohortName <- getStringFromResults(values, "cohortName")
+      status <- getBooleanFromResults(values, "active")
       earliestAmendmentEffectiveDate <- getDateFromResults(values, "earliestAmendmentEffectiveDate")
     } yield CohortSpec(
       cohortName,
-      earliestAmendmentEffectiveDate
+      earliestAmendmentEffectiveDate,
+      status
     )).left.map(e => CohortSpecFetchFailure(e))
 }
