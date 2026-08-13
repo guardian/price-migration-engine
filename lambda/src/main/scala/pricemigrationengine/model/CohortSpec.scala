@@ -59,7 +59,7 @@ object CohortSpec {
   implicit val rw: ReadWriter[CohortSpec] = macroRW
 
   def isValid(spec: CohortSpec): Boolean = {
-    def isValidStringValue(s: String) = s.trim == s && s.nonEmpty && s.matches("[A-Za-z0-9-_ ]+")
+    def isValidStringValue(s: String) = s.trim == s && s.nonEmpty && s.matches("[A-Za-z0-9-_]+")
     isValidStringValue(spec.cohortName)
   }
 
