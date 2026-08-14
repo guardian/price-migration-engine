@@ -9,6 +9,8 @@ import ujson._
 
 object Membership2025Migration {
 
+  val earliestAmendmentEffectiveDate = LocalDate.of(2025, 12, 1)
+
   val maxLeadTime = 35
   val minLeadTime = 33
 

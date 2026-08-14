@@ -11,7 +11,6 @@ class CohortSpecTest extends munit.FunSuite {
   private val cohortSpec = CohortSpec(
     cohortName = "HomeDelivery2018",
     active = true,
-    earliestAmendmentEffectiveDate = LocalDate.of(2020, 1, 2)
   )
 
   private def assertTrue(obtained: Boolean): Unit = assertEquals(obtained, true)
@@ -21,7 +20,6 @@ class CohortSpecTest extends munit.FunSuite {
     val item = Map(
       "cohortName" -> AttributeValue.builder.s("HomeDelivery2018").build(),
       "active" -> AttributeValue.builder.bool(true).build(),
-      "earliestAmendmentEffectiveDate" -> AttributeValue.builder.s("2020-01-02").build()
     ).asJava
     assertEquals(
       CohortSpec.fromDynamoDbItem(item),

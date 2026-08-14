@@ -9,7 +9,6 @@ The lambda takes all the items in the Dynamo table `price-migration-engine-cohor
 {
   "cohortSpec": {
     "cohortName": "Membership2025",
-    "earliestAmendmentEffectiveDate": "2025-12-01",
     "active": true
   }
 }
