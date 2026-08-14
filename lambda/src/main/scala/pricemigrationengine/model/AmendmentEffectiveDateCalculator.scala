@@ -62,7 +62,7 @@ object AmendmentEffectiveDateCalculator {
     //   during a single month.
 
     Date.datesMax(
-      cohortSpec.earliestAmendmentEffectiveDate,
+      EstimationHandlerHelper.earliestAmendmentEffectiveDate(cohortSpec),
       today.plusDays(
         NotificationHandler.minLeadTime(cohortSpec: CohortSpec) + 1
       ) // +1 because we need to be strictly over minLeadTime days away. Exactly minLeadTime is not enough.

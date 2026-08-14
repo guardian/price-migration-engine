@@ -18,7 +18,7 @@ class CohortTableLiveTest extends munit.FunSuite {
 
   private val cohortSpec = CohortSpec(
     cohortName = "name",
-    earliestAmendmentEffectiveDate = LocalDate.of(2020, 1, 1)
+    active = true
   )
 
   val stubCohortTableConfiguration = ZLayer.succeed(CohortTableConfig(10))

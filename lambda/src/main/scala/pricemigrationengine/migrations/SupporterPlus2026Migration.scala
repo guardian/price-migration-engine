@@ -17,6 +17,8 @@ case class SP2026EmailExtraAttributes(
 
 object SupporterPlus2026Migration {
 
+  val earliestAmendmentEffectiveDate = LocalDate.of(2026, 8, 19)
+
   // ------------------------------------------------
   // Notification Timings
   // ------------------------------------------------
