@@ -106,7 +106,7 @@ object EstimationHandler extends CohortHandler {
             SubscriptionAutoRenewIsFalseFailure(s"subscription ${item.subscriptionName} autoRenew flag is false")
           )
       account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
-      invoicePreviewTargetDate = cohortSpec.earliestAmendmentEffectiveDate.plusMonths(16)
+      invoicePreviewTargetDate = EstimationHandlerHelper.earliestAmendmentEffectiveDate(cohortSpec).plusMonths(16)
       invoicePreview <- Zuora
         .fetchInvoicePreview(subscription.accountId, invoicePreviewTargetDate)
       amendmentEffectiveDateLowerBound <- ZIO.succeed(

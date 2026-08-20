@@ -68,7 +68,7 @@ class SubscriptionIdUploadHandlerTest extends munit.FunSuite {
           .main(
             CohortSpec(
               cohortName = "cohortName",
-              earliestAmendmentEffectiveDate = LocalDate.of(2020, 1, 1)
+              active = true
             )
           )
           .provideLayer(

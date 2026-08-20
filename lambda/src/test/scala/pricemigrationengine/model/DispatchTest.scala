@@ -6,7 +6,7 @@ class DispatchTest extends munit.FunSuite {
   test("Dispatch (1)") {
     val cohortSpec = CohortSpec(
       cohortName = "DigiSubs2025",
-      earliestAmendmentEffectiveDate = LocalDate.of(2026, 2, 1)
+      active = true
     )
 
     // For DigiSubs2025 we expect the belong function to always return true
@@ -28,7 +28,7 @@ class DispatchTest extends munit.FunSuite {
   test("Dispatch (2)") {
     val cohortSpec = CohortSpec(
       cohortName = "SupporterPlus2026",
-      earliestAmendmentEffectiveDate = LocalDate.of(2026, 8, 1)
+      active = true
     )
 
     // For SupporterPlus2026,
@@ -53,7 +53,7 @@ class DispatchTest extends munit.FunSuite {
 
     val cohortSpec = CohortSpec(
       cohortName = "SupporterPlus2026N4",
-      earliestAmendmentEffectiveDate = LocalDate.of(2026, 8, 1)
+      active = true
     )
 
     val cohortItem1: CohortItem = CohortItem(

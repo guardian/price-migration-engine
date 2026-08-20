@@ -25,6 +25,8 @@ case class N4Target(
 
 object ProductMigration2025N4Migration {
 
+  val earliestAmendmentEffectiveDate = LocalDate.of(2025, 11, 6)
+
   val maxLeadTime = 1000
   val minLeadTime = 0
 

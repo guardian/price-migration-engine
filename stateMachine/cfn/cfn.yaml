@@ -442,7 +442,7 @@ Resources:
       - PriceMigrationLambda
     Condition: IsProd
     Properties:
-      AlarmName: "URGENT 9-5 - PROD: Price-rise engine: Failure to kick-off process"
+      AlarmName: "Price-rise engine (PROD): Failure to kick-off process"
       AlarmDescription: >
         IMPACT: If this is not dealt with, no price-rise processes will run.
         For troubleshooting tips, see https://github.com/guardian/price-migration-engine/blob/main/docs/troubleshooting.md
@@ -466,7 +466,7 @@ Resources:
       - CohortStateMachine
     Condition: IsProd
     Properties:
-      AlarmName: "URGENT 9-5 - PROD: Price-rise engine: Failure to complete process"
+      AlarmName: "Price-rise engine (PROD): Failure to complete process"
       AlarmDescription: >
         IMPACT: If this is not dealt with, the price rise may be unable to continue.
         For troubleshooting tips, see https://github.com/guardian/price-migration-engine/blob/main/docs/troubleshooting.md
