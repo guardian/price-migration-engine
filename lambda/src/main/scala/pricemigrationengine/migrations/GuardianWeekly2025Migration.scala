@@ -30,6 +30,8 @@ object GuardianWeekly2025ExtraAttributes {
 
 object GuardianWeekly2025Migration {
 
+  val earliestAmendmentEffectiveDate = LocalDate.of(2025, 8, 4)
+
   // ------------------------------------------------
   // Notification Timings
   // ------------------------------------------------

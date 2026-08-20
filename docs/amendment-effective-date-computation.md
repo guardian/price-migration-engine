@@ -15,13 +15,13 @@ First we need a cohort spec. Let's assume that the cohort spec is
 ```
 {
     "cohortName":"GW2024",
-    "earliestAmendmentEffectiveDate":"2024-05-20" 
+    "active": true 
 }
 ```
 
-The only relevant bit of cohort spec we need for the computation of a subscription's effective date is the `earliestAmendmentEffectiveDate`. 
+From the cohort spec we can derive the `earliestAmendmentEffectiveDate` by calling `EstimationHandlerHelper.earliestAmendmentEffectiveDate`
 
-Let us assume thay the notification period for this migration is `[-49, -36]`. This is Pascal's notation for the fact that we start notifying at -49 days and alarm at -36.
+Let us assume that the notification period for this migration is `[-49, -36]`. This is Pascal's notation for the fact that we start notifying at -49 days and alarm at -36.
 
 Let us assume that our subscription is a monthly subscription paying on the 27th of each month, and let us assume that it was created on 8th July 2023.
 
