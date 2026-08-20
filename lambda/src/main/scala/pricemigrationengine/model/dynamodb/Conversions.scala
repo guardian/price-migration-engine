@@ -124,4 +124,20 @@ object Conversions {
         )
       }
     } yield optionalDecimal
+
+  def getBooleanFromResults(result: util.Map[String, AttributeValue], fieldName: String): Either[String, Boolean] =
+    for {
+      optionalBoolean <- getOptionalBooleanFromResults(result, fieldName)
+      boolean <- optionalBoolean.toRight(s"The '$fieldName' field did not exist in the record '$result'")
+    } yield boolean
+
+  def getOptionalBooleanFromResults(
+      result: util.Map[String, AttributeValue],
+      fieldName: String
+  ): Either[String, Option[Boolean]] =
+    result.asScala
+      .get(fieldName)
+      .fold[Either[String, Option[Boolean]]](Right(None)) { attributeValue =>
+        Right(Option(attributeValue.bool()))
+      }
 }

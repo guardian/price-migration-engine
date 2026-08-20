@@ -14,7 +14,8 @@ It currently consists in
 - [An introduction to the general principles of price migrations](docs/price-migrations-from-first-principles.md)
 - [The journey of a cohort item](docs/the-journey-of-a-cohort-item.md)
 - [Coding directives](docs/coding-directives.md)
-- [Operational Directives](docs/operational-directives.md)
+- [Operational directives](docs/operational-directives.md)
+- [Morning startup](docs/morning-startup.md)
 
 ### Future price migrations special directives
 
@@ -34,9 +35,9 @@ It currently consists in
 - [Notes on the Zuora Order API](docs/zuora-order-api.md)
 - [Communication with braze](docs/communication-with-braze.md)
 - [Notes on prices](docs/notes-on-prices.md)
-- [Cohort Items](docs/cohort-items.md)
+- [Cohort items](docs/cohort-items.md)
 - [Troubleshooting document](docs/troubleshooting.md)
-- [Quirks of the Engine](docs/quirks.md)
+- [Quirks of the engine](docs/quirks.md)
 - [Dispatch, dealing with unusually large migration](docs/dispatch.md)
 
 ### Android Price Rises

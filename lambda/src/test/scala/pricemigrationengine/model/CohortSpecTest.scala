@@ -9,8 +9,8 @@ import scala.jdk.CollectionConverters._
 class CohortSpecTest extends munit.FunSuite {
 
   private val cohortSpec = CohortSpec(
-    cohortName = "Home Delivery 2018",
-    earliestAmendmentEffectiveDate = LocalDate.of(2020, 1, 2)
+    cohortName = "HomeDelivery2018",
+    active = true,
   )
 
   private def assertTrue(obtained: Boolean): Unit = assertEquals(obtained, true)
@@ -18,8 +18,8 @@ class CohortSpecTest extends munit.FunSuite {
 
   test("fromDynamoDbItem: should include all fields") {
     val item = Map(
-      "cohortName" -> AttributeValue.builder.s("Home Delivery 2018").build(),
-      "earliestAmendmentEffectiveDate" -> AttributeValue.builder.s("2020-01-02").build()
+      "cohortName" -> AttributeValue.builder.s("HomeDelivery2018").build(),
+      "active" -> AttributeValue.builder.bool(true).build(),
     ).asJava
     assertEquals(
       CohortSpec.fromDynamoDbItem(item),
@@ -32,6 +32,6 @@ class CohortSpecTest extends munit.FunSuite {
   }
 
   test("isValid: should be false when the cohort name has trailing whitespace") {
-    assertFalse(isValid(cohortSpec.copy(cohortName = "Home Delivery 2018 ")))
+    assertFalse(isValid(cohortSpec.copy(cohortName = "HomeDelivery 2018")))
   }
 }

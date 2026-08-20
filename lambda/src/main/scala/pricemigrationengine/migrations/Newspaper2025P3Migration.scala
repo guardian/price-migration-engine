@@ -43,6 +43,8 @@ case class Newspaper2025P3NotificationData(
 
 object Newspaper2025P3Migration {
 
+  val earliestAmendmentEffectiveDate = LocalDate.of(2025, 8, 28)
+
   // ------------------------------------------------
   // Notification Timings
   // ------------------------------------------------

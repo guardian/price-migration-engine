@@ -86,6 +86,15 @@ object NotificationHandlerHelper {
       }
     }
   }
+
+  def zuoraSubscriptionToActiveRatePlanId(subscription: ZuoraSubscription, today: LocalDate): Option[String] = {
+    for {
+      ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
+        subscription: ZuoraSubscription,
+        today: LocalDate
+      )
+    } yield ratePlan.id
+  }
 }
 
 sealed trait SubscriptionNotificationAnalyseResult
@@ -98,6 +107,15 @@ object SNARExcludeFromMigration extends SubscriptionNotificationAnalyseResult
 object SNARMissingNotificationWindow extends SubscriptionNotificationAnalyseResult
 
 object SubscriptionNotificationAnalyseResult {
+
+  def toString(result: SubscriptionNotificationAnalyseResult): String = {
+    result match {
+      case SNARReadyToNotify             => "SNARReadyToNotify"
+      case SNARCancelledInZuora          => "SNARCancelledInZuora"
+      case SNARExcludeFromMigration      => "SNARExcludeFromMigration"
+      case SNARMissingNotificationWindow => "SNARMissingNotificationWindow"
+    }
+  }
 
   def analyseSubscriptionForNotification_Legacy(
       ratePlanProbeResult: RatePlanProbeResult
