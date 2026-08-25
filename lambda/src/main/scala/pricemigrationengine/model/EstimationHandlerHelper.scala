@@ -27,6 +27,7 @@ object EstimationHandlerHelper {
       case SupporterPlus2026N3    => SupporterPlus2026Migration.earliestAmendmentEffectiveDate
       case SupporterPlus2026N4    => SupporterPlus2026Migration.earliestAmendmentEffectiveDate
       case SupporterPlus2026N5    => SupporterPlus2026Migration.earliestAmendmentEffectiveDate
+      case GuardianWeekly2026     => GuardianWeekly2025Migration.earliestAmendmentEffectiveDate
     }
   }
 
@@ -45,6 +46,7 @@ object EstimationHandlerHelper {
       case SupporterPlus2026N3    => None
       case SupporterPlus2026N4    => None
       case SupporterPlus2026N5    => None
+      case GuardianWeekly2026     => ???
     }
   }
 

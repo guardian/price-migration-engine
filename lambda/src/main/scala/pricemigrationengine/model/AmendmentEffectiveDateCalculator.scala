@@ -45,6 +45,7 @@ object AmendmentEffectiveDateCalculator {
       case SupporterPlus2026N3    => None
       case SupporterPlus2026N4    => None
       case SupporterPlus2026N5    => None
+      case GuardianWeekly2026     => None
     }
   }
 
@@ -112,6 +113,7 @@ object AmendmentEffectiveDateCalculator {
         case SupporterPlus2026N3    => 1 // no spread for SupporterPlus2026
         case SupporterPlus2026N4    => 1 // no spread for SupporterPlus2026
         case SupporterPlus2026N5    => 1 // no spread for SupporterPlus2026
+        case GuardianWeekly2026     => 1 // no spread for GuardianWeekly2026
       }
     } else 1
   }
@@ -142,6 +144,7 @@ object AmendmentEffectiveDateCalculator {
       case SupporterPlus2026N3    => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case SupporterPlus2026N4    => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case SupporterPlus2026N5    => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case GuardianWeekly2026     => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
     }
 
     // And the policy not to price rise a sub twice within 12 months of any possible price rise
@@ -169,6 +172,8 @@ object AmendmentEffectiveDateCalculator {
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
       case SupporterPlus2026N5 =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case GuardianWeekly2026 =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
     }
 
     // Migration specific date calculations
@@ -191,6 +196,7 @@ object AmendmentEffectiveDateCalculator {
         SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
       case SupporterPlus2026N5 =>
         SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
+      case GuardianWeekly2026 => lowerBound3
     }
 
     // Decide the spread period for this migration

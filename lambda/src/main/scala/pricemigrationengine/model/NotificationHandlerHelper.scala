@@ -54,6 +54,7 @@ object NotificationHandlerHelper {
       case SupporterPlus2026N3 => true
       case SupporterPlus2026N4 => true
       case SupporterPlus2026N5 => true
+      case GuardianWeekly2026  => true
     }
   }
 
@@ -164,7 +165,6 @@ object SubscriptionNotificationAnalyseResult {
       date: LocalDate,
       ratePlanProbeResult: RatePlanProbeResult
   ): Option[SubscriptionNotificationAnalyseResult] = {
-
     if (subscription.status == "Cancelled") {
       Some(SNARCancelledInZuora)
     } else if (
@@ -191,6 +191,7 @@ object SubscriptionNotificationAnalyseResult {
           analyseSubscriptionForNotification_SupporterPlus2026(subscription, cohortItem, date)
         case SupporterPlus2026N5 =>
           analyseSubscriptionForNotification_SupporterPlus2026(subscription, cohortItem, date)
+        case GuardianWeekly2026 => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
       }
     }
   }

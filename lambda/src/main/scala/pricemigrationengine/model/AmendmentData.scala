@@ -3,6 +3,7 @@ package pricemigrationengine.model
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
   GuardianWeekly2025Migration,
+  GuardianWeekly2026Migration,
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
@@ -108,6 +109,7 @@ object AmendmentData {
       case SupporterPlus2026N3    => SupporterPlus2026Migration.priceData(subscription, invoiceList)
       case SupporterPlus2026N4    => SupporterPlus2026Migration.priceData(subscription, invoiceList)
       case SupporterPlus2026N5    => SupporterPlus2026Migration.priceData(subscription, invoiceList)
+      case GuardianWeekly2026     => GuardianWeekly2026Migration.priceData(subscription, invoiceList, account)
     }
   }
 }
