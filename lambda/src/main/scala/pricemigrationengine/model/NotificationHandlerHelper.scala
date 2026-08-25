@@ -55,6 +55,7 @@ object NotificationHandlerHelper {
       case SupporterPlus2026N4  => true
       case SupporterPlus2026N5  => true
       case GuardianWeekly2026C1 => true
+      case GuardianWeekly2026C2 => true
     }
   }
 
@@ -192,6 +193,7 @@ object SubscriptionNotificationAnalyseResult {
         case SupporterPlus2026N5 =>
           analyseSubscriptionForNotification_SupporterPlus2026(subscription, cohortItem, date)
         case GuardianWeekly2026C1 => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case GuardianWeekly2026C2 => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
       }
     }
   }

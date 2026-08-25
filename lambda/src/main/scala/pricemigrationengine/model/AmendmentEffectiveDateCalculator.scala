@@ -46,6 +46,7 @@ object AmendmentEffectiveDateCalculator {
       case SupporterPlus2026N4    => None
       case SupporterPlus2026N5    => None
       case GuardianWeekly2026C1   => None
+      case GuardianWeekly2026C2   => None
     }
   }
 
@@ -114,6 +115,7 @@ object AmendmentEffectiveDateCalculator {
         case SupporterPlus2026N4    => 1 // no spread for SupporterPlus2026
         case SupporterPlus2026N5    => 1 // no spread for SupporterPlus2026
         case GuardianWeekly2026C1   => 1 // no spread for GuardianWeekly2026
+        case GuardianWeekly2026C2   => 1 // no spread for GuardianWeekly2026
       }
     } else 1
   }
@@ -145,6 +147,7 @@ object AmendmentEffectiveDateCalculator {
       case SupporterPlus2026N4    => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case SupporterPlus2026N5    => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case GuardianWeekly2026C1   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case GuardianWeekly2026C2   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
     }
 
     // And the policy not to price rise a sub twice within 12 months of any possible price rise
@@ -174,6 +177,8 @@ object AmendmentEffectiveDateCalculator {
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
       case GuardianWeekly2026C1 =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case GuardianWeekly2026C2 =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
     }
 
     // Migration specific date calculations
@@ -197,6 +202,7 @@ object AmendmentEffectiveDateCalculator {
       case SupporterPlus2026N5 =>
         SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
       case GuardianWeekly2026C1 => lowerBound3
+      case GuardianWeekly2026C2 => lowerBound3
     }
 
     // Decide the spread period for this migration

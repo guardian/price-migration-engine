@@ -438,6 +438,11 @@ object AmendmentHandler extends CohortHandler {
           cohortSpec: CohortSpec,
           item: CohortItem
         )
+      case GuardianWeekly2026C2 =>
+        doAmendmentUsingOrdersApiWithJsonValues(
+          cohortSpec: CohortSpec,
+          item: CohortItem
+        )
     }
   }
 
