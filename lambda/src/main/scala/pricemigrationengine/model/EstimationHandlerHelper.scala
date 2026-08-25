@@ -3,6 +3,7 @@ package pricemigrationengine.model
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
   GuardianWeekly2025Migration,
+  GuardianWeekly2026C1Migration,
   Membership2025Migration,
   Newspaper2025P1Migration,
   ProductMigration2025N4Migration,
@@ -27,7 +28,7 @@ object EstimationHandlerHelper {
       case SupporterPlus2026N3    => SupporterPlus2026Migration.earliestAmendmentEffectiveDate
       case SupporterPlus2026N4    => SupporterPlus2026Migration.earliestAmendmentEffectiveDate
       case SupporterPlus2026N5    => SupporterPlus2026Migration.earliestAmendmentEffectiveDate
-      case GuardianWeekly2026     => GuardianWeekly2025Migration.earliestAmendmentEffectiveDate
+      case GuardianWeekly2026C1   => GuardianWeekly2026C1Migration.earliestAmendmentEffectiveDate
     }
   }
 
@@ -46,7 +47,7 @@ object EstimationHandlerHelper {
       case SupporterPlus2026N3    => None
       case SupporterPlus2026N4    => None
       case SupporterPlus2026N5    => None
-      case GuardianWeekly2026     => ???
+      case GuardianWeekly2026C1   => ???
     }
   }
 

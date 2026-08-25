@@ -47,14 +47,14 @@ object NotificationHandlerHelper {
           ),
         ).forall(identity)
       }
-      case Membership2025      => true
-      case DigiSubs2025        => true
-      case SupporterPlus2026   => true
-      case SupporterPlus2026N2 => true
-      case SupporterPlus2026N3 => true
-      case SupporterPlus2026N4 => true
-      case SupporterPlus2026N5 => true
-      case GuardianWeekly2026  => true
+      case Membership2025       => true
+      case DigiSubs2025         => true
+      case SupporterPlus2026    => true
+      case SupporterPlus2026N2  => true
+      case SupporterPlus2026N3  => true
+      case SupporterPlus2026N4  => true
+      case SupporterPlus2026N5  => true
+      case GuardianWeekly2026C1 => true
     }
   }
 
@@ -191,7 +191,7 @@ object SubscriptionNotificationAnalyseResult {
           analyseSubscriptionForNotification_SupporterPlus2026(subscription, cohortItem, date)
         case SupporterPlus2026N5 =>
           analyseSubscriptionForNotification_SupporterPlus2026(subscription, cohortItem, date)
-        case GuardianWeekly2026 => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case GuardianWeekly2026C1 => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
       }
     }
   }

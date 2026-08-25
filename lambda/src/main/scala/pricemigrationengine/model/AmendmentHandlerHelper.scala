@@ -3,7 +3,7 @@ package pricemigrationengine.model
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
   GuardianWeekly2025Migration,
-  GuardianWeekly2026Migration,
+  GuardianWeekly2026C1Migration,
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
@@ -75,7 +75,7 @@ object AmendmentHandlerHelper {
       case SupporterPlus2026N3    => false
       case SupporterPlus2026N4    => false
       case SupporterPlus2026N5    => false
-      case GuardianWeekly2026     => true
+      case GuardianWeekly2026C1   => true
     }
   }
 
@@ -258,8 +258,8 @@ object AmendmentHandlerHelper {
           commsPrice,
           invoiceList
         )
-      case GuardianWeekly2026 =>
-        GuardianWeekly2026Migration.amendmentOrderPayload(
+      case GuardianWeekly2026C1 =>
+        GuardianWeekly2026C1Migration.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
@@ -298,7 +298,7 @@ object AmendmentHandlerHelper {
       case SupporterPlus2026N3    => itIsFewDaysAfterNotification(item)
       case SupporterPlus2026N4    => itIsFewDaysAfterNotification(item)
       case SupporterPlus2026N5    => itIsFewDaysAfterNotification(item)
-      case GuardianWeekly2026     => true
+      case GuardianWeekly2026C1   => true
     }
   }
   def subscriptionIsAmendableSupporterPlus2026(
@@ -363,7 +363,7 @@ object AmendmentHandlerHelper {
         case SupporterPlus2026N3    => analyseSupporterPlus2026(item, subscription, today)
         case SupporterPlus2026N4    => analyseSupporterPlus2026(item, subscription, today)
         case SupporterPlus2026N5    => analyseSupporterPlus2026(item, subscription, today)
-        case GuardianWeekly2026     => Some(SAARReadyToAmend)
+        case GuardianWeekly2026C1   => Some(SAARReadyToAmend)
       }
     }
   }
