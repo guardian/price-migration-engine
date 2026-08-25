@@ -57,6 +57,8 @@ object NotificationHandlerHelper {
       case GuardianWeekly2026C1 => true
       case GuardianWeekly2026C2 => true
       case GuardianWeekly2026C3 => true
+      case Newspaper2026C1      => true
+      case Newspaper2026C2      => true
     }
   }
 
@@ -196,6 +198,8 @@ object SubscriptionNotificationAnalyseResult {
         case GuardianWeekly2026C1 => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case GuardianWeekly2026C2 => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case GuardianWeekly2026C3 => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Newspaper2026C1      => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Newspaper2026C2      => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
       }
     }
   }

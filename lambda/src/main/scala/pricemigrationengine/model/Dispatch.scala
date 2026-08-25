@@ -45,6 +45,8 @@ object Dispatch {
       case GuardianWeekly2026C1   => true
       case GuardianWeekly2026C2   => true
       case GuardianWeekly2026C3   => true
+      case Newspaper2026C1        => true
+      case Newspaper2026C2        => true
     }
   }
 

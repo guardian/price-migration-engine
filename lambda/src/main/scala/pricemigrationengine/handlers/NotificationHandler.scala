@@ -14,6 +14,8 @@ import pricemigrationengine.migrations.{
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
+  Newspaper2026C1Migration,
+  Newspaper2026C2Migration,
   ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
@@ -338,6 +340,8 @@ object NotificationHandler extends CohortHandler {
       case GuardianWeekly2026C1   => GuardianWeekly2026C1Migration.maxLeadTime
       case GuardianWeekly2026C2   => GuardianWeekly2026C2Migration.maxLeadTime
       case GuardianWeekly2026C3   => GuardianWeekly2026C2Migration.maxLeadTime
+      case Newspaper2026C1        => Newspaper2026C1Migration.maxLeadTime
+      case Newspaper2026C2        => Newspaper2026C2Migration.maxLeadTime
     }
   }
 
@@ -358,6 +362,8 @@ object NotificationHandler extends CohortHandler {
       case GuardianWeekly2026C1   => GuardianWeekly2026C1Migration.minLeadTime
       case GuardianWeekly2026C2   => GuardianWeekly2026C2Migration.minLeadTime
       case GuardianWeekly2026C3   => GuardianWeekly2026C2Migration.minLeadTime
+      case Newspaper2026C1        => Newspaper2026C1Migration.minLeadTime
+      case Newspaper2026C2        => Newspaper2026C2Migration.minLeadTime
     }
   }
 
@@ -404,6 +410,8 @@ object NotificationHandler extends CohortHandler {
       case GuardianWeekly2026C1   => requiredField(street, "Contact.OtherAddress.street")
       case GuardianWeekly2026C2   => requiredField(street, "Contact.OtherAddress.street")
       case GuardianWeekly2026C3   => requiredField(street, "Contact.OtherAddress.street")
+      case Newspaper2026C1        => requiredField(street, "Contact.OtherAddress.street")
+      case Newspaper2026C2        => requiredField(street, "Contact.OtherAddress.street")
     }
   }
 
@@ -451,6 +459,8 @@ object NotificationHandler extends CohortHandler {
       case GuardianWeekly2026C1   => targetAddressRequired(contact)
       case GuardianWeekly2026C2   => targetAddressRequired(contact)
       case GuardianWeekly2026C3   => targetAddressRequired(contact)
+      case Newspaper2026C1        => targetAddressRequired(contact)
+      case Newspaper2026C2        => targetAddressRequired(contact)
     }
   }
 
@@ -479,6 +489,8 @@ object NotificationHandler extends CohortHandler {
       case GuardianWeekly2026C1   => requiredField(address.country, "Contact.OtherAddress.country")
       case GuardianWeekly2026C2   => requiredField(address.country, "Contact.OtherAddress.country")
       case GuardianWeekly2026C3   => requiredField(address.country, "Contact.OtherAddress.country")
+      case Newspaper2026C1        => requiredField(address.country, "Contact.OtherAddress.country")
+      case Newspaper2026C2        => requiredField(address.country, "Contact.OtherAddress.country")
     }
   }
 
@@ -600,6 +612,8 @@ object NotificationHandler extends CohortHandler {
       case GuardianWeekly2026C1 => ???
       case GuardianWeekly2026C2 => ???
       case GuardianWeekly2026C3 => ???
+      case Newspaper2026C1      => ???
+      case Newspaper2026C2      => ???
     }
   }
 }

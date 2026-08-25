@@ -48,6 +48,8 @@ object AmendmentEffectiveDateCalculator {
       case GuardianWeekly2026C1   => None
       case GuardianWeekly2026C2   => None
       case GuardianWeekly2026C3   => None
+      case Newspaper2026C1        => None
+      case Newspaper2026C2        => None
     }
   }
 
@@ -118,6 +120,8 @@ object AmendmentEffectiveDateCalculator {
         case GuardianWeekly2026C1   => 1 // no spread for GuardianWeekly2026C1
         case GuardianWeekly2026C2   => 1 // no spread for GuardianWeekly2026C2
         case GuardianWeekly2026C3   => 1 // no spread for GuardianWeekly2026C3
+        case Newspaper2026C1        => 1 // no spread for Newspaper2026C1
+        case Newspaper2026C2        => 1 // no spread for Newspaper2026C2
       }
     } else 1
   }
@@ -151,6 +155,8 @@ object AmendmentEffectiveDateCalculator {
       case GuardianWeekly2026C1   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case GuardianWeekly2026C2   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case GuardianWeekly2026C3   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Newspaper2026C1        => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Newspaper2026C2        => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
     }
 
     // And the policy not to price rise a sub twice within 12 months of any possible price rise
@@ -184,6 +190,10 @@ object AmendmentEffectiveDateCalculator {
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
       case GuardianWeekly2026C3 =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Newspaper2026C1 =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Newspaper2026C2 =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
     }
 
     // Migration specific date calculations
@@ -209,6 +219,8 @@ object AmendmentEffectiveDateCalculator {
       case GuardianWeekly2026C1 => lowerBound3
       case GuardianWeekly2026C2 => lowerBound3
       case GuardianWeekly2026C3 => lowerBound3
+      case Newspaper2026C1      => lowerBound3
+      case Newspaper2026C2      => lowerBound3
     }
 
     // Decide the spread period for this migration
