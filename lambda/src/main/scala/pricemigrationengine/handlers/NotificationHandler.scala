@@ -337,6 +337,7 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2026N5    => SupporterPlus2026Migration.maxLeadTime
       case GuardianWeekly2026C1   => GuardianWeekly2026C1Migration.maxLeadTime
       case GuardianWeekly2026C2   => GuardianWeekly2026C2Migration.maxLeadTime
+      case GuardianWeekly2026C3   => GuardianWeekly2026C2Migration.maxLeadTime
     }
   }
 
@@ -356,6 +357,7 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2026N5    => SupporterPlus2026Migration.minLeadTime
       case GuardianWeekly2026C1   => GuardianWeekly2026C1Migration.minLeadTime
       case GuardianWeekly2026C2   => GuardianWeekly2026C2Migration.minLeadTime
+      case GuardianWeekly2026C3   => GuardianWeekly2026C2Migration.minLeadTime
     }
   }
 
@@ -401,6 +403,7 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2026N5    => Right(street.getOrElse(""))
       case GuardianWeekly2026C1   => requiredField(street, "Contact.OtherAddress.street")
       case GuardianWeekly2026C2   => requiredField(street, "Contact.OtherAddress.street")
+      case GuardianWeekly2026C3   => requiredField(street, "Contact.OtherAddress.street")
     }
   }
 
@@ -447,6 +450,7 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2026N5    => targetAddressNotRequired(contact)
       case GuardianWeekly2026C1   => targetAddressRequired(contact)
       case GuardianWeekly2026C2   => targetAddressRequired(contact)
+      case GuardianWeekly2026C3   => targetAddressRequired(contact)
     }
   }
 
@@ -474,6 +478,7 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2026N5    => Right(address.country.getOrElse(""))
       case GuardianWeekly2026C1   => requiredField(address.country, "Contact.OtherAddress.country")
       case GuardianWeekly2026C2   => requiredField(address.country, "Contact.OtherAddress.country")
+      case GuardianWeekly2026C3   => requiredField(address.country, "Contact.OtherAddress.country")
     }
   }
 
@@ -594,6 +599,7 @@ object NotificationHandler extends CohortHandler {
           )
       case GuardianWeekly2026C1 => ???
       case GuardianWeekly2026C2 => ???
+      case GuardianWeekly2026C3 => ???
     }
   }
 }

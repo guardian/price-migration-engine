@@ -44,6 +44,7 @@ object Dispatch {
       case SupporterPlus2026N5    => evaluate(cohortItem.subscriptionName, 5)
       case GuardianWeekly2026C1   => true
       case GuardianWeekly2026C2   => true
+      case GuardianWeekly2026C3   => true
     }
   }
 

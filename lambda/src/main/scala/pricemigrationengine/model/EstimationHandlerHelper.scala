@@ -1,15 +1,6 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.migrations.{
-  DigiSubs2025Migration,
-  GuardianWeekly2025Migration,
-  GuardianWeekly2026C1Migration,
-  GuardianWeekly2026C2Migration,
-  Membership2025Migration,
-  Newspaper2025P1Migration,
-  ProductMigration2025N4Migration,
-  SupporterPlus2026Migration
-}
+import pricemigrationengine.migrations.{DigiSubs2025Migration, GuardianWeekly2025Migration, GuardianWeekly2026C1Migration, GuardianWeekly2026C2Migration, GuardianWeekly2026C3Migration, Membership2025Migration, Newspaper2025P1Migration, ProductMigration2025N4Migration, SupporterPlus2026Migration}
 
 import java.time.LocalDate
 
@@ -31,6 +22,7 @@ object EstimationHandlerHelper {
       case SupporterPlus2026N5    => SupporterPlus2026Migration.earliestAmendmentEffectiveDate
       case GuardianWeekly2026C1   => GuardianWeekly2026C1Migration.earliestAmendmentEffectiveDate
       case GuardianWeekly2026C2   => GuardianWeekly2026C2Migration.earliestAmendmentEffectiveDate
+      case GuardianWeekly2026C3   => GuardianWeekly2026C3Migration.earliestAmendmentEffectiveDate
     }
   }
 
@@ -51,6 +43,7 @@ object EstimationHandlerHelper {
       case SupporterPlus2026N5    => None
       case GuardianWeekly2026C1   => ???
       case GuardianWeekly2026C2   => ???
+      case GuardianWeekly2026C3   => ???
     }
   }
 

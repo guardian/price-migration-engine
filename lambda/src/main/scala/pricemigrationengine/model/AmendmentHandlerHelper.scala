@@ -5,6 +5,7 @@ import pricemigrationengine.migrations.{
   GuardianWeekly2025Migration,
   GuardianWeekly2026C1Migration,
   GuardianWeekly2026C2Migration,
+  GuardianWeekly2026C3Migration,
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
@@ -78,6 +79,7 @@ object AmendmentHandlerHelper {
       case SupporterPlus2026N5    => false
       case GuardianWeekly2026C1   => true
       case GuardianWeekly2026C2   => true
+      case GuardianWeekly2026C3   => true
     }
   }
 
@@ -282,6 +284,17 @@ object AmendmentHandlerHelper {
           commsPrice,
           invoiceList
         )
+      case GuardianWeekly2026C3 =>
+        GuardianWeekly2026C3Migration.amendmentOrderPayload(
+          cohortItem,
+          orderDate,
+          accountNumber,
+          subscriptionNumber,
+          effectDate,
+          zuora_subscription,
+          commsPrice,
+          invoiceList
+        )
     }
   }
 
@@ -313,6 +326,7 @@ object AmendmentHandlerHelper {
       case SupporterPlus2026N5    => itIsFewDaysAfterNotification(item)
       case GuardianWeekly2026C1   => true
       case GuardianWeekly2026C2   => true
+      case GuardianWeekly2026C3   => true
     }
   }
   def subscriptionIsAmendableSupporterPlus2026(
@@ -379,6 +393,7 @@ object AmendmentHandlerHelper {
         case SupporterPlus2026N5    => analyseSupporterPlus2026(item, subscription, today)
         case GuardianWeekly2026C1   => Some(SAARReadyToAmend)
         case GuardianWeekly2026C2   => Some(SAARReadyToAmend)
+        case GuardianWeekly2026C3   => Some(SAARReadyToAmend)
       }
     }
   }
