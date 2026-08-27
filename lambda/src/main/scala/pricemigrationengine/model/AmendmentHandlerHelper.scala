@@ -67,23 +67,23 @@ object AmendmentHandlerHelper {
 
   private def shouldPerformFinalPriceCheck(cohortSpec: CohortSpec): Boolean = {
     MigrationType(cohortSpec) match {
-      case Test1                  => true // default value
-      case GuardianWeekly2025     => true
-      case Newspaper2025P1        => true
-      case Newspaper2025P3        => true
-      case ProductMigration2025N4 => false
-      case Membership2025         => true
-      case DigiSubs2025           => true
-      case SupporterPlus2026      => false
-      case SupporterPlus2026N2    => false
-      case SupporterPlus2026N3    => false
-      case SupporterPlus2026N4    => false
-      case SupporterPlus2026N5    => false
-      case Print2026C1GWAnnualsUK => true
-      case GuardianWeekly2026C2   => true
-      case GuardianWeekly2026C3   => true
-      case Newspaper2026C1        => true
-      case Newspaper2026C2        => true
+      case Test1                      => true // default value
+      case GuardianWeekly2025         => true
+      case Newspaper2025P1            => true
+      case Newspaper2025P3            => true
+      case ProductMigration2025N4     => false
+      case Membership2025             => true
+      case DigiSubs2025               => true
+      case SupporterPlus2026          => false
+      case SupporterPlus2026N2        => false
+      case SupporterPlus2026N3        => false
+      case SupporterPlus2026N4        => false
+      case SupporterPlus2026N5        => false
+      case Print2026C1GWAnnualsUK     => true
+      case Print2026C1GWQuarterliesUK => true
+      case GuardianWeekly2026C3       => true
+      case Newspaper2026C1            => true
+      case Newspaper2026C2            => true
     }
   }
 
@@ -277,7 +277,7 @@ object AmendmentHandlerHelper {
           commsPrice,
           invoiceList
         )
-      case GuardianWeekly2026C2 =>
+      case Print2026C1GWQuarterliesUK =>
         GuardianWeekly2026C2Migration.amendmentOrderPayload(
           cohortItem,
           orderDate,
@@ -338,23 +338,23 @@ object AmendmentHandlerHelper {
       notificationInstant.isBefore(cursor)
     }
     MigrationType(cohortSpec) match {
-      case Test1                  => true
-      case GuardianWeekly2025     => true
-      case Newspaper2025P1        => true
-      case Newspaper2025P3        => true
-      case ProductMigration2025N4 => true
-      case Membership2025         => true
-      case DigiSubs2025           => true
-      case SupporterPlus2026      => itIsFewDaysAfterNotification(item)
-      case SupporterPlus2026N2    => itIsFewDaysAfterNotification(item)
-      case SupporterPlus2026N3    => itIsFewDaysAfterNotification(item)
-      case SupporterPlus2026N4    => itIsFewDaysAfterNotification(item)
-      case SupporterPlus2026N5    => itIsFewDaysAfterNotification(item)
-      case Print2026C1GWAnnualsUK => true
-      case GuardianWeekly2026C2   => true
-      case GuardianWeekly2026C3   => true
-      case Newspaper2026C1        => true
-      case Newspaper2026C2        => true
+      case Test1                      => true
+      case GuardianWeekly2025         => true
+      case Newspaper2025P1            => true
+      case Newspaper2025P3            => true
+      case ProductMigration2025N4     => true
+      case Membership2025             => true
+      case DigiSubs2025               => true
+      case SupporterPlus2026          => itIsFewDaysAfterNotification(item)
+      case SupporterPlus2026N2        => itIsFewDaysAfterNotification(item)
+      case SupporterPlus2026N3        => itIsFewDaysAfterNotification(item)
+      case SupporterPlus2026N4        => itIsFewDaysAfterNotification(item)
+      case SupporterPlus2026N5        => itIsFewDaysAfterNotification(item)
+      case Print2026C1GWAnnualsUK     => true
+      case Print2026C1GWQuarterliesUK => true
+      case GuardianWeekly2026C3       => true
+      case Newspaper2026C1            => true
+      case Newspaper2026C2            => true
     }
   }
   def subscriptionIsAmendableSupporterPlus2026(
@@ -407,23 +407,23 @@ object AmendmentHandlerHelper {
       // I do not want to use a migration specific attribute to do so. If we want to extend this to
       // other migrations we will have to introduce a general CohortItem attribute.
       MigrationType(cohortSpec) match {
-        case Test1                  => Some(SAARReadyToAmend)
-        case GuardianWeekly2025     => Some(SAARReadyToAmend)
-        case Newspaper2025P1        => Some(SAARReadyToAmend)
-        case Newspaper2025P3        => Some(SAARReadyToAmend)
-        case ProductMigration2025N4 => Some(SAARReadyToAmend)
-        case Membership2025         => Some(SAARReadyToAmend)
-        case DigiSubs2025           => Some(SAARReadyToAmend)
-        case SupporterPlus2026      => analyseSupporterPlus2026(item, subscription, today)
-        case SupporterPlus2026N2    => analyseSupporterPlus2026(item, subscription, today)
-        case SupporterPlus2026N3    => analyseSupporterPlus2026(item, subscription, today)
-        case SupporterPlus2026N4    => analyseSupporterPlus2026(item, subscription, today)
-        case SupporterPlus2026N5    => analyseSupporterPlus2026(item, subscription, today)
-        case Print2026C1GWAnnualsUK => Some(SAARReadyToAmend)
-        case GuardianWeekly2026C2   => Some(SAARReadyToAmend)
-        case GuardianWeekly2026C3   => Some(SAARReadyToAmend)
-        case Newspaper2026C1        => Some(SAARReadyToAmend)
-        case Newspaper2026C2        => Some(SAARReadyToAmend)
+        case Test1                      => Some(SAARReadyToAmend)
+        case GuardianWeekly2025         => Some(SAARReadyToAmend)
+        case Newspaper2025P1            => Some(SAARReadyToAmend)
+        case Newspaper2025P3            => Some(SAARReadyToAmend)
+        case ProductMigration2025N4     => Some(SAARReadyToAmend)
+        case Membership2025             => Some(SAARReadyToAmend)
+        case DigiSubs2025               => Some(SAARReadyToAmend)
+        case SupporterPlus2026          => analyseSupporterPlus2026(item, subscription, today)
+        case SupporterPlus2026N2        => analyseSupporterPlus2026(item, subscription, today)
+        case SupporterPlus2026N3        => analyseSupporterPlus2026(item, subscription, today)
+        case SupporterPlus2026N4        => analyseSupporterPlus2026(item, subscription, today)
+        case SupporterPlus2026N5        => analyseSupporterPlus2026(item, subscription, today)
+        case Print2026C1GWAnnualsUK     => Some(SAARReadyToAmend)
+        case Print2026C1GWQuarterliesUK => Some(SAARReadyToAmend)
+        case GuardianWeekly2026C3       => Some(SAARReadyToAmend)
+        case Newspaper2026C1            => Some(SAARReadyToAmend)
+        case Newspaper2026C2            => Some(SAARReadyToAmend)
       }
     }
   }

@@ -14,29 +14,29 @@ object SupporterPlus2026N3 extends MigrationType
 object SupporterPlus2026N4 extends MigrationType
 object SupporterPlus2026N5 extends MigrationType
 object Print2026C1GWAnnualsUK extends MigrationType
-object GuardianWeekly2026C2 extends MigrationType
+object Print2026C1GWQuarterliesUK extends MigrationType
 object GuardianWeekly2026C3 extends MigrationType
 object Newspaper2026C1 extends MigrationType
 object Newspaper2026C2 extends MigrationType
 
 object MigrationType {
   def apply(cohortSpec: CohortSpec): MigrationType = cohortSpec.cohortName match {
-    case "Test1"                  => Test1
-    case "GuardianWeekly2025"     => GuardianWeekly2025
-    case "Newspaper2025P1"        => Newspaper2025P1
-    case "Newspaper2025P3"        => Newspaper2025P3
-    case "ProductMigration2025N4" => ProductMigration2025N4
-    case "Membership2025"         => Membership2025
-    case "DigiSubs2025"           => DigiSubs2025
-    case "SupporterPlus2026"      => SupporterPlus2026
-    case "SupporterPlus2026N2"    => SupporterPlus2026N2
-    case "SupporterPlus2026N3"    => SupporterPlus2026N3
-    case "SupporterPlus2026N4"    => SupporterPlus2026N4
-    case "SupporterPlus2026N5"    => SupporterPlus2026N5
-    case "Print2026C1GWAnnualsUK" => Print2026C1GWAnnualsUK
-    case "GuardianWeekly2026C2"   => GuardianWeekly2026C2
-    case "GuardianWeekly2026C3"   => GuardianWeekly2026C3
-    case "Newspaper2026C1"        => Newspaper2026C1
-    case "Newspaper2026C2"        => Newspaper2026C2
+    case "Test1"                      => Test1
+    case "GuardianWeekly2025"         => GuardianWeekly2025
+    case "Newspaper2025P1"            => Newspaper2025P1
+    case "Newspaper2025P3"            => Newspaper2025P3
+    case "ProductMigration2025N4"     => ProductMigration2025N4
+    case "Membership2025"             => Membership2025
+    case "DigiSubs2025"               => DigiSubs2025
+    case "SupporterPlus2026"          => SupporterPlus2026
+    case "SupporterPlus2026N2"        => SupporterPlus2026N2
+    case "SupporterPlus2026N3"        => SupporterPlus2026N3
+    case "SupporterPlus2026N4"        => SupporterPlus2026N4
+    case "SupporterPlus2026N5"        => SupporterPlus2026N5
+    case "Print2026C1GWAnnualsUK"     => Print2026C1GWAnnualsUK
+    case "Print2026C1GWQuarterliesUK" => Print2026C1GWQuarterliesUK
+    case "GuardianWeekly2026C3"       => GuardianWeekly2026C3
+    case "Newspaper2026C1"            => Newspaper2026C1
+    case "Newspaper2026C2"            => Newspaper2026C2
   }
 }
