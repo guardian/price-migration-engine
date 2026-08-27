@@ -64,6 +64,7 @@ object NotificationHandlerHelper {
       case Print2026C3NPMonthliesUK                   => true
       case Print2026C4NPMonthliesUK                   => true
       case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => true
+      case Print2026C5NPNoEmailsUK                    => true
     }
   }
 
@@ -210,6 +211,8 @@ object SubscriptionNotificationAnalyseResult {
         case Print2026C3NPMonthliesUK   => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Print2026C4NPMonthliesUK   => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Print2026C5GWMonthliesAnnualsNoEmailsNonUK =>
+          analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Print2026C5NPNoEmailsUK =>
           analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
       }
     }
