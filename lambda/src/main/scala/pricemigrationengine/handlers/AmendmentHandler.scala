@@ -473,6 +473,11 @@ object AmendmentHandler extends CohortHandler {
           cohortSpec: CohortSpec,
           item: CohortItem
         )
+      case Print2026C4NPMonthliesUK =>
+        doAmendmentUsingOrdersApiWithJsonValues(
+          cohortSpec: CohortSpec,
+          item: CohortItem
+        )
     }
   }
 

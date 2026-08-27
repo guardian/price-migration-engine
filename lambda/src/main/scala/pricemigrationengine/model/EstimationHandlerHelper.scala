@@ -13,6 +13,7 @@ import pricemigrationengine.migrations.{
   Print2026C2NPMonthliesUKMigration,
   Print2026C3GWMonthliesUKMigration,
   Print2026C3NPMonthliesUKMigration,
+  Print2026C4NPMonthliesUKMigration,
   ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
@@ -43,6 +44,7 @@ object EstimationHandlerHelper {
       case Print2026C2NPMonthliesUK   => Print2026C2NPMonthliesUKMigration.earliestAmendmentEffectiveDate
       case Print2026C3GWMonthliesUK   => Print2026C3GWMonthliesUKMigration.earliestAmendmentEffectiveDate
       case Print2026C3NPMonthliesUK   => Print2026C3NPMonthliesUKMigration.earliestAmendmentEffectiveDate
+      case Print2026C4NPMonthliesUK   => Print2026C4NPMonthliesUKMigration.earliestAmendmentEffectiveDate
     }
   }
 
@@ -69,6 +71,7 @@ object EstimationHandlerHelper {
       case Print2026C2NPMonthliesUK   => ???
       case Print2026C3GWMonthliesUK   => ???
       case Print2026C3NPMonthliesUK   => ???
+      case Print2026C4NPMonthliesUK   => ???
     }
   }
 
