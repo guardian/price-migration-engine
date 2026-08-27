@@ -34,7 +34,7 @@ object EstimationHandlerHelper {
       case SupporterPlus2026N5        => SupporterPlus2026Migration.earliestAmendmentEffectiveDate
       case Print2026C1GWAnnualsUK     => GuardianWeekly2026C1Migration.earliestAmendmentEffectiveDate
       case Print2026C1GWQuarterliesUK => GuardianWeekly2026C2Migration.earliestAmendmentEffectiveDate
-      case GuardianWeekly2026C3       => GuardianWeekly2026C3Migration.earliestAmendmentEffectiveDate
+      case Print2026C1NPAnnualsUK     => GuardianWeekly2026C3Migration.earliestAmendmentEffectiveDate
       case Newspaper2026C1            => Newspaper2026C1Migration.earliestAmendmentEffectiveDate
       case Newspaper2026C2            => Newspaper2026C2Migration.earliestAmendmentEffectiveDate
     }
@@ -57,7 +57,7 @@ object EstimationHandlerHelper {
       case SupporterPlus2026N5        => None
       case Print2026C1GWAnnualsUK     => ???
       case Print2026C1GWQuarterliesUK => ???
-      case GuardianWeekly2026C3       => ???
+      case Print2026C1NPAnnualsUK     => ???
       case Newspaper2026C1            => ???
       case Newspaper2026C2            => ???
     }

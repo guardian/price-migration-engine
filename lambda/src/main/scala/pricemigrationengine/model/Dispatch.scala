@@ -44,7 +44,7 @@ object Dispatch {
       case SupporterPlus2026N5        => evaluate(cohortItem.subscriptionName, 5)
       case Print2026C1GWAnnualsUK     => true
       case Print2026C1GWQuarterliesUK => true
-      case GuardianWeekly2026C3       => true
+      case Print2026C1NPAnnualsUK     => true
       case Newspaper2026C1            => true
       case Newspaper2026C2            => true
     }

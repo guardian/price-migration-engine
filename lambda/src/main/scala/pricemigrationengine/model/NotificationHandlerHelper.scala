@@ -56,7 +56,7 @@ object NotificationHandlerHelper {
       case SupporterPlus2026N5        => true
       case Print2026C1GWAnnualsUK     => true
       case Print2026C1GWQuarterliesUK => true
-      case GuardianWeekly2026C3       => true
+      case Print2026C1NPAnnualsUK     => true
       case Newspaper2026C1            => true
       case Newspaper2026C2            => true
     }
@@ -197,7 +197,7 @@ object SubscriptionNotificationAnalyseResult {
           analyseSubscriptionForNotification_SupporterPlus2026(subscription, cohortItem, date)
         case Print2026C1GWAnnualsUK     => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Print2026C1GWQuarterliesUK => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
-        case GuardianWeekly2026C3       => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Print2026C1NPAnnualsUK     => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Newspaper2026C1            => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Newspaper2026C2            => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
       }
