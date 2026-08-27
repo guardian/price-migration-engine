@@ -17,6 +17,7 @@ import pricemigrationengine.migrations.{
   Print2026C4NPMonthliesUKMigration,
   Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration,
   Print2026C5NPNoEmailsUKMigration,
+  Print2026C6GWQuarterliesNonUKMigration,
   ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
@@ -96,6 +97,7 @@ object AmendmentHandlerHelper {
       case Print2026C4NPMonthliesUK                   => true
       case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => true
       case Print2026C5NPNoEmailsUK                    => true
+      case Print2026C6GWQuarterliesNonUK              => true
     }
   }
 
@@ -399,6 +401,17 @@ object AmendmentHandlerHelper {
           commsPrice,
           invoiceList
         )
+      case Print2026C6GWQuarterliesNonUK =>
+        Print2026C6GWQuarterliesNonUKMigration.amendmentOrderPayload(
+          cohortItem,
+          orderDate,
+          accountNumber,
+          subscriptionNumber,
+          effectDate,
+          zuora_subscription,
+          commsPrice,
+          invoiceList
+        )
     }
   }
 
@@ -439,6 +452,7 @@ object AmendmentHandlerHelper {
       case Print2026C4NPMonthliesUK                   => true
       case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => true
       case Print2026C5NPNoEmailsUK                    => true
+      case Print2026C6GWQuarterliesNonUK              => true
     }
   }
   def subscriptionIsAmendableSupporterPlus2026(
@@ -514,6 +528,7 @@ object AmendmentHandlerHelper {
         case Print2026C4NPMonthliesUK                   => Some(SAARReadyToAmend)
         case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => Some(SAARReadyToAmend)
         case Print2026C5NPNoEmailsUK                    => Some(SAARReadyToAmend)
+        case Print2026C6GWQuarterliesNonUK              => Some(SAARReadyToAmend)
       }
     }
   }

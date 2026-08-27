@@ -23,6 +23,7 @@ import pricemigrationengine.migrations.{
   Print2026C4NPMonthliesUKMigration,
   Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration,
   Print2026C5NPNoEmailsUKMigration,
+  Print2026C6GWQuarterliesNonUKMigration,
   ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
@@ -355,6 +356,7 @@ object NotificationHandler extends CohortHandler {
       case Print2026C4NPMonthliesUK                   => Print2026C4NPMonthliesUKMigration.maxLeadTime
       case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration.maxLeadTime
       case Print2026C5NPNoEmailsUK                    => Print2026C5NPNoEmailsUKMigration.maxLeadTime
+      case Print2026C6GWQuarterliesNonUK              => Print2026C6GWQuarterliesNonUKMigration.maxLeadTime
     }
   }
 
@@ -383,6 +385,7 @@ object NotificationHandler extends CohortHandler {
       case Print2026C4NPMonthliesUK                   => Print2026C4NPMonthliesUKMigration.minLeadTime
       case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration.minLeadTime
       case Print2026C5NPNoEmailsUK                    => Print2026C5NPNoEmailsUKMigration.minLeadTime
+      case Print2026C6GWQuarterliesNonUK              => Print2026C6GWQuarterliesNonUKMigration.minLeadTime
     }
   }
 
@@ -437,6 +440,7 @@ object NotificationHandler extends CohortHandler {
       case Print2026C4NPMonthliesUK                   => requiredField(street, "Contact.OtherAddress.street")
       case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => requiredField(street, "Contact.OtherAddress.street")
       case Print2026C5NPNoEmailsUK                    => requiredField(street, "Contact.OtherAddress.street")
+      case Print2026C6GWQuarterliesNonUK              => requiredField(street, "Contact.OtherAddress.street")
     }
   }
 
@@ -492,6 +496,7 @@ object NotificationHandler extends CohortHandler {
       case Print2026C4NPMonthliesUK                   => targetAddressRequired(contact)
       case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => targetAddressRequired(contact)
       case Print2026C5NPNoEmailsUK                    => targetAddressRequired(contact)
+      case Print2026C6GWQuarterliesNonUK              => targetAddressRequired(contact)
     }
   }
 
@@ -528,6 +533,7 @@ object NotificationHandler extends CohortHandler {
       case Print2026C4NPMonthliesUK                   => requiredField(address.country, "Contact.OtherAddress.country")
       case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => requiredField(address.country, "Contact.OtherAddress.country")
       case Print2026C5NPNoEmailsUK                    => requiredField(address.country, "Contact.OtherAddress.country")
+      case Print2026C6GWQuarterliesNonUK              => requiredField(address.country, "Contact.OtherAddress.country")
     }
   }
 
@@ -657,6 +663,7 @@ object NotificationHandler extends CohortHandler {
       case Print2026C4NPMonthliesUK                   => ???
       case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => ???
       case Print2026C5NPNoEmailsUK                    => ???
+      case Print2026C6GWQuarterliesNonUK              => ???
     }
   }
 }

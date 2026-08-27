@@ -17,6 +17,7 @@ import pricemigrationengine.migrations.{
   Print2026C4NPMonthliesUKMigration,
   Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration,
   Print2026C5NPNoEmailsUKMigration,
+  Print2026C6GWQuarterliesNonUKMigration,
   ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
@@ -134,6 +135,8 @@ object AmendmentData {
       case Print2026C5GWMonthliesAnnualsNoEmailsNonUK =>
         Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration.priceData(subscription, invoiceList, account)
       case Print2026C5NPNoEmailsUK => Print2026C5NPNoEmailsUKMigration.priceData(subscription, invoiceList, account)
+      case Print2026C6GWQuarterliesNonUK =>
+        Print2026C6GWQuarterliesNonUKMigration.priceData(subscription, invoiceList, account)
     }
   }
 }

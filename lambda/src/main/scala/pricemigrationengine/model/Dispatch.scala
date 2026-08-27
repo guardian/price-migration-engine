@@ -53,6 +53,7 @@ object Dispatch {
       case Print2026C4NPMonthliesUK                   => true
       case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => true
       case Print2026C5NPNoEmailsUK                    => true
+      case Print2026C6GWQuarterliesNonUK              => true
     }
   }
 }

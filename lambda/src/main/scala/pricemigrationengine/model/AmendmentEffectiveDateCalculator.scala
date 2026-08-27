@@ -56,6 +56,7 @@ object AmendmentEffectiveDateCalculator {
       case Print2026C4NPMonthliesUK                   => None
       case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => None
       case Print2026C5NPNoEmailsUK                    => None
+      case Print2026C6GWQuarterliesNonUK              => None
     }
   }
 
@@ -134,6 +135,7 @@ object AmendmentEffectiveDateCalculator {
         case Print2026C4NPMonthliesUK                   => 1
         case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => 1
         case Print2026C5NPNoEmailsUK                    => 1
+        case Print2026C6GWQuarterliesNonUK              => 1
       }
     } else 1
   }
@@ -176,6 +178,8 @@ object AmendmentEffectiveDateCalculator {
       case Print2026C5GWMonthliesAnnualsNoEmailsNonUK =>
         noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case Print2026C5NPNoEmailsUK => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C6GWQuarterliesNonUK =>
+        noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
     }
 
     // And the policy not to price rise a sub twice within 12 months of any possible price rise
@@ -225,6 +229,8 @@ object AmendmentEffectiveDateCalculator {
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
       case Print2026C5NPNoEmailsUK =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Print2026C6GWQuarterliesNonUK =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
     }
 
     // Migration specific date calculations
@@ -258,6 +264,7 @@ object AmendmentEffectiveDateCalculator {
       case Print2026C4NPMonthliesUK                   => lowerBound3
       case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => lowerBound3
       case Print2026C5NPNoEmailsUK                    => lowerBound3
+      case Print2026C6GWQuarterliesNonUK              => lowerBound3
     }
 
     // Decide the spread period for this migration
