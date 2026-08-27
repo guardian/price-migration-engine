@@ -48,6 +48,8 @@ object Dispatch {
       case Print2026C1NPQuarterliesUK => true
       case Print2026C1NPSemiannualsUK => true
       case Print2026C2NPMonthliesUK   => true
+      case Print2026C3GWMonthliesUK   => true
+      case Print2026C3NPMonthliesUK   => true
     }
   }
 

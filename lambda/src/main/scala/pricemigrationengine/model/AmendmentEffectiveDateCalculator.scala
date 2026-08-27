@@ -51,6 +51,8 @@ object AmendmentEffectiveDateCalculator {
       case Print2026C1NPQuarterliesUK => None
       case Print2026C1NPSemiannualsUK => None
       case Print2026C2NPMonthliesUK   => None
+      case Print2026C3GWMonthliesUK   => None
+      case Print2026C3NPMonthliesUK   => None
     }
   }
 
@@ -124,6 +126,8 @@ object AmendmentEffectiveDateCalculator {
         case Print2026C1NPQuarterliesUK => 1 // no spread for Newspaper2026C1
         case Print2026C1NPSemiannualsUK => 1 // no spread for Newspaper2026C2
         case Print2026C2NPMonthliesUK   => 1
+        case Print2026C3GWMonthliesUK   => 1
+        case Print2026C3NPMonthliesUK   => 1
       }
     } else 1
   }
@@ -160,6 +164,8 @@ object AmendmentEffectiveDateCalculator {
       case Print2026C1NPQuarterliesUK => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case Print2026C1NPSemiannualsUK => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case Print2026C2NPMonthliesUK   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C3GWMonthliesUK   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C3NPMonthliesUK   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
     }
 
     // And the policy not to price rise a sub twice within 12 months of any possible price rise
@@ -199,6 +205,10 @@ object AmendmentEffectiveDateCalculator {
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
       case Print2026C2NPMonthliesUK =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Print2026C3GWMonthliesUK =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Print2026C3NPMonthliesUK =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
     }
 
     // Migration specific date calculations
@@ -227,6 +237,8 @@ object AmendmentEffectiveDateCalculator {
       case Print2026C1NPQuarterliesUK => lowerBound3
       case Print2026C1NPSemiannualsUK => lowerBound3
       case Print2026C2NPMonthliesUK   => lowerBound3
+      case Print2026C3GWMonthliesUK   => lowerBound3
+      case Print2026C3NPMonthliesUK   => lowerBound3
     }
 
     // Decide the spread period for this migration
