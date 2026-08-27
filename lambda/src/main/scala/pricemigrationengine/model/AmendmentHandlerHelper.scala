@@ -82,7 +82,7 @@ object AmendmentHandlerHelper {
       case Print2026C1GWAnnualsUK     => true
       case Print2026C1GWQuarterliesUK => true
       case Print2026C1NPAnnualsUK     => true
-      case Newspaper2026C1            => true
+      case Print2026C1NPQuarterliesUK => true
       case Newspaper2026C2            => true
     }
   }
@@ -299,7 +299,7 @@ object AmendmentHandlerHelper {
           commsPrice,
           invoiceList
         )
-      case Newspaper2026C1 =>
+      case Print2026C1NPQuarterliesUK =>
         Newspaper2026C1Migration.amendmentOrderPayload(
           cohortItem,
           orderDate,
@@ -353,7 +353,7 @@ object AmendmentHandlerHelper {
       case Print2026C1GWAnnualsUK     => true
       case Print2026C1GWQuarterliesUK => true
       case Print2026C1NPAnnualsUK     => true
-      case Newspaper2026C1            => true
+      case Print2026C1NPQuarterliesUK => true
       case Newspaper2026C2            => true
     }
   }
@@ -422,7 +422,7 @@ object AmendmentHandlerHelper {
         case Print2026C1GWAnnualsUK     => Some(SAARReadyToAmend)
         case Print2026C1GWQuarterliesUK => Some(SAARReadyToAmend)
         case Print2026C1NPAnnualsUK     => Some(SAARReadyToAmend)
-        case Newspaper2026C1            => Some(SAARReadyToAmend)
+        case Print2026C1NPQuarterliesUK => Some(SAARReadyToAmend)
         case Newspaper2026C2            => Some(SAARReadyToAmend)
       }
     }

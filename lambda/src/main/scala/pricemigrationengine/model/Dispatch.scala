@@ -45,7 +45,7 @@ object Dispatch {
       case Print2026C1GWAnnualsUK     => true
       case Print2026C1GWQuarterliesUK => true
       case Print2026C1NPAnnualsUK     => true
-      case Newspaper2026C1            => true
+      case Print2026C1NPQuarterliesUK => true
       case Newspaper2026C2            => true
     }
   }

@@ -16,7 +16,7 @@ object SupporterPlus2026N5 extends MigrationType
 object Print2026C1GWAnnualsUK extends MigrationType
 object Print2026C1GWQuarterliesUK extends MigrationType
 object Print2026C1NPAnnualsUK extends MigrationType
-object Newspaper2026C1 extends MigrationType
+object Print2026C1NPQuarterliesUK extends MigrationType
 object Newspaper2026C2 extends MigrationType
 
 object MigrationType {
@@ -36,7 +36,7 @@ object MigrationType {
     case "Print2026C1GWAnnualsUK"     => Print2026C1GWAnnualsUK
     case "Print2026C1GWQuarterliesUK" => Print2026C1GWQuarterliesUK
     case "Print2026C1NPAnnualsUK"     => Print2026C1NPAnnualsUK
-    case "Newspaper2026C1"            => Newspaper2026C1
+    case "Print2026C1NPQuarterliesUK" => Print2026C1NPQuarterliesUK
     case "Newspaper2026C2"            => Newspaper2026C2
   }
 }

@@ -35,7 +35,7 @@ object EstimationHandlerHelper {
       case Print2026C1GWAnnualsUK     => GuardianWeekly2026C1Migration.earliestAmendmentEffectiveDate
       case Print2026C1GWQuarterliesUK => GuardianWeekly2026C2Migration.earliestAmendmentEffectiveDate
       case Print2026C1NPAnnualsUK     => GuardianWeekly2026C3Migration.earliestAmendmentEffectiveDate
-      case Newspaper2026C1            => Newspaper2026C1Migration.earliestAmendmentEffectiveDate
+      case Print2026C1NPQuarterliesUK => Newspaper2026C1Migration.earliestAmendmentEffectiveDate
       case Newspaper2026C2            => Newspaper2026C2Migration.earliestAmendmentEffectiveDate
     }
   }
@@ -58,7 +58,7 @@ object EstimationHandlerHelper {
       case Print2026C1GWAnnualsUK     => ???
       case Print2026C1GWQuarterliesUK => ???
       case Print2026C1NPAnnualsUK     => ???
-      case Newspaper2026C1            => ???
+      case Print2026C1NPQuarterliesUK => ???
       case Newspaper2026C2            => ???
     }
   }
