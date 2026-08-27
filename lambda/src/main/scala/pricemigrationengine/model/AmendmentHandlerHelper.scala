@@ -79,7 +79,7 @@ object AmendmentHandlerHelper {
       case SupporterPlus2026N3    => false
       case SupporterPlus2026N4    => false
       case SupporterPlus2026N5    => false
-      case GuardianWeekly2026C1   => true
+      case Print2026C1GWAnnualsUK => true
       case GuardianWeekly2026C2   => true
       case GuardianWeekly2026C3   => true
       case Newspaper2026C1        => true
@@ -266,7 +266,7 @@ object AmendmentHandlerHelper {
           commsPrice,
           invoiceList
         )
-      case GuardianWeekly2026C1 =>
+      case Print2026C1GWAnnualsUK =>
         GuardianWeekly2026C1Migration.amendmentOrderPayload(
           cohortItem,
           orderDate,
@@ -350,7 +350,7 @@ object AmendmentHandlerHelper {
       case SupporterPlus2026N3    => itIsFewDaysAfterNotification(item)
       case SupporterPlus2026N4    => itIsFewDaysAfterNotification(item)
       case SupporterPlus2026N5    => itIsFewDaysAfterNotification(item)
-      case GuardianWeekly2026C1   => true
+      case Print2026C1GWAnnualsUK => true
       case GuardianWeekly2026C2   => true
       case GuardianWeekly2026C3   => true
       case Newspaper2026C1        => true
@@ -419,7 +419,7 @@ object AmendmentHandlerHelper {
         case SupporterPlus2026N3    => analyseSupporterPlus2026(item, subscription, today)
         case SupporterPlus2026N4    => analyseSupporterPlus2026(item, subscription, today)
         case SupporterPlus2026N5    => analyseSupporterPlus2026(item, subscription, today)
-        case GuardianWeekly2026C1   => Some(SAARReadyToAmend)
+        case Print2026C1GWAnnualsUK => Some(SAARReadyToAmend)
         case GuardianWeekly2026C2   => Some(SAARReadyToAmend)
         case GuardianWeekly2026C3   => Some(SAARReadyToAmend)
         case Newspaper2026C1        => Some(SAARReadyToAmend)

@@ -42,7 +42,7 @@ object Dispatch {
       case SupporterPlus2026N3    => evaluate(cohortItem.subscriptionName, 3)
       case SupporterPlus2026N4    => evaluate(cohortItem.subscriptionName, 4)
       case SupporterPlus2026N5    => evaluate(cohortItem.subscriptionName, 5)
-      case GuardianWeekly2026C1   => true
+      case Print2026C1GWAnnualsUK => true
       case GuardianWeekly2026C2   => true
       case GuardianWeekly2026C3   => true
       case Newspaper2026C1        => true

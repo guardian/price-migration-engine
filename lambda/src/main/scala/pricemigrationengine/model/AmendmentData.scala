@@ -113,7 +113,7 @@ object AmendmentData {
       case SupporterPlus2026N3    => SupporterPlus2026Migration.priceData(subscription, invoiceList)
       case SupporterPlus2026N4    => SupporterPlus2026Migration.priceData(subscription, invoiceList)
       case SupporterPlus2026N5    => SupporterPlus2026Migration.priceData(subscription, invoiceList)
-      case GuardianWeekly2026C1   => GuardianWeekly2026C1Migration.priceData(subscription, invoiceList, account)
+      case Print2026C1GWAnnualsUK => GuardianWeekly2026C1Migration.priceData(subscription, invoiceList, account)
       case GuardianWeekly2026C2   => GuardianWeekly2026C2Migration.priceData(subscription, invoiceList, account)
       case GuardianWeekly2026C3   => GuardianWeekly2026C3Migration.priceData(subscription, invoiceList, account)
       case Newspaper2026C1        => Newspaper2026C1Migration.priceData(subscription, invoiceList, account)

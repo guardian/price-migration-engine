@@ -337,7 +337,7 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2026N3    => SupporterPlus2026Migration.maxLeadTime
       case SupporterPlus2026N4    => SupporterPlus2026Migration.maxLeadTime
       case SupporterPlus2026N5    => SupporterPlus2026Migration.maxLeadTime
-      case GuardianWeekly2026C1   => GuardianWeekly2026C1Migration.maxLeadTime
+      case Print2026C1GWAnnualsUK => GuardianWeekly2026C1Migration.maxLeadTime
       case GuardianWeekly2026C2   => GuardianWeekly2026C2Migration.maxLeadTime
       case GuardianWeekly2026C3   => GuardianWeekly2026C2Migration.maxLeadTime
       case Newspaper2026C1        => Newspaper2026C1Migration.maxLeadTime
@@ -359,7 +359,7 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2026N3    => SupporterPlus2026Migration.minLeadTime
       case SupporterPlus2026N4    => SupporterPlus2026Migration.minLeadTime
       case SupporterPlus2026N5    => SupporterPlus2026Migration.minLeadTime
-      case GuardianWeekly2026C1   => GuardianWeekly2026C1Migration.minLeadTime
+      case Print2026C1GWAnnualsUK => GuardianWeekly2026C1Migration.minLeadTime
       case GuardianWeekly2026C2   => GuardianWeekly2026C2Migration.minLeadTime
       case GuardianWeekly2026C3   => GuardianWeekly2026C2Migration.minLeadTime
       case Newspaper2026C1        => Newspaper2026C1Migration.minLeadTime
@@ -407,7 +407,7 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2026N3    => Right(street.getOrElse(""))
       case SupporterPlus2026N4    => Right(street.getOrElse(""))
       case SupporterPlus2026N5    => Right(street.getOrElse(""))
-      case GuardianWeekly2026C1   => requiredField(street, "Contact.OtherAddress.street")
+      case Print2026C1GWAnnualsUK => requiredField(street, "Contact.OtherAddress.street")
       case GuardianWeekly2026C2   => requiredField(street, "Contact.OtherAddress.street")
       case GuardianWeekly2026C3   => requiredField(street, "Contact.OtherAddress.street")
       case Newspaper2026C1        => requiredField(street, "Contact.OtherAddress.street")
@@ -456,7 +456,7 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2026N3    => targetAddressNotRequired(contact)
       case SupporterPlus2026N4    => targetAddressNotRequired(contact)
       case SupporterPlus2026N5    => targetAddressNotRequired(contact)
-      case GuardianWeekly2026C1   => targetAddressRequired(contact)
+      case Print2026C1GWAnnualsUK => targetAddressRequired(contact)
       case GuardianWeekly2026C2   => targetAddressRequired(contact)
       case GuardianWeekly2026C3   => targetAddressRequired(contact)
       case Newspaper2026C1        => targetAddressRequired(contact)
@@ -486,7 +486,7 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2026N3    => Right(address.country.getOrElse(""))
       case SupporterPlus2026N4    => Right(address.country.getOrElse(""))
       case SupporterPlus2026N5    => Right(address.country.getOrElse(""))
-      case GuardianWeekly2026C1   => requiredField(address.country, "Contact.OtherAddress.country")
+      case Print2026C1GWAnnualsUK => requiredField(address.country, "Contact.OtherAddress.country")
       case GuardianWeekly2026C2   => requiredField(address.country, "Contact.OtherAddress.country")
       case GuardianWeekly2026C3   => requiredField(address.country, "Contact.OtherAddress.country")
       case Newspaper2026C1        => requiredField(address.country, "Contact.OtherAddress.country")
@@ -609,11 +609,11 @@ object NotificationHandler extends CohortHandler {
           .orElseFail(
             DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
           )
-      case GuardianWeekly2026C1 => ???
-      case GuardianWeekly2026C2 => ???
-      case GuardianWeekly2026C3 => ???
-      case Newspaper2026C1      => ???
-      case Newspaper2026C2      => ???
+      case Print2026C1GWAnnualsUK => ???
+      case GuardianWeekly2026C2   => ???
+      case GuardianWeekly2026C3   => ???
+      case Newspaper2026C1        => ???
+      case Newspaper2026C2        => ???
     }
   }
 }

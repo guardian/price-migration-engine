@@ -45,7 +45,7 @@ object AmendmentEffectiveDateCalculator {
       case SupporterPlus2026N3    => None
       case SupporterPlus2026N4    => None
       case SupporterPlus2026N5    => None
-      case GuardianWeekly2026C1   => None
+      case Print2026C1GWAnnualsUK => None
       case GuardianWeekly2026C2   => None
       case GuardianWeekly2026C3   => None
       case Newspaper2026C1        => None
@@ -117,7 +117,7 @@ object AmendmentEffectiveDateCalculator {
         case SupporterPlus2026N3    => 1 // no spread for SupporterPlus2026
         case SupporterPlus2026N4    => 1 // no spread for SupporterPlus2026
         case SupporterPlus2026N5    => 1 // no spread for SupporterPlus2026
-        case GuardianWeekly2026C1   => 1 // no spread for GuardianWeekly2026C1
+        case Print2026C1GWAnnualsUK => 1 // no spread for GuardianWeekly2026C1
         case GuardianWeekly2026C2   => 1 // no spread for GuardianWeekly2026C2
         case GuardianWeekly2026C3   => 1 // no spread for GuardianWeekly2026C3
         case Newspaper2026C1        => 1 // no spread for Newspaper2026C1
@@ -152,7 +152,7 @@ object AmendmentEffectiveDateCalculator {
       case SupporterPlus2026N3    => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case SupporterPlus2026N4    => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case SupporterPlus2026N5    => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case GuardianWeekly2026C1   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C1GWAnnualsUK => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case GuardianWeekly2026C2   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case GuardianWeekly2026C3   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case Newspaper2026C1        => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
@@ -184,7 +184,7 @@ object AmendmentEffectiveDateCalculator {
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
       case SupporterPlus2026N5 =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
-      case GuardianWeekly2026C1 =>
+      case Print2026C1GWAnnualsUK =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
       case GuardianWeekly2026C2 =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
@@ -216,11 +216,11 @@ object AmendmentEffectiveDateCalculator {
         SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
       case SupporterPlus2026N5 =>
         SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
-      case GuardianWeekly2026C1 => lowerBound3
-      case GuardianWeekly2026C2 => lowerBound3
-      case GuardianWeekly2026C3 => lowerBound3
-      case Newspaper2026C1      => lowerBound3
-      case Newspaper2026C2      => lowerBound3
+      case Print2026C1GWAnnualsUK => lowerBound3
+      case GuardianWeekly2026C2   => lowerBound3
+      case GuardianWeekly2026C3   => lowerBound3
+      case Newspaper2026C1        => lowerBound3
+      case Newspaper2026C2        => lowerBound3
     }
 
     // Decide the spread period for this migration
