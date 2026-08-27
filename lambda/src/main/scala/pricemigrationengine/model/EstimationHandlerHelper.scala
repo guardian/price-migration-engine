@@ -3,13 +3,13 @@ package pricemigrationengine.model
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
   GuardianWeekly2025Migration,
-  GuardianWeekly2026C1Migration,
-  GuardianWeekly2026C2Migration,
-  GuardianWeekly2026C3Migration,
+  Print2026C1GWAnnualsUKMigration,
+  Print2026C1NPAnnualsUKMigration,
+  Print2026C1NPSemiannualsUKMigration,
   Membership2025Migration,
   Newspaper2025P1Migration,
-  Newspaper2026C1Migration,
-  Newspaper2026C2Migration,
+  Print2026C1GWQuarterliesUKMigration,
+  Print2026C1NPQuarterliesUKMigration,
   ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
@@ -32,11 +32,11 @@ object EstimationHandlerHelper {
       case SupporterPlus2026N3        => SupporterPlus2026Migration.earliestAmendmentEffectiveDate
       case SupporterPlus2026N4        => SupporterPlus2026Migration.earliestAmendmentEffectiveDate
       case SupporterPlus2026N5        => SupporterPlus2026Migration.earliestAmendmentEffectiveDate
-      case Print2026C1GWAnnualsUK     => GuardianWeekly2026C1Migration.earliestAmendmentEffectiveDate
-      case Print2026C1GWQuarterliesUK => GuardianWeekly2026C2Migration.earliestAmendmentEffectiveDate
-      case Print2026C1NPAnnualsUK     => GuardianWeekly2026C3Migration.earliestAmendmentEffectiveDate
-      case Print2026C1NPQuarterliesUK => Newspaper2026C1Migration.earliestAmendmentEffectiveDate
-      case Print2026C1NPSemiannualsUK => Newspaper2026C2Migration.earliestAmendmentEffectiveDate
+      case Print2026C1GWAnnualsUK     => Print2026C1GWAnnualsUKMigration.earliestAmendmentEffectiveDate
+      case Print2026C1GWQuarterliesUK => Print2026C1GWQuarterliesUKMigration.earliestAmendmentEffectiveDate
+      case Print2026C1NPAnnualsUK     => Print2026C1NPAnnualsUKMigration.earliestAmendmentEffectiveDate
+      case Print2026C1NPQuarterliesUK => Print2026C1NPQuarterliesUKMigration.earliestAmendmentEffectiveDate
+      case Print2026C1NPSemiannualsUK => Print2026C1NPSemiannualsUKMigration.earliestAmendmentEffectiveDate
     }
   }
 

@@ -3,14 +3,14 @@ package pricemigrationengine.model
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
   GuardianWeekly2025Migration,
-  GuardianWeekly2026C1Migration,
-  GuardianWeekly2026C2Migration,
-  GuardianWeekly2026C3Migration,
+  Print2026C1GWAnnualsUKMigration,
+  Print2026C1NPAnnualsUKMigration,
+  Print2026C1NPSemiannualsUKMigration,
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
-  Newspaper2026C1Migration,
-  Newspaper2026C2Migration,
+  Print2026C1GWQuarterliesUKMigration,
+  Print2026C1NPQuarterliesUKMigration,
   ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
@@ -113,11 +113,14 @@ object AmendmentData {
       case SupporterPlus2026N3        => SupporterPlus2026Migration.priceData(subscription, invoiceList)
       case SupporterPlus2026N4        => SupporterPlus2026Migration.priceData(subscription, invoiceList)
       case SupporterPlus2026N5        => SupporterPlus2026Migration.priceData(subscription, invoiceList)
-      case Print2026C1GWAnnualsUK     => GuardianWeekly2026C1Migration.priceData(subscription, invoiceList, account)
-      case Print2026C1GWQuarterliesUK => GuardianWeekly2026C2Migration.priceData(subscription, invoiceList, account)
-      case Print2026C1NPAnnualsUK     => GuardianWeekly2026C3Migration.priceData(subscription, invoiceList, account)
-      case Print2026C1NPQuarterliesUK => Newspaper2026C1Migration.priceData(subscription, invoiceList, account)
-      case Print2026C1NPSemiannualsUK => Newspaper2026C2Migration.priceData(subscription, invoiceList, account)
+      case Print2026C1GWAnnualsUK     => Print2026C1GWAnnualsUKMigration.priceData(subscription, invoiceList, account)
+      case Print2026C1GWQuarterliesUK =>
+        Print2026C1GWQuarterliesUKMigration.priceData(subscription, invoiceList, account)
+      case Print2026C1NPAnnualsUK     => Print2026C1NPAnnualsUKMigration.priceData(subscription, invoiceList, account)
+      case Print2026C1NPQuarterliesUK =>
+        Print2026C1NPQuarterliesUKMigration.priceData(subscription, invoiceList, account)
+      case Print2026C1NPSemiannualsUK =>
+        Print2026C1NPSemiannualsUKMigration.priceData(subscription, invoiceList, account)
     }
   }
 }

@@ -7,7 +7,7 @@ import upickle.default._
 
 import java.time.format.DateTimeFormatter
 
-object Newspaper2026C2Migration {
+object Print2026C1NPSemiannualsUKMigration {
 
   val earliestAmendmentEffectiveDate = ???
 
