@@ -47,22 +47,23 @@ object NotificationHandlerHelper {
           ),
         ).forall(identity)
       }
-      case Membership2025             => true
-      case DigiSubs2025               => true
-      case SupporterPlus2026          => true
-      case SupporterPlus2026N2        => true
-      case SupporterPlus2026N3        => true
-      case SupporterPlus2026N4        => true
-      case SupporterPlus2026N5        => true
-      case Print2026C1GWAnnualsUK     => true
-      case Print2026C1GWQuarterliesUK => true
-      case Print2026C1NPAnnualsUK     => true
-      case Print2026C1NPQuarterliesUK => true
-      case Print2026C1NPSemiannualsUK => true
-      case Print2026C2NPMonthliesUK   => true
-      case Print2026C3GWMonthliesUK   => true
-      case Print2026C3NPMonthliesUK   => true
-      case Print2026C4NPMonthliesUK   => true
+      case Membership2025                             => true
+      case DigiSubs2025                               => true
+      case SupporterPlus2026                          => true
+      case SupporterPlus2026N2                        => true
+      case SupporterPlus2026N3                        => true
+      case SupporterPlus2026N4                        => true
+      case SupporterPlus2026N5                        => true
+      case Print2026C1GWAnnualsUK                     => true
+      case Print2026C1GWQuarterliesUK                 => true
+      case Print2026C1NPAnnualsUK                     => true
+      case Print2026C1NPQuarterliesUK                 => true
+      case Print2026C1NPSemiannualsUK                 => true
+      case Print2026C2NPMonthliesUK                   => true
+      case Print2026C3GWMonthliesUK                   => true
+      case Print2026C3NPMonthliesUK                   => true
+      case Print2026C4NPMonthliesUK                   => true
+      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => true
     }
   }
 
@@ -208,6 +209,8 @@ object SubscriptionNotificationAnalyseResult {
         case Print2026C3GWMonthliesUK   => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Print2026C3NPMonthliesUK   => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Print2026C4NPMonthliesUK   => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Print2026C5GWMonthliesAnnualsNoEmailsNonUK =>
+          analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
       }
     }
   }

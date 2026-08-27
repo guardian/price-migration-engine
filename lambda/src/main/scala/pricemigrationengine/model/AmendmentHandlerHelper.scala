@@ -15,6 +15,7 @@ import pricemigrationengine.migrations.{
   Print2026C3GWMonthliesUKMigration,
   Print2026C3NPMonthliesUKMigration,
   Print2026C4NPMonthliesUKMigration,
+  Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration,
   ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
@@ -71,27 +72,28 @@ object AmendmentHandlerHelper {
 
   private def shouldPerformFinalPriceCheck(cohortSpec: CohortSpec): Boolean = {
     MigrationType(cohortSpec) match {
-      case Test1                      => true // default value
-      case GuardianWeekly2025         => true
-      case Newspaper2025P1            => true
-      case Newspaper2025P3            => true
-      case ProductMigration2025N4     => false
-      case Membership2025             => true
-      case DigiSubs2025               => true
-      case SupporterPlus2026          => false
-      case SupporterPlus2026N2        => false
-      case SupporterPlus2026N3        => false
-      case SupporterPlus2026N4        => false
-      case SupporterPlus2026N5        => false
-      case Print2026C1GWAnnualsUK     => true
-      case Print2026C1GWQuarterliesUK => true
-      case Print2026C1NPAnnualsUK     => true
-      case Print2026C1NPQuarterliesUK => true
-      case Print2026C1NPSemiannualsUK => true
-      case Print2026C2NPMonthliesUK   => true
-      case Print2026C3GWMonthliesUK   => true
-      case Print2026C3NPMonthliesUK   => true
-      case Print2026C4NPMonthliesUK   => true
+      case Test1                                      => true // default value
+      case GuardianWeekly2025                         => true
+      case Newspaper2025P1                            => true
+      case Newspaper2025P3                            => true
+      case ProductMigration2025N4                     => false
+      case Membership2025                             => true
+      case DigiSubs2025                               => true
+      case SupporterPlus2026                          => false
+      case SupporterPlus2026N2                        => false
+      case SupporterPlus2026N3                        => false
+      case SupporterPlus2026N4                        => false
+      case SupporterPlus2026N5                        => false
+      case Print2026C1GWAnnualsUK                     => true
+      case Print2026C1GWQuarterliesUK                 => true
+      case Print2026C1NPAnnualsUK                     => true
+      case Print2026C1NPQuarterliesUK                 => true
+      case Print2026C1NPSemiannualsUK                 => true
+      case Print2026C2NPMonthliesUK                   => true
+      case Print2026C3GWMonthliesUK                   => true
+      case Print2026C3NPMonthliesUK                   => true
+      case Print2026C4NPMonthliesUK                   => true
+      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => true
     }
   }
 
@@ -373,6 +375,17 @@ object AmendmentHandlerHelper {
           commsPrice,
           invoiceList
         )
+      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK =>
+        Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration.amendmentOrderPayload(
+          cohortItem,
+          orderDate,
+          accountNumber,
+          subscriptionNumber,
+          effectDate,
+          zuora_subscription,
+          commsPrice,
+          invoiceList
+        )
     }
   }
 
@@ -390,27 +403,28 @@ object AmendmentHandlerHelper {
       notificationInstant.isBefore(cursor)
     }
     MigrationType(cohortSpec) match {
-      case Test1                      => true
-      case GuardianWeekly2025         => true
-      case Newspaper2025P1            => true
-      case Newspaper2025P3            => true
-      case ProductMigration2025N4     => true
-      case Membership2025             => true
-      case DigiSubs2025               => true
-      case SupporterPlus2026          => itIsFewDaysAfterNotification(item)
-      case SupporterPlus2026N2        => itIsFewDaysAfterNotification(item)
-      case SupporterPlus2026N3        => itIsFewDaysAfterNotification(item)
-      case SupporterPlus2026N4        => itIsFewDaysAfterNotification(item)
-      case SupporterPlus2026N5        => itIsFewDaysAfterNotification(item)
-      case Print2026C1GWAnnualsUK     => true
-      case Print2026C1GWQuarterliesUK => true
-      case Print2026C1NPAnnualsUK     => true
-      case Print2026C1NPQuarterliesUK => true
-      case Print2026C1NPSemiannualsUK => true
-      case Print2026C2NPMonthliesUK   => true
-      case Print2026C3GWMonthliesUK   => true
-      case Print2026C3NPMonthliesUK   => true
-      case Print2026C4NPMonthliesUK   => true
+      case Test1                                      => true
+      case GuardianWeekly2025                         => true
+      case Newspaper2025P1                            => true
+      case Newspaper2025P3                            => true
+      case ProductMigration2025N4                     => true
+      case Membership2025                             => true
+      case DigiSubs2025                               => true
+      case SupporterPlus2026                          => itIsFewDaysAfterNotification(item)
+      case SupporterPlus2026N2                        => itIsFewDaysAfterNotification(item)
+      case SupporterPlus2026N3                        => itIsFewDaysAfterNotification(item)
+      case SupporterPlus2026N4                        => itIsFewDaysAfterNotification(item)
+      case SupporterPlus2026N5                        => itIsFewDaysAfterNotification(item)
+      case Print2026C1GWAnnualsUK                     => true
+      case Print2026C1GWQuarterliesUK                 => true
+      case Print2026C1NPAnnualsUK                     => true
+      case Print2026C1NPQuarterliesUK                 => true
+      case Print2026C1NPSemiannualsUK                 => true
+      case Print2026C2NPMonthliesUK                   => true
+      case Print2026C3GWMonthliesUK                   => true
+      case Print2026C3NPMonthliesUK                   => true
+      case Print2026C4NPMonthliesUK                   => true
+      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => true
     }
   }
   def subscriptionIsAmendableSupporterPlus2026(
@@ -463,27 +477,28 @@ object AmendmentHandlerHelper {
       // I do not want to use a migration specific attribute to do so. If we want to extend this to
       // other migrations we will have to introduce a general CohortItem attribute.
       MigrationType(cohortSpec) match {
-        case Test1                      => Some(SAARReadyToAmend)
-        case GuardianWeekly2025         => Some(SAARReadyToAmend)
-        case Newspaper2025P1            => Some(SAARReadyToAmend)
-        case Newspaper2025P3            => Some(SAARReadyToAmend)
-        case ProductMigration2025N4     => Some(SAARReadyToAmend)
-        case Membership2025             => Some(SAARReadyToAmend)
-        case DigiSubs2025               => Some(SAARReadyToAmend)
-        case SupporterPlus2026          => analyseSupporterPlus2026(item, subscription, today)
-        case SupporterPlus2026N2        => analyseSupporterPlus2026(item, subscription, today)
-        case SupporterPlus2026N3        => analyseSupporterPlus2026(item, subscription, today)
-        case SupporterPlus2026N4        => analyseSupporterPlus2026(item, subscription, today)
-        case SupporterPlus2026N5        => analyseSupporterPlus2026(item, subscription, today)
-        case Print2026C1GWAnnualsUK     => Some(SAARReadyToAmend)
-        case Print2026C1GWQuarterliesUK => Some(SAARReadyToAmend)
-        case Print2026C1NPAnnualsUK     => Some(SAARReadyToAmend)
-        case Print2026C1NPQuarterliesUK => Some(SAARReadyToAmend)
-        case Print2026C1NPSemiannualsUK => Some(SAARReadyToAmend)
-        case Print2026C2NPMonthliesUK   => Some(SAARReadyToAmend)
-        case Print2026C3GWMonthliesUK   => Some(SAARReadyToAmend)
-        case Print2026C3NPMonthliesUK   => Some(SAARReadyToAmend)
-        case Print2026C4NPMonthliesUK   => Some(SAARReadyToAmend)
+        case Test1                                      => Some(SAARReadyToAmend)
+        case GuardianWeekly2025                         => Some(SAARReadyToAmend)
+        case Newspaper2025P1                            => Some(SAARReadyToAmend)
+        case Newspaper2025P3                            => Some(SAARReadyToAmend)
+        case ProductMigration2025N4                     => Some(SAARReadyToAmend)
+        case Membership2025                             => Some(SAARReadyToAmend)
+        case DigiSubs2025                               => Some(SAARReadyToAmend)
+        case SupporterPlus2026                          => analyseSupporterPlus2026(item, subscription, today)
+        case SupporterPlus2026N2                        => analyseSupporterPlus2026(item, subscription, today)
+        case SupporterPlus2026N3                        => analyseSupporterPlus2026(item, subscription, today)
+        case SupporterPlus2026N4                        => analyseSupporterPlus2026(item, subscription, today)
+        case SupporterPlus2026N5                        => analyseSupporterPlus2026(item, subscription, today)
+        case Print2026C1GWAnnualsUK                     => Some(SAARReadyToAmend)
+        case Print2026C1GWQuarterliesUK                 => Some(SAARReadyToAmend)
+        case Print2026C1NPAnnualsUK                     => Some(SAARReadyToAmend)
+        case Print2026C1NPQuarterliesUK                 => Some(SAARReadyToAmend)
+        case Print2026C1NPSemiannualsUK                 => Some(SAARReadyToAmend)
+        case Print2026C2NPMonthliesUK                   => Some(SAARReadyToAmend)
+        case Print2026C3GWMonthliesUK                   => Some(SAARReadyToAmend)
+        case Print2026C3NPMonthliesUK                   => Some(SAARReadyToAmend)
+        case Print2026C4NPMonthliesUK                   => Some(SAARReadyToAmend)
+        case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => Some(SAARReadyToAmend)
       }
     }
   }

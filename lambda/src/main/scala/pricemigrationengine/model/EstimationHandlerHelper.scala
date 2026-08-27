@@ -14,6 +14,7 @@ import pricemigrationengine.migrations.{
   Print2026C3GWMonthliesUKMigration,
   Print2026C3NPMonthliesUKMigration,
   Print2026C4NPMonthliesUKMigration,
+  Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration,
   ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
@@ -45,33 +46,36 @@ object EstimationHandlerHelper {
       case Print2026C3GWMonthliesUK   => Print2026C3GWMonthliesUKMigration.earliestAmendmentEffectiveDate
       case Print2026C3NPMonthliesUK   => Print2026C3NPMonthliesUKMigration.earliestAmendmentEffectiveDate
       case Print2026C4NPMonthliesUK   => Print2026C4NPMonthliesUKMigration.earliestAmendmentEffectiveDate
+      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK =>
+        Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration.earliestAmendmentEffectiveDate
     }
   }
 
   def migrationCapRatio(cohortSpec: CohortSpec): Option[Double] = {
     // This is where we declare the optional capping of each migration
     MigrationType(cohortSpec) match {
-      case Test1                      => None
-      case GuardianWeekly2025         => Some(1.2)
-      case Newspaper2025P1            => Some(1.2)
-      case Newspaper2025P3            => Some(1.2)
-      case ProductMigration2025N4     => None
-      case Membership2025             => Some(1.43)
-      case DigiSubs2025               => Some(1.25)
-      case SupporterPlus2026          => None
-      case SupporterPlus2026N2        => None
-      case SupporterPlus2026N3        => None
-      case SupporterPlus2026N4        => None
-      case SupporterPlus2026N5        => None
-      case Print2026C1GWAnnualsUK     => ???
-      case Print2026C1GWQuarterliesUK => ???
-      case Print2026C1NPAnnualsUK     => ???
-      case Print2026C1NPQuarterliesUK => ???
-      case Print2026C1NPSemiannualsUK => ???
-      case Print2026C2NPMonthliesUK   => ???
-      case Print2026C3GWMonthliesUK   => ???
-      case Print2026C3NPMonthliesUK   => ???
-      case Print2026C4NPMonthliesUK   => ???
+      case Test1                                      => None
+      case GuardianWeekly2025                         => Some(1.2)
+      case Newspaper2025P1                            => Some(1.2)
+      case Newspaper2025P3                            => Some(1.2)
+      case ProductMigration2025N4                     => None
+      case Membership2025                             => Some(1.43)
+      case DigiSubs2025                               => Some(1.25)
+      case SupporterPlus2026                          => None
+      case SupporterPlus2026N2                        => None
+      case SupporterPlus2026N3                        => None
+      case SupporterPlus2026N4                        => None
+      case SupporterPlus2026N5                        => None
+      case Print2026C1GWAnnualsUK                     => ???
+      case Print2026C1GWQuarterliesUK                 => ???
+      case Print2026C1NPAnnualsUK                     => ???
+      case Print2026C1NPQuarterliesUK                 => ???
+      case Print2026C1NPSemiannualsUK                 => ???
+      case Print2026C2NPMonthliesUK                   => ???
+      case Print2026C3GWMonthliesUK                   => ???
+      case Print2026C3NPMonthliesUK                   => ???
+      case Print2026C4NPMonthliesUK                   => ???
+      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => ???
     }
   }
 
