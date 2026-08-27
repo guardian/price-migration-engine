@@ -117,7 +117,7 @@ object AmendmentData {
       case Print2026C1GWQuarterliesUK => GuardianWeekly2026C2Migration.priceData(subscription, invoiceList, account)
       case Print2026C1NPAnnualsUK     => GuardianWeekly2026C3Migration.priceData(subscription, invoiceList, account)
       case Print2026C1NPQuarterliesUK => Newspaper2026C1Migration.priceData(subscription, invoiceList, account)
-      case Newspaper2026C2            => Newspaper2026C2Migration.priceData(subscription, invoiceList, account)
+      case Print2026C1NPSemiannualsUK => Newspaper2026C2Migration.priceData(subscription, invoiceList, account)
     }
   }
 }

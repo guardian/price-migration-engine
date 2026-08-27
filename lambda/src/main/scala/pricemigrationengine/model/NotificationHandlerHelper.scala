@@ -58,7 +58,7 @@ object NotificationHandlerHelper {
       case Print2026C1GWQuarterliesUK => true
       case Print2026C1NPAnnualsUK     => true
       case Print2026C1NPQuarterliesUK => true
-      case Newspaper2026C2            => true
+      case Print2026C1NPSemiannualsUK => true
     }
   }
 
@@ -199,7 +199,7 @@ object SubscriptionNotificationAnalyseResult {
         case Print2026C1GWQuarterliesUK => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Print2026C1NPAnnualsUK     => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Print2026C1NPQuarterliesUK => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
-        case Newspaper2026C2            => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Print2026C1NPSemiannualsUK => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
       }
     }
   }
