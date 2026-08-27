@@ -18,6 +18,7 @@ object Print2026C1GWQuarterliesUK extends MigrationType
 object Print2026C1NPAnnualsUK extends MigrationType
 object Print2026C1NPQuarterliesUK extends MigrationType
 object Print2026C1NPSemiannualsUK extends MigrationType
+object Print2026C2NPMonthliesUK extends MigrationType
 
 object MigrationType {
   def apply(cohortSpec: CohortSpec): MigrationType = cohortSpec.cohortName match {
@@ -38,5 +39,6 @@ object MigrationType {
     case "Print2026C1NPAnnualsUK"     => Print2026C1NPAnnualsUK
     case "Print2026C1NPQuarterliesUK" => Print2026C1NPQuarterliesUK
     case "Print2026C1NPSemiannualsUK" => Print2026C1NPSemiannualsUK
+    case "Print2026C2NPMonthliesUK"   => Print2026C2NPMonthliesUK
   }
 }

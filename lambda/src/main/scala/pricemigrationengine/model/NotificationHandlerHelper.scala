@@ -59,6 +59,7 @@ object NotificationHandlerHelper {
       case Print2026C1NPAnnualsUK     => true
       case Print2026C1NPQuarterliesUK => true
       case Print2026C1NPSemiannualsUK => true
+      case Print2026C2NPMonthliesUK   => true
     }
   }
 
@@ -200,6 +201,7 @@ object SubscriptionNotificationAnalyseResult {
         case Print2026C1NPAnnualsUK     => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Print2026C1NPQuarterliesUK => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Print2026C1NPSemiannualsUK => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Print2026C2NPMonthliesUK   => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
       }
     }
   }

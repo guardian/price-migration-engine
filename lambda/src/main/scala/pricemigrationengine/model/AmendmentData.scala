@@ -3,14 +3,15 @@ package pricemigrationengine.model
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
   GuardianWeekly2025Migration,
-  Print2026C1GWAnnualsUKMigration,
-  Print2026C1NPAnnualsUKMigration,
-  Print2026C1NPSemiannualsUKMigration,
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
+  Print2026C1GWAnnualsUKMigration,
   Print2026C1GWQuarterliesUKMigration,
+  Print2026C1NPAnnualsUKMigration,
   Print2026C1NPQuarterliesUKMigration,
+  Print2026C1NPSemiannualsUKMigration,
+  Print2026C2NPMonthliesUKMigration,
   ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
@@ -121,6 +122,7 @@ object AmendmentData {
         Print2026C1NPQuarterliesUKMigration.priceData(subscription, invoiceList, account)
       case Print2026C1NPSemiannualsUK =>
         Print2026C1NPSemiannualsUKMigration.priceData(subscription, invoiceList, account)
+      case Print2026C2NPMonthliesUK => Print2026C2NPMonthliesUKMigration.priceData(subscription, invoiceList, account)
     }
   }
 }

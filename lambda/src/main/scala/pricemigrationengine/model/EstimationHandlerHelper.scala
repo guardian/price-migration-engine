@@ -3,13 +3,14 @@ package pricemigrationengine.model
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
   GuardianWeekly2025Migration,
-  Print2026C1GWAnnualsUKMigration,
-  Print2026C1NPAnnualsUKMigration,
-  Print2026C1NPSemiannualsUKMigration,
   Membership2025Migration,
   Newspaper2025P1Migration,
+  Print2026C1GWAnnualsUKMigration,
   Print2026C1GWQuarterliesUKMigration,
+  Print2026C1NPAnnualsUKMigration,
   Print2026C1NPQuarterliesUKMigration,
+  Print2026C1NPSemiannualsUKMigration,
+  Print2026C2NPMonthliesUKMigration,
   ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
@@ -37,6 +38,7 @@ object EstimationHandlerHelper {
       case Print2026C1NPAnnualsUK     => Print2026C1NPAnnualsUKMigration.earliestAmendmentEffectiveDate
       case Print2026C1NPQuarterliesUK => Print2026C1NPQuarterliesUKMigration.earliestAmendmentEffectiveDate
       case Print2026C1NPSemiannualsUK => Print2026C1NPSemiannualsUKMigration.earliestAmendmentEffectiveDate
+      case Print2026C2NPMonthliesUK   => Print2026C2NPMonthliesUKMigration.earliestAmendmentEffectiveDate
     }
   }
 
@@ -60,6 +62,7 @@ object EstimationHandlerHelper {
       case Print2026C1NPAnnualsUK     => ???
       case Print2026C1NPQuarterliesUK => ???
       case Print2026C1NPSemiannualsUK => ???
+      case Print2026C2NPMonthliesUK   => ???
     }
   }
 
