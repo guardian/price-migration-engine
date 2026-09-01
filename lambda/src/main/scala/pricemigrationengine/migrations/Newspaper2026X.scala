@@ -49,6 +49,16 @@ object Newspaper2026X {
     (HomeDelivery, WeekendPlus) -> BigDecimal(221.94),
     (HomeDelivery, SaturdayPlus) -> BigDecimal(131.94),
   )
+  val priceGridNewPricesAnnuals: Map[(NxFullfilment, NxPackage), BigDecimal] = Map(
+    (VoucherCard, EverydayPlus) -> BigDecimal(875.88),
+    (VoucherCard, SixdayPlus) -> BigDecimal(779.88),
+    (VoucherCard, WeekendPlus) -> BigDecimal(359.88),
+    (VoucherCard, SaturdayPlus) -> BigDecimal(203.88),
+    (HomeDelivery, EverydayPlus) -> BigDecimal(1067.88),
+    (HomeDelivery, SixdayPlus) -> BigDecimal(935.88),
+    (HomeDelivery, WeekendPlus) -> BigDecimal(443.88),
+    (HomeDelivery, SaturdayPlus) -> BigDecimal(263.88),
+  )
 
   def getNewPrice(billingPeriod: BillingPeriod, fullfilment: NxFullfilment, pack: NxPackage): Option[BigDecimal] = {
     billingPeriod match {
