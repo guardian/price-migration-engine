@@ -28,11 +28,6 @@ object CurrencyAndLocalisation {
       invoiceList: ZuoraInvoiceList,
       account: ZuoraAccount
   ): Option[CurrencyAndLocalisation] = {
-
-    // If one day another migration needs the multiple currencies version of the definition,
-    // then we should update this one, but then we should probably update the signature of
-    // the function so that it returns a currency and the localization
-
     for {
       ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(
         subscription,
