@@ -13,9 +13,9 @@ import java.time.{Instant, LocalDate}
 
 class GuardianWeekly2026XTest extends munit.FunSuite {
   test("getNewPrice") {
-    assertEquals(GuardianWeekly2026X.getNewPrice(Monthly, "GBP", "UK"), Some(BigDecimal(17.50)))
-    assertEquals(GuardianWeekly2026X.getNewPrice(Monthly, "AUD", "AU"), Some(BigDecimal(48.00)))
-    assertEquals(GuardianWeekly2026X.getNewPrice(Quarterly, "USD", "ROW"), Some(BigDecimal(114)))
-    assertEquals(GuardianWeekly2026X.getNewPrice(Annual, "NZD", "NZ"), Some(BigDecimal(720)))
+    assertEquals(GuardianWeekly2026X.getNewPrice(Monthly, "GBP", Domestic), Some(BigDecimal(17.50)))
+    assertEquals(GuardianWeekly2026X.getNewPrice(Monthly, "AUD", Domestic), Some(BigDecimal(48.00)))
+    assertEquals(GuardianWeekly2026X.getNewPrice(Quarterly, "USD", RestOfWorld), Some(BigDecimal(114)))
+    assertEquals(GuardianWeekly2026X.getNewPrice(Annual, "NZD", Domestic), Some(BigDecimal(720)))
   }
 }

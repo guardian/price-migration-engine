@@ -9,44 +9,47 @@ import java.time.format.DateTimeFormatter
 
 object GuardianWeekly2026X {
   type Currency = String
-  type Region = String
 
-  val priceGridNewPricesMonthlies: Map[(Currency, Region), BigDecimal] = Map(
-    ("GBP", "UK") -> BigDecimal(17.50),
-    ("EURO", "EU") -> BigDecimal(30.50),
-    ("USD", "ROW") -> BigDecimal(38.00),
-    ("USD", "US") -> BigDecimal(33.00),
-    ("CAD", "CAN") -> BigDecimal(39.50),
-    ("AUD", "AU") -> BigDecimal(48.00),
-    ("NZD", "NZ") -> BigDecimal(60.00),
+  val priceGridNewPricesMonthlies: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
+    ("GBP", Domestic) -> BigDecimal(17.50),
+    ("EURO", Domestic) -> BigDecimal(30.50),
+    ("USD", RestOfWorld) -> BigDecimal(38.00),
+    ("USD", Domestic) -> BigDecimal(33.00),
+    ("CAD", Domestic) -> BigDecimal(39.50),
+    ("AUD", Domestic) -> BigDecimal(48.00),
+    ("NZD", Domestic) -> BigDecimal(60.00),
   )
 
-  val priceGridNewPricesQuarterlies: Map[(Currency, Region), BigDecimal] = Map(
-    ("GBP", "UK") -> BigDecimal(52),
-    ("EURO", "EU") -> BigDecimal(91.5),
-    ("USD", "ROW") -> BigDecimal(114),
-    ("USD", "US") -> BigDecimal(99),
-    ("CAD", "CAN") -> BigDecimal(118.5),
-    ("AUD", "AU") -> BigDecimal(144),
-    ("NZD", "NZ") -> BigDecimal(180),
+  val priceGridNewPricesQuarterlies: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
+    ("GBP", Domestic) -> BigDecimal(52),
+    ("EURO", Domestic) -> BigDecimal(91.5),
+    ("USD", RestOfWorld) -> BigDecimal(114),
+    ("USD", Domestic) -> BigDecimal(99),
+    ("CAD", Domestic) -> BigDecimal(118.5),
+    ("AUD", Domestic) -> BigDecimal(144),
+    ("NZD", Domestic) -> BigDecimal(180),
   )
 
-  val priceGridNewPricesAnnuals: Map[(Currency, Region), BigDecimal] = Map(
-    ("GBP", "UK") -> BigDecimal(208),
-    ("EURO", "EU") -> BigDecimal(366),
-    ("USD", "ROW") -> BigDecimal(456),
-    ("USD", "US") -> BigDecimal(396),
-    ("CAD", "CAN") -> BigDecimal(474.0),
-    ("AUD", "AU") -> BigDecimal(576),
-    ("NZD", "NZ") -> BigDecimal(720),
+  val priceGridNewPricesAnnuals: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
+    ("GBP", Domestic) -> BigDecimal(208),
+    ("EURO", Domestic) -> BigDecimal(366),
+    ("USD", RestOfWorld) -> BigDecimal(456),
+    ("USD", Domestic) -> BigDecimal(396),
+    ("CAD", Domestic) -> BigDecimal(474.0),
+    ("AUD", Domestic) -> BigDecimal(576),
+    ("NZD", Domestic) -> BigDecimal(720),
   )
 
-  def getNewPrice(billingPeriod: BillingPeriod, currency: Currency, region: Region): Option[BigDecimal] = {
+  def getNewPrice(
+      billingPeriod: BillingPeriod,
+      currency: Currency,
+      localisation: SubscriptionLocalisation
+  ): Option[BigDecimal] = {
     billingPeriod match {
-      case Monthly    => priceGridNewPricesMonthlies.get(currency, region)
-      case Quarterly  => priceGridNewPricesQuarterlies.get(currency, region)
+      case Monthly    => priceGridNewPricesMonthlies.get(currency, localisation)
+      case Quarterly  => priceGridNewPricesQuarterlies.get(currency, localisation)
       case SemiAnnual => None
-      case Annual     => priceGridNewPricesAnnuals.get(currency, region)
+      case Annual     => priceGridNewPricesAnnuals.get(currency, localisation)
     }
   }
 }
