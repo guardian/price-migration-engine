@@ -70,18 +70,18 @@ object EstimationHandlerHelper {
       case SupporterPlus2026N3                        => None
       case SupporterPlus2026N4                        => None
       case SupporterPlus2026N5                        => None
-      case Print2026C1GWAnnualsUK                     => ???
-      case Print2026C1GWQuarterliesUK                 => ???
-      case Print2026C1NPAnnualsUK                     => ???
-      case Print2026C1NPQuarterliesUK                 => ???
-      case Print2026C1NPSemiannualsUK                 => ???
-      case Print2026C2NPMonthliesUK                   => ???
-      case Print2026C3GWMonthliesUK                   => ???
-      case Print2026C3NPMonthliesUK                   => ???
-      case Print2026C4NPMonthliesUK                   => ???
-      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => ???
-      case Print2026C5NPNoEmailsUK                    => ???
-      case Print2026C6GWQuarterliesNonUK              => ???
+      case Print2026C1GWAnnualsUK                     => None
+      case Print2026C1GWQuarterliesUK                 => None
+      case Print2026C1NPAnnualsUK                     => Some(1.071)
+      case Print2026C1NPQuarterliesUK                 => Some(1.071)
+      case Print2026C1NPSemiannualsUK                 => Some(1.071)
+      case Print2026C2NPMonthliesUK                   => Some(1.071)
+      case Print2026C3GWMonthliesUK                   => None
+      case Print2026C3NPMonthliesUK                   => Some(1.071)
+      case Print2026C4NPMonthliesUK                   => Some(1.071)
+      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => None
+      case Print2026C5NPNoEmailsUK                    => Some(1.071)
+      case Print2026C6GWQuarterliesNonUK              => None
     }
   }
 
