@@ -109,7 +109,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
       Fixtures.invoiceListFromJson(
         "Migrations/GuardianWeekly2025/SubscriptionLocalisation/subscription3/invoice-preview.json"
       )
-    val localization = GuardianWeekly2025Migration.determineSubscriptionLocalisation(
+    val localization = SubscriptionLocalisation.determineSubscriptionLocalisation(
       subscription,
       invoicePreview,
       account
