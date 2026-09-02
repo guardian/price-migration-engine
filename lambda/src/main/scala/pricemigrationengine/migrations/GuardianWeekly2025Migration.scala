@@ -185,14 +185,14 @@ object GuardianWeekly2025Migration {
         .determineCurrency(ratePlan)
         .map(logValue("currency"))
       oldPrice = logValue("oldPrice")(SI2025Extractions.determineOldPrice(ratePlan))
-      localisation <- SubscriptionLocalisation
-        .determineSubscriptionLocalisation(subscription, invoiceList, account)
-        .map(logValue("localisation"))
+      currencyAndLocalisation <- CurrencyAndLocalisation
+        .determineSubscriptionCurrencyAndLocalisation(subscription, invoiceList, account)
+        .map(logValue("currency and localisation"))
       billingPeriod <- SI2025Extractions
         .determineBillingPeriod(ratePlan)
         .map(logValue("billingPeriod"))
       newPrice <- priceLookUp(
-        localisation,
+        currencyAndLocalisation.localisation,
         billingPeriod: BillingPeriod,
         currency: String
       ).map(logValue("newPrice"))

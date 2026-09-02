@@ -17,20 +17,20 @@ import pricemigrationengine.Fixtures
 // val account = Fixtures.accountFromJson("model/SubscriptionLocalisation/subscription3/account.json")
 // val invoicePreview = Fixtures.invoiceListFromJson("model/SubscriptionLocalisation/subscription3/invoice-preview.json")
 
-class SubscriptionLocalisationTest extends munit.FunSuite {
+class CurrencyAndLocalisationTest extends munit.FunSuite {
   test("determineSubscriptionLocalisation (1): Domestic") {
     val subscription =
       Fixtures.subscriptionFromJson("model/SubscriptionLocalisation/subscription1/subscription.json")
     val account = Fixtures.accountFromJson("model/SubscriptionLocalisation/subscription1/account.json")
     val invoicePreview =
       Fixtures.invoiceListFromJson("model/SubscriptionLocalisation/subscription1/invoice-preview.json")
-    val localization = SubscriptionLocalisation.determineSubscriptionLocalisation(
+    val localization = CurrencyAndLocalisation.determineSubscriptionCurrencyAndLocalisation(
       subscription,
       invoicePreview,
       account
     )
     // In this case, we have a USD subscription in the US, so we get Domestic
-    assertEquals(localization, Some(Domestic))
+    assertEquals(localization, Some(CurrencyAndLocalisation("USD", Domestic)))
   }
 
   test("determineSubscriptionLocalisation (2): ROW (USD Variant, France address)") {
@@ -39,7 +39,7 @@ class SubscriptionLocalisationTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("model/SubscriptionLocalisation/subscription2/account.json")
     val invoicePreview =
       Fixtures.invoiceListFromJson("model/SubscriptionLocalisation/subscription2/invoice-preview.json")
-    val localization = SubscriptionLocalisation.determineSubscriptionLocalisation(
+    val localization = CurrencyAndLocalisation.determineSubscriptionCurrencyAndLocalisation(
       subscription,
       invoicePreview,
       account
@@ -49,6 +49,6 @@ class SubscriptionLocalisationTest extends munit.FunSuite {
     assertEquals(account.soldToContact.country, "France")
 
     // ROW (USD Variant, France address)
-    assertEquals(localization, Some(RestOfWorld))
+    assertEquals(localization, Some(CurrencyAndLocalisation("USD", RestOfWorld)))
   }
 }
