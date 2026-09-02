@@ -20,12 +20,14 @@ sealed trait SubscriptionLocalisation
 object Domestic extends SubscriptionLocalisation
 object RestOfWorld extends SubscriptionLocalisation
 
-object SubscriptionLocalisation {
-  def determineSubscriptionLocalisation(
+case class CurrencyAndLocalisation(currency: String, localisation: SubscriptionLocalisation)
+
+object CurrencyAndLocalisation {
+  def determineSubscriptionCurrencyAndLocalisation(
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       account: ZuoraAccount
-  ): Option[SubscriptionLocalisation] = {
+  ): Option[CurrencyAndLocalisation] = {
 
     // If one day another migration needs the multiple currencies version of the definition,
     // then we should update this one, but then we should probably update the signature of
@@ -42,9 +44,9 @@ object SubscriptionLocalisation {
       val isROWUSD = currency == "USD" && country != "United States"
       val isROWGBP = currency == "GBP" && country != "United Kingdom"
       if (isROWUSD || isROWGBP) {
-        RestOfWorld
+        CurrencyAndLocalisation(currency, RestOfWorld)
       } else {
-        Domestic
+        CurrencyAndLocalisation(currency, Domestic)
       }
     }
   }
