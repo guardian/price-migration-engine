@@ -12,52 +12,56 @@ object VoucherCard extends NxFullfilment
 object HomeDelivery extends NxFullfilment
 
 sealed trait NxPackage
-object EverydayPlus extends NxPackage
-object SixdayPlus extends NxPackage
-object WeekendPlus extends NxPackage
-object SaturdayPlus extends NxPackage
+// The strange naming for the packages (rate plans) is because we are treating
+// the `+` and `non +` rate plans the same.
+// For instance (Monthly, VoucherCard, Everyday) and (Monthly, VoucherCard, Everyday+)
+// both map to 72.99
+object EverydayBasicAndPlus extends NxPackage
+object SixdayBasicAndPlus extends NxPackage
+object WeekendBasicAndPlus extends NxPackage
+object SaturdayBasicAndPlus extends NxPackage
 
 object Newspaper2026X {
 
   val priceGridNewPricesMonthlies: Map[(NxFullfilment, NxPackage), BigDecimal] = Map(
-    (VoucherCard, EverydayPlus) -> BigDecimal(72.99),
-    (VoucherCard, SixdayPlus) -> BigDecimal(64.99),
-    (VoucherCard, WeekendPlus) -> BigDecimal(29.99),
-    (VoucherCard, SaturdayPlus) -> BigDecimal(16.99),
-    (HomeDelivery, EverydayPlus) -> BigDecimal(88.99),
-    (HomeDelivery, SixdayPlus) -> BigDecimal(77.99),
-    (HomeDelivery, WeekendPlus) -> BigDecimal(36.99),
-    (HomeDelivery, SaturdayPlus) -> BigDecimal(21.99),
+    (VoucherCard, EverydayBasicAndPlus) -> BigDecimal(72.99),
+    (VoucherCard, SixdayBasicAndPlus) -> BigDecimal(64.99),
+    (VoucherCard, WeekendBasicAndPlus) -> BigDecimal(29.99),
+    (VoucherCard, SaturdayBasicAndPlus) -> BigDecimal(16.99),
+    (HomeDelivery, EverydayBasicAndPlus) -> BigDecimal(88.99),
+    (HomeDelivery, SixdayBasicAndPlus) -> BigDecimal(77.99),
+    (HomeDelivery, WeekendBasicAndPlus) -> BigDecimal(36.99),
+    (HomeDelivery, SaturdayBasicAndPlus) -> BigDecimal(21.99),
   )
   val priceGridNewPricesQuarterlies: Map[(NxFullfilment, NxPackage), BigDecimal] = Map(
-    (VoucherCard, EverydayPlus) -> BigDecimal(218.97),
-    (VoucherCard, SixdayPlus) -> BigDecimal(194.97),
-    (VoucherCard, WeekendPlus) -> BigDecimal(89.97),
-    (VoucherCard, SaturdayPlus) -> BigDecimal(50.97),
-    (HomeDelivery, EverydayPlus) -> BigDecimal(266.97),
-    (HomeDelivery, SixdayPlus) -> BigDecimal(233.97),
-    (HomeDelivery, WeekendPlus) -> BigDecimal(110.97),
-    (HomeDelivery, SaturdayPlus) -> BigDecimal(65.97),
+    (VoucherCard, EverydayBasicAndPlus) -> BigDecimal(218.97),
+    (VoucherCard, SixdayBasicAndPlus) -> BigDecimal(194.97),
+    (VoucherCard, WeekendBasicAndPlus) -> BigDecimal(89.97),
+    (VoucherCard, SaturdayBasicAndPlus) -> BigDecimal(50.97),
+    (HomeDelivery, EverydayBasicAndPlus) -> BigDecimal(266.97),
+    (HomeDelivery, SixdayBasicAndPlus) -> BigDecimal(233.97),
+    (HomeDelivery, WeekendBasicAndPlus) -> BigDecimal(110.97),
+    (HomeDelivery, SaturdayBasicAndPlus) -> BigDecimal(65.97),
   )
   val priceGridNewPricesSemiannuals: Map[(NxFullfilment, NxPackage), BigDecimal] = Map(
-    (VoucherCard, EverydayPlus) -> BigDecimal(437.94),
-    (VoucherCard, SixdayPlus) -> BigDecimal(389.94),
-    (VoucherCard, WeekendPlus) -> BigDecimal(179.9),
-    (VoucherCard, SaturdayPlus) -> BigDecimal(101.94),
-    (HomeDelivery, EverydayPlus) -> BigDecimal(533.94),
-    (HomeDelivery, SixdayPlus) -> BigDecimal(467.94),
-    (HomeDelivery, WeekendPlus) -> BigDecimal(221.94),
-    (HomeDelivery, SaturdayPlus) -> BigDecimal(131.94),
+    (VoucherCard, EverydayBasicAndPlus) -> BigDecimal(437.94),
+    (VoucherCard, SixdayBasicAndPlus) -> BigDecimal(389.94),
+    (VoucherCard, WeekendBasicAndPlus) -> BigDecimal(179.9),
+    (VoucherCard, SaturdayBasicAndPlus) -> BigDecimal(101.94),
+    (HomeDelivery, EverydayBasicAndPlus) -> BigDecimal(533.94),
+    (HomeDelivery, SixdayBasicAndPlus) -> BigDecimal(467.94),
+    (HomeDelivery, WeekendBasicAndPlus) -> BigDecimal(221.94),
+    (HomeDelivery, SaturdayBasicAndPlus) -> BigDecimal(131.94),
   )
   val priceGridNewPricesAnnuals: Map[(NxFullfilment, NxPackage), BigDecimal] = Map(
-    (VoucherCard, EverydayPlus) -> BigDecimal(875.88),
-    (VoucherCard, SixdayPlus) -> BigDecimal(779.88),
-    (VoucherCard, WeekendPlus) -> BigDecimal(359.88),
-    (VoucherCard, SaturdayPlus) -> BigDecimal(203.88),
-    (HomeDelivery, EverydayPlus) -> BigDecimal(1067.88),
-    (HomeDelivery, SixdayPlus) -> BigDecimal(935.88),
-    (HomeDelivery, WeekendPlus) -> BigDecimal(443.88),
-    (HomeDelivery, SaturdayPlus) -> BigDecimal(263.88),
+    (VoucherCard, EverydayBasicAndPlus) -> BigDecimal(875.88),
+    (VoucherCard, SixdayBasicAndPlus) -> BigDecimal(779.88),
+    (VoucherCard, WeekendBasicAndPlus) -> BigDecimal(359.88),
+    (VoucherCard, SaturdayBasicAndPlus) -> BigDecimal(203.88),
+    (HomeDelivery, EverydayBasicAndPlus) -> BigDecimal(1067.88),
+    (HomeDelivery, SixdayBasicAndPlus) -> BigDecimal(935.88),
+    (HomeDelivery, WeekendBasicAndPlus) -> BigDecimal(443.88),
+    (HomeDelivery, SaturdayBasicAndPlus) -> BigDecimal(263.88),
   )
 
   def getNewPrice(billingPeriod: BillingPeriod, fullfilment: NxFullfilment, pack: NxPackage): Option[BigDecimal] = {
