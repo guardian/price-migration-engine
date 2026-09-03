@@ -52,4 +52,21 @@ object GuardianWeekly2026X {
       case Annual     => priceGridNewPricesAnnuals.get(currency, localisation)
     }
   }
+
+  def getNewPrice(
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      account: ZuoraAccount
+  ): Option[BigDecimal] = {
+    for {
+      currencyAndLocalisation <- CurrencyAndLocalisation.determineSubscriptionCurrencyAndLocalisation(
+        subscription,
+        invoiceList,
+        account
+      )
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
+      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
+      newPrice <- getNewPrice(billingPeriod, currencyAndLocalisation.currency, currencyAndLocalisation.localisation)
+    } yield newPrice
+  }
 }
