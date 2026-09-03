@@ -66,12 +66,12 @@ object NotificationHandler extends CohortHandler {
         cohortSpec.subscriptionNumber match {
           case None =>
             CohortTable
-              .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+              .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(notificationLeadTime(cohortSpec))))
               .filter(item => Dispatch.belongs(cohortSpec, item))
               .take(batchSize)
           case Some(subscriptionNumber) =>
             CohortTable
-              .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+              .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(notificationLeadTime(cohortSpec))))
               .filter(item => item.subscriptionName == subscriptionNumber)
         }
       ).mapZIO { item => processCohortItem(cohortSpec, item, today) }.runCount
@@ -341,68 +341,33 @@ object NotificationHandler extends CohortHandler {
 
   // For general information about the notification period see the docs/notification-periods.md
 
-  // The standard notification period for letter products (where the notification is delivered by email)
-  // is -49 (included) to -35 (excluded) days. Legally the min is 30 days, but we set 35 days to alert if a
-  // subscription if exiting the notification window and needs to be investigated and repaired before the deadline
-  // of 30 days.
-
-  // The digital migrations' notification window is from -33 (included) to -31 (excluded)
-
-  def maxLeadTime(cohortSpec: CohortSpec): Int = {
+  def notificationLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
       case Test1                                      => 35
-      case GuardianWeekly2025                         => GuardianWeekly2025Migration.maxLeadTime
-      case Newspaper2025P1                            => Newspaper2025P1Migration.maxLeadTime
-      case Newspaper2025P3                            => Newspaper2025P3Migration.maxLeadTime
-      case ProductMigration2025N4                     => ProductMigration2025N4Migration.maxLeadTime
-      case Membership2025                             => Membership2025Migration.maxLeadTime
-      case DigiSubs2025                               => DigiSubs2025Migration.maxLeadTime
-      case SupporterPlus2026                          => SupporterPlus2026Migration.maxLeadTime
-      case SupporterPlus2026N2                        => SupporterPlus2026Migration.maxLeadTime
-      case SupporterPlus2026N3                        => SupporterPlus2026Migration.maxLeadTime
-      case SupporterPlus2026N4                        => SupporterPlus2026Migration.maxLeadTime
-      case SupporterPlus2026N5                        => SupporterPlus2026Migration.maxLeadTime
-      case Print2026C1GWAnnualsUK                     => Print2026C1GWAnnualsUKMigration.maxLeadTime
-      case Print2026C1GWQuarterliesUK                 => Print2026C1GWQuarterliesUKMigration.maxLeadTime
-      case Print2026C1NPAnnualsUK                     => Print2026C1NPAnnualsUKMigration.maxLeadTime
-      case Print2026C1NPQuarterliesUK                 => Print2026C1NPQuarterliesUKMigration.maxLeadTime
-      case Print2026C1NPSemiannualsUK                 => Print2026C1NPSemiannualsUKMigration.maxLeadTime
-      case Print2026C2NPMonthliesUK                   => Print2026C2NPMonthliesUKMigration.maxLeadTime
-      case Print2026C3GWMonthliesUK                   => Print2026C3GWMonthliesUKMigration.maxLeadTime
-      case Print2026C3NPMonthliesUK                   => Print2026C3NPMonthliesUKMigration.maxLeadTime
-      case Print2026C4NPMonthliesUK                   => Print2026C4NPMonthliesUKMigration.maxLeadTime
-      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration.maxLeadTime
-      case Print2026C5NPNoEmailsUK                    => Print2026C5NPNoEmailsUKMigration.maxLeadTime
-      case Print2026C6GWQuarterliesNonUK              => Print2026C6GWQuarterliesNonUKMigration.maxLeadTime
-    }
-  }
-
-  def minLeadTime(cohortSpec: CohortSpec): Int = {
-    MigrationType(cohortSpec) match {
-      case Test1                                      => 33
-      case GuardianWeekly2025                         => GuardianWeekly2025Migration.minLeadTime
-      case Newspaper2025P1                            => Newspaper2025P1Migration.minLeadTime
-      case Newspaper2025P3                            => Newspaper2025P3Migration.minLeadTime
-      case ProductMigration2025N4                     => ProductMigration2025N4Migration.minLeadTime
-      case Membership2025                             => Membership2025Migration.minLeadTime
-      case DigiSubs2025                               => DigiSubs2025Migration.minLeadTime
-      case SupporterPlus2026                          => SupporterPlus2026Migration.minLeadTime
-      case SupporterPlus2026N2                        => SupporterPlus2026Migration.minLeadTime
-      case SupporterPlus2026N3                        => SupporterPlus2026Migration.minLeadTime
-      case SupporterPlus2026N4                        => SupporterPlus2026Migration.minLeadTime
-      case SupporterPlus2026N5                        => SupporterPlus2026Migration.minLeadTime
-      case Print2026C1GWAnnualsUK                     => Print2026C1GWAnnualsUKMigration.minLeadTime
-      case Print2026C1GWQuarterliesUK                 => Print2026C1GWQuarterliesUKMigration.minLeadTime
-      case Print2026C1NPAnnualsUK                     => Print2026C1NPAnnualsUKMigration.minLeadTime
-      case Print2026C1NPQuarterliesUK                 => Print2026C1NPQuarterliesUKMigration.minLeadTime
-      case Print2026C1NPSemiannualsUK                 => Print2026C1NPSemiannualsUKMigration.minLeadTime
-      case Print2026C2NPMonthliesUK                   => Print2026C2NPMonthliesUKMigration.minLeadTime
-      case Print2026C3GWMonthliesUK                   => Print2026C3GWMonthliesUKMigration.minLeadTime
-      case Print2026C3NPMonthliesUK                   => Print2026C3NPMonthliesUKMigration.minLeadTime
-      case Print2026C4NPMonthliesUK                   => Print2026C4NPMonthliesUKMigration.minLeadTime
-      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration.minLeadTime
-      case Print2026C5NPNoEmailsUK                    => Print2026C5NPNoEmailsUKMigration.minLeadTime
-      case Print2026C6GWQuarterliesNonUK              => Print2026C6GWQuarterliesNonUKMigration.minLeadTime
+      case GuardianWeekly2025                         => GuardianWeekly2025Migration.notificationLeadTime
+      case Newspaper2025P1                            => Newspaper2025P1Migration.notificationLeadTime
+      case Newspaper2025P3                            => Newspaper2025P3Migration.notificationLeadTime
+      case ProductMigration2025N4                     => ProductMigration2025N4Migration.notificationLeadTime
+      case Membership2025                             => Membership2025Migration.notificationLeadTime
+      case DigiSubs2025                               => DigiSubs2025Migration.notificationLeadTime
+      case SupporterPlus2026                          => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N2                        => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N3                        => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N4                        => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N5                        => SupporterPlus2026Migration.notificationLeadTime
+      case Print2026C1GWAnnualsUK                     => Print2026C1GWAnnualsUKMigration.notificationLeadTime
+      case Print2026C1GWQuarterliesUK                 => Print2026C1GWQuarterliesUKMigration.notificationLeadTime
+      case Print2026C1NPAnnualsUK                     => Print2026C1NPAnnualsUKMigration.notificationLeadTime
+      case Print2026C1NPQuarterliesUK                 => Print2026C1NPQuarterliesUKMigration.notificationLeadTime
+      case Print2026C1NPSemiannualsUK                 => Print2026C1NPSemiannualsUKMigration.notificationLeadTime
+      case Print2026C2NPMonthliesUK                   => Print2026C2NPMonthliesUKMigration.notificationLeadTime
+      case Print2026C3GWMonthliesUK                   => Print2026C3GWMonthliesUKMigration.notificationLeadTime
+      case Print2026C3NPMonthliesUK                   => Print2026C3NPMonthliesUKMigration.notificationLeadTime
+      case Print2026C4NPMonthliesUK                   => Print2026C4NPMonthliesUKMigration.notificationLeadTime
+      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK =>
+        Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration.notificationLeadTime
+      case Print2026C5NPNoEmailsUK       => Print2026C5NPNoEmailsUKMigration.notificationLeadTime
+      case Print2026C6GWQuarterliesNonUK => Print2026C6GWQuarterliesNonUKMigration.notificationLeadTime
     }
   }
 

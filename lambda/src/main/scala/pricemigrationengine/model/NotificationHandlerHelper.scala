@@ -1,11 +1,13 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.handlers.NotificationHandler.minLeadTime
-
 import java.time.LocalDate
 import pricemigrationengine.model.membershipworkflow.EmailMessage
 
 object NotificationHandlerHelper {
+
+  // We end the notification window 30 days before the amendment date
+  // This is a legal requirement
+  val endOfNotificationWindow = 30
 
   def isNonTrivialValue(value: Option[String]): Boolean = {
     value.isDefined && value.get.nonEmpty
@@ -84,7 +86,7 @@ object NotificationHandlerHelper {
       true
     } else {
       cohortItem.amendmentEffectiveDate match {
-        case Some(sd) => today.plusDays(minLeadTime(cohortSpec)).isBefore(sd)
+        case Some(sd) => today.plusDays(endOfNotificationWindow).isBefore(sd)
         case _        => false
       }
     }
@@ -160,10 +162,7 @@ object SubscriptionNotificationAnalyseResult {
   ): Option[SubscriptionNotificationAnalyseResult] = {
     if (subscription.status == "Cancelled") {
       Some(SNARCancelledInZuora)
-    } else if (
-      !cohortSpec.forceNotifications
-        .contains(true) && !NotificationHandlerHelper.thereIsEnoughNotificationLeadTime(cohortSpec, date, cohortItem)
-    ) {
+    } else if (!NotificationHandlerHelper.thereIsEnoughNotificationLeadTime(cohortSpec, date, cohortItem)) {
       Some(SNARMissingNotificationWindow)
     } else {
       MigrationType(cohortSpec) match {

@@ -15,8 +15,7 @@ object Print2026C3NPMonthliesUKMigration {
   // Notification Timings
   // ------------------------------------------------
 
-  val maxLeadTime = 49
-  val minLeadTime = 36
+  val notificationLeadTime = 49
 
   // ------------------------------------------------
   // Primary Functions:

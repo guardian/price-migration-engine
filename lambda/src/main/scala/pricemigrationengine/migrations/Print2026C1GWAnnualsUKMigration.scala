@@ -16,8 +16,7 @@ object Print2026C1GWAnnualsUKMigration {
   // Notification Timings
   // ------------------------------------------------
 
-  val maxLeadTime = 35
-  val minLeadTime = 33
+  val notificationLeadTime = 35
 
   // ------------------------------------------------
   // Primary Functions:
