@@ -9,14 +9,15 @@ import java.time.format.DateTimeFormatter
 
 object Print2026C1GWAnnualsUKMigration {
 
-  val earliestAmendmentEffectiveDate = ???
+  // start of notifications: 14 September 2026
+  val earliestAmendmentEffectiveDate = LocalDate.of(2026, 10, 19)
 
   // ------------------------------------------------
   // Notification Timings
   // ------------------------------------------------
 
-  val maxLeadTime = 49
-  val minLeadTime = 36
+  val maxLeadTime = 35
+  val minLeadTime = 33
 
   // ------------------------------------------------
   // Primary Functions:
