@@ -20,28 +20,14 @@ sealed trait SubscriptionLocalisation
 object Domestic extends SubscriptionLocalisation
 object RestOfWorld extends SubscriptionLocalisation
 
-object SubscriptionLocalisation {
-  def determineSubscriptionLocalisation(
+case class CurrencyAndLocalisation(currency: String, localisation: SubscriptionLocalisation)
+
+object CurrencyAndLocalisation {
+  def determineSubscriptionCurrencyAndLocalisation(
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       account: ZuoraAccount
-  ): Option[SubscriptionLocalisation] = {
-
-    // Date: October 2025
-    // Author: Pascal
-
-    // This currently implement a restrictive definition of ROW.
-    // See [What does ROW (Rest of World) means](docs/ROW-definition.md)
-    // for the full definition
-
-    // Note that GW2025 was actually using a much better definition (one covering USD and GBP)
-    // which has been moved to the GW2025 own's code
-    // here: https://github.com/guardian/price-migration-engine/pull/1275
-
-    // If one day another migration needs the multiple currencies version of the definition,
-    // then we should update this one, but then we should probably update the signature of
-    // the function so that it returns a currency and the localization
-
+  ): Option[CurrencyAndLocalisation] = {
     for {
       ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(
         subscription,
@@ -49,10 +35,13 @@ object SubscriptionLocalisation {
       )
       currency <- SI2025Extractions.determineCurrency(ratePlan)
     } yield {
-      if (currency == "USD" && account.soldToContact.country != "United States") {
-        RestOfWorld
+      val country = account.soldToContact.country
+      val isROWUSD = currency == "USD" && country != "United States"
+      val isROWGBP = currency == "GBP" && country != "United Kingdom"
+      if (isROWUSD || isROWGBP) {
+        CurrencyAndLocalisation(currency, RestOfWorld)
       } else {
-        Domestic
+        CurrencyAndLocalisation(currency, Domestic)
       }
     }
   }

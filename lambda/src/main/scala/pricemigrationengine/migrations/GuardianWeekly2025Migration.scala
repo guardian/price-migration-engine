@@ -156,29 +156,6 @@ object GuardianWeekly2025Migration {
     } yield date
   }
 
-  def determineSubscriptionLocalisation(
-      subscription: ZuoraSubscription,
-      invoiceList: ZuoraInvoiceList,
-      account: ZuoraAccount
-  ): Option[SubscriptionLocalisation] = {
-    for {
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(
-        subscription,
-        invoiceList
-      )
-      currency <- SI2025Extractions.determineCurrency(ratePlan)
-    } yield {
-      val country = account.soldToContact.country
-      val isROWUSD = currency == "USD" && country != "United States"
-      val isROWGBP = currency == "GBP" && country != "United Kingdom"
-      if (isROWUSD || isROWGBP) {
-        RestOfWorld
-      } else {
-        Domestic
-      }
-    }
-  }
-
   // ------------------------------------------------
   // Primary Functions:
   //
@@ -208,13 +185,14 @@ object GuardianWeekly2025Migration {
         .determineCurrency(ratePlan)
         .map(logValue("currency"))
       oldPrice = logValue("oldPrice")(SI2025Extractions.determineOldPrice(ratePlan))
-      localisation <- determineSubscriptionLocalisation(subscription, invoiceList, account)
-        .map(logValue("localisation"))
+      currencyAndLocalisation <- CurrencyAndLocalisation
+        .determineSubscriptionCurrencyAndLocalisation(subscription, invoiceList, account)
+        .map(logValue("currency and localisation"))
       billingPeriod <- SI2025Extractions
         .determineBillingPeriod(ratePlan)
         .map(logValue("billingPeriod"))
       newPrice <- priceLookUp(
-        localisation,
+        currencyAndLocalisation.localisation,
         billingPeriod: BillingPeriod,
         currency: String
       ).map(logValue("newPrice"))

@@ -109,7 +109,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
       Fixtures.invoiceListFromJson(
         "Migrations/GuardianWeekly2025/SubscriptionLocalisation/subscription3/invoice-preview.json"
       )
-    val localization = GuardianWeekly2025Migration.determineSubscriptionLocalisation(
+    val currencyAndLocalization = CurrencyAndLocalisation.determineSubscriptionCurrencyAndLocalisation(
       subscription,
       invoicePreview,
       account
@@ -119,7 +119,7 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     assertEquals(account.soldToContact.country, "France")
 
     // ROW (GBP Variant, France address)
-    assertEquals(localization, Some(RestOfWorld))
+    assertEquals(currencyAndLocalization, Some(CurrencyAndLocalisation("GBP", RestOfWorld)))
   }
 
   test("GuardianWeekly2025Migration.priceLookUp") {
