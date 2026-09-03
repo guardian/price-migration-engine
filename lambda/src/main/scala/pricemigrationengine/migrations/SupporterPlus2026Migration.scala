@@ -23,7 +23,7 @@ object SupporterPlus2026Migration {
   // Notification Timings
   // ------------------------------------------------
 
-  val maxLeadTime = 35
+  val notificationLeadTime = 35
 
   // ------------------------------------------------
   // Price Grid

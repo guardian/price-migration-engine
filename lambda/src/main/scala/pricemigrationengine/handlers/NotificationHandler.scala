@@ -53,12 +53,12 @@ object NotificationHandler extends CohortHandler {
         cohortSpec.subscriptionNumber match {
           case None =>
             CohortTable
-              .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+              .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(notificationLeadTime(cohortSpec))))
               .filter(item => Dispatch.belongs(cohortSpec, item))
               .take(batchSize)
           case Some(subscriptionNumber) =>
             CohortTable
-              .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+              .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(notificationLeadTime(cohortSpec))))
               .filter(item => item.subscriptionName == subscriptionNumber)
         }
       ).mapZIO { item => processCohortItem(cohortSpec, item, today) }.runCount
@@ -306,27 +306,20 @@ object NotificationHandler extends CohortHandler {
 
   // For general information about the notification period see the docs/notification-periods.md
 
-  // The standard notification period for letter products (where the notification is delivered by email)
-  // is -49 (included) to -35 (excluded) days. Legally the min is 30 days, but we set 35 days to alert if a
-  // subscription if exiting the notification window and needs to be investigated and repaired before the deadline
-  // of 30 days.
-
-  // The digital migrations' notification window is from -33 (included) to -31 (excluded)
-
-  def maxLeadTime(cohortSpec: CohortSpec): Int = {
+  def notificationLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
       case Test1                  => 35
-      case GuardianWeekly2025     => GuardianWeekly2025Migration.maxLeadTime
-      case Newspaper2025P1        => Newspaper2025P1Migration.maxLeadTime
-      case Newspaper2025P3        => Newspaper2025P3Migration.maxLeadTime
-      case ProductMigration2025N4 => ProductMigration2025N4Migration.maxLeadTime
-      case Membership2025         => Membership2025Migration.maxLeadTime
-      case DigiSubs2025           => DigiSubs2025Migration.maxLeadTime
-      case SupporterPlus2026      => SupporterPlus2026Migration.maxLeadTime
-      case SupporterPlus2026N2    => SupporterPlus2026Migration.maxLeadTime
-      case SupporterPlus2026N3    => SupporterPlus2026Migration.maxLeadTime
-      case SupporterPlus2026N4    => SupporterPlus2026Migration.maxLeadTime
-      case SupporterPlus2026N5    => SupporterPlus2026Migration.maxLeadTime
+      case GuardianWeekly2025     => GuardianWeekly2025Migration.notificationLeadTime
+      case Newspaper2025P1        => Newspaper2025P1Migration.notificationLeadTime
+      case Newspaper2025P3        => Newspaper2025P3Migration.notificationLeadTime
+      case ProductMigration2025N4 => ProductMigration2025N4Migration.notificationLeadTime
+      case Membership2025         => Membership2025Migration.notificationLeadTime
+      case DigiSubs2025           => DigiSubs2025Migration.notificationLeadTime
+      case SupporterPlus2026      => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N2    => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N3    => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N4    => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N5    => SupporterPlus2026Migration.notificationLeadTime
     }
   }
 
