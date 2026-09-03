@@ -76,4 +76,37 @@ class Newspaper2026XTest extends munit.FunSuite {
       Some(SixdayBasicAndPlus)
     )
   }
+  // -----------
+  test("decideBrandTitle") {
+    // sub1: "Newspaper Voucher"          "Everyday+"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub1/subscription.json")
+    assertEquals(
+      Newspaper2026X.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
+      Some("the Guardian and the Observer")
+    )
+  }
+  test("decideBrandTitle") {
+    // sub4: "Newspaper Voucher"          "Sixday+"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub4/subscription.json")
+    assertEquals(
+      Newspaper2026X.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
+      Some("the Guardian")
+    )
+  }
+  test("decideBrandTitle") {
+    // sub6: "Newspaper Voucher"          "Everyday"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub6/subscription.json")
+    assertEquals(
+      Newspaper2026X.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
+      Some("the Guardian and the Observer")
+    )
+  }
+  test("decideBrandTitle") {
+    // sub7: "Newspaper Voucher"          "Sixday"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub7/subscription.json")
+    assertEquals(
+      Newspaper2026X.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
+      Some("the Guardian")
+    )
+  }
 }

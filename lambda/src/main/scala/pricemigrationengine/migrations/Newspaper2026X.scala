@@ -118,4 +118,17 @@ object Newspaper2026X {
       pack <- ratePlanNameToPackage(ratePlan.ratePlanName)
     } yield pack
   }
+
+  def decideBrandTitle(subscription: ZuoraSubscription, today: LocalDate): Option[String] = {
+    for {
+      pack <- decidePackage(subscription, today)
+    } yield {
+      pack match {
+        case EverydayBasicAndPlus => "the Guardian and the Observer"
+        case SixdayBasicAndPlus   => "the Guardian"
+        case WeekendBasicAndPlus  => "the Guardian and the Observer"
+        case SaturdayBasicAndPlus => "the Guardian"
+      }
+    }
+  }
 }
