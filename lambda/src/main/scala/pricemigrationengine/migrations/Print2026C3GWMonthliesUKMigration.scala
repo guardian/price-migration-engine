@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter
 
 object Print2026C3GWMonthliesUKMigration {
 
-  val earliestAmendmentEffectiveDate = ???
+  val earliestAmendmentEffectiveDate = LocalDate.of(2026, 11, 23)
   val notificationLeadTime = 35
 
   // ------------------------------------------------
