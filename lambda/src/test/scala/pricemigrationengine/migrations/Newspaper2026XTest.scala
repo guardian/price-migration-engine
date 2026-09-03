@@ -44,4 +44,38 @@ class Newspaper2026XTest extends munit.FunSuite {
       Some(HomeDelivery)
     )
   }
+  test("ratePlanHasChargeName") {
+    // sub5: "Newspaper Voucher"          "Weekend+"    "GBP"   "Month"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub5/subscription.json")
+    val ratePlan = SI2025RateplanFromSub
+      .uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
+        subscription,
+        LocalDate.of(2026, 8, 3)
+      )
+      .get
+    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Monday"), false)
+    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Tuesday"), false)
+    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Wednesday"), false)
+    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Thursday"), false)
+    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Friday"), false)
+    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Saturday"), true)
+    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Sunday"), true)
+  }
+  test("ratePlanHasChargeName") {
+    // sub8: "Newspaper Voucher"          "Sixday+"     "GBP"   "Quarter"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub8/subscription.json")
+    val ratePlan = SI2025RateplanFromSub
+      .uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
+        subscription,
+        LocalDate.of(2026, 8, 3)
+      )
+      .get
+    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Monday"), true)
+    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Tuesday"), true)
+    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Wednesday"), true)
+    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Thursday"), true)
+    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Friday"), true)
+    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Saturday"), true)
+    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Sunday"), false)
+  }
 }

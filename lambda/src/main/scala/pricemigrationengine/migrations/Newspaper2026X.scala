@@ -88,4 +88,10 @@ object Newspaper2026X {
       fulfillment <- productNameToFullfilment(ratePlan.productName)
     } yield fulfillment
   }
+
+  def ratePlanHasChargeName(ratePlan: ZuoraRatePlan, chargeName: String): Boolean = {
+    ratePlan.ratePlanCharges.exists(rpc => rpc.name == chargeName)
+  }
+
+  def decidePackage(subscription: ZuoraSubscription, today: LocalDate): Option[NxPackage] = { ??? }
 }
