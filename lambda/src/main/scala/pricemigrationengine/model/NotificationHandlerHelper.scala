@@ -7,7 +7,7 @@ import pricemigrationengine.model.membershipworkflow.EmailMessage
 
 object NotificationHandlerHelper {
 
-  def assertNonTrivialValue(fieldName: String, value: Option[String]): Boolean = {
+  def assertNonTrivialValue(value: Option[String]): Boolean = {
     value.isDefined && value.get.nonEmpty
   }
 
@@ -21,30 +21,18 @@ object NotificationHandlerHelper {
       case GuardianWeekly2025 => true
       case Newspaper2025P1    => {
         List(
-          assertNonTrivialValue(
-            "newspaper2025_brand_title",
-            message.To.ContactAttributes.SubscriberAttributes.newspaper2025_brand_title
-          )
+          assertNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2025_brand_title)
         ).forall(identity)
       }
       case Newspaper2025P3 => {
         List(
-          assertNonTrivialValue(
-            "newspaper2025_phase3_brand_title",
-            message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase3_brand_title
-          )
+          assertNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase3_brand_title)
         ).forall(identity)
       }
       case ProductMigration2025N4 => {
         List(
-          assertNonTrivialValue(
-            "newspaper2025_phase4_brand_title",
-            message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase4_brand_title
-          ),
-          assertNonTrivialValue(
-            "newspaper2025_phase4_formstack_url",
-            message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase4_formstack_url
-          ),
+          assertNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase4_brand_title),
+          assertNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase4_formstack_url),
         ).forall(identity)
       }
       case Membership2025      => true

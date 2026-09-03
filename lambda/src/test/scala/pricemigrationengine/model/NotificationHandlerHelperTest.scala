@@ -12,8 +12,8 @@ class NotificationHandlerHelperTest extends munit.FunSuite {
     assertEquals(List(true, true).forall(identity), true)
   }
   test("assertNonTrivialValue") {
-    assertEquals(NotificationHandlerHelper.assertNonTrivialValue("value name", None), false)
-    assertEquals(NotificationHandlerHelper.assertNonTrivialValue("value name", Some("")), false)
-    assertEquals(NotificationHandlerHelper.assertNonTrivialValue("value name", Some("thing")), true)
+    assertEquals(NotificationHandlerHelper.assertNonTrivialValue(None), false)
+    assertEquals(NotificationHandlerHelper.assertNonTrivialValue(Some("")), false)
+    assertEquals(NotificationHandlerHelper.assertNonTrivialValue(Some("thing")), true)
   }
 }
