@@ -7,7 +7,7 @@ import pricemigrationengine.model.membershipworkflow.EmailMessage
 
 object NotificationHandlerHelper {
 
-  def assertNonTrivialValue(fieldName: String, value: Option[String]): Boolean = {
+  def assertNonTrivialValue(value: Option[String]): Boolean = {
     value.isDefined && value.get.nonEmpty
   }
 
@@ -21,51 +21,60 @@ object NotificationHandlerHelper {
       case GuardianWeekly2025 => true
       case Newspaper2025P1    => {
         List(
-          assertNonTrivialValue(
-            "newspaper2025_brand_title",
-            message.To.ContactAttributes.SubscriberAttributes.newspaper2025_brand_title
-          )
+          assertNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2025_brand_title)
         ).forall(identity)
       }
       case Newspaper2025P3 => {
         List(
-          assertNonTrivialValue(
-            "newspaper2025_phase3_brand_title",
-            message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase3_brand_title
-          )
+          assertNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase3_brand_title)
         ).forall(identity)
       }
       case ProductMigration2025N4 => {
         List(
-          assertNonTrivialValue(
-            "newspaper2025_phase4_brand_title",
-            message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase4_brand_title
-          ),
-          assertNonTrivialValue(
-            "newspaper2025_phase4_formstack_url",
-            message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase4_formstack_url
-          ),
+          assertNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase4_brand_title),
+          assertNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase4_formstack_url),
         ).forall(identity)
       }
-      case Membership2025                             => true
-      case DigiSubs2025                               => true
-      case SupporterPlus2026                          => true
-      case SupporterPlus2026N2                        => true
-      case SupporterPlus2026N3                        => true
-      case SupporterPlus2026N4                        => true
-      case SupporterPlus2026N5                        => true
-      case Print2026C1GWAnnualsUK                     => true
-      case Print2026C1GWQuarterliesUK                 => true
-      case Print2026C1NPAnnualsUK                     => true
-      case Print2026C1NPQuarterliesUK                 => true
-      case Print2026C1NPSemiannualsUK                 => true
-      case Print2026C2NPMonthliesUK                   => true
-      case Print2026C3GWMonthliesUK                   => true
-      case Print2026C3NPMonthliesUK                   => true
-      case Print2026C4NPMonthliesUK                   => true
+      case Membership2025             => true
+      case DigiSubs2025               => true
+      case SupporterPlus2026          => true
+      case SupporterPlus2026N2        => true
+      case SupporterPlus2026N3        => true
+      case SupporterPlus2026N4        => true
+      case SupporterPlus2026N5        => true
+      case Print2026C1GWAnnualsUK     => true
+      case Print2026C1GWQuarterliesUK => true
+      case Print2026C1NPAnnualsUK     =>
+        List(
+          assertNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2026_brand_title)
+        ).forall(identity)
+      case Print2026C1NPQuarterliesUK =>
+        List(
+          assertNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2026_brand_title)
+        ).forall(identity)
+      case Print2026C1NPSemiannualsUK =>
+        List(
+          assertNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2026_brand_title)
+        ).forall(identity)
+      case Print2026C2NPMonthliesUK =>
+        List(
+          assertNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2026_brand_title)
+        ).forall(identity)
+      case Print2026C3GWMonthliesUK => true
+      case Print2026C3NPMonthliesUK =>
+        List(
+          assertNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2026_brand_title)
+        ).forall(identity)
+      case Print2026C4NPMonthliesUK =>
+        List(
+          assertNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2026_brand_title)
+        ).forall(identity)
       case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => true
-      case Print2026C5NPNoEmailsUK                    => true
-      case Print2026C6GWQuarterliesNonUK              => true
+      case Print2026C5NPNoEmailsUK                    =>
+        List(
+          assertNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2026_brand_title)
+        ).forall(identity)
+      case Print2026C6GWQuarterliesNonUK => true
     }
   }
 

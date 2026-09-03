@@ -12,6 +12,7 @@ import pricemigrationengine.migrations.{
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
+  Newspaper2026X,
   Print2026C1GWAnnualsUKMigration,
   Print2026C1GWQuarterliesUKMigration,
   Print2026C1NPAnnualsUKMigration,
@@ -80,7 +81,7 @@ object NotificationHandler extends CohortHandler {
   def processCohortItem(
       cohortSpec: CohortSpec,
       item: CohortItem,
-      date: LocalDate
+      today: LocalDate
   ): ZIO[CohortTable with SalesforceClient with Logging with EmailSender with Zuora, Failure, Unit] = {
     for {
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
@@ -96,7 +97,7 @@ object NotificationHandler extends CohortHandler {
             cohortSpec,
             subscription,
             item,
-            date,
+            today,
             ratePlanProbeResult
           )
         )
@@ -112,7 +113,8 @@ object NotificationHandler extends CohortHandler {
         cohortSpec,
         item,
         subscription,
-        analyseResult
+        analyseResult,
+        today
       )
     } yield ()
   }
@@ -121,10 +123,11 @@ object NotificationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       item: CohortItem,
       zuoraSubscription: ZuoraSubscription,
-      analyseResult: SubscriptionNotificationAnalyseResult
+      analyseResult: SubscriptionNotificationAnalyseResult,
+      today: LocalDate
   ): ZIO[CohortTable with SalesforceClient with Logging with EmailSender with Zuora, Failure, Unit] = {
     analyseResult match {
-      case SNARReadyToNotify             => sendNotification(cohortSpec, zuoraSubscription, item)
+      case SNARReadyToNotify             => sendNotification(cohortSpec, zuoraSubscription, item, today)
       case SNARCancelledInZuora          => updateCohortItemToReflectZuoraCancellation(cohortSpec, item)
       case SNARExcludeFromMigration      => updateCohortItemToExcludeFromMigration(item)
       case SNARMissingNotificationWindow =>
@@ -183,6 +186,7 @@ object NotificationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       zuoraSubscription: ZuoraSubscription,
       cohortItem: CohortItem,
+      today: LocalDate
   ): ZIO[Zuora with EmailSender with SalesforceClient with CohortTable with Logging, Failure, Unit] =
     for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
@@ -250,6 +254,13 @@ object NotificationHandler extends CohortHandler {
           .orElseFail(DataExtractionFailure(s"[2ae40ea0] How did we get here ? 🤔"))
       // ----------------------------------------------------
 
+      // ----------------------------------------------------
+      // Data for Newspaper2026X
+      newspaper2026_brand_title <- ZIO
+        .fromOption(Newspaper2026X.decideBranchTitleForNotificationHandler(cohortSpec, zuoraSubscription, today))
+        .orElseFail(DataExtractionFailure(s"[47a5291e] How did we get here ? 🤔"))
+      // ----------------------------------------------------
+
       brazeName <- brazeName(cohortSpec, cohortItem, zuoraSubscription)
 
       message = EmailMessage(
@@ -298,8 +309,14 @@ object NotificationHandler extends CohortHandler {
               sp2026_contribution_amount = Some(s"${currencySymbol}${supporterPlus2026ExtraData.contributionAmount}"),
               sp2026_current_combined_amount =
                 Some(s"${currencySymbol}${supporterPlus2026ExtraData.currentCombinedAmount}"),
-              sp2026_new_combined_amount = Some(s"${currencySymbol}${supporterPlus2026ExtraData.newCombinedAmount}")
+              sp2026_new_combined_amount = Some(s"${currencySymbol}${supporterPlus2026ExtraData.newCombinedAmount}"),
               // -------------------------------------------------------------
+
+              // -------------------------------------------------------------
+              // Newspaper2026X
+              newspaper2026_brand_title = Some(newspaper2026_brand_title)
+              // -------------------------------------------------------------
+
             )
           )
         ),

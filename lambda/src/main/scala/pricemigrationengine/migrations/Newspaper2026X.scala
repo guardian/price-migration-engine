@@ -2,10 +2,6 @@ package pricemigrationengine.migrations
 import pricemigrationengine.model.{BillingPeriod, ZuoraRatePlan, _}
 
 import java.time.LocalDate
-import ujson._
-import upickle.default._
-
-import java.time.format.DateTimeFormatter
 
 sealed trait NxFulfillment
 object Voucher extends NxFulfillment
@@ -129,6 +125,39 @@ object Newspaper2026X {
         case WeekendBasicAndPlus  => "the Guardian and the Observer"
         case SaturdayBasicAndPlus => "the Guardian"
       }
+    }
+  }
+
+  def decideBranchTitleForNotificationHandler(
+      cohortSpec: CohortSpec,
+      subscription: ZuoraSubscription,
+      today: LocalDate
+  ): Option[String] = {
+    MigrationType(cohortSpec) match {
+      case Test1                                      => Some("")
+      case GuardianWeekly2025                         => Some("")
+      case Newspaper2025P1                            => Some("")
+      case Newspaper2025P3                            => Some("")
+      case ProductMigration2025N4                     => Some("")
+      case Membership2025                             => Some("")
+      case DigiSubs2025                               => Some("")
+      case SupporterPlus2026                          => Some("")
+      case SupporterPlus2026N2                        => Some("")
+      case SupporterPlus2026N3                        => Some("")
+      case SupporterPlus2026N4                        => Some("")
+      case SupporterPlus2026N5                        => Some("")
+      case Print2026C1GWAnnualsUK                     => Some("")
+      case Print2026C1GWQuarterliesUK                 => Some("")
+      case Print2026C1NPAnnualsUK                     => decideBrandTitle(subscription, today)
+      case Print2026C1NPQuarterliesUK                 => decideBrandTitle(subscription, today)
+      case Print2026C1NPSemiannualsUK                 => decideBrandTitle(subscription, today)
+      case Print2026C2NPMonthliesUK                   => decideBrandTitle(subscription, today)
+      case Print2026C3GWMonthliesUK                   => Some("")
+      case Print2026C3NPMonthliesUK                   => decideBrandTitle(subscription, today)
+      case Print2026C4NPMonthliesUK                   => decideBrandTitle(subscription, today)
+      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => Some("")
+      case Print2026C5NPNoEmailsUK                    => decideBrandTitle(subscription, today)
+      case Print2026C6GWQuarterliesNonUK              => Some("")
     }
   }
 }
