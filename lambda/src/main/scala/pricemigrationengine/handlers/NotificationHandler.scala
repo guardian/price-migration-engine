@@ -112,9 +112,15 @@ object NotificationHandler extends CohortHandler {
       analyseResult: SubscriptionNotificationAnalyseResult
   ): ZIO[CohortTable with SalesforceClient with Logging with EmailSender with Zuora, Failure, Unit] = {
     analyseResult match {
-      case SNARReadyToNotify        => sendNotification(cohortSpec, zuoraSubscription, item)
-      case SNARCancelledInZuora     => updateCohortItemToReflectZuoraCancellation(cohortSpec, item)
-      case SNARExcludeFromMigration => updateCohortItemToExcludeFromMigration(item)
+      case SNARReadyToNotify             => sendNotification(cohortSpec, zuoraSubscription, item)
+      case SNARCancelledInZuora          => updateCohortItemToReflectZuoraCancellation(cohortSpec, item)
+      case SNARExcludeFromMigration      => updateCohortItemToExcludeFromMigration(item)
+      case SNARMissingNotificationWindow =>
+        ZIO.fail(
+          NotificationHandlerFailure(
+            s"[71edb83e] we are missing the notification window for ${item} (SubscriptionNotificationAnalyseResult). Please investigate."
+          )
+        )
     }
   }
 
