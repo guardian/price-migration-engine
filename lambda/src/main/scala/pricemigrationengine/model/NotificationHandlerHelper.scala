@@ -78,24 +78,6 @@ object NotificationHandlerHelper {
     }
   }
 
-  def checkProductName(
-      ratePlan: ZuoraRatePlan,
-      today: LocalDate,
-      productNameOpt: Option[String]
-  ): Boolean = {
-    // This function essentially returns `true` if the rate plan product name is
-    // what we expect. This was introduced to ensure that at Notification time
-    // the subscription has not moved to a different product. This can happen to,
-    // for instance, to Supporter Plus subs that can be transmuted to Digital Packs
-
-    productNameOpt match {
-      case Some(productName) => {
-        ratePlan.productName == productName
-      }
-      case None => true // for backward compatibility when the information is not available for previous subs
-    }
-  }
-
   def thereIsEnoughNotificationLeadTime(cohortSpec: CohortSpec, today: LocalDate, cohortItem: CohortItem): Boolean = {
     // To help with backward compatibility with existing tests, we apply this condition from 1st Dec 2020.
     if (today.isBefore(LocalDate.of(2020, 12, 1))) {
@@ -106,15 +88,6 @@ object NotificationHandlerHelper {
         case _        => false
       }
     }
-  }
-
-  def zuoraSubscriptionToActiveRatePlanId(subscription: ZuoraSubscription, today: LocalDate): Option[String] = {
-    for {
-      ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
-        subscription: ZuoraSubscription,
-        today: LocalDate
-      )
-    } yield ratePlan.id
   }
 }
 
