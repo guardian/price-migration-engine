@@ -10,12 +10,7 @@ import java.time.format.DateTimeFormatter
 object Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration {
 
   val earliestAmendmentEffectiveDate = ???
-
-  // ------------------------------------------------
-  // Notification Timings
-  // ------------------------------------------------
-
-  val notificationLeadTime = 49
+  val notificationLeadTime = 39
 
   // ------------------------------------------------
   // Primary Functions:

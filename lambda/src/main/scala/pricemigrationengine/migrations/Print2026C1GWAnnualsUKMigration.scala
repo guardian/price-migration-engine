@@ -11,11 +11,6 @@ object Print2026C1GWAnnualsUKMigration {
 
   // start of notifications: 14 September 2026
   val earliestAmendmentEffectiveDate = LocalDate.of(2026, 10, 19)
-
-  // ------------------------------------------------
-  // Notification Timings
-  // ------------------------------------------------
-
   val notificationLeadTime = 35
 
   // ------------------------------------------------
