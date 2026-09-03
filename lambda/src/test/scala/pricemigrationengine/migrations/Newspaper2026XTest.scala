@@ -44,38 +44,36 @@ class Newspaper2026XTest extends munit.FunSuite {
       Some(HomeDelivery)
     )
   }
-  test("ratePlanHasChargeName") {
-    // sub5: "Newspaper Voucher"          "Weekend+"    "GBP"   "Month"
-    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub5/subscription.json")
-    val ratePlan = SI2025RateplanFromSub
-      .uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
-        subscription,
-        LocalDate.of(2026, 8, 3)
-      )
-      .get
-    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Monday"), false)
-    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Tuesday"), false)
-    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Wednesday"), false)
-    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Thursday"), false)
-    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Friday"), false)
-    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Saturday"), true)
-    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Sunday"), true)
+  test("decidePackage") {
+    // sub1: "Newspaper Voucher"          "Everyday+"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub1/subscription.json")
+    assertEquals(
+      Newspaper2026X.decidePackage(subscription, LocalDate.of(2026, 8, 3)),
+      Some(EverydayBasicAndPlus)
+    )
   }
-  test("ratePlanHasChargeName") {
-    // sub8: "Newspaper Voucher"          "Sixday+"     "GBP"   "Quarter"
-    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub8/subscription.json")
-    val ratePlan = SI2025RateplanFromSub
-      .uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
-        subscription,
-        LocalDate.of(2026, 8, 3)
-      )
-      .get
-    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Monday"), true)
-    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Tuesday"), true)
-    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Wednesday"), true)
-    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Thursday"), true)
-    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Friday"), true)
-    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Saturday"), true)
-    assertEquals(Newspaper2026X.ratePlanHasChargeName(ratePlan, "Sunday"), false)
+  test("decidePackage") {
+    // sub4: "Newspaper Voucher"          "Sixday+"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub4/subscription.json")
+    assertEquals(
+      Newspaper2026X.decidePackage(subscription, LocalDate.of(2026, 8, 3)),
+      Some(SixdayBasicAndPlus)
+    )
+  }
+  test("decidePackage") {
+    // sub6: "Newspaper Voucher"          "Everyday"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub6/subscription.json")
+    assertEquals(
+      Newspaper2026X.decidePackage(subscription, LocalDate.of(2026, 8, 3)),
+      Some(EverydayBasicAndPlus)
+    )
+  }
+  test("decidePackage") {
+    // sub7: "Newspaper Voucher"          "Sixday"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub7/subscription.json")
+    assertEquals(
+      Newspaper2026X.decidePackage(subscription, LocalDate.of(2026, 8, 3)),
+      Some(SixdayBasicAndPlus)
+    )
   }
 }

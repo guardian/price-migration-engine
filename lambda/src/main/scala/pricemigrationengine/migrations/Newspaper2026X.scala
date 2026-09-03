@@ -73,8 +73,8 @@ object Newspaper2026X {
     }
   }
 
-  def productNameToFullfilment(ratePlanName: String): Option[NxFulfillment] = {
-    ratePlanName match {
+  def productNameToFullfilment(productName: String): Option[NxFulfillment] = {
+    productName match {
       case "Newspaper Voucher"         => Some(Voucher)
       case "Newspaper Digital Voucher" => Some(Voucher)
       case "Newspaper Delivery"        => Some(HomeDelivery)
@@ -89,9 +89,33 @@ object Newspaper2026X {
     } yield fulfillment
   }
 
-  def ratePlanHasChargeName(ratePlan: ZuoraRatePlan, chargeName: String): Boolean = {
-    ratePlan.ratePlanCharges.exists(rpc => rpc.name == chargeName)
+  // sub2: "Newspaper Digital Voucher"  "Everyday+"
+  // sub3: "Newspaper Delivery"         "Everyday+"
+  // sub4: "Newspaper Voucher"          "Sixday+"
+  // sub5: "Newspaper Voucher"          "Weekend+"    "GBP"   "Month"
+  // sub6: "Newspaper Voucher"          "Everyday"
+  // sub7: "Newspaper Voucher"          "Sixday"
+  // sub8: "Newspaper Voucher"          "Sixday+"     "GBP"   "Quarter"
+  // sub9: "Newspaper Voucher"          "Everyday+"   "GBP"   "Annual"
+
+  def ratePlanNameToPackage(rpn: String): Option[NxPackage] = {
+    rpn match {
+      case "Everyday"  => Some(EverydayBasicAndPlus)
+      case "Everyday+" => Some(EverydayBasicAndPlus)
+      case "Sixday"    => Some(SixdayBasicAndPlus)
+      case "Sixday+"   => Some(SixdayBasicAndPlus)
+      case "Weekend"   => Some(WeekendBasicAndPlus)
+      case "Weekend+"  => Some(WeekendBasicAndPlus)
+      case "Saturday"  => Some(SaturdayBasicAndPlus)
+      case "Saturday+" => Some(SaturdayBasicAndPlus)
+      case _           => None
+    }
   }
 
-  def decidePackage(subscription: ZuoraSubscription, today: LocalDate): Option[NxPackage] = { ??? }
+  def decidePackage(subscription: ZuoraSubscription, today: LocalDate): Option[NxPackage] = {
+    for {
+      ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(subscription, today)
+      pack <- ratePlanNameToPackage(ratePlan.ratePlanName)
+    } yield pack
+  }
 }
