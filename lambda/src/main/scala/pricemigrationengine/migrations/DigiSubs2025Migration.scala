@@ -14,7 +14,6 @@ object DigiSubs2025Migration {
   val earliestAmendmentEffectiveDate = LocalDate.of(2026, 1, 12)
 
   val maxLeadTime = 35
-  val minLeadTime = 33
 
   val priceGrid: Map[(BillingPeriod, String), BigDecimal] = Map(
     // Monthly

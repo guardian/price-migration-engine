@@ -112,15 +112,9 @@ object NotificationHandler extends CohortHandler {
       analyseResult: SubscriptionNotificationAnalyseResult
   ): ZIO[CohortTable with SalesforceClient with Logging with EmailSender with Zuora, Failure, Unit] = {
     analyseResult match {
-      case SNARReadyToNotify             => sendNotification(cohortSpec, zuoraSubscription, item)
-      case SNARCancelledInZuora          => updateCohortItemToReflectZuoraCancellation(cohortSpec, item)
-      case SNARExcludeFromMigration      => updateCohortItemToExcludeFromMigration(item)
-      case SNARMissingNotificationWindow =>
-        ZIO.fail(
-          NotificationHandlerFailure(
-            s"[71edb83e] we are missing the notification window for ${item} (SubscriptionNotificationAnalyseResult). Please investigate."
-          )
-        )
+      case SNARReadyToNotify        => sendNotification(cohortSpec, zuoraSubscription, item)
+      case SNARCancelledInZuora     => updateCohortItemToReflectZuoraCancellation(cohortSpec, item)
+      case SNARExcludeFromMigration => updateCohortItemToExcludeFromMigration(item)
     }
   }
 
@@ -333,23 +327,6 @@ object NotificationHandler extends CohortHandler {
       case SupporterPlus2026N3    => SupporterPlus2026Migration.maxLeadTime
       case SupporterPlus2026N4    => SupporterPlus2026Migration.maxLeadTime
       case SupporterPlus2026N5    => SupporterPlus2026Migration.maxLeadTime
-    }
-  }
-
-  def minLeadTime(cohortSpec: CohortSpec): Int = {
-    MigrationType(cohortSpec) match {
-      case Test1                  => 33
-      case GuardianWeekly2025     => GuardianWeekly2025Migration.minLeadTime
-      case Newspaper2025P1        => Newspaper2025P1Migration.minLeadTime
-      case Newspaper2025P3        => Newspaper2025P3Migration.minLeadTime
-      case ProductMigration2025N4 => ProductMigration2025N4Migration.minLeadTime
-      case Membership2025         => Membership2025Migration.minLeadTime
-      case DigiSubs2025           => DigiSubs2025Migration.minLeadTime
-      case SupporterPlus2026      => SupporterPlus2026Migration.minLeadTime
-      case SupporterPlus2026N2    => SupporterPlus2026Migration.minLeadTime
-      case SupporterPlus2026N3    => SupporterPlus2026Migration.minLeadTime
-      case SupporterPlus2026N4    => SupporterPlus2026Migration.minLeadTime
-      case SupporterPlus2026N5    => SupporterPlus2026Migration.minLeadTime
     }
   }
 

@@ -1,7 +1,5 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.handlers.NotificationHandler.minLeadTime
-
 import java.time.LocalDate
 import pricemigrationengine.model.membershipworkflow.EmailMessage
 
@@ -63,18 +61,6 @@ object NotificationHandlerHelper {
     }
   }
 
-  def thereIsEnoughNotificationLeadTime(cohortSpec: CohortSpec, today: LocalDate, cohortItem: CohortItem): Boolean = {
-    // To help with backward compatibility with existing tests, we apply this condition from 1st Dec 2020.
-    if (today.isBefore(LocalDate.of(2020, 12, 1))) {
-      true
-    } else {
-      cohortItem.amendmentEffectiveDate match {
-        case Some(sd) => today.plusDays(minLeadTime(cohortSpec)).isBefore(sd)
-        case _        => false
-      }
-    }
-  }
-
   def zuoraSubscriptionToActiveRatePlanId(subscription: ZuoraSubscription, today: LocalDate): Option[String] = {
     for {
       ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
@@ -92,16 +78,14 @@ sealed trait SubscriptionNotificationAnalyseResult
 object SNARReadyToNotify extends SubscriptionNotificationAnalyseResult
 object SNARCancelledInZuora extends SubscriptionNotificationAnalyseResult
 object SNARExcludeFromMigration extends SubscriptionNotificationAnalyseResult
-object SNARMissingNotificationWindow extends SubscriptionNotificationAnalyseResult
 
 object SubscriptionNotificationAnalyseResult {
 
   def toString(result: SubscriptionNotificationAnalyseResult): String = {
     result match {
-      case SNARReadyToNotify             => "SNARReadyToNotify"
-      case SNARCancelledInZuora          => "SNARCancelledInZuora"
-      case SNARExcludeFromMigration      => "SNARExcludeFromMigration"
-      case SNARMissingNotificationWindow => "SNARMissingNotificationWindow"
+      case SNARReadyToNotify        => "SNARReadyToNotify"
+      case SNARCancelledInZuora     => "SNARCancelledInZuora"
+      case SNARExcludeFromMigration => "SNARExcludeFromMigration"
     }
   }
 
@@ -155,11 +139,6 @@ object SubscriptionNotificationAnalyseResult {
 
     if (subscription.status == "Cancelled") {
       Some(SNARCancelledInZuora)
-    } else if (
-      !cohortSpec.forceNotifications
-        .contains(true) && !NotificationHandlerHelper.thereIsEnoughNotificationLeadTime(cohortSpec, date, cohortItem)
-    ) {
-      Some(SNARMissingNotificationWindow)
     } else {
       MigrationType(cohortSpec) match {
         case Test1                  => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)

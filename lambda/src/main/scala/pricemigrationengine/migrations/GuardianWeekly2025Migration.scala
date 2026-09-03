@@ -37,7 +37,6 @@ object GuardianWeekly2025Migration {
   // ------------------------------------------------
 
   val maxLeadTime = 49
-  val minLeadTime = 36
 
   // ------------------------------------------------
   // Price Grid

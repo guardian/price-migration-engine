@@ -50,7 +50,6 @@ object Newspaper2025P3Migration {
   // ------------------------------------------------
 
   val maxLeadTime = 35
-  val minLeadTime = 33
 
   // ------------------------------------------------
   // Price Grid
