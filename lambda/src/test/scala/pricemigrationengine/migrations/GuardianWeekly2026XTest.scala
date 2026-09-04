@@ -58,4 +58,15 @@ class GuardianWeekly2026XTest extends munit.FunSuite {
       Right(PriceData("GBP", BigDecimal(49.5), BigDecimal(52), "Quarter"))
     )
   }
+  test("priceData") {
+    // sub2: "Guardian Weekly - Domestic"  "GW Oct 18 - Quarterly - Domestic"  "AUD"  "Quarter"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2026X/sub2/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub2/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2026X/sub2/invoice-preview.json")
+
+    assertEquals(
+      GuardianWeekly2026X.priceData(subscription, invoicePreview, account),
+      Right(PriceData("AUD", BigDecimal(132.0), BigDecimal(144), "Quarter"))
+    )
+  }
 }
