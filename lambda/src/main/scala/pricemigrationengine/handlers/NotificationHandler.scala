@@ -53,12 +53,18 @@ object NotificationHandler extends CohortHandler {
         cohortSpec.subscriptionNumber match {
           case None =>
             CohortTable
-              .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(notificationLeadTime(cohortSpec))))
+              .fetch(
+                SalesforcePriceRiseCreationComplete,
+                Some(today.plusDays(NotificationHandlerHelper.notificationLeadTime(cohortSpec)))
+              )
               .filter(item => Dispatch.belongs(cohortSpec, item))
               .take(batchSize)
           case Some(subscriptionNumber) =>
             CohortTable
-              .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(notificationLeadTime(cohortSpec))))
+              .fetch(
+                SalesforcePriceRiseCreationComplete,
+                Some(today.plusDays(NotificationHandlerHelper.notificationLeadTime(cohortSpec)))
+              )
               .filter(item => item.subscriptionName == subscriptionNumber)
         }
       ).mapZIO { item => processCohortItem(cohortSpec, item, today) }.runCount
@@ -306,28 +312,6 @@ object NotificationHandler extends CohortHandler {
 
       _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete)
     } yield ()
-
-  // -------------------------------------------------------------------
-  // Notification Windows
-
-  // For general information about the notification period see the docs/notification-periods.md
-
-  def notificationLeadTime(cohortSpec: CohortSpec): Int = {
-    MigrationType(cohortSpec) match {
-      case Test1                  => 35
-      case GuardianWeekly2025     => GuardianWeekly2025Migration.notificationLeadTime
-      case Newspaper2025P1        => Newspaper2025P1Migration.notificationLeadTime
-      case Newspaper2025P3        => Newspaper2025P3Migration.notificationLeadTime
-      case ProductMigration2025N4 => ProductMigration2025N4Migration.notificationLeadTime
-      case Membership2025         => Membership2025Migration.notificationLeadTime
-      case DigiSubs2025           => DigiSubs2025Migration.notificationLeadTime
-      case SupporterPlus2026      => SupporterPlus2026Migration.notificationLeadTime
-      case SupporterPlus2026N2    => SupporterPlus2026Migration.notificationLeadTime
-      case SupporterPlus2026N3    => SupporterPlus2026Migration.notificationLeadTime
-      case SupporterPlus2026N4    => SupporterPlus2026Migration.notificationLeadTime
-      case SupporterPlus2026N5    => SupporterPlus2026Migration.notificationLeadTime
-    }
-  }
 
   // -------------------------------------------------------------------
   // Data Extraction Functions

@@ -1,5 +1,15 @@
 package pricemigrationengine.model
 
+import pricemigrationengine.migrations.{
+  DigiSubs2025Migration,
+  GuardianWeekly2025Migration,
+  Membership2025Migration,
+  Newspaper2025P1Migration,
+  Newspaper2025P3Migration,
+  ProductMigration2025N4Migration,
+  SupporterPlus2026Migration
+}
+
 import java.time.LocalDate
 import pricemigrationengine.model.membershipworkflow.EmailMessage
 
@@ -8,6 +18,23 @@ object NotificationHandlerHelper {
   // We end the notification window 30 days before the amendment date
   // This is a legal requirement
   val endOfNotificationWindow = 30
+
+  def notificationLeadTime(cohortSpec: CohortSpec): Int = {
+    MigrationType(cohortSpec) match {
+      case Test1                  => 35
+      case GuardianWeekly2025     => GuardianWeekly2025Migration.notificationLeadTime
+      case Newspaper2025P1        => Newspaper2025P1Migration.notificationLeadTime
+      case Newspaper2025P3        => Newspaper2025P3Migration.notificationLeadTime
+      case ProductMigration2025N4 => ProductMigration2025N4Migration.notificationLeadTime
+      case Membership2025         => Membership2025Migration.notificationLeadTime
+      case DigiSubs2025           => DigiSubs2025Migration.notificationLeadTime
+      case SupporterPlus2026      => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N2    => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N3    => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N4    => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N5    => SupporterPlus2026Migration.notificationLeadTime
+    }
+  }
 
   def isNonTrivialValue(value: Option[String]): Boolean = {
     value.isDefined && value.get.nonEmpty
