@@ -98,7 +98,6 @@ class GuardianWeekly2026XTest extends munit.FunSuite {
     )
   }
   test("amendmentOrderPayload") {
-
     // sub1: "Guardian Weekly - Domestic"  "GW Oct 18 - Quarterly - Domestic"  "GBP"  "Quarter"
     val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2026X/sub1/subscription.json")
     val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub1/account.json")

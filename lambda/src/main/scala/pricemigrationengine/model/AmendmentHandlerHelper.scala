@@ -300,17 +300,19 @@ object AmendmentHandlerHelper {
           subscriptionNumber,
           effectDate,
           zuora_subscription,
+          oldPrice,
           commsPrice,
           invoiceList
         )
       case Print2026C1NPQuarterliesUK =>
-        GuardianWeekly2026X.amendmentOrderPayload(
+        Newspaper2026X.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
           subscriptionNumber,
           effectDate,
           zuora_subscription,
+          oldPrice,
           commsPrice,
           invoiceList
         )
@@ -322,6 +324,7 @@ object AmendmentHandlerHelper {
           subscriptionNumber,
           effectDate,
           zuora_subscription,
+          oldPrice,
           commsPrice,
           invoiceList
         )
@@ -333,6 +336,7 @@ object AmendmentHandlerHelper {
           subscriptionNumber,
           effectDate,
           zuora_subscription,
+          oldPrice,
           commsPrice,
           invoiceList
         )
@@ -355,6 +359,7 @@ object AmendmentHandlerHelper {
           subscriptionNumber,
           effectDate,
           zuora_subscription,
+          oldPrice,
           commsPrice,
           invoiceList
         )
@@ -366,6 +371,7 @@ object AmendmentHandlerHelper {
           subscriptionNumber,
           effectDate,
           zuora_subscription,
+          oldPrice,
           commsPrice,
           invoiceList
         )
@@ -388,6 +394,7 @@ object AmendmentHandlerHelper {
           subscriptionNumber,
           effectDate,
           zuora_subscription,
+          oldPrice,
           commsPrice,
           invoiceList
         )

@@ -1,5 +1,5 @@
 Newspaper:
-sub1: "Newspaper Voucher"          "Everyday+"
+sub1: "Newspaper Voucher"          "Everyday+"   "GBP"   "Month"
 sub2: "Newspaper Digital Voucher"  "Everyday+"
 sub3: "Newspaper Delivery"         "Everyday+"
 sub4: "Newspaper Voucher"          "Sixday+"
