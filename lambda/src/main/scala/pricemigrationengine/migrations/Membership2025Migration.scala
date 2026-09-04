@@ -11,8 +11,7 @@ object Membership2025Migration {
 
   val earliestAmendmentEffectiveDate = LocalDate.of(2025, 12, 1)
 
-  val maxLeadTime = 35
-  val minLeadTime = 33
+  val notificationLeadTime = 35
 
   val priceGridNewPrices: Map[(BillingPeriod, String), BigDecimal] = Map(
     (Monthly, "GBP") -> BigDecimal(10.0),

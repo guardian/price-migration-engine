@@ -52,20 +52,9 @@ object AmendmentEffectiveDateCalculator {
       cohortSpec: CohortSpec,
       today: LocalDate
   ): LocalDate = {
-    // This is a function of the cohort spec and the notification min time.
-    // The cohort spec carries the lowest date we specify there can be a price migration, and the notification min
-    // time ensures the legally required lead time for customer communication. The max of those two dates is the date
-    // from which we can realistically perform a price increase. With that said, other policies can apply, for
-    // instance:
-    // - The one year policy, which demand that we do not price rise customers during the subscription first year
-    // - The spread: a mechanism, used for monthlies, by which we do not let a large number of monthlies migrate
-    //   during a single month.
-
     Date.datesMax(
       EstimationHandlerHelper.earliestAmendmentEffectiveDate(cohortSpec),
-      today.plusDays(
-        NotificationHandler.minLeadTime(cohortSpec: CohortSpec) + 1
-      ) // +1 because we need to be strictly over minLeadTime days away. Exactly minLeadTime is not enough.
+      today.plusDays(NotificationHandlerHelper.notificationLeadTime(cohortSpec))
     )
   }
 
