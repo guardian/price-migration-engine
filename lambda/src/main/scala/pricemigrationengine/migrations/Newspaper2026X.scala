@@ -66,7 +66,7 @@ object Newspaper2026X {
       case Monthly    => priceGridNewPricesMonthlies.get(fullfilment, pack)
       case Quarterly  => priceGridNewPricesQuarterlies.get(fullfilment, pack)
       case SemiAnnual => priceGridNewPricesSemiannuals.get(fullfilment, pack)
-      case Annual     => None
+      case Annual     => priceGridNewPricesAnnuals.get(fullfilment, pack)
     }
   }
 

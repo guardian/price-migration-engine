@@ -124,4 +124,49 @@ class Newspaper2026XTest extends munit.FunSuite {
       Right(PriceData("GBP", BigDecimal(69.99), BigDecimal(72.99), "Month"))
     )
   }
+  test("priceData") {
+    // sub7: "Newspaper Voucher"          "Sixday"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub7/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Newspaper2026X/sub7/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub7/invoice-preview.json")
+    assertEquals(
+      Newspaper2026X.priceData(
+        subscription,
+        invoicePreview,
+        account: ZuoraAccount,
+        LocalDate.of(2026, 9, 14)
+      ),
+      Right(PriceData("GBP", BigDecimal(61.99), BigDecimal(64.99), "Month"))
+    )
+  }
+  test("priceData") {
+    // sub8: "Newspaper Voucher"          "Sixday+"     "GBP"   "Quarter"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub8/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Newspaper2026X/sub8/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub8/invoice-preview.json")
+    assertEquals(
+      Newspaper2026X.priceData(
+        subscription,
+        invoicePreview,
+        account: ZuoraAccount,
+        LocalDate.of(2026, 9, 14)
+      ),
+      Right(PriceData("GBP", BigDecimal(185.97), BigDecimal(194.97), "Quarter"))
+    )
+  }
+  test("priceData") {
+    // sub9: "Newspaper Voucher"          "Everyday+"   "GBP"   "Annual"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub9/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Newspaper2026X/sub9/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub9/invoice-preview.json")
+    assertEquals(
+      Newspaper2026X.priceData(
+        subscription,
+        invoicePreview,
+        account: ZuoraAccount,
+        LocalDate.of(2026, 9, 14)
+      ),
+      Right(PriceData("GBP", BigDecimal(839.88), BigDecimal(875.88), "Annual"))
+    )
+  }
 }
