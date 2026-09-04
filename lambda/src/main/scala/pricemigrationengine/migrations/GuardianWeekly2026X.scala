@@ -12,7 +12,7 @@ object GuardianWeekly2026X {
 
   val priceGridNewPricesMonthlies: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
     ("GBP", Domestic) -> BigDecimal(17.50),
-    ("EURO", Domestic) -> BigDecimal(30.50),
+    ("EUR", Domestic) -> BigDecimal(30.50),
     ("USD", RestOfWorld) -> BigDecimal(38.00),
     ("USD", Domestic) -> BigDecimal(33.00),
     ("CAD", Domestic) -> BigDecimal(39.50),
@@ -22,7 +22,7 @@ object GuardianWeekly2026X {
 
   val priceGridNewPricesQuarterlies: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
     ("GBP", Domestic) -> BigDecimal(52),
-    ("EURO", Domestic) -> BigDecimal(91.5),
+    ("EUR", Domestic) -> BigDecimal(91.5),
     ("USD", RestOfWorld) -> BigDecimal(114),
     ("USD", Domestic) -> BigDecimal(99),
     ("CAD", Domestic) -> BigDecimal(118.5),
@@ -32,7 +32,7 @@ object GuardianWeekly2026X {
 
   val priceGridNewPricesAnnuals: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
     ("GBP", Domestic) -> BigDecimal(208),
-    ("EURO", Domestic) -> BigDecimal(366),
+    ("EUR", Domestic) -> BigDecimal(366),
     ("USD", RestOfWorld) -> BigDecimal(456),
     ("USD", Domestic) -> BigDecimal(396),
     ("CAD", Domestic) -> BigDecimal(474.0),
