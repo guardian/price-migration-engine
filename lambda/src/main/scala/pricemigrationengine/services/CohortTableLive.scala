@@ -139,13 +139,12 @@ object CohortTableLive {
 
   def impl(
       cohortSpec: CohortSpec
-  ): ZLayer[DynamoDBZIO with StageConfig with CohortTableConfig with Logging, ConfigFailure, CohortTable] = {
+  ): ZLayer[DynamoDBZIO with StageConfig with Logging, ConfigFailure, CohortTable] = {
     ZLayer.fromZIO {
       for {
         dynamoDbZio <- ZIO.service[DynamoDBZIO]
         stageConfig <- ZIO.service[StageConfig]
         tableName = cohortSpec.tableName(stageConfig.stage)
-        cohortTableConfig <- ZIO.service[CohortTableConfig]
         logging <- ZIO.service[Logging]
       } yield new CohortTable {
 
@@ -175,7 +174,7 @@ object CohortTableLive {
                   }
                 ).flatten.toMap.asJava
               )
-              .limit(cohortTableConfig.batchSize)
+              .limit(100)
               .build()
           logging.info(s"[72E0D1FC] queryRequest: ${queryRequest.toString}")
           dynamoDbZio.query(queryRequest).mapError(error => CohortFetchFailure(error.toString))
@@ -200,16 +199,6 @@ object CohortTableLive {
               _ => logging.info(s"Wrote ${cohortItem} to Cohort table")
             )
         }
-
-        override def fetchAll(): ZStream[Any, CohortFetchFailure, CohortItem] = {
-          val queryRequest = ScanRequest.builder
-            .tableName(tableName)
-            .limit(cohortTableConfig.batchSize)
-            .build()
-          for {
-            queryResults <- dynamoDbZio.scan(queryRequest).mapError(error => CohortFetchFailure(error.toString))
-          } yield queryResults
-        }.mapError(error => CohortFetchFailure(error.toString))
       }
     }
   }

@@ -19,15 +19,6 @@ import java.util
   *   the handler must still verify that the item, if found, has the right processing stage for this particular
   *   handler. This attribute was added to CohortSpec in August 2025, to help with rescuing some print migration
   *   cohort items causing timeouts in Zuora. This attribute is not intended to be used by the state machine.
-  *
-  * @param forceNotifications (optional)
-  *   When present, and if true, it will
-  *   1. override the Notification handler's `thereIsEnoughNotificationLeadTime` check.
-  *      This allows sending notifications before the -30 days deadline, but after they have
-  *      exited their migration notification window.
-  *   2. Disable the cohortItemRatePlansChecks (to allow sending a notification after the amendment has been
-  *      done on the subscription. Example: the week-end Latcham API outage in Nov 2025 where we needed to
-  *      resend some notifications when the cohort item was already in AmendmentWrittenToSalesforce)
   */
 
 // In case of changes in this file, please keep documentation file
@@ -36,8 +27,7 @@ import java.util
 case class CohortSpec(
     cohortName: String,
     active: Boolean,
-    subscriptionNumber: Option[String] = None,
-    forceNotifications: Option[Boolean] = None,
+    subscriptionNumber: Option[String] = None
 ) {
   def tableName(stage: String): String = {
     cohortName match {
