@@ -96,7 +96,6 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     main(input).provideSome[Logging](
-      EnvConfig.cohortTable.layer,
       EnvConfig.salesforce.layer,
       EnvConfig.stage.layer,
       DynamoDBZIOLive.impl,
