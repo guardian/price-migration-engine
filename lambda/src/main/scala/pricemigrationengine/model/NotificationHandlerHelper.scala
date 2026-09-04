@@ -6,18 +6,6 @@ import pricemigrationengine.migrations.{
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
-  Print2026C1GWAnnualsUKMigration,
-  Print2026C1GWQuarterliesUKMigration,
-  Print2026C1NPAnnualsUKMigration,
-  Print2026C1NPQuarterliesUKMigration,
-  Print2026C1NPSemiannualsUKMigration,
-  Print2026C2NPMonthliesUKMigration,
-  Print2026C3GWMonthliesUKMigration,
-  Print2026C3NPMonthliesUKMigration,
-  Print2026C4NPMonthliesUKMigration,
-  Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration,
-  Print2026C5NPNoEmailsUKMigration,
-  Print2026C6GWQuarterliesNonUKMigration,
   ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
@@ -33,31 +21,30 @@ object NotificationHandlerHelper {
 
   def notificationLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case Test1                                      => 35
-      case GuardianWeekly2025                         => GuardianWeekly2025Migration.notificationLeadTime
-      case Newspaper2025P1                            => Newspaper2025P1Migration.notificationLeadTime
-      case Newspaper2025P3                            => Newspaper2025P3Migration.notificationLeadTime
-      case ProductMigration2025N4                     => ProductMigration2025N4Migration.notificationLeadTime
-      case Membership2025                             => Membership2025Migration.notificationLeadTime
-      case DigiSubs2025                               => DigiSubs2025Migration.notificationLeadTime
-      case SupporterPlus2026                          => SupporterPlus2026Migration.notificationLeadTime
-      case SupporterPlus2026N2                        => SupporterPlus2026Migration.notificationLeadTime
-      case SupporterPlus2026N3                        => SupporterPlus2026Migration.notificationLeadTime
-      case SupporterPlus2026N4                        => SupporterPlus2026Migration.notificationLeadTime
-      case SupporterPlus2026N5                        => SupporterPlus2026Migration.notificationLeadTime
-      case Print2026C1GWAnnualsUK                     => Print2026C1GWAnnualsUKMigration.notificationLeadTime
-      case Print2026C1GWQuarterliesUK                 => Print2026C1GWQuarterliesUKMigration.notificationLeadTime
-      case Print2026C1NPAnnualsUK                     => Print2026C1NPAnnualsUKMigration.notificationLeadTime
-      case Print2026C1NPQuarterliesUK                 => Print2026C1NPQuarterliesUKMigration.notificationLeadTime
-      case Print2026C1NPSemiannualsUK                 => Print2026C1NPSemiannualsUKMigration.notificationLeadTime
-      case Print2026C2NPMonthliesUK                   => Print2026C2NPMonthliesUKMigration.notificationLeadTime
-      case Print2026C3GWMonthliesUK                   => Print2026C3GWMonthliesUKMigration.notificationLeadTime
-      case Print2026C3NPMonthliesUK                   => Print2026C3NPMonthliesUKMigration.notificationLeadTime
-      case Print2026C4NPMonthliesUK                   => Print2026C4NPMonthliesUKMigration.notificationLeadTime
-      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK =>
-        Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration.notificationLeadTime
-      case Print2026C5NPNoEmailsUK       => Print2026C5NPNoEmailsUKMigration.notificationLeadTime
-      case Print2026C6GWQuarterliesNonUK => Print2026C6GWQuarterliesNonUKMigration.notificationLeadTime
+      case Test1                         => 35
+      case GuardianWeekly2025            => GuardianWeekly2025Migration.notificationLeadTime
+      case Newspaper2025P1               => Newspaper2025P1Migration.notificationLeadTime
+      case Newspaper2025P3               => Newspaper2025P3Migration.notificationLeadTime
+      case ProductMigration2025N4        => ProductMigration2025N4Migration.notificationLeadTime
+      case Membership2025                => Membership2025Migration.notificationLeadTime
+      case DigiSubs2025                  => DigiSubs2025Migration.notificationLeadTime
+      case SupporterPlus2026             => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N2           => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N3           => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N4           => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N5           => SupporterPlus2026Migration.notificationLeadTime
+      case Print2026C1GWAnnualsUK        => 35
+      case Print2026C1GWQuarterliesUK    => 35
+      case Print2026C1NPAnnualsUK        => 35
+      case Print2026C1NPQuarterliesUK    => 35
+      case Print2026C1NPSemiannualsUK    => 35
+      case Print2026C2NPMonthliesUK      => 35
+      case Print2026C3GWMonthliesUK      => 35
+      case Print2026C3NPMonthliesUK      => 35
+      case Print2026C4NPMonthliesUK      => 35
+      case Print2026C5GW                 => 39
+      case Print2026C5NP                 => 39
+      case Print2026C6GWQuarterliesNonUK => 35
     }
   }
 
@@ -123,8 +110,8 @@ object NotificationHandlerHelper {
         List(
           isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2026_brand_title)
         ).forall(identity)
-      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => true
-      case Print2026C5NPNoEmailsUK                    =>
+      case Print2026C5GW => true
+      case Print2026C5NP =>
         List(
           isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2026_brand_title)
         ).forall(identity)
@@ -244,9 +231,9 @@ object SubscriptionNotificationAnalyseResult {
         case Print2026C3GWMonthliesUK   => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Print2026C3NPMonthliesUK   => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Print2026C4NPMonthliesUK   => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
-        case Print2026C5GWMonthliesAnnualsNoEmailsNonUK =>
+        case Print2026C5GW              =>
           analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
-        case Print2026C5NPNoEmailsUK =>
+        case Print2026C5NP =>
           analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Print2026C6GWQuarterliesNonUK => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
       }

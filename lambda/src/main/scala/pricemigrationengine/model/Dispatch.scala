@@ -30,30 +30,30 @@ object Dispatch {
    */
   def belongs(cohortSpec: CohortSpec, cohortItem: CohortItem): Boolean = {
     MigrationType(cohortSpec) match {
-      case Test1                                      => true
-      case GuardianWeekly2025                         => true
-      case Newspaper2025P1                            => true
-      case Newspaper2025P3                            => true
-      case ProductMigration2025N4                     => true
-      case Membership2025                             => true
-      case DigiSubs2025                               => true
-      case SupporterPlus2026                          => evaluate(cohortItem.subscriptionName, 1)
-      case SupporterPlus2026N2                        => evaluate(cohortItem.subscriptionName, 2)
-      case SupporterPlus2026N3                        => evaluate(cohortItem.subscriptionName, 3)
-      case SupporterPlus2026N4                        => evaluate(cohortItem.subscriptionName, 4)
-      case SupporterPlus2026N5                        => evaluate(cohortItem.subscriptionName, 5)
-      case Print2026C1GWAnnualsUK                     => true
-      case Print2026C1GWQuarterliesUK                 => true
-      case Print2026C1NPAnnualsUK                     => true
-      case Print2026C1NPQuarterliesUK                 => true
-      case Print2026C1NPSemiannualsUK                 => true
-      case Print2026C2NPMonthliesUK                   => true
-      case Print2026C3GWMonthliesUK                   => true
-      case Print2026C3NPMonthliesUK                   => true
-      case Print2026C4NPMonthliesUK                   => true
-      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => true
-      case Print2026C5NPNoEmailsUK                    => true
-      case Print2026C6GWQuarterliesNonUK              => true
+      case Test1                         => true
+      case GuardianWeekly2025            => true
+      case Newspaper2025P1               => true
+      case Newspaper2025P3               => true
+      case ProductMigration2025N4        => true
+      case Membership2025                => true
+      case DigiSubs2025                  => true
+      case SupporterPlus2026             => evaluate(cohortItem.subscriptionName, 1)
+      case SupporterPlus2026N2           => evaluate(cohortItem.subscriptionName, 2)
+      case SupporterPlus2026N3           => evaluate(cohortItem.subscriptionName, 3)
+      case SupporterPlus2026N4           => evaluate(cohortItem.subscriptionName, 4)
+      case SupporterPlus2026N5           => evaluate(cohortItem.subscriptionName, 5)
+      case Print2026C1GWAnnualsUK        => true
+      case Print2026C1GWQuarterliesUK    => true
+      case Print2026C1NPAnnualsUK        => true
+      case Print2026C1NPQuarterliesUK    => true
+      case Print2026C1NPSemiannualsUK    => true
+      case Print2026C2NPMonthliesUK      => true
+      case Print2026C3GWMonthliesUK      => true
+      case Print2026C3NPMonthliesUK      => true
+      case Print2026C4NPMonthliesUK      => true
+      case Print2026C5GW                 => true
+      case Print2026C5NP                 => true
+      case Print2026C6GWQuarterliesNonUK => true
     }
   }
 }

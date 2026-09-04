@@ -109,4 +109,19 @@ class Newspaper2026XTest extends munit.FunSuite {
       Some("the Guardian")
     )
   }
+  test("priceData") {
+    // sub1: "Newspaper Voucher"          "Everyday+"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub1/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Newspaper2026X/sub1/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub1/invoice-preview.json")
+    assertEquals(
+      Newspaper2026X.priceData(
+        subscription,
+        invoicePreview,
+        account: ZuoraAccount,
+        LocalDate.of(2026, 9, 14)
+      ),
+      Right(PriceData("GBP", BigDecimal(69.99), BigDecimal(72.99), "Month"))
+    )
+  }
 }

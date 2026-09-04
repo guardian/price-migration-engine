@@ -22,8 +22,8 @@ object Print2026C2NPMonthliesUK extends MigrationType
 object Print2026C3GWMonthliesUK extends MigrationType
 object Print2026C3NPMonthliesUK extends MigrationType
 object Print2026C4NPMonthliesUK extends MigrationType
-object Print2026C5GWMonthliesAnnualsNoEmailsNonUK extends MigrationType
-object Print2026C5NPNoEmailsUK extends MigrationType
+object Print2026C5GW extends MigrationType
+object Print2026C5NP extends MigrationType
 object Print2026C6GWQuarterliesNonUK extends MigrationType
 
 object MigrationType {
@@ -49,8 +49,8 @@ object MigrationType {
     case "Print2026C3GWMonthliesUK"                   => Print2026C3GWMonthliesUK
     case "Print2026C3NPMonthliesUK"                   => Print2026C3NPMonthliesUK
     case "Print2026C4NPMonthliesUK"                   => Print2026C4NPMonthliesUK
-    case "Print2026C5GWMonthliesAnnualsNoEmailsNonUK" => Print2026C5GWMonthliesAnnualsNoEmailsNonUK
-    case "Print2026C5NPNoEmailsUK"                    => Print2026C5NPNoEmailsUK
+    case "Print2026C5GWMonthliesAnnualsNoEmailsNonUK" => Print2026C5GW
+    case "Print2026C5NPNoEmailsUK"                    => Print2026C5NP
     case "Print2026C6GWQuarterliesNonUK"              => Print2026C6GWQuarterliesNonUK
   }
 }

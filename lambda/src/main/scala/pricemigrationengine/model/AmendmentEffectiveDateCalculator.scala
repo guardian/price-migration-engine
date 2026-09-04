@@ -37,26 +37,26 @@ object AmendmentEffectiveDateCalculator {
       case GuardianWeekly2025 => GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription, today)
       case Newspaper2025P1    => Newspaper2025P1Migration.subscriptionToLastPriceMigrationDate(subscription, today)
       case Newspaper2025P3    => Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate(subscription, today)
-      case ProductMigration2025N4                     => None
-      case Membership2025                             => None
-      case DigiSubs2025                               => None
-      case SupporterPlus2026                          => None
-      case SupporterPlus2026N2                        => None
-      case SupporterPlus2026N3                        => None
-      case SupporterPlus2026N4                        => None
-      case SupporterPlus2026N5                        => None
-      case Print2026C1GWAnnualsUK                     => None
-      case Print2026C1GWQuarterliesUK                 => None
-      case Print2026C1NPAnnualsUK                     => None
-      case Print2026C1NPQuarterliesUK                 => None
-      case Print2026C1NPSemiannualsUK                 => None
-      case Print2026C2NPMonthliesUK                   => None
-      case Print2026C3GWMonthliesUK                   => None
-      case Print2026C3NPMonthliesUK                   => None
-      case Print2026C4NPMonthliesUK                   => None
-      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => None
-      case Print2026C5NPNoEmailsUK                    => None
-      case Print2026C6GWQuarterliesNonUK              => None
+      case ProductMigration2025N4        => None
+      case Membership2025                => None
+      case DigiSubs2025                  => None
+      case SupporterPlus2026             => None
+      case SupporterPlus2026N2           => None
+      case SupporterPlus2026N3           => None
+      case SupporterPlus2026N4           => None
+      case SupporterPlus2026N5           => None
+      case Print2026C1GWAnnualsUK        => None
+      case Print2026C1GWQuarterliesUK    => None
+      case Print2026C1NPAnnualsUK        => None
+      case Print2026C1NPQuarterliesUK    => None
+      case Print2026C1NPSemiannualsUK    => None
+      case Print2026C2NPMonthliesUK      => None
+      case Print2026C3GWMonthliesUK      => None
+      case Print2026C3NPMonthliesUK      => None
+      case Print2026C4NPMonthliesUK      => None
+      case Print2026C5GW                 => None
+      case Print2026C5NP                 => None
+      case Print2026C6GWQuarterliesNonUK => None
     }
   }
 
@@ -101,30 +101,30 @@ object AmendmentEffectiveDateCalculator {
   ): Int = {
     if (isMonthlySubscription(subscription, invoicePreview)) {
       MigrationType(cohortSpec) match {
-        case Test1                                      => 1 // default value
-        case GuardianWeekly2025                         => 1 // no spread for Guardian Weekly 2025
-        case Newspaper2025P1                            => 1 // no spread for Newspaper 2025
-        case Newspaper2025P3                            => 1 // no spread for Newspaper 2025 (Phase 3)
-        case ProductMigration2025N4                     => 1
-        case Membership2025                             => 1
-        case DigiSubs2025                               => 3 // 3 Months for DigiSubs2025
-        case SupporterPlus2026                          => 1 // no spread for SupporterPlus2026
-        case SupporterPlus2026N2                        => 1 // no spread for SupporterPlus2026
-        case SupporterPlus2026N3                        => 1 // no spread for SupporterPlus2026
-        case SupporterPlus2026N4                        => 1 // no spread for SupporterPlus2026
-        case SupporterPlus2026N5                        => 1 // no spread for SupporterPlus2026
-        case Print2026C1GWAnnualsUK                     => 1 // no spread for GuardianWeekly2026C1
-        case Print2026C1GWQuarterliesUK                 => 1 // no spread for GuardianWeekly2026C2
-        case Print2026C1NPAnnualsUK                     => 1 // no spread for GuardianWeekly2026C3
-        case Print2026C1NPQuarterliesUK                 => 1 // no spread for Newspaper2026C1
-        case Print2026C1NPSemiannualsUK                 => 1 // no spread for Newspaper2026C2
-        case Print2026C2NPMonthliesUK                   => 1
-        case Print2026C3GWMonthliesUK                   => 1
-        case Print2026C3NPMonthliesUK                   => 1
-        case Print2026C4NPMonthliesUK                   => 1
-        case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => 1
-        case Print2026C5NPNoEmailsUK                    => 1
-        case Print2026C6GWQuarterliesNonUK              => 1
+        case Test1                         => 1 // default value
+        case GuardianWeekly2025            => 1 // no spread for Guardian Weekly 2025
+        case Newspaper2025P1               => 1 // no spread for Newspaper 2025
+        case Newspaper2025P3               => 1 // no spread for Newspaper 2025 (Phase 3)
+        case ProductMigration2025N4        => 1
+        case Membership2025                => 1
+        case DigiSubs2025                  => 3 // 3 Months for DigiSubs2025
+        case SupporterPlus2026             => 1 // no spread for SupporterPlus2026
+        case SupporterPlus2026N2           => 1 // no spread for SupporterPlus2026
+        case SupporterPlus2026N3           => 1 // no spread for SupporterPlus2026
+        case SupporterPlus2026N4           => 1 // no spread for SupporterPlus2026
+        case SupporterPlus2026N5           => 1 // no spread for SupporterPlus2026
+        case Print2026C1GWAnnualsUK        => 1 // no spread for GuardianWeekly2026C1
+        case Print2026C1GWQuarterliesUK    => 1 // no spread for GuardianWeekly2026C2
+        case Print2026C1NPAnnualsUK        => 1 // no spread for GuardianWeekly2026C3
+        case Print2026C1NPQuarterliesUK    => 1 // no spread for Newspaper2026C1
+        case Print2026C1NPSemiannualsUK    => 1 // no spread for Newspaper2026C2
+        case Print2026C2NPMonthliesUK      => 1
+        case Print2026C3GWMonthliesUK      => 1
+        case Print2026C3NPMonthliesUK      => 1
+        case Print2026C4NPMonthliesUK      => 1
+        case Print2026C5GW                 => 1
+        case Print2026C5NP                 => 1
+        case Print2026C6GWQuarterliesNonUK => 1
       }
     } else 1
   }
@@ -164,9 +164,9 @@ object AmendmentEffectiveDateCalculator {
       case Print2026C3GWMonthliesUK   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case Print2026C3NPMonthliesUK   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case Print2026C4NPMonthliesUK   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK =>
+      case Print2026C5GW              =>
         noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case Print2026C5NPNoEmailsUK => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C5NP => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case Print2026C6GWQuarterliesNonUK =>
         noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
     }
@@ -214,9 +214,9 @@ object AmendmentEffectiveDateCalculator {
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
       case Print2026C4NPMonthliesUK =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
-      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK =>
+      case Print2026C5GW =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
-      case Print2026C5NPNoEmailsUK =>
+      case Print2026C5NP =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
       case Print2026C6GWQuarterliesNonUK =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
@@ -242,18 +242,18 @@ object AmendmentEffectiveDateCalculator {
         SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
       case SupporterPlus2026N5 =>
         SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
-      case Print2026C1GWAnnualsUK                     => lowerBound3
-      case Print2026C1GWQuarterliesUK                 => lowerBound3
-      case Print2026C1NPAnnualsUK                     => lowerBound3
-      case Print2026C1NPQuarterliesUK                 => lowerBound3
-      case Print2026C1NPSemiannualsUK                 => lowerBound3
-      case Print2026C2NPMonthliesUK                   => lowerBound3
-      case Print2026C3GWMonthliesUK                   => lowerBound3
-      case Print2026C3NPMonthliesUK                   => lowerBound3
-      case Print2026C4NPMonthliesUK                   => lowerBound3
-      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => lowerBound3
-      case Print2026C5NPNoEmailsUK                    => lowerBound3
-      case Print2026C6GWQuarterliesNonUK              => lowerBound3
+      case Print2026C1GWAnnualsUK        => lowerBound3
+      case Print2026C1GWQuarterliesUK    => lowerBound3
+      case Print2026C1NPAnnualsUK        => lowerBound3
+      case Print2026C1NPQuarterliesUK    => lowerBound3
+      case Print2026C1NPSemiannualsUK    => lowerBound3
+      case Print2026C2NPMonthliesUK      => lowerBound3
+      case Print2026C3GWMonthliesUK      => lowerBound3
+      case Print2026C3NPMonthliesUK      => lowerBound3
+      case Print2026C4NPMonthliesUK      => lowerBound3
+      case Print2026C5GW                 => lowerBound3
+      case Print2026C5NP                 => lowerBound3
+      case Print2026C6GWQuarterliesNonUK => lowerBound3
     }
 
     // Decide the spread period for this migration

@@ -2,6 +2,7 @@ package pricemigrationengine.migrations
 import pricemigrationengine.model.{BillingPeriod, ZuoraRatePlan, _}
 
 import java.time.LocalDate
+import ujson._
 
 sealed trait NxFulfillment
 object Voucher extends NxFulfillment
@@ -134,30 +135,30 @@ object Newspaper2026X {
       today: LocalDate
   ): Option[String] = {
     MigrationType(cohortSpec) match {
-      case Test1                                      => Some("")
-      case GuardianWeekly2025                         => Some("")
-      case Newspaper2025P1                            => Some("")
-      case Newspaper2025P3                            => Some("")
-      case ProductMigration2025N4                     => Some("")
-      case Membership2025                             => Some("")
-      case DigiSubs2025                               => Some("")
-      case SupporterPlus2026                          => Some("")
-      case SupporterPlus2026N2                        => Some("")
-      case SupporterPlus2026N3                        => Some("")
-      case SupporterPlus2026N4                        => Some("")
-      case SupporterPlus2026N5                        => Some("")
-      case Print2026C1GWAnnualsUK                     => Some("")
-      case Print2026C1GWQuarterliesUK                 => Some("")
-      case Print2026C1NPAnnualsUK                     => decideBrandTitle(subscription, today)
-      case Print2026C1NPQuarterliesUK                 => decideBrandTitle(subscription, today)
-      case Print2026C1NPSemiannualsUK                 => decideBrandTitle(subscription, today)
-      case Print2026C2NPMonthliesUK                   => decideBrandTitle(subscription, today)
-      case Print2026C3GWMonthliesUK                   => Some("")
-      case Print2026C3NPMonthliesUK                   => decideBrandTitle(subscription, today)
-      case Print2026C4NPMonthliesUK                   => decideBrandTitle(subscription, today)
-      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => Some("")
-      case Print2026C5NPNoEmailsUK                    => decideBrandTitle(subscription, today)
-      case Print2026C6GWQuarterliesNonUK              => Some("")
+      case Test1                         => Some("")
+      case GuardianWeekly2025            => Some("")
+      case Newspaper2025P1               => Some("")
+      case Newspaper2025P3               => Some("")
+      case ProductMigration2025N4        => Some("")
+      case Membership2025                => Some("")
+      case DigiSubs2025                  => Some("")
+      case SupporterPlus2026             => Some("")
+      case SupporterPlus2026N2           => Some("")
+      case SupporterPlus2026N3           => Some("")
+      case SupporterPlus2026N4           => Some("")
+      case SupporterPlus2026N5           => Some("")
+      case Print2026C1GWAnnualsUK        => Some("")
+      case Print2026C1GWQuarterliesUK    => Some("")
+      case Print2026C1NPAnnualsUK        => decideBrandTitle(subscription, today)
+      case Print2026C1NPQuarterliesUK    => decideBrandTitle(subscription, today)
+      case Print2026C1NPSemiannualsUK    => decideBrandTitle(subscription, today)
+      case Print2026C2NPMonthliesUK      => decideBrandTitle(subscription, today)
+      case Print2026C3GWMonthliesUK      => Some("")
+      case Print2026C3NPMonthliesUK      => decideBrandTitle(subscription, today)
+      case Print2026C4NPMonthliesUK      => decideBrandTitle(subscription, today)
+      case Print2026C5GW                 => Some("")
+      case Print2026C5NP                 => decideBrandTitle(subscription, today)
+      case Print2026C6GWQuarterliesNonUK => Some("")
     }
   }
 
@@ -174,6 +175,47 @@ object Newspaper2026X {
   def logValue[T](label: String)(value: T): T = {
     println(s"$label: $value")
     value
+  }
+
+  def priceData(
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      account: ZuoraAccount,
+      today: LocalDate
+  ): Either[DataExtractionFailure, PriceData] = {
+    val priceDataOpt: Option[PriceData] = for {
+      ratePlan <- SI2025RateplanFromSubAndInvoices
+        .determineRatePlan(subscription, invoiceList)
+        .map(logValue("ratePlan"))
+      currency <- SI2025Extractions.determineCurrency(ratePlan).map(logValue("currency"))
+      oldPrice = logValue("oldPrice")(SI2025Extractions.determineOldPrice(ratePlan))
+      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan).map(logValue("billingPeriod"))
+      fullfilment <- decideFulfillment(subscription, today).map(logValue("fullfilment"))
+      pack <- decidePackage(subscription, today).map(logValue("pack"))
+      newPrice <- getNewPrice(billingPeriod, fullfilment, pack).map(logValue("newPrice"))
+    } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
+    priceDataOpt match {
+      case Some(pricedata) => Right(pricedata)
+      case None            =>
+        Left(
+          DataExtractionFailure(
+            s"[a149987a] Could not determine PriceData for subscription ${subscription.subscriptionNumber}"
+          )
+        )
+    }
+  }
+
+  def amendmentOrderPayload(
+      cohortItem: CohortItem,
+      orderDate: LocalDate,
+      accountNumber: String,
+      subscriptionNumber: String,
+      effectDate: LocalDate,
+      zuora_subscription: ZuoraSubscription,
+      commsPrice: BigDecimal,
+      invoiceList: ZuoraInvoiceList,
+  ): Either[Failure, Value] = {
+    ???
   }
 
 }

@@ -118,4 +118,17 @@ object GuardianWeekly2026X {
         )
     }
   }
+
+  def amendmentOrderPayload(
+      cohortItem: CohortItem,
+      orderDate: LocalDate,
+      accountNumber: String,
+      subscriptionNumber: String,
+      effectDate: LocalDate,
+      zuora_subscription: ZuoraSubscription,
+      commsPrice: BigDecimal,
+      invoiceList: ZuoraInvoiceList,
+  ): Either[Failure, Value] = {
+    ???
+  }
 }

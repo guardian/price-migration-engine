@@ -85,8 +85,11 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     val amendmentEffectiveDateLowerBound = LocalDate.of(2026, 2, 1)
     val cohortSpec = CohortSpec("DigiSubs2025", active = true)
 
+    val today = LocalDate.of(2026, 1, 1)
+
     assertEquals(
-      EstimationResult.apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec),
+      EstimationResult
+        .apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec, today),
       Right(
         EstimationData(
           subscriptionName = subscription.subscriptionNumber,
@@ -111,8 +114,11 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     val amendmentEffectiveDateLowerBound = LocalDate.of(2026, 2, 1)
     val cohortSpec = CohortSpec("DigiSubs2025", active = true)
 
+    val today = LocalDate.of(2026, 1, 1)
+
     assertEquals(
-      EstimationResult.apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec),
+      EstimationResult
+        .apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec, today),
       Right(
         EstimationData(
           subscriptionName = subscription.subscriptionNumber,
@@ -137,8 +143,11 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     val amendmentEffectiveDateLowerBound = LocalDate.of(2026, 2, 1)
     val cohortSpec = CohortSpec("DigiSubs2025", active = true)
 
+    val today = LocalDate.of(2026, 1, 1)
+
     assertEquals(
-      EstimationResult.apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec),
+      EstimationResult
+        .apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec, today),
       Right(
         EstimationData(
           subscriptionName = subscription.subscriptionNumber,
@@ -163,8 +172,11 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     val amendmentEffectiveDateLowerBound = LocalDate.of(2026, 2, 1)
     val cohortSpec = CohortSpec("DigiSubs2025", active = true)
 
+    val today = LocalDate.of(2026, 1, 1)
+
     assertEquals(
-      EstimationResult.apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec),
+      EstimationResult
+        .apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec, today),
       Right(
         EstimationData(
           subscriptionName = subscription.subscriptionNumber,

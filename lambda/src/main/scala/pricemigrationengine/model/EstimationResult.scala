@@ -25,6 +25,7 @@ object EstimationResult {
       invoiceList: ZuoraInvoiceList,
       amendmentEffectiveDateLowerBound: LocalDate,
       cohortSpec: CohortSpec,
+      today: LocalDate
   ): Either[Failure, EstimationData] = {
     for {
       amendmentEffectiveDate <- AmendmentData.nextServiceStartDate(
@@ -32,7 +33,7 @@ object EstimationResult {
         subscription,
         amendmentEffectiveDateLowerBound
       )
-      priceData <- AmendmentData.priceData(account, subscription, cohortSpec, invoiceList)
+      priceData <- AmendmentData.priceData(account, subscription, cohortSpec, invoiceList, today)
     } yield EstimationData(
       subscription.subscriptionNumber,
       amendmentEffectiveDate,

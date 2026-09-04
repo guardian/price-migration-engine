@@ -641,8 +641,11 @@ class SupporterPlus2026Test extends munit.FunSuite {
     val amendmentEffectiveDateLowerBound = LocalDate.of(2026, 8, 1)
     val cohortSpec = CohortSpec("SupporterPlus2026", active = true)
 
+    val today = LocalDate.of(2026, 7, 1)
+
     assertEquals(
-      EstimationResult.apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec),
+      EstimationResult
+        .apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec, today),
       Right(
         EstimationData(
           subscriptionName = subscription.subscriptionNumber,
@@ -676,11 +679,14 @@ class SupporterPlus2026Test extends munit.FunSuite {
     val amendmentEffectiveDateLowerBound = LocalDate.of(2026, 8, 1)
     val cohortSpec = CohortSpec("SupporterPlus2026", active = true)
 
+    val today = LocalDate.of(2026, 7, 1)
+
     // Here the Estimation is identical to that of '[01]', because the extra contribution amount
     // is not affecting it
 
     assertEquals(
-      EstimationResult.apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec),
+      EstimationResult
+        .apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec, today),
       Right(
         EstimationData(
           subscriptionName = subscription.subscriptionNumber,

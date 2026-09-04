@@ -13,18 +13,6 @@ import pricemigrationengine.migrations.{
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
   Newspaper2026X,
-  Print2026C1GWAnnualsUKMigration,
-  Print2026C1GWQuarterliesUKMigration,
-  Print2026C1NPAnnualsUKMigration,
-  Print2026C1NPQuarterliesUKMigration,
-  Print2026C1NPSemiannualsUKMigration,
-  Print2026C2NPMonthliesUKMigration,
-  Print2026C3GWMonthliesUKMigration,
-  Print2026C3NPMonthliesUKMigration,
-  Print2026C4NPMonthliesUKMigration,
-  Print2026C5GWMonthliesAnnualsNoEmailsNonUKMigration,
-  Print2026C5NPNoEmailsUKMigration,
-  Print2026C6GWQuarterliesNonUKMigration,
   ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
@@ -369,30 +357,30 @@ object NotificationHandler extends CohortHandler {
 
   def targetStreet(cohortSpec: CohortSpec, street: Option[String]): Either[NotificationHandlerFailure, String] = {
     MigrationType(cohortSpec) match {
-      case Test1                                      => requiredField(street, "Contact.OtherAddress.street")
-      case GuardianWeekly2025                         => requiredField(street, "Contact.OtherAddress.street")
-      case Newspaper2025P1                            => requiredField(street, "Contact.OtherAddress.street")
-      case Newspaper2025P3                            => requiredField(street, "Contact.OtherAddress.street")
-      case ProductMigration2025N4                     => requiredField(street, "Contact.OtherAddress.street")
-      case Membership2025                             => Right(street.getOrElse(""))
-      case DigiSubs2025                               => Right(street.getOrElse(""))
-      case SupporterPlus2026                          => Right(street.getOrElse(""))
-      case SupporterPlus2026N2                        => Right(street.getOrElse(""))
-      case SupporterPlus2026N3                        => Right(street.getOrElse(""))
-      case SupporterPlus2026N4                        => Right(street.getOrElse(""))
-      case SupporterPlus2026N5                        => Right(street.getOrElse(""))
-      case Print2026C1GWAnnualsUK                     => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C1GWQuarterliesUK                 => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C1NPAnnualsUK                     => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C1NPQuarterliesUK                 => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C1NPSemiannualsUK                 => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C2NPMonthliesUK                   => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C3GWMonthliesUK                   => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C3NPMonthliesUK                   => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C4NPMonthliesUK                   => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C5NPNoEmailsUK                    => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C6GWQuarterliesNonUK              => requiredField(street, "Contact.OtherAddress.street")
+      case Test1                         => requiredField(street, "Contact.OtherAddress.street")
+      case GuardianWeekly2025            => requiredField(street, "Contact.OtherAddress.street")
+      case Newspaper2025P1               => requiredField(street, "Contact.OtherAddress.street")
+      case Newspaper2025P3               => requiredField(street, "Contact.OtherAddress.street")
+      case ProductMigration2025N4        => requiredField(street, "Contact.OtherAddress.street")
+      case Membership2025                => Right(street.getOrElse(""))
+      case DigiSubs2025                  => Right(street.getOrElse(""))
+      case SupporterPlus2026             => Right(street.getOrElse(""))
+      case SupporterPlus2026N2           => Right(street.getOrElse(""))
+      case SupporterPlus2026N3           => Right(street.getOrElse(""))
+      case SupporterPlus2026N4           => Right(street.getOrElse(""))
+      case SupporterPlus2026N5           => Right(street.getOrElse(""))
+      case Print2026C1GWAnnualsUK        => requiredField(street, "Contact.OtherAddress.street")
+      case Print2026C1GWQuarterliesUK    => requiredField(street, "Contact.OtherAddress.street")
+      case Print2026C1NPAnnualsUK        => requiredField(street, "Contact.OtherAddress.street")
+      case Print2026C1NPQuarterliesUK    => requiredField(street, "Contact.OtherAddress.street")
+      case Print2026C1NPSemiannualsUK    => requiredField(street, "Contact.OtherAddress.street")
+      case Print2026C2NPMonthliesUK      => requiredField(street, "Contact.OtherAddress.street")
+      case Print2026C3GWMonthliesUK      => requiredField(street, "Contact.OtherAddress.street")
+      case Print2026C3NPMonthliesUK      => requiredField(street, "Contact.OtherAddress.street")
+      case Print2026C4NPMonthliesUK      => requiredField(street, "Contact.OtherAddress.street")
+      case Print2026C5GW                 => requiredField(street, "Contact.OtherAddress.street")
+      case Print2026C5NP                 => requiredField(street, "Contact.OtherAddress.street")
+      case Print2026C6GWQuarterliesNonUK => requiredField(street, "Contact.OtherAddress.street")
     }
   }
 
@@ -425,30 +413,30 @@ object NotificationHandler extends CohortHandler {
       contact: SalesforceContact
   ): Either[NotificationHandlerFailure, SalesforceAddress] = {
     MigrationType(cohortSpec) match {
-      case Test1                                      => targetAddressRequired(contact)
-      case GuardianWeekly2025                         => targetAddressRequired(contact)
-      case Newspaper2025P1                            => targetAddressRequired(contact)
-      case Newspaper2025P3                            => targetAddressNotRequired(contact)
-      case ProductMigration2025N4                     => targetAddressNotRequired(contact)
-      case Membership2025                             => targetAddressNotRequired(contact)
-      case DigiSubs2025                               => targetAddressNotRequired(contact)
-      case SupporterPlus2026                          => targetAddressNotRequired(contact)
-      case SupporterPlus2026N2                        => targetAddressNotRequired(contact)
-      case SupporterPlus2026N3                        => targetAddressNotRequired(contact)
-      case SupporterPlus2026N4                        => targetAddressNotRequired(contact)
-      case SupporterPlus2026N5                        => targetAddressNotRequired(contact)
-      case Print2026C1GWAnnualsUK                     => targetAddressRequired(contact)
-      case Print2026C1GWQuarterliesUK                 => targetAddressRequired(contact)
-      case Print2026C1NPAnnualsUK                     => targetAddressRequired(contact)
-      case Print2026C1NPQuarterliesUK                 => targetAddressRequired(contact)
-      case Print2026C1NPSemiannualsUK                 => targetAddressRequired(contact)
-      case Print2026C2NPMonthliesUK                   => targetAddressRequired(contact)
-      case Print2026C3GWMonthliesUK                   => targetAddressRequired(contact)
-      case Print2026C3NPMonthliesUK                   => targetAddressRequired(contact)
-      case Print2026C4NPMonthliesUK                   => targetAddressRequired(contact)
-      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => targetAddressRequired(contact)
-      case Print2026C5NPNoEmailsUK                    => targetAddressRequired(contact)
-      case Print2026C6GWQuarterliesNonUK              => targetAddressRequired(contact)
+      case Test1                         => targetAddressRequired(contact)
+      case GuardianWeekly2025            => targetAddressRequired(contact)
+      case Newspaper2025P1               => targetAddressRequired(contact)
+      case Newspaper2025P3               => targetAddressNotRequired(contact)
+      case ProductMigration2025N4        => targetAddressNotRequired(contact)
+      case Membership2025                => targetAddressNotRequired(contact)
+      case DigiSubs2025                  => targetAddressNotRequired(contact)
+      case SupporterPlus2026             => targetAddressNotRequired(contact)
+      case SupporterPlus2026N2           => targetAddressNotRequired(contact)
+      case SupporterPlus2026N3           => targetAddressNotRequired(contact)
+      case SupporterPlus2026N4           => targetAddressNotRequired(contact)
+      case SupporterPlus2026N5           => targetAddressNotRequired(contact)
+      case Print2026C1GWAnnualsUK        => targetAddressRequired(contact)
+      case Print2026C1GWQuarterliesUK    => targetAddressRequired(contact)
+      case Print2026C1NPAnnualsUK        => targetAddressRequired(contact)
+      case Print2026C1NPQuarterliesUK    => targetAddressRequired(contact)
+      case Print2026C1NPSemiannualsUK    => targetAddressRequired(contact)
+      case Print2026C2NPMonthliesUK      => targetAddressRequired(contact)
+      case Print2026C3GWMonthliesUK      => targetAddressRequired(contact)
+      case Print2026C3NPMonthliesUK      => targetAddressRequired(contact)
+      case Print2026C4NPMonthliesUK      => targetAddressRequired(contact)
+      case Print2026C5GW                 => targetAddressRequired(contact)
+      case Print2026C5NP                 => targetAddressRequired(contact)
+      case Print2026C6GWQuarterliesNonUK => targetAddressRequired(contact)
     }
   }
 
@@ -462,30 +450,30 @@ object NotificationHandler extends CohortHandler {
       address: SalesforceAddress
   ): Either[NotificationHandlerFailure, String] = {
     MigrationType(cohortSpec) match {
-      case Test1                                      => requiredField(address.country, "Contact.OtherAddress.country")
-      case GuardianWeekly2025                         => requiredField(address.country, "Contact.OtherAddress.country")
-      case Newspaper2025P1                            => Right(address.country.getOrElse("United Kingdom"))
-      case Newspaper2025P3                            => Right(address.country.getOrElse("United Kingdom"))
-      case ProductMigration2025N4                     => Right(address.country.getOrElse(""))
-      case Membership2025                             => Right(address.country.getOrElse(""))
-      case DigiSubs2025                               => Right(address.country.getOrElse(""))
-      case SupporterPlus2026                          => Right(address.country.getOrElse(""))
-      case SupporterPlus2026N2                        => Right(address.country.getOrElse(""))
-      case SupporterPlus2026N3                        => Right(address.country.getOrElse(""))
-      case SupporterPlus2026N4                        => Right(address.country.getOrElse(""))
-      case SupporterPlus2026N5                        => Right(address.country.getOrElse(""))
-      case Print2026C1GWAnnualsUK                     => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C1GWQuarterliesUK                 => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C1NPAnnualsUK                     => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C1NPQuarterliesUK                 => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C1NPSemiannualsUK                 => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C2NPMonthliesUK                   => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C3GWMonthliesUK                   => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C3NPMonthliesUK                   => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C4NPMonthliesUK                   => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C5NPNoEmailsUK                    => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C6GWQuarterliesNonUK              => requiredField(address.country, "Contact.OtherAddress.country")
+      case Test1                         => requiredField(address.country, "Contact.OtherAddress.country")
+      case GuardianWeekly2025            => requiredField(address.country, "Contact.OtherAddress.country")
+      case Newspaper2025P1               => Right(address.country.getOrElse("United Kingdom"))
+      case Newspaper2025P3               => Right(address.country.getOrElse("United Kingdom"))
+      case ProductMigration2025N4        => Right(address.country.getOrElse(""))
+      case Membership2025                => Right(address.country.getOrElse(""))
+      case DigiSubs2025                  => Right(address.country.getOrElse(""))
+      case SupporterPlus2026             => Right(address.country.getOrElse(""))
+      case SupporterPlus2026N2           => Right(address.country.getOrElse(""))
+      case SupporterPlus2026N3           => Right(address.country.getOrElse(""))
+      case SupporterPlus2026N4           => Right(address.country.getOrElse(""))
+      case SupporterPlus2026N5           => Right(address.country.getOrElse(""))
+      case Print2026C1GWAnnualsUK        => requiredField(address.country, "Contact.OtherAddress.country")
+      case Print2026C1GWQuarterliesUK    => requiredField(address.country, "Contact.OtherAddress.country")
+      case Print2026C1NPAnnualsUK        => requiredField(address.country, "Contact.OtherAddress.country")
+      case Print2026C1NPQuarterliesUK    => requiredField(address.country, "Contact.OtherAddress.country")
+      case Print2026C1NPSemiannualsUK    => requiredField(address.country, "Contact.OtherAddress.country")
+      case Print2026C2NPMonthliesUK      => requiredField(address.country, "Contact.OtherAddress.country")
+      case Print2026C3GWMonthliesUK      => requiredField(address.country, "Contact.OtherAddress.country")
+      case Print2026C3NPMonthliesUK      => requiredField(address.country, "Contact.OtherAddress.country")
+      case Print2026C4NPMonthliesUK      => requiredField(address.country, "Contact.OtherAddress.country")
+      case Print2026C5GW                 => requiredField(address.country, "Contact.OtherAddress.country")
+      case Print2026C5NP                 => requiredField(address.country, "Contact.OtherAddress.country")
+      case Print2026C6GWQuarterliesNonUK => requiredField(address.country, "Contact.OtherAddress.country")
     }
   }
 
@@ -604,18 +592,18 @@ object NotificationHandler extends CohortHandler {
           .orElseFail(
             DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
           )
-      case Print2026C1GWAnnualsUK                     => ???
-      case Print2026C1GWQuarterliesUK                 => ???
-      case Print2026C1NPAnnualsUK                     => ???
-      case Print2026C1NPQuarterliesUK                 => ???
-      case Print2026C1NPSemiannualsUK                 => ???
-      case Print2026C2NPMonthliesUK                   => ???
-      case Print2026C3GWMonthliesUK                   => ???
-      case Print2026C3NPMonthliesUK                   => ???
-      case Print2026C4NPMonthliesUK                   => ???
-      case Print2026C5GWMonthliesAnnualsNoEmailsNonUK => ???
-      case Print2026C5NPNoEmailsUK                    => ???
-      case Print2026C6GWQuarterliesNonUK              => ???
+      case Print2026C1GWAnnualsUK        => ???
+      case Print2026C1GWQuarterliesUK    => ???
+      case Print2026C1NPAnnualsUK        => ???
+      case Print2026C1NPQuarterliesUK    => ???
+      case Print2026C1NPSemiannualsUK    => ???
+      case Print2026C2NPMonthliesUK      => ???
+      case Print2026C3GWMonthliesUK      => ???
+      case Print2026C3NPMonthliesUK      => ???
+      case Print2026C4NPMonthliesUK      => ???
+      case Print2026C5GW                 => ???
+      case Print2026C5NP                 => ???
+      case Print2026C6GWQuarterliesNonUK => ???
     }
   }
 }
