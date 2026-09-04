@@ -69,4 +69,53 @@ object GuardianWeekly2026X {
       newPrice <- getNewPrice(billingPeriod, currencyAndLocalisation.currency, currencyAndLocalisation.localisation)
     } yield newPrice
   }
+
+  // ------------------------------------------------
+  // Primary Functions:
+  //
+  // The primary functions are the main functions that
+  // are implemented by the *Migration module.
+  //
+  // - priceData is used in the Estimation handler
+  // - amendmentOrderPayload is used in the Amendment handler
+  // ------------------------------------------------
+
+  def logValue[T](label: String)(value: T): T = {
+    println(s"$label: $value")
+    value
+  }
+
+  def priceData(
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      account: ZuoraAccount
+  ): Either[DataExtractionFailure, PriceData] = {
+    val priceDataOpt: Option[PriceData] = for {
+      _ <- Some(()).map(logValue("initialization"))
+      ratePlan <- SI2025RateplanFromSubAndInvoices
+        .determineRatePlan(subscription, invoiceList)
+        .map(logValue("ratePlan"))
+      currency <- SI2025Extractions
+        .determineCurrency(ratePlan)
+        .map(logValue("currency"))
+      oldPrice = logValue("oldPrice")(SI2025Extractions.determineOldPrice(ratePlan))
+      billingPeriod <- SI2025Extractions
+        .determineBillingPeriod(ratePlan)
+        .map(logValue("billingPeriod"))
+      newPrice <- getNewPrice(
+        subscription,
+        invoiceList,
+        account
+      ).map(logValue("newPrice"))
+    } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
+    priceDataOpt match {
+      case Some(pricedata) => Right(pricedata)
+      case None            =>
+        Left(
+          DataExtractionFailure(
+            s"[38fed0ce] could not determine PriceData for subscription ${subscription.subscriptionNumber}"
+          )
+        )
+    }
+  }
 }

@@ -160,4 +160,20 @@ object Newspaper2026X {
       case Print2026C6GWQuarterliesNonUK              => Some("")
     }
   }
+
+  // ------------------------------------------------
+  // Primary Functions:
+  //
+  // The primary functions are the main functions that
+  // are implemented by the *Migration module.
+  //
+  // - priceData is used in the Estimation handler
+  // - amendmentOrderPayload is used in the Amendment handler
+  // ------------------------------------------------
+
+  def logValue[T](label: String)(value: T): T = {
+    println(s"$label: $value")
+    value
+  }
+
 }
