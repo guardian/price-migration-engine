@@ -31,7 +31,6 @@ object NotificationHandler extends CohortHandler {
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     main(input).provideSome[Logging](
       EnvConfig.salesforce.layer,
-      EnvConfig.cohortTable.layer,
       EnvConfig.emailSender.layer,
       EnvConfig.zuora.layer,
       EnvConfig.stage.layer,

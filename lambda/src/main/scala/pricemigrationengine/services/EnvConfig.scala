@@ -30,14 +30,6 @@ object EnvConfig {
     )
   }
 
-  object cohortTable {
-    val layer: Layer[ConfigFailure, CohortTableConfig] = ZLayer.fromZIO(
-      for {
-        batchSize <- env("batchSize").map(_.toInt)
-      } yield CohortTableConfig(batchSize)
-    )
-  }
-
   object salesforce {
     val layer: Layer[ConfigFailure, SalesforceConfig] = ZLayer.fromZIO(
       for {
