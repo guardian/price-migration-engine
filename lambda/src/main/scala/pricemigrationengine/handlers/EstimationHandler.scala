@@ -130,7 +130,6 @@ object EstimationHandler extends CohortHandler {
 
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     main(input).provideSome[Logging](
-      EnvConfig.cohortTable.layer,
       EnvConfig.zuora.layer,
       EnvConfig.stage.layer,
       DynamoDBZIOLive.impl,

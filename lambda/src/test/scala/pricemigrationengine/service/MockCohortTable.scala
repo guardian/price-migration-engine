@@ -29,9 +29,6 @@ object MockCohortTable extends Mock[CohortTable] {
             ): ZStream[Any, CohortFetchFailure, CohortItem] =
               unsafeRun(runtime)(proxy(Fetch, filter, latestAmendmentEffectiveDateInclusive))
 
-            override def fetchAll(): ZStream[Any, CohortFetchFailure, CohortItem] =
-              unsafeRun(runtime)(proxy(FetchAll, ()))
-
             override def create(cohortItem: CohortItem): IO[Failure, Unit] =
               proxy(Create, cohortItem)
 

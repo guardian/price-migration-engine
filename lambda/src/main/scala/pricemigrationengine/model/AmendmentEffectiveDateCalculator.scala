@@ -66,7 +66,7 @@ object AmendmentEffectiveDateCalculator {
   ): LocalDate = {
     Date.datesMax(
       EstimationHandlerHelper.earliestAmendmentEffectiveDate(cohortSpec),
-      today.plusDays(NotificationHandler.notificationLeadTime(cohortSpec))
+      today.plusDays(NotificationHandlerHelper.notificationLeadTime(cohortSpec))
     )
   }
 
