@@ -21,7 +21,7 @@ First we need a cohort spec. Let's assume that the cohort spec is
 
 From the cohort spec we can derive the `earliestAmendmentEffectiveDate` by calling `EstimationHandlerHelper.earliestAmendmentEffectiveDate`
 
-Let us assume that the notification period for this migration is `[-49, -36]`. This is Pascal's notation for the fact that we start notifying at -49 days and alarm at -36.
+Let us assume that the notification lead time for this migration is 37, meaning that we are going to send the notification 37 days before the billing date.
 
 Let us assume that our subscription is a monthly subscription paying on the 27th of each month, and let us assume that it was created on 8th July 2023.
 
@@ -53,7 +53,7 @@ With the above context and the explanation about spread periods, let's compute t
 
 Step 1: We know that the chosen date needs to be after the cohort spec's `earliestAmendmentEffectiveDate`, meaning after `2024-05-20`. The date `2024-05-20` is our first lowerbound.
 
-Step 2: We know that the date needs to be after today plus the end of a notification period (otherwise the engine will alarm immediately). Remember we are using `2024-03-07` as "today". The notification period is `[-49, -36]`, so there should be at least 37 days between today and the chosen date. This means thay we have a lowerbound at `today + 37 days`, meaning `2024-03-07 + 37 days`, meaning `2024-04-13` (13th of April).
+Step 2: We know that the date needs to be after today plus the notification lead time. Remember we are using `2024-03-07` as "today". The notification lead time is 37, so there should be at least 37 days between today and the chosen date. This means thay we have a lowerbound at `today + 37 days`, meaning `2024-03-07 + 37 days`, meaning `2024-04-13` (13th of April).
 
 Step 3: Our new lowerbound is the max of the two lowerbounds we have computed so far. `max(2024-05-20, 2024-04-13) = 2024-05-20`. So the effective date should be after `2024-05-20`.
 

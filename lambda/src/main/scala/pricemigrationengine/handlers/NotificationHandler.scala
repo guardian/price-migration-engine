@@ -31,7 +31,6 @@ object NotificationHandler extends CohortHandler {
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     main(input).provideSome[Logging](
       EnvConfig.salesforce.layer,
-      EnvConfig.cohortTable.layer,
       EnvConfig.emailSender.layer,
       EnvConfig.zuora.layer,
       EnvConfig.stage.layer,
@@ -53,12 +52,18 @@ object NotificationHandler extends CohortHandler {
         cohortSpec.subscriptionNumber match {
           case None =>
             CohortTable
-              .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+              .fetch(
+                SalesforcePriceRiseCreationComplete,
+                Some(today.plusDays(NotificationHandlerHelper.notificationLeadTime(cohortSpec)))
+              )
               .filter(item => Dispatch.belongs(cohortSpec, item))
               .take(batchSize)
           case Some(subscriptionNumber) =>
             CohortTable
-              .fetch(SalesforcePriceRiseCreationComplete, Some(today.plusDays(maxLeadTime(cohortSpec))))
+              .fetch(
+                SalesforcePriceRiseCreationComplete,
+                Some(today.plusDays(NotificationHandlerHelper.notificationLeadTime(cohortSpec)))
+              )
               .filter(item => item.subscriptionName == subscriptionNumber)
         }
       ).mapZIO { item => processCohortItem(cohortSpec, item, today) }.runCount
@@ -306,52 +311,6 @@ object NotificationHandler extends CohortHandler {
 
       _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete)
     } yield ()
-
-  // -------------------------------------------------------------------
-  // Notification Windows
-
-  // For general information about the notification period see the docs/notification-periods.md
-
-  // The standard notification period for letter products (where the notification is delivered by email)
-  // is -49 (included) to -35 (excluded) days. Legally the min is 30 days, but we set 35 days to alert if a
-  // subscription if exiting the notification window and needs to be investigated and repaired before the deadline
-  // of 30 days.
-
-  // The digital migrations' notification window is from -33 (included) to -31 (excluded)
-
-  def maxLeadTime(cohortSpec: CohortSpec): Int = {
-    MigrationType(cohortSpec) match {
-      case Test1                  => 35
-      case GuardianWeekly2025     => GuardianWeekly2025Migration.maxLeadTime
-      case Newspaper2025P1        => Newspaper2025P1Migration.maxLeadTime
-      case Newspaper2025P3        => Newspaper2025P3Migration.maxLeadTime
-      case ProductMigration2025N4 => ProductMigration2025N4Migration.maxLeadTime
-      case Membership2025         => Membership2025Migration.maxLeadTime
-      case DigiSubs2025           => DigiSubs2025Migration.maxLeadTime
-      case SupporterPlus2026      => SupporterPlus2026Migration.maxLeadTime
-      case SupporterPlus2026N2    => SupporterPlus2026Migration.maxLeadTime
-      case SupporterPlus2026N3    => SupporterPlus2026Migration.maxLeadTime
-      case SupporterPlus2026N4    => SupporterPlus2026Migration.maxLeadTime
-      case SupporterPlus2026N5    => SupporterPlus2026Migration.maxLeadTime
-    }
-  }
-
-  def minLeadTime(cohortSpec: CohortSpec): Int = {
-    MigrationType(cohortSpec) match {
-      case Test1                  => 33
-      case GuardianWeekly2025     => GuardianWeekly2025Migration.minLeadTime
-      case Newspaper2025P1        => Newspaper2025P1Migration.minLeadTime
-      case Newspaper2025P3        => Newspaper2025P3Migration.minLeadTime
-      case ProductMigration2025N4 => ProductMigration2025N4Migration.minLeadTime
-      case Membership2025         => Membership2025Migration.minLeadTime
-      case DigiSubs2025           => DigiSubs2025Migration.minLeadTime
-      case SupporterPlus2026      => SupporterPlus2026Migration.minLeadTime
-      case SupporterPlus2026N2    => SupporterPlus2026Migration.minLeadTime
-      case SupporterPlus2026N3    => SupporterPlus2026Migration.minLeadTime
-      case SupporterPlus2026N4    => SupporterPlus2026Migration.minLeadTime
-      case SupporterPlus2026N5    => SupporterPlus2026Migration.minLeadTime
-    }
-  }
 
   // -------------------------------------------------------------------
   // Data Extraction Functions
