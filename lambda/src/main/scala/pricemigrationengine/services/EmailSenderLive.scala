@@ -1,7 +1,7 @@
 package pricemigrationengine.services
 
 import pricemigrationengine.model.{EmailSenderConfig, EmailSenderFailure}
-import pricemigrationengine.model.membershipworkflow.EmailMessage
+import pricemigrationengine.model.membershipworkflow.BrazeMessage
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import software.amazon.awssdk.services.sqs.model.{GetQueueUrlRequest, SendMessageRequest}
 import upickle.default.write
@@ -38,12 +38,12 @@ object EmailSenderLive {
           )
           .mapError { ex => EmailSenderFailure(s"Failed to get sqs queue url: ${ex.getMessage}") }
       } yield new EmailSender {
-        override def sendEmail(message: EmailMessage): ZIO[Any, EmailSenderFailure, Unit] =
+        override def sendEmail(message: BrazeMessage): ZIO[Any, EmailSenderFailure, Unit] =
           sendMessage(sqsClient, queueUrlResponse.queueUrl, message, logging)
       }
     )
 
-  private def sendMessage(sqsClient: SqsAsyncClient, queueUrl: String, message: EmailMessage, logging: Logging) = {
+  private def sendMessage(sqsClient: SqsAsyncClient, queueUrl: String, message: BrazeMessage, logging: Logging) = {
     val messageSerialised = serialiseMessage(message)
     for {
       _ <- logging.info(
@@ -69,7 +69,7 @@ object EmailSenderLive {
     } yield ()
   }
 
-  private[pricemigrationengine] def serialiseMessage(message: EmailMessage): String = {
+  private[pricemigrationengine] def serialiseMessage(message: BrazeMessage): String = {
     write(message, indent = 2)
   }
 }

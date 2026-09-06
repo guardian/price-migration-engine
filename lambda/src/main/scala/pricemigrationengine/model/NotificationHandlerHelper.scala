@@ -11,7 +11,7 @@ import pricemigrationengine.migrations.{
 }
 
 import java.time.LocalDate
-import pricemigrationengine.model.membershipworkflow.EmailMessage
+import pricemigrationengine.model.membershipworkflow.BrazeMessage
 
 object NotificationHandlerHelper {
 
@@ -40,7 +40,7 @@ object NotificationHandlerHelper {
     value.isDefined && value.get.nonEmpty
   }
 
-  def messageIsWellFormed(cohortSpec: CohortSpec, message: EmailMessage): Boolean = {
+  def messageIsWellFormed(cohortSpec: CohortSpec, message: BrazeMessage): Boolean = {
     // This function return whether or not an EmailMessage is "well formed". And for the moment
     // this is limited to checking that the special circumstances extra attributes (which were
     // originally introduced for the Summer 2025 print migrations) are not empty.
