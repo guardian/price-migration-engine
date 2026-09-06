@@ -8,7 +8,7 @@ import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sfn.SfnClient
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 
-object AwsClient {
+object Aws {
 
   private val region = EU_WEST_1
 

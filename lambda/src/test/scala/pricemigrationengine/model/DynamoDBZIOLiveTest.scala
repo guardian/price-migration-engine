@@ -28,7 +28,7 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
       queryRequest.copy(x => x.exclusiveStartKey(item("id-2"))) -> QueryResponse.builder.items(item("id-3")).build()
     )
     val stubDynamoDBClient = ZLayer.succeed(
-      new DynamoDBClient {
+      new DynamoDB {
         def query(queryRequest: QueryRequest): Task[QueryResponse] = ZIO.succeed(responseMap(queryRequest))
 
         def scan(scanRequest: ScanRequest): Task[ScanResponse] = ???
@@ -80,7 +80,7 @@ class DynamoDBZIOLiveTest extends munit.FunSuite {
     var receivedUpdateItemRequest: Option[UpdateItemRequest] = None
 
     val stubDynamoDBClient = ZLayer.succeed(
-      new DynamoDBClient {
+      new DynamoDB {
 
         override def query(queryRequest: QueryRequest): Task[QueryResponse] = ???
 

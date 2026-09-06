@@ -29,7 +29,7 @@ object BrazeLive {
       for {
         logging <- ZIO.service[Logging]
         config <- ZIO.service[BrazeConfig]
-        sqsClient <- ZIO.attempt(AwsClient.sqsAsync).mapError { ex =>
+        sqsClient <- ZIO.attempt(Aws.sqsAsync).mapError { ex =>
           BrazeFailure(s"Failed to create sqs client: ${ex.getMessage}")
         }
         queueUrlResponse <- ZIO

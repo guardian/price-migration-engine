@@ -133,7 +133,7 @@ object EstimationHandler extends CohortHandler {
       EnvConfig.zuora.layer,
       EnvConfig.stage.layer,
       DynamoDBZIOLive.impl,
-      DynamoDBClientLive.impl,
+      DynamoDBLive.impl,
       CohortTableLive.impl(input),
       ZuoraLive.impl
     )

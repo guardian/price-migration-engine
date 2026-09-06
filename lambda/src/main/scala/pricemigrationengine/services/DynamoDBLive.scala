@@ -5,12 +5,12 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model._
 import zio._
 
-object DynamoDBClientLive {
-  val impl: ZLayer[Logging, ConfigFailure, DynamoDBClient] = {
+object DynamoDBLive {
+  val impl: ZLayer[Logging, ConfigFailure, DynamoDB] = {
 
     def acquireDynamoDb: ZIO[Logging, ConfigFailure, DynamoDbClient] =
       ZIO
-        .attempt(AwsClient.dynamoDb)
+        .attempt(Aws.dynamoDb)
         .mapError(ex => ConfigFailure(s"Failed to create the dynamoDb client: $ex"))
 
     def releaseDynamoDb(dynamoDb: DynamoDbClient): URIO[Logging, Unit] = {
@@ -25,10 +25,10 @@ object DynamoDBClientLive {
     val dynamoDbLayer: ZLayer[Logging, ConfigFailure, DynamoDbClient] =
       ZLayer.scoped(ZIO.acquireRelease(acquireDynamoDb)(releaseDynamoDb))
 
-    val serviceLayer: ZLayer[DynamoDbClient, Nothing, DynamoDBClient] = ZLayer.fromZIO {
+    val serviceLayer: ZLayer[DynamoDbClient, Nothing, DynamoDB] = ZLayer.fromZIO {
       for {
         dynamoDb <- ZIO.service[DynamoDbClient]
-      } yield new DynamoDBClient {
+      } yield new DynamoDB {
         def query(queryRequest: QueryRequest): Task[QueryResponse] = ZIO.attempt(dynamoDb.query(queryRequest))
 
         def scan(scanRequest: ScanRequest): Task[ScanResponse] = ZIO.attempt(dynamoDb.scan(scanRequest))

@@ -11,7 +11,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
 
   private[handlers] def main(
       cohortSpec: CohortSpec
-  ): ZIO[Logging with CohortTable with SalesforceClient, Failure, HandlerOutput] =
+  ): ZIO[Logging with CohortTable with Salesforce, Failure, HandlerOutput] =
     for {
       count <- CohortTable
         .fetch(EstimationComplete, None)
@@ -23,7 +23,7 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
   private def createSalesforcePriceRise(
       cohortSpec: CohortSpec,
       item: CohortItem
-  ): ZIO[Logging with CohortTable with SalesforceClient, Failure, Unit] =
+  ): ZIO[Logging with CohortTable with Salesforce, Failure, Unit] =
     for {
       optionalNewPriceRiseId <- updateSalesforce(cohortSpec, item)
         .tapBoth(
@@ -43,18 +43,18 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
   private def updateSalesforce(
       cohortSpec: CohortSpec,
       cohortItem: CohortItem
-  ): ZIO[SalesforceClient, Failure, Option[String]] = {
+  ): ZIO[Salesforce, Failure, Option[String]] = {
     for {
-      subscription <- SalesforceClient.getSubscriptionByName(cohortItem.subscriptionName)
+      subscription <- Salesforce.getSubscriptionByName(cohortItem.subscriptionName)
       priceRise <- buildPriceRise(cohortSpec, cohortItem, subscription)
       result <-
         cohortItem.salesforcePriceRiseId
           .fold(
-            SalesforceClient
+            Salesforce
               .createPriceRise(priceRise)
               .map[Option[String]](response => Some(response.id))
           ) { priceRiseId =>
-            SalesforceClient
+            Salesforce
               .updatePriceRise(priceRiseId, priceRise)
               .as(None)
           }
@@ -99,9 +99,9 @@ object SalesforcePriceRiseCreationHandler extends CohortHandler {
       EnvConfig.salesforce.layer,
       EnvConfig.stage.layer,
       DynamoDBZIOLive.impl,
-      DynamoDBClientLive.impl,
+      DynamoDBLive.impl,
       CohortTableLive.impl(input),
-      SalesforceClientLive.impl,
+      SalesforceLive.impl,
     )
   }
 }

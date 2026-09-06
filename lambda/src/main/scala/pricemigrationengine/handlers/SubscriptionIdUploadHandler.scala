@@ -86,7 +86,7 @@ object SubscriptionIdUploadHandler extends CohortHandler {
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     main(input).provideSome[Logging](
       EnvConfig.stage.layer,
-      DynamoDBClientLive.impl,
+      DynamoDBLive.impl,
       DynamoDBZIOLive.impl,
       CohortTableLive.impl(input),
       S3Live.impl
