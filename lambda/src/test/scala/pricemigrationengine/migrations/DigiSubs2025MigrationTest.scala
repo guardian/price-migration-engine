@@ -97,7 +97,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
             LocalDate.of(2026, 2, 15), // The first billing period after amendmentEffectiveDateLowerBound
           currency = "GBP",
           oldPrice = BigDecimal(14.99),
-          priceGridNewPrice = BigDecimal(18.0),
+          newPriceFull = BigDecimal(18.0),
           commsPrice = BigDecimal(18.0),
           billingPeriod = "Month"
         )
@@ -126,7 +126,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
             LocalDate.of(2026, 3, 14), // The first Quarterly billing period after amendmentEffectiveDateLowerBound
           currency = "GBP",
           oldPrice = BigDecimal(44.94),
-          priceGridNewPrice = BigDecimal(54.0),
+          newPriceFull = BigDecimal(54.0),
           commsPrice = BigDecimal(54.0),
           billingPeriod = "Quarter"
         )
@@ -155,7 +155,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
             LocalDate.of(2026, 9, 28), // The first Annual billing period after amendmentEffectiveDateLowerBound
           currency = "GBP",
           oldPrice = BigDecimal(149.0),
-          priceGridNewPrice = BigDecimal(180.0),
+          newPriceFull = BigDecimal(180.0),
           commsPrice = BigDecimal(180.0),
           billingPeriod = "Annual"
         )
@@ -184,7 +184,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
             LocalDate.of(2026, 2, 5), // The first Monthly billing period after amendmentEffectiveDateLowerBound
           currency = "USD",
           oldPrice = BigDecimal(28.0), // [1]
-          priceGridNewPrice = BigDecimal(28.0), // [1]
+          newPriceFull = BigDecimal(28.0), // [1]
           commsPrice = BigDecimal(28.0),
           billingPeriod = "Month"
         )

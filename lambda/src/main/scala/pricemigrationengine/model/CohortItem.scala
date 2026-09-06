@@ -70,7 +70,7 @@ object CohortItem {
       result.subscriptionName,
       processingStage = EstimationComplete,
       oldPrice = Some(result.oldPrice),
-      estimatedNewPrice = Some(result.priceGridNewPrice),
+      estimatedNewPrice = Some(result.newPriceFull),
       commsPrice = Some(result.commsPrice),
       currency = Some(result.currency),
       amendmentEffectiveDate = Some(result.amendmentEffectiveDate),

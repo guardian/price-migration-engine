@@ -652,7 +652,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
           amendmentEffectiveDate = LocalDate.of(2026, 8, 30),
           currency = "USD",
           oldPrice = BigDecimal(15.0),
-          priceGridNewPrice = BigDecimal(18.0),
+          newPriceFull = BigDecimal(18.0),
           commsPrice = BigDecimal(18.0),
           billingPeriod = "Month"
         )
@@ -693,7 +693,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
           amendmentEffectiveDate = LocalDate.of(2026, 8, 30),
           currency = "USD",
           oldPrice = BigDecimal(15.0),
-          priceGridNewPrice = BigDecimal(18.0),
+          newPriceFull = BigDecimal(18.0),
           commsPrice = BigDecimal(18.0),
           billingPeriod = "Month"
         )
