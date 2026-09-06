@@ -169,7 +169,6 @@ class Newspaper2026XTest extends munit.FunSuite {
       Right(PriceData("GBP", BigDecimal(839.88), BigDecimal(875.88), "Annual"))
     )
   }
-
   test("Newspaper2026X.amendmentOrderPayload") {
 
     // sub1: "Newspaper Voucher"          "Everyday+"   "GBP"   "Month"
@@ -345,6 +344,147 @@ class Newspaper2026XTest extends munit.FunSuite {
              |                                "pricing": {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 12.68
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            }
+             |                        ]
+             |                    }
+             |                }
+             |            ]
+             |        }
+             |    ],
+             |    "processingOptions": {
+             |        "runBilling": false,
+             |        "collectPayment": false
+             |    }
+             |}""".stripMargin
+        )
+      )
+    )
+  }
+  test("Newspaper2026X.amendmentOrderPayload") {
+
+    // sub5: "Newspaper Voucher"          "Weekend+"    "GBP"   "Month"
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub5/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Newspaper2026X/sub5/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub5/invoice-preview.json")
+
+    val amendmentEffectiveDate = LocalDate.of(2026, 11, 17)
+    val oldPrice = BigDecimal(27.99)
+    val estimatedNewPrice = BigDecimal(29.99)
+    val commsPrice = BigDecimal(29.99)
+
+    val cohortItem = CohortItem(
+      subscriptionName = subscription.subscriptionNumber,
+      processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
+      amendmentEffectiveDate = Some(amendmentEffectiveDate),
+      currency = Some("GBP"),
+      oldPrice = Some(oldPrice),
+      estimatedNewPrice = Some(estimatedNewPrice),
+      commsPrice = Some(commsPrice),
+      billingPeriod = Some("Month"),
+      migrationExtraAttributes = None
+    )
+
+    // We now collect the arguments of Newspaper2026X.amendmentOrderPayload
+
+    val orderDate = LocalDate.of(2026, 9, 1) // LocalDate.now()
+    val accountNumber = subscription.accountNumber
+    val subscriptionNumber = subscription.subscriptionNumber
+    val effectDate = amendmentEffectiveDate
+    val priceCap = 1.071 // 7.1 %
+
+    assertEquals(
+      Newspaper2026X.amendmentOrderPayload(
+        cohortItem,
+        orderDate,
+        accountNumber,
+        subscriptionNumber,
+        effectDate,
+        subscription,
+        oldPrice,
+        commsPrice,
+        invoicePreview
+      ),
+      Right(
+        ujson.read(
+          s"""{
+             |    "orderDate": "2026-09-01",
+             |    "existingAccountNumber": "accountNumber",
+             |    "subscriptions": [
+             |        {
+             |            "subscriptionNumber": "subscriptionNumber",
+             |            "orderActions": [
+             |                {
+             |                    "type": "RemoveProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2026-11-17"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2026-11-17"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2026-11-17"
+             |                        }
+             |                    ],
+             |                    "removeProduct": {
+             |                        "ratePlanId": "8a12817b9a43b21f019a496d92e16c52"
+             |                    }
+             |                },
+             |                {
+             |                    "type": "AddProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2026-11-17"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2026-11-17"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2026-11-17"
+             |                        }
+             |                    ],
+             |                    "addProduct": {
+             |                        "productRatePlanId": "2c92a0fd56fe26b60157040cdd323f76",
+             |                        "chargeOverrides": [
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fe56fe33ff015709bb986636d8",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 8.75
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709b8fc4d5617",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 10.62
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b601570432f4e33d17",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 10.62
              |                                    }
              |                                },
              |                                "billing": {
