@@ -10,17 +10,17 @@ object CohortSpecTableLive {
 
   private val tableNamePrefix = "price-migration-engine-cohort-spec"
 
-  val impl: ZLayer[DynamoDBClient with StageConfig with Logging, ConfigFailure, CohortSpecTable] =
+  val impl: ZLayer[DynamoDB with StageConfig with Logging, ConfigFailure, CohortSpecTable] =
     ZLayer.fromZIO(for {
       logging <- ZIO.service[Logging]
       stageConfig <- ZIO.service[StageConfig]
-      dynamoDbClient <- ZIO.service[DynamoDBClient]
+      dynamoDb <- ZIO.service[DynamoDB]
     } yield new CohortSpecTable {
 
       override val fetchAll: IO[Failure, Set[CohortSpec]] = {
         val scanRequest = ScanRequest.builder.tableName(s"$tableNamePrefix-${stageConfig.stage}").build()
         (for {
-          scanResult <- dynamoDbClient
+          scanResult <- dynamoDb
             .scan(scanRequest)
             .mapError(e => CohortSpecFetchFailure(s"Failed to fetch cohort specs: $e"))
           specs <- ZIO.foreach(scanResult.items.asScala.toList)(result =>

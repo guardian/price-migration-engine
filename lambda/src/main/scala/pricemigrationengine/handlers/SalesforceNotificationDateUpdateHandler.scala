@@ -85,7 +85,7 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
       EnvConfig.salesforce.layer,
       EnvConfig.stage.layer,
       DynamoDBZIOLive.impl,
-      DynamoDBClientLive.impl,
+      DynamoDBLive.impl,
       CohortTableLive.impl(input),
       SalesforceLive.impl
     )

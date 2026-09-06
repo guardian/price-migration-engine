@@ -18,12 +18,12 @@ object CohortTableDdlLive {
   private val stageAttribute = "processingStage"
   private val amendmentEffectiveDateAttribute = "amendmentEffectiveDate"
 
-  val impl: ZLayer[DynamoDBClient with StageConfig with Logging, ConfigFailure, CohortTableDdl] =
+  val impl: ZLayer[DynamoDB with StageConfig with Logging, ConfigFailure, CohortTableDdl] =
     ZLayer.fromZIO(
       for {
         logging <- ZIO.service[Logging]
         stageConfig <- ZIO.service[StageConfig]
-        dynamoDbClient <- ZIO.service[DynamoDBClient]
+        dynamoDb <- ZIO.service[DynamoDB]
       } yield new CohortTableDdl {
 
         private def create(tableName: String) = {
@@ -56,7 +56,7 @@ object CohortTableDdlLive {
             .billingMode(PAY_PER_REQUEST)
             .build()
 
-          dynamoDbClient.createTable(createRequest).mapError(e => CohortTableCreateFailure(e.toString))
+          dynamoDb.createTable(createRequest).mapError(e => CohortTableCreateFailure(e.toString))
         }
 
         private def enableContinuousBackups(tableName: String) = {
@@ -67,7 +67,7 @@ object CohortTableDdlLive {
             )
             .build()
 
-          val result = dynamoDbClient
+          val result = dynamoDb
             .updateContinuousBackups(enableBackups)
             .tapError(_ => logging.info(s"Waiting to enable continuous backups ..."))
             .retry(
@@ -81,7 +81,7 @@ object CohortTableDdlLive {
           val tableName = cohortSpec.tableName(stageConfig.stage)
           for {
             // if table can be described, it must already exist and therefore not need to be created
-            result <- dynamoDbClient
+            result <- dynamoDb
               .describeTable(tableName)
               .foldZIO(_ => create(tableName).map(Some(_)), _ => ZIO.none)
             _ <- enableContinuousBackups(tableName)
