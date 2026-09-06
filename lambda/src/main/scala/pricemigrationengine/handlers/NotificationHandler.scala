@@ -102,13 +102,7 @@ object NotificationHandler extends CohortHandler {
       _ <- Logging.info(
         s"[dc6a8cb4] analyse subscription for notification, item: ${item}, result: ${SubscriptionNotificationAnalyseResult.toString(analyseResult)}"
       )
-      _ <- evaluateAnalyseResult(
-        cohortSpec,
-        item,
-        subscription,
-        analyseResult,
-        today
-      )
+      _ <- evaluateAnalyseResult(cohortSpec, item, subscription, analyseResult, today)
     } yield ()
   }
 
