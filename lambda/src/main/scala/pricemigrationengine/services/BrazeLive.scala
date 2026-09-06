@@ -8,13 +8,13 @@ import upickle.default.write
 import zio.{ZIO, ZLayer}
 
 /*
-  The email sender takes the information in the supplied EmailMessage object
+  The Braze (client) takes the information in the supplied BrazeMessage object
   and sends it to the membership-workflow app via the contribution-thanks sqs queue.
 
-  Membership workflow will then trigger the braze campaign associated with the DataExtensionName
-  in the sqs message.
+  Membership workflow will then trigger the Braze campaign or Braze Canvas associated
+  with the DataExtensionName in the sqs message.
 
-  If the notification is meant to result in a letter being sent, then braze will be configured to
+  If the notification is meant to result in a letter being sent, then Braze will be configured to
   trigger a 'web-hook'. The web hook is essentially an api call to Latcham our direct mail partner,
   who will use the information in the web hook to print a physical letter notifying the customer
   of the price rise and send it to the customer.
@@ -22,9 +22,9 @@ import zio.{ZIO, ZLayer}
   In other migrations, for instance the membership migration, an email is sent to the customer.
  */
 
-object EmailSenderLive {
+object BrazeLive {
 
-  val impl: ZLayer[Logging with EmailSenderConfig, EmailSenderFailure, EmailSender] =
+  val impl: ZLayer[Logging with EmailSenderConfig, EmailSenderFailure, Braze] =
     ZLayer.fromZIO(
       for {
         logging <- ZIO.service[Logging]
@@ -37,13 +37,18 @@ object EmailSenderLive {
             sqsClient.getQueueUrl(GetQueueUrlRequest.builder.queueName(config.sqsEmailQueueName).build())
           )
           .mapError { ex => EmailSenderFailure(s"Failed to get sqs queue url: ${ex.getMessage}") }
-      } yield new EmailSender {
-        override def sendEmail(message: BrazeMessage): ZIO[Any, EmailSenderFailure, Unit] =
-          sendMessage(sqsClient, queueUrlResponse.queueUrl, message, logging)
+      } yield new Braze {
+        override def sendMessage(message: BrazeMessage): ZIO[Any, EmailSenderFailure, Unit] =
+          sendMessageToBraze(sqsClient, queueUrlResponse.queueUrl, message, logging)
       }
     )
 
-  private def sendMessage(sqsClient: SqsAsyncClient, queueUrl: String, message: BrazeMessage, logging: Logging) = {
+  private def sendMessageToBraze(
+      sqsClient: SqsAsyncClient,
+      queueUrl: String,
+      message: BrazeMessage,
+      logging: Logging
+  ) = {
     val messageSerialised = serialiseMessage(message)
     for {
       _ <- logging.info(
