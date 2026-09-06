@@ -43,14 +43,18 @@ object EmailSenderLive {
       }
     )
 
-  private def sendMessage(sqsClient: SqsAsyncClient, queueUrl: String, message: EmailMessage, logging: Logging) =
+  private def sendMessage(sqsClient: SqsAsyncClient, queueUrl: String, message: EmailMessage, logging: Logging) = {
+    val messageSerialised = serialiseMessage(message)
     for {
+      _ <- logging.info(
+        s"[65956541] sending email for sfContactId ${message.SfContactId}, message serialised: ${messageSerialised}"
+      )
       result <- ZIO
         .fromCompletableFuture {
           sqsClient.sendMessage(
             SendMessageRequest.builder
               .queueUrl(queueUrl)
-              .messageBody(serialiseMessage(message))
+              .messageBody(messageSerialised)
               .build()
           )
         }
@@ -63,6 +67,7 @@ object EmailSenderLive {
         s"Successfully sent email for sfContactId ${message.SfContactId} message id: ${result.messageId}, message: ${message}"
       )
     } yield ()
+  }
 
   private[pricemigrationengine] def serialiseMessage(message: EmailMessage): String = {
     write(message, indent = 2)
