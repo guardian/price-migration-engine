@@ -10,7 +10,7 @@ object DynamoDBClientLive {
 
     def acquireDynamoDb: ZIO[Logging, ConfigFailure, DynamoDbClient] =
       ZIO
-        .attempt(AwsClient.dynamoDb)
+        .attempt(Aws.dynamoDb)
         .mapError(ex => ConfigFailure(s"Failed to create the dynamoDb client: $ex"))
 
     def releaseDynamoDb(dynamoDb: DynamoDbClient): URIO[Logging, Unit] = {
