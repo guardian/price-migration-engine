@@ -3,7 +3,7 @@ package pricemigrationengine.services
 import java.time.LocalDate
 import pricemigrationengine.model.{
   SalesforceAddress,
-  SalesforceClientFailure,
+  SalesforceFailure,
   SalesforceConfig,
   SalesforceContact,
   SalesforcePriceRise,
@@ -19,7 +19,7 @@ import sttp.model.Uri
 
 import scala.concurrent.duration._
 
-object SalesforceClientLive {
+object SalesforceLive {
 
   private case class SalesforceAuthDetails(access_token: String, instance_url: String)
 
@@ -45,20 +45,20 @@ object SalesforceClientLive {
 
   private def performRequestSttpClient4(
       request: Request[String]
-  ): ZIO[Any, SalesforceClientFailure, Response[String]] = {
+  ): ZIO[Any, SalesforceFailure, Response[String]] = {
     ZIO.scoped {
       for {
         backend <- HttpClientZioBackend
           .scoped()
           .mapError(ex =>
-            SalesforceClientFailure(
+            SalesforceFailure(
               s"Failed to create STTP backend: $ex"
             )
           )
         response <- backend
           .send(request)
           .mapError(ex =>
-            SalesforceClientFailure(
+            SalesforceFailure(
               s"Request for ${request.method} ${request.uri} failed: $ex"
             )
           )
@@ -68,7 +68,7 @@ object SalesforceClientLive {
             ZIO.unit
           else
             ZIO.fail(
-              SalesforceClientFailure(
+              SalesforceFailure(
                 s"""
                    |(error: 4d8d6c12)
                    |Salesforce request failed
@@ -85,14 +85,14 @@ object SalesforceClientLive {
 
   private def performRequestAndParseAnswer[A](
       request: Request[String]
-  )(implicit reader: Reader[A]): ZIO[Any, SalesforceClientFailure, A] = {
+  )(implicit reader: Reader[A]): ZIO[Any, SalesforceFailure, A] = {
     for {
       successfulResponse <- performRequestSttpClient4(request)
       body = successfulResponse.body
       _ <- ZIO.logInfo(s"[66412c75] successful response body: ${body}")
       parsedResponse <- ZIO
         .attempt(read[A](body))
-        .mapError(ex => SalesforceClientFailure(s"[de6f48da] failed to deserialise: ${body}, error: ${ex}"))
+        .mapError(ex => SalesforceFailure(s"[de6f48da] failed to deserialise: ${body}, error: ${ex}"))
     } yield parsedResponse
   }
 
@@ -105,10 +105,10 @@ object SalesforceClientLive {
 
   // Layer
 
-  val impl: ZLayer[SalesforceConfig with Logging, SalesforceClientFailure, SalesforceClient] =
+  val impl: ZLayer[SalesforceConfig with Logging, SalesforceFailure, Salesforce] =
     ZLayer.fromZIO {
 
-      def auth(config: SalesforceConfig, logging: Logging): IO[SalesforceClientFailure, SalesforceAuthDetails] = {
+      def auth(config: SalesforceConfig, logging: Logging): IO[SalesforceFailure, SalesforceAuthDetails] = {
         val request =
           basicRequest
             .post(
@@ -138,11 +138,11 @@ object SalesforceClientLive {
         config <- ZIO.service[SalesforceConfig]
         logging <- ZIO.service[Logging]
         auth <- auth(config, logging)
-      } yield new services.SalesforceClient {
+      } yield new services.Salesforce {
 
         override def getSubscriptionByName(
             subscriptionName: String
-        ): IO[SalesforceClientFailure, SalesforceSubscription] = {
+        ): IO[SalesforceFailure, SalesforceSubscription] = {
           val request = basicRequest
             .get(
               makeURI(
@@ -161,7 +161,7 @@ object SalesforceClientLive {
           } yield subscription
         }
 
-        override def getContact(contactId: String): IO[SalesforceClientFailure, SalesforceContact] = {
+        override def getContact(contactId: String): IO[SalesforceFailure, SalesforceContact] = {
           val request = basicRequest
             .get(
               makeURI(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Contact/$contactId")
@@ -180,7 +180,7 @@ object SalesforceClientLive {
 
         override def createPriceRise(
             priceRise: SalesforcePriceRise
-        ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] = {
+        ): IO[SalesforceFailure, SalesforcePriceRiseCreationResponse] = {
           val request =
             basicRequest
               .post(
@@ -206,7 +206,7 @@ object SalesforceClientLive {
         override def updatePriceRise(
             priceRiseId: String,
             priceRise: SalesforcePriceRise
-        ): IO[SalesforceClientFailure, Unit] = {
+        ): IO[SalesforceFailure, Unit] = {
           val request =
             basicRequest
               .patch(
@@ -225,7 +225,7 @@ object SalesforceClientLive {
             .tap(_ => logging.info(s"[bb7d65d1] Successfully updated Price_Rise__c object, priceRiseId: $priceRiseId"))
         }
 
-        override def getPriceRise(priceRiseId: String): IO[SalesforceClientFailure, SalesforcePriceRise] = {
+        override def getPriceRise(priceRiseId: String): IO[SalesforceFailure, SalesforcePriceRise] = {
           val request = basicRequest
             .get(
               makeURI(s"${auth.instance_url}/${salesforceApiPathPrefixToVersion}/sobjects/Price_Rise__c/${priceRiseId}")

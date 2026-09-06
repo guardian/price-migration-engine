@@ -12,7 +12,7 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
   private val batchSize = 2000
   private def main(
       cohortSpec: CohortSpec
-  ): ZIO[CohortTable with SalesforceClient with Logging, Failure, HandlerOutput] =
+  ): ZIO[CohortTable with Salesforce with Logging, Failure, HandlerOutput] =
     for {
       count <- CohortTable
         .fetch(AmendmentComplete, None)
@@ -30,7 +30,7 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
   private def updateSfWithNewSubscriptionId(
       cohortSpec: CohortSpec,
       item: CohortItem
-  ): ZIO[CohortTable with SalesforceClient with Logging, Failure, Unit] =
+  ): ZIO[CohortTable with Salesforce with Logging, Failure, Unit] =
     for {
       priceRise <- ZIO.fromEither(buildPriceRise(cohortSpec, item))
       salesforcePriceRiseId <-
@@ -40,8 +40,8 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
       // [September 2025]
       // Temporary, only to observe the values coming back from Salesforce
       // as part of preparing for ProductMigration2025N4
-      _ <- SalesforceClient.getPriceRise(salesforcePriceRiseId)
-      _ <- SalesforceClient.updatePriceRise(salesforcePriceRiseId, priceRise)
+      _ <- Salesforce.getPriceRise(salesforcePriceRiseId)
+      _ <- Salesforce.updatePriceRise(salesforcePriceRiseId, priceRise)
       now <- Clock.instant
       _ <-
         CohortTable
@@ -76,7 +76,7 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
       DynamoDBZIOLive.impl,
       DynamoDBClientLive.impl,
       CohortTableLive.impl(input),
-      SalesforceClientLive.impl
+      SalesforceLive.impl
     )
   }
 }
