@@ -39,11 +39,10 @@ object EstimationResult {
       amendmentEffectiveDate,
       priceData.currency,
       priceData.oldPrice,
-      priceData.newPriceFull, // aka: estimatedNewPrice in the cohort Item
-      EstimationHandlerHelper.commsPrice(cohortSpec, priceData.oldPrice, priceData.newPriceFull), // [1]
+      priceData.newPriceFull, // cohort Item's estimatedNewPrice
+      priceData.commsPrice, // full price with possible capping
       priceData.billingPeriod
     )
-    // the cohortSpec is used to apply the right capping (if any)
   }
 }
 
