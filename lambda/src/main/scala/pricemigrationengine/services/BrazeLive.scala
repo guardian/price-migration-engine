@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import pricemigrationengine.model.{EmailSenderConfig, EmailSenderFailure}
+import pricemigrationengine.model.{BrazeConfig, BrazeFailure}
 import pricemigrationengine.model.membershipworkflow.BrazeMessage
 import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import software.amazon.awssdk.services.sqs.model.{GetQueueUrlRequest, SendMessageRequest}
@@ -24,21 +24,21 @@ import zio.{ZIO, ZLayer}
 
 object BrazeLive {
 
-  val impl: ZLayer[Logging with EmailSenderConfig, EmailSenderFailure, Braze] =
+  val impl: ZLayer[Logging with BrazeConfig, BrazeFailure, Braze] =
     ZLayer.fromZIO(
       for {
         logging <- ZIO.service[Logging]
-        config <- ZIO.service[EmailSenderConfig]
+        config <- ZIO.service[BrazeConfig]
         sqsClient <- ZIO.attempt(AwsClient.sqsAsync).mapError { ex =>
-          EmailSenderFailure(s"Failed to create sqs client: ${ex.getMessage}")
+          BrazeFailure(s"Failed to create sqs client: ${ex.getMessage}")
         }
         queueUrlResponse <- ZIO
           .fromCompletableFuture(
             sqsClient.getQueueUrl(GetQueueUrlRequest.builder.queueName(config.sqsEmailQueueName).build())
           )
-          .mapError { ex => EmailSenderFailure(s"Failed to get sqs queue url: ${ex.getMessage}") }
+          .mapError { ex => BrazeFailure(s"Failed to get sqs queue url: ${ex.getMessage}") }
       } yield new Braze {
-        override def sendMessage(message: BrazeMessage): ZIO[Any, EmailSenderFailure, Unit] =
+        override def sendMessage(message: BrazeMessage): ZIO[Any, BrazeFailure, Unit] =
           sendMessageToBraze(sqsClient, queueUrlResponse.queueUrl, message, logging)
       }
     )
@@ -64,7 +64,7 @@ object BrazeLive {
           )
         }
         .mapError { ex =>
-          EmailSenderFailure(
+          BrazeFailure(
             s"Failed to send sqs email message for sfContactId ${message.SfContactId}: ${ex.getMessage}"
           )
         }

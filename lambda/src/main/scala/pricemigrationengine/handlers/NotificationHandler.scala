@@ -32,7 +32,7 @@ object NotificationHandler extends CohortHandler {
   def handle(input: CohortSpec): ZIO[Logging, Failure, HandlerOutput] = {
     main(input).provideSome[Logging](
       EnvConfig.salesforce.layer,
-      EnvConfig.emailSender.layer,
+      EnvConfig.braze.layer,
       EnvConfig.zuora.layer,
       EnvConfig.stage.layer,
       DynamoDBClientLive.impl,
@@ -483,7 +483,7 @@ object NotificationHandler extends CohortHandler {
   private def paymentFrequency(billingPeriod: String) =
     ZIO
       .fromOption(BillingPeriod.notificationPaymentFrequencyMapping.get(billingPeriod))
-      .orElseFail(EmailSenderFailure(s"No payment frequency mapping found for billing period: $billingPeriod"))
+      .orElseFail(BrazeFailure(s"No payment frequency mapping found for billing period: $billingPeriod"))
 
   private def updateCohortItemStatus(
       subscriptionNumber: String,

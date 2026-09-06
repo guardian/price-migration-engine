@@ -8,8 +8,8 @@ import pricemigrationengine.model.membershipworkflow.{
 }
 import pricemigrationengine.services.BrazeLive
 
-class EmailSenderLiveTest extends munit.FunSuite {
-  test("EmailSenderLive should serialise message correctly") {
+class BrazeLiveTest extends munit.FunSuite {
+  test("BrazeLiveLive should serialise message correctly") {
     assertEquals(
       BrazeLive.serialiseMessage(
         BrazeMessage(
@@ -68,7 +68,7 @@ class EmailSenderLiveTest extends munit.FunSuite {
     )
   }
 
-  test("EmailSenderLive should serialise message with missing optional values correctly") {
+  test("BrazeLiveLive should serialise message with missing optional values correctly") {
     assertEquals(
       BrazeLive.serialiseMessage(
         BrazeMessage(
