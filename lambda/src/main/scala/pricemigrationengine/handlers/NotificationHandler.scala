@@ -256,11 +256,11 @@ object NotificationHandler extends CohortHandler {
 
       brazeName <- brazeName(cohortSpec, cohortItem, zuoraSubscription)
 
-      message = EmailMessage(
-        EmailPayload(
+      message = BrazeMessage(
+        BrazePayload(
           Address = contact.Email,
-          ContactAttributes = EmailPayloadContactAttributes(
-            SubscriberAttributes = EmailPayloadSubscriberAttributes(
+          ContactAttributes = BrazePayloadContactAttributes(
+            SubscriberAttributes = BrazePayloadSubscriberAttributes(
               title = contact.FirstName flatMap (_ =>
                 contact.Salutation // if no first name, we use salutation as first name and leave this field empty
               ),

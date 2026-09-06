@@ -4,7 +4,7 @@ import pricemigrationengine.model.OptionWriter //required
 import pricemigrationengine.model.OptionReader //required
 import upickle.default.{ReadWriter, macroRW}
 
-case class EmailPayloadSubscriberAttributes(
+case class BrazePayloadSubscriberAttributes(
     title: Option[String],
     first_name: String,
     last_name: String,
@@ -50,29 +50,29 @@ case class EmailPayloadSubscriberAttributes(
     // -----------------------------------------------
 )
 
-object EmailPayloadSubscriberAttributes {
-  implicit val rw: ReadWriter[EmailPayloadSubscriberAttributes] = macroRW
+object BrazePayloadSubscriberAttributes {
+  implicit val rw: ReadWriter[BrazePayloadSubscriberAttributes] = macroRW
 }
 
-case class EmailPayloadContactAttributes(SubscriberAttributes: EmailPayloadSubscriberAttributes)
+case class BrazePayloadContactAttributes(SubscriberAttributes: BrazePayloadSubscriberAttributes)
 
-object EmailPayloadContactAttributes {
-  implicit val rw: ReadWriter[EmailPayloadContactAttributes] = macroRW
+object BrazePayloadContactAttributes {
+  implicit val rw: ReadWriter[BrazePayloadContactAttributes] = macroRW
 }
 
-case class EmailPayload(Address: Option[String], ContactAttributes: EmailPayloadContactAttributes)
+case class BrazePayload(Address: Option[String], ContactAttributes: BrazePayloadContactAttributes)
 
-object EmailPayload {
-  implicit val rw: ReadWriter[EmailPayload] = macroRW
+object BrazePayload {
+  implicit val rw: ReadWriter[BrazePayload] = macroRW
 }
 
-case class EmailMessage(
-    To: EmailPayload,
+case class BrazeMessage(
+    To: BrazePayload,
     DataExtensionName: String,
     SfContactId: String,
     IdentityUserId: Option[String]
 )
 
-object EmailMessage {
-  implicit val rw: ReadWriter[EmailMessage] = macroRW
+object BrazeMessage {
+  implicit val rw: ReadWriter[BrazeMessage] = macroRW
 }
