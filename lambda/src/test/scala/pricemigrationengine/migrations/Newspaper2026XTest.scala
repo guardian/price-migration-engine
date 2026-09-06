@@ -12,14 +12,17 @@ import java.time.{Instant, LocalDate}
 // val account = Fixtures.accountFromJson("Migrations/Newspaper2026X/sub1/account.json")
 // val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub1/invoice-preview.json")
 
-// sub2: "Newspaper Digital Voucher"  "Everyday+"
-// sub3: "Newspaper Delivery"         "Everyday+"
-// sub4: "Newspaper Voucher"          "Sixday+"
-// sub5: "Newspaper Voucher"          "Weekend+"    "GBP"   "Month"
-// sub6: "Newspaper Voucher"          "Everyday"
-// sub7: "Newspaper Voucher"          "Sixday"
-// sub8: "Newspaper Voucher"          "Sixday+"     "GBP"   "Quarter"
-// sub9: "Newspaper Voucher"          "Everyday+"   "GBP"   "Annual"
+// sub2:  "Newspaper Digital Voucher"  "Everyday+"
+// sub3:  "Newspaper Delivery"         "Everyday+"
+// sub4:  "Newspaper Voucher"          "Sixday+"
+// sub5:  "Newspaper Voucher"          "Weekend+"    "GBP"   "Month"
+// sub6:  "Newspaper Voucher"          "Everyday"
+// sub7:  "Newspaper Voucher"          "Sixday"
+// sub8:  "Newspaper Voucher"          "Sixday+"     "GBP"   "Quarter"
+// sub9:  "Newspaper Voucher"          "Everyday+"   "GBP"   "Annual"
+// sub10: "Newspaper Voucher"          "Everyday+"   "GBP"   "Annual"
+//        special edition of sub9 to test the 7.1% price cap
+//        charges sum to 100 GBP
 
 class Newspaper2026XTest extends munit.FunSuite {
   test("getNewPrice") {
@@ -116,12 +119,13 @@ class Newspaper2026XTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub1/invoice-preview.json")
     assertEquals(
       Newspaper2026X.priceData(
+        CohortSpec("Test1", true),
         subscription,
         invoicePreview,
         account: ZuoraAccount,
         LocalDate.of(2026, 9, 14)
       ),
-      Right(PriceData("GBP", BigDecimal(69.99), BigDecimal(72.99), "Month"))
+      Right(PriceData("GBP", BigDecimal(69.99), BigDecimal(72.99), BigDecimal(72.99), "Month"))
     )
   }
   test("priceData") {
@@ -131,12 +135,13 @@ class Newspaper2026XTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub7/invoice-preview.json")
     assertEquals(
       Newspaper2026X.priceData(
+        CohortSpec("Test1", true),
         subscription,
         invoicePreview,
         account: ZuoraAccount,
         LocalDate.of(2026, 9, 14)
       ),
-      Right(PriceData("GBP", BigDecimal(61.99), BigDecimal(64.99), "Month"))
+      Right(PriceData("GBP", BigDecimal(61.99), BigDecimal(64.99), BigDecimal(64.99), "Month"))
     )
   }
   test("priceData") {
@@ -146,12 +151,13 @@ class Newspaper2026XTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub8/invoice-preview.json")
     assertEquals(
       Newspaper2026X.priceData(
+        CohortSpec("Test1", true),
         subscription,
         invoicePreview,
         account: ZuoraAccount,
         LocalDate.of(2026, 9, 14)
       ),
-      Right(PriceData("GBP", BigDecimal(185.97), BigDecimal(194.97), "Quarter"))
+      Right(PriceData("GBP", BigDecimal(185.97), BigDecimal(194.97), BigDecimal(194.97), "Quarter"))
     )
   }
   test("priceData") {
@@ -161,12 +167,31 @@ class Newspaper2026XTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub9/invoice-preview.json")
     assertEquals(
       Newspaper2026X.priceData(
+        CohortSpec("Test1", true),
         subscription,
         invoicePreview,
         account: ZuoraAccount,
         LocalDate.of(2026, 9, 14)
       ),
-      Right(PriceData("GBP", BigDecimal(839.88), BigDecimal(875.88), "Annual"))
+      Right(PriceData("GBP", BigDecimal(839.88), BigDecimal(875.88), BigDecimal(875.88), "Annual"))
+    )
+  }
+  test("priceData") {
+    // sub10: "Newspaper Voucher"          "Everyday+"   "GBP"   "Annual"
+    //        special edition of sub9 to test the 7.1% price cap
+    //        charges sum to 100 GBP
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub10/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Newspaper2026X/sub10/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub10/invoice-preview.json")
+    assertEquals(
+      Newspaper2026X.priceData(
+        CohortSpec("Print2026C2NPMonthliesUK", true),
+        subscription,
+        invoicePreview,
+        account: ZuoraAccount,
+        LocalDate.of(2026, 9, 14)
+      ),
+      Right(PriceData("GBP", BigDecimal(100), BigDecimal(875.88), BigDecimal(107.10), "Annual"))
     )
   }
   test("Newspaper2026X.amendmentOrderPayload") {

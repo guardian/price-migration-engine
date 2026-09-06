@@ -183,6 +183,7 @@ object Newspaper2025P3Migration {
   // ------------------------------------------------
 
   def priceData(
+      cohortSpec: CohortSpec,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       account: ZuoraAccount
@@ -194,7 +195,8 @@ object Newspaper2025P3Migration {
       billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
       deliveryPattern <- decideDeliveryPattern(ratePlan)
       newPrice <- priceLookUp(deliveryPattern, billingPeriod)
-    } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
+      commsPrice = EstimationHandlerHelper.commsPrice(cohortSpec, oldPrice, newPrice)
+    } yield PriceData(currency, oldPrice, newPrice, commsPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
       case None            =>

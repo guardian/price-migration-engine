@@ -92,6 +92,7 @@ object ProductMigration2025N4Migration {
   // -----------------------------------------------------
 
   def priceData(
+      cohortSpec: CohortSpec,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
   ): Either[DataExtractionFailure, PriceData] = {
@@ -101,7 +102,8 @@ object ProductMigration2025N4Migration {
       oldPrice = SI2025Extractions.determineOldPrice(ratePlan)
       billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
       newPrice = oldPrice
-    } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
+      commsPrice = EstimationHandlerHelper.commsPrice(cohortSpec, oldPrice, newPrice)
+    } yield PriceData(currency, oldPrice, newPrice, commsPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
       case None            =>

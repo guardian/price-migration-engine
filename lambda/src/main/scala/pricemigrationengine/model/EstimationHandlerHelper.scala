@@ -96,10 +96,10 @@ object EstimationHandlerHelper {
     }
   }
 
-  def commsPrice(cohortSpec: CohortSpec, oldPrice: BigDecimal, estimatedNewPriceUncapped: BigDecimal): BigDecimal = {
+  def commsPrice(cohortSpec: CohortSpec, oldPrice: BigDecimal, priceGridNewPriceUncapped: BigDecimal): BigDecimal = {
     PriceCap.cappedPrice(
       oldPrice,
-      estimatedNewPriceUncapped,
+      priceGridNewPriceUncapped,
       migrationCapRatio(cohortSpec: CohortSpec).map(ratio => BigDecimal(ratio))
     )
   }

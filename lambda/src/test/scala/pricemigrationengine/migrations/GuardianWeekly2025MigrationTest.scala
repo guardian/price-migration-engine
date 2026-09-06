@@ -175,8 +175,8 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     // Billing frequency from currency: active rate plan, rate plan charge: "billingPeriod": "Month"
 
     assertEquals(
-      GuardianWeekly2025Migration.priceData(subscription, invoicePreview, account),
-      Right(PriceData("GBP", BigDecimal(15.0), BigDecimal(16.5), "Month"))
+      GuardianWeekly2025Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview, account),
+      Right(PriceData("GBP", BigDecimal(15.0), BigDecimal(16.5), BigDecimal(16.5), "Month"))
     )
   }
 
@@ -191,8 +191,8 @@ class GuardianWeekly2025MigrationTest extends munit.FunSuite {
     // Billing frequency from currency: active rate plan, rate plan charge: "billingPeriod": "Annual"
 
     assertEquals(
-      GuardianWeekly2025Migration.priceData(subscription, invoicePreview, account),
-      Right(PriceData("EUR", BigDecimal(318), BigDecimal(348), "Annual"))
+      GuardianWeekly2025Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview, account),
+      Right(PriceData("EUR", BigDecimal(318), BigDecimal(348), BigDecimal(348), "Annual"))
     )
   }
 

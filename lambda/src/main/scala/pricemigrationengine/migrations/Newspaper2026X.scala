@@ -178,6 +178,7 @@ object Newspaper2026X {
   }
 
   def priceData(
+      cohortSpec: CohortSpec,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       account: ZuoraAccount,
@@ -193,7 +194,8 @@ object Newspaper2026X {
       fullfilment <- decideFulfillment(subscription, today).map(logValue("fullfilment"))
       pack <- decidePackage(subscription, today).map(logValue("pack"))
       newPrice <- getNewPrice(billingPeriod, fullfilment, pack).map(logValue("newPrice"))
-    } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
+      commsPrice = logValue("commsPrice")(EstimationHandlerHelper.commsPrice(cohortSpec, oldPrice, newPrice))
+    } yield PriceData(currency, oldPrice, newPrice, commsPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
       case None            =>

@@ -216,8 +216,11 @@ object SI2025Templates {
       newPrice = BigDecimal(
         2.71
       ) // Should replace this by a call to the migration's own `determineNewPrice()` the price grid lookup
+      commsPrice = BigDecimal(
+        2.55
+      ) // should replace this by the value coming from price data
       billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
-    } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
+    } yield PriceData(currency, oldPrice, newPrice, commsPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
       case None            =>
