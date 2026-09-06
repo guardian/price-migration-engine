@@ -24,17 +24,17 @@ import java.time.{Instant, LocalDate}
 //        special edition of sub9 to test the 7.1% price cap
 //        charges sum to 100 GBP
 
-class Newspaper2026XTest extends munit.FunSuite {
+class Newspaper2026MigrationXTest extends munit.FunSuite {
   test("getNewPrice") {
-    assertEquals(Newspaper2026X.getNewPrice(Monthly, Voucher, EverydayBasicAndPlus), Some(BigDecimal(72.99)))
-    assertEquals(Newspaper2026X.getNewPrice(Quarterly, HomeDelivery, WeekendBasicAndPlus), Some(BigDecimal(110.97)))
+    assertEquals(Newspaper2026MigrationX.getNewPrice(Monthly, Voucher, EverydayBasicAndPlus), Some(BigDecimal(72.99)))
+    assertEquals(Newspaper2026MigrationX.getNewPrice(Quarterly, HomeDelivery, WeekendBasicAndPlus), Some(BigDecimal(110.97)))
   }
   test("decideFulfillment") {
     // sub1: "Newspaper Voucher"          "Everyday+"
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub1/subscription.json")
     // Product name is "Newspaper Voucher", so we expect `Voucher`
     assertEquals(
-      Newspaper2026X.decideFulfillment(subscription, LocalDate.of(2026, 8, 3)),
+      Newspaper2026MigrationX.decideFulfillment(subscription, LocalDate.of(2026, 8, 3)),
       Some(Voucher)
     )
   }
@@ -43,7 +43,7 @@ class Newspaper2026XTest extends munit.FunSuite {
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub3/subscription.json")
     // Product name is "Newspaper Delivery", so we expect `Voucher`
     assertEquals(
-      Newspaper2026X.decideFulfillment(subscription, LocalDate.of(2026, 8, 3)),
+      Newspaper2026MigrationX.decideFulfillment(subscription, LocalDate.of(2026, 8, 3)),
       Some(HomeDelivery)
     )
   }
@@ -51,7 +51,7 @@ class Newspaper2026XTest extends munit.FunSuite {
     // sub1: "Newspaper Voucher"          "Everyday+"
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub1/subscription.json")
     assertEquals(
-      Newspaper2026X.decidePackage(subscription, LocalDate.of(2026, 8, 3)),
+      Newspaper2026MigrationX.decidePackage(subscription, LocalDate.of(2026, 8, 3)),
       Some(EverydayBasicAndPlus)
     )
   }
@@ -59,7 +59,7 @@ class Newspaper2026XTest extends munit.FunSuite {
     // sub4: "Newspaper Voucher"          "Sixday+"
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub4/subscription.json")
     assertEquals(
-      Newspaper2026X.decidePackage(subscription, LocalDate.of(2026, 8, 3)),
+      Newspaper2026MigrationX.decidePackage(subscription, LocalDate.of(2026, 8, 3)),
       Some(SixdayBasicAndPlus)
     )
   }
@@ -67,7 +67,7 @@ class Newspaper2026XTest extends munit.FunSuite {
     // sub6: "Newspaper Voucher"          "Everyday"
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub6/subscription.json")
     assertEquals(
-      Newspaper2026X.decidePackage(subscription, LocalDate.of(2026, 8, 3)),
+      Newspaper2026MigrationX.decidePackage(subscription, LocalDate.of(2026, 8, 3)),
       Some(EverydayBasicAndPlus)
     )
   }
@@ -75,7 +75,7 @@ class Newspaper2026XTest extends munit.FunSuite {
     // sub7: "Newspaper Voucher"          "Sixday"
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub7/subscription.json")
     assertEquals(
-      Newspaper2026X.decidePackage(subscription, LocalDate.of(2026, 8, 3)),
+      Newspaper2026MigrationX.decidePackage(subscription, LocalDate.of(2026, 8, 3)),
       Some(SixdayBasicAndPlus)
     )
   }
@@ -84,7 +84,7 @@ class Newspaper2026XTest extends munit.FunSuite {
     // sub1: "Newspaper Voucher"          "Everyday+"
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub1/subscription.json")
     assertEquals(
-      Newspaper2026X.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
+      Newspaper2026MigrationX.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
       Some("the Guardian and the Observer")
     )
   }
@@ -92,7 +92,7 @@ class Newspaper2026XTest extends munit.FunSuite {
     // sub4: "Newspaper Voucher"          "Sixday+"
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub4/subscription.json")
     assertEquals(
-      Newspaper2026X.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
+      Newspaper2026MigrationX.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
       Some("the Guardian")
     )
   }
@@ -100,7 +100,7 @@ class Newspaper2026XTest extends munit.FunSuite {
     // sub6: "Newspaper Voucher"          "Everyday"
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub6/subscription.json")
     assertEquals(
-      Newspaper2026X.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
+      Newspaper2026MigrationX.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
       Some("the Guardian and the Observer")
     )
   }
@@ -108,7 +108,7 @@ class Newspaper2026XTest extends munit.FunSuite {
     // sub7: "Newspaper Voucher"          "Sixday"
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub7/subscription.json")
     assertEquals(
-      Newspaper2026X.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
+      Newspaper2026MigrationX.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
       Some("the Guardian")
     )
   }
@@ -118,7 +118,7 @@ class Newspaper2026XTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/Newspaper2026X/sub1/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub1/invoice-preview.json")
     assertEquals(
-      Newspaper2026X.priceData(
+      Newspaper2026MigrationX.priceData(
         CohortSpec("Test1", true),
         subscription,
         invoicePreview,
@@ -134,7 +134,7 @@ class Newspaper2026XTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/Newspaper2026X/sub7/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub7/invoice-preview.json")
     assertEquals(
-      Newspaper2026X.priceData(
+      Newspaper2026MigrationX.priceData(
         CohortSpec("Test1", true),
         subscription,
         invoicePreview,
@@ -150,7 +150,7 @@ class Newspaper2026XTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/Newspaper2026X/sub8/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub8/invoice-preview.json")
     assertEquals(
-      Newspaper2026X.priceData(
+      Newspaper2026MigrationX.priceData(
         CohortSpec("Test1", true),
         subscription,
         invoicePreview,
@@ -166,7 +166,7 @@ class Newspaper2026XTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/Newspaper2026X/sub9/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub9/invoice-preview.json")
     assertEquals(
-      Newspaper2026X.priceData(
+      Newspaper2026MigrationX.priceData(
         CohortSpec("Test1", true),
         subscription,
         invoicePreview,
@@ -184,7 +184,7 @@ class Newspaper2026XTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/Newspaper2026X/sub10/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub10/invoice-preview.json")
     assertEquals(
-      Newspaper2026X.priceData(
+      Newspaper2026MigrationX.priceData(
         CohortSpec("Print2026C2NPMonthliesUK", true),
         subscription,
         invoicePreview,
@@ -228,7 +228,7 @@ class Newspaper2026XTest extends munit.FunSuite {
     val priceCap = 1.071 // 7.1 %
 
     assertEquals(
-      Newspaper2026X.amendmentOrderPayload(
+      Newspaper2026MigrationX.amendmentOrderPayload(
         cohortItem,
         orderDate,
         accountNumber,
@@ -424,7 +424,7 @@ class Newspaper2026XTest extends munit.FunSuite {
     val priceCap = 1.071 // 7.1 %
 
     assertEquals(
-      Newspaper2026X.amendmentOrderPayload(
+      Newspaper2026MigrationX.amendmentOrderPayload(
         cohortItem,
         orderDate,
         accountNumber,

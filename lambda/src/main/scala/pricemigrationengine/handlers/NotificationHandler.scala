@@ -12,7 +12,7 @@ import pricemigrationengine.migrations.{
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
-  Newspaper2026X,
+  Newspaper2026MigrationX,
   ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
@@ -244,7 +244,9 @@ object NotificationHandler extends CohortHandler {
       // ----------------------------------------------------
       // Data for Newspaper2026X
       newspaper2026_brand_title <- ZIO
-        .fromOption(Newspaper2026X.decideBranchTitleForNotificationHandler(cohortSpec, zuoraSubscription, today))
+        .fromOption(
+          Newspaper2026MigrationX.decideBranchTitleForNotificationHandler(cohortSpec, zuoraSubscription, today)
+        )
         .orElseFail(DataExtractionFailure(s"[47a5291e] How did we get here ? 🤔"))
       // ----------------------------------------------------
 

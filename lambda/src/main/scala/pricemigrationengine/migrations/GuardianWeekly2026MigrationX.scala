@@ -7,7 +7,7 @@ import upickle.default._
 
 import java.time.format.DateTimeFormatter
 
-object GuardianWeekly2026X {
+object GuardianWeekly2026MigrationX {
   type Currency = String
 
   val priceGridNewPricesMonthlies: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(

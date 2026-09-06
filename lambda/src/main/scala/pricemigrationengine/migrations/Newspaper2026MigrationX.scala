@@ -18,7 +18,7 @@ object SixdayBasicAndPlus extends NxPackage
 object WeekendBasicAndPlus extends NxPackage
 object SaturdayBasicAndPlus extends NxPackage
 
-object Newspaper2026X {
+object Newspaper2026MigrationX {
 
   val priceGridNewPricesMonthlies: Map[(NxFulfillment, NxPackage), BigDecimal] = Map(
     (Voucher, EverydayBasicAndPlus) -> BigDecimal(72.99),

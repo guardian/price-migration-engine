@@ -19,12 +19,12 @@ import java.time.{Instant, LocalDate}
 //        variant of sub5 to test the 10% capping
 //        price if set to 100 GBP
 
-class GuardianWeekly2026XTest extends munit.FunSuite {
+class GuardianWeekly2026MigrationXTest extends munit.FunSuite {
   test("getNewPrice") {
-    assertEquals(GuardianWeekly2026X.getNewPrice(Monthly, "GBP", Domestic), Some(BigDecimal(17.50)))
-    assertEquals(GuardianWeekly2026X.getNewPrice(Monthly, "AUD", Domestic), Some(BigDecimal(48.00)))
-    assertEquals(GuardianWeekly2026X.getNewPrice(Quarterly, "USD", RestOfWorld), Some(BigDecimal(114)))
-    assertEquals(GuardianWeekly2026X.getNewPrice(Annual, "NZD", Domestic), Some(BigDecimal(720)))
+    assertEquals(GuardianWeekly2026MigrationX.getNewPrice(Monthly, "GBP", Domestic), Some(BigDecimal(17.50)))
+    assertEquals(GuardianWeekly2026MigrationX.getNewPrice(Monthly, "AUD", Domestic), Some(BigDecimal(48.00)))
+    assertEquals(GuardianWeekly2026MigrationX.getNewPrice(Quarterly, "USD", RestOfWorld), Some(BigDecimal(114)))
+    assertEquals(GuardianWeekly2026MigrationX.getNewPrice(Annual, "NZD", Domestic), Some(BigDecimal(720)))
   }
   test("getNewPrice") {
     // sub1: "Guardian Weekly - Domestic"  "GW Oct 18 - Quarterly - Domestic"  "GBP"  "Quarter"
@@ -32,7 +32,7 @@ class GuardianWeekly2026XTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub1/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2026X/sub1/invoice-preview.json")
     // Quarter, GPB, Domestic, we are expecting 52
-    assertEquals(GuardianWeekly2026X.getNewPrice(subscription, invoicePreview, account), Some(BigDecimal(52)))
+    assertEquals(GuardianWeekly2026MigrationX.getNewPrice(subscription, invoicePreview, account), Some(BigDecimal(52)))
   }
   test("getNewPrice") {
     // sub2: "Guardian Weekly - Domestic"  "GW Oct 18 - Quarterly - Domestic"  "AUD"  "Quarter"
@@ -40,7 +40,7 @@ class GuardianWeekly2026XTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub2/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2026X/sub2/invoice-preview.json")
     // Quarter, AUD, Domestic, we are expecting 114
-    assertEquals(GuardianWeekly2026X.getNewPrice(subscription, invoicePreview, account), Some(BigDecimal(144)))
+    assertEquals(GuardianWeekly2026MigrationX.getNewPrice(subscription, invoicePreview, account), Some(BigDecimal(144)))
   }
   test("getNewPrice") {
     // sub4: "Guardian Weekly - Domestic"  "GW Oct 18 - Monthly - Domestic"    "GBP"  "Month"
@@ -48,7 +48,7 @@ class GuardianWeekly2026XTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub4/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2026X/sub4/invoice-preview.json")
     // Month, GBP, Domestic, we are expecting 17.50
-    assertEquals(GuardianWeekly2026X.getNewPrice(subscription, invoicePreview, account), Some(BigDecimal(17.50)))
+    assertEquals(GuardianWeekly2026MigrationX.getNewPrice(subscription, invoicePreview, account), Some(BigDecimal(17.50)))
   }
   test("priceData") {
     // sub1: "Guardian Weekly - Domestic"  "GW Oct 18 - Quarterly - Domestic"  "GBP"  "Quarter"
@@ -56,7 +56,7 @@ class GuardianWeekly2026XTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub1/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2026X/sub1/invoice-preview.json")
     assertEquals(
-      GuardianWeekly2026X.priceData(CohortSpec("Test1", true), subscription, invoicePreview, account),
+      GuardianWeekly2026MigrationX.priceData(CohortSpec("Test1", true), subscription, invoicePreview, account),
       Right(PriceData("GBP", BigDecimal(49.5), BigDecimal(52), BigDecimal(52), "Quarter"))
     )
   }
@@ -66,7 +66,7 @@ class GuardianWeekly2026XTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub2/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2026X/sub2/invoice-preview.json")
     assertEquals(
-      GuardianWeekly2026X.priceData(CohortSpec("Test1", true), subscription, invoicePreview, account),
+      GuardianWeekly2026MigrationX.priceData(CohortSpec("Test1", true), subscription, invoicePreview, account),
       Right(PriceData("AUD", BigDecimal(132.0), BigDecimal(144), BigDecimal(144), "Quarter"))
     )
   }
@@ -76,7 +76,7 @@ class GuardianWeekly2026XTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub3/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2026X/sub3/invoice-preview.json")
     assertEquals(
-      GuardianWeekly2026X.priceData(CohortSpec("Test1", true), subscription, invoicePreview, account),
+      GuardianWeekly2026MigrationX.priceData(CohortSpec("Test1", true), subscription, invoicePreview, account),
       Right(PriceData("EUR", BigDecimal(87.0), BigDecimal(91.5), BigDecimal(91.5), "Quarter"))
     )
   }
@@ -86,7 +86,7 @@ class GuardianWeekly2026XTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub4/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2026X/sub4/invoice-preview.json")
     assertEquals(
-      GuardianWeekly2026X.priceData(CohortSpec("Test1", true), subscription, invoicePreview, account),
+      GuardianWeekly2026MigrationX.priceData(CohortSpec("Test1", true), subscription, invoicePreview, account),
       Right(PriceData("GBP", BigDecimal(16.5), BigDecimal(17.50), BigDecimal(17.50), "Month"))
     )
   }
@@ -96,7 +96,7 @@ class GuardianWeekly2026XTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub5/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2026X/sub5/invoice-preview.json")
     assertEquals(
-      GuardianWeekly2026X.priceData(CohortSpec("Test1", true), subscription, invoicePreview, account),
+      GuardianWeekly2026MigrationX.priceData(CohortSpec("Test1", true), subscription, invoicePreview, account),
       Right(PriceData("GBP", BigDecimal(198.0), BigDecimal(208), BigDecimal(208), "Annual"))
     )
   }
@@ -108,7 +108,7 @@ class GuardianWeekly2026XTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub6/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2026X/sub6/invoice-preview.json")
     assertEquals(
-      GuardianWeekly2026X.priceData(CohortSpec("Print2026C1GWAnnualsUK", true), subscription, invoicePreview, account),
+      GuardianWeekly2026MigrationX.priceData(CohortSpec("Print2026C1GWAnnualsUK", true), subscription, invoicePreview, account),
       Right(PriceData("GBP", BigDecimal(100.0), BigDecimal(208), BigDecimal(110), "Annual"))
     )
   }
@@ -142,7 +142,7 @@ class GuardianWeekly2026XTest extends munit.FunSuite {
     val priceCap = 1.1
 
     assertEquals(
-      GuardianWeekly2026X.amendmentOrderPayload(
+      GuardianWeekly2026MigrationX.amendmentOrderPayload(
         cohortItem,
         orderDate,
         accountNumber,

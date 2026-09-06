@@ -3,11 +3,11 @@ package pricemigrationengine.model
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
   GuardianWeekly2025Migration,
-  GuardianWeekly2026X,
+  GuardianWeekly2026MigrationX,
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
-  Newspaper2026X,
+  Newspaper2026MigrationX,
   ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
@@ -271,7 +271,7 @@ object AmendmentHandlerHelper {
           invoiceList
         )
       case Print2026C1GWAnnualsUK =>
-        GuardianWeekly2026X.amendmentOrderPayload(
+        GuardianWeekly2026MigrationX.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
@@ -282,7 +282,7 @@ object AmendmentHandlerHelper {
           invoiceList
         )
       case Print2026C1GWQuarterliesUK =>
-        GuardianWeekly2026X.amendmentOrderPayload(
+        GuardianWeekly2026MigrationX.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
@@ -293,7 +293,7 @@ object AmendmentHandlerHelper {
           invoiceList
         )
       case Print2026C1NPAnnualsUK =>
-        Newspaper2026X.amendmentOrderPayload(
+        Newspaper2026MigrationX.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
@@ -305,7 +305,7 @@ object AmendmentHandlerHelper {
           invoiceList
         )
       case Print2026C1NPQuarterliesUK =>
-        Newspaper2026X.amendmentOrderPayload(
+        Newspaper2026MigrationX.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
@@ -317,7 +317,7 @@ object AmendmentHandlerHelper {
           invoiceList
         )
       case Print2026C1NPSemiannualsUK =>
-        Newspaper2026X.amendmentOrderPayload(
+        Newspaper2026MigrationX.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
@@ -329,7 +329,7 @@ object AmendmentHandlerHelper {
           invoiceList
         )
       case Print2026C2NPMonthliesUK =>
-        Newspaper2026X.amendmentOrderPayload(
+        Newspaper2026MigrationX.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
@@ -341,7 +341,7 @@ object AmendmentHandlerHelper {
           invoiceList
         )
       case Print2026C3GWMonthliesUK =>
-        GuardianWeekly2026X.amendmentOrderPayload(
+        GuardianWeekly2026MigrationX.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
@@ -352,7 +352,7 @@ object AmendmentHandlerHelper {
           invoiceList
         )
       case Print2026C3NPMonthliesUK =>
-        Newspaper2026X.amendmentOrderPayload(
+        Newspaper2026MigrationX.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
@@ -364,7 +364,7 @@ object AmendmentHandlerHelper {
           invoiceList
         )
       case Print2026C4NPMonthliesUK =>
-        Newspaper2026X.amendmentOrderPayload(
+        Newspaper2026MigrationX.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
@@ -376,7 +376,7 @@ object AmendmentHandlerHelper {
           invoiceList
         )
       case Print2026C5GW =>
-        GuardianWeekly2026X.amendmentOrderPayload(
+        GuardianWeekly2026MigrationX.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
@@ -387,7 +387,7 @@ object AmendmentHandlerHelper {
           invoiceList
         )
       case Print2026C5NP =>
-        Newspaper2026X.amendmentOrderPayload(
+        Newspaper2026MigrationX.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
@@ -399,7 +399,7 @@ object AmendmentHandlerHelper {
           invoiceList
         )
       case Print2026C6GWQuarterliesNonUK =>
-        GuardianWeekly2026X.amendmentOrderPayload(
+        GuardianWeekly2026MigrationX.amendmentOrderPayload(
           cohortItem,
           orderDate,
           accountNumber,
