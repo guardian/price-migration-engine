@@ -39,14 +39,14 @@ object NotificationHandler extends CohortHandler {
       DynamoDBZIOLive.impl,
       CohortTableLive.impl(input),
       SalesforceClientLive.impl,
-      EmailSenderLive.impl,
+      BrazeLive.impl,
       ZuoraLive.impl
     )
   }
 
   def main(
       cohortSpec: CohortSpec
-  ): ZIO[Logging with CohortTable with SalesforceClient with EmailSender with Zuora, Failure, HandlerOutput] = {
+  ): ZIO[Logging with CohortTable with SalesforceClient with Braze with Zuora, Failure, HandlerOutput] = {
     for {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       count <- (
@@ -75,7 +75,7 @@ object NotificationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       item: CohortItem,
       today: LocalDate
-  ): ZIO[CohortTable with SalesforceClient with Logging with EmailSender with Zuora, Failure, Unit] = {
+  ): ZIO[CohortTable with SalesforceClient with Logging with Braze with Zuora, Failure, Unit] = {
     for {
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
       estimationInstant <- ZIO
@@ -118,7 +118,7 @@ object NotificationHandler extends CohortHandler {
       zuoraSubscription: ZuoraSubscription,
       analyseResult: SubscriptionNotificationAnalyseResult,
       today: LocalDate
-  ): ZIO[CohortTable with SalesforceClient with Logging with EmailSender with Zuora, Failure, Unit] = {
+  ): ZIO[CohortTable with SalesforceClient with Logging with Braze with Zuora, Failure, Unit] = {
     analyseResult match {
       case SNARReadyToNotify             => sendNotification(cohortSpec, zuoraSubscription, item, today)
       case SNARCancelledInZuora          => updateCohortItemToReflectZuoraCancellation(cohortSpec, item)
@@ -180,7 +180,7 @@ object NotificationHandler extends CohortHandler {
       zuoraSubscription: ZuoraSubscription,
       cohortItem: CohortItem,
       today: LocalDate
-  ): ZIO[Zuora with EmailSender with SalesforceClient with CohortTable with Logging, Failure, Unit] =
+  ): ZIO[Zuora with Braze with SalesforceClient with CohortTable with Logging, Failure, Unit] =
     for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       sfSubscription <-
@@ -324,7 +324,7 @@ object NotificationHandler extends CohortHandler {
         ZIO.fail(NotificationHandlerFailure(s"item: ${cohortItem.toString} has failed email integrity check"))
       )
 
-      _ <- EmailSender.sendEmail(message)
+      _ <- Braze.sendMessage(message)
 
       _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete)
     } yield ()
