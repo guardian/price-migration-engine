@@ -206,6 +206,7 @@ object SI2025Templates {
    */
 
   def priceData(
+      cohortSpec: CohortSpec,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList
   ): Either[DataExtractionFailure, PriceData] = {

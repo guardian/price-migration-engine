@@ -272,7 +272,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
 
     assertEquals(
       SupporterPlus2026Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
-      Right(PriceData("USD", BigDecimal(15.0), BigDecimal(18), BigDecimal(18.0), "Month"))
+      Right(PriceData("USD", BigDecimal(15.0), BigDecimal(18.0), BigDecimal(18.0), "Month"))
     )
   }
 
@@ -296,7 +296,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
 
     assertEquals(
       SupporterPlus2026Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
-      Right(PriceData("EUR", BigDecimal(120.0), BigDecimal(140), BigDecimal(140.0), "Annual"))
+      Right(PriceData("EUR", BigDecimal(120.0), BigDecimal(140.0), BigDecimal(140.0), "Annual"))
     )
   }
 
