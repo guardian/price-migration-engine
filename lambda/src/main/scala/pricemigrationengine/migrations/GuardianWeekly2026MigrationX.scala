@@ -1,0 +1,72 @@
+package pricemigrationengine.migrations
+import pricemigrationengine.model.{BillingPeriod, ZuoraRatePlan, _}
+
+import java.time.LocalDate
+import ujson._
+import upickle.default._
+
+import java.time.format.DateTimeFormatter
+
+object GuardianWeekly2026MigrationX {
+  type Currency = String
+
+  val priceGridNewPricesMonthlies: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
+    ("GBP", Domestic) -> BigDecimal(17.50),
+    ("EUR", Domestic) -> BigDecimal(30.50),
+    ("USD", RestOfWorld) -> BigDecimal(38.00),
+    ("USD", Domestic) -> BigDecimal(33.00),
+    ("CAD", Domestic) -> BigDecimal(39.50),
+    ("AUD", Domestic) -> BigDecimal(48.00),
+    ("NZD", Domestic) -> BigDecimal(60.00),
+  )
+
+  val priceGridNewPricesQuarterlies: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
+    ("GBP", Domestic) -> BigDecimal(52),
+    ("EUR", Domestic) -> BigDecimal(91.5),
+    ("USD", RestOfWorld) -> BigDecimal(114),
+    ("USD", Domestic) -> BigDecimal(99),
+    ("CAD", Domestic) -> BigDecimal(118.5),
+    ("AUD", Domestic) -> BigDecimal(144),
+    ("NZD", Domestic) -> BigDecimal(180),
+  )
+
+  val priceGridNewPricesAnnuals: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
+    ("GBP", Domestic) -> BigDecimal(208),
+    ("EUR", Domestic) -> BigDecimal(366),
+    ("USD", RestOfWorld) -> BigDecimal(456),
+    ("USD", Domestic) -> BigDecimal(396),
+    ("CAD", Domestic) -> BigDecimal(474.0),
+    ("AUD", Domestic) -> BigDecimal(576),
+    ("NZD", Domestic) -> BigDecimal(720),
+  )
+
+  def getNewPrice(
+      billingPeriod: BillingPeriod,
+      currency: Currency,
+      localisation: SubscriptionLocalisation
+  ): Option[BigDecimal] = {
+    billingPeriod match {
+      case Monthly    => priceGridNewPricesMonthlies.get(currency, localisation)
+      case Quarterly  => priceGridNewPricesQuarterlies.get(currency, localisation)
+      case SemiAnnual => None
+      case Annual     => priceGridNewPricesAnnuals.get(currency, localisation)
+    }
+  }
+
+  def getNewPrice(
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      account: ZuoraAccount
+  ): Option[BigDecimal] = {
+    for {
+      currencyAndLocalisation <- CurrencyAndLocalisation.determineSubscriptionCurrencyAndLocalisation(
+        subscription,
+        invoiceList,
+        account
+      )
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
+      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
+      newPrice <- getNewPrice(billingPeriod, currencyAndLocalisation.currency, currencyAndLocalisation.localisation)
+    } yield newPrice
+  }
+}
