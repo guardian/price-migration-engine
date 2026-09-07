@@ -113,11 +113,11 @@ object AmendmentEffectiveDateCalculator {
         case SupporterPlus2026N3           => 1 // no spread for SupporterPlus2026
         case SupporterPlus2026N4           => 1 // no spread for SupporterPlus2026
         case SupporterPlus2026N5           => 1 // no spread for SupporterPlus2026
-        case Print2026C1GWAnnualsUK        => 1 // no spread for GuardianWeekly2026C1
-        case Print2026C1GWQuarterliesUK    => 1 // no spread for GuardianWeekly2026C2
-        case Print2026C1NPAnnualsUK        => 1 // no spread for GuardianWeekly2026C3
-        case Print2026C1NPQuarterliesUK    => 1 // no spread for Newspaper2026C1
-        case Print2026C1NPSemiannualsUK    => 1 // no spread for Newspaper2026C2
+        case Print2026C1GWAnnualsUK        => 1
+        case Print2026C1GWQuarterliesUK    => 1
+        case Print2026C1NPAnnualsUK        => 1
+        case Print2026C1NPQuarterliesUK    => 1
+        case Print2026C1NPSemiannualsUK    => 1
         case Print2026C2NPMonthliesUK      => 1
         case Print2026C3GWMonthliesUK      => 1
         case Print2026C3NPMonthliesUK      => 1
