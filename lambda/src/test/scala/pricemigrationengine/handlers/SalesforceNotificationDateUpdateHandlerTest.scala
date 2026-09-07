@@ -48,38 +48,38 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
       updatedPriceRises: ArrayBuffer[SalesforcePriceRise]
   ) = {
     ZLayer.succeed(
-      new SalesforceClient {
+      new Salesforce {
 
         override def getSubscriptionByName(
             subscriptionName: String
-        ): IO[SalesforceClientFailure, SalesforceSubscription] = ???
+        ): IO[SalesforceFailure, SalesforceSubscription] = ???
 
         override def createPriceRise(
             priceRise: SalesforcePriceRise
-        ): IO[SalesforceClientFailure, SalesforcePriceRiseCreationResponse] = ???
+        ): IO[SalesforceFailure, SalesforcePriceRiseCreationResponse] = ???
 
         override def updatePriceRise(
             priceRiseId: String,
             priceRise: SalesforcePriceRise
-        ): IO[SalesforceClientFailure, Unit] = {
+        ): IO[SalesforceFailure, Unit] = {
           updatedPriceRises.addOne(priceRise)
           ZIO.unit
         }
 
         override def getContact(
             contactId: String
-        ): IO[SalesforceClientFailure, SalesforceContact] = ???
+        ): IO[SalesforceFailure, SalesforceContact] = ???
 
         override def getPriceRise(
             priceRiseId: String
-        ): IO[SalesforceClientFailure, SalesforcePriceRise] = ???
+        ): IO[SalesforceFailure, SalesforcePriceRise] = ???
       }
     )
   }
 
   test("SalesforceNotificationDateUpdateHandler should write whenNotificationSentWrittenToSalesforce to salesforce") {
     val updatedPriceRises = ArrayBuffer[SalesforcePriceRise]()
-    val stubSalesforceClient = stubSFClient(updatedPriceRises)
+    val stubSalesforce = stubSFClient(updatedPriceRises)
     val updatedResultsWrittenToCohortTable = ArrayBuffer[CohortItem]()
 
     val cohortSpec: CohortSpec =
@@ -100,7 +100,7 @@ class SalesforceNotificationDateUpdateHandlerTest extends munit.FunSuite {
           _ <- TestClock.setTime(currentTime)
           program <- SalesforceNotificationDateUpdateHandler.main(cohortSpec)
         } yield program).provideLayer(
-          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforceClient
+          testEnvironment ++ TestLogging.logging ++ stubCohortTable ++ stubSalesforce
         )
       ),
       Success(HandlerOutput(isComplete = true))

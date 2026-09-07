@@ -2,13 +2,13 @@ package pricemigrationengine.service
 
 import java.time.LocalDate
 import pricemigrationengine.model.{SalesforcePriceRise, ZuoraSubscriptionId}
-import pricemigrationengine.services.{SalesforceClientLive, SalesforcePriceRiseCreationResponse}
+import pricemigrationengine.services.{SalesforceLive, SalesforcePriceRiseCreationResponse}
 import upickle.default._
 
-class SalesforceClientLiveTest extends munit.FunSuite {
-  test("SalesforceClientLive should serialise SalesforcePriceRise with all fields") {
+class SalesforceLiveTest extends munit.FunSuite {
+  test("SalesforceLive should serialise SalesforcePriceRise with all fields") {
     assertEquals(
-      SalesforceClientLive.serialisePriceRise(
+      SalesforceLive.serialisePriceRise(
         SalesforcePriceRise(
           Name = Some("name"),
           Buyer__c = Some("buyer"),
@@ -36,9 +36,9 @@ class SalesforceClientLiveTest extends munit.FunSuite {
         |}""".stripMargin
     )
   }
-  test("SalesforceClientLive should serialise SalesforcePriceRise with fields missing") {
+  test("SalesforceLive should serialise SalesforcePriceRise with fields missing") {
     assertEquals(
-      SalesforceClientLive.serialisePriceRise(
+      SalesforceLive.serialisePriceRise(
         SalesforcePriceRise(
           Date_Letter_Sent__c = Some(LocalDate.of(2020, 1, 2)),
           Migration_Name__c = Some("cohortName"),
@@ -54,7 +54,7 @@ class SalesforceClientLiveTest extends munit.FunSuite {
         |}""".stripMargin
     )
   }
-  test("SalesforceClientLive should deserialise correctly the JSON object from Salesforce") {
+  test("SalesforceLive should deserialise correctly the JSON object from Salesforce") {
     implicit val bigDecimalRW: ReadWriter[BigDecimal] =
       readwriter[ujson.Value].bimap[BigDecimal](
         bd => ujson.Num(bd.toDouble), // write
