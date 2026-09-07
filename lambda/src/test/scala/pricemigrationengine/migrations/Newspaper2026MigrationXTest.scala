@@ -27,7 +27,10 @@ import java.time.{Instant, LocalDate}
 class Newspaper2026MigrationXTest extends munit.FunSuite {
   test("getNewPrice") {
     assertEquals(Newspaper2026MigrationX.getNewPrice(Monthly, Voucher, EverydayBasicAndPlus), Some(BigDecimal(72.99)))
-    assertEquals(Newspaper2026MigrationX.getNewPrice(Quarterly, HomeDelivery, WeekendBasicAndPlus), Some(BigDecimal(110.97)))
+    assertEquals(
+      Newspaper2026MigrationX.getNewPrice(Quarterly, HomeDelivery, WeekendBasicAndPlus),
+      Some(BigDecimal(110.97))
+    )
   }
   test("decideFulfillment") {
     // sub1: "Newspaper Voucher"          "Everyday+"
