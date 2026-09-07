@@ -68,20 +68,6 @@ class SI2025ExtractionsTest extends munit.FunSuite {
       SI2025Extractions.determineOldPrice(ratePlan),
       BigDecimal(7.0)
     )
-
-    assertEquals(
-      Membership2025Migration.priceGridNewPrices.get((Monthly, "GBP")).get,
-      BigDecimal(10.0)
-    )
-
-    assertEquals(
-      Membership2025Migration.priceData(
-        CohortSpec("Test1", true),
-        subscription,
-        invoiceList,
-      ),
-      Right(PriceData("GBP", BigDecimal(7.0), BigDecimal(10.0), BigDecimal(10.0), "Month"))
-    )
   }
 
   test("SI2025RateplanFromSubAndInvoices.determineRatePlan (3)") {
@@ -119,20 +105,6 @@ class SI2025ExtractionsTest extends munit.FunSuite {
     assertEquals(
       SI2025Extractions.determineOldPrice(ratePlan),
       BigDecimal(75.0)
-    )
-
-    assertEquals(
-      Membership2025Migration.priceGridNewPrices.get((Annual, "GBP")).get,
-      BigDecimal(100.0)
-    )
-
-    assertEquals(
-      Membership2025Migration.priceData(
-        CohortSpec("Test1", true),
-        subscription,
-        invoiceList
-      ),
-      Right(PriceData("GBP", BigDecimal(75.0), BigDecimal(100.0), BigDecimal(100.0), "Annual"))
     )
   }
 

@@ -138,7 +138,7 @@ object ZuoraOrdersApiPrimitives {
     // An additional complexity is that in the simple case, we know the listing price
     // which is the price we are moving to. In the case of a migration involving increases
     // across different charges, we instead are going to provide the effective increase ratio.
-    // For instance if the old price of the entire subscription was £50 and the commsPrice is
+    // For instance, if the old price of the entire subscription was £50 and the commsPrice is
     // £60, which corresponds to a 20% increase, and assuming that the individual charges before
     // price increase are £10, £20, £7 and £13 (note that the sum of values is 50), then the new
     // post price increase charges should be 10 + 20%, 20 + 20%, 7 +20% and 13 + 20%.

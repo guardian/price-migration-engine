@@ -7,4 +7,4 @@ SupporterPlus2026 is a record breaking price migration with a cohort table conta
 
 Here is a possible solution of how to deal with those [https://github.com/guardian/price-migration-engine/pull/1500](https://github.com/guardian/price-migration-engine/pull/1500).
 
-Note that this is a better solution than spliting the cohort table (what was referred to as Solution 2 in the PR description), because we regularly perform adhoc tasks for Marketing that would be more difficult to perform is the items of a single migration were split in several tables.
+Note that this is a better solution than splitting the cohort table (what was referred to as Solution 2 in the PR description), because we regularly perform adhoc tasks for Marketing that would be more difficult to perform is the items of a single migration were split in several tables.
