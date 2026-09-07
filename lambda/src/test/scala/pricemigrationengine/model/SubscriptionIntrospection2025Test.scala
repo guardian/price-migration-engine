@@ -76,10 +76,11 @@ class SI2025ExtractionsTest extends munit.FunSuite {
 
     assertEquals(
       Membership2025Migration.priceData(
+        CohortSpec("Test1", true),
         subscription,
         invoiceList,
       ),
-      Right(PriceData("GBP", BigDecimal(7.0), BigDecimal(10.0), "Month"))
+      Right(PriceData("GBP", BigDecimal(7.0), BigDecimal(10.0), BigDecimal(10.0), "Month"))
     )
   }
 
@@ -127,10 +128,11 @@ class SI2025ExtractionsTest extends munit.FunSuite {
 
     assertEquals(
       Membership2025Migration.priceData(
+        CohortSpec("Test1", true),
         subscription,
-        invoiceList,
+        invoiceList
       ),
-      Right(PriceData("GBP", BigDecimal(75.0), BigDecimal(100.0), "Annual"))
+      Right(PriceData("GBP", BigDecimal(75.0), BigDecimal(100.0), BigDecimal(100.0), "Annual"))
     )
   }
 
@@ -547,7 +549,7 @@ class SI2025ExtractionsTest extends munit.FunSuite {
       Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription1/subscription.json")
     val invoicePreview =
       Fixtures.invoiceListFromJson("model/SubscriptionIntrospection2025/subscription1/invoice-preview.json")
-    val priceData = SI2025Templates.priceData(subscription, invoicePreview)
-    assertEquals(priceData, Right(PriceData("USD", BigDecimal(90.0), BigDecimal(2.71), "Quarter")))
+    val priceData = SI2025Templates.priceData(CohortSpec("Test1", true), subscription, invoicePreview)
+    assertEquals(priceData, Right(PriceData("USD", BigDecimal(90.0), BigDecimal(2.71), BigDecimal(2.55), "Quarter")))
   }
 }

@@ -45,6 +45,7 @@ object DigiSubs2025Migration {
   }
 
   def priceData(
+      cohortSpec: CohortSpec,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
   ): Either[DataExtractionFailure, PriceData] = {
@@ -58,7 +59,8 @@ object DigiSubs2025Migration {
       billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan).map(logValue("billingPeriod"))
       oldPrice = logValue("oldPrice")(SI2025Extractions.determineOldPrice(ratePlan))
       newPrice <- priceGrid.get((billingPeriod, currency)).map(logValue("newPrice"))
-    } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
+      commsPrice = logValue("commsPrice")(EstimationHandlerHelper.commsPrice(cohortSpec, oldPrice, newPrice))
+    } yield PriceData(currency, oldPrice, newPrice, commsPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
       case None            =>

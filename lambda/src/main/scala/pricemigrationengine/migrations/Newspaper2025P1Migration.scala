@@ -211,6 +211,7 @@ object Newspaper2025P1Migration {
   // ------------------------------------------------
 
   def priceData(
+      cohortSpec: CohortSpec,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
       account: ZuoraAccount
@@ -223,7 +224,8 @@ object Newspaper2025P1Migration {
       productType <- decideProductType(ratePlan)
       plusType <- decidePlusType(ratePlan)
       newPrice <- priceLookUp(productType, plusType, billingPeriod)
-    } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
+      commsPrice = EstimationHandlerHelper.commsPrice(cohortSpec, oldPrice, newPrice)
+    } yield PriceData(currency, oldPrice, newPrice, commsPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
       case None            =>

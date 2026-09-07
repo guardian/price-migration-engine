@@ -34,8 +34,8 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/DigiSubs2025/01/invoice-preview.json")
 
     assertEquals(
-      DigiSubs2025Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(14.99), BigDecimal(18.0), "Month"))
+      DigiSubs2025Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(14.99), BigDecimal(18.0), BigDecimal(18.0), "Month"))
     )
   }
 
@@ -45,8 +45,8 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/DigiSubs2025/02/invoice-preview.json")
 
     assertEquals(
-      DigiSubs2025Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(44.94), BigDecimal(54.0), "Quarter"))
+      DigiSubs2025Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(44.94), BigDecimal(54.0), BigDecimal(54.0), "Quarter"))
     )
   }
 
@@ -56,8 +56,8 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/DigiSubs2025/03/invoice-preview.json")
 
     assertEquals(
-      DigiSubs2025Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(149.0), BigDecimal(180.0), "Annual"))
+      DigiSubs2025Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(149.0), BigDecimal(180.0), BigDecimal(180.0), "Annual"))
     )
   }
 
@@ -67,8 +67,8 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/DigiSubs2025/04/invoice-preview.json")
 
     assertEquals(
-      DigiSubs2025Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("USD", BigDecimal(28.0), BigDecimal(28.0), "Month")) // [1]
+      DigiSubs2025Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("USD", BigDecimal(28.0), BigDecimal(28.0), BigDecimal(28.0), "Month")) // [1]
     )
 
     // [1]
@@ -94,7 +94,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
             LocalDate.of(2026, 2, 15), // The first billing period after amendmentEffectiveDateLowerBound
           currency = "GBP",
           oldPrice = BigDecimal(14.99),
-          estimatedNewPrice = BigDecimal(18.0),
+          newPriceFull = BigDecimal(18.0),
           commsPrice = BigDecimal(18.0),
           billingPeriod = "Month"
         )
@@ -120,7 +120,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
             LocalDate.of(2026, 3, 14), // The first Quarterly billing period after amendmentEffectiveDateLowerBound
           currency = "GBP",
           oldPrice = BigDecimal(44.94),
-          estimatedNewPrice = BigDecimal(54.0),
+          newPriceFull = BigDecimal(54.0),
           commsPrice = BigDecimal(54.0),
           billingPeriod = "Quarter"
         )
@@ -146,7 +146,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
             LocalDate.of(2026, 9, 28), // The first Annual billing period after amendmentEffectiveDateLowerBound
           currency = "GBP",
           oldPrice = BigDecimal(149.0),
-          estimatedNewPrice = BigDecimal(180.0),
+          newPriceFull = BigDecimal(180.0),
           commsPrice = BigDecimal(180.0),
           billingPeriod = "Annual"
         )
@@ -172,7 +172,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
             LocalDate.of(2026, 2, 5), // The first Monthly billing period after amendmentEffectiveDateLowerBound
           currency = "USD",
           oldPrice = BigDecimal(28.0), // [1]
-          estimatedNewPrice = BigDecimal(28.0), // [1]
+          newPriceFull = BigDecimal(28.0), // [1]
           commsPrice = BigDecimal(28.0),
           billingPeriod = "Month"
         )

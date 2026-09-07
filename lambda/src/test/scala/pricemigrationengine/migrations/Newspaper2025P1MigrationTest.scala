@@ -406,6 +406,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     )
 
     val priceData = Newspaper2025P1Migration.priceData(
+      CohortSpec("Test1", true),
       subscription,
       invoicePreview,
       account
@@ -413,7 +414,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
 
     assertEquals(
       priceData,
-      Right(PriceData("GBP", BigDecimal(58.99), BigDecimal(61.99), "Month"))
+      Right(PriceData("GBP", BigDecimal(58.99), BigDecimal(61.99), BigDecimal(61.99), "Month"))
     )
   }
 
@@ -441,6 +442,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     )
 
     val priceData = Newspaper2025P1Migration.priceData(
+      CohortSpec("Test1", true),
       subscription,
       invoicePreview,
       account
@@ -448,7 +450,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
 
     assertEquals(
       priceData,
-      Right(PriceData("GBP", BigDecimal(200.97), BigDecimal(209.97), "Quarter"))
+      Right(PriceData("GBP", BigDecimal(200.97), BigDecimal(209.97), BigDecimal(209.97), "Quarter"))
     )
   }
 
@@ -476,6 +478,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     )
 
     val priceData = Newspaper2025P1Migration.priceData(
+      CohortSpec("Test1", true),
       subscription,
       invoicePreview,
       account
@@ -483,7 +486,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
 
     assertEquals(
       priceData,
-      Right(PriceData("GBP", BigDecimal(58.99), BigDecimal(61.99), "Month"))
+      Right(PriceData("GBP", BigDecimal(58.99), BigDecimal(61.99), BigDecimal(61.99), "Month"))
     )
   }
 
@@ -511,6 +514,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     )
 
     val priceData = Newspaper2025P1Migration.priceData(
+      CohortSpec("Test1", true),
       subscription,
       invoicePreview,
       account
@@ -518,7 +522,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
 
     assertEquals(
       priceData,
-      Right(PriceData("GBP", BigDecimal(80.99), BigDecimal(83.99), "Month"))
+      Right(PriceData("GBP", BigDecimal(80.99), BigDecimal(83.99), BigDecimal(83.99), "Month"))
     )
   }
 
@@ -556,6 +560,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
     )
 
     val priceData = Newspaper2025P1Migration.priceData(
+      CohortSpec("Test1", true),
       subscription,
       invoicePreview,
       account
@@ -563,7 +568,7 @@ class Newspaper2025P1MigrationTest extends munit.FunSuite {
 
     assertEquals(
       priceData,
-      Right(PriceData("GBP", BigDecimal(58.99), BigDecimal(61.99), "Month"))
+      Right(PriceData("GBP", BigDecimal(58.99), BigDecimal(61.99), BigDecimal(61.99), "Month"))
     )
   }
 

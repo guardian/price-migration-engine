@@ -312,6 +312,7 @@ object SupporterPlus2026Migration {
   }
 
   def priceData(
+      cohortSpec: CohortSpec,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
   ): Either[DataExtractionFailure, PriceData] = {
@@ -322,8 +323,9 @@ object SupporterPlus2026Migration {
       currency <- SI2025Extractions.determineCurrency(ratePlan).map(logValue("currency"))
       billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan).map(logValue("billingPeriod"))
       oldPrice = logValue("oldPrice")(determineOldPrice(ratePlan))
-      newPrice <- priceGridNewPrices.get((billingPeriod, currency)).map(logValue("newPrice"))
-    } yield PriceData(currency, oldPrice, newPrice, BillingPeriod.toString(billingPeriod))
+      priceGridNewPrice <- priceGridNewPrices.get((billingPeriod, currency)).map(logValue("newPrice"))
+      commsPrice = EstimationHandlerHelper.commsPrice(cohortSpec, oldPrice, priceGridNewPrice)
+    } yield PriceData(currency, oldPrice, priceGridNewPrice, commsPrice, BillingPeriod.toString(billingPeriod))
     priceDataOpt match {
       case Some(pricedata) => Right(pricedata)
       case None            =>
