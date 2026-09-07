@@ -41,7 +41,7 @@ object NotificationHandlerHelper {
   }
 
   def messageIsWellFormed(cohortSpec: CohortSpec, message: BrazeMessage): Boolean = {
-    // This function return whether or not an EmailMessage is "well formed". And for the moment
+    // This function return whether or not an BrazeMessage is "well formed". And for the moment
     // this is limited to checking that the special circumstances extra attributes (which were
     // originally introduced for the Summer 2025 print migrations) are not empty.
 
