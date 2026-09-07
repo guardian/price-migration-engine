@@ -53,11 +53,11 @@ object EnvConfig {
     )
   }
 
-  object emailSender {
-    val layer: Layer[ConfigFailure, EmailSenderConfig] = ZLayer.fromZIO(
+  object braze {
+    val layer: Layer[ConfigFailure, BrazeConfig] = ZLayer.fromZIO(
       for {
         emailSqsQueueName <- env("sqsEmailQueueName")
-      } yield EmailSenderConfig(emailSqsQueueName)
+      } yield BrazeConfig(emailSqsQueueName)
     )
   }
 

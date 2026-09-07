@@ -1,22 +1,22 @@
 package pricemigrationengine.service
 
 import pricemigrationengine.model.membershipworkflow.{
-  EmailMessage,
-  EmailPayload,
-  EmailPayloadContactAttributes,
-  EmailPayloadSubscriberAttributes
+  BrazeMessage,
+  BrazePayload,
+  BrazePayloadContactAttributes,
+  BrazePayloadSubscriberAttributes
 }
-import pricemigrationengine.services.EmailSenderLive
+import pricemigrationengine.services.BrazeLive
 
-class EmailSenderLiveTest extends munit.FunSuite {
-  test("EmailSenderLive should serialise message correctly") {
+class BrazeLiveTest extends munit.FunSuite {
+  test("BrazeLiveLive should serialise message correctly") {
     assertEquals(
-      EmailSenderLive.serialiseMessage(
-        EmailMessage(
-          EmailPayload(
+      BrazeLive.serialiseMessage(
+        BrazeMessage(
+          BrazePayload(
             Some("test@test.com"),
-            EmailPayloadContactAttributes(
-              EmailPayloadSubscriberAttributes(
+            BrazePayloadContactAttributes(
+              BrazePayloadSubscriberAttributes(
                 Some("title"),
                 "firstName",
                 "lastName",
@@ -68,14 +68,14 @@ class EmailSenderLiveTest extends munit.FunSuite {
     )
   }
 
-  test("EmailSenderLive should serialise message with missing optional values correctly") {
+  test("BrazeLiveLive should serialise message with missing optional values correctly") {
     assertEquals(
-      EmailSenderLive.serialiseMessage(
-        EmailMessage(
-          EmailPayload(
+      BrazeLive.serialiseMessage(
+        BrazeMessage(
+          BrazePayload(
             Some("test@test.com"),
-            EmailPayloadContactAttributes(
-              EmailPayloadSubscriberAttributes(
+            BrazePayloadContactAttributes(
+              BrazePayloadSubscriberAttributes(
                 None,
                 "firstName",
                 "lastName",
