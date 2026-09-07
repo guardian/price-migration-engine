@@ -588,18 +588,18 @@ object NotificationHandler extends CohortHandler {
           .orElseFail(
             DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
           )
-      case Print2026C1GWAnnualsUK        => ???
-      case Print2026C1GWQuarterliesUK    => ???
-      case Print2026C1NPAnnualsUK        => ???
-      case Print2026C1NPQuarterliesUK    => ???
-      case Print2026C1NPSemiannualsUK    => ???
-      case Print2026C2NPMonthliesUK      => ???
-      case Print2026C3GWMonthliesUK      => ???
-      case Print2026C3NPMonthliesUK      => ???
-      case Print2026C4NPMonthliesUK      => ???
-      case Print2026C5GW                 => ???
-      case Print2026C5NP                 => ???
-      case Print2026C6GWQuarterliesNonUK => ???
+      case Print2026C1GWAnnualsUK        => ZIO.succeed("SV_GW_PriceRise2026")
+      case Print2026C1GWQuarterliesUK    => ZIO.succeed("SV_GW_PriceRise2026")
+      case Print2026C1NPAnnualsUK        => ZIO.succeed("SV_NP_PriceRise_2026")
+      case Print2026C1NPQuarterliesUK    => ZIO.succeed("SV_NP_PriceRise_2026")
+      case Print2026C1NPSemiannualsUK    => ZIO.succeed("SV_NP_PriceRise_2026")
+      case Print2026C2NPMonthliesUK      => ZIO.succeed("SV_NP_PriceRise_2026")
+      case Print2026C3GWMonthliesUK      => ZIO.succeed("SV_GW_PriceRise2026")
+      case Print2026C3NPMonthliesUK      => ZIO.succeed("SV_NP_PriceRise_2026")
+      case Print2026C4NPMonthliesUK      => ZIO.succeed("SV_NP_PriceRise_2026")
+      case Print2026C5GW                 => ZIO.succeed("SV_GW_PriceRise2026")
+      case Print2026C5NP                 => ZIO.succeed("SV_NP_PriceRise_2026")
+      case Print2026C6GWQuarterliesNonUK => ZIO.succeed("SV_GW_PriceRise2026")
     }
   }
 }
