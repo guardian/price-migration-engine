@@ -86,15 +86,6 @@ object Newspaper2026MigrationX {
     } yield fulfillment
   }
 
-  // sub2: "Newspaper Digital Voucher"  "Everyday+"
-  // sub3: "Newspaper Delivery"         "Everyday+"
-  // sub4: "Newspaper Voucher"          "Sixday+"
-  // sub5: "Newspaper Voucher"          "Weekend+"    "GBP"   "Month"
-  // sub6: "Newspaper Voucher"          "Everyday"
-  // sub7: "Newspaper Voucher"          "Sixday"
-  // sub8: "Newspaper Voucher"          "Sixday+"     "GBP"   "Quarter"
-  // sub9: "Newspaper Voucher"          "Everyday+"   "GBP"   "Annual"
-
   def ratePlanNameToPackage(rpn: String): Option[NxPackage] = {
     rpn match {
       case "Everyday"  => Some(EverydayBasicAndPlus)
