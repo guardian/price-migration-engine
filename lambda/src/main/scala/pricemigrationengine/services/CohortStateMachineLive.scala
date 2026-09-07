@@ -16,7 +16,7 @@ object CohortStateMachineLive {
 
   val impl: ZLayer[CohortStateMachineConfig with Logging, ConfigFailure, CohortStateMachine] =
     ZLayer.fromZIO {
-      val stateMachine = AwsClient.sfn
+      val stateMachine = Aws.sfn
       for {
         logging <- ZIO.service[Logging]
         config <- ZIO.service[CohortStateMachineConfig]

@@ -22,7 +22,7 @@ object S3Live {
     for {
       logging <- ZIO.service[Logging]
     } yield {
-      val s3 = AwsClient.s3
+      val s3 = Aws.s3
       new S3 {
 
         override def getObject(s3Location: S3Location): ZIO[Scope, S3Failure, InputStream] = {
