@@ -14,8 +14,8 @@ class Membership2025MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Membership2025/sub1/invoice-preview.json")
 
     assertEquals(
-      Membership2025Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(7), BigDecimal(10), "Month"))
+      Membership2025Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(7), BigDecimal(10), BigDecimal(10), "Month"))
     )
   }
 
@@ -27,8 +27,8 @@ class Membership2025MigrationTest extends munit.FunSuite {
     // sub2 is a variation of sub1 with a non standard old price to test the price capping
 
     assertEquals(
-      Membership2025Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(2.5), BigDecimal(10), "Month"))
+      Membership2025Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(2.5), BigDecimal(10), BigDecimal(10), "Month"))
     )
   }
 
@@ -40,8 +40,8 @@ class Membership2025MigrationTest extends munit.FunSuite {
     // Non standard old price and annual
 
     assertEquals(
-      Membership2025Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(75), BigDecimal(100), "Annual"))
+      Membership2025Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(75), BigDecimal(100), BigDecimal(100), "Annual"))
     )
   }
 
@@ -53,8 +53,8 @@ class Membership2025MigrationTest extends munit.FunSuite {
     // Non standard old price (Non Founder Supporter)
 
     assertEquals(
-      Membership2025Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(5), BigDecimal(10), "Month"))
+      Membership2025Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(5), BigDecimal(10), BigDecimal(10), "Month"))
     )
   }
 

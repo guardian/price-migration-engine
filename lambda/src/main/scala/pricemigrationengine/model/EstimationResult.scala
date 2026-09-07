@@ -13,8 +13,8 @@ case class EstimationData(
     amendmentEffectiveDate: LocalDate,
     currency: Currency,
     oldPrice: BigDecimal,
-    estimatedNewPrice: BigDecimal,
-    commsPrice: BigDecimal,
+    newPriceFull: BigDecimal,
+    commsPrice: BigDecimal, // typically either the price grid new price, or that with capping
     billingPeriod: String
 ) extends EstimationResult
 
@@ -38,8 +38,8 @@ object EstimationResult {
       amendmentEffectiveDate,
       priceData.currency,
       priceData.oldPrice,
-      priceData.newPrice, // aka: estimatedNewPrice
-      EstimationHandlerHelper.commsPrice(cohortSpec, priceData.oldPrice, priceData.newPrice),
+      priceData.newPriceFull, // cohort Item's estimatedNewPrice
+      priceData.commsPrice, // full price with possible capping
       priceData.billingPeriod
     )
   }

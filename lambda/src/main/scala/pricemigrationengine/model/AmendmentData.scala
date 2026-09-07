@@ -96,18 +96,18 @@ object AmendmentData {
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, PriceData] = {
     MigrationType(cohortSpec) match {
-      case Test1                  => Left(ConfigFailure("Branch not supported"))
-      case GuardianWeekly2025     => GuardianWeekly2025Migration.priceData(subscription, invoiceList, account)
-      case Newspaper2025P1        => Newspaper2025P1Migration.priceData(subscription, invoiceList, account)
-      case Newspaper2025P3        => Newspaper2025P3Migration.priceData(subscription, invoiceList, account)
-      case ProductMigration2025N4 => ProductMigration2025N4Migration.priceData(subscription, invoiceList)
-      case Membership2025         => Membership2025Migration.priceData(subscription, invoiceList)
-      case DigiSubs2025           => DigiSubs2025Migration.priceData(subscription, invoiceList)
-      case SupporterPlus2026      => SupporterPlus2026Migration.priceData(subscription, invoiceList)
-      case SupporterPlus2026N2    => SupporterPlus2026Migration.priceData(subscription, invoiceList)
-      case SupporterPlus2026N3    => SupporterPlus2026Migration.priceData(subscription, invoiceList)
-      case SupporterPlus2026N4    => SupporterPlus2026Migration.priceData(subscription, invoiceList)
-      case SupporterPlus2026N5    => SupporterPlus2026Migration.priceData(subscription, invoiceList)
+      case Test1              => Left(ConfigFailure("Branch not supported"))
+      case GuardianWeekly2025 => GuardianWeekly2025Migration.priceData(cohortSpec, subscription, invoiceList, account)
+      case Newspaper2025P1    => Newspaper2025P1Migration.priceData(cohortSpec, subscription, invoiceList, account)
+      case Newspaper2025P3    => Newspaper2025P3Migration.priceData(cohortSpec, subscription, invoiceList, account)
+      case ProductMigration2025N4 => ProductMigration2025N4Migration.priceData(cohortSpec, subscription, invoiceList)
+      case Membership2025         => Membership2025Migration.priceData(cohortSpec, subscription, invoiceList)
+      case DigiSubs2025           => DigiSubs2025Migration.priceData(cohortSpec, subscription, invoiceList)
+      case SupporterPlus2026      => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
+      case SupporterPlus2026N2    => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
+      case SupporterPlus2026N3    => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
+      case SupporterPlus2026N4    => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
+      case SupporterPlus2026N5    => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
     }
   }
 }

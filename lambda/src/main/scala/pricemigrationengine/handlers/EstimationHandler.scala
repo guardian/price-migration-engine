@@ -76,7 +76,7 @@ object EstimationHandler extends CohortHandler {
               CohortItem.fromSuccessfulEstimationResult(result)
             }
             case _ => {
-              if (result.estimatedNewPrice <= result.oldPrice) CohortItem.fromNoPriceIncreaseEstimationResult(result)
+              if (result.newPriceFull <= result.oldPrice) CohortItem.fromNoPriceIncreaseEstimationResult(result)
               else CohortItem.fromSuccessfulEstimationResult(result)
             }
           }

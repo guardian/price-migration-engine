@@ -75,8 +75,8 @@ class SupporterPlus2026Test extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
 
     assertEquals(
-      SupporterPlus2026Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("USD", BigDecimal(15.0), BigDecimal(18.0), "Month"))
+      SupporterPlus2026Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("USD", BigDecimal(15.0), BigDecimal(18.0), BigDecimal(18.0), "Month"))
     )
   }
 
@@ -231,8 +231,8 @@ class SupporterPlus2026Test extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/01/invoice-preview.json")
 
     assertEquals(
-      SupporterPlus2026Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("USD", BigDecimal(15.0), BigDecimal(18.0), "Month"))
+      SupporterPlus2026Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("USD", BigDecimal(15.0), BigDecimal(18.0), BigDecimal(18.0), "Month"))
     )
   }
 
@@ -271,8 +271,8 @@ class SupporterPlus2026Test extends munit.FunSuite {
     // picked up only the main charge
 
     assertEquals(
-      SupporterPlus2026Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("USD", BigDecimal(15.0), BigDecimal(18.0), "Month"))
+      SupporterPlus2026Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("USD", BigDecimal(15.0), BigDecimal(18.0), BigDecimal(18.0), "Month"))
     )
   }
 
@@ -282,8 +282,8 @@ class SupporterPlus2026Test extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/SupporterPlus2026/02/invoice-preview.json")
 
     assertEquals(
-      SupporterPlus2026Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(12.0), BigDecimal(14.0), "Month"))
+      SupporterPlus2026Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(12.0), BigDecimal(14.0), BigDecimal(14.0), "Month"))
     )
   }
 
@@ -295,8 +295,8 @@ class SupporterPlus2026Test extends munit.FunSuite {
     // Here we do not need to do the discount variants.
 
     assertEquals(
-      SupporterPlus2026Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("EUR", BigDecimal(120.0), BigDecimal(140.0), "Annual"))
+      SupporterPlus2026Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("EUR", BigDecimal(120.0), BigDecimal(140.0), BigDecimal(140.0), "Annual"))
     )
   }
 
@@ -649,7 +649,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
           amendmentEffectiveDate = LocalDate.of(2026, 8, 30),
           currency = "USD",
           oldPrice = BigDecimal(15.0),
-          estimatedNewPrice = BigDecimal(18.0),
+          newPriceFull = BigDecimal(18.0),
           commsPrice = BigDecimal(18.0),
           billingPeriod = "Month"
         )
@@ -687,7 +687,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
           amendmentEffectiveDate = LocalDate.of(2026, 8, 30),
           currency = "USD",
           oldPrice = BigDecimal(15.0),
-          estimatedNewPrice = BigDecimal(18.0),
+          newPriceFull = BigDecimal(18.0),
           commsPrice = BigDecimal(18.0),
           billingPeriod = "Month"
         )

@@ -13,8 +13,8 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/01/invoice-preview.json")
 
     assertEquals(
-      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(20.99), BigDecimal(20.99), "Month")) // [1]
+      ProductMigration2025N4Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(20.99), BigDecimal(20.99), BigDecimal(20.99), "Month")) // [1]
     )
 
     // [1] Product migration the old and new prices are the same
@@ -125,8 +125,8 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/02/invoice-preview.json")
 
     assertEquals(
-      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(34.99), BigDecimal(34.99), "Month")) // [1]
+      ProductMigration2025N4Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(34.99), BigDecimal(34.99), BigDecimal(34.99), "Month")) // [1]
     )
 
     // [1] Product migration the old and new prices are the same
@@ -248,8 +248,8 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/03/invoice-preview.json")
 
     assertEquals(
-      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(83.99), BigDecimal(83.99), "Month")) // [1]
+      ProductMigration2025N4Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(83.99), BigDecimal(83.99), BigDecimal(83.99), "Month")) // [1]
     )
 
     // [1] Product migration the old and new prices are the same
@@ -426,8 +426,8 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/04/invoice-preview.json")
 
     assertEquals(
-      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(73.99), BigDecimal(73.99), "Month")) // [1]
+      ProductMigration2025N4Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(73.99), BigDecimal(73.99), BigDecimal(73.99), "Month")) // [1]
     )
 
     // [1] Product migration the old and new prices are the same
@@ -593,8 +593,8 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/05/invoice-preview.json")
 
     assertEquals(
-      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(34.99), BigDecimal(34.99), "Month")) // [1]
+      ProductMigration2025N4Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(34.99), BigDecimal(34.99), BigDecimal(34.99), "Month")) // [1]
     )
 
     // [1] Product migration the old and new prices are the same
@@ -716,8 +716,8 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/06/invoice-preview.json")
 
     assertEquals(
-      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(73.99), BigDecimal(73.99), "Month")) // [1]
+      ProductMigration2025N4Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(73.99), BigDecimal(73.99), BigDecimal(73.99), "Month")) // [1]
     )
 
     // [1] Product migration the old and new prices are the same
@@ -883,8 +883,8 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/07/invoice-preview.json")
 
     assertEquals(
-      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(83.99), BigDecimal(83.99), "Month")) // [1]
+      ProductMigration2025N4Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(83.99), BigDecimal(83.99), BigDecimal(83.99), "Month")) // [1]
     )
 
     // [1] Product migration the old and new prices are the same
@@ -1061,8 +1061,8 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/08/invoice-preview.json")
 
     assertEquals(
-      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(27.99), BigDecimal(27.99), "Month")) // [1]
+      ProductMigration2025N4Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(27.99), BigDecimal(27.99), BigDecimal(27.99), "Month")) // [1]
     )
 
     // [1] Product migration the old and new prices are the same
@@ -1184,8 +1184,8 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/09/invoice-preview.json")
 
     assertEquals(
-      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(15.99), BigDecimal(15.99), "Month")) // [1]
+      ProductMigration2025N4Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(15.99), BigDecimal(15.99), BigDecimal(15.99), "Month")) // [1]
     )
 
     // [1] Product migration the old and new prices are the same
@@ -1296,8 +1296,8 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/10/invoice-preview.json")
 
     assertEquals(
-      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(61.99), BigDecimal(61.99), "Month")) // [1]
+      ProductMigration2025N4Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(61.99), BigDecimal(61.99), BigDecimal(61.99), "Month")) // [1]
     )
 
     // [1] Product migration the old and new prices are the same
@@ -1466,8 +1466,8 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/11/invoice-preview.json")
 
     assertEquals(
-      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(209.97), BigDecimal(209.97), "Quarter")) // [1]
+      ProductMigration2025N4Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(209.97), BigDecimal(209.97), BigDecimal(209.97), "Quarter")) // [1]
     )
 
     // [1] Product migration the old and new prices are the same
@@ -1644,8 +1644,8 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/12/invoice-preview.json")
 
     assertEquals(
-      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(15.99), BigDecimal(15.99), "Month")) // [1]
+      ProductMigration2025N4Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(15.99), BigDecimal(15.99), BigDecimal(15.99), "Month")) // [1]
     )
 
     // [1] Product migration the old and new prices are the same
@@ -1756,8 +1756,8 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/13/invoice-preview.json")
 
     assertEquals(
-      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(27.99), BigDecimal(27.99), "Month")) // [1]
+      ProductMigration2025N4Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(27.99), BigDecimal(27.99), BigDecimal(27.99), "Month")) // [1]
     )
 
     // [1] Product migration the old and new prices are the same
@@ -1879,8 +1879,8 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/14/invoice-preview.json")
 
     assertEquals(
-      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(61.99), BigDecimal(61.99), "Month")) // [1]
+      ProductMigration2025N4Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(61.99), BigDecimal(61.99), BigDecimal(61.99), "Month")) // [1]
     )
 
     // [1] Product migration the old and new prices are the same
@@ -2046,8 +2046,8 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/15/invoice-preview.json")
 
     assertEquals(
-      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(69.99), BigDecimal(69.99), "Month")) // [1]
+      ProductMigration2025N4Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(69.99), BigDecimal(69.99), BigDecimal(69.99), "Month")) // [1]
     )
 
     // [1] Product migration the old and new prices are the same
@@ -2227,8 +2227,8 @@ class ProductMigration2025N4MigrationTest extends munit.FunSuite {
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/ProductMigration2025N4/16/invoice-preview.json")
 
     assertEquals(
-      ProductMigration2025N4Migration.priceData(subscription, invoicePreview),
-      Right(PriceData("GBP", BigDecimal(839.88), BigDecimal(839.88), "Annual")) // [1]
+      ProductMigration2025N4Migration.priceData(CohortSpec("Test1", true), subscription, invoicePreview),
+      Right(PriceData("GBP", BigDecimal(839.88), BigDecimal(839.88), BigDecimal(839.88), "Annual")) // [1]
     )
 
     // [1] Product migration the old and new prices are the same
