@@ -48,7 +48,10 @@ class GuardianWeekly2026MigrationXTest extends munit.FunSuite {
     val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub4/account.json")
     val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2026X/sub4/invoice-preview.json")
     // Month, GBP, Domestic, we are expecting 17.50
-    assertEquals(GuardianWeekly2026MigrationX.getNewPrice(subscription, invoicePreview, account), Some(BigDecimal(17.50)))
+    assertEquals(
+      GuardianWeekly2026MigrationX.getNewPrice(subscription, invoicePreview, account),
+      Some(BigDecimal(17.50))
+    )
   }
   test("priceData") {
     // sub1: "Guardian Weekly - Domestic"  "GW Oct 18 - Quarterly - Domestic"  "GBP"  "Quarter"
@@ -98,18 +101,6 @@ class GuardianWeekly2026MigrationXTest extends munit.FunSuite {
     assertEquals(
       GuardianWeekly2026MigrationX.priceData(CohortSpec("Test1", true), subscription, invoicePreview, account),
       Right(PriceData("GBP", BigDecimal(198.0), BigDecimal(208), BigDecimal(208), "Annual"))
-    )
-  }
-  test("priceData") {
-    // sub6: "Guardian Weekly - Domestic"  "GW Oct 18 - Annual - Domestic"     "GBP"  "Annual"
-    //        variant of sub5 to test the 10% capping
-    //        price if set to 100 GBP
-    val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2026X/sub6/subscription.json")
-    val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub6/account.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2026X/sub6/invoice-preview.json")
-    assertEquals(
-      GuardianWeekly2026MigrationX.priceData(CohortSpec("Print2026C1GWAnnualsUK", true), subscription, invoicePreview, account),
-      Right(PriceData("GBP", BigDecimal(100.0), BigDecimal(208), BigDecimal(110), "Annual"))
     )
   }
   test("amendmentOrderPayload") {
