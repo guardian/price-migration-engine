@@ -1,0 +1,9 @@
+Guardian Weekly:
+sub1: "Guardian Weekly - Domestic"  "GW Oct 18 - Quarterly - Domestic"  "GBP"  "Quarter"
+sub2: "Guardian Weekly - Domestic"  "GW Oct 18 - Quarterly - Domestic"  "AUD"  "Quarter"
+sub3: "Guardian Weekly - Domestic"  "GW Oct 18 - Quarterly - Domestic"  "EUR"  "Quarter"
+sub4: "Guardian Weekly - Domestic"  "GW Oct 18 - Monthly - Domestic"    "GBP"  "Month"
+sub5: "Guardian Weekly - Domestic"  "GW Oct 18 - Annual - Domestic"     "GBP"  "Annual"
+sub6: "Guardian Weekly - Domestic"  "GW Oct 18 - Annual - Domestic"     "GBP"  "Annual"
+      variant of sub5 to test the 10% capping
+      price if set to 100 GBP
