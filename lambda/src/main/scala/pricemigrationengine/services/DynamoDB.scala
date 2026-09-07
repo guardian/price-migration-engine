@@ -17,7 +17,7 @@ import software.amazon.awssdk.services.dynamodb.model.{
 }
 import zio.{RIO, Task, ZIO}
 
-trait DynamoDBClient {
+trait DynamoDB {
   def query(queryRequest: QueryRequest): Task[QueryResponse]
   def scan(scanRequest: ScanRequest): Task[ScanResponse]
   def updateItem(updateRequest: UpdateItemRequest): Task[UpdateItemResponse]
@@ -27,28 +27,28 @@ trait DynamoDBClient {
   def updateContinuousBackups(request: UpdateContinuousBackupsRequest): Task[UpdateContinuousBackupsResponse]
 }
 
-object DynamoDBClient {
+object DynamoDB {
 
-  def query(queryRequest: QueryRequest): RIO[DynamoDBClient, QueryResponse] =
+  def query(queryRequest: QueryRequest): RIO[DynamoDB, QueryResponse] =
     ZIO.environmentWithZIO(_.get.query(queryRequest))
 
-  def scan(scanRequest: ScanRequest): RIO[DynamoDBClient, ScanResponse] =
+  def scan(scanRequest: ScanRequest): RIO[DynamoDB, ScanResponse] =
     ZIO.environmentWithZIO(_.get.scan(scanRequest))
 
-  def updateItem(updateRequest: UpdateItemRequest): RIO[DynamoDBClient, UpdateItemResponse] =
+  def updateItem(updateRequest: UpdateItemRequest): RIO[DynamoDB, UpdateItemResponse] =
     ZIO.environmentWithZIO(_.get.updateItem(updateRequest))
 
-  def createItem(createRequest: PutItemRequest, keyName: String): RIO[DynamoDBClient, PutItemResponse] =
+  def createItem(createRequest: PutItemRequest, keyName: String): RIO[DynamoDB, PutItemResponse] =
     ZIO.environmentWithZIO(_.get.createItem(createRequest, keyName))
 
-  def describeTable(tableName: String): RIO[DynamoDBClient, DescribeTableResponse] =
+  def describeTable(tableName: String): RIO[DynamoDB, DescribeTableResponse] =
     ZIO.environmentWithZIO(_.get.describeTable(tableName))
 
-  def createTable(request: CreateTableRequest): RIO[DynamoDBClient, CreateTableResponse] =
+  def createTable(request: CreateTableRequest): RIO[DynamoDB, CreateTableResponse] =
     ZIO.environmentWithZIO(_.get.createTable(request))
 
   def updateContinuousBackups(
       request: UpdateContinuousBackupsRequest
-  ): RIO[DynamoDBClient, UpdateContinuousBackupsResponse] =
+  ): RIO[DynamoDB, UpdateContinuousBackupsResponse] =
     ZIO.environmentWithZIO(_.get.updateContinuousBackups(request))
 }

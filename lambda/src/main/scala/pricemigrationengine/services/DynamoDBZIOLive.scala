@@ -8,10 +8,10 @@ import java.util
 import scala.jdk.CollectionConverters._
 
 object DynamoDBZIOLive {
-  val impl: ZLayer[DynamoDBClient with Logging, Nothing, DynamoDBZIO] =
+  val impl: ZLayer[DynamoDB with Logging, Nothing, DynamoDBZIO] =
     ZLayer.fromZIO {
       for {
-        dynamoDbClient <- ZIO.service[DynamoDBClient]
+        dynamoDbClient <- ZIO.service[DynamoDB]
         logging <- ZIO.service[Logging]
       } yield new DynamoDBZIO {
 

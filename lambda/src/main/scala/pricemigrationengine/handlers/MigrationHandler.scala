@@ -24,7 +24,7 @@ object MigrationHandler extends ZIOAppDefault with RequestHandler[Unit, Unit] {
         ConsoleLogging.impl("MigrationHandler"),
         EnvConfig.cohortStateMachine.layer,
         EnvConfig.stage.layer,
-        DynamoDBClientLive.impl,
+        DynamoDBLive.impl,
         CohortSpecTableLive.impl,
         CohortStateMachineLive.impl
       )
@@ -36,7 +36,7 @@ object MigrationHandler extends ZIOAppDefault with RequestHandler[Unit, Unit] {
           LambdaLogging.impl(context, "MigrationHandler"),
           EnvConfig.cohortStateMachine.layer,
           EnvConfig.stage.layer,
-          DynamoDBClientLive.impl,
+          DynamoDBLive.impl,
           CohortSpecTableLive.impl,
           CohortStateMachineLive.impl
         )
