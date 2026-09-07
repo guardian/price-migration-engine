@@ -37,7 +37,7 @@ object NotificationHandler extends CohortHandler {
       DynamoDBClientLive.impl,
       DynamoDBZIOLive.impl,
       CohortTableLive.impl(input),
-      SalesforceClientLive.impl,
+      SalesforceLive.impl,
       BrazeLive.impl,
       ZuoraLive.impl
     )
@@ -45,7 +45,7 @@ object NotificationHandler extends CohortHandler {
 
   def main(
       cohortSpec: CohortSpec
-  ): ZIO[Logging with CohortTable with SalesforceClient with Braze with Zuora, Failure, HandlerOutput] = {
+  ): ZIO[Logging with CohortTable with Salesforce with Braze with Zuora, Failure, HandlerOutput] = {
     for {
       today <- Clock.currentDateTime.map(_.toLocalDate)
       count <- (
@@ -74,7 +74,7 @@ object NotificationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       item: CohortItem,
       today: LocalDate
-  ): ZIO[CohortTable with SalesforceClient with Logging with Braze with Zuora, Failure, Unit] = {
+  ): ZIO[CohortTable with Salesforce with Logging with Braze with Zuora, Failure, Unit] = {
     for {
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
       estimationInstant <- ZIO
@@ -111,7 +111,7 @@ object NotificationHandler extends CohortHandler {
       zuoraSubscription: ZuoraSubscription,
       analyseResult: SubscriptionNotificationAnalyseResult,
       today: LocalDate
-  ): ZIO[CohortTable with SalesforceClient with Logging with Braze with Zuora, Failure, Unit] = {
+  ): ZIO[CohortTable with Salesforce with Logging with Braze with Zuora, Failure, Unit] = {
     analyseResult match {
       case SNARReadyToNotify             => sendNotification(cohortSpec, zuoraSubscription, item, today)
       case SNARCancelledInZuora          => updateCohortItemToReflectZuoraCancellation(cohortSpec, item)
@@ -131,7 +131,7 @@ object NotificationHandler extends CohortHandler {
 
   private def updateCohortItemToExcludeFromMigration(
       item: CohortItem
-  ): ZIO[CohortTable with SalesforceClient with Logging, Failure, Unit] = {
+  ): ZIO[CohortTable with Salesforce with Logging, Failure, Unit] = {
     for {
       _ <- CohortTable
         .update(
@@ -151,7 +151,7 @@ object NotificationHandler extends CohortHandler {
   private def updateCohortItemToReflectZuoraCancellation(
       cohortSpec: CohortSpec,
       item: CohortItem
-  ): ZIO[CohortTable with SalesforceClient with Logging, Failure, Unit] = {
+  ): ZIO[CohortTable with Salesforce with Logging, Failure, Unit] = {
     for {
       _ <- CohortTable
         .update(
@@ -173,13 +173,13 @@ object NotificationHandler extends CohortHandler {
       zuoraSubscription: ZuoraSubscription,
       cohortItem: CohortItem,
       today: LocalDate
-  ): ZIO[Zuora with Braze with SalesforceClient with CohortTable with Logging, Failure, Unit] =
+  ): ZIO[Zuora with Braze with Salesforce with CohortTable with Logging, Failure, Unit] =
     for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       sfSubscription <-
-        SalesforceClient
+        Salesforce
           .getSubscriptionByName(cohortItem.subscriptionName)
-      contact <- SalesforceClient.getContact(sfSubscription.Buyer__c)
+      contact <- Salesforce.getContact(sfSubscription.Buyer__c)
       firstName <- ZIO.fromEither(firstName(contact))
       lastName <- ZIO.fromEither(requiredField(contact.LastName, "Contact.LastName"))
       address <- ZIO.fromEither(targetAddress(cohortSpec, contact))
@@ -461,7 +461,7 @@ object NotificationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       cohortItem: CohortItem,
       reason: Option[String]
-  ): ZIO[Logging with SalesforceClient, Failure, Unit] = {
+  ): ZIO[Logging with Salesforce, Failure, Unit] = {
     for {
       salesforcePriceRiseId <-
         ZIO
@@ -472,7 +472,7 @@ object NotificationHandler extends CohortHandler {
         Migration_Status__c = Some("Cancellation"),
         Cancellation_Reason__c = reason
       )
-      _ <- SalesforceClient.updatePriceRise(salesforcePriceRiseId, priceRise)
+      _ <- Salesforce.updatePriceRise(salesforcePriceRiseId, priceRise)
     } yield ()
   }
 

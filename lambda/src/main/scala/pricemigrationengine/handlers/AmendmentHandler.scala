@@ -28,7 +28,7 @@ object AmendmentHandler extends CohortHandler {
 
   private def main(
       cohortSpec: CohortSpec
-  ): ZIO[Logging with CohortTable with Zuora with SalesforceClient, Failure, HandlerOutput] = {
+  ): ZIO[Logging with CohortTable with Zuora with Salesforce, Failure, HandlerOutput] = {
     for {
       now <- Clock.instant
       startingTime <- Clock.nanoTime
@@ -69,7 +69,7 @@ object AmendmentHandler extends CohortHandler {
   def processCohortItem(
       cohortSpec: CohortSpec,
       item: CohortItem
-  ): ZIO[SalesforceClient with Logging with Zuora, Failure, Option[CohortItem]] = {
+  ): ZIO[Salesforce with Logging with Zuora, Failure, Option[CohortItem]] = {
     for {
       now <- Clock.instant
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
@@ -102,7 +102,7 @@ object AmendmentHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       item: CohortItem,
       analyseResult: SubscriptionAmendmentAnalyseResult
-  ): ZIO[SalesforceClient with Logging with Zuora, Failure, Option[CohortItem]] = for {
+  ): ZIO[Salesforce with Logging with Zuora, Failure, Option[CohortItem]] = for {
     maybeUpdate <- analyseResult match {
       case SAARReadyToAmend =>
         performAmendmentAttempt(
@@ -163,7 +163,7 @@ object AmendmentHandler extends CohortHandler {
   private def performAmendmentAttempt(
       cohortSpec: CohortSpec,
       item: CohortItem
-  ): ZIO[Zuora with Logging with SalesforceClient, Failure, Option[CohortItem]] =
+  ): ZIO[Zuora with Logging with Salesforce, Failure, Option[CohortItem]] =
     (for {
       result <- performAmendmentAttemptWithResult(cohortSpec, item)
       updatedItem <- result match {
@@ -356,7 +356,7 @@ object AmendmentHandler extends CohortHandler {
   private def performAmendmentAttemptWithResult(
       cohortSpec: CohortSpec,
       item: CohortItem
-  ): ZIO[Zuora with Logging with SalesforceClient, Failure, AmendmentAttemptResult] = {
+  ): ZIO[Zuora with Logging with Salesforce, Failure, AmendmentAttemptResult] = {
     MigrationType(cohortSpec) match {
       case Test1              => ZIO.fail(ConfigFailure("Branch not supported"))
       case GuardianWeekly2025 =>
@@ -379,7 +379,7 @@ object AmendmentHandler extends CohortHandler {
           salesforcePriceRiseId <- ZIO
             .fromOption(item.salesforcePriceRiseId)
             .orElseFail(AmendmentFailure(s"Missing salesforcePriceRiseId for ${item.subscriptionName}"))
-          priceRise <- SalesforceClient.getPriceRise(salesforcePriceRiseId)
+          priceRise <- Salesforce.getPriceRise(salesforcePriceRiseId)
           optOutFlag <- ZIO
             .fromOption(priceRise.Customer_Opt_Out__c)
             .orElseFail(
@@ -444,7 +444,7 @@ object AmendmentHandler extends CohortHandler {
       DynamoDBClientLive.impl,
       CohortTableLive.impl(input),
       ZuoraLive.impl,
-      SalesforceClientLive.impl,
+      SalesforceLive.impl,
       EnvConfig.salesforce.layer
     )
   }

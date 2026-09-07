@@ -11,7 +11,7 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
 
   private val batchSize = 1000
 
-  def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with SalesforceClient, Failure, HandlerOutput] =
+  def main(cohortSpec: CohortSpec): ZIO[Logging with CohortTable with Salesforce, Failure, HandlerOutput] =
     for {
       count <- CohortTable
         .fetch(NotificationSendComplete, None)
@@ -24,7 +24,7 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
   private def updateDateLetterSentInSF(
       cohortSpec: CohortSpec,
       item: CohortItem
-  ): ZIO[Logging with CohortTable with SalesforceClient, Failure, Unit] =
+  ): ZIO[Logging with CohortTable with Salesforce, Failure, Unit] =
     for {
       _ <- updateSalesforce(cohortSpec, item)
         .tapBoth(
@@ -45,7 +45,7 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
   private def updateSalesforce(
       cohortSpec: CohortSpec,
       cohortItem: CohortItem
-  ): ZIO[SalesforceClient, Failure, Option[String]] = {
+  ): ZIO[Salesforce, Failure, Option[String]] = {
     for {
       priceRise <- buildPriceRise(cohortSpec, cohortItem)
       salesforcePriceRiseId <-
@@ -57,7 +57,7 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
             )
           )
       result <-
-        SalesforceClient
+        Salesforce
           .updatePriceRise(salesforcePriceRiseId, priceRise)
           .as(None)
     } yield result
@@ -87,7 +87,7 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
       DynamoDBZIOLive.impl,
       DynamoDBClientLive.impl,
       CohortTableLive.impl(input),
-      SalesforceClientLive.impl
+      SalesforceLive.impl
     )
   }
 }
