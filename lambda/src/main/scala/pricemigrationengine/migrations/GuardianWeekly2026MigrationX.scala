@@ -69,4 +69,108 @@ object GuardianWeekly2026MigrationX {
       newPrice <- getNewPrice(billingPeriod, currencyAndLocalisation.currency, currencyAndLocalisation.localisation)
     } yield newPrice
   }
+
+  // ------------------------------------------------
+  // Primary Functions:
+  //
+  // The primary functions are the main functions that
+  // are implemented by the *Migration module.
+  //
+  // - priceData is used in the Estimation handler
+  // - amendmentOrderPayload is used in the Amendment handler
+  // ------------------------------------------------
+
+  def logValue[T](label: String)(value: T): T = {
+    println(s"$label: $value")
+    value
+  }
+
+  def priceData(
+      cohortSpec: CohortSpec,
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      account: ZuoraAccount
+  ): Either[DataExtractionFailure, PriceData] = {
+    val priceDataOpt: Option[PriceData] = for {
+      _ <- Some(()).map(logValue("initialization"))
+      ratePlan <- SI2025RateplanFromSubAndInvoices
+        .determineRatePlan(subscription, invoiceList)
+        .map(logValue("ratePlan"))
+      currency <- SI2025Extractions
+        .determineCurrency(ratePlan)
+        .map(logValue("currency"))
+      oldPrice = logValue("oldPrice")(SI2025Extractions.determineOldPrice(ratePlan))
+      billingPeriod <- SI2025Extractions
+        .determineBillingPeriod(ratePlan)
+        .map(logValue("billingPeriod"))
+      newPrice <- getNewPrice(
+        subscription,
+        invoiceList,
+        account
+      ).map(logValue("newPrice"))
+      commsPrice = logValue("commsPrice")(EstimationHandlerHelper.commsPrice(cohortSpec, oldPrice, newPrice))
+    } yield PriceData(currency, oldPrice, newPrice, commsPrice, BillingPeriod.toString(billingPeriod))
+    priceDataOpt match {
+      case Some(pricedata) => Right(pricedata)
+      case None            =>
+        Left(
+          DataExtractionFailure(
+            s"[38fed0ce] could not determine PriceData for subscription ${subscription.subscriptionNumber}"
+          )
+        )
+    }
+  }
+
+  def amendmentOrderPayload(
+      cohortItem: CohortItem,
+      orderDate: LocalDate,
+      accountNumber: String,
+      subscriptionNumber: String,
+      effectDate: LocalDate,
+      zuora_subscription: ZuoraSubscription,
+      commsPrice: BigDecimal,
+      invoiceList: ZuoraInvoiceList,
+  ): Either[Failure, Value] = {
+    // We have two notions of subscription here.
+    // There is the Zuora subscription which is one of the arguments, and there is
+    // the notion of subscription as defined in the Zuora Order API documentation,
+    // which roughly translates to a collections of { actions / atomic mutations } in Zuora
+
+    val order_opt = {
+      for {
+        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+        billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
+      } yield {
+        val subscriptionRatePlanId = ratePlan.id
+        val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
+        val triggerDateString = effectDate.toString
+        val productRatePlanId = ratePlan.productRatePlanId
+        val chargeOverrides = List(
+          ZuoraOrdersApiPrimitives.chargeOverride(
+            ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId,
+            commsPrice,
+            BillingPeriod.toString(billingPeriod)
+          )
+        )
+        val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+        val order_subscription =
+          ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
+        ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
+          orderDate.toString,
+          accountNumber,
+          order_subscription
+        )
+      }
+    }
+
+    order_opt match {
+      case Some(order) => Right(order)
+      case None        =>
+        Left(
+          DataExtractionFailure(
+            s"[1cbce53d] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
+          )
+        )
+    }
+  }
 }

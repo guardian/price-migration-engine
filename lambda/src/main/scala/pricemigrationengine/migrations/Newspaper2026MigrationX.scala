@@ -106,4 +106,104 @@ object Newspaper2026MigrationX {
       pack <- ratePlanNameToPackage(ratePlan.ratePlanName)
     } yield pack
   }
+
+  // ------------------------------------------------
+  // Primary Functions:
+  //
+  // The primary functions are the main functions that
+  // are implemented by the *Migration module.
+  //
+  // - priceData is used in the Estimation handler
+  // - amendmentOrderPayload is used in the Amendment handler
+  // ------------------------------------------------
+
+  def logValue[T](label: String)(value: T): T = {
+    println(s"$label: $value")
+    value
+  }
+
+  def priceData(
+      cohortSpec: CohortSpec,
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      account: ZuoraAccount,
+      today: LocalDate
+  ): Either[DataExtractionFailure, PriceData] = {
+    val priceDataOpt: Option[PriceData] = for {
+      ratePlan <- SI2025RateplanFromSubAndInvoices
+        .determineRatePlan(subscription, invoiceList)
+        .map(logValue("ratePlan"))
+      currency <- SI2025Extractions.determineCurrency(ratePlan).map(logValue("currency"))
+      oldPrice = logValue("oldPrice")(SI2025Extractions.determineOldPrice(ratePlan))
+      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan).map(logValue("billingPeriod"))
+      fullfilment <- decideFulfillment(subscription, today).map(logValue("fullfilment"))
+      pack <- decidePackage(subscription, today).map(logValue("pack"))
+      newPrice <- getNewPrice(billingPeriod, fullfilment, pack).map(logValue("newPrice"))
+      commsPrice = logValue("commsPrice")(EstimationHandlerHelper.commsPrice(cohortSpec, oldPrice, newPrice))
+    } yield PriceData(currency, oldPrice, newPrice, commsPrice, BillingPeriod.toString(billingPeriod))
+    priceDataOpt match {
+      case Some(pricedata) => Right(pricedata)
+      case None            =>
+        Left(
+          DataExtractionFailure(
+            s"[a149987a] Could not determine PriceData for subscription ${subscription.subscriptionNumber}"
+          )
+        )
+    }
+  }
+
+  def amendmentOrderPayload(
+      cohortItem: CohortItem,
+      orderDate: LocalDate,
+      accountNumber: String,
+      subscriptionNumber: String,
+      effectDate: LocalDate,
+      zuora_subscription: ZuoraSubscription,
+      oldPrice: BigDecimal,
+      commsPrice: BigDecimal,
+      invoiceList: ZuoraInvoiceList,
+  ): Either[Failure, Value] = {
+    // This version of `amendmentOrderPayload`, applied to subscriptions with the active rate plan having
+    // several charges (one per delivery day), is using ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides
+    // which maps the rate plan's rate plan charges to an array of charge overrides json objects.
+
+    // The important preliminary here, which wasn't needed in the simpler case of a single rate plan charge
+    // in the case of GuardianWeekly2025, for instance, is the price ratio from the old price to the new price
+    // (both carried by the cohort item).
+
+    val priceRatio = commsPrice / oldPrice
+
+    val order_opt = for {
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+      billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
+    } yield {
+      val subscriptionRatePlanId = ratePlan.id
+      val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
+      val triggerDateString = effectDate.toString
+      val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
+      val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
+        ratePlan.ratePlanCharges,
+        priceRatio,
+        commsPrice,
+        BillingPeriod.toString(billingPeriod)
+      )
+      val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+      val order_subscription =
+        ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
+      ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
+        orderDate.toString,
+        accountNumber,
+        order_subscription
+      )
+    }
+    order_opt match {
+      case Some(order) => Right(order)
+      case None        =>
+        Left(
+          DataExtractionFailure(
+            s"[9f480e70] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
+          )
+        )
+    }
+  }
 }
