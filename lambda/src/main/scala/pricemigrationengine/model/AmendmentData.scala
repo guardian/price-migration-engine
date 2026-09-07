@@ -3,9 +3,11 @@ package pricemigrationengine.model
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
   GuardianWeekly2025Migration,
+  GuardianWeekly2026MigrationX,
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
+  Newspaper2026MigrationX,
   ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
@@ -94,6 +96,7 @@ object AmendmentData {
       subscription: ZuoraSubscription,
       cohortSpec: CohortSpec,
       invoiceList: ZuoraInvoiceList,
+      today: LocalDate,
   ): Either[Failure, PriceData] = {
     MigrationType(cohortSpec) match {
       case Test1              => Left(ConfigFailure("Branch not supported"))
@@ -108,6 +111,28 @@ object AmendmentData {
       case SupporterPlus2026N3    => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
       case SupporterPlus2026N4    => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
       case SupporterPlus2026N5    => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
+      case Print2026C1GWAnnualsUK =>
+        GuardianWeekly2026MigrationX.priceData(cohortSpec, subscription, invoiceList, account)
+      case Print2026C1GWQuarterliesUK =>
+        GuardianWeekly2026MigrationX.priceData(cohortSpec, subscription, invoiceList, account)
+      case Print2026C1NPAnnualsUK =>
+        Newspaper2026MigrationX.priceData(cohortSpec, subscription, invoiceList, account, today)
+      case Print2026C1NPQuarterliesUK =>
+        Newspaper2026MigrationX.priceData(cohortSpec, subscription, invoiceList, account, today)
+      case Print2026C1NPSemiannualsUK =>
+        Newspaper2026MigrationX.priceData(cohortSpec, subscription, invoiceList, account, today)
+      case Print2026C2NPMonthliesUK =>
+        Newspaper2026MigrationX.priceData(cohortSpec, subscription, invoiceList, account, today)
+      case Print2026C3GWMonthliesUK =>
+        GuardianWeekly2026MigrationX.priceData(cohortSpec, subscription, invoiceList, account)
+      case Print2026C3NPMonthliesUK =>
+        Newspaper2026MigrationX.priceData(cohortSpec, subscription, invoiceList, account, today)
+      case Print2026C4NPMonthliesUK =>
+        Newspaper2026MigrationX.priceData(cohortSpec, subscription, invoiceList, account, today)
+      case Print2026C5GW => GuardianWeekly2026MigrationX.priceData(cohortSpec, subscription, invoiceList, account)
+      case Print2026C5NP => Newspaper2026MigrationX.priceData(cohortSpec, subscription, invoiceList, account, today)
+      case Print2026C6GWQuarterliesNonUK =>
+        GuardianWeekly2026MigrationX.priceData(cohortSpec, subscription, invoiceList, account)
     }
   }
 }

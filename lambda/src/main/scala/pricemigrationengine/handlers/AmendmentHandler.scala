@@ -433,6 +433,66 @@ object AmendmentHandler extends CohortHandler {
           cohortSpec: CohortSpec,
           item: CohortItem
         )
+      case Print2026C1GWAnnualsUK =>
+        doAmendmentUsingOrdersApiWithJsonValues(
+          cohortSpec: CohortSpec,
+          item: CohortItem
+        )
+      case Print2026C1GWQuarterliesUK =>
+        doAmendmentUsingOrdersApiWithJsonValues(
+          cohortSpec: CohortSpec,
+          item: CohortItem
+        )
+      case Print2026C1NPAnnualsUK =>
+        doAmendmentUsingOrdersApiWithJsonValues(
+          cohortSpec: CohortSpec,
+          item: CohortItem
+        )
+      case Print2026C1NPQuarterliesUK =>
+        doAmendmentUsingOrdersApiWithJsonValues(
+          cohortSpec: CohortSpec,
+          item: CohortItem
+        )
+      case Print2026C1NPSemiannualsUK =>
+        doAmendmentUsingOrdersApiWithJsonValues(
+          cohortSpec: CohortSpec,
+          item: CohortItem
+        )
+      case Print2026C2NPMonthliesUK =>
+        doAmendmentUsingOrdersApiWithJsonValues(
+          cohortSpec: CohortSpec,
+          item: CohortItem
+        )
+      case Print2026C3GWMonthliesUK =>
+        doAmendmentUsingOrdersApiWithJsonValues(
+          cohortSpec: CohortSpec,
+          item: CohortItem
+        )
+      case Print2026C3NPMonthliesUK =>
+        doAmendmentUsingOrdersApiWithJsonValues(
+          cohortSpec: CohortSpec,
+          item: CohortItem
+        )
+      case Print2026C4NPMonthliesUK =>
+        doAmendmentUsingOrdersApiWithJsonValues(
+          cohortSpec: CohortSpec,
+          item: CohortItem
+        )
+      case Print2026C5GW =>
+        doAmendmentUsingOrdersApiWithJsonValues(
+          cohortSpec: CohortSpec,
+          item: CohortItem
+        )
+      case Print2026C5NP =>
+        doAmendmentUsingOrdersApiWithJsonValues(
+          cohortSpec: CohortSpec,
+          item: CohortItem
+        )
+      case Print2026C6GWQuarterliesNonUK =>
+        doAmendmentUsingOrdersApiWithJsonValues(
+          cohortSpec: CohortSpec,
+          item: CohortItem
+        )
     }
   }
 

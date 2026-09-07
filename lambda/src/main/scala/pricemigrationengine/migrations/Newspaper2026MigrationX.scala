@@ -107,6 +107,52 @@ object Newspaper2026MigrationX {
     } yield pack
   }
 
+  def decideBrandTitle(subscription: ZuoraSubscription, today: LocalDate): Option[String] = {
+    for {
+      pack <- decidePackage(subscription, today)
+    } yield {
+      pack match {
+        case EverydayBasicAndPlus => "the Guardian and the Observer"
+        case SixdayBasicAndPlus   => "the Guardian"
+        case WeekendBasicAndPlus  => "the Guardian and the Observer"
+        case SaturdayBasicAndPlus => "the Guardian"
+      }
+    }
+  }
+
+  def decideBranchTitleForNotificationHandler(
+      cohortSpec: CohortSpec,
+      subscription: ZuoraSubscription,
+      today: LocalDate
+  ): Option[String] = {
+    MigrationType(cohortSpec) match {
+      case Test1                         => Some("")
+      case GuardianWeekly2025            => Some("")
+      case Newspaper2025P1               => Some("")
+      case Newspaper2025P3               => Some("")
+      case ProductMigration2025N4        => Some("")
+      case Membership2025                => Some("")
+      case DigiSubs2025                  => Some("")
+      case SupporterPlus2026             => Some("")
+      case SupporterPlus2026N2           => Some("")
+      case SupporterPlus2026N3           => Some("")
+      case SupporterPlus2026N4           => Some("")
+      case SupporterPlus2026N5           => Some("")
+      case Print2026C1GWAnnualsUK        => Some("")
+      case Print2026C1GWQuarterliesUK    => Some("")
+      case Print2026C1NPAnnualsUK        => decideBrandTitle(subscription, today)
+      case Print2026C1NPQuarterliesUK    => decideBrandTitle(subscription, today)
+      case Print2026C1NPSemiannualsUK    => decideBrandTitle(subscription, today)
+      case Print2026C2NPMonthliesUK      => decideBrandTitle(subscription, today)
+      case Print2026C3GWMonthliesUK      => Some("")
+      case Print2026C3NPMonthliesUK      => decideBrandTitle(subscription, today)
+      case Print2026C4NPMonthliesUK      => decideBrandTitle(subscription, today)
+      case Print2026C5GW                 => Some("")
+      case Print2026C5NP                 => decideBrandTitle(subscription, today)
+      case Print2026C6GWQuarterliesNonUK => Some("")
+    }
+  }
+
   // ------------------------------------------------
   // Primary Functions:
   //

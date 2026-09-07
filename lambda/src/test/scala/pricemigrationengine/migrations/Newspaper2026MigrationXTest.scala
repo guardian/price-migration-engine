@@ -82,6 +82,39 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
       Some(SixdayBasicAndPlus)
     )
   }
+  // -----------
+  test("decideBrandTitle") {
+    // sub1: "Newspaper Voucher"          "Everyday+"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub1/subscription.json")
+    assertEquals(
+      Newspaper2026MigrationX.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
+      Some("the Guardian and the Observer")
+    )
+  }
+  test("decideBrandTitle") {
+    // sub4: "Newspaper Voucher"          "Sixday+"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub4/subscription.json")
+    assertEquals(
+      Newspaper2026MigrationX.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
+      Some("the Guardian")
+    )
+  }
+  test("decideBrandTitle") {
+    // sub6: "Newspaper Voucher"          "Everyday"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub6/subscription.json")
+    assertEquals(
+      Newspaper2026MigrationX.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
+      Some("the Guardian and the Observer")
+    )
+  }
+  test("decideBrandTitle") {
+    // sub7: "Newspaper Voucher"          "Sixday"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub7/subscription.json")
+    assertEquals(
+      Newspaper2026MigrationX.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
+      Some("the Guardian")
+    )
+  }
   test("priceData") {
     // sub1: "Newspaper Voucher"          "Everyday+"
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub1/subscription.json")
@@ -144,6 +177,24 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
         LocalDate.of(2026, 9, 14)
       ),
       Right(PriceData("GBP", BigDecimal(839.88), BigDecimal(875.88), BigDecimal(875.88), "Annual"))
+    )
+  }
+  test("priceData") {
+    // sub10: "Newspaper Voucher"          "Everyday+"   "GBP"   "Annual"
+    //        special edition of sub9 to test the 7.1% price cap
+    //        charges sum to 100 GBP
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub10/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Newspaper2026X/sub10/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub10/invoice-preview.json")
+    assertEquals(
+      Newspaper2026MigrationX.priceData(
+        CohortSpec("Print2026C2NPMonthliesUK", true),
+        subscription,
+        invoicePreview,
+        account: ZuoraAccount,
+        LocalDate.of(2026, 9, 14)
+      ),
+      Right(PriceData("GBP", BigDecimal(100), BigDecimal(875.88), BigDecimal(107.10), "Annual"))
     )
   }
   test("Newspaper2026X.amendmentOrderPayload") {

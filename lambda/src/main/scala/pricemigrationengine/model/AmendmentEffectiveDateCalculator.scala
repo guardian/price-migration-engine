@@ -37,14 +37,26 @@ object AmendmentEffectiveDateCalculator {
       case GuardianWeekly2025 => GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription, today)
       case Newspaper2025P1    => Newspaper2025P1Migration.subscriptionToLastPriceMigrationDate(subscription, today)
       case Newspaper2025P3    => Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate(subscription, today)
-      case ProductMigration2025N4 => None
-      case Membership2025         => None
-      case DigiSubs2025           => None
-      case SupporterPlus2026      => None
-      case SupporterPlus2026N2    => None
-      case SupporterPlus2026N3    => None
-      case SupporterPlus2026N4    => None
-      case SupporterPlus2026N5    => None
+      case ProductMigration2025N4        => None
+      case Membership2025                => None
+      case DigiSubs2025                  => None
+      case SupporterPlus2026             => None
+      case SupporterPlus2026N2           => None
+      case SupporterPlus2026N3           => None
+      case SupporterPlus2026N4           => None
+      case SupporterPlus2026N5           => None
+      case Print2026C1GWAnnualsUK        => None
+      case Print2026C1GWQuarterliesUK    => None
+      case Print2026C1NPAnnualsUK        => None
+      case Print2026C1NPQuarterliesUK    => None
+      case Print2026C1NPSemiannualsUK    => None
+      case Print2026C2NPMonthliesUK      => None
+      case Print2026C3GWMonthliesUK      => None
+      case Print2026C3NPMonthliesUK      => None
+      case Print2026C4NPMonthliesUK      => None
+      case Print2026C5GW                 => None
+      case Print2026C5NP                 => None
+      case Print2026C6GWQuarterliesNonUK => None
     }
   }
 
@@ -89,18 +101,30 @@ object AmendmentEffectiveDateCalculator {
   ): Int = {
     if (isMonthlySubscription(subscription, invoicePreview)) {
       MigrationType(cohortSpec) match {
-        case Test1                  => 1 // default value
-        case GuardianWeekly2025     => 1 // no spread for Guardian Weekly 2025
-        case Newspaper2025P1        => 1 // no spread for Newspaper 2025
-        case Newspaper2025P3        => 1 // no spread for Newspaper 2025 (Phase 3)
-        case ProductMigration2025N4 => 1
-        case Membership2025         => 1
-        case DigiSubs2025           => 3 // 3 Months for DigiSubs2025
-        case SupporterPlus2026      => 1 // no spread for SupporterPlus2026
-        case SupporterPlus2026N2    => 1 // no spread for SupporterPlus2026
-        case SupporterPlus2026N3    => 1 // no spread for SupporterPlus2026
-        case SupporterPlus2026N4    => 1 // no spread for SupporterPlus2026
-        case SupporterPlus2026N5    => 1 // no spread for SupporterPlus2026
+        case Test1                         => 1 // default value
+        case GuardianWeekly2025            => 1 // no spread for Guardian Weekly 2025
+        case Newspaper2025P1               => 1 // no spread for Newspaper 2025
+        case Newspaper2025P3               => 1 // no spread for Newspaper 2025 (Phase 3)
+        case ProductMigration2025N4        => 1
+        case Membership2025                => 1
+        case DigiSubs2025                  => 3 // 3 Months for DigiSubs2025
+        case SupporterPlus2026             => 1 // no spread for SupporterPlus2026
+        case SupporterPlus2026N2           => 1 // no spread for SupporterPlus2026
+        case SupporterPlus2026N3           => 1 // no spread for SupporterPlus2026
+        case SupporterPlus2026N4           => 1 // no spread for SupporterPlus2026
+        case SupporterPlus2026N5           => 1 // no spread for SupporterPlus2026
+        case Print2026C1GWAnnualsUK        => 1
+        case Print2026C1GWQuarterliesUK    => 1
+        case Print2026C1NPAnnualsUK        => 1
+        case Print2026C1NPQuarterliesUK    => 1
+        case Print2026C1NPSemiannualsUK    => 1
+        case Print2026C2NPMonthliesUK      => 1
+        case Print2026C3GWMonthliesUK      => 1
+        case Print2026C3NPMonthliesUK      => 1
+        case Print2026C4NPMonthliesUK      => 1
+        case Print2026C5GW                 => 1
+        case Print2026C5NP                 => 1
+        case Print2026C6GWQuarterliesNonUK => 1
       }
     } else 1
   }
@@ -119,18 +143,32 @@ object AmendmentEffectiveDateCalculator {
     // We now respect the policy of not increasing members during their first year
     // This doesn't apply to ProductMigration2025N4 which is not a price rise
     val lowerBound2 = MigrationType(cohortSpec) match {
-      case Test1                  => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case GuardianWeekly2025     => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case Newspaper2025P1        => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case Newspaper2025P3        => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case ProductMigration2025N4 => lowerBound1
-      case Membership2025         => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case DigiSubs2025           => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case SupporterPlus2026      => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case SupporterPlus2026N2    => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case SupporterPlus2026N3    => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case SupporterPlus2026N4    => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case SupporterPlus2026N5    => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Test1                      => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case GuardianWeekly2025         => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Newspaper2025P1            => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Newspaper2025P3            => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case ProductMigration2025N4     => lowerBound1
+      case Membership2025             => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case DigiSubs2025               => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case SupporterPlus2026          => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case SupporterPlus2026N2        => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case SupporterPlus2026N3        => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case SupporterPlus2026N4        => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case SupporterPlus2026N5        => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C1GWAnnualsUK     => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C1GWQuarterliesUK => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C1NPAnnualsUK     => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C1NPQuarterliesUK => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C1NPSemiannualsUK => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C2NPMonthliesUK   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C3GWMonthliesUK   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C3NPMonthliesUK   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C4NPMonthliesUK   => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C5GW              =>
+        noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C5NP => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
+      case Print2026C6GWQuarterliesNonUK =>
+        noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
     }
 
     // And the policy not to price rise a sub twice within 12 months of any possible price rise
@@ -158,6 +196,30 @@ object AmendmentEffectiveDateCalculator {
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
       case SupporterPlus2026N5 =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Print2026C1GWAnnualsUK =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Print2026C1GWQuarterliesUK =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Print2026C1NPAnnualsUK =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Print2026C1NPQuarterliesUK =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Print2026C1NPSemiannualsUK =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Print2026C2NPMonthliesUK =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Print2026C3GWMonthliesUK =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Print2026C3NPMonthliesUK =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Print2026C4NPMonthliesUK =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Print2026C5GW =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Print2026C5NP =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
+      case Print2026C6GWQuarterliesNonUK =>
+        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
     }
 
     // Migration specific date calculations
@@ -180,6 +242,18 @@ object AmendmentEffectiveDateCalculator {
         SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
       case SupporterPlus2026N5 =>
         SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
+      case Print2026C1GWAnnualsUK        => lowerBound3
+      case Print2026C1GWQuarterliesUK    => lowerBound3
+      case Print2026C1NPAnnualsUK        => lowerBound3
+      case Print2026C1NPQuarterliesUK    => lowerBound3
+      case Print2026C1NPSemiannualsUK    => lowerBound3
+      case Print2026C2NPMonthliesUK      => lowerBound3
+      case Print2026C3GWMonthliesUK      => lowerBound3
+      case Print2026C3NPMonthliesUK      => lowerBound3
+      case Print2026C4NPMonthliesUK      => lowerBound3
+      case Print2026C5GW                 => lowerBound3
+      case Print2026C5NP                 => lowerBound3
+      case Print2026C6GWQuarterliesNonUK => lowerBound3
     }
 
     // Decide the spread period for this migration

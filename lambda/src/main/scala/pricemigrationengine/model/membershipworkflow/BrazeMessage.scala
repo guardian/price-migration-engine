@@ -43,6 +43,11 @@ case class BrazePayloadSubscriberAttributes(
     sp2026_current_combined_amount: Option[String] = None,
     sp2026_new_combined_amount: Option[String] = None,
     // -----------------------------------------------
+
+    // -----------------------------------------------
+    // Newspaper2026 (extension)
+    newspaper2026_brand_title: Option[String] = None,
+    // -----------------------------------------------
 )
 
 object BrazePayloadSubscriberAttributes {

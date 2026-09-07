@@ -21,18 +21,30 @@ object NotificationHandlerHelper {
 
   def notificationLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
-      case Test1                  => 35
-      case GuardianWeekly2025     => GuardianWeekly2025Migration.notificationLeadTime
-      case Newspaper2025P1        => Newspaper2025P1Migration.notificationLeadTime
-      case Newspaper2025P3        => Newspaper2025P3Migration.notificationLeadTime
-      case ProductMigration2025N4 => ProductMigration2025N4Migration.notificationLeadTime
-      case Membership2025         => Membership2025Migration.notificationLeadTime
-      case DigiSubs2025           => DigiSubs2025Migration.notificationLeadTime
-      case SupporterPlus2026      => SupporterPlus2026Migration.notificationLeadTime
-      case SupporterPlus2026N2    => SupporterPlus2026Migration.notificationLeadTime
-      case SupporterPlus2026N3    => SupporterPlus2026Migration.notificationLeadTime
-      case SupporterPlus2026N4    => SupporterPlus2026Migration.notificationLeadTime
-      case SupporterPlus2026N5    => SupporterPlus2026Migration.notificationLeadTime
+      case Test1                         => 35
+      case GuardianWeekly2025            => GuardianWeekly2025Migration.notificationLeadTime
+      case Newspaper2025P1               => Newspaper2025P1Migration.notificationLeadTime
+      case Newspaper2025P3               => Newspaper2025P3Migration.notificationLeadTime
+      case ProductMigration2025N4        => ProductMigration2025N4Migration.notificationLeadTime
+      case Membership2025                => Membership2025Migration.notificationLeadTime
+      case DigiSubs2025                  => DigiSubs2025Migration.notificationLeadTime
+      case SupporterPlus2026             => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N2           => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N3           => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N4           => SupporterPlus2026Migration.notificationLeadTime
+      case SupporterPlus2026N5           => SupporterPlus2026Migration.notificationLeadTime
+      case Print2026C1GWAnnualsUK        => 35
+      case Print2026C1GWQuarterliesUK    => 35
+      case Print2026C1NPAnnualsUK        => 35
+      case Print2026C1NPQuarterliesUK    => 35
+      case Print2026C1NPSemiannualsUK    => 35
+      case Print2026C2NPMonthliesUK      => 35
+      case Print2026C3GWMonthliesUK      => 35
+      case Print2026C3NPMonthliesUK      => 35
+      case Print2026C4NPMonthliesUK      => 35
+      case Print2026C5GW                 => 39
+      case Print2026C5NP                 => 39
+      case Print2026C6GWQuarterliesNonUK => 35
     }
   }
 
@@ -64,13 +76,46 @@ object NotificationHandlerHelper {
           isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase4_formstack_url),
         ).forall(identity)
       }
-      case Membership2025      => true
-      case DigiSubs2025        => true
-      case SupporterPlus2026   => true
-      case SupporterPlus2026N2 => true
-      case SupporterPlus2026N3 => true
-      case SupporterPlus2026N4 => true
-      case SupporterPlus2026N5 => true
+      case Membership2025             => true
+      case DigiSubs2025               => true
+      case SupporterPlus2026          => true
+      case SupporterPlus2026N2        => true
+      case SupporterPlus2026N3        => true
+      case SupporterPlus2026N4        => true
+      case SupporterPlus2026N5        => true
+      case Print2026C1GWAnnualsUK     => true
+      case Print2026C1GWQuarterliesUK => true
+      case Print2026C1NPAnnualsUK     =>
+        List(
+          isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2026_brand_title)
+        ).forall(identity)
+      case Print2026C1NPQuarterliesUK =>
+        List(
+          isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2026_brand_title)
+        ).forall(identity)
+      case Print2026C1NPSemiannualsUK =>
+        List(
+          isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2026_brand_title)
+        ).forall(identity)
+      case Print2026C2NPMonthliesUK =>
+        List(
+          isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2026_brand_title)
+        ).forall(identity)
+      case Print2026C3GWMonthliesUK => true
+      case Print2026C3NPMonthliesUK =>
+        List(
+          isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2026_brand_title)
+        ).forall(identity)
+      case Print2026C4NPMonthliesUK =>
+        List(
+          isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2026_brand_title)
+        ).forall(identity)
+      case Print2026C5GW => true
+      case Print2026C5NP =>
+        List(
+          isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2026_brand_title)
+        ).forall(identity)
+      case Print2026C6GWQuarterliesNonUK => true
     }
   }
 
@@ -154,7 +199,6 @@ object SubscriptionNotificationAnalyseResult {
       date: LocalDate,
       ratePlanProbeResult: RatePlanProbeResult
   ): Option[SubscriptionNotificationAnalyseResult] = {
-
     if (subscription.status == "Cancelled") {
       Some(SNARCancelledInZuora)
     } else if (!NotificationHandlerHelper.thereIsEnoughNotificationLeadTime(cohortSpec, date, cohortItem)) {
@@ -178,6 +222,20 @@ object SubscriptionNotificationAnalyseResult {
           analyseSubscriptionForNotification_SupporterPlus2026(subscription, cohortItem, date)
         case SupporterPlus2026N5 =>
           analyseSubscriptionForNotification_SupporterPlus2026(subscription, cohortItem, date)
+        case Print2026C1GWAnnualsUK     => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Print2026C1GWQuarterliesUK => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Print2026C1NPAnnualsUK     => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Print2026C1NPQuarterliesUK => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Print2026C1NPSemiannualsUK => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Print2026C2NPMonthliesUK   => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Print2026C3GWMonthliesUK   => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Print2026C3NPMonthliesUK   => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Print2026C4NPMonthliesUK   => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Print2026C5GW              =>
+          analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Print2026C5NP =>
+          analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
+        case Print2026C6GWQuarterliesNonUK => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
       }
     }
   }
