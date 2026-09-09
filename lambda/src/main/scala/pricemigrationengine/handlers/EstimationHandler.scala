@@ -43,7 +43,7 @@ object EstimationHandler extends CohortHandler {
       today: LocalDate,
       item: CohortItem,
   ): ZIO[CohortTable with Zuora with Logging, Failure, EstimationResult] =
-    doEstimation(item, cohortSpec, today).foldZIO(
+    computeEstimationData(item, cohortSpec, today).foldZIO(
       failure = {
         case _: SubscriptionCancelledInZuoraFailure =>
           val result = SubscriptionCancelledInZuoraEstimationResult(item.subscriptionName)
@@ -87,14 +87,14 @@ object EstimationHandler extends CohortHandler {
       }
     )
 
-  private def doEstimation(
+  private def computeEstimationData(
       item: CohortItem,
       cohortSpec: CohortSpec,
       today: LocalDate,
   ): ZIO[Zuora with Logging, Failure, EstimationData] = {
     // The use of the product catalogue in the computation of EstimationResult was removed in
     // Nov 2025 as part as setting up DigiSubs2025. We can also simplify the signature
-    // of `doEstimation` in the future.
+    // of `computeEstimationData` in the future.
     for {
       subscription <-
         Zuora
