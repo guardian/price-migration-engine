@@ -128,12 +128,14 @@ object EstimationHandler extends CohortHandler {
         case EARPrintWithZeroBillingPeriods =>
           ZIO.fail(
             DataExtractionFailure(
-              s"[fb51e3b0] EARMissingData for subscription ${item.subscriptionName} (active rate plan with no billing period 🤔)"
+              s"[fb51e3b0] EARPrintWithZeroBillingPeriods for subscription ${item.subscriptionName} (active rate plan with no billing period 🤔)"
             )
           )
         case EARPrintWithTwoBillingPeriods =>
           ZIO.fail(
-            EstimationHandlerFailureN1BillingPeriodsExclusion(s"[3fdd40ce] subscription ${item.subscriptionName}")
+            EstimationHandlerFailureN1BillingPeriodsExclusion(
+              s"[3fdd40ce] EARPrintWithTwoBillingPeriods for subscription ${item.subscriptionName}"
+            )
           )
       }
 
