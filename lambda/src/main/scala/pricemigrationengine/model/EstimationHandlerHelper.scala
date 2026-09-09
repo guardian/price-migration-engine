@@ -11,6 +11,12 @@ import pricemigrationengine.migrations.{
 
 import java.time.LocalDate
 
+sealed trait EstimationAnalysisResult
+object EARClearance extends EstimationAnalysisResult
+object EARMissingData extends EstimationAnalysisResult
+object EARPrintWithZeroBillingPeriods extends EstimationAnalysisResult
+object EARPrintWithTwoBillingPeriods extends EstimationAnalysisResult
+
 object EstimationHandlerHelper {
 
   def earliestAmendmentEffectiveDate(cohortSpec: CohortSpec): LocalDate = {
@@ -102,5 +108,56 @@ object EstimationHandlerHelper {
       newPriceFull,
       migrationCapRatio(cohortSpec: CohortSpec).map(ratio => BigDecimal(ratio))
     )
+  }
+
+  def printProductClearance2026(
+      subscription: ZuoraSubscription,
+      today: LocalDate
+  ): EstimationAnalysisResult = {
+    val sizeOpt: Option[Int] = for {
+      ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
+        subscription,
+        today
+      )
+    } yield ZuoraRatePlan.ratePlanToChargesBillingPeriods(ratePlan).length
+    sizeOpt match {
+      case None    => EARMissingData
+      case Some(0) => EARPrintWithZeroBillingPeriods
+      case Some(1) => EARClearance
+      case _       => EARPrintWithTwoBillingPeriods
+    }
+  }
+
+  def subscriptionHasClearanceForEstimation(
+      cohortSpec: CohortSpec,
+      subscription: ZuoraSubscription,
+      today: LocalDate
+  ): EstimationAnalysisResult = {
+    MigrationType(cohortSpec) match {
+      case Test1                         => EARClearance
+      case GuardianWeekly2025            => EARClearance
+      case Newspaper2025P1               => EARClearance
+      case Newspaper2025P3               => EARClearance
+      case ProductMigration2025N4        => EARClearance
+      case Membership2025                => EARClearance
+      case DigiSubs2025                  => EARClearance
+      case SupporterPlus2026             => EARClearance
+      case SupporterPlus2026N2           => EARClearance
+      case SupporterPlus2026N3           => EARClearance
+      case SupporterPlus2026N4           => EARClearance
+      case SupporterPlus2026N5           => EARClearance
+      case Print2026C1GWAnnualsUK        => EARClearance
+      case Print2026C1GWQuarterliesUK    => EARClearance
+      case Print2026C1NPAnnualsUK        => printProductClearance2026(subscription, today)
+      case Print2026C1NPQuarterliesUK    => printProductClearance2026(subscription, today)
+      case Print2026C1NPSemiannualsUK    => printProductClearance2026(subscription, today)
+      case Print2026C2NPMonthliesUK      => printProductClearance2026(subscription, today)
+      case Print2026C3GWMonthliesUK      => EARClearance
+      case Print2026C3NPMonthliesUK      => printProductClearance2026(subscription, today)
+      case Print2026C4NPMonthliesUK      => printProductClearance2026(subscription, today)
+      case Print2026C5GW                 => EARClearance
+      case Print2026C5NP                 => printProductClearance2026(subscription, today)
+      case Print2026C6GWQuarterliesNonUK => EARClearance
+    }
   }
 }

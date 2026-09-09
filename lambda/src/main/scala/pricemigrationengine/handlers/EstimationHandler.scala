@@ -65,6 +65,18 @@ object EstimationHandler extends CohortHandler {
               )
             )
             .as(result)
+        case _: EstimationHandlerFailureN1BillingPeriodsExclusion =>
+          val result = SubscriptionExcludedFromMigration(item.subscriptionName)
+          CohortTable
+            .update(
+              CohortItem(
+                item.subscriptionName,
+                processingStage = ExcludedFromMigration,
+                cancellationReason =
+                  Some("active rate plan on print subscription was found with more than two billing periods")
+              )
+            )
+            .as(result)
         case e => ZIO.fail(e)
       },
       success = { result =>
@@ -105,6 +117,26 @@ object EstimationHandler extends CohortHandler {
           .filterOrFail(_.autoRenew)(
             SubscriptionAutoRenewIsFalseFailure(s"subscription ${item.subscriptionName} autoRenew flag is false")
           )
+
+      // This section performs the Estimation step clearance and handling of the results
+      _ <- EstimationHandlerHelper.subscriptionHasClearanceForEstimation(cohortSpec, subscription, today) match {
+        case EARClearance   => ZIO.unit
+        case EARMissingData =>
+          ZIO.fail(
+            DataExtractionFailure(s"[cfe5c48e] EARMissingData for subscription ${item.subscriptionName}")
+          )
+        case EARPrintWithZeroBillingPeriods =>
+          ZIO.fail(
+            DataExtractionFailure(
+              s"[fb51e3b0] EARMissingData for subscription ${item.subscriptionName} (active rate plan with no billing period 🤔)"
+            )
+          )
+        case EARPrintWithTwoBillingPeriods =>
+          ZIO.fail(
+            EstimationHandlerFailureN1BillingPeriodsExclusion(s"[3fdd40ce] subscription ${item.subscriptionName}")
+          )
+      }
+
       account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
       invoicePreviewTargetDate = EstimationHandlerHelper.earliestAmendmentEffectiveDate(cohortSpec).plusMonths(16)
       invoicePreview <- Zuora
