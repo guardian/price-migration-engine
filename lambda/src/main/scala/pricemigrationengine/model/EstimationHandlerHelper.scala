@@ -110,7 +110,7 @@ object EstimationHandlerHelper {
     )
   }
 
-  def printProductClearance2026(
+  def printProduct2026EstimationAnalysis(
       subscription: ZuoraSubscription,
       today: LocalDate
   ): EstimationAnalysisResult = {
@@ -128,7 +128,7 @@ object EstimationHandlerHelper {
     }
   }
 
-  def subscriptionHasClearanceForEstimation(
+  def subscriptionEstimationAnalysis(
       cohortSpec: CohortSpec,
       subscription: ZuoraSubscription,
       today: LocalDate
@@ -148,15 +148,15 @@ object EstimationHandlerHelper {
       case SupporterPlus2026N5           => EARClearance
       case Print2026C1GWAnnualsUK        => EARClearance
       case Print2026C1GWQuarterliesUK    => EARClearance
-      case Print2026C1NPAnnualsUK        => printProductClearance2026(subscription, today)
-      case Print2026C1NPQuarterliesUK    => printProductClearance2026(subscription, today)
-      case Print2026C1NPSemiannualsUK    => printProductClearance2026(subscription, today)
-      case Print2026C2NPMonthliesUK      => printProductClearance2026(subscription, today)
+      case Print2026C1NPAnnualsUK        => printProduct2026EstimationAnalysis(subscription, today)
+      case Print2026C1NPQuarterliesUK    => printProduct2026EstimationAnalysis(subscription, today)
+      case Print2026C1NPSemiannualsUK    => printProduct2026EstimationAnalysis(subscription, today)
+      case Print2026C2NPMonthliesUK      => printProduct2026EstimationAnalysis(subscription, today)
       case Print2026C3GWMonthliesUK      => EARClearance
-      case Print2026C3NPMonthliesUK      => printProductClearance2026(subscription, today)
-      case Print2026C4NPMonthliesUK      => printProductClearance2026(subscription, today)
+      case Print2026C3NPMonthliesUK      => printProduct2026EstimationAnalysis(subscription, today)
+      case Print2026C4NPMonthliesUK      => printProduct2026EstimationAnalysis(subscription, today)
       case Print2026C5GW                 => EARClearance
-      case Print2026C5NP                 => printProductClearance2026(subscription, today)
+      case Print2026C5NP                 => printProduct2026EstimationAnalysis(subscription, today)
       case Print2026C6GWQuarterliesNonUK => EARClearance
     }
   }
