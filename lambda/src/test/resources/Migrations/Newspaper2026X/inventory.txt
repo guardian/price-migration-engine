@@ -11,3 +11,5 @@ sub9 : "Newspaper Voucher"          "Everyday+"   "GBP"   "Annual"
 sub10: "Newspaper Voucher"          "Everyday+"   "GBP"   "Annual"
        special edition of sub9 to test the 7.1% price cap
        charges sum to 100 GBP
+
+sub11: "Newspaper - National Delivery" "Weekend"     "GBP"   "Month"
