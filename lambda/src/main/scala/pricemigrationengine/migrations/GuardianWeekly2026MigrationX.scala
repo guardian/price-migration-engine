@@ -59,14 +59,19 @@ object GuardianWeekly2026MigrationX {
       account: ZuoraAccount
   ): Option[BigDecimal] = {
     for {
-      currencyAndLocalisation <- CurrencyAndLocalisation.determineSubscriptionCurrencyAndLocalisation(
-        subscription,
-        invoiceList,
-        account
-      )
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoiceList)
-      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan)
+      currencyAndLocalisation <- CurrencyAndLocalisation
+        .determineSubscriptionCurrencyAndLocalisation(
+          subscription,
+          invoiceList,
+          account
+        )
+        .map(logValue("[74e1a4ba] currencyAndLocalisation"))
+      ratePlan <- SI2025RateplanFromSubAndInvoices
+        .determineRatePlan(subscription, invoiceList)
+        .map(logValue("[8ba0a9b7] ratePlan"))
+      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan).map(logValue("billingPeriod"))
       newPrice <- getNewPrice(billingPeriod, currencyAndLocalisation.currency, currencyAndLocalisation.localisation)
+        .map(logValue("[ad3a4306] new price"))
     } yield newPrice
   }
 
