@@ -119,7 +119,7 @@ object EstimationHandlerHelper {
         subscription,
         today
       )
-    } yield ZuoraRatePlan.ratePlanToChargesBillingPeriods(ratePlan).length
+    } yield ZuoraRatePlan.ratePlanToChargesBillingPeriods(ratePlan).distinct.length
     sizeOpt match {
       case None    => EARMissingData
       case Some(0) => EARPrintWithZeroBillingPeriods
