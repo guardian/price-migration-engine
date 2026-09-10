@@ -72,10 +72,11 @@ object Newspaper2026MigrationX {
 
   def productNameToFullfilment(productName: String): Option[NxFulfillment] = {
     productName match {
-      case "Newspaper Voucher"         => Some(Voucher)
-      case "Newspaper Digital Voucher" => Some(Voucher)
-      case "Newspaper Delivery"        => Some(HomeDelivery)
-      case _                           => None
+      case "Newspaper Voucher"             => Some(Voucher)
+      case "Newspaper Digital Voucher"     => Some(Voucher)
+      case "Newspaper Delivery"            => Some(HomeDelivery)
+      case "Newspaper - National Delivery" => Some(HomeDelivery)
+      case _                               => None
     }
   }
 

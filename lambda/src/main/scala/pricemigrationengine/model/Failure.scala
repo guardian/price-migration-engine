@@ -40,5 +40,6 @@ case class SalesforceFailure(reason: String) extends Failure
 case class S3Failure(reason: String) extends Failure
 case class SubscriptionIdUploadFailure(reason: String) extends Failure
 
+case class EstimationHandlerFailureN1BillingPeriodsExclusion(reason: String) extends Failure
 case class NotificationHandlerFailure(reason: String) extends Failure
 case class BrazeFailure(reason: String) extends Failure

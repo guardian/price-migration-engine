@@ -43,7 +43,7 @@ object EstimationHandler extends CohortHandler {
       today: LocalDate,
       item: CohortItem,
   ): ZIO[CohortTable with Zuora with Logging, Failure, EstimationResult] =
-    doEstimation(item, cohortSpec, today).foldZIO(
+    computeEstimationData(item, cohortSpec, today).foldZIO(
       failure = {
         case _: SubscriptionCancelledInZuoraFailure =>
           val result = SubscriptionCancelledInZuoraEstimationResult(item.subscriptionName)
@@ -62,6 +62,18 @@ object EstimationHandler extends CohortHandler {
               CohortItem(
                 item.subscriptionName,
                 processingStage = EstimationNotPossible
+              )
+            )
+            .as(result)
+        case _: EstimationHandlerFailureN1BillingPeriodsExclusion =>
+          val result = SubscriptionExcludedFromMigration(item.subscriptionName)
+          CohortTable
+            .update(
+              CohortItem(
+                item.subscriptionName,
+                processingStage = ExcludedFromMigration,
+                cancellationReason =
+                  Some("active rate plan on print subscription was found with more than two billing periods")
               )
             )
             .as(result)
@@ -87,14 +99,14 @@ object EstimationHandler extends CohortHandler {
       }
     )
 
-  private def doEstimation(
+  private def computeEstimationData(
       item: CohortItem,
       cohortSpec: CohortSpec,
       today: LocalDate,
   ): ZIO[Zuora with Logging, Failure, EstimationData] = {
     // The use of the product catalogue in the computation of EstimationResult was removed in
     // Nov 2025 as part as setting up DigiSubs2025. We can also simplify the signature
-    // of `doEstimation` in the future.
+    // of `computeEstimationData` in the future.
     for {
       subscription <-
         Zuora
@@ -105,6 +117,28 @@ object EstimationHandler extends CohortHandler {
           .filterOrFail(_.autoRenew)(
             SubscriptionAutoRenewIsFalseFailure(s"subscription ${item.subscriptionName} autoRenew flag is false")
           )
+
+      // This section performs the Estimation step clearance and handling of the results
+      _ <- EstimationHandlerHelper.subscriptionEstimationAnalysis(cohortSpec, subscription, today) match {
+        case EARClearance   => ZIO.unit
+        case EARMissingData =>
+          ZIO.fail(
+            DataExtractionFailure(s"[cfe5c48e] EARMissingData for subscription ${item.subscriptionName}")
+          )
+        case EARPrintWithZeroBillingPeriods =>
+          ZIO.fail(
+            DataExtractionFailure(
+              s"[fb51e3b0] EARPrintWithZeroBillingPeriods for subscription ${item.subscriptionName} (active rate plan with no billing period 🤔)"
+            )
+          )
+        case EARPrintWithTwoBillingPeriods =>
+          ZIO.fail(
+            EstimationHandlerFailureN1BillingPeriodsExclusion(
+              s"[3fdd40ce] EARPrintWithTwoBillingPeriods for subscription ${item.subscriptionName}"
+            )
+          )
+      }
+
       account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
       invoicePreviewTargetDate = EstimationHandlerHelper.earliestAmendmentEffectiveDate(cohortSpec).plusMonths(16)
       invoicePreview <- Zuora
