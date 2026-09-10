@@ -23,6 +23,7 @@ import java.time.{Instant, LocalDate}
 // sub10: "Newspaper Voucher"          "Everyday+"   "GBP"   "Annual"
 //        special edition of sub9 to test the 7.1% price cap
 //        charges sum to 100 GBP
+// sub11: "Newspaper - National Delivery" "Weekend"     "GBP"   "Month"
 
 class Newspaper2026MigrationXTest extends munit.FunSuite {
   test("getNewPrice") {
@@ -44,7 +45,16 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
   test("decideFulfillment") {
     // sub3: "Newspaper Delivery"         "Everyday+"
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub3/subscription.json")
-    // Product name is "Newspaper Delivery", so we expect `Voucher`
+    // Product name is "Newspaper Delivery", so we expect `HomeDelivery`
+    assertEquals(
+      Newspaper2026MigrationX.decideFulfillment(subscription, LocalDate.of(2026, 8, 3)),
+      Some(HomeDelivery)
+    )
+  }
+  test("decideFulfillment") {
+    // sub11: "Newspaper - National Delivery" "Weekend"     "GBP"   "Month"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub11/subscription.json")
+    // Product name is "Newspaper - National Delivery", so we expect `HomeDelivery`
     assertEquals(
       Newspaper2026MigrationX.decideFulfillment(subscription, LocalDate.of(2026, 8, 3)),
       Some(HomeDelivery)
