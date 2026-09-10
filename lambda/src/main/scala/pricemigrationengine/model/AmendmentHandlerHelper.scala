@@ -413,6 +413,27 @@ object AmendmentHandlerHelper {
   }
 
   def isReadyToAmend(cohortSpec: CohortSpec, item: CohortItem, now: Instant): Boolean = {
+    /*
+      Date: September 2026
+
+      `isReadyToAmend` was originally added to the Amendment handler to create an artificial pause of 3/4 days
+      between SupporterPlus2026 user notifications and the amendment.
+
+      The ideal user journey for a Supporter+ user who lands on their account page after having received a
+      price rise notification is to upgrade, or do nothing. If the Zuora amendment has already happened (marking
+      the sub with a future dated price rise), then the user loses the ability to product switch. The pause
+      is to allow that user operation to take place. Then, if the engine notices a product change after the
+      pause has expired, then the sub would be naturally excluded from price increase and the amendment will not
+      take place.
+
+      It's slightly un-natural for the price rise logic to not pursue with the amendment as soon as the
+      notification has occurred, but the pause is nicely encoded behind `isReadyToAmend` and
+      limited to SupporterPlus2026. The length of the pause 3/4 is arbitrary.
+
+      When SupporterPlus2026 terminates, we can make a decision about whether to keep this feature active for
+      possible future migrations (which might require a similar functionality) or completely decommission it.
+     */
+
     def itIsFewDaysAfterNotification(item: CohortItem): Boolean = {
       // Now minus 3 days, meaning that the amendment could happen 3 days
       // or 4 days later, depending on the exact time of the day
