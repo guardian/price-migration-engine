@@ -17,6 +17,15 @@ class EstimationHandlerHelperTest extends munit.FunSuite {
       EstimationHandlerHelper.printProduct2026EstimationAnalysis(subscription, LocalDate.of(2026, 9, 10)),
       EARClearance
     )
+
+    assertEquals(
+      EstimationHandlerHelper.subscriptionEstimationAnalysis(
+        CohortSpec("Print2026C1NPAnnualsUK", active = true),
+        subscription,
+        LocalDate.of(2026, 9, 10)
+      ),
+      EARClearance
+    )
   }
   test("EstimationHandlerHelper.printProduct2026EstimationAnalysis (oddity)") {
     val subscription =
@@ -29,6 +38,26 @@ class EstimationHandlerHelperTest extends munit.FunSuite {
     assertEquals(
       EstimationHandlerHelper.printProduct2026EstimationAnalysis(subscription, LocalDate.of(2026, 9, 10)),
       EARPrintWithTwoBillingPeriods
+    )
+
+    assertEquals(
+      EstimationHandlerHelper.subscriptionEstimationAnalysis(
+        CohortSpec("Print2026C1NPAnnualsUK", active = true),
+        subscription,
+        LocalDate.of(2026, 9, 10)
+      ),
+      EARPrintWithTwoBillingPeriods
+    )
+
+    // And to show that printProduct2026EstimationAnalysis is limited to the 2026 newspapers
+
+    assertEquals(
+      EstimationHandlerHelper.subscriptionEstimationAnalysis(
+        CohortSpec("Print2026C1GWQuarterliesUK", active = true),
+        subscription,
+        LocalDate.of(2026, 9, 10)
+      ),
+      EARClearance
     )
   }
 }
