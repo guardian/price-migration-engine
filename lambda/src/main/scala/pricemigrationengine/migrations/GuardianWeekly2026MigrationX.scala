@@ -12,6 +12,7 @@ object GuardianWeekly2026MigrationX {
 
   val priceGridNewPricesMonthlies: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
     ("GBP", Domestic) -> BigDecimal(17.50),
+    ("GBP", RestOfWorld) -> BigDecimal(17.50),
     ("EUR", Domestic) -> BigDecimal(30.50),
     ("USD", RestOfWorld) -> BigDecimal(38.00),
     ("USD", Domestic) -> BigDecimal(33.00),
@@ -22,6 +23,7 @@ object GuardianWeekly2026MigrationX {
 
   val priceGridNewPricesQuarterlies: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
     ("GBP", Domestic) -> BigDecimal(52),
+    ("GBP", RestOfWorld) -> BigDecimal(52),
     ("EUR", Domestic) -> BigDecimal(91.5),
     ("USD", RestOfWorld) -> BigDecimal(114),
     ("USD", Domestic) -> BigDecimal(99),
@@ -32,6 +34,7 @@ object GuardianWeekly2026MigrationX {
 
   val priceGridNewPricesAnnuals: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
     ("GBP", Domestic) -> BigDecimal(208),
+    ("GBP", RestOfWorld) -> BigDecimal(208),
     ("EUR", Domestic) -> BigDecimal(366),
     ("USD", RestOfWorld) -> BigDecimal(456),
     ("USD", Domestic) -> BigDecimal(396),
@@ -69,7 +72,7 @@ object GuardianWeekly2026MigrationX {
       ratePlan <- SI2025RateplanFromSubAndInvoices
         .determineRatePlan(subscription, invoiceList)
         .map(logValue("[8ba0a9b7] ratePlan"))
-      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan).map(logValue("billingPeriod"))
+      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan).map(logValue("[e08640ec] billingPeriod"))
       newPrice <- getNewPrice(billingPeriod, currencyAndLocalisation.currency, currencyAndLocalisation.localisation)
         .map(logValue("[ad3a4306] new price"))
     } yield newPrice
