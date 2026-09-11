@@ -4,6 +4,8 @@ import pricemigrationengine.model.{BillingPeriod, ZuoraRatePlan, _}
 import java.time.LocalDate
 import ujson._
 
+import scala.math.BigDecimal.RoundingMode
+
 sealed trait NxFulfillment
 object Voucher extends NxFulfillment
 object HomeDelivery extends NxFulfillment
@@ -17,6 +19,7 @@ object EverydayBasicAndPlus extends NxPackage
 object SixdayBasicAndPlus extends NxPackage
 object WeekendBasicAndPlus extends NxPackage
 object SaturdayBasicAndPlus extends NxPackage
+object EchoLegacy extends NxPackage
 
 object Newspaper2026MigrationX {
 
@@ -89,15 +92,16 @@ object Newspaper2026MigrationX {
 
   def ratePlanNameToPackage(rpn: String): Option[NxPackage] = {
     rpn match {
-      case "Everyday"  => Some(EverydayBasicAndPlus)
-      case "Everyday+" => Some(EverydayBasicAndPlus)
-      case "Sixday"    => Some(SixdayBasicAndPlus)
-      case "Sixday+"   => Some(SixdayBasicAndPlus)
-      case "Weekend"   => Some(WeekendBasicAndPlus)
-      case "Weekend+"  => Some(WeekendBasicAndPlus)
-      case "Saturday"  => Some(SaturdayBasicAndPlus)
-      case "Saturday+" => Some(SaturdayBasicAndPlus)
-      case _           => None
+      case "Everyday"    => Some(EverydayBasicAndPlus)
+      case "Everyday+"   => Some(EverydayBasicAndPlus)
+      case "Sixday"      => Some(SixdayBasicAndPlus)
+      case "Sixday+"     => Some(SixdayBasicAndPlus)
+      case "Weekend"     => Some(WeekendBasicAndPlus)
+      case "Weekend+"    => Some(WeekendBasicAndPlus)
+      case "Saturday"    => Some(SaturdayBasicAndPlus)
+      case "Saturday+"   => Some(SaturdayBasicAndPlus)
+      case "Echo-Legacy" => Some(EchoLegacy)
+      case _             => None
     }
   }
 
@@ -117,6 +121,8 @@ object Newspaper2026MigrationX {
         case SixdayBasicAndPlus   => "the Guardian"
         case WeekendBasicAndPlus  => "the Guardian and the Observer"
         case SaturdayBasicAndPlus => "the Guardian"
+        case EchoLegacy           =>
+          "the Guardian" // later I will double check if any of them has a Sunday delivery or not, and if any, will use a look up
       }
     }
   }
@@ -169,7 +175,7 @@ object Newspaper2026MigrationX {
     value
   }
 
-  def priceData(
+  def priceDataStandardNewspaper(
       cohortSpec: CohortSpec,
       subscription: ZuoraSubscription,
       invoiceList: ZuoraInvoiceList,
@@ -194,6 +200,71 @@ object Newspaper2026MigrationX {
         Left(
           DataExtractionFailure(
             s"[a149987a] Could not determine PriceData for subscription ${subscription.subscriptionNumber}"
+          )
+        )
+    }
+  }
+
+  def priceDataEchoLegacy(
+      cohortSpec: CohortSpec,
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      account: ZuoraAccount,
+      today: LocalDate
+  ): Either[DataExtractionFailure, PriceData] = {
+    val priceDataOpt: Option[PriceData] = for {
+      ratePlan <- SI2025RateplanFromSubAndInvoices
+        .determineRatePlan(subscription, invoiceList)
+        .map(logValue("ratePlan"))
+      currency <- SI2025Extractions.determineCurrency(ratePlan).map(logValue("currency"))
+      oldPrice = logValue("oldPrice")(SI2025Extractions.determineOldPrice(ratePlan))
+      billingPeriod <- SI2025Extractions.determineBillingPeriod(ratePlan).map(logValue("billingPeriod"))
+      newPrice = (oldPrice * 1.071).setScale(2, RoundingMode.DOWN) // we uniformly increase the old price by 7.1 %
+      commsPrice = newPrice
+    } yield PriceData(currency, oldPrice, newPrice, commsPrice, BillingPeriod.toString(billingPeriod))
+    priceDataOpt match {
+      case Some(pricedata) => Right(pricedata)
+      case None            =>
+        Left(
+          DataExtractionFailure(
+            s"[70e56095] Could not determine PriceData for subscription ${subscription.subscriptionNumber}"
+          )
+        )
+    }
+  }
+
+  def priceData(
+      cohortSpec: CohortSpec,
+      subscription: ZuoraSubscription,
+      invoiceList: ZuoraInvoiceList,
+      account: ZuoraAccount,
+      today: LocalDate
+  ): Either[DataExtractionFailure, PriceData] = {
+    decidePackage(subscription, today) match {
+      case Some(pack) => {
+        pack match {
+          case EchoLegacy =>
+            priceDataEchoLegacy(
+              cohortSpec: CohortSpec,
+              subscription: ZuoraSubscription,
+              invoiceList: ZuoraInvoiceList,
+              account: ZuoraAccount,
+              today: LocalDate
+            )
+          case _ =>
+            priceDataStandardNewspaper(
+              cohortSpec: CohortSpec,
+              subscription: ZuoraSubscription,
+              invoiceList: ZuoraInvoiceList,
+              account: ZuoraAccount,
+              today: LocalDate
+            )
+        }
+      }
+      case None =>
+        Left(
+          DataExtractionFailure(
+            s"[8be1f8eb] Could not determine NxPackage for subscription ${subscription.subscriptionNumber}"
           )
         )
     }

@@ -13,3 +13,4 @@ sub10: "Newspaper Voucher"          "Everyday+"   "GBP"   "Annual"
        charges sum to 100 GBP
 
 sub11: "Newspaper - National Delivery" "Weekend"     "GBP"   "Month"
+sub12: "Newspaper Delivery"            "Echo-Legacy" "GBP"   "Month"
