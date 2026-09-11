@@ -18,6 +18,7 @@ import java.time.{Instant, LocalDate}
 // sub6: "Guardian Weekly - Domestic"  "GW Oct 18 - Annual - Domestic"     "GBP"  "Annual"
 //        variant of sub5 to test the 10% capping
 //        price if set to 100 GBP
+// sub7: "Guardian Weekly Zone B"                                          "CAD"  "Semi_Annual"
 
 class GuardianWeekly2026MigrationXTest extends munit.FunSuite {
   test("getNewPrice") {
@@ -114,6 +115,35 @@ class GuardianWeekly2026MigrationXTest extends munit.FunSuite {
       GuardianWeekly2026MigrationX
         .priceData(CohortSpec("Print2026C1GWAnnualsUK", true), subscription, invoicePreview, account),
       Right(PriceData("GBP", BigDecimal(100.0), BigDecimal(208), BigDecimal(110), "Annual"))
+    )
+  }
+  test("priceData") {
+    // sub7: "Guardian Weekly Zone B" "CAD"  "Semi_Annual"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2026X/sub7/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub7/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2026X/sub7/invoice-preview.json")
+    // We have a big jump because the sub was widely under priced
+    // No capping
+    assertEquals(
+      GuardianWeekly2026MigrationX.priceData(CohortSpec("Test1", true), subscription, invoicePreview, account),
+      Right(PriceData("CAD", BigDecimal(120.0), BigDecimal(237.0), BigDecimal(237.0), "Semi_Annual"))
+    )
+  }
+  test("priceData") {
+    // sub7: "Guardian Weekly Zone B" "CAD"  "Semi_Annual"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2026X/sub7/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub7/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2026X/sub7/invoice-preview.json")
+    // We have a big jump because the sub was widely under priced
+    // With 10% capping coming from the migration name
+    assertEquals(
+      GuardianWeekly2026MigrationX.priceData(
+        CohortSpec("Print2026C5GWMonthliesAnnualsNoEmailsNonUK", true),
+        subscription,
+        invoicePreview,
+        account
+      ),
+      Right(PriceData("CAD", BigDecimal(120.0), BigDecimal(237.0), BigDecimal(132.00), "Semi_Annual"))
     )
   }
   test("amendmentOrderPayload") {

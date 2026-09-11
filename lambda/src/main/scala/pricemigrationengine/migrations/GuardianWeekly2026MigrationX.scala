@@ -32,6 +32,17 @@ object GuardianWeekly2026MigrationX {
     ("NZD", Domestic) -> BigDecimal(180),
   )
 
+  val priceGridNewPricesSemiAnnuals: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
+    ("GBP", Domestic) -> BigDecimal(104),
+    ("GBP", RestOfWorld) -> BigDecimal(104),
+    ("EUR", Domestic) -> BigDecimal(183.0),
+    ("USD", RestOfWorld) -> BigDecimal(228),
+    ("USD", Domestic) -> BigDecimal(198),
+    ("CAD", Domestic) -> BigDecimal(237.0),
+    ("AUD", Domestic) -> BigDecimal(288),
+    ("NZD", Domestic) -> BigDecimal(360),
+  )
+
   val priceGridNewPricesAnnuals: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
     ("GBP", Domestic) -> BigDecimal(208),
     ("GBP", RestOfWorld) -> BigDecimal(208),
@@ -51,7 +62,7 @@ object GuardianWeekly2026MigrationX {
     billingPeriod match {
       case Monthly    => priceGridNewPricesMonthlies.get(currency, localisation)
       case Quarterly  => priceGridNewPricesQuarterlies.get(currency, localisation)
-      case SemiAnnual => None
+      case SemiAnnual => priceGridNewPricesSemiAnnuals.get(currency, localisation)
       case Annual     => priceGridNewPricesAnnuals.get(currency, localisation)
     }
   }
