@@ -6,5 +6,4 @@ Marketing usually only specify the target total price of the subscriptions, but 
 
 ### Price rising Supporter Plus
 
-Ensure that the new price is also refleted at the correct places in MMA. This will ensure a situation we had where the lowest possible price for S+ was £14, so it was still possible for some users to acquire at £12, resulting in an adjustement that was encoded as contribution of -£2.
-
+Ensure that the new price is also refleted at the correct places in MMA. This will ensure a situation we had where the lowest possible price for S+ was £14, so it was still possible for some users to acquire at £12, resulting in an adjustement that was encoded as contribution of -£2. (Technically we only need to worry about this for an acquisition price rise (e.g. in the catalog) rather than a base rise via the engine, but the two mostly go hand-in-hand)
