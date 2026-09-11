@@ -1,0 +1,54 @@
+{
+  "accountId": "accountId",
+  "invoiceItems": [
+    {
+      "id": "638f1ea00d0a4172b36a5e9039cdcd2d",
+      "subscriptionName": "subscriptionName",
+      "subscriptionId": "subscriptionId",
+      "subscriptionNumber": "subscriptionNumber",
+      "serviceStartDate": "2027-02-18",
+      "serviceEndDate": "2027-08-17",
+      "chargeAmount": 114.29,
+      "chargeDescription": "Migrated sub",
+      "chargeName": "Zone B 6 Months",
+      "chargeNumber": "C-00919722",
+      "chargeId": "2c92a0ff5a840412015aaab0d1404a13",
+      "productName": "Guardian Weekly Zone B",
+      "quantity": 1,
+      "taxAmount": 5.71,
+      "unitOfMeasure": "",
+      "chargeDate": "2026-09-11 15:29:44",
+      "chargeType": "Recurring",
+      "processingType": "Charge",
+      "appliedToItemId": null,
+      "numberOfDeliveries": 0.0
+    },
+    {
+      "id": "79909fb006e6434f9ebcc04356bd25f5",
+      "subscriptionName": "subscriptionName",
+      "subscriptionId": "subscriptionId",
+      "subscriptionNumber": "subscriptionNumber",
+      "serviceStartDate": "2027-08-18",
+      "serviceEndDate": "2028-02-17",
+      "chargeAmount": 114.29,
+      "chargeDescription": "Migrated sub",
+      "chargeName": "Zone B 6 Months",
+      "chargeNumber": "C-00919722",
+      "chargeId": "2c92a0ff5a840412015aaab0d1404a13",
+      "productName": "Guardian Weekly Zone B",
+      "quantity": 1,
+      "taxAmount": 5.71,
+      "unitOfMeasure": "",
+      "chargeDate": "2026-09-11 15:29:44",
+      "chargeType": "Recurring",
+      "processingType": "Charge",
+      "appliedToItemId": null,
+      "numberOfDeliveries": 0.0
+    }
+  ],
+  "creditMemoItems": [
+
+  ],
+  "success": true,
+  "gu:sanitised": true
+}

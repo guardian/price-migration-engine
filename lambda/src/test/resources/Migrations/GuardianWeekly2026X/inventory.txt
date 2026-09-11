@@ -7,3 +7,5 @@ sub5: "Guardian Weekly - Domestic"  "GW Oct 18 - Annual - Domestic"     "GBP"  "
 sub6: "Guardian Weekly - Domestic"  "GW Oct 18 - Annual - Domestic"     "GBP"  "Annual"
       variant of sub5 to test the 10% capping
       price if set to 100 GBP
+
+sub7: "Guardian Weekly Zone B"                                          "CAD"  "Semi_Annual"
