@@ -17,10 +17,6 @@ It currently consists in
 - [Operational directives](docs/operational-directives.md)
 - [Morning startup](docs/morning-startup.md)
 
-### Future price migrations special directives
-
-- In late 2026, there will be the next Supporter Plus price migration. To avoid the billing date mis-alignment problem we encountered in 2025, there should be a product re-structuration performed as part of the price migration to align the billing dates of the main charge and the extra contribution. Note that we also have a [permanent stop](https://github.com/guardian/price-migration-engine/pull/1307) to prevent processing such rate plans across all products.
-
 ### Web Price Rises
 
 - [The art of computing amendment effective dates](docs/amendment-effective-date-computation.md)
@@ -38,6 +34,7 @@ It currently consists in
 - [Troubleshooting document](docs/troubleshooting.md)
 - [Quirks of the engine](docs/quirks.md)
 - [Dispatch, dealing with unusually large migration](docs/dispatch.md)
+- [Extended checklists](docs/price-rise-extended-checklists.md)
 
 ### Android Price Rises
 
