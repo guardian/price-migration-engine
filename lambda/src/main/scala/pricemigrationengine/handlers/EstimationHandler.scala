@@ -61,7 +61,8 @@ object EstimationHandler extends CohortHandler {
             .update(
               CohortItem(
                 item.subscriptionName,
-                processingStage = EstimationNotPossible
+                processingStage = ExcludedFromMigration,
+                cancellationReason = Some("(cause: fa6c75cb) subscription autoRenew flag is set to false")
               )
             )
             .as(result)
@@ -72,8 +73,9 @@ object EstimationHandler extends CohortHandler {
               CohortItem(
                 item.subscriptionName,
                 processingStage = ExcludedFromMigration,
-                cancellationReason =
-                  Some("active rate plan on print subscription was found with more than two billing periods")
+                cancellationReason = Some(
+                  "(cause: 56b80063) active rate plan on print subscription was found with more than two billing periods"
+                )
               )
             )
             .as(result)

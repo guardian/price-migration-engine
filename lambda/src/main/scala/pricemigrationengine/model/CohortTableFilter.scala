@@ -27,7 +27,6 @@ object CohortTableFilter {
 
   case object NoPriceIncrease extends CohortTableFilter { override val value: String = "NoPriceIncrease" }
   case object ZuoraCancellation extends CohortTableFilter { override val value: String = "ZuoraCancellation" }
-  case object EstimationNotPossible extends CohortTableFilter { override val value: String = "EstimationNotPossible" }
   case object ExcludedFromMigration extends CohortTableFilter { override val value: String = "ExcludedFromMigration" }
 
   // exceptional states
