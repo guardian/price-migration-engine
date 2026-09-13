@@ -131,7 +131,10 @@ CohortItem(
 
 Then, the cohort item is going to.... sleep. It's going to sleep as long as it take for it to be at the start date minus about 40 days. This might take a few days or up to a year.
 
-Note that the Estimation step can fail. The item ends up in processing stage `ZuoraCancellation` if the subscription was cancelled in Zuora before the estimation step starts, or can end up in `EstimationNotPossible` if the data in Zuora didn't allow for an estimation. An example of this is subscriptions with their `autoRenew` flag set to false (this break the retrieval of the invoice preview, for instance).
+Note that the Estimation has also two other outcomes:
+
+- `ZuoraCancellation` if the subscription was cancelled in Zuora before the estimation step starts, or
+- `ExcludedFromMigration` if the subscription autoRenew flag is set to false, or active rate plan on print subscription was found with more than two billing periods
 
 ### Notification 
 
