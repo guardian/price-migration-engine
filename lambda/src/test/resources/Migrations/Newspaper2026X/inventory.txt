@@ -14,3 +14,6 @@ sub10: "Newspaper Voucher"          "Everyday+"   "GBP"   "Annual"
 
 sub11: "Newspaper - National Delivery" "Weekend"     "GBP"   "Month"
 sub12: "Newspaper Delivery"            "Echo-Legacy" "GBP"   "Month"
+
+sub13: variant of sub12, without the Sunday
+       More exactly it has the Sunday leg, but I set the price to zero
