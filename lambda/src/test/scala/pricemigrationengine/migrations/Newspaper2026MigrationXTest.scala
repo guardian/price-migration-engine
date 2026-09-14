@@ -24,7 +24,10 @@ import java.time.{Instant, LocalDate}
 //        special edition of sub9 to test the 7.1% price cap
 //        charges sum to 100 GBP
 // sub11: "Newspaper - National Delivery" "Weekend"     "GBP"   "Month"
-// sub12: "Newspaper Delivery"            "Echo-Legacy" "GBP"   "Month"
+// sub12: "Newspaper Delivery"            "Echo-Legacy" "GBP"   "Month" (has sunday)
+
+// sub13: variant of sub12, without the Sunday
+//        More exactly it has the Sunday leg, but I set the price to zero
 
 class Newspaper2026MigrationXTest extends munit.FunSuite {
   test("getNewPrice") {
@@ -34,6 +37,7 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
       Some(BigDecimal(110.97))
     )
   }
+  // -----------
   test("decideFulfillment") {
     // sub1: "Newspaper Voucher"          "Everyday+"
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub1/subscription.json")
@@ -61,6 +65,7 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
       Some(HomeDelivery)
     )
   }
+  // -----------
   test("decidePackage") {
     // sub1: "Newspaper Voucher"          "Everyday+"
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub1/subscription.json")
@@ -102,6 +107,26 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
     )
   }
   // -----------
+  test("subscriptionRatePlanHasASundayChargeWithNonTrivialPrice") {
+    // sub12: "Newspaper Delivery"            "Echo-Legacy" "GBP"   "Month" (has sunday)
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub12/subscription.json")
+    assertEquals(
+      Newspaper2026MigrationX
+        .subscriptionRatePlanHasASundayChargeWithNonTrivialPrice(subscription, LocalDate.of(2026, 9, 14)),
+      true
+    )
+  }
+  test("subscriptionRatePlanHasASundayChargeWithNonTrivialPrice") {
+    // sub13: variant of sub12, without the Sunday
+    //        More exactly it has the Sunday leg, but I set the price to zero
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub13/subscription.json")
+    assertEquals(
+      Newspaper2026MigrationX
+        .subscriptionRatePlanHasASundayChargeWithNonTrivialPrice(subscription, LocalDate.of(2026, 9, 14)),
+      false
+    )
+  }
+  // -----------
   test("decideBrandTitle") {
     // sub1: "Newspaper Voucher"          "Everyday+"
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub1/subscription.json")
@@ -135,13 +160,23 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
     )
   }
   test("decideBrandTitle") {
-    // sub12: "Newspaper Delivery"            "Echo-Legacy" "GBP"   "Month"
+    // sub12: "Newspaper Delivery"            "Echo-Legacy" "GBP"   "Month" (has sunday)
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub12/subscription.json")
+    assertEquals(
+      Newspaper2026MigrationX.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
+      Some("the Guardian and the Observer")
+    )
+  }
+  test("decideBrandTitle") {
+    // sub13: variant of sub12, without the Sunday
+    //        More exactly it has the Sunday leg, but I set the price to zero
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub13/subscription.json")
     assertEquals(
       Newspaper2026MigrationX.decideBrandTitle(subscription, LocalDate.of(2026, 8, 3)),
       Some("the Guardian")
     )
   }
+  // -----------
   test("priceData") {
     // sub1: "Newspaper Voucher"          "Everyday+"
     val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub1/subscription.json")
@@ -247,6 +282,7 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
       Right(PriceData("GBP", BigDecimal(38.14), BigDecimal(40.84), BigDecimal(40.84), "Month"))
     )
   }
+  // -----------
   test("Newspaper2026X.amendmentOrderPayload") {
 
     // sub1: "Newspaper Voucher"          "Everyday+"   "GBP"   "Month"
