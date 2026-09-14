@@ -597,8 +597,8 @@ object NotificationHandler extends CohortHandler {
       case Print2026C3GWMonthliesUK      => ZIO.succeed("SV_GW_PriceRise2026")
       case Print2026C3NPMonthliesUK      => ZIO.succeed("SV_NP_PriceRise_2026")
       case Print2026C4NPMonthliesUK      => ZIO.succeed("SV_NP_PriceRise_2026")
-      case Print2026C5GW                 => ZIO.succeed("SV_GW_PriceRise2026")
-      case Print2026C5NP                 => ZIO.succeed("SV_NP_PriceRise_2026")
+      case Print2026C5GW                 => ZIO.succeed("SV_GW_PriceRiseDM_2026")
+      case Print2026C5NP                 => ZIO.succeed("SV_NP_PriceRiseDM_2026")
       case Print2026C6GWQuarterliesNonUK => ZIO.succeed("SV_GW_PriceRise2026")
     }
   }
