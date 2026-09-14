@@ -112,6 +112,21 @@ object Newspaper2026MigrationX {
     } yield pack
   }
 
+  def subscriptionRatePlanHasASundayChargeWithNonTrivialPrice(
+      subscription: ZuoraSubscription,
+      today: LocalDate
+  ): Boolean = {
+    val priceOpt: Option[BigDecimal] = for {
+      ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(subscription, today)
+      charge <- ratePlan.ratePlanCharges.find(rpc => rpc.name == "Sunday")
+      price <- charge.price
+    } yield price
+    priceOpt match {
+      case None        => false
+      case Some(price) => price > 0
+    }
+  }
+
   def decideBrandTitle(subscription: ZuoraSubscription, today: LocalDate): Option[String] = {
     for {
       pack <- decidePackage(subscription, today)
@@ -121,8 +136,18 @@ object Newspaper2026MigrationX {
         case SixdayBasicAndPlus   => "the Guardian"
         case WeekendBasicAndPlus  => "the Guardian and the Observer"
         case SaturdayBasicAndPlus => "the Guardian"
-        case EchoLegacy           =>
-          "the Guardian" // later I will double check if any of them has a Sunday delivery or not, and if any, will use a look up
+        case EchoLegacy           => {
+          if (
+            subscriptionRatePlanHasASundayChargeWithNonTrivialPrice(
+              subscription: ZuoraSubscription,
+              today: LocalDate
+            )
+          ) {
+            "the Guardian and the Observer"
+          } else {
+            "the Guardian"
+          }
+        }
       }
     }
   }
