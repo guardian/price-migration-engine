@@ -15,7 +15,6 @@ object SalesforceNotificationDateUpdateHandler extends CohortHandler {
     for {
       count <- CohortTable
         .fetch(NotificationSendComplete, None)
-        .filter(item => Dispatch.belongs(cohortSpec, item))
         .take(batchSize)
         .mapZIO(item => updateDateLetterSentInSF(cohortSpec, item))
         .runCount

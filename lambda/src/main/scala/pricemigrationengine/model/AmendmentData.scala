@@ -107,10 +107,6 @@ object AmendmentData {
       case Membership2025         => Membership2025Migration.priceData(cohortSpec, subscription, invoiceList)
       case DigiSubs2025           => DigiSubs2025Migration.priceData(cohortSpec, subscription, invoiceList)
       case SupporterPlus2026      => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
-      case SupporterPlus2026N2    => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
-      case SupporterPlus2026N3    => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
-      case SupporterPlus2026N4    => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
-      case SupporterPlus2026N5    => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
       case Print2026C1GWAnnualsUK =>
         GuardianWeekly2026MigrationX.priceData(cohortSpec, subscription, invoiceList, account)
       case Print2026C1GWQuarterliesUK =>

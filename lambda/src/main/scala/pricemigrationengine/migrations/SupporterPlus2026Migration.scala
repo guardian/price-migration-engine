@@ -231,12 +231,8 @@ object SupporterPlus2026Migration {
       subscription: ZuoraSubscription,
   ): Option[SP2026EmailExtraAttributes] = {
     MigrationType(cohortSpec) match {
-      case SupporterPlus2026   => buildEmailExtraAttributes(cohortItem, subscription)
-      case SupporterPlus2026N2 => buildEmailExtraAttributes(cohortItem, subscription)
-      case SupporterPlus2026N3 => buildEmailExtraAttributes(cohortItem, subscription)
-      case SupporterPlus2026N4 => buildEmailExtraAttributes(cohortItem, subscription)
-      case SupporterPlus2026N5 => buildEmailExtraAttributes(cohortItem, subscription)
-      case _                   =>
+      case SupporterPlus2026 => buildEmailExtraAttributes(cohortItem, subscription)
+      case _                 =>
         Some(
           // Date: 9th July 2026
           // For Tom reading this... Same as usual, I can't return a None

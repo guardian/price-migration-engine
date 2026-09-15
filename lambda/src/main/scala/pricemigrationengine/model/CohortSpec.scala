@@ -30,13 +30,7 @@ case class CohortSpec(
     subscriptionNumber: Option[String] = None
 ) {
   def tableName(stage: String): String = {
-    cohortName match {
-      case "SupporterPlus2026N2" => s"PriceMigration-${stage}-SupporterPlus2026"
-      case "SupporterPlus2026N3" => s"PriceMigration-${stage}-SupporterPlus2026"
-      case "SupporterPlus2026N4" => s"PriceMigration-${stage}-SupporterPlus2026"
-      case "SupporterPlus2026N5" => s"PriceMigration-${stage}-SupporterPlus2026"
-      case _                     => s"PriceMigration-${stage}-${cohortName}"
-    }
+    s"PriceMigration-${stage}-${cohortName}"
   }
 }
 

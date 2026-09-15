@@ -29,10 +29,6 @@ object EstimationHandlerHelper {
       case Membership2025         => Membership2025Migration.earliestAmendmentEffectiveDate
       case DigiSubs2025           => DigiSubs2025Migration.earliestAmendmentEffectiveDate
       case SupporterPlus2026      => SupporterPlus2026Migration.earliestAmendmentEffectiveDate
-      case SupporterPlus2026N2    => SupporterPlus2026Migration.earliestAmendmentEffectiveDate
-      case SupporterPlus2026N3    => SupporterPlus2026Migration.earliestAmendmentEffectiveDate
-      case SupporterPlus2026N4    => SupporterPlus2026Migration.earliestAmendmentEffectiveDate
-      case SupporterPlus2026N5    => SupporterPlus2026Migration.earliestAmendmentEffectiveDate
       //
       // 19 October 2026 (first day of notifications: 14 September 2026)
       case Print2026C1GWAnnualsUK => LocalDate.of(2026, 10, 19)
@@ -83,10 +79,6 @@ object EstimationHandlerHelper {
       case Membership2025                => Some(1.43)
       case DigiSubs2025                  => Some(1.25)
       case SupporterPlus2026             => None
-      case SupporterPlus2026N2           => None
-      case SupporterPlus2026N3           => None
-      case SupporterPlus2026N4           => None
-      case SupporterPlus2026N5           => None
       case Print2026C1GWAnnualsUK        => Some(1.10) // GuardianWeekly 10%
       case Print2026C1GWQuarterliesUK    => Some(1.10) // GuardianWeekly 10%
       case Print2026C1NPAnnualsUK        => Some(1.071) // Newspaper 7.1%
@@ -142,10 +134,6 @@ object EstimationHandlerHelper {
       case Membership2025                => EARClearance
       case DigiSubs2025                  => EARClearance
       case SupporterPlus2026             => EARClearance
-      case SupporterPlus2026N2           => EARClearance
-      case SupporterPlus2026N3           => EARClearance
-      case SupporterPlus2026N4           => EARClearance
-      case SupporterPlus2026N5           => EARClearance
       case Print2026C1GWAnnualsUK        => EARClearance
       case Print2026C1GWQuarterliesUK    => EARClearance
       case Print2026C1NPAnnualsUK        => printProduct2026EstimationAnalysis(subscription, today)

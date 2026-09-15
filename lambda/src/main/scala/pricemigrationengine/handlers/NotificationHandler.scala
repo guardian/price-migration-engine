@@ -57,7 +57,6 @@ object NotificationHandler extends CohortHandler {
                 SalesforcePriceRiseCreationComplete,
                 Some(today.plusDays(NotificationHandlerHelper.notificationLeadTime(cohortSpec)))
               )
-              .filter(item => Dispatch.belongs(cohortSpec, item))
               .take(batchSize)
           case Some(subscriptionNumber) =>
             CohortTable
@@ -361,10 +360,6 @@ object NotificationHandler extends CohortHandler {
       case Membership2025                => Right(street.getOrElse(""))
       case DigiSubs2025                  => Right(street.getOrElse(""))
       case SupporterPlus2026             => Right(street.getOrElse(""))
-      case SupporterPlus2026N2           => Right(street.getOrElse(""))
-      case SupporterPlus2026N3           => Right(street.getOrElse(""))
-      case SupporterPlus2026N4           => Right(street.getOrElse(""))
-      case SupporterPlus2026N5           => Right(street.getOrElse(""))
       case Print2026C1GWAnnualsUK        => requiredField(street, "Contact.OtherAddress.street")
       case Print2026C1GWQuarterliesUK    => requiredField(street, "Contact.OtherAddress.street")
       case Print2026C1NPAnnualsUK        => requiredField(street, "Contact.OtherAddress.street")
@@ -417,10 +412,6 @@ object NotificationHandler extends CohortHandler {
       case Membership2025                => targetAddressNotRequired(contact)
       case DigiSubs2025                  => targetAddressNotRequired(contact)
       case SupporterPlus2026             => targetAddressNotRequired(contact)
-      case SupporterPlus2026N2           => targetAddressNotRequired(contact)
-      case SupporterPlus2026N3           => targetAddressNotRequired(contact)
-      case SupporterPlus2026N4           => targetAddressNotRequired(contact)
-      case SupporterPlus2026N5           => targetAddressNotRequired(contact)
       case Print2026C1GWAnnualsUK        => targetAddressRequired(contact)
       case Print2026C1GWQuarterliesUK    => targetAddressRequired(contact)
       case Print2026C1NPAnnualsUK        => targetAddressRequired(contact)
@@ -454,10 +445,6 @@ object NotificationHandler extends CohortHandler {
       case Membership2025                => Right(address.country.getOrElse(""))
       case DigiSubs2025                  => Right(address.country.getOrElse(""))
       case SupporterPlus2026             => Right(address.country.getOrElse(""))
-      case SupporterPlus2026N2           => Right(address.country.getOrElse(""))
-      case SupporterPlus2026N3           => Right(address.country.getOrElse(""))
-      case SupporterPlus2026N4           => Right(address.country.getOrElse(""))
-      case SupporterPlus2026N5           => Right(address.country.getOrElse(""))
       case Print2026C1GWAnnualsUK        => requiredField(address.country, "Contact.OtherAddress.country")
       case Print2026C1GWQuarterliesUK    => requiredField(address.country, "Contact.OtherAddress.country")
       case Print2026C1NPAnnualsUK        => requiredField(address.country, "Contact.OtherAddress.country")
@@ -559,30 +546,6 @@ object NotificationHandler extends CohortHandler {
             DataExtractionFailure(s"[e3f83ac4] could not determine brazeName for DigiSubs2025, item: ${item}")
           )
       case SupporterPlus2026 =>
-        ZIO
-          .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
-          .orElseFail(
-            DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
-          )
-      case SupporterPlus2026N2 =>
-        ZIO
-          .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
-          .orElseFail(
-            DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
-          )
-      case SupporterPlus2026N3 =>
-        ZIO
-          .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
-          .orElseFail(
-            DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
-          )
-      case SupporterPlus2026N4 =>
-        ZIO
-          .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
-          .orElseFail(
-            DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
-          )
-      case SupporterPlus2026N5 =>
         ZIO
           .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
           .orElseFail(

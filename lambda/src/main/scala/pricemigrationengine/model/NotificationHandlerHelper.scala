@@ -29,10 +29,6 @@ object NotificationHandlerHelper {
       case Membership2025                => Membership2025Migration.notificationLeadTime
       case DigiSubs2025                  => DigiSubs2025Migration.notificationLeadTime
       case SupporterPlus2026             => SupporterPlus2026Migration.notificationLeadTime
-      case SupporterPlus2026N2           => SupporterPlus2026Migration.notificationLeadTime
-      case SupporterPlus2026N3           => SupporterPlus2026Migration.notificationLeadTime
-      case SupporterPlus2026N4           => SupporterPlus2026Migration.notificationLeadTime
-      case SupporterPlus2026N5           => SupporterPlus2026Migration.notificationLeadTime
       case Print2026C1GWAnnualsUK        => 35
       case Print2026C1GWQuarterliesUK    => 35
       case Print2026C1NPAnnualsUK        => 35
@@ -79,10 +75,6 @@ object NotificationHandlerHelper {
       case Membership2025             => true
       case DigiSubs2025               => true
       case SupporterPlus2026          => true
-      case SupporterPlus2026N2        => true
-      case SupporterPlus2026N3        => true
-      case SupporterPlus2026N4        => true
-      case SupporterPlus2026N5        => true
       case Print2026C1GWAnnualsUK     => true
       case Print2026C1GWQuarterliesUK => true
       case Print2026C1NPAnnualsUK     =>
@@ -212,16 +204,7 @@ object SubscriptionNotificationAnalyseResult {
         case ProductMigration2025N4 => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Membership2025         => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case DigiSubs2025           => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
-        case SupporterPlus2026      =>
-          analyseSubscriptionForNotification_SupporterPlus2026(subscription, cohortItem, date)
-        case SupporterPlus2026N2 =>
-          analyseSubscriptionForNotification_SupporterPlus2026(subscription, cohortItem, date)
-        case SupporterPlus2026N3 =>
-          analyseSubscriptionForNotification_SupporterPlus2026(subscription, cohortItem, date)
-        case SupporterPlus2026N4 =>
-          analyseSubscriptionForNotification_SupporterPlus2026(subscription, cohortItem, date)
-        case SupporterPlus2026N5 =>
-          analyseSubscriptionForNotification_SupporterPlus2026(subscription, cohortItem, date)
+        case SupporterPlus2026 => analyseSubscriptionForNotification_SupporterPlus2026(subscription, cohortItem, date)
         case Print2026C1GWAnnualsUK     => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Print2026C1GWQuarterliesUK => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Print2026C1NPAnnualsUK     => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)

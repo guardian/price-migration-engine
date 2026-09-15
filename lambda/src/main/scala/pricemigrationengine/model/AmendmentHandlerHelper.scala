@@ -72,10 +72,6 @@ object AmendmentHandlerHelper {
       case Membership2025                => true
       case DigiSubs2025                  => true
       case SupporterPlus2026             => false
-      case SupporterPlus2026N2           => false
-      case SupporterPlus2026N3           => false
-      case SupporterPlus2026N4           => false
-      case SupporterPlus2026N5           => false
       case Print2026C1GWAnnualsUK        => true
       case Print2026C1GWQuarterliesUK    => true
       case Print2026C1NPAnnualsUK        => true
@@ -216,50 +212,6 @@ object AmendmentHandlerHelper {
           invoiceList
         )
       case SupporterPlus2026 =>
-        SupporterPlus2026Migration.amendmentOrderPayload(
-          cohortItem,
-          orderDate,
-          accountNumber,
-          subscriptionNumber,
-          effectDate,
-          zuora_subscription,
-          commsPrice,
-          invoiceList
-        )
-      case SupporterPlus2026N2 =>
-        SupporterPlus2026Migration.amendmentOrderPayload(
-          cohortItem,
-          orderDate,
-          accountNumber,
-          subscriptionNumber,
-          effectDate,
-          zuora_subscription,
-          commsPrice,
-          invoiceList
-        )
-      case SupporterPlus2026N3 =>
-        SupporterPlus2026Migration.amendmentOrderPayload(
-          cohortItem,
-          orderDate,
-          accountNumber,
-          subscriptionNumber,
-          effectDate,
-          zuora_subscription,
-          commsPrice,
-          invoiceList
-        )
-      case SupporterPlus2026N4 =>
-        SupporterPlus2026Migration.amendmentOrderPayload(
-          cohortItem,
-          orderDate,
-          accountNumber,
-          subscriptionNumber,
-          effectDate,
-          zuora_subscription,
-          commsPrice,
-          invoiceList
-        )
-      case SupporterPlus2026N5 =>
         SupporterPlus2026Migration.amendmentOrderPayload(
           cohortItem,
           orderDate,
@@ -455,10 +407,6 @@ object AmendmentHandlerHelper {
       case Membership2025                => true
       case DigiSubs2025                  => true
       case SupporterPlus2026             => itIsFewDaysAfterNotification(item)
-      case SupporterPlus2026N2           => itIsFewDaysAfterNotification(item)
-      case SupporterPlus2026N3           => itIsFewDaysAfterNotification(item)
-      case SupporterPlus2026N4           => itIsFewDaysAfterNotification(item)
-      case SupporterPlus2026N5           => itIsFewDaysAfterNotification(item)
       case Print2026C1GWAnnualsUK        => true
       case Print2026C1GWQuarterliesUK    => true
       case Print2026C1NPAnnualsUK        => true
@@ -531,10 +479,6 @@ object AmendmentHandlerHelper {
         case Membership2025                => Some(SAARReadyToAmend)
         case DigiSubs2025                  => Some(SAARReadyToAmend)
         case SupporterPlus2026             => analyseSupporterPlus2026(item, subscription, today)
-        case SupporterPlus2026N2           => analyseSupporterPlus2026(item, subscription, today)
-        case SupporterPlus2026N3           => analyseSupporterPlus2026(item, subscription, today)
-        case SupporterPlus2026N4           => analyseSupporterPlus2026(item, subscription, today)
-        case SupporterPlus2026N5           => analyseSupporterPlus2026(item, subscription, today)
         case Print2026C1GWAnnualsUK        => Some(SAARReadyToAmend)
         case Print2026C1GWQuarterliesUK    => Some(SAARReadyToAmend)
         case Print2026C1NPAnnualsUK        => Some(SAARReadyToAmend)
