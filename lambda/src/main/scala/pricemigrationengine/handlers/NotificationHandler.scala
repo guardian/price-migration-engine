@@ -183,12 +183,12 @@ object NotificationHandler extends CohortHandler {
         Salesforce
           .getSubscriptionByName(cohortItem.subscriptionName)
       contact <- Salesforce.getContact(sfSubscription.Buyer__c)
-      firstName <- ZIO.fromEither(NotificationHandlerHelper.firstName(contact))
+      firstName <- ZIO.fromEither(NotificationHandlerHelper.decideFirstName(contact))
       lastName <- ZIO.fromEither(requiredField(contact.LastName, "Contact.LastName"))
-      address <- ZIO.fromEither(NotificationHandlerHelper.targetAddress(cohortSpec, contact))
-      street <- ZIO.fromEither(NotificationHandlerHelper.targetStreet(cohortSpec, address.street))
-      postalCode = address.postalCode.getOrElse("")
-      country <- ZIO.fromEither(NotificationHandlerHelper.country(cohortSpec, address))
+      salesforceAddress <- ZIO.fromEither(NotificationHandlerHelper.decideSalesforceAddress(cohortSpec, contact))
+      street <- ZIO.fromEither(NotificationHandlerHelper.evaluateStreet(cohortSpec, salesforceAddress.street))
+      postalCode = salesforceAddress.postalCode.getOrElse("")
+      country <- ZIO.fromEither(NotificationHandlerHelper.decideCountry(cohortSpec, salesforceAddress))
       amendmentEffectiveDate <- ZIO.fromEither(
         requiredField(cohortItem.amendmentEffectiveDate.map(_.toString()), "CohortItem.amendmentEffectiveDate")
       )
@@ -274,9 +274,9 @@ object NotificationHandler extends CohortHandler {
               last_name = lastName,
               billing_address_1 = street,
               billing_address_2 = None, // See 'Billing Address Format' section in the readme
-              billing_city = address.city,
+              billing_city = salesforceAddress.city,
               billing_postal_code = postalCode,
-              billing_state = address.state,
+              billing_state = salesforceAddress.state,
               billing_country = country,
               payment_amount = commsPriceWithCurrencySymbol, // [1]
               next_payment_date = NotificationHandlerHelper.startDateConversion(amendmentEffectiveDate),
