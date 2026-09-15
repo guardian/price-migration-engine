@@ -380,7 +380,11 @@ object NotificationHandler extends CohortHandler {
       salesforcePriceRiseId <-
         ZIO
           .fromOption(cohortItem.salesforcePriceRiseId)
-          .orElseFail(SalesforcePriceRiseWriteFailure("salesforcePriceRiseId is required to update Salesforce"))
+          .orElseFail(
+            SalesforcePriceRiseWriteFailure(
+              s"[e8e1426c] salesforcePriceRiseId is required to update Salesforce (cohort item: ${cohortItem.subscriptionName})"
+            )
+          )
       priceRise = SalesforcePriceRise(
         Migration_Name__c = Some(cohortSpec.cohortName),
         Migration_Status__c = Some("Cancellation"),
