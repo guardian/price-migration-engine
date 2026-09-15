@@ -7,9 +7,6 @@ import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
 import pricemigrationengine.migrations.{
-  DigiSubs2025Migration,
-  GuardianWeekly2025Migration,
-  Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
   Newspaper2026MigrationX,
@@ -18,8 +15,7 @@ import pricemigrationengine.migrations.{
 }
 import pricemigrationengine.model.RatePlanProbe
 
-import java.time.{LocalDate, ZoneId, ZoneOffset}
-import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, ZoneOffset}
 
 object NotificationHandler extends CohortHandler {
 
