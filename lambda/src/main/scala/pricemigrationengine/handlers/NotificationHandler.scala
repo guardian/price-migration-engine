@@ -7,9 +7,6 @@ import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
 import pricemigrationengine.migrations.{
-  DigiSubs2025Migration,
-  GuardianWeekly2025Migration,
-  Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
   Newspaper2026MigrationX,
@@ -18,8 +15,7 @@ import pricemigrationengine.migrations.{
 }
 import pricemigrationengine.model.RatePlanProbe
 
-import java.time.{LocalDate, ZoneId, ZoneOffset}
-import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, ZoneOffset}
 
 object NotificationHandler extends CohortHandler {
 
@@ -129,6 +125,13 @@ object NotificationHandler extends CohortHandler {
   // Helpers
   // -----------------------------------------
 
+  def requiredField[A](field: Option[A], fieldName: String): Either[NotificationHandlerFailure, A] = {
+    field match {
+      case Some(value) => Right(value)
+      case None        => Left(NotificationHandlerFailure(s"$fieldName is a required field"))
+    }
+  }
+
   private def updateCohortItemToExcludeFromMigration(
       item: CohortItem
   ): ZIO[CohortTable with Salesforce with Logging, Failure, Unit] = {
@@ -180,19 +183,21 @@ object NotificationHandler extends CohortHandler {
         Salesforce
           .getSubscriptionByName(cohortItem.subscriptionName)
       contact <- Salesforce.getContact(sfSubscription.Buyer__c)
-      firstName <- ZIO.fromEither(firstName(contact))
+      firstName <- ZIO.fromEither(NotificationHandlerHelper.firstName(contact))
       lastName <- ZIO.fromEither(requiredField(contact.LastName, "Contact.LastName"))
-      address <- ZIO.fromEither(targetAddress(cohortSpec, contact))
-      street <- ZIO.fromEither(targetStreet(cohortSpec, address.street))
+      address <- ZIO.fromEither(NotificationHandlerHelper.targetAddress(cohortSpec, contact))
+      street <- ZIO.fromEither(NotificationHandlerHelper.targetStreet(cohortSpec, address.street))
       postalCode = address.postalCode.getOrElse("")
-      country <- ZIO.fromEither(country(cohortSpec, address))
+      country <- ZIO.fromEither(NotificationHandlerHelper.country(cohortSpec, address))
       amendmentEffectiveDate <- ZIO.fromEither(
         requiredField(cohortItem.amendmentEffectiveDate.map(_.toString()), "CohortItem.amendmentEffectiveDate")
       )
       billingPeriod <- ZIO.fromEither(requiredField(cohortItem.billingPeriod, "CohortItem.billingPeriod"))
-      paymentFrequency <- paymentFrequency(billingPeriod)
+      paymentFrequency <- ZIO
+        .fromOption(BillingPeriod.notificationPaymentFrequencyMapping.get(billingPeriod))
+        .orElseFail(BrazeFailure(s"No payment frequency mapping found for billing period: $billingPeriod"))
       currencyISOCode <- ZIO.fromEither(requiredField(cohortItem.currency, "CohortItem.currency"))
-      currencySymbol <- currencyISOtoSymbol(currencyISOCode)
+      currencySymbol <- ZIO.succeed(i18n.Currency.fromString(currencyISOCode).map(_.identifier).getOrElse(""))
       commsPrice <- ZIO
         .fromOption(cohortItem.commsPrice)
         .orElseFail(DataExtractionFailure(s"[cd945387] $cohortItem does not have a commsPrice"))
@@ -249,7 +254,13 @@ object NotificationHandler extends CohortHandler {
         .orElseFail(DataExtractionFailure(s"[47a5291e] How did we get here ? 🤔"))
       // ----------------------------------------------------
 
-      brazeName <- brazeName(cohortSpec, cohortItem, zuoraSubscription)
+      brazeName <- ZIO
+        .fromOption(NotificationHandlerHelper.decideBrazeName(cohortSpec, cohortItem, zuoraSubscription))
+        .orElseFail(
+          DataExtractionFailure(
+            s"[af851468] could not determine brazeName for ${cohortSpec.cohortName}, item: ${cohortItem.subscriptionName}"
+          )
+        )
 
       message = BrazeMessage(
         BrazePayload(
@@ -268,7 +279,7 @@ object NotificationHandler extends CohortHandler {
               billing_state = address.state,
               billing_country = country,
               payment_amount = commsPriceWithCurrencySymbol, // [1]
-              next_payment_date = startDateConversion(amendmentEffectiveDate),
+              next_payment_date = NotificationHandlerHelper.startDateConversion(amendmentEffectiveDate),
               payment_frequency = paymentFrequency,
               subscription_id = cohortItem.subscriptionName,
               product_type = sfSubscription.Product_Type__c.getOrElse(""),
@@ -325,140 +336,6 @@ object NotificationHandler extends CohortHandler {
     } yield ()
 
   // -------------------------------------------------------------------
-  // Data Extraction Functions
-
-  def currencyISOtoSymbol(iso: String): ZIO[Any, Nothing, String] = {
-    ZIO.succeed(i18n.Currency.fromString(iso: String).map(_.identifier).getOrElse(""))
-  }
-
-  def dateStrToLocalDate(startDate: String): LocalDate = {
-    LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-  }
-
-  def emailUserFriendlyDateFormatter(startDate: LocalDate): String = {
-    startDate.format(DateTimeFormatter.ofPattern("d MMMM uuuu"));
-  }
-
-  def startDateConversion(startDate: String): String = {
-    emailUserFriendlyDateFormatter(dateStrToLocalDate(startDate: String))
-  }
-
-  def requiredField[A](field: Option[A], fieldName: String): Either[NotificationHandlerFailure, A] = {
-    field match {
-      case Some(value) => Right(value)
-      case None        => Left(NotificationHandlerFailure(s"$fieldName is a required field"))
-    }
-  }
-
-  def targetStreet(cohortSpec: CohortSpec, street: Option[String]): Either[NotificationHandlerFailure, String] = {
-    MigrationType(cohortSpec) match {
-      case Test1                         => requiredField(street, "Contact.OtherAddress.street")
-      case GuardianWeekly2025            => requiredField(street, "Contact.OtherAddress.street")
-      case Newspaper2025P1               => requiredField(street, "Contact.OtherAddress.street")
-      case Newspaper2025P3               => requiredField(street, "Contact.OtherAddress.street")
-      case ProductMigration2025N4        => requiredField(street, "Contact.OtherAddress.street")
-      case Membership2025                => Right(street.getOrElse(""))
-      case DigiSubs2025                  => Right(street.getOrElse(""))
-      case SupporterPlus2026             => Right(street.getOrElse(""))
-      case Print2026C1GWAnnualsUK        => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C1GWQuarterliesUK    => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C1NPAnnualsUK        => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C1NPQuarterliesUK    => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C1NPSemiannualsUK    => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C2NPMonthliesUK      => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C3GWMonthliesUK      => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C3NPMonthliesUK      => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C4NPMonthliesUK      => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C5GW                 => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C5NP                 => requiredField(street, "Contact.OtherAddress.street")
-      case Print2026C6GWQuarterliesNonUK => requiredField(street, "Contact.OtherAddress.street")
-    }
-  }
-
-  def targetAddressNotRequired(
-      contact: SalesforceContact
-  ): Either[NotificationHandlerFailure, SalesforceAddress] = {
-    val address = (for {
-      billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
-      _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
-      _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
-    } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
-    address.fold(
-      _ => Right(SalesforceAddress(Some(""), Some(""), Some(""), Some(""), Some(""))),
-      value => Right(value)
-    )
-  }
-
-  def targetAddressRequired(
-      contact: SalesforceContact
-  ): Either[NotificationHandlerFailure, SalesforceAddress] = {
-    (for {
-      billingAddress <- requiredField(contact.OtherAddress, "Contact.OtherAddress")
-      _ <- requiredField(billingAddress.street, "Contact.OtherAddress.street")
-      _ <- requiredField(billingAddress.city, "Contact.OtherAddress.city")
-    } yield billingAddress).left.flatMap(_ => requiredField(contact.MailingAddress, "Contact.MailingAddress"))
-  }
-
-  def targetAddress(
-      cohortSpec: CohortSpec,
-      contact: SalesforceContact
-  ): Either[NotificationHandlerFailure, SalesforceAddress] = {
-    MigrationType(cohortSpec) match {
-      case Test1                         => targetAddressRequired(contact)
-      case GuardianWeekly2025            => targetAddressRequired(contact)
-      case Newspaper2025P1               => targetAddressRequired(contact)
-      case Newspaper2025P3               => targetAddressNotRequired(contact)
-      case ProductMigration2025N4        => targetAddressNotRequired(contact)
-      case Membership2025                => targetAddressNotRequired(contact)
-      case DigiSubs2025                  => targetAddressNotRequired(contact)
-      case SupporterPlus2026             => targetAddressNotRequired(contact)
-      case Print2026C1GWAnnualsUK        => targetAddressRequired(contact)
-      case Print2026C1GWQuarterliesUK    => targetAddressRequired(contact)
-      case Print2026C1NPAnnualsUK        => targetAddressRequired(contact)
-      case Print2026C1NPQuarterliesUK    => targetAddressRequired(contact)
-      case Print2026C1NPSemiannualsUK    => targetAddressRequired(contact)
-      case Print2026C2NPMonthliesUK      => targetAddressRequired(contact)
-      case Print2026C3GWMonthliesUK      => targetAddressRequired(contact)
-      case Print2026C3NPMonthliesUK      => targetAddressRequired(contact)
-      case Print2026C4NPMonthliesUK      => targetAddressRequired(contact)
-      case Print2026C5GW                 => targetAddressRequired(contact)
-      case Print2026C5NP                 => targetAddressRequired(contact)
-      case Print2026C6GWQuarterliesNonUK => targetAddressRequired(contact)
-    }
-  }
-
-  def firstName(contact: SalesforceContact): Either[NotificationHandlerFailure, String] = {
-    requiredField(contact.FirstName, "Contact.FirstName").left
-      .flatMap(_ => requiredField(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation"))
-  }
-
-  def country(
-      cohortSpec: CohortSpec,
-      address: SalesforceAddress
-  ): Either[NotificationHandlerFailure, String] = {
-    MigrationType(cohortSpec) match {
-      case Test1                         => requiredField(address.country, "Contact.OtherAddress.country")
-      case GuardianWeekly2025            => requiredField(address.country, "Contact.OtherAddress.country")
-      case Newspaper2025P1               => Right(address.country.getOrElse("United Kingdom"))
-      case Newspaper2025P3               => Right(address.country.getOrElse("United Kingdom"))
-      case ProductMigration2025N4        => Right(address.country.getOrElse(""))
-      case Membership2025                => Right(address.country.getOrElse(""))
-      case DigiSubs2025                  => Right(address.country.getOrElse(""))
-      case SupporterPlus2026             => Right(address.country.getOrElse(""))
-      case Print2026C1GWAnnualsUK        => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C1GWQuarterliesUK    => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C1NPAnnualsUK        => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C1NPQuarterliesUK    => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C1NPSemiannualsUK    => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C2NPMonthliesUK      => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C3GWMonthliesUK      => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C3NPMonthliesUK      => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C4NPMonthliesUK      => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C5GW                 => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C5NP                 => requiredField(address.country, "Contact.OtherAddress.country")
-      case Print2026C6GWQuarterliesNonUK => requiredField(address.country, "Contact.OtherAddress.country")
-    }
-  }
 
   def logMissingEmailAddress(cohortItem: CohortItem, sfContact: SalesforceContact): ZIO[Logging, Nothing, Unit] = {
     Logging
@@ -468,11 +345,6 @@ object NotificationHandler extends CohortHandler {
       .when(sfContact.Email.isEmpty)
       .unit
   }
-
-  private def paymentFrequency(billingPeriod: String) =
-    ZIO
-      .fromOption(BillingPeriod.notificationPaymentFrequencyMapping.get(billingPeriod))
-      .orElseFail(BrazeFailure(s"No payment frequency mapping found for billing period: $billingPeriod"))
 
   private def updateCohortItemStatus(
       subscriptionNumber: String,
@@ -504,7 +376,11 @@ object NotificationHandler extends CohortHandler {
       salesforcePriceRiseId <-
         ZIO
           .fromOption(cohortItem.salesforcePriceRiseId)
-          .orElseFail(SalesforcePriceRiseWriteFailure("salesforcePriceRiseId is required to update Salesforce"))
+          .orElseFail(
+            SalesforcePriceRiseWriteFailure(
+              s"[e8e1426c] salesforcePriceRiseId is required to update Salesforce (cohort item: ${cohortItem.subscriptionName})"
+            )
+          )
       priceRise = SalesforcePriceRise(
         Migration_Name__c = Some(cohortSpec.cohortName),
         Migration_Status__c = Some("Cancellation"),
@@ -512,57 +388,5 @@ object NotificationHandler extends CohortHandler {
       )
       _ <- Salesforce.updatePriceRise(salesforcePriceRiseId, priceRise)
     } yield ()
-  }
-
-  // -------------------------------------------------------------------
-  // Braze names
-
-  def brazeName(
-      cohortSpec: CohortSpec,
-      item: CohortItem,
-      zuoraSubscription: ZuoraSubscription
-  ): ZIO[Zuora, Failure, String] = {
-    MigrationType(cohortSpec) match {
-      case Test1                  => ZIO.succeed("unspecified")
-      case GuardianWeekly2025     => ZIO.succeed("SV_GW_PriceRise2025")
-      case Newspaper2025P1        => ZIO.succeed("SV_NP_PriceRise_2025")
-      case Newspaper2025P3        => ZIO.succeed("SV_NP_PriceRise_VoucherSubCard2025")
-      case ProductMigration2025N4 =>
-        ZIO
-          .fromOption(ProductMigration2025N4Migration.brazeName(item))
-          .orElseFail(
-            DataExtractionFailure(s"[0cbdf70b] could not determine brazeName for ProductMigration2025N4, item: ${item}")
-          )
-      case Membership2025 =>
-        ZIO
-          .fromOption(Membership2025Migration.brazeName(item))
-          .orElseFail(
-            DataExtractionFailure(s"[b9d223be] could not determine brazeName for Membership2025, item: ${item}")
-          )
-      case DigiSubs2025 =>
-        ZIO
-          .fromOption(DigiSubs2025Migration.brazeName(item))
-          .orElseFail(
-            DataExtractionFailure(s"[e3f83ac4] could not determine brazeName for DigiSubs2025, item: ${item}")
-          )
-      case SupporterPlus2026 =>
-        ZIO
-          .fromOption(SupporterPlus2026Migration.brazeName(item, zuoraSubscription))
-          .orElseFail(
-            DataExtractionFailure(s"[15ecdf55] could not determine brazeName for SupporterPlus2026, item: ${item}")
-          )
-      case Print2026C1GWAnnualsUK        => ZIO.succeed("SV_GW_PriceRise2026")
-      case Print2026C1GWQuarterliesUK    => ZIO.succeed("SV_GW_PriceRise2026")
-      case Print2026C1NPAnnualsUK        => ZIO.succeed("SV_NP_PriceRise_2026")
-      case Print2026C1NPQuarterliesUK    => ZIO.succeed("SV_NP_PriceRise_2026")
-      case Print2026C1NPSemiannualsUK    => ZIO.succeed("SV_NP_PriceRise_2026")
-      case Print2026C2NPMonthliesUK      => ZIO.succeed("SV_NP_PriceRise_2026")
-      case Print2026C3GWMonthliesUK      => ZIO.succeed("SV_GW_PriceRise2026")
-      case Print2026C3NPMonthliesUK      => ZIO.succeed("SV_NP_PriceRise_2026")
-      case Print2026C4NPMonthliesUK      => ZIO.succeed("SV_NP_PriceRise_2026")
-      case Print2026C5GW                 => ZIO.succeed("SV_GW_PriceRiseDM_2026")
-      case Print2026C5NP                 => ZIO.succeed("SV_NP_PriceRiseDM_2026")
-      case Print2026C6GWQuarterliesNonUK => ZIO.succeed("SV_GW_PriceRise2026")
-    }
   }
 }
