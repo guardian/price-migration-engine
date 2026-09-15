@@ -9,10 +9,6 @@ object ProductMigration2025N4 extends MigrationType
 object Membership2025 extends MigrationType
 object DigiSubs2025 extends MigrationType
 object SupporterPlus2026 extends MigrationType
-object SupporterPlus2026N2 extends MigrationType
-object SupporterPlus2026N3 extends MigrationType
-object SupporterPlus2026N4 extends MigrationType
-object SupporterPlus2026N5 extends MigrationType
 object Print2026C1GWAnnualsUK extends MigrationType
 object Print2026C1GWQuarterliesUK extends MigrationType
 object Print2026C1NPAnnualsUK extends MigrationType
@@ -36,10 +32,6 @@ object MigrationType {
     case "Membership2025"                             => Membership2025
     case "DigiSubs2025"                               => DigiSubs2025
     case "SupporterPlus2026"                          => SupporterPlus2026
-    case "SupporterPlus2026N2"                        => SupporterPlus2026N2
-    case "SupporterPlus2026N3"                        => SupporterPlus2026N3
-    case "SupporterPlus2026N4"                        => SupporterPlus2026N4
-    case "SupporterPlus2026N5"                        => SupporterPlus2026N5
     case "Print2026C1GWAnnualsUK"                     => Print2026C1GWAnnualsUK
     case "Print2026C1GWQuarterliesUK"                 => Print2026C1GWQuarterliesUK
     case "Print2026C1NPAnnualsUK"                     => Print2026C1NPAnnualsUK

@@ -40,7 +40,6 @@ object AmendmentHandler extends CohortHandler {
             CohortTable
               .fetch(NotificationSendDateWrittenToSalesforce, None)
               .filter(item => AmendmentHandlerHelper.isReadyToAmend(cohortSpec, item, now))
-              .filter(item => Dispatch.belongs(cohortSpec, item))
               .take(batchSize)
           case Some(subscriptionNumber) =>
             CohortTable
@@ -409,26 +408,6 @@ object AmendmentHandler extends CohortHandler {
           item: CohortItem
         )
       case SupporterPlus2026 =>
-        doAmendmentUsingOrdersApiWithJsonValues(
-          cohortSpec: CohortSpec,
-          item: CohortItem
-        )
-      case SupporterPlus2026N2 =>
-        doAmendmentUsingOrdersApiWithJsonValues(
-          cohortSpec: CohortSpec,
-          item: CohortItem
-        )
-      case SupporterPlus2026N3 =>
-        doAmendmentUsingOrdersApiWithJsonValues(
-          cohortSpec: CohortSpec,
-          item: CohortItem
-        )
-      case SupporterPlus2026N4 =>
-        doAmendmentUsingOrdersApiWithJsonValues(
-          cohortSpec: CohortSpec,
-          item: CohortItem
-        )
-      case SupporterPlus2026N5 =>
         doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
           item: CohortItem

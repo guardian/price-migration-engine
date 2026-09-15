@@ -16,7 +16,6 @@ object SalesforceAmendmentUpdateHandler extends CohortHandler {
     for {
       count <- CohortTable
         .fetch(AmendmentComplete, None)
-        .filter(item => Dispatch.belongs(cohortSpec, item))
         .take(batchSize)
         .mapZIO(item =>
           updateSfWithNewSubscriptionId(cohortSpec, item).tapBoth(

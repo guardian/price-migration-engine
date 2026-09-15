@@ -41,10 +41,6 @@ object AmendmentEffectiveDateCalculator {
       case Membership2025                => None
       case DigiSubs2025                  => None
       case SupporterPlus2026             => None
-      case SupporterPlus2026N2           => None
-      case SupporterPlus2026N3           => None
-      case SupporterPlus2026N4           => None
-      case SupporterPlus2026N5           => None
       case Print2026C1GWAnnualsUK        => None
       case Print2026C1GWQuarterliesUK    => None
       case Print2026C1NPAnnualsUK        => None
@@ -109,10 +105,6 @@ object AmendmentEffectiveDateCalculator {
         case Membership2025                => 1
         case DigiSubs2025                  => 3 // 3 Months for DigiSubs2025
         case SupporterPlus2026             => 1 // no spread for SupporterPlus2026
-        case SupporterPlus2026N2           => 1 // no spread for SupporterPlus2026
-        case SupporterPlus2026N3           => 1 // no spread for SupporterPlus2026
-        case SupporterPlus2026N4           => 1 // no spread for SupporterPlus2026
-        case SupporterPlus2026N5           => 1 // no spread for SupporterPlus2026
         case Print2026C1GWAnnualsUK        => 1
         case Print2026C1GWQuarterliesUK    => 1
         case Print2026C1NPAnnualsUK        => 1
@@ -151,10 +143,6 @@ object AmendmentEffectiveDateCalculator {
       case Membership2025             => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case DigiSubs2025               => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case SupporterPlus2026          => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case SupporterPlus2026N2        => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case SupporterPlus2026N3        => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case SupporterPlus2026N4        => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case SupporterPlus2026N5        => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case Print2026C1GWAnnualsUK     => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case Print2026C1GWQuarterliesUK => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case Print2026C1NPAnnualsUK     => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
@@ -187,14 +175,6 @@ object AmendmentEffectiveDateCalculator {
       case DigiSubs2025 =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
       case SupporterPlus2026 =>
-        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
-      case SupporterPlus2026N2 =>
-        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
-      case SupporterPlus2026N3 =>
-        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
-      case SupporterPlus2026N4 =>
-        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
-      case SupporterPlus2026N5 =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
       case Print2026C1GWAnnualsUK =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
@@ -233,14 +213,6 @@ object AmendmentEffectiveDateCalculator {
       case Membership2025         => lowerBound3
       case DigiSubs2025           => lowerBound3
       case SupporterPlus2026      =>
-        SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
-      case SupporterPlus2026N2 =>
-        SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
-      case SupporterPlus2026N3 =>
-        SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
-      case SupporterPlus2026N4 =>
-        SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
-      case SupporterPlus2026N5 =>
         SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
       case Print2026C1GWAnnualsUK        => lowerBound3
       case Print2026C1GWQuarterliesUK    => lowerBound3

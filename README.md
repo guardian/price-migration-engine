@@ -33,7 +33,6 @@ It currently consists in
 - [Cohort items](docs/cohort-items.md)
 - [Troubleshooting document](docs/troubleshooting.md)
 - [Quirks of the engine](docs/quirks.md)
-- [Dispatch, dealing with unusually large migration](docs/dispatch.md)
 - [Extended checklists](docs/price-rise-extended-checklists.md)
 
 ### Android Price Rises
