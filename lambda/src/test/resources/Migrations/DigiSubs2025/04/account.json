@@ -56,6 +56,11 @@
   },
   "billToContact": null,
   "soldToContact": {
+    "address1": "90 York Way",
+    "address2": null,
+    "zipCode": "N1 9GU",
+    "state": null,
+    "city": "city",
     "country": "United States"
   },
   "taxInfo": {
