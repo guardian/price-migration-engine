@@ -204,19 +204,17 @@ object NotificationHandlerHelper {
       .flatMap(_ => requiredData(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation"))
   }
 
-  def decideSalesforceAddress(
-      contact: SalesforceContact
-  ): Either[NotificationHandlerFailure, SalesforceAddress] = {
-    ((for {
-      billingAddress <- requiredData(contact.OtherAddress, "Contact.OtherAddress")
-      _ <- requiredData(billingAddress.street, "Contact.OtherAddress.street")
-      _ <- requiredData(billingAddress.city, "Contact.OtherAddress.city")
-    } yield billingAddress).left
-      .flatMap(_ => requiredData(contact.MailingAddress, "Contact.MailingAddress")))
-      .fold(
-        _ => Right(SalesforceAddress.addressWithEmptyStrings),
-        value => Right(value)
-      )
+  def decideSalesforceAddress(contact: SalesforceContact): SalesforceAddress = {
+    val otherAddress =
+      for {
+        addr <- requiredData(contact.OtherAddress, "Contact.OtherAddress")
+        _ <- requiredData(addr.street, "Contact.OtherAddress.street")
+        _ <- requiredData(addr.city, "Contact.OtherAddress.city")
+      } yield addr
+
+    otherAddress
+      .orElse(requiredData(contact.MailingAddress, "Contact.MailingAddress"))
+      .getOrElse(SalesforceAddress.addressWithEmptyStrings)
   }
 
   def dateStrToLocalDate(startDate: String): LocalDate = {

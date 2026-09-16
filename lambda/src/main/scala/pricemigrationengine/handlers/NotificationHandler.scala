@@ -185,7 +185,7 @@ object NotificationHandler extends CohortHandler {
       contact <- Salesforce.getContact(sfSubscription.Buyer__c)
       firstName <- ZIO.fromEither(NotificationHandlerHelper.decideFirstName(contact))
       lastName <- ZIO.fromEither(requiredField(contact.LastName, "Contact.LastName"))
-      salesforceAddress <- ZIO.fromEither(NotificationHandlerHelper.decideSalesforceAddress(contact))
+      salesforceAddress <- ZIO.succeed(NotificationHandlerHelper.decideSalesforceAddress(contact))
       street <- ZIO.fromEither(NotificationHandlerHelper.evaluateStreet(cohortSpec, salesforceAddress.street))
       postalCode = salesforceAddress.postalCode.getOrElse("")
       country <- ZIO.fromEither(NotificationHandlerHelper.decideCountry(cohortSpec, salesforceAddress))
