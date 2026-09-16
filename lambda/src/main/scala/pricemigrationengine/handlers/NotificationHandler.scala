@@ -125,13 +125,6 @@ object NotificationHandler extends CohortHandler {
   // Helpers
   // -----------------------------------------
 
-  def requiredField[A](field: Option[A], fieldName: String): Either[NotificationHandlerFailure, A] = {
-    field match {
-      case Some(value) => Right(value)
-      case None        => Left(NotificationHandlerFailure(s"$fieldName is a required field"))
-    }
-  }
-
   private def updateCohortItemToExcludeFromMigration(
       item: CohortItem
   ): ZIO[CohortTable with Salesforce with Logging, Failure, Unit] = {
@@ -176,7 +169,14 @@ object NotificationHandler extends CohortHandler {
       zuoraSubscription: ZuoraSubscription,
       cohortItem: CohortItem,
       today: LocalDate
-  ): ZIO[Zuora with Braze with Salesforce with CohortTable with Logging, Failure, Unit] =
+  ): ZIO[Zuora with Braze with Salesforce with CohortTable with Logging, Failure, Unit] = {
+    def requiredField[A](field: Option[A], fieldName: String): Either[NotificationHandlerFailure, A] = {
+      field match {
+        case Some(value) => Right(value)
+        case None        => Left(NotificationHandlerFailure(s"$fieldName is a required field"))
+      }
+    }
+
     for {
       _ <- Logging.info(s"Processing subscription: ${cohortItem.subscriptionName}")
       sfSubscription <-
@@ -334,6 +334,7 @@ object NotificationHandler extends CohortHandler {
 
       _ <- updateCohortItemStatus(cohortItem.subscriptionName, NotificationSendComplete)
     } yield ()
+  }
 
   // -------------------------------------------------------------------
 
