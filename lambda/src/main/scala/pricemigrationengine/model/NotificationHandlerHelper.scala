@@ -204,51 +204,17 @@ object NotificationHandlerHelper {
       .flatMap(_ => requiredData(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation"))
   }
 
-  private def decideSalesforceAddressRequired(
-      contact: SalesforceContact
-  ): Either[NotificationHandlerFailure, SalesforceAddress] = {
-    (for {
-      billingAddress <- requiredData(contact.OtherAddress, "Contact.OtherAddress")
-      _ <- requiredData(billingAddress.street, "Contact.OtherAddress.street")
-      _ <- requiredData(billingAddress.city, "Contact.OtherAddress.city")
-    } yield billingAddress).left.flatMap(_ => requiredData(contact.MailingAddress, "Contact.MailingAddress"))
-  }
+  def decideSalesforceAddress(contact: SalesforceContact): SalesforceAddress = {
+    val otherAddress =
+      for {
+        addr <- requiredData(contact.OtherAddress, "Contact.OtherAddress")
+        _ <- requiredData(addr.street, "Contact.OtherAddress.street")
+        _ <- requiredData(addr.city, "Contact.OtherAddress.city")
+      } yield addr
 
-  private def decideSalesforceAddressNotRequired(
-      contact: SalesforceContact
-  ): Either[NotificationHandlerFailure, SalesforceAddress] = {
-    decideSalesforceAddressRequired(contact).fold(
-      _ => Right(SalesforceAddress.addressWithEmptyStrings),
-      value => Right(value)
-    )
-  }
-
-  def decideSalesforceAddress(
-      cohortSpec: CohortSpec,
-      contact: SalesforceContact
-  ): Either[NotificationHandlerFailure, SalesforceAddress] = {
-    MigrationType(cohortSpec) match {
-      case Test1                         => decideSalesforceAddressRequired(contact)
-      case GuardianWeekly2025            => decideSalesforceAddressRequired(contact)
-      case Newspaper2025P1               => decideSalesforceAddressRequired(contact)
-      case Newspaper2025P3               => decideSalesforceAddressNotRequired(contact)
-      case ProductMigration2025N4        => decideSalesforceAddressNotRequired(contact)
-      case Membership2025                => decideSalesforceAddressNotRequired(contact)
-      case DigiSubs2025                  => decideSalesforceAddressNotRequired(contact)
-      case SupporterPlus2026             => decideSalesforceAddressNotRequired(contact)
-      case Print2026C1GWAnnualsUK        => decideSalesforceAddressNotRequired(contact)
-      case Print2026C1GWQuarterliesUK    => decideSalesforceAddressNotRequired(contact)
-      case Print2026C1NPAnnualsUK        => decideSalesforceAddressNotRequired(contact)
-      case Print2026C1NPQuarterliesUK    => decideSalesforceAddressNotRequired(contact)
-      case Print2026C1NPSemiannualsUK    => decideSalesforceAddressNotRequired(contact)
-      case Print2026C2NPMonthliesUK      => decideSalesforceAddressNotRequired(contact)
-      case Print2026C3GWMonthliesUK      => decideSalesforceAddressNotRequired(contact)
-      case Print2026C3NPMonthliesUK      => decideSalesforceAddressNotRequired(contact)
-      case Print2026C4NPMonthliesUK      => decideSalesforceAddressNotRequired(contact)
-      case Print2026C5GW                 => decideSalesforceAddressRequired(contact)
-      case Print2026C5NP                 => decideSalesforceAddressRequired(contact)
-      case Print2026C6GWQuarterliesNonUK => decideSalesforceAddressNotRequired(contact)
-    }
+    otherAddress
+      .orElse(requiredData(contact.MailingAddress, "Contact.MailingAddress"))
+      .getOrElse(SalesforceAddress.addressWithEmptyStrings)
   }
 
   def dateStrToLocalDate(startDate: String): LocalDate = {
