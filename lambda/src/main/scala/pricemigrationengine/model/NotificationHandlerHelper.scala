@@ -5,13 +5,22 @@ import pricemigrationengine.migrations.{
   GuardianWeekly2025Migration,
   Membership2025Migration,
   Newspaper2025P1Migration,
+  Newspaper2025P1NotificationData,
   Newspaper2025P3Migration,
+  Newspaper2025P3NotificationData,
   ProductMigration2025N4Migration,
+  ProductMigration2025N4NotificationData,
+  SP2026EmailExtraAttributes,
   SupporterPlus2026Migration
 }
 
 import java.time.LocalDate
-import pricemigrationengine.model.membershipworkflow.BrazeMessage
+import pricemigrationengine.model.membershipworkflow.{
+  BrazeMessage,
+  BrazePayload,
+  BrazePayloadContactAttributes,
+  BrazePayloadSubscriberAttributes
+}
 
 import java.time.format.DateTimeFormatter
 
@@ -256,6 +265,90 @@ object NotificationHandlerHelper {
       case Print2026C5NP                 => Some("SV_NP_PriceRiseDM_2026")
       case Print2026C6GWQuarterliesNonUK => Some("SV_GW_PriceRise2026")
     }
+  }
+
+  def buildBrazeMessage(
+      contact: SalesforceContact,
+      firstName: String,
+      lastName: String,
+      street: String,
+      salesforceAddress: SalesforceAddress,
+      postalCode: String,
+      country: String,
+      commsPriceWithCurrencySymbol: String,
+      amendmentEffectiveDate: String,
+      paymentFrequency: String,
+      cohortItem: CohortItem,
+      sfSubscription: SalesforceSubscription,
+      newspaper2025P1NotificationData: Newspaper2025P1NotificationData,
+      newspaper2025P3NotificationData: Newspaper2025P3NotificationData,
+      productMigration2025N4NotificationData: ProductMigration2025N4NotificationData,
+      currencySymbol: String,
+      supporterPlus2026ExtraData: SP2026EmailExtraAttributes,
+      newspaper2026_brand_title: String,
+      brazeName: String
+  ): BrazeMessage = {
+    BrazeMessage(
+      BrazePayload(
+        Address = contact.Email,
+        ContactAttributes = BrazePayloadContactAttributes(
+          SubscriberAttributes = BrazePayloadSubscriberAttributes(
+            title = contact.FirstName flatMap (_ =>
+              contact.Salutation // if no first name, we use salutation as first name and leave this field empty
+            ),
+            first_name = firstName,
+            last_name = lastName,
+            billing_address_1 = street,
+            billing_address_2 = None, // See 'Billing Address Format' section in the readme
+            billing_city = salesforceAddress.city,
+            billing_postal_code = postalCode,
+            billing_state = salesforceAddress.state,
+            billing_country = country,
+            payment_amount = commsPriceWithCurrencySymbol, // [1]
+            next_payment_date = NotificationHandlerHelper.startDateConversion(amendmentEffectiveDate),
+            payment_frequency = paymentFrequency,
+            subscription_id = cohortItem.subscriptionName,
+            product_type = sfSubscription.Product_Type__c.getOrElse(""),
+
+            // -------------------------------------------------------------
+            // Newspaper2025P1 extension
+            // (Comment Group: 571dac68)
+            // This section and the corresponding section above should be removed as part of the
+            // Newspaper2025P1 decommissioning.
+            newspaper2025_brand_title = Some(newspaper2025P1NotificationData.brandTitle),
+            // -------------------------------------------------------------
+
+            // -------------------------------------------------------------
+            // Newspaper2025P3 extension
+            newspaper2025_phase3_brand_title = Some(newspaper2025P3NotificationData.brandTitle),
+            // -------------------------------------------------------------
+
+            // -------------------------------------------------------------
+            // ProductMigration2025N4 extension
+            newspaper2025_phase4_brand_title = Some(productMigration2025N4NotificationData.brandTitle),
+            newspaper2025_phase4_formstack_url = Some(productMigration2025N4NotificationData.formstackUrl),
+            // -------------------------------------------------------------
+
+            // -------------------------------------------------------------
+            // SupporterPlus2026 extension
+            sp2026_contribution_amount = Some(s"${currencySymbol}${supporterPlus2026ExtraData.contributionAmount}"),
+            sp2026_current_combined_amount =
+              Some(s"${currencySymbol}${supporterPlus2026ExtraData.currentCombinedAmount}"),
+            sp2026_new_combined_amount = Some(s"${currencySymbol}${supporterPlus2026ExtraData.newCombinedAmount}"),
+            // -------------------------------------------------------------
+
+            // -------------------------------------------------------------
+            // Newspaper2026X
+            newspaper2026_brand_title = Some(newspaper2026_brand_title)
+            // -------------------------------------------------------------
+
+          )
+        )
+      ),
+      brazeName,
+      contact.Id,
+      contact.IdentityID__c
+    )
   }
 }
 

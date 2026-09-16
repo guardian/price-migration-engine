@@ -262,66 +262,26 @@ object NotificationHandler extends CohortHandler {
           )
         )
 
-      message = BrazeMessage(
-        BrazePayload(
-          Address = contact.Email,
-          ContactAttributes = BrazePayloadContactAttributes(
-            SubscriberAttributes = BrazePayloadSubscriberAttributes(
-              title = contact.FirstName flatMap (_ =>
-                contact.Salutation // if no first name, we use salutation as first name and leave this field empty
-              ),
-              first_name = firstName,
-              last_name = lastName,
-              billing_address_1 = street,
-              billing_address_2 = None, // See 'Billing Address Format' section in the readme
-              billing_city = salesforceAddress.city,
-              billing_postal_code = postalCode,
-              billing_state = salesforceAddress.state,
-              billing_country = country,
-              payment_amount = commsPriceWithCurrencySymbol, // [1]
-              next_payment_date = NotificationHandlerHelper.startDateConversion(amendmentEffectiveDate),
-              payment_frequency = paymentFrequency,
-              subscription_id = cohortItem.subscriptionName,
-              product_type = sfSubscription.Product_Type__c.getOrElse(""),
-
-              // -------------------------------------------------------------
-              // Newspaper2025P1 extension
-              // (Comment Group: 571dac68)
-              // This section and the corresponding section above should be removed as part of the
-              // Newspaper2025P1 decommissioning.
-              newspaper2025_brand_title = Some(newspaper2025P1NotificationData.brandTitle),
-              // -------------------------------------------------------------
-
-              // -------------------------------------------------------------
-              // Newspaper2025P3 extension
-              newspaper2025_phase3_brand_title = Some(newspaper2025P3NotificationData.brandTitle),
-              // -------------------------------------------------------------
-
-              // -------------------------------------------------------------
-              // ProductMigration2025N4 extension
-              newspaper2025_phase4_brand_title = Some(productMigration2025N4NotificationData.brandTitle),
-              newspaper2025_phase4_formstack_url = Some(productMigration2025N4NotificationData.formstackUrl),
-              // -------------------------------------------------------------
-
-              // -------------------------------------------------------------
-              // SupporterPlus2026 extension
-              sp2026_contribution_amount = Some(s"${currencySymbol}${supporterPlus2026ExtraData.contributionAmount}"),
-              sp2026_current_combined_amount =
-                Some(s"${currencySymbol}${supporterPlus2026ExtraData.currentCombinedAmount}"),
-              sp2026_new_combined_amount = Some(s"${currencySymbol}${supporterPlus2026ExtraData.newCombinedAmount}"),
-              // -------------------------------------------------------------
-
-              // -------------------------------------------------------------
-              // Newspaper2026X
-              newspaper2026_brand_title = Some(newspaper2026_brand_title)
-              // -------------------------------------------------------------
-
-            )
-          )
-        ),
-        brazeName,
-        contact.Id,
-        contact.IdentityID__c
+      message = NotificationHandlerHelper.buildBrazeMessage(
+        contact,
+        firstName,
+        lastName,
+        street,
+        salesforceAddress,
+        postalCode,
+        country,
+        commsPriceWithCurrencySymbol,
+        amendmentEffectiveDate,
+        paymentFrequency,
+        cohortItem,
+        sfSubscription,
+        newspaper2025P1NotificationData,
+        newspaper2025P3NotificationData,
+        productMigration2025N4NotificationData,
+        currencySymbol,
+        supporterPlus2026ExtraData,
+        newspaper2026_brand_title,
+        brazeName
       )
 
       _ <- Logging.info(s"item: ${cohortItem.toString}, message: ${message.toString}")
