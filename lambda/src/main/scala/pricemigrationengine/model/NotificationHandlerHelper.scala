@@ -179,29 +179,33 @@ object NotificationHandlerHelper {
 
   def decideCountry(
       cohortSpec: CohortSpec,
-      address: SalesforceAddress
+      notificationAddress: NotificationAddress
   ): Either[NotificationHandlerFailure, String] = {
     MigrationType(cohortSpec) match {
-      case Test1                         => requiredData(address.country, "Contact.OtherAddress.country")
-      case GuardianWeekly2025            => requiredData(address.country, "Contact.OtherAddress.country")
-      case Newspaper2025P1               => nonRequiredData(address.country, "United Kingdom")
-      case Newspaper2025P3               => nonRequiredData(address.country, "United Kingdom")
-      case ProductMigration2025N4        => nonRequiredData(address.country, "")
-      case Membership2025                => nonRequiredData(address.country, "")
-      case DigiSubs2025                  => nonRequiredData(address.country, "")
-      case SupporterPlus2026             => nonRequiredData(address.country, "")
-      case Print2026C1GWAnnualsUK        => requiredData(address.country, "Contact.OtherAddress.country") // [1]
-      case Print2026C1GWQuarterliesUK    => requiredData(address.country, "Contact.OtherAddress.country") // [1]
-      case Print2026C1NPAnnualsUK        => requiredData(address.country, "Contact.OtherAddress.country") // [1]
-      case Print2026C1NPQuarterliesUK    => requiredData(address.country, "Contact.OtherAddress.country") // [1]
-      case Print2026C1NPSemiannualsUK    => requiredData(address.country, "Contact.OtherAddress.country") // [1]
-      case Print2026C2NPMonthliesUK      => requiredData(address.country, "Contact.OtherAddress.country") // [1]
-      case Print2026C3GWMonthliesUK      => requiredData(address.country, "Contact.OtherAddress.country") // [1]
-      case Print2026C3NPMonthliesUK      => requiredData(address.country, "Contact.OtherAddress.country") // [1]
-      case Print2026C4NPMonthliesUK      => requiredData(address.country, "Contact.OtherAddress.country") // [1]
-      case Print2026C5GW                 => requiredData(address.country, "Contact.OtherAddress.country") // [2]
-      case Print2026C5NP                 => requiredData(address.country, "Contact.OtherAddress.country") // [2]
-      case Print2026C6GWQuarterliesNonUK => requiredData(address.country, "Contact.OtherAddress.country") // [1]
+      case Test1                  => requiredData(notificationAddress.country, "Contact.OtherAddress.country")
+      case GuardianWeekly2025     => requiredData(notificationAddress.country, "Contact.OtherAddress.country")
+      case Newspaper2025P1        => nonRequiredData(notificationAddress.country, "United Kingdom")
+      case Newspaper2025P3        => nonRequiredData(notificationAddress.country, "United Kingdom")
+      case ProductMigration2025N4 => nonRequiredData(notificationAddress.country, "")
+      case Membership2025         => nonRequiredData(notificationAddress.country, "")
+      case DigiSubs2025           => nonRequiredData(notificationAddress.country, "")
+      case SupporterPlus2026      => nonRequiredData(notificationAddress.country, "")
+      case Print2026C1GWAnnualsUK => requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C1GWQuarterliesUK =>
+        requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C1NPAnnualsUK => requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C1NPQuarterliesUK =>
+        requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C1NPSemiannualsUK =>
+        requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C2NPMonthliesUK => requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C3GWMonthliesUK => requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C3NPMonthliesUK => requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C4NPMonthliesUK => requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C5GW            => requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [2]
+      case Print2026C5NP            => requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [2]
+      case Print2026C6GWQuarterliesNonUK =>
+        requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
     }
 
     // [1] not used in the template, but used in the canvas logic
@@ -211,19 +215,6 @@ object NotificationHandlerHelper {
   def decideFirstName(contact: SalesforceContact): Either[NotificationHandlerFailure, String] = {
     requiredData(contact.FirstName, "Contact.FirstName").left
       .flatMap(_ => requiredData(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation"))
-  }
-
-  def decideSalesforceAddress(contact: SalesforceContact): SalesforceAddress = {
-    val otherAddress =
-      for {
-        addr <- requiredData(contact.OtherAddress, "Contact.OtherAddress")
-        _ <- requiredData(addr.street, "Contact.OtherAddress.street")
-        _ <- requiredData(addr.city, "Contact.OtherAddress.city")
-      } yield addr
-
-    otherAddress
-      .orElse(requiredData(contact.MailingAddress, "Contact.MailingAddress"))
-      .getOrElse(SalesforceAddress.addressWithEmptyStrings)
   }
 
   def dateStrToLocalDate(startDate: String): LocalDate = {
@@ -272,7 +263,7 @@ object NotificationHandlerHelper {
       firstName: String,
       lastName: String,
       street: String,
-      salesforceAddress: SalesforceAddress,
+      notificationAddress: NotificationAddress,
       postalCode: String,
       country: String,
       commsPriceWithCurrencySymbol: String,
@@ -300,9 +291,9 @@ object NotificationHandlerHelper {
             last_name = lastName,
             billing_address_1 = street,
             billing_address_2 = None, // See 'Billing Address Format' section in the readme
-            billing_city = salesforceAddress.city,
+            billing_city = notificationAddress.city,
             billing_postal_code = postalCode,
-            billing_state = salesforceAddress.state,
+            billing_state = notificationAddress.state,
             billing_country = country,
             payment_amount = commsPriceWithCurrencySymbol, // [1]
             next_payment_date = NotificationHandlerHelper.startDateConversion(amendmentEffectiveDate),
@@ -349,5 +340,72 @@ object NotificationHandlerHelper {
       contact.Id,
       contact.IdentityID__c
     )
+  }
+
+  def zuoraAccountSoldToContactToStreetInformation(
+      zuoraAccountSoldToContact: ZuoraAccountSoldToContact
+  ): Option[String] = {
+    // Date: September 2026
+    // Author: Pascal
+    // The ZuoraAccountSoldToContact comes with address1 and address2 as
+    // defined in the Zuora schema but the newly introduced NotificationAddress
+    // is defined with a single optional streetInformation mostly due to the fact that
+    // the BrazePayloadSubscriberAttributes billing_address_2 is set to None,
+    // but this is something I should investigate and challenge one day
+    (zuoraAccountSoldToContact.address1, zuoraAccountSoldToContact.address2) match {
+      case (Some(a), Some(b)) => Some(s"$a / $b")
+      case (Some(a), None)    => Some(a)
+      case (None, Some(b))    => Some(b)
+      case (None, None)       => None
+    }
+  }
+
+  def firstDefined[A](options: Option[A]*): Option[A] =
+    options.foldLeft(Option.empty[A])(_.orElse(_))
+
+  def buildNotificationAddress(
+      zuoraAccountSoldToContact: ZuoraAccountSoldToContact,
+      salesforceContact: SalesforceContact
+  ): NotificationAddress = {
+    // For the selection sequence rationale see docs/postal-addresses.md
+
+    val solution1 =
+      for {
+        streetInformation <- zuoraAccountSoldToContactToStreetInformation(zuoraAccountSoldToContact)
+        _ <- zuoraAccountSoldToContact.city
+      } yield NotificationAddress(
+        streetInformation = Some(streetInformation),
+        city = zuoraAccountSoldToContact.city,
+        state = zuoraAccountSoldToContact.state,
+        postalCode = zuoraAccountSoldToContact.zipCode,
+        country = Some(zuoraAccountSoldToContact.country)
+      )
+
+    val solution2 = for {
+      data <- salesforceContact.MailingAddress
+      streetInformation <- data.street
+      _ <- data.city
+    } yield NotificationAddress(
+      streetInformation = Some(streetInformation),
+      city = data.city,
+      state = data.state,
+      postalCode = data.postalCode,
+      country = data.country
+    )
+
+    val solution3 =
+      for {
+        data <- salesforceContact.OtherAddress
+        streetInformation <- data.street
+      } yield NotificationAddress(
+        streetInformation = Some(streetInformation),
+        city = data.city,
+        state = data.state,
+        postalCode = data.postalCode,
+        country = data.country
+      )
+
+    firstDefined(solution1, solution2, solution3).getOrElse(NotificationAddress(None, None, None, None, None))
+
   }
 }

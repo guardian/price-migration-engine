@@ -10,7 +10,7 @@ object ZuoraAccountBasicInfo {
 
 case class ZuoraAccount(
     basicInfo: ZuoraAccountBasicInfo,
-    soldToContact: SoldToContact
+    soldToContact: ZuoraAccountSoldToContact
 )
 
 object ZuoraAccount {
