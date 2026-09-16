@@ -13,6 +13,8 @@ import pricemigrationengine.migrations.{
 import java.time.LocalDate
 import pricemigrationengine.model.membershipworkflow.BrazeMessage
 
+import java.time.format.DateTimeFormatter
+
 object NotificationHandlerHelper {
 
   // We end the notification window 30 days before the amendment date
@@ -120,6 +122,173 @@ object NotificationHandlerHelper {
         case Some(sd) => today.plusDays(endOfNotificationWindow).isBefore(sd)
         case _        => false
       }
+    }
+  }
+
+  private def requiredData[A](field: Option[A], fieldName: String): Either[NotificationHandlerFailure, A] = {
+    field match {
+      case Some(value) => Right(value)
+      case None        => Left(NotificationHandlerFailure(s"$fieldName is a required field"))
+    }
+  }
+
+  private def nonRequiredData[A](field: Option[A], defaultValue: A): Either[NotificationHandlerFailure, A] = {
+    field match {
+      case Some(value) => Right(value)
+      case None        => Right(defaultValue)
+    }
+  }
+
+  def evaluateStreet(
+      cohortSpec: CohortSpec,
+      street: Option[String]
+  ): Either[NotificationHandlerFailure, String] = {
+    MigrationType(cohortSpec) match {
+      case Test1                         => requiredData(street, "Contact.OtherAddress.street")
+      case GuardianWeekly2025            => requiredData(street, "Contact.OtherAddress.street")
+      case Newspaper2025P1               => requiredData(street, "Contact.OtherAddress.street")
+      case Newspaper2025P3               => requiredData(street, "Contact.OtherAddress.street")
+      case ProductMigration2025N4        => requiredData(street, "Contact.OtherAddress.street")
+      case Membership2025                => nonRequiredData(street, "")
+      case DigiSubs2025                  => nonRequiredData(street, "")
+      case SupporterPlus2026             => nonRequiredData(street, "")
+      case Print2026C1GWAnnualsUK        => nonRequiredData(street, "")
+      case Print2026C1GWQuarterliesUK    => nonRequiredData(street, "")
+      case Print2026C1NPAnnualsUK        => nonRequiredData(street, "")
+      case Print2026C1NPQuarterliesUK    => nonRequiredData(street, "")
+      case Print2026C1NPSemiannualsUK    => nonRequiredData(street, "")
+      case Print2026C2NPMonthliesUK      => nonRequiredData(street, "")
+      case Print2026C3GWMonthliesUK      => nonRequiredData(street, "")
+      case Print2026C3NPMonthliesUK      => nonRequiredData(street, "")
+      case Print2026C4NPMonthliesUK      => nonRequiredData(street, "")
+      case Print2026C5GW                 => requiredData(street, "Contact.OtherAddress.street") // [1]
+      case Print2026C5NP                 => requiredData(street, "Contact.OtherAddress.street") // [1]
+      case Print2026C6GWQuarterliesNonUK => nonRequiredData(street, "")
+      // Cohort 5, is DM (letters)
+    }
+  }
+
+  def decideCountry(
+      cohortSpec: CohortSpec,
+      address: SalesforceAddress
+  ): Either[NotificationHandlerFailure, String] = {
+    MigrationType(cohortSpec) match {
+      case Test1                         => requiredData(address.country, "Contact.OtherAddress.country")
+      case GuardianWeekly2025            => requiredData(address.country, "Contact.OtherAddress.country")
+      case Newspaper2025P1               => nonRequiredData(address.country, "United Kingdom")
+      case Newspaper2025P3               => nonRequiredData(address.country, "United Kingdom")
+      case ProductMigration2025N4        => nonRequiredData(address.country, "")
+      case Membership2025                => nonRequiredData(address.country, "")
+      case DigiSubs2025                  => nonRequiredData(address.country, "")
+      case SupporterPlus2026             => nonRequiredData(address.country, "")
+      case Print2026C1GWAnnualsUK        => requiredData(address.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C1GWQuarterliesUK    => requiredData(address.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C1NPAnnualsUK        => requiredData(address.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C1NPQuarterliesUK    => requiredData(address.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C1NPSemiannualsUK    => requiredData(address.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C2NPMonthliesUK      => requiredData(address.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C3GWMonthliesUK      => requiredData(address.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C3NPMonthliesUK      => requiredData(address.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C4NPMonthliesUK      => requiredData(address.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C5GW                 => requiredData(address.country, "Contact.OtherAddress.country") // [2]
+      case Print2026C5NP                 => requiredData(address.country, "Contact.OtherAddress.country") // [2]
+      case Print2026C6GWQuarterliesNonUK => requiredData(address.country, "Contact.OtherAddress.country") // [1]
+    }
+
+    // [1] not used in the template, but used in the canvas logic
+    // [2] used for the post address
+  }
+
+  def decideFirstName(contact: SalesforceContact): Either[NotificationHandlerFailure, String] = {
+    requiredData(contact.FirstName, "Contact.FirstName").left
+      .flatMap(_ => requiredData(contact.Salutation.fold(Some("Member"))(Some(_)), "Contact.Salutation"))
+  }
+
+  private def decideSalesforceAddressRequired(
+      contact: SalesforceContact
+  ): Either[NotificationHandlerFailure, SalesforceAddress] = {
+    (for {
+      billingAddress <- requiredData(contact.OtherAddress, "Contact.OtherAddress")
+      _ <- requiredData(billingAddress.street, "Contact.OtherAddress.street")
+      _ <- requiredData(billingAddress.city, "Contact.OtherAddress.city")
+    } yield billingAddress).left.flatMap(_ => requiredData(contact.MailingAddress, "Contact.MailingAddress"))
+  }
+
+  private def decideSalesforceAddressNotRequired(
+      contact: SalesforceContact
+  ): Either[NotificationHandlerFailure, SalesforceAddress] = {
+    decideSalesforceAddressRequired(contact).fold(
+      _ => Right(SalesforceAddress.addressWithEmptyStrings),
+      value => Right(value)
+    )
+  }
+
+  def decideSalesforceAddress(
+      cohortSpec: CohortSpec,
+      contact: SalesforceContact
+  ): Either[NotificationHandlerFailure, SalesforceAddress] = {
+    MigrationType(cohortSpec) match {
+      case Test1                         => decideSalesforceAddressRequired(contact)
+      case GuardianWeekly2025            => decideSalesforceAddressRequired(contact)
+      case Newspaper2025P1               => decideSalesforceAddressRequired(contact)
+      case Newspaper2025P3               => decideSalesforceAddressNotRequired(contact)
+      case ProductMigration2025N4        => decideSalesforceAddressNotRequired(contact)
+      case Membership2025                => decideSalesforceAddressNotRequired(contact)
+      case DigiSubs2025                  => decideSalesforceAddressNotRequired(contact)
+      case SupporterPlus2026             => decideSalesforceAddressNotRequired(contact)
+      case Print2026C1GWAnnualsUK        => decideSalesforceAddressNotRequired(contact)
+      case Print2026C1GWQuarterliesUK    => decideSalesforceAddressNotRequired(contact)
+      case Print2026C1NPAnnualsUK        => decideSalesforceAddressNotRequired(contact)
+      case Print2026C1NPQuarterliesUK    => decideSalesforceAddressNotRequired(contact)
+      case Print2026C1NPSemiannualsUK    => decideSalesforceAddressNotRequired(contact)
+      case Print2026C2NPMonthliesUK      => decideSalesforceAddressNotRequired(contact)
+      case Print2026C3GWMonthliesUK      => decideSalesforceAddressNotRequired(contact)
+      case Print2026C3NPMonthliesUK      => decideSalesforceAddressNotRequired(contact)
+      case Print2026C4NPMonthliesUK      => decideSalesforceAddressNotRequired(contact)
+      case Print2026C5GW                 => decideSalesforceAddressRequired(contact)
+      case Print2026C5NP                 => decideSalesforceAddressRequired(contact)
+      case Print2026C6GWQuarterliesNonUK => decideSalesforceAddressNotRequired(contact)
+    }
+  }
+
+  def dateStrToLocalDate(startDate: String): LocalDate = {
+    LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+  }
+
+  def emailUserFriendlyDateFormatter(startDate: LocalDate): String = {
+    startDate.format(DateTimeFormatter.ofPattern("d MMMM uuuu"));
+  }
+
+  def startDateConversion(startDate: String): String = {
+    emailUserFriendlyDateFormatter(dateStrToLocalDate(startDate: String))
+  }
+
+  def decideBrazeName(
+      cohortSpec: CohortSpec,
+      item: CohortItem,
+      zuoraSubscription: ZuoraSubscription
+  ): Option[String] = {
+    MigrationType(cohortSpec) match {
+      case Test1                         => Some("unspecified")
+      case GuardianWeekly2025            => Some("SV_GW_PriceRise2025")
+      case Newspaper2025P1               => Some("SV_NP_PriceRise_2025")
+      case Newspaper2025P3               => Some("SV_NP_PriceRise_VoucherSubCard2025")
+      case ProductMigration2025N4        => ProductMigration2025N4Migration.brazeName(item)
+      case Membership2025                => Membership2025Migration.brazeName(item)
+      case DigiSubs2025                  => DigiSubs2025Migration.brazeName(item)
+      case SupporterPlus2026             => SupporterPlus2026Migration.brazeName(item, zuoraSubscription)
+      case Print2026C1GWAnnualsUK        => Some("SV_GW_PriceRise2026")
+      case Print2026C1GWQuarterliesUK    => Some("SV_GW_PriceRise2026")
+      case Print2026C1NPAnnualsUK        => Some("SV_NP_PriceRise_2026")
+      case Print2026C1NPQuarterliesUK    => Some("SV_NP_PriceRise_2026")
+      case Print2026C1NPSemiannualsUK    => Some("SV_NP_PriceRise_2026")
+      case Print2026C2NPMonthliesUK      => Some("SV_NP_PriceRise_2026")
+      case Print2026C3GWMonthliesUK      => Some("SV_GW_PriceRise2026")
+      case Print2026C3NPMonthliesUK      => Some("SV_NP_PriceRise_2026")
+      case Print2026C4NPMonthliesUK      => Some("SV_NP_PriceRise_2026")
+      case Print2026C5GW                 => Some("SV_GW_PriceRiseDM_2026")
+      case Print2026C5NP                 => Some("SV_NP_PriceRiseDM_2026")
+      case Print2026C6GWQuarterliesNonUK => Some("SV_GW_PriceRise2026")
     }
   }
 }
