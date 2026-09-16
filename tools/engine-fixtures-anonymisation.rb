@@ -70,6 +70,10 @@ account = JSON.parse(File.read(account_filepath))
 }
 account["billToContact"] = nil
 account["soldToContact"] = {
+    "address1" => "address1",
+    "address2" => "address2",
+    "city" => "city",
+    "zipCode" => "N1 9GU",
     "country" => account["soldToContact"]["country"]
 }
 account["gu:sanitised"] = true
