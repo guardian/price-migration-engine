@@ -72,7 +72,7 @@ account["billToContact"] = nil
 account["soldToContact"] = {
     "address1" => "address1",
     "address2" => "address2",
-    "city" => account["soldToContact"]["city"],
+    "city" => "city",
     "zipCode" => "N1 9GU",
     "country" => account["soldToContact"]["country"]
 }
