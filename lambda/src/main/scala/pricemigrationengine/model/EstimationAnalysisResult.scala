@@ -23,7 +23,7 @@ object EstimationAnalysisResult {
       .getOrElse(default)
   }
 
-  def checkActiveRatePlanUniqueness(packet: CheckInput): Option[EstimationAnalysisResult] = {
+  def checkActiveRatePlanBillingPeriodsUniqueness(packet: CheckInput): Option[EstimationAnalysisResult] = {
     val sizeOpt: Option[Int] = for {
       ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
         packet.subscription,
@@ -65,7 +65,7 @@ object EstimationAnalysisResult {
       List(checkSubscriptionStatus, checkSubscriptionAutoRenewFlag)
 
     val print2026Checks: List[CheckInput => Option[EstimationAnalysisResult]] =
-      List(checkSubscriptionStatus, checkSubscriptionAutoRenewFlag, checkActiveRatePlanUniqueness)
+      List(checkSubscriptionStatus, checkSubscriptionAutoRenewFlag, checkActiveRatePlanBillingPeriodsUniqueness)
 
     val checks = MigrationType(cohortSpec) match {
       case Test1                         => universalChecks
