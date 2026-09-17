@@ -23,11 +23,11 @@ object EstimationAnalysisResult {
       .getOrElse(default)
   }
 
-  def checkActiveRatePlanBillingPeriodsUniqueness(packet: CheckInput): Option[EstimationAnalysisResult] = {
+  def checkActiveRatePlanBillingPeriodsUniqueness(input: CheckInput): Option[EstimationAnalysisResult] = {
     val sizeOpt: Option[Int] = for {
       ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
-        packet.subscription,
-        packet.today
+        input.subscription,
+        input.today
       )
     } yield ZuoraRatePlan.ratePlanToChargesBillingPeriods(ratePlan).distinct.length
     sizeOpt match {
@@ -38,16 +38,16 @@ object EstimationAnalysisResult {
     }
   }
 
-  def checkSubscriptionStatus(packet: CheckInput): Option[EstimationAnalysisResult] = {
-    if (packet.subscription.status == "Cancelled") {
+  def checkSubscriptionStatus(input: CheckInput): Option[EstimationAnalysisResult] = {
+    if (input.subscription.status == "Cancelled") {
       Some(EARSubscriptionCancelled)
     } else {
       None
     }
   }
 
-  def checkSubscriptionAutoRenewFlag(packet: CheckInput): Option[EstimationAnalysisResult] = {
-    if (packet.subscription.autoRenew) {
+  def checkSubscriptionAutoRenewFlag(input: CheckInput): Option[EstimationAnalysisResult] = {
+    if (input.subscription.autoRenew) {
       None
     } else {
       Some(EARSubscriptionAutoRenewFlagFalse)
@@ -59,7 +59,7 @@ object EstimationAnalysisResult {
       subscription: ZuoraSubscription,
       today: LocalDate
   ): EstimationAnalysisResult = {
-    val packet = CheckInput(subscription, today)
+    val checkInput = CheckInput(subscription, today)
 
     val universalChecks: List[CheckInput => Option[EstimationAnalysisResult]] =
       List(checkSubscriptionStatus, checkSubscriptionAutoRenewFlag)
@@ -90,6 +90,6 @@ object EstimationAnalysisResult {
       case Print2026C6GWQuarterliesNonUK => universalChecks
     }
 
-    firstDefined(packet, checks, EARClearance)
+    firstDefined(checkInput, checks, EARClearance)
   }
 }
