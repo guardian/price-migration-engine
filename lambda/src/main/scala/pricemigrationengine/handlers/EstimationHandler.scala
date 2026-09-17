@@ -121,7 +121,7 @@ object EstimationHandler extends CohortHandler {
           )
 
       // This section performs the Estimation step clearance and handling of the results
-      _ <- EstimationHandlerHelper.subscriptionEstimationAnalysis(cohortSpec, subscription, today) match {
+      _ <- EstimationAnalysisResult.subscriptionEstimationAnalysis(cohortSpec, subscription, today) match {
         case EARClearance   => ZIO.unit
         case EARMissingData =>
           ZIO.fail(
