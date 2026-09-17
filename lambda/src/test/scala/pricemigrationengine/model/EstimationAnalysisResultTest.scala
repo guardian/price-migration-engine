@@ -5,21 +5,21 @@ import pricemigrationengine.model.SI2025RateplanFromSubAndInvoices
 
 import java.time.LocalDate
 
-class EstimationHandlerHelperTest extends munit.FunSuite {
+class EstimationAnalysisResultTest extends munit.FunSuite {
 
-  test("EstimationHandlerHelper.printProduct2026EstimationAnalysis (standard)") {
+  test("EstimationAnalysisResult.printProduct2026EstimationAnalysis (standard)") {
     val subscription =
-      Fixtures.subscriptionFromJson("model/EstimationHandlerHelper/newspaper-2026/subscription.json")
+      Fixtures.subscriptionFromJson("model/EstimationAnalysisResult/newspaper-2026/subscription.json")
 
     // With that subscription we are expecting just one unambiguous billing period, we get a EARClearance
 
     assertEquals(
-      EstimationHandlerHelper.printProduct2026EstimationAnalysis(subscription, LocalDate.of(2026, 9, 10)),
+      EstimationAnalysisResult.printProduct2026EstimationAnalysis(subscription, LocalDate.of(2026, 9, 10)),
       EARClearance
     )
 
     assertEquals(
-      EstimationHandlerHelper.subscriptionEstimationAnalysis(
+      EstimationAnalysisResult.subscriptionEstimationAnalysis(
         CohortSpec("Print2026C1NPAnnualsUK", active = true),
         subscription,
         LocalDate.of(2026, 9, 10)
@@ -27,32 +27,32 @@ class EstimationHandlerHelperTest extends munit.FunSuite {
       EARClearance
     )
   }
-  test("EstimationHandlerHelper.printProduct2026EstimationAnalysis (oddity)") {
+  test("EstimationAnalysisResult.printProduct2026EstimationAnalysis (oddity)") {
     val subscription =
       Fixtures.subscriptionFromJson(
-        "model/EstimationHandlerHelper/newspaper-delivery-echo-legacy-multiple-billing-period-detection/subscription.json"
+        "model/EstimationAnalysisResult/newspaper-delivery-echo-legacy-multiple-billing-period-detection/subscription.json"
       )
 
     // Here we have an oddity, two different billing periods carried by the same rate plan
 
     assertEquals(
-      EstimationHandlerHelper.printProduct2026EstimationAnalysis(subscription, LocalDate.of(2026, 9, 10)),
-      EARPrintWithTwoBillingPeriods
+      EstimationAnalysisResult.printProduct2026EstimationAnalysis(subscription, LocalDate.of(2026, 9, 10)),
+      EARPrintWithMoreThanTwoBillingPeriods
     )
 
     assertEquals(
-      EstimationHandlerHelper.subscriptionEstimationAnalysis(
+      EstimationAnalysisResult.subscriptionEstimationAnalysis(
         CohortSpec("Print2026C1NPAnnualsUK", active = true),
         subscription,
         LocalDate.of(2026, 9, 10)
       ),
-      EARPrintWithTwoBillingPeriods
+      EARPrintWithMoreThanTwoBillingPeriods
     )
 
     // And to show that printProduct2026EstimationAnalysis is limited to the 2026 newspapers
 
     assertEquals(
-      EstimationHandlerHelper.subscriptionEstimationAnalysis(
+      EstimationAnalysisResult.subscriptionEstimationAnalysis(
         CohortSpec("Print2026C1GWQuarterliesUK", active = true),
         subscription,
         LocalDate.of(2026, 9, 10)
