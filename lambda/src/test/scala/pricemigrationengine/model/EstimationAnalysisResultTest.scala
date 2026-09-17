@@ -71,4 +71,26 @@ class EstimationAnalysisResultTest extends munit.FunSuite {
       Some(EARSubscriptionCancelled)
     )
   }
+  test("EstimationAnalysisResult.checkSubscriptionAutoRenewFlag (standard)") {
+    val subscription =
+      Fixtures.subscriptionFromJson(
+        "model/EstimationAnalysisResult/newspaper-2026/subscription.json"
+      )
+    // Status is active, so we get a None
+    assertEquals(
+      EstimationAnalysisResult.checkSubscriptionAutoRenewFlag(CheckInput(subscription, LocalDate.of(2026, 9, 10))),
+      None
+    )
+  }
+  test("EstimationAnalysisResult.checkSubscriptionAutoRenewFlag (Cancelled)") {
+    val subscription =
+      Fixtures.subscriptionFromJson(
+        "model/EstimationAnalysisResult/newspaper-2026-AutoRenewFlagFalse/subscription.json"
+      )
+    // Status is active, so we get a None
+    assertEquals(
+      EstimationAnalysisResult.checkSubscriptionAutoRenewFlag(CheckInput(subscription, LocalDate.of(2026, 9, 10))),
+      Some(EARSubscriptionAutoRenewFlagFalse)
+    )
+  }
 }
