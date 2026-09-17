@@ -10,17 +10,20 @@ object EARSubscriptionAutoRenewFlagFalse extends EstimationAnalysisResult
 object EARPrintWithZeroBillingPeriods extends EstimationAnalysisResult
 object EARPrintWithTwoBillingPeriods extends EstimationAnalysisResult
 
-case class DataPacket(subscription: ZuoraSubscription, today: LocalDate)
+case class CheckInput(subscription: ZuoraSubscription, today: LocalDate)
 
 object EstimationAnalysisResult {
 
-  def firstMatch[A, T](a: A, fs: List[A => Option[T]], default: T): T = {
+  def firstVetoElseDefault[A, T](a: A, fs: List[A => Option[T]], default: T): T = {
     // This evaluates the functions in order and return the `thing` from the first
     // Some(thing), and otherwise returns the default value
-    fs.iterator.map(_(a)).collectFirst { case Some(t) => t }.getOrElse(default)
+    fs.view
+      .flatMap(f => f(a))
+      .headOption
+      .getOrElse(default)
   }
 
-  def checkActiveRatePlanUniqueness(packet: DataPacket): Option[EstimationAnalysisResult] = {
+  def checkActiveRatePlanUniqueness(packet: CheckInput): Option[EstimationAnalysisResult] = {
     val sizeOpt: Option[Int] = for {
       ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
         packet.subscription,
@@ -35,7 +38,7 @@ object EstimationAnalysisResult {
     }
   }
 
-  def checkSubscriptionStatus(packet: DataPacket): Option[EstimationAnalysisResult] = {
+  def checkSubscriptionStatus(packet: CheckInput): Option[EstimationAnalysisResult] = {
     if (packet.subscription.status == "Cancelled") {
       Some(EARSubscriptionCancelled)
     } else {
@@ -43,7 +46,7 @@ object EstimationAnalysisResult {
     }
   }
 
-  def checkSubscriptionAutoRenewFlag(packet: DataPacket): Option[EstimationAnalysisResult] = {
+  def checkSubscriptionAutoRenewFlag(packet: CheckInput): Option[EstimationAnalysisResult] = {
     if (packet.subscription.autoRenew) {
       None
     } else {
@@ -56,12 +59,12 @@ object EstimationAnalysisResult {
       subscription: ZuoraSubscription,
       today: LocalDate
   ): EstimationAnalysisResult = {
-    val packet = DataPacket(subscription, today)
+    val packet = CheckInput(subscription, today)
 
-    val universalChecks: List[DataPacket => Option[EstimationAnalysisResult]] =
+    val universalChecks: List[CheckInput => Option[EstimationAnalysisResult]] =
       List(checkSubscriptionStatus, checkSubscriptionAutoRenewFlag)
 
-    val print2026Checks: List[DataPacket => Option[EstimationAnalysisResult]] =
+    val print2026Checks: List[CheckInput => Option[EstimationAnalysisResult]] =
       List(checkSubscriptionStatus, checkSubscriptionAutoRenewFlag, checkActiveRatePlanUniqueness)
 
     val checks = MigrationType(cohortSpec) match {
@@ -87,6 +90,6 @@ object EstimationAnalysisResult {
       case Print2026C6GWQuarterliesNonUK => universalChecks
     }
 
-    firstMatch(packet, checks, EARClearance)
+    firstVetoElseDefault(packet, checks, EARClearance)
   }
 }
