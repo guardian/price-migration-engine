@@ -76,7 +76,7 @@ class EstimationAnalysisResultTest extends munit.FunSuite {
       Fixtures.subscriptionFromJson(
         "model/EstimationAnalysisResult/newspaper-2026/subscription.json"
       )
-    // Status is active, so we get a None
+    // autoRenew: true
     assertEquals(
       EstimationAnalysisResult.checkSubscriptionAutoRenewFlag(CheckInput(subscription, LocalDate.of(2026, 9, 10))),
       None
@@ -87,10 +87,36 @@ class EstimationAnalysisResultTest extends munit.FunSuite {
       Fixtures.subscriptionFromJson(
         "model/EstimationAnalysisResult/newspaper-2026-AutoRenewFlagFalse/subscription.json"
       )
-    // Status is active, so we get a None
+    // autoRenew: false
     assertEquals(
       EstimationAnalysisResult.checkSubscriptionAutoRenewFlag(CheckInput(subscription, LocalDate.of(2026, 9, 10))),
       Some(EARSubscriptionAutoRenewFlagFalse)
+    )
+  }
+  test("EstimationAnalysisResult.subscriptionEstimationAnalysis (Cancelled)") {
+    // We are now going to look at a subscription that passes subscriptionEstimationAnalysis
+    // or not depending on the cohort name
+    val subscription =
+      Fixtures.subscriptionFromJson(
+        "model/EstimationAnalysisResult/newspaper-delivery-echo-legacy-multiple-billing-period-detection/subscription.json"
+      )
+
+    // The sub gets clearance with SupporterPlus2026
+    assertEquals(
+      EstimationAnalysisResult
+        .subscriptionEstimationAnalysis(CohortSpec("SupporterPlus2026", true), subscription, LocalDate.of(2026, 9, 17)),
+      EARClearance
+    )
+
+    // but not with Print2026C1NPAnnualsUK, because of the extra
+    // checkActiveRatePlanUniqueness
+    assertEquals(
+      EstimationAnalysisResult.subscriptionEstimationAnalysis(
+        CohortSpec("Print2026C1NPAnnualsUK", true),
+        subscription,
+        LocalDate.of(2026, 9, 17)
+      ),
+      EARPrintWithTwoBillingPeriods
     )
   }
 }
