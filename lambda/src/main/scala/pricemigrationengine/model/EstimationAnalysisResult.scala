@@ -5,26 +5,52 @@ import java.time.LocalDate
 sealed trait EstimationAnalysisResult
 object EARClearance extends EstimationAnalysisResult
 object EARMissingData extends EstimationAnalysisResult
+object EARSubscriptionCancelled extends EstimationAnalysisResult
+object EARSubscriptionAutoRenewFlagFalse extends EstimationAnalysisResult
 object EARPrintWithZeroBillingPeriods extends EstimationAnalysisResult
 object EARPrintWithMoreThanTwoBillingPeriods extends EstimationAnalysisResult
 
+case class CheckInput(subscription: ZuoraSubscription, today: LocalDate)
+
 object EstimationAnalysisResult {
 
-  def printProduct2026EstimationAnalysis(
-      subscription: ZuoraSubscription,
-      today: LocalDate
-  ): EstimationAnalysisResult = {
+  def firstDefined[A, T](a: A, fs: List[A => Option[T]], default: T): T = {
+    // This evaluates the functions in order and return the `thing` from the first
+    // Some(thing), and otherwise returns the default value
+    fs.view
+      .flatMap(f => f(a))
+      .headOption
+      .getOrElse(default)
+  }
+
+  def checkActiveRatePlanBillingPeriodsUniqueness(input: CheckInput): Option[EstimationAnalysisResult] = {
     val sizeOpt: Option[Int] = for {
       ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
-        subscription,
-        today
+        input.subscription,
+        input.today
       )
     } yield ZuoraRatePlan.ratePlanToChargesBillingPeriods(ratePlan).distinct.length
     sizeOpt match {
-      case None    => EARMissingData
-      case Some(0) => EARPrintWithZeroBillingPeriods
-      case Some(1) => EARClearance
-      case _       => EARPrintWithMoreThanTwoBillingPeriods
+      case None    => Some(EARMissingData)
+      case Some(0) => Some(EARPrintWithZeroBillingPeriods)
+      case Some(1) => None
+      case _       => Some(EARPrintWithMoreThanTwoBillingPeriods)
+    }
+  }
+
+  def checkSubscriptionStatus(input: CheckInput): Option[EstimationAnalysisResult] = {
+    if (input.subscription.status == "Cancelled") {
+      Some(EARSubscriptionCancelled)
+    } else {
+      None
+    }
+  }
+
+  def checkSubscriptionAutoRenewFlag(input: CheckInput): Option[EstimationAnalysisResult] = {
+    if (input.subscription.autoRenew) {
+      None
+    } else {
+      Some(EARSubscriptionAutoRenewFlagFalse)
     }
   }
 
@@ -33,27 +59,37 @@ object EstimationAnalysisResult {
       subscription: ZuoraSubscription,
       today: LocalDate
   ): EstimationAnalysisResult = {
-    MigrationType(cohortSpec) match {
-      case Test1                         => EARClearance
-      case GuardianWeekly2025            => EARClearance
-      case Newspaper2025P1               => EARClearance
-      case Newspaper2025P3               => EARClearance
-      case ProductMigration2025N4        => EARClearance
-      case Membership2025                => EARClearance
-      case DigiSubs2025                  => EARClearance
-      case SupporterPlus2026             => EARClearance
-      case Print2026C1GWAnnualsUK        => EARClearance
-      case Print2026C1GWQuarterliesUK    => EARClearance
-      case Print2026C1NPAnnualsUK        => printProduct2026EstimationAnalysis(subscription, today)
-      case Print2026C1NPQuarterliesUK    => printProduct2026EstimationAnalysis(subscription, today)
-      case Print2026C1NPSemiannualsUK    => printProduct2026EstimationAnalysis(subscription, today)
-      case Print2026C2NPMonthliesUK      => printProduct2026EstimationAnalysis(subscription, today)
-      case Print2026C3GWMonthliesUK      => EARClearance
-      case Print2026C3NPMonthliesUK      => printProduct2026EstimationAnalysis(subscription, today)
-      case Print2026C4NPMonthliesUK      => printProduct2026EstimationAnalysis(subscription, today)
-      case Print2026C5GW                 => EARClearance
-      case Print2026C5NP                 => printProduct2026EstimationAnalysis(subscription, today)
-      case Print2026C6GWQuarterliesNonUK => EARClearance
+    val checkInput = CheckInput(subscription, today)
+
+    val universalChecks: List[CheckInput => Option[EstimationAnalysisResult]] =
+      List(checkSubscriptionStatus, checkSubscriptionAutoRenewFlag)
+
+    val print2026Checks: List[CheckInput => Option[EstimationAnalysisResult]] =
+      List(checkSubscriptionStatus, checkSubscriptionAutoRenewFlag, checkActiveRatePlanBillingPeriodsUniqueness)
+
+    val checks = MigrationType(cohortSpec) match {
+      case Test1                         => universalChecks
+      case GuardianWeekly2025            => universalChecks
+      case Newspaper2025P1               => universalChecks
+      case Newspaper2025P3               => universalChecks
+      case ProductMigration2025N4        => universalChecks
+      case Membership2025                => universalChecks
+      case DigiSubs2025                  => universalChecks
+      case SupporterPlus2026             => universalChecks
+      case Print2026C1GWAnnualsUK        => universalChecks
+      case Print2026C1GWQuarterliesUK    => universalChecks
+      case Print2026C1NPAnnualsUK        => print2026Checks
+      case Print2026C1NPQuarterliesUK    => print2026Checks
+      case Print2026C1NPSemiannualsUK    => print2026Checks
+      case Print2026C2NPMonthliesUK      => print2026Checks
+      case Print2026C3GWMonthliesUK      => universalChecks
+      case Print2026C3NPMonthliesUK      => print2026Checks
+      case Print2026C4NPMonthliesUK      => print2026Checks
+      case Print2026C5GW                 => universalChecks
+      case Print2026C5NP                 => print2026Checks
+      case Print2026C6GWQuarterliesNonUK => universalChecks
     }
+
+    firstDefined(checkInput, checks, EARClearance)
   }
 }
