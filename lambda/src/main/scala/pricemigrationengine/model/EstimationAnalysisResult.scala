@@ -14,7 +14,7 @@ case class CheckInput(subscription: ZuoraSubscription, today: LocalDate)
 
 object EstimationAnalysisResult {
 
-  def firstVetoElseDefault[A, T](a: A, fs: List[A => Option[T]], default: T): T = {
+  def firstDefined[A, T](a: A, fs: List[A => Option[T]], default: T): T = {
     // This evaluates the functions in order and return the `thing` from the first
     // Some(thing), and otherwise returns the default value
     fs.view
@@ -90,6 +90,6 @@ object EstimationAnalysisResult {
       case Print2026C6GWQuarterliesNonUK => universalChecks
     }
 
-    firstVetoElseDefault(packet, checks, EARClearance)
+    firstDefined(packet, checks, EARClearance)
   }
 }

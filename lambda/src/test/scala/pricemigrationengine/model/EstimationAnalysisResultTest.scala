@@ -12,7 +12,7 @@ class EstimationAnalysisResultTest extends munit.FunSuite {
     val f2: Int => Option[String] = n => if (n > 5) Some("medium") else None
     val f3: Int => Option[String] = n => if (n > 0) Some("small") else None
     assertEquals(
-      EstimationAnalysisResult.firstVetoElseDefault(4, List(f1, f2, f3), "it wasn't vetoed"),
+      EstimationAnalysisResult.firstDefined(4, List(f1, f2, f3), "it wasn't vetoed"),
       "small"
     )
   }
@@ -22,7 +22,7 @@ class EstimationAnalysisResultTest extends munit.FunSuite {
     val f2: Int => Option[String] = n => if (n > 5) Some(s"medium: $n") else None
     val f3: Int => Option[String] = n => if (n > 0) Some(s"small: $n") else None
     assertEquals(
-      EstimationAnalysisResult.firstVetoElseDefault(-1, List(f1, f2, f3), "it wasn't vetoed"),
+      EstimationAnalysisResult.firstDefined(-1, List(f1, f2, f3), "it wasn't vetoed"),
       "it wasn't vetoed"
     )
   }
