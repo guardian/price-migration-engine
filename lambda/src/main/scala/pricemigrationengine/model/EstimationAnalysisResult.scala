@@ -8,7 +8,7 @@ object EARMissingData extends EstimationAnalysisResult
 object EARSubscriptionCancelled extends EstimationAnalysisResult
 object EARSubscriptionAutoRenewFlagFalse extends EstimationAnalysisResult
 object EARPrintWithZeroBillingPeriods extends EstimationAnalysisResult
-object EARPrintWithTwoBillingPeriods extends EstimationAnalysisResult
+object EARPrintWithMoreThanTwoBillingPeriods extends EstimationAnalysisResult
 
 case class CheckInput(subscription: ZuoraSubscription, today: LocalDate)
 
@@ -34,7 +34,7 @@ object EstimationAnalysisResult {
       case None    => Some(EARMissingData)
       case Some(0) => Some(EARPrintWithZeroBillingPeriods)
       case Some(1) => None
-      case _       => Some(EARPrintWithTwoBillingPeriods)
+      case _       => Some(EARPrintWithMoreThanTwoBillingPeriods)
     }
   }
 

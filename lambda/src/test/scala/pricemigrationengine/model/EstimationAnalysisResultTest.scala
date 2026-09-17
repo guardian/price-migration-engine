@@ -46,7 +46,7 @@ class EstimationAnalysisResultTest extends munit.FunSuite {
     // Here we have an oddity, two different billing periods carried by the same rate plan
     assertEquals(
       EstimationAnalysisResult.checkActiveRatePlanUniqueness(CheckInput(subscription, LocalDate.of(2026, 9, 10))),
-      Some(EARPrintWithTwoBillingPeriods)
+      Some(EARPrintWithMoreThanTwoBillingPeriods)
     )
   }
   test("EstimationAnalysisResult.checkSubscriptionStatus (standard)") {
@@ -116,7 +116,7 @@ class EstimationAnalysisResultTest extends munit.FunSuite {
         subscription,
         LocalDate.of(2026, 9, 17)
       ),
-      EARPrintWithTwoBillingPeriods
+      EARPrintWithMoreThanTwoBillingPeriods
     )
   }
 }
