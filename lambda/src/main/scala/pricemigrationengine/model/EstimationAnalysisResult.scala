@@ -6,7 +6,7 @@ sealed trait EstimationAnalysisResult
 object EARClearance extends EstimationAnalysisResult
 object EARMissingData extends EstimationAnalysisResult
 object EARPrintWithZeroBillingPeriods extends EstimationAnalysisResult
-object EARPrintWithTwoBillingPeriods extends EstimationAnalysisResult
+object EARPrintWithMoreThanTwoBillingPeriods extends EstimationAnalysisResult
 
 object EstimationAnalysisResult {
 
@@ -24,7 +24,7 @@ object EstimationAnalysisResult {
       case None    => EARMissingData
       case Some(0) => EARPrintWithZeroBillingPeriods
       case Some(1) => EARClearance
-      case _       => EARPrintWithTwoBillingPeriods
+      case _       => EARPrintWithMoreThanTwoBillingPeriods
     }
   }
 

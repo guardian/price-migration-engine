@@ -37,7 +37,7 @@ class EstimationAnalysisResultTest extends munit.FunSuite {
 
     assertEquals(
       EstimationAnalysisResult.printProduct2026EstimationAnalysis(subscription, LocalDate.of(2026, 9, 10)),
-      EARPrintWithTwoBillingPeriods
+      EARPrintWithMoreThanTwoBillingPeriods
     )
 
     assertEquals(
@@ -46,7 +46,7 @@ class EstimationAnalysisResultTest extends munit.FunSuite {
         subscription,
         LocalDate.of(2026, 9, 10)
       ),
-      EARPrintWithTwoBillingPeriods
+      EARPrintWithMoreThanTwoBillingPeriods
     )
 
     // And to show that printProduct2026EstimationAnalysis is limited to the 2026 newspapers
