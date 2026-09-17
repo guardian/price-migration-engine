@@ -57,10 +57,13 @@ object EstimationAnalysisResult {
       today: LocalDate
   ): EstimationAnalysisResult = {
     val packet = DataPacket(subscription, today)
+
     val universalChecks: List[DataPacket => Option[EstimationAnalysisResult]] =
       List(checkSubscriptionStatus, checkSubscriptionAutoRenewFlag)
+
     val print2026Checks: List[DataPacket => Option[EstimationAnalysisResult]] =
       List(checkSubscriptionStatus, checkSubscriptionAutoRenewFlag, checkActiveRatePlanUniqueness)
+
     MigrationType(cohortSpec) match {
       case Test1                         => firstMatch(packet, universalChecks, EARClearance)
       case GuardianWeekly2025            => firstMatch(packet, universalChecks, EARClearance)
