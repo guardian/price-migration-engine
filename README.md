@@ -34,6 +34,7 @@ It currently consists in
 - [Troubleshooting document](docs/troubleshooting.md)
 - [Quirks of the engine](docs/quirks.md)
 - [Extended checklists](docs/price-rise-extended-checklists.md)
+- [Which postal addresses to use for the letter notifications](docs/postal-addresses.md)
 
 ### Android Price Rises
 

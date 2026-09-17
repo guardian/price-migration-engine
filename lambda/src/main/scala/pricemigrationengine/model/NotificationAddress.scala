@@ -1,7 +1,7 @@
 package pricemigrationengine.model
 
-case class SalesforceAddress(
-    street: Option[String],
+case class NotificationAddress(
+    streetInformation: Option[String],
     city: Option[String],
     state: Option[String],
     postalCode: Option[String],

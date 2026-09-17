@@ -2,7 +2,6 @@ package pricemigrationengine.handlers
 
 import pricemigrationengine.model.CohortTableFilter._
 import pricemigrationengine.model._
-import pricemigrationengine.model.membershipworkflow._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
@@ -182,13 +181,22 @@ object NotificationHandler extends CohortHandler {
       sfSubscription <-
         Salesforce
           .getSubscriptionByName(cohortItem.subscriptionName)
-      contact <- Salesforce.getContact(sfSubscription.Buyer__c)
-      firstName <- ZIO.fromEither(NotificationHandlerHelper.decideFirstName(contact))
-      lastName <- ZIO.fromEither(requiredField(contact.LastName, "Contact.LastName"))
-      salesforceAddress <- ZIO.succeed(NotificationHandlerHelper.decideSalesforceAddress(contact))
-      street <- ZIO.fromEither(NotificationHandlerHelper.evaluateStreet(cohortSpec, salesforceAddress.street))
-      postalCode = salesforceAddress.postalCode.getOrElse("")
-      country <- ZIO.fromEither(NotificationHandlerHelper.decideCountry(cohortSpec, salesforceAddress))
+      zuoraAccount <- Zuora.fetchAccount(
+        zuoraSubscription.accountNumber,
+        zuoraSubscription.subscriptionNumber
+      )
+      salesforceContact <- Salesforce.getContact(sfSubscription.Buyer__c)
+      notificationAddress = NotificationHandlerHelper.buildNotificationAddress(
+        zuoraAccount.soldToContact,
+        salesforceContact
+      )
+      firstName <- ZIO.fromEither(NotificationHandlerHelper.decideFirstName(salesforceContact))
+      lastName <- ZIO.fromEither(requiredField(salesforceContact.LastName, "Contact.LastName"))
+      street <- ZIO.fromEither(
+        NotificationHandlerHelper.evaluateStreet(cohortSpec, notificationAddress.streetInformation)
+      )
+      postalCode = notificationAddress.postalCode.getOrElse("")
+      country <- ZIO.fromEither(NotificationHandlerHelper.decideCountry(cohortSpec, notificationAddress))
       amendmentEffectiveDate <- ZIO.fromEither(
         requiredField(cohortItem.amendmentEffectiveDate.map(_.toString()), "CohortItem.amendmentEffectiveDate")
       )
@@ -203,7 +211,7 @@ object NotificationHandler extends CohortHandler {
         .orElseFail(DataExtractionFailure(s"[cd945387] $cohortItem does not have a commsPrice"))
       commsPriceWithCurrencySymbol = s"${currencySymbol}${commsPrice}"
 
-      _ <- logMissingEmailAddress(cohortItem, contact)
+      _ <- logMissingEmailAddress(cohortItem, salesforceContact)
 
       // ----------------------------------------------------
       // Data for Newspaper2025P1
@@ -263,11 +271,11 @@ object NotificationHandler extends CohortHandler {
         )
 
       message = NotificationHandlerHelper.buildBrazeMessage(
-        contact,
+        salesforceContact,
         firstName,
         lastName,
         street,
-        salesforceAddress,
+        notificationAddress,
         postalCode,
         country,
         commsPriceWithCurrencySymbol,

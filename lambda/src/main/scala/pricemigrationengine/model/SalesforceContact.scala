@@ -8,5 +8,5 @@ case class SalesforceContact(
     FirstName: Option[String],
     LastName: Option[String],
     OtherAddress: Option[SalesforceAddress], // Billing address
-    MailingAddress: Option[SalesforceAddress] // Fallback address if no billing address available
+    MailingAddress: Option[SalesforceAddress]
 )

@@ -30,95 +30,9 @@ class NotificationHandlerHelperTest extends munit.FunSuite {
     assertEquals(NotificationHandlerHelper.isNonTrivialValue(Some("")), false)
     assertEquals(NotificationHandlerHelper.isNonTrivialValue(Some("thing")), true)
   }
-  test("SalesforceAddress") {
-    val address1 = SalesforceAddress(
-      street = Some("street"),
-      city = Some("city"),
-      state = Some("state"),
-      postalCode = Some("postalCode"),
-      country = Some("country")
-    )
-    val contact = SalesforceContact(
-      Id = "Id",
-      IdentityID__c = None,
-      Email = None,
-      Salutation = None,
-      FirstName = None,
-      LastName = None,
-      OtherAddress = Some(address1),
-      MailingAddress = None
-    )
-    // In this case OtherAddress if fine, going to be selected
-    assertEquals(NotificationHandlerHelper.decideSalesforceAddress(contact), address1)
-  }
-  test("SalesforceAddress") {
-    val address1 = SalesforceAddress(
-      street = Some("street"),
-      city = None,
-      state = Some("state"),
-      postalCode = Some("postalCode"),
-      country = Some("country")
-    )
-    val address2 = SalesforceAddress(
-      street = Some("street2"),
-      city = None,
-      state = Some("state2"),
-      postalCode = Some("postalCode2"),
-      country = Some("country2")
-    )
-    val contact = SalesforceContact(
-      Id = "Id",
-      IdentityID__c = None,
-      Email = None,
-      Salutation = None,
-      FirstName = None,
-      LastName = None,
-      OtherAddress = Some(address1),
-      MailingAddress = Some(address2)
-    )
-    // In this case OtherAddress is missing city, so MailingAddress, which is defined,
-    // is going to be selected, even if itself is also missing city
-    assertEquals(NotificationHandlerHelper.decideSalesforceAddress(contact), address2)
-  }
-  test("SalesforceAddress") {
-    val address1 = SalesforceAddress(
-      street = Some("street"),
-      city = None,
-      state = Some("state"),
-      postalCode = Some("postalCode"),
-      country = Some("country")
-    )
-    val contact = SalesforceContact(
-      Id = "Id",
-      IdentityID__c = None,
-      Email = None,
-      Salutation = None,
-      FirstName = None,
-      LastName = None,
-      OtherAddress = Some(address1),
-      MailingAddress = None
-    )
-    // Here we default to SalesforceAddress.addressWithEmptyStrings
-    // because OtherAddress is not selectable and MailingAddress is missing
-    assertEquals(NotificationHandlerHelper.decideSalesforceAddress(contact), SalesforceAddress.addressWithEmptyStrings)
-  }
-  test("SalesforceAddress") {
-    val contact = SalesforceContact(
-      Id = "Id",
-      IdentityID__c = None,
-      Email = None,
-      Salutation = None,
-      FirstName = None,
-      LastName = None,
-      OtherAddress = None,
-      MailingAddress = None
-    )
-    // Here we default to SalesforceAddress.addressWithEmptyStrings
-    assertEquals(NotificationHandlerHelper.decideSalesforceAddress(contact), SalesforceAddress.addressWithEmptyStrings)
-  }
   test("buildBrazeMessage") {
-    val address1 = SalesforceAddress(
-      street = Some("Kings Place, 90 York Way"),
+    val notificationAddress = NotificationAddress(
+      streetInformation = Some("Kings Place, 90 York Way"),
       city = Some("London"),
       state = None,
       postalCode = Some("N1 9GU"),
@@ -131,7 +45,15 @@ class NotificationHandlerHelperTest extends munit.FunSuite {
       Salutation = Some("Ms"),
       FirstName = Some("Luke"),
       LastName = Some("Skywalker"),
-      OtherAddress = Some(address1),
+      OtherAddress = Some(
+        SalesforceAddress(
+          street = Some("Kings Place, 90 York Way"),
+          city = Some("London"),
+          state = None,
+          postalCode = Some("N1 9GU"),
+          country = Some("United Kingdom")
+        )
+      ),
       MailingAddress = None
     )
     val cohortItem = CohortItem(
@@ -185,7 +107,7 @@ class NotificationHandlerHelperTest extends munit.FunSuite {
         firstName = "Luke",
         lastName = "Skywalker",
         street = "Kings Place, 90 York Way",
-        salesforceAddress = address1,
+        notificationAddress = notificationAddress,
         postalCode = "N1 9GU",
         country = "United Kingdom",
         commsPriceWithCurrencySymbol = "£12.50",
@@ -254,6 +176,327 @@ class NotificationHandlerHelperTest extends munit.FunSuite {
         DataExtensionName = "brazeName",
         SfContactId = "SfContactId",
         IdentityUserId = Some("IdentityID__c")
+      )
+    )
+  }
+  test("zuoraAccountSoldToContactToStreetInformation (1)") {
+    val zuoraAccountSoldToContact = ZuoraAccountSoldToContact(
+      address1 = Some("address1"),
+      address2 = Some("address2"),
+      city = Some("city"),
+      zipCode = Some("zipCode"),
+      state = None,
+      country = "United Kingdom"
+    )
+    assertEquals(
+      NotificationHandlerHelper.zuoraAccountSoldToContactToStreetInformation(
+        zuoraAccountSoldToContact
+      ),
+      Some("address1 / address2")
+    )
+  }
+  test("zuoraAccountSoldToContactToStreetInformation (2)") {
+    val zuoraAccountSoldToContact = ZuoraAccountSoldToContact(
+      address1 = None,
+      address2 = Some("address2"),
+      city = Some("city"),
+      zipCode = Some("zipCode"),
+      state = None,
+      country = "United Kingdom"
+    )
+    assertEquals(
+      NotificationHandlerHelper.zuoraAccountSoldToContactToStreetInformation(
+        zuoraAccountSoldToContact
+      ),
+      Some("address2")
+    )
+  }
+  test("zuoraAccountSoldToContactToStreetInformation (3)") {
+    val zuoraAccountSoldToContact = ZuoraAccountSoldToContact(
+      address1 = Some("address1"),
+      address2 = None,
+      city = Some("city"),
+      zipCode = Some("zipCode"),
+      state = None,
+      country = "United Kingdom"
+    )
+    assertEquals(
+      NotificationHandlerHelper.zuoraAccountSoldToContactToStreetInformation(
+        zuoraAccountSoldToContact
+      ),
+      Some("address1")
+    )
+  }
+  test("firstDefined (1)") {
+    val a: Option[String] = Some("a")
+    val b: Option[String] = Some("b")
+    val c: Option[String] = Some("c")
+    assertEquals(
+      NotificationHandlerHelper.firstDefined(a, b, c),
+      Some("a")
+    )
+  }
+  test("firstDefined (2)") {
+    val a: Option[String] = None
+    val b: Option[String] = None
+    val c: Option[String] = Some("c")
+    assertEquals(
+      NotificationHandlerHelper.firstDefined(a, b, c),
+      Some("c")
+    )
+  }
+  test("buildNotificationAddress (1)") {
+
+    // In this case zuoraAccountSoldToContact is sufficient, so it's going to be taken
+    // And cherry on the cake, both address1 and address2 are defined
+
+    val zuoraAccountSoldToContact = ZuoraAccountSoldToContact(
+      address1 = Some("address1"),
+      address2 = Some("address2"),
+      city = Some("city"),
+      zipCode = None,
+      state = None,
+      country = "United Kindgom"
+    )
+
+    val salesforceContact = SalesforceContact(
+      Id = "SfContactId",
+      IdentityID__c = Some("IdentityID__c"),
+      Email = Some("luke@resistance.org"),
+      Salutation = Some("Ms"),
+      FirstName = Some("Luke"),
+      LastName = Some("Skywalker"),
+      OtherAddress = Some(
+        SalesforceAddress(
+          street = Some("1600 Pennsylvania Avenue NW"),
+          city = Some("Washington"),
+          state = Some("DC"),
+          postalCode = Some("20500"),
+          country = Some("United States")
+        )
+      ),
+      MailingAddress = Some(
+        SalesforceAddress(
+          street = Some("Kings Place, 90 York Way"),
+          city = None, // missing information
+          state = None,
+          postalCode = Some("N1 9GU"),
+          country = Some("United Kingdom")
+        )
+      )
+    )
+    assertEquals(
+      NotificationHandlerHelper.buildNotificationAddress(zuoraAccountSoldToContact, salesforceContact),
+      NotificationAddress(
+        streetInformation = Some("address1 / address2"),
+        city = Some("city"),
+        state = None,
+        postalCode = None,
+        country = Some("United Kindgom")
+      )
+    )
+  }
+  test("buildNotificationAddress (2)") {
+
+    // In this case zuoraAccountSoldToContact is sufficient, so it's going to be taken
+    // Same as before but only address2 is defined
+
+    val zuoraAccountSoldToContact = ZuoraAccountSoldToContact(
+      address1 = None,
+      address2 = Some("address2"),
+      city = Some("city"),
+      zipCode = None,
+      state = None,
+      country = "United Kindgom"
+    )
+
+    val salesforceContact = SalesforceContact(
+      Id = "SfContactId",
+      IdentityID__c = Some("IdentityID__c"),
+      Email = Some("luke@resistance.org"),
+      Salutation = Some("Ms"),
+      FirstName = Some("Luke"),
+      LastName = Some("Skywalker"),
+      OtherAddress = Some(
+        SalesforceAddress(
+          street = Some("1600 Pennsylvania Avenue NW"),
+          city = Some("Washington"),
+          state = Some("DC"),
+          postalCode = Some("20500"),
+          country = Some("United States")
+        )
+      ),
+      MailingAddress = Some(
+        SalesforceAddress(
+          street = Some("Kings Place, 90 York Way"),
+          city = None, // missing information
+          state = None,
+          postalCode = Some("N1 9GU"),
+          country = Some("United Kingdom")
+        )
+      )
+    )
+    assertEquals(
+      NotificationHandlerHelper.buildNotificationAddress(zuoraAccountSoldToContact, salesforceContact),
+      NotificationAddress(
+        streetInformation = Some("address2"),
+        city = Some("city"),
+        state = None,
+        postalCode = None,
+        country = Some("United Kindgom")
+      )
+    )
+  }
+  test("buildNotificationAddress (3)") {
+
+    // Here zuoraAccountSoldToContact is going to break, so we fall
+    // back to salesforceContact' MailingAddress
+
+    val zuoraAccountSoldToContact = ZuoraAccountSoldToContact(
+      address1 = None,
+      address2 = None,
+      city = Some("city"),
+      zipCode = None,
+      state = None,
+      country = "United Kindgom"
+    )
+
+    val salesforceContact = SalesforceContact(
+      Id = "SfContactId",
+      IdentityID__c = Some("IdentityID__c"),
+      Email = Some("luke@resistance.org"),
+      Salutation = Some("Ms"),
+      FirstName = Some("Luke"),
+      LastName = Some("Skywalker"),
+      OtherAddress = Some(
+        SalesforceAddress(
+          street = Some("1600 Pennsylvania Avenue NW"),
+          city = Some("Washington"),
+          state = Some("DC"),
+          postalCode = Some("20500"),
+          country = Some("United States")
+        )
+      ),
+      MailingAddress = Some(
+        SalesforceAddress(
+          street = Some("Kings Place, 90 York Way"),
+          city = Some("London"),
+          state = None,
+          postalCode = Some("N1 9GU"),
+          country = Some("United Kingdom")
+        )
+      )
+    )
+    assertEquals(
+      NotificationHandlerHelper.buildNotificationAddress(zuoraAccountSoldToContact, salesforceContact),
+      NotificationAddress(
+        streetInformation = Some("Kings Place, 90 York Way"),
+        city = Some("London"),
+        state = None,
+        postalCode = Some("N1 9GU"),
+        country = Some("United Kingdom")
+      )
+    )
+  }
+  test("buildNotificationAddress (4)") {
+
+    // Here zuoraAccountSoldToContact is going to break, and
+    // salesforceContact' MailingAddress is also going to break, so we fall back to
+    // salesforceContact' OtherAddress
+
+    val zuoraAccountSoldToContact = ZuoraAccountSoldToContact(
+      address1 = None, // missing information
+      address2 = None, // missing information
+      city = Some("city"),
+      zipCode = None,
+      state = None,
+      country = "United Kindgom"
+    )
+
+    val salesforceContact = SalesforceContact(
+      Id = "SfContactId",
+      IdentityID__c = Some("IdentityID__c"),
+      Email = Some("luke@resistance.org"),
+      Salutation = Some("Ms"),
+      FirstName = Some("Luke"),
+      LastName = Some("Skywalker"),
+      OtherAddress = Some(
+        SalesforceAddress(
+          street = Some("1600 Pennsylvania Avenue NW"),
+          city = Some("Washington"),
+          state = Some("DC"),
+          postalCode = Some("20500"),
+          country = Some("United States")
+        )
+      ),
+      MailingAddress = Some(
+        SalesforceAddress(
+          street = Some("Kings Place, 90 York Way"),
+          city = None, // missing information
+          state = None,
+          postalCode = Some("N1 9GU"),
+          country = Some("United Kingdom")
+        )
+      )
+    )
+    assertEquals(
+      NotificationHandlerHelper.buildNotificationAddress(zuoraAccountSoldToContact, salesforceContact),
+      NotificationAddress(
+        streetInformation = Some("1600 Pennsylvania Avenue NW"),
+        city = Some("Washington"),
+        state = Some("DC"),
+        postalCode = Some("20500"),
+        country = Some("United States")
+      )
+    )
+  }
+  test("buildNotificationAddress (5)") {
+
+    // Here everything breaks, so we return the empty NotificationAddress
+
+    val zuoraAccountSoldToContact = ZuoraAccountSoldToContact(
+      address1 = None, // missing information
+      address2 = None, // missing information
+      city = Some("city"),
+      zipCode = None,
+      state = None,
+      country = "United Kindgom"
+    )
+
+    val salesforceContact = SalesforceContact(
+      Id = "SfContactId",
+      IdentityID__c = Some("IdentityID__c"),
+      Email = Some("luke@resistance.org"),
+      Salutation = Some("Ms"),
+      FirstName = Some("Luke"),
+      LastName = Some("Skywalker"),
+      OtherAddress = Some(
+        SalesforceAddress(
+          street = None, // missing information,
+          city = None, // missing information
+          state = Some("DC"),
+          postalCode = Some("20500"),
+          country = Some("United States")
+        )
+      ),
+      MailingAddress = Some(
+        SalesforceAddress(
+          street = None, // missing information,
+          city = Some("Washington"),
+          state = None,
+          postalCode = Some("N1 9GU"),
+          country = Some("United Kingdom")
+        )
+      )
+    )
+    assertEquals(
+      NotificationHandlerHelper.buildNotificationAddress(zuoraAccountSoldToContact, salesforceContact),
+      NotificationAddress(
+        streetInformation = None,
+        city = None,
+        state = None,
+        postalCode = None,
+        country = None
       )
     )
   }
