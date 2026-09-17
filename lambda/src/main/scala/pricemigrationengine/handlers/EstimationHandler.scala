@@ -110,19 +110,18 @@ object EstimationHandler extends CohortHandler {
     // Nov 2025 as part as setting up DigiSubs2025. We can also simplify the signature
     // of `computeEstimationData` in the future.
     for {
-      subscription <-
-        Zuora
-          .fetchSubscription(item.subscriptionName)
-          .filterOrFail(_.status != "Cancelled")(
-            SubscriptionCancelledInZuoraFailure(s"subscription ${item.subscriptionName} has been cancelled in Zuora")
-          )
-          .filterOrFail(_.autoRenew)(
-            SubscriptionAutoRenewIsFalseFailure(s"subscription ${item.subscriptionName} autoRenew flag is false")
-          )
+      subscription <- Zuora.fetchSubscription(item.subscriptionName)
 
       // This section performs the Estimation step clearance and handling of the results
-      _ <- EstimationHandlerHelper.subscriptionEstimationAnalysis(cohortSpec, subscription, today) match {
-        case EARClearance   => ZIO.unit
+      _ <- EstimationAnalysisResult.subscriptionEstimationAnalysis(cohortSpec, subscription, today) match {
+        case EARSubscriptionCancelled =>
+          ZIO.fail(
+            SubscriptionCancelledInZuoraFailure(s"subscription ${item.subscriptionName} has been cancelled in Zuora")
+          )
+        case EARSubscriptionAutoRenewFlagFalse =>
+          ZIO.fail(
+            SubscriptionAutoRenewIsFalseFailure(s"subscription ${item.subscriptionName} autoRenew flag is false")
+          )
         case EARMissingData =>
           ZIO.fail(
             DataExtractionFailure(s"[cfe5c48e] EARMissingData for subscription ${item.subscriptionName}")
@@ -139,6 +138,7 @@ object EstimationHandler extends CohortHandler {
               s"[3fdd40ce] EARPrintWithTwoBillingPeriods for subscription ${item.subscriptionName}"
             )
           )
+        case EARClearance => ZIO.unit
       }
 
       account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
