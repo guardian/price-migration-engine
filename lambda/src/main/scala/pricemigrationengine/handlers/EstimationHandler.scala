@@ -122,7 +122,6 @@ object EstimationHandler extends CohortHandler {
 
       // This section performs the Estimation step clearance and handling of the results
       _ <- EstimationAnalysisResult.subscriptionEstimationAnalysis(cohortSpec, subscription, today) match {
-        case EARClearance   => ZIO.unit
         case EARMissingData =>
           ZIO.fail(
             DataExtractionFailure(s"[cfe5c48e] EARMissingData for subscription ${item.subscriptionName}")
@@ -139,6 +138,7 @@ object EstimationHandler extends CohortHandler {
               s"[3fdd40ce] EARPrintWithTwoBillingPeriods for subscription ${item.subscriptionName}"
             )
           )
+        case EARClearance => ZIO.unit
       }
 
       account <- Zuora.fetchAccount(subscription.accountNumber, subscription.subscriptionNumber)
