@@ -64,27 +64,29 @@ object EstimationAnalysisResult {
     val print2026Checks: List[DataPacket => Option[EstimationAnalysisResult]] =
       List(checkSubscriptionStatus, checkSubscriptionAutoRenewFlag, checkActiveRatePlanUniqueness)
 
-    MigrationType(cohortSpec) match {
-      case Test1                         => firstMatch(packet, universalChecks, EARClearance)
-      case GuardianWeekly2025            => firstMatch(packet, universalChecks, EARClearance)
-      case Newspaper2025P1               => firstMatch(packet, universalChecks, EARClearance)
-      case Newspaper2025P3               => firstMatch(packet, universalChecks, EARClearance)
-      case ProductMigration2025N4        => firstMatch(packet, universalChecks, EARClearance)
-      case Membership2025                => firstMatch(packet, universalChecks, EARClearance)
-      case DigiSubs2025                  => firstMatch(packet, universalChecks, EARClearance)
-      case SupporterPlus2026             => firstMatch(packet, universalChecks, EARClearance)
-      case Print2026C1GWAnnualsUK        => firstMatch(packet, universalChecks, EARClearance)
-      case Print2026C1GWQuarterliesUK    => firstMatch(packet, universalChecks, EARClearance)
-      case Print2026C1NPAnnualsUK        => firstMatch(packet, print2026Checks, EARClearance)
-      case Print2026C1NPQuarterliesUK    => firstMatch(packet, print2026Checks, EARClearance)
-      case Print2026C1NPSemiannualsUK    => firstMatch(packet, print2026Checks, EARClearance)
-      case Print2026C2NPMonthliesUK      => firstMatch(packet, print2026Checks, EARClearance)
-      case Print2026C3GWMonthliesUK      => firstMatch(packet, universalChecks, EARClearance)
-      case Print2026C3NPMonthliesUK      => firstMatch(packet, print2026Checks, EARClearance)
-      case Print2026C4NPMonthliesUK      => firstMatch(packet, print2026Checks, EARClearance)
-      case Print2026C5GW                 => firstMatch(packet, universalChecks, EARClearance)
-      case Print2026C5NP                 => firstMatch(packet, print2026Checks, EARClearance)
-      case Print2026C6GWQuarterliesNonUK => firstMatch(packet, universalChecks, EARClearance)
+    val checks = MigrationType(cohortSpec) match {
+      case Test1                         => universalChecks
+      case GuardianWeekly2025            => universalChecks
+      case Newspaper2025P1               => universalChecks
+      case Newspaper2025P3               => universalChecks
+      case ProductMigration2025N4        => universalChecks
+      case Membership2025                => universalChecks
+      case DigiSubs2025                  => universalChecks
+      case SupporterPlus2026             => universalChecks
+      case Print2026C1GWAnnualsUK        => universalChecks
+      case Print2026C1GWQuarterliesUK    => universalChecks
+      case Print2026C1NPAnnualsUK        => print2026Checks
+      case Print2026C1NPQuarterliesUK    => print2026Checks
+      case Print2026C1NPSemiannualsUK    => print2026Checks
+      case Print2026C2NPMonthliesUK      => print2026Checks
+      case Print2026C3GWMonthliesUK      => universalChecks
+      case Print2026C3NPMonthliesUK      => print2026Checks
+      case Print2026C4NPMonthliesUK      => print2026Checks
+      case Print2026C5GW                 => universalChecks
+      case Print2026C5NP                 => print2026Checks
+      case Print2026C6GWQuarterliesNonUK => universalChecks
     }
+
+    firstMatch(packet, checks, EARClearance)
   }
 }
