@@ -76,7 +76,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     // the migration. This is going to result in a NoPriceIncrease processing state.
   }
 
-  test("EstimationResult for 01") {
+  test("EstimationData for 01") {
     // 01 : Digital Pack Monthly   : 15/06/2016 : Monthly
     val subscription = Fixtures.subscriptionFromJson("Migrations/DigiSubs2025/01/subscription.json")
     val account = Fixtures.accountFromJson("Migrations/DigiSubs2025/01/account.json")
@@ -88,7 +88,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     val today = LocalDate.of(2026, 1, 1)
 
     assertEquals(
-      EstimationResult
+      EstimationData
         .apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec, today),
       Right(
         EstimationData(
@@ -105,7 +105,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     )
   }
 
-  test("EstimationResult for 02") {
+  test("EstimationData for 02") {
     // 02 : Digital Pack Quarterly : 14/06/2016 : Quarterly
     val subscription = Fixtures.subscriptionFromJson("Migrations/DigiSubs2025/02/subscription.json")
     val account = Fixtures.accountFromJson("Migrations/DigiSubs2025/02/account.json")
@@ -117,7 +117,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     val today = LocalDate.of(2026, 1, 1)
 
     assertEquals(
-      EstimationResult
+      EstimationData
         .apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec, today),
       Right(
         EstimationData(
@@ -134,7 +134,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     )
   }
 
-  test("EstimationResult for 03") {
+  test("EstimationData for 03") {
     // 03 : Digital Pack Annual    : 12/09/2025 : Annually
     val subscription = Fixtures.subscriptionFromJson("Migrations/DigiSubs2025/03/subscription.json")
     val account = Fixtures.accountFromJson("Migrations/DigiSubs2025/03/account.json")
@@ -146,7 +146,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     val today = LocalDate.of(2026, 1, 1)
 
     assertEquals(
-      EstimationResult
+      EstimationData
         .apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec, today),
       Right(
         EstimationData(
@@ -163,7 +163,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     )
   }
 
-  test("EstimationResult for 04") {
+  test("EstimationData for 04") {
     // 04 : Digital Pack Monthly   : 19/11/2025 : Monthly
     val subscription = Fixtures.subscriptionFromJson("Migrations/DigiSubs2025/04/subscription.json")
     val account = Fixtures.accountFromJson("Migrations/DigiSubs2025/04/account.json")
@@ -175,7 +175,7 @@ class DigiSubs2025MigrationTest extends munit.FunSuite {
     val today = LocalDate.of(2026, 1, 1)
 
     assertEquals(
-      EstimationResult
+      EstimationData
         .apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec, today),
       Right(
         EstimationData(

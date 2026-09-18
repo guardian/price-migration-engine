@@ -174,7 +174,7 @@ object EstimationHandler extends CohortHandler {
         s"item: ${item.toString}, amendmentEffectiveDateLowerBound: ${amendmentEffectiveDateLowerBound}"
       )
       estimationData <- ZIO.fromEither(
-        EstimationResult(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec, today)
+        EstimationData(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec, today)
       )
       _ <- Logging.info(s"item: ${item.toString}, estimation data: ${estimationData}")
     } yield estimationData
@@ -188,13 +188,13 @@ object EstimationHandler extends CohortHandler {
       MigrationType(cohortSpec) match {
         case ProductMigration2025N4 => {
           // For N4 we expect the estimated new price to be equal to the old price
-          // We are not performing a NoPriceIncreaseEstimationResult
-          CohortItem.fromSuccessfulEstimationResult(estimationData)
+          // We are not performing a NoPriceIncrease
+          CohortItem.fromSuccessfulEstimationData(estimationData)
         }
         case _ => {
           if (estimationData.newPriceFull <= estimationData.oldPrice)
-            CohortItem.fromNoPriceIncreaseEstimationResult(estimationData)
-          else CohortItem.fromSuccessfulEstimationResult(estimationData)
+            CohortItem.fromNoPriceIncreaseEstimationData(estimationData)
+          else CohortItem.fromSuccessfulEstimationData(estimationData)
         }
       }
     for {

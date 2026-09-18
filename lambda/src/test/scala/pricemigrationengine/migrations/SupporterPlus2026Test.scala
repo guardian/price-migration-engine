@@ -629,7 +629,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
   }
 
-  test("EstimationResult (1)") {
+  test("EstimationData (1)") {
 
     // Monthly,USD
     // Acquired in 30 Jun 2026, used to test the basic 1 year policy.
@@ -644,7 +644,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     val today = LocalDate.of(2026, 7, 1)
 
     assertEquals(
-      EstimationResult
+      EstimationData
         .apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec, today),
       Right(
         EstimationData(
@@ -660,7 +660,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
   }
 
-  test("EstimationResult (2)") {
+  test("EstimationData (2)") {
 
     // Monthly,USD
     // Acquired in 30 Jun 2026, used to test the basic 1 year policy.
@@ -685,7 +685,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
     // is not affecting it
 
     assertEquals(
-      EstimationResult
+      EstimationData
         .apply(account, subscription, invoicePreview, amendmentEffectiveDateLowerBound, cohortSpec, today),
       Right(
         EstimationData(
