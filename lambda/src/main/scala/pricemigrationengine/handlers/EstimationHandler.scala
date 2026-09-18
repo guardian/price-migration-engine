@@ -83,13 +83,13 @@ object EstimationHandler extends CohortHandler {
     } yield ()
   }
 
+  /** Return a boolean indicating whether we should then pursue with
+    * computing the estimation data and update the cohort item.
+    */
   def evaluateEstimationAnalysis(
       item: CohortItem,
       estimationAnalysis: EstimationAnalysisResult
   ): ZIO[Zuora with Logging with CohortTable, Failure, Boolean] = {
-
-    // The boolean indicates whether we are pursuing with standard processing of the item
-    // after the evaluation of the EstimationAnalysisResult.
 
     // Note that in some cases we ZIO.fail which interrupts the handler. In those cases
     // we want to alert and investigate before pursuing with other items.
