@@ -62,8 +62,7 @@ case class CohortItem(
 )
 
 object CohortItem {
-
-  def fromSuccessfulEstimationResult(result: EstimationData): UIO[CohortItem] =
+  def fromSuccessfulEstimationData(result: EstimationData): UIO[CohortItem] =
     for {
       thisInstant <- Clock.instant
     } yield CohortItem(
@@ -78,17 +77,6 @@ object CohortItem {
       whenEstimationDone = Some(thisInstant)
     )
 
-  def fromNoPriceIncreaseEstimationResult(result: EstimationData): UIO[CohortItem] =
-    fromSuccessfulEstimationResult(result).map(_.copy(processingStage = NoPriceIncrease))
-
-  def billingPeriodToInt(period: String): Int = {
-    // This function is used to convert a CohortItem's billingPeriod in to the number of months
-    // that the billing period represents.
-    BillingPeriod.fromString(period) match {
-      case Monthly    => 1
-      case Quarterly  => 3
-      case SemiAnnual => 6
-      case Annual     => 12
-    }
-  }
+  def fromNoPriceIncreaseEstimationData(result: EstimationData): UIO[CohortItem] =
+    fromSuccessfulEstimationData(result).map(_.copy(processingStage = NoPriceIncrease))
 }
