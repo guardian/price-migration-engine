@@ -58,11 +58,15 @@ object EstimationHandler extends CohortHandler {
     for {
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
 
-      estimationAnalysis = EstimationAnalysisResult.subscriptionEstimationAnalysis(cohortSpec, subscription, today)
+      analysisResult = SubscriptionEstimationAnalysisResult.subscriptionEstimationAnalysis(
+        cohortSpec,
+        subscription,
+        today
+      )
 
       status <- evaluateEstimationAnalysis(
         item,
-        estimationAnalysis
+        analysisResult
       )
 
       _ <- ZIO.when(status) {
@@ -73,9 +77,7 @@ object EstimationHandler extends CohortHandler {
             subscription,
             today,
           )
-
           _ <- Logging.info(s"item: ${item.toString}, estimation result: ${estimationData}")
-
           _ <- sendEstimationDataToTable(cohortSpec, estimationData)
         } yield ()
       }
@@ -88,7 +90,7 @@ object EstimationHandler extends CohortHandler {
     */
   def evaluateEstimationAnalysis(
       item: CohortItem,
-      estimationAnalysis: EstimationAnalysisResult
+      estimationAnalysis: SubscriptionEstimationAnalysisResult
   ): ZIO[Zuora with Logging with CohortTable, Failure, Boolean] = {
 
     // Note that in some cases we ZIO.fail which interrupts the handler. In those cases

@@ -2,17 +2,17 @@ package pricemigrationengine.model
 
 import java.time.LocalDate
 
-sealed trait EstimationAnalysisResult
-object EARClearance extends EstimationAnalysisResult
-object EARMissingData extends EstimationAnalysisResult
-object EARSubscriptionCancelled extends EstimationAnalysisResult
-object EARSubscriptionAutoRenewFlagFalse extends EstimationAnalysisResult
-object EARPrintWithZeroBillingPeriods extends EstimationAnalysisResult
-object EARPrintWithMoreThanTwoBillingPeriods extends EstimationAnalysisResult
+sealed trait SubscriptionEstimationAnalysisResult
+object EARClearance extends SubscriptionEstimationAnalysisResult
+object EARMissingData extends SubscriptionEstimationAnalysisResult
+object EARSubscriptionCancelled extends SubscriptionEstimationAnalysisResult
+object EARSubscriptionAutoRenewFlagFalse extends SubscriptionEstimationAnalysisResult
+object EARPrintWithZeroBillingPeriods extends SubscriptionEstimationAnalysisResult
+object EARPrintWithMoreThanTwoBillingPeriods extends SubscriptionEstimationAnalysisResult
 
 case class CheckInput(subscription: ZuoraSubscription, today: LocalDate)
 
-object EstimationAnalysisResult {
+object SubscriptionEstimationAnalysisResult {
 
   def firstDefined[A, T](a: A, fs: List[A => Option[T]], default: T): T = {
     // This evaluates the functions in order and return the `thing` from the first
@@ -23,7 +23,7 @@ object EstimationAnalysisResult {
       .getOrElse(default)
   }
 
-  def checkActiveRatePlanBillingPeriodsUniqueness(input: CheckInput): Option[EstimationAnalysisResult] = {
+  def checkActiveRatePlanBillingPeriodsUniqueness(input: CheckInput): Option[SubscriptionEstimationAnalysisResult] = {
     val sizeOpt: Option[Int] = for {
       ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
         input.subscription,
@@ -38,7 +38,7 @@ object EstimationAnalysisResult {
     }
   }
 
-  def checkSubscriptionStatus(input: CheckInput): Option[EstimationAnalysisResult] = {
+  def checkSubscriptionStatus(input: CheckInput): Option[SubscriptionEstimationAnalysisResult] = {
     if (input.subscription.status == "Cancelled") {
       Some(EARSubscriptionCancelled)
     } else {
@@ -46,7 +46,7 @@ object EstimationAnalysisResult {
     }
   }
 
-  def checkSubscriptionAutoRenewFlag(input: CheckInput): Option[EstimationAnalysisResult] = {
+  def checkSubscriptionAutoRenewFlag(input: CheckInput): Option[SubscriptionEstimationAnalysisResult] = {
     if (input.subscription.autoRenew) {
       None
     } else {
@@ -58,13 +58,13 @@ object EstimationAnalysisResult {
       cohortSpec: CohortSpec,
       subscription: ZuoraSubscription,
       today: LocalDate
-  ): EstimationAnalysisResult = {
+  ): SubscriptionEstimationAnalysisResult = {
     val checkInput = CheckInput(subscription, today)
 
-    val universalChecks: List[CheckInput => Option[EstimationAnalysisResult]] =
+    val universalChecks: List[CheckInput => Option[SubscriptionEstimationAnalysisResult]] =
       List(checkSubscriptionStatus, checkSubscriptionAutoRenewFlag)
 
-    val print2026Checks: List[CheckInput => Option[EstimationAnalysisResult]] =
+    val print2026Checks: List[CheckInput => Option[SubscriptionEstimationAnalysisResult]] =
       List(checkSubscriptionStatus, checkSubscriptionAutoRenewFlag, checkActiveRatePlanBillingPeriodsUniqueness)
 
     val checks = MigrationType(cohortSpec) match {
