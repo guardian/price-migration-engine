@@ -12,37 +12,37 @@ object T1xSaturday extends T1xNewspaperPackageLeg
 object T1xSunday extends T1xNewspaperPackageLeg
 object T1xDigitalPack extends T1xNewspaperPackageLeg
 
-sealed trait NewspaperPackage
-object NPPxSixDay extends NewspaperPackage
-object NPPxWeekend extends NewspaperPackage
-object NPPxSunday extends NewspaperPackage
-object NPPxFiveday extends NewspaperPackage
-object NPPxEveryday extends NewspaperPackage // aka as Multiday
-object NPPxSixDayPlus extends NewspaperPackage
-object NPPxWeekendPlus extends NewspaperPackage
-object NPPxSundayPlus extends NewspaperPackage
-object NPPxFivedayPlus extends NewspaperPackage
-object NPPxEverydayPlus extends NewspaperPackage
+sealed trait T2xNewspaperPackage
+object T2xSixDay extends T2xNewspaperPackage
+object T2xWeekend extends T2xNewspaperPackage
+object T2xSunday extends T2xNewspaperPackage
+object T2xFiveday extends T2xNewspaperPackage
+object T2xEveryday extends T2xNewspaperPackage // aka as Multiday
+object T2xSixDayPlus extends T2xNewspaperPackage
+object T2xWeekendPlus extends T2xNewspaperPackage
+object T2xSundayPlus extends T2xNewspaperPackage
+object T2xFivedayPlus extends T2xNewspaperPackage
+object T2xEverydayPlus extends T2xNewspaperPackage
 
-sealed trait NPDeliveryCategory
-object NewspaperDelivery extends NPDeliveryCategory
-object NewspaperNationalDelivery extends NPDeliveryCategory
-object NewspaperVoucher extends NPDeliveryCategory
-object NewspaperDigitalVoucher extends NPDeliveryCategory
+sealed trait T3xDeliveryCategory
+object T3xNewspaperDelivery extends T3xDeliveryCategory
+object T3xNewspaperNationalDelivery extends T3xDeliveryCategory
+object T3xNewspaperVoucher extends T3xDeliveryCategory
+object T3xNewspaperDigitalVoucher extends T3xDeliveryCategory
 
-case class NNPLegPercentage(leg: T1xNewspaperPackageLeg, percentage: BigDecimal)
+case class T4xLegPercentage(leg: T1xNewspaperPackageLeg, percentage: BigDecimal)
 
 object NewspaperLegPercentageDistribution {
   val newspaperNationalDeliveryLegPercentageMapping
-      : Map[(NPDeliveryCategory, NewspaperPackage), List[NNPLegPercentage]] = Map(
-    (NewspaperNationalDelivery, NPPxEveryday) -> List(
-      NNPLegPercentage(T1xMonday, BigDecimal(13.2)),
-      NNPLegPercentage(T1xTuesday, BigDecimal(13.2)),
-      NNPLegPercentage(T1xWednesday, BigDecimal(13.2)),
-      NNPLegPercentage(T1xThursday, BigDecimal(13.2)),
-      NNPLegPercentage(T1xFriday, BigDecimal(13.2)),
-      NNPLegPercentage(T1xSaturday, BigDecimal(17.0)),
-      NNPLegPercentage(T1xSunday, BigDecimal(17.0))
+      : Map[(T3xDeliveryCategory, T2xNewspaperPackage), List[T4xLegPercentage]] = Map(
+    (T3xNewspaperNationalDelivery, T2xEveryday) -> List(
+      T4xLegPercentage(T1xMonday, BigDecimal(13.2)),
+      T4xLegPercentage(T1xTuesday, BigDecimal(13.2)),
+      T4xLegPercentage(T1xWednesday, BigDecimal(13.2)),
+      T4xLegPercentage(T1xThursday, BigDecimal(13.2)),
+      T4xLegPercentage(T1xFriday, BigDecimal(13.2)),
+      T4xLegPercentage(T1xSaturday, BigDecimal(17.0)),
+      T4xLegPercentage(T1xSunday, BigDecimal(17.0))
     )
   )
 }
