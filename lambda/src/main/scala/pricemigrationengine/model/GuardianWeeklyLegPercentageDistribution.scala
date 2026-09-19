@@ -18,7 +18,7 @@ object GWD6For6 extends GuardianWeeklyDeliverySchedule
 case class GWDistribution(gardianWeeklyLeg: BigDecimal, digitalPackLeg: BigDecimal)
 
 object GuardianWeeklyLegPercentageDistribution {
-  val monthDistributions: Map[(Currency, SubscriptionLocalisation), GWDistribution] = Map(
+  val monthDistributions: Map[(Currency, PricingLocalisation), GWDistribution] = Map(
     ("GPB", Domestic) -> GWDistribution(BigDecimal(60.5), BigDecimal(39.5)),
     ("EUR", Domestic) -> GWDistribution(BigDecimal(67.9), BigDecimal(32.1)),
     ("USD", RestOfWorld) -> GWDistribution(BigDecimal(57.7), BigDecimal(42.3))
