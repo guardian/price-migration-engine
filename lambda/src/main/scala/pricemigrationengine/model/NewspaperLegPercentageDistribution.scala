@@ -17,7 +17,7 @@ object T2xSixDay extends T2xNewspaperPackage
 object T2xWeekend extends T2xNewspaperPackage
 object T2xSunday extends T2xNewspaperPackage
 object T2xFiveday extends T2xNewspaperPackage
-object T2xEveryday extends T2xNewspaperPackage // aka as Multiday
+object T2xEveryday extends T2xNewspaperPackage // aka Multiday
 object T2xSixDayPlus extends T2xNewspaperPackage
 object T2xWeekendPlus extends T2xNewspaperPackage
 object T2xSundayPlus extends T2xNewspaperPackage
