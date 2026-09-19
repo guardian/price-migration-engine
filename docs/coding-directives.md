@@ -65,4 +65,3 @@ object T3xNewspaperDigitalVoucher extends T3xDeliveryCategory
 ```
 
 Using the same unique prefix for both is very convenient. The convention is that `T3x` is completely unique to this particular definition. For the next definition, we would naturally use the prefix `T4x`, etc.
-
