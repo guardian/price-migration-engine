@@ -121,7 +121,7 @@ object GuardianWeekly2025Migration {
   }
 
   def priceLookUp(
-      localisation: SubscriptionLocalisation,
+      localisation: PricingLocalisation,
       billingPeriod: BillingPeriod,
       currency: String
   ): Option[BigDecimal] = {

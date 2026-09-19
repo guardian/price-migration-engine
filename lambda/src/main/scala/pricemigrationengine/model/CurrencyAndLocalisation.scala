@@ -16,11 +16,11 @@ package pricemigrationengine.model
   the rate plan and derive the currency. The location is read from the account.
  */
 
-sealed trait SubscriptionLocalisation
-object Domestic extends SubscriptionLocalisation
-object RestOfWorld extends SubscriptionLocalisation
+sealed trait PricingLocalisation
+object Domestic extends PricingLocalisation
+object RestOfWorld extends PricingLocalisation
 
-case class CurrencyAndLocalisation(currency: String, localisation: SubscriptionLocalisation)
+case class CurrencyAndLocalisation(currency: String, localisation: PricingLocalisation)
 
 object CurrencyAndLocalisation {
   def determineSubscriptionCurrencyAndLocalisation(
