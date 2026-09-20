@@ -1,7 +1,7 @@
 package pricemigrationengine.model
 
 import pricemigrationengine.handlers.NotificationHandler
-import pricemigrationengine.migrations.{Newspaper2025P1Migration, Newspaper2025P3Migration, SupporterPlus2026Migration}
+import pricemigrationengine.migrations.{Newspaper2025P3Migration, SupporterPlus2026Migration}
 import scala.util.Random
 import java.time.LocalDate
 
@@ -29,7 +29,6 @@ object AmendmentEffectiveDateCalculator {
   ): Option[LocalDate] = {
     MigrationType(cohortSpec) match {
       case Test1                  => None // default value
-      case Newspaper2025P1        => Newspaper2025P1Migration.subscriptionToLastPriceMigrationDate(subscription, today)
       case Newspaper2025P3        => Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate(subscription, today)
       case Membership2025         => None
       case DigiSubs2025           => None
@@ -91,7 +90,6 @@ object AmendmentEffectiveDateCalculator {
     if (isMonthlySubscription(subscription, invoicePreview)) {
       MigrationType(cohortSpec) match {
         case Test1                         => 1 // default value
-        case Newspaper2025P1               => 1 // no spread for Newspaper 2025
         case Newspaper2025P3               => 1 // no spread for Newspaper 2025 (Phase 3)
         case Membership2025                => 1
         case DigiSubs2025                  => 3 // 3 Months for DigiSubs2025
@@ -126,7 +124,6 @@ object AmendmentEffectiveDateCalculator {
     // We now respect the policy of not increasing members during their first year
     val lowerBound2 = MigrationType(cohortSpec) match {
       case Test1                      => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case Newspaper2025P1            => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case Newspaper2025P3            => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case Membership2025             => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case DigiSubs2025               => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
@@ -150,8 +147,6 @@ object AmendmentEffectiveDateCalculator {
     // And the policy not to price rise a sub twice within 12 months of any possible price rise
     val lowerBound3 = MigrationType(cohortSpec) match {
       case Test1 => noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
-      case Newspaper2025P1 =>
-        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
       case Newspaper2025P3 =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
       case Membership2025 =>
@@ -190,7 +185,6 @@ object AmendmentEffectiveDateCalculator {
 
     val lowerBound4 = MigrationType(cohortSpec) match {
       case Test1             => lowerBound3
-      case Newspaper2025P1   => lowerBound3
       case Newspaper2025P3   => Newspaper2025P3Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item)
       case Membership2025    => lowerBound3
       case DigiSubs2025      => lowerBound3
