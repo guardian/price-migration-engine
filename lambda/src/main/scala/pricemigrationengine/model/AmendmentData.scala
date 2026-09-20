@@ -8,7 +8,6 @@ import pricemigrationengine.migrations.{
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
   Newspaper2026MigrationX,
-  ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
 
@@ -103,10 +102,9 @@ object AmendmentData {
       case GuardianWeekly2025 => GuardianWeekly2025Migration.priceData(cohortSpec, subscription, invoiceList, account)
       case Newspaper2025P1    => Newspaper2025P1Migration.priceData(cohortSpec, subscription, invoiceList, account)
       case Newspaper2025P3    => Newspaper2025P3Migration.priceData(cohortSpec, subscription, invoiceList, account)
-      case ProductMigration2025N4 => ProductMigration2025N4Migration.priceData(cohortSpec, subscription, invoiceList)
-      case Membership2025         => Membership2025Migration.priceData(cohortSpec, subscription, invoiceList)
-      case DigiSubs2025           => DigiSubs2025Migration.priceData(cohortSpec, subscription, invoiceList)
-      case SupporterPlus2026      => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
+      case Membership2025     => Membership2025Migration.priceData(cohortSpec, subscription, invoiceList)
+      case DigiSubs2025       => DigiSubs2025Migration.priceData(cohortSpec, subscription, invoiceList)
+      case SupporterPlus2026  => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
       case Print2026C1GWAnnualsUK =>
         GuardianWeekly2026MigrationX.priceData(cohortSpec, subscription, invoiceList, account)
       case Print2026C1GWQuarterliesUK =>

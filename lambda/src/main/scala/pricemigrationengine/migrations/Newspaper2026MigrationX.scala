@@ -162,7 +162,6 @@ object Newspaper2026MigrationX {
       case GuardianWeekly2025            => Some("")
       case Newspaper2025P1               => Some("")
       case Newspaper2025P3               => Some("")
-      case ProductMigration2025N4        => Some("")
       case Membership2025                => Some("")
       case DigiSubs2025                  => Some("")
       case SupporterPlus2026             => Some("")

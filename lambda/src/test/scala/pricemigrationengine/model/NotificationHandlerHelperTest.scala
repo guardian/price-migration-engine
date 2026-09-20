@@ -3,7 +3,6 @@ package pricemigrationengine.handlers
 import pricemigrationengine.migrations.{
   Newspaper2025P1NotificationData,
   Newspaper2025P3NotificationData,
-  ProductMigration2025N4NotificationData,
   SP2026EmailExtraAttributes
 }
 import pricemigrationengine.model.CohortTableFilter.SalesforcePriceRiseCreationComplete
@@ -82,14 +81,6 @@ class NotificationHandlerHelperTest extends munit.FunSuite {
       whenAmendmentWrittenToSalesforce = None,
       whenSfShowEstimate = None,
 
-      // ProductMigration2025N4
-      ex_2025N4_label = None,
-      ex_2025N4_group = None,
-      ex_2025N4_canvas = None,
-      ex_2025N4_rateplan_current = None,
-      ex_2025N4_rateplan_target = None,
-      delayN4AmendmentUntil = None,
-
       // Membership2025
       ex_membership2025_country = None,
     )
@@ -117,7 +108,6 @@ class NotificationHandlerHelperTest extends munit.FunSuite {
         sfSubscription = sfSubscription,
         newspaper2025P1NotificationData = Newspaper2025P1NotificationData(""),
         newspaper2025P3NotificationData = Newspaper2025P3NotificationData(""),
-        productMigration2025N4NotificationData = ProductMigration2025N4NotificationData("", ""),
         currencySymbol = "£",
         supporterPlus2026ExtraData = SP2026EmailExtraAttributes("", "", ""),
         newspaper2026_brand_title = "the Guardian and the Observer",
@@ -152,12 +142,6 @@ class NotificationHandlerHelperTest extends munit.FunSuite {
               // -----------------------------------------------
               // Newspaper2025P3 (extension)
               newspaper2025_phase3_brand_title = Some(""),
-              // -----------------------------------------------
-
-              // -----------------------------------------------
-              // ProductMigration2025N4 (extension)
-              newspaper2025_phase4_brand_title = Some(""),
-              newspaper2025_phase4_formstack_url = Some(""),
               // -----------------------------------------------
 
               // -----------------------------------------------

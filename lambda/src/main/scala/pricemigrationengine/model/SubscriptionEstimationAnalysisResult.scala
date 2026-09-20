@@ -72,7 +72,6 @@ object SubscriptionEstimationAnalysisResult {
       case GuardianWeekly2025            => universalChecks
       case Newspaper2025P1               => universalChecks
       case Newspaper2025P3               => universalChecks
-      case ProductMigration2025N4        => universalChecks
       case Membership2025                => universalChecks
       case DigiSubs2025                  => universalChecks
       case SupporterPlus2026             => universalChecks

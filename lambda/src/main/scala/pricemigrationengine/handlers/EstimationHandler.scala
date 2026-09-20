@@ -186,21 +186,12 @@ object EstimationHandler extends CohortHandler {
       cohortSpec: CohortSpec,
       estimationData: EstimationData
   ): ZIO[CohortTable with Logging, Failure, Unit] = {
-    val cohortItemZ: zio.UIO[CohortItem] =
-      MigrationType(cohortSpec) match {
-        case ProductMigration2025N4 => {
-          // For N4 we expect the estimated new price to be equal to the old price
-          // We are not performing a NoPriceIncrease
-          CohortItem.fromSuccessfulEstimationData(estimationData)
-        }
-        case _ => {
-          if (estimationData.newPriceFull <= estimationData.oldPrice)
-            CohortItem.fromNoPriceIncreaseEstimationData(estimationData)
-          else CohortItem.fromSuccessfulEstimationData(estimationData)
-        }
-      }
     for {
-      cohortItem <- cohortItemZ
+      cohortItem <- {
+        if (estimationData.newPriceFull <= estimationData.oldPrice)
+          CohortItem.fromNoPriceIncreaseEstimationData(estimationData)
+        else CohortItem.fromSuccessfulEstimationData(estimationData)
+      }
       _ <- CohortTable.update(cohortItem)
     } yield ()
   }
