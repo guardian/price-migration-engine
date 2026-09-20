@@ -159,7 +159,6 @@ object Newspaper2026MigrationX {
   ): Option[String] = {
     MigrationType(cohortSpec) match {
       case Test1                         => Some("")
-      case Newspaper2025P3               => Some("")
       case Membership2025                => Some("")
       case DigiSubs2025                  => Some("")
       case SupporterPlus2026             => Some("")

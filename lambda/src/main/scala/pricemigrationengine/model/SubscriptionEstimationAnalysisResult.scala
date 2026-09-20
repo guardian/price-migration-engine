@@ -69,7 +69,6 @@ object SubscriptionEstimationAnalysisResult {
 
     val checks = MigrationType(cohortSpec) match {
       case Test1                         => universalChecks
-      case Newspaper2025P3               => universalChecks
       case Membership2025                => universalChecks
       case DigiSubs2025                  => universalChecks
       case SupporterPlus2026             => universalChecks

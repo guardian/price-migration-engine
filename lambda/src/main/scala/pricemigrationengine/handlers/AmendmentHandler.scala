@@ -302,12 +302,7 @@ object AmendmentHandler extends CohortHandler {
       item: CohortItem
   ): ZIO[Zuora with Logging with Salesforce, Failure, AmendmentAttemptResult] = {
     MigrationType(cohortSpec) match {
-      case Test1           => ZIO.fail(ConfigFailure("Branch not supported"))
-      case Newspaper2025P3 =>
-        doAmendmentUsingOrdersApiWithJsonValues(
-          cohortSpec: CohortSpec,
-          item: CohortItem
-        )
+      case Test1          => ZIO.fail(ConfigFailure("Branch not supported"))
       case Membership2025 =>
         doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,

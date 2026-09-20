@@ -3,8 +3,6 @@ package pricemigrationengine.model
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
   Membership2025Migration,
-  Newspaper2025P3Migration,
-  Newspaper2025P3NotificationData,
   SP2026EmailExtraAttributes,
   SupporterPlus2026Migration
 }
@@ -28,7 +26,6 @@ object NotificationHandlerHelper {
   def notificationLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
       case Test1                         => 35
-      case Newspaper2025P3               => Newspaper2025P3Migration.notificationLeadTime
       case Membership2025                => Membership2025Migration.notificationLeadTime
       case DigiSubs2025                  => DigiSubs2025Migration.notificationLeadTime
       case SupporterPlus2026             => SupporterPlus2026Migration.notificationLeadTime
@@ -57,12 +54,7 @@ object NotificationHandlerHelper {
     // originally introduced for the Summer 2025 print migrations) are not empty.
 
     MigrationType(cohortSpec) match {
-      case Test1           => true
-      case Newspaper2025P3 => {
-        List(
-          isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase3_brand_title)
-        ).forall(identity)
-      }
+      case Test1                      => true
       case Membership2025             => true
       case DigiSubs2025               => true
       case SupporterPlus2026          => true
@@ -134,7 +126,6 @@ object NotificationHandlerHelper {
   ): Either[NotificationHandlerFailure, String] = {
     MigrationType(cohortSpec) match {
       case Test1                         => requiredData(street, "Contact.OtherAddress.street")
-      case Newspaper2025P3               => requiredData(street, "Contact.OtherAddress.street")
       case Membership2025                => nonRequiredData(street, "")
       case DigiSubs2025                  => nonRequiredData(street, "")
       case SupporterPlus2026             => nonRequiredData(street, "")
@@ -160,7 +151,6 @@ object NotificationHandlerHelper {
   ): Either[NotificationHandlerFailure, String] = {
     MigrationType(cohortSpec) match {
       case Test1                  => requiredData(notificationAddress.country, "Contact.OtherAddress.country")
-      case Newspaper2025P3        => nonRequiredData(notificationAddress.country, "United Kingdom")
       case Membership2025         => nonRequiredData(notificationAddress.country, "")
       case DigiSubs2025           => nonRequiredData(notificationAddress.country, "")
       case SupporterPlus2026      => nonRequiredData(notificationAddress.country, "")
@@ -210,7 +200,6 @@ object NotificationHandlerHelper {
   ): Option[String] = {
     MigrationType(cohortSpec) match {
       case Test1                         => Some("unspecified")
-      case Newspaper2025P3               => Some("SV_NP_PriceRise_VoucherSubCard2025")
       case Membership2025                => Membership2025Migration.brazeName(item)
       case DigiSubs2025                  => DigiSubs2025Migration.brazeName(item)
       case SupporterPlus2026             => SupporterPlus2026Migration.brazeName(item, zuoraSubscription)
@@ -242,7 +231,6 @@ object NotificationHandlerHelper {
       paymentFrequency: String,
       cohortItem: CohortItem,
       sfSubscription: SalesforceSubscription,
-      newspaper2025P3NotificationData: Newspaper2025P3NotificationData,
       currencySymbol: String,
       supporterPlus2026ExtraData: SP2026EmailExtraAttributes,
       newspaper2026_brand_title: String,
@@ -269,11 +257,6 @@ object NotificationHandlerHelper {
             payment_frequency = paymentFrequency,
             subscription_id = cohortItem.subscriptionName,
             product_type = sfSubscription.Product_Type__c.getOrElse(""),
-
-            // -------------------------------------------------------------
-            // Newspaper2025P3 extension
-            newspaper2025_phase3_brand_title = Some(newspaper2025P3NotificationData.brandTitle),
-            // -------------------------------------------------------------
 
             // -------------------------------------------------------------
             // SupporterPlus2026 extension
