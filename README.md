@@ -11,6 +11,7 @@ It currently consists in
 
 ### General Introduction to price migrations and the engine:
 
+- [The engine Steward](docs/steward.md)
 - [An introduction to the general principles of price migrations](docs/price-migrations-from-first-principles.md)
 - [The journey of a cohort item](docs/the-journey-of-a-cohort-item.md)
 - [Coding directives](docs/coding-directives.md)
