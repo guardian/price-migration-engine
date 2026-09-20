@@ -2,13 +2,9 @@ package pricemigrationengine.model
 
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
-  GuardianWeekly2025Migration,
   GuardianWeekly2026MigrationX,
   Membership2025Migration,
-  Newspaper2025P1Migration,
-  Newspaper2025P3Migration,
   Newspaper2026MigrationX,
-  ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
 import ujson.Value
@@ -65,10 +61,6 @@ object AmendmentHandlerHelper {
   private def shouldPerformFinalPriceCheck(cohortSpec: CohortSpec): Boolean = {
     MigrationType(cohortSpec) match {
       case Test1                         => true // default value
-      case GuardianWeekly2025            => true
-      case Newspaper2025P1               => true
-      case Newspaper2025P3               => true
-      case ProductMigration2025N4        => false
       case Membership2025                => true
       case DigiSubs2025                  => true
       case SupporterPlus2026             => false
@@ -144,51 +136,7 @@ object AmendmentHandlerHelper {
       invoiceList: ZuoraInvoiceList
   ): Either[Failure, Value] = {
     MigrationType(cohortSpec) match {
-      case Test1              => Left(ConfigFailure("case not supported"))
-      case GuardianWeekly2025 =>
-        GuardianWeekly2025Migration.amendmentOrderPayload(
-          cohortItem,
-          orderDate,
-          accountNumber,
-          subscriptionNumber,
-          effectDate,
-          zuora_subscription,
-          commsPrice,
-          invoiceList
-        )
-      case Newspaper2025P1 =>
-        Newspaper2025P1Migration.amendmentOrderPayload(
-          cohortItem,
-          orderDate,
-          accountNumber,
-          subscriptionNumber,
-          effectDate,
-          zuora_subscription,
-          oldPrice,
-          commsPrice,
-          invoiceList
-        )
-      case Newspaper2025P3 =>
-        Newspaper2025P3Migration.amendmentOrderPayload(
-          cohortItem,
-          orderDate,
-          accountNumber,
-          subscriptionNumber,
-          effectDate,
-          zuora_subscription,
-          oldPrice,
-          commsPrice,
-          invoiceList
-        )
-      case ProductMigration2025N4 =>
-        ProductMigration2025N4Migration.amendmentOrderPayload(
-          orderDate,
-          accountNumber,
-          subscriptionNumber,
-          effectDate,
-          zuora_subscription,
-          invoiceList
-        )
+      case Test1           => Left(ConfigFailure("case not supported"))
       case Membership2025 =>
         Membership2025Migration.amendmentOrderPayload(
           cohortItem,
@@ -400,10 +348,6 @@ object AmendmentHandlerHelper {
     }
     MigrationType(cohortSpec) match {
       case Test1                         => true
-      case GuardianWeekly2025            => true
-      case Newspaper2025P1               => true
-      case Newspaper2025P3               => true
-      case ProductMigration2025N4        => true
       case Membership2025                => true
       case DigiSubs2025                  => true
       case SupporterPlus2026             => itIsFewDaysAfterNotification(item)
@@ -472,10 +416,6 @@ object AmendmentHandlerHelper {
       // other migrations we will have to introduce a general CohortItem attribute.
       MigrationType(cohortSpec) match {
         case Test1                         => Some(SAARReadyToAmend)
-        case GuardianWeekly2025            => Some(SAARReadyToAmend)
-        case Newspaper2025P1               => Some(SAARReadyToAmend)
-        case Newspaper2025P3               => Some(SAARReadyToAmend)
-        case ProductMigration2025N4        => Some(SAARReadyToAmend)
         case Membership2025                => Some(SAARReadyToAmend)
         case DigiSubs2025                  => Some(SAARReadyToAmend)
         case SupporterPlus2026             => analyseSupporterPlus2026(item, subscription, today)
