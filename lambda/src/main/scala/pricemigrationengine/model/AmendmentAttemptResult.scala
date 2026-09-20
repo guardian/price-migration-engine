@@ -13,10 +13,3 @@ case class AARSuccessfulAmendment(
     newSubscriptionId: ZuoraSubscriptionId,
     whenDone: Instant
 ) extends AmendmentAttemptResult
-
-// This case was introduced for the ProductMigration2025N4, where the users
-// had the option to opt out from the product migration, determined by a flag
-// set in Salesforce
-case class AARUserOptOut(
-    subscriptionNumber: String
-) extends AmendmentAttemptResult

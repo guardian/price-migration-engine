@@ -165,43 +165,6 @@ class AmendmentDataTest extends munit.FunSuite {
     assertEquals(chargeAmount, Right(BigDecimal(0)))
   }
 
-  // ---------------------------------------------------------------------------
-  // Date: 19 June 2025
-  // Author: Pascal
-  //
-  // I am adding new tests to this, with fixtures located in `model/AmendmentData`
-  // This is follow up of the tests in model/StartDatesTest, applied to the case of
-  // subscription A-S02059070, with extra: {"earliestMigrationDate":"2026-03-19"}
-  // (part of Guardian Weekly 2025)
-
-  test("AmendmentData.nextServiceStartDate") {
-    val subscription = Fixtures.subscriptionFromJson("model/AmendmentData/A-S02059070/subscription.json")
-    val account = Fixtures.accountFromJson("model/AmendmentData/A-S02059070/account.json")
-    val invoicePreview = Fixtures.invoiceListFromJson("model/AmendmentData/A-S02059070/invoice-preview.json")
-
-    val cohortItem = CohortItem(
-      "SUBSCRIPTION-NUMBER",
-      ReadyForEstimation,
-      migrationExtraAttributes = Some(""" {"earliestMigrationDate":"2026-03-19"} """)
-    )
-    val today = LocalDate.of(2025, 7, 1) // 1 July 2025
-    val cohortSpec = CohortSpec(
-      cohortName = "Test1",
-      active = true
-    )
-
-    assertEquals(
-      AmendmentEffectiveDateCalculator.amendmentEffectiveDateLowerBound(
-        item = cohortItem,
-        subscription = subscription,
-        invoicePreview = invoicePreview,
-        cohortSpec = cohortSpec,
-        today = today
-      ),
-      LocalDate.of(2026, 3, 19)
-    )
-  }
-
   test("AmendmentData.nextServiceStartDate") {
     val subscription = Fixtures.subscriptionFromJson("model/AmendmentData/A-S02059070/subscription.json")
     val account = Fixtures.accountFromJson("model/AmendmentData/A-S02059070/account.json")

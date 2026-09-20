@@ -148,14 +148,6 @@ object AmendmentHandler extends CohortHandler {
             )
           )
         }
-        case r: AARUserOptOut => {
-          ZIO.succeed(
-            CohortItem(
-              r.subscriptionNumber,
-              processingStage = UserOptOut
-            )
-          )
-        }
         case _ =>
           ZIO
             .fail(
@@ -295,23 +287,6 @@ object AmendmentHandler extends CohortHandler {
         )
         .mapError(message => AmendmentFailure(message))
 
-      // Date: 29 October 2025
-      // Author: Pascal
-      // This check was introduced to add extra security to N4. To be decommissioned at the end of N4
-      // unless we decide to generalise it and absorb the price check and the billing period check in
-      // one single unit.
-      _ <- (MigrationType(cohortSpec) match {
-        case ProductMigration2025N4 =>
-          ZIO.fromEither(
-            ProductMigration2025N4Migration.postAmendmentStructureIntegrityCheck(
-              subscriptionBeforeUpdate,
-              subscriptionAfterUpdate,
-              today
-            )
-          )
-        case _ => ZIO.succeed(())
-      }).mapError(message => AmendmentFailure(message))
-
       whenDone <- Clock.instant
     } yield AARSuccessfulAmendment(
       item.subscriptionName,
@@ -327,46 +302,7 @@ object AmendmentHandler extends CohortHandler {
       item: CohortItem
   ): ZIO[Zuora with Logging with Salesforce, Failure, AmendmentAttemptResult] = {
     MigrationType(cohortSpec) match {
-      case Test1              => ZIO.fail(ConfigFailure("Branch not supported"))
-      case GuardianWeekly2025 =>
-        doAmendmentUsingOrdersApiWithJsonValues(
-          cohortSpec: CohortSpec,
-          item: CohortItem
-        )
-      case Newspaper2025P1 =>
-        doAmendmentUsingOrdersApiWithJsonValues(
-          cohortSpec: CohortSpec,
-          item: CohortItem
-        )
-      case Newspaper2025P3 =>
-        doAmendmentUsingOrdersApiWithJsonValues(
-          cohortSpec: CohortSpec,
-          item: CohortItem
-        )
-      case ProductMigration2025N4 => {
-        for {
-          salesforcePriceRiseId <- ZIO
-            .fromOption(item.salesforcePriceRiseId)
-            .orElseFail(AmendmentFailure(s"Missing salesforcePriceRiseId for ${item.subscriptionName}"))
-          priceRise <- Salesforce.getPriceRise(salesforcePriceRiseId)
-          optOutFlag <- ZIO
-            .fromOption(priceRise.Customer_Opt_Out__c)
-            .orElseFail(
-              AmendmentFailure(
-                s"Missing Customer_Opt_Out__c in price rise $salesforcePriceRiseId, subscription: ${item.subscriptionName}"
-              )
-            )
-          result <-
-            if (optOutFlag)
-              ZIO.succeed(AARUserOptOut(item.subscriptionName))
-            else
-              doAmendmentUsingOrdersApiWithJsonValues(
-                cohortSpec,
-                item
-              )
-        } yield result
-      }
-
+      case Test1          => ZIO.fail(ConfigFailure("Branch not supported"))
       case Membership2025 =>
         doAmendmentUsingOrdersApiWithJsonValues(
           cohortSpec: CohortSpec,
