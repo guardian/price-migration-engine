@@ -2,7 +2,6 @@ package pricemigrationengine.model
 
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
-  GuardianWeekly2025Migration,
   GuardianWeekly2026MigrationX,
   Membership2025Migration,
   Newspaper2025P1Migration,
@@ -98,13 +97,12 @@ object AmendmentData {
       today: LocalDate,
   ): Either[Failure, PriceData] = {
     MigrationType(cohortSpec) match {
-      case Test1              => Left(ConfigFailure("Branch not supported"))
-      case GuardianWeekly2025 => GuardianWeekly2025Migration.priceData(cohortSpec, subscription, invoiceList, account)
-      case Newspaper2025P1    => Newspaper2025P1Migration.priceData(cohortSpec, subscription, invoiceList, account)
-      case Newspaper2025P3    => Newspaper2025P3Migration.priceData(cohortSpec, subscription, invoiceList, account)
-      case Membership2025     => Membership2025Migration.priceData(cohortSpec, subscription, invoiceList)
-      case DigiSubs2025       => DigiSubs2025Migration.priceData(cohortSpec, subscription, invoiceList)
-      case SupporterPlus2026  => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
+      case Test1                  => Left(ConfigFailure("Branch not supported"))
+      case Newspaper2025P1        => Newspaper2025P1Migration.priceData(cohortSpec, subscription, invoiceList, account)
+      case Newspaper2025P3        => Newspaper2025P3Migration.priceData(cohortSpec, subscription, invoiceList, account)
+      case Membership2025         => Membership2025Migration.priceData(cohortSpec, subscription, invoiceList)
+      case DigiSubs2025           => DigiSubs2025Migration.priceData(cohortSpec, subscription, invoiceList)
+      case SupporterPlus2026      => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)
       case Print2026C1GWAnnualsUK =>
         GuardianWeekly2026MigrationX.priceData(cohortSpec, subscription, invoiceList, account)
       case Print2026C1GWQuarterliesUK =>

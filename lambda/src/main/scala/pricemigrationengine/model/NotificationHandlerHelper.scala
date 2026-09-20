@@ -2,7 +2,6 @@ package pricemigrationengine.model
 
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
-  GuardianWeekly2025Migration,
   Membership2025Migration,
   Newspaper2025P1Migration,
   Newspaper2025P1NotificationData,
@@ -31,7 +30,6 @@ object NotificationHandlerHelper {
   def notificationLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
       case Test1                         => 35
-      case GuardianWeekly2025            => GuardianWeekly2025Migration.notificationLeadTime
       case Newspaper2025P1               => Newspaper2025P1Migration.notificationLeadTime
       case Newspaper2025P3               => Newspaper2025P3Migration.notificationLeadTime
       case Membership2025                => Membership2025Migration.notificationLeadTime
@@ -62,9 +60,8 @@ object NotificationHandlerHelper {
     // originally introduced for the Summer 2025 print migrations) are not empty.
 
     MigrationType(cohortSpec) match {
-      case Test1              => true
-      case GuardianWeekly2025 => true
-      case Newspaper2025P1    => {
+      case Test1           => true
+      case Newspaper2025P1 => {
         List(
           isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2025_brand_title)
         ).forall(identity)
@@ -145,7 +142,6 @@ object NotificationHandlerHelper {
   ): Either[NotificationHandlerFailure, String] = {
     MigrationType(cohortSpec) match {
       case Test1                         => requiredData(street, "Contact.OtherAddress.street")
-      case GuardianWeekly2025            => requiredData(street, "Contact.OtherAddress.street")
       case Newspaper2025P1               => requiredData(street, "Contact.OtherAddress.street")
       case Newspaper2025P3               => requiredData(street, "Contact.OtherAddress.street")
       case Membership2025                => nonRequiredData(street, "")
@@ -173,7 +169,6 @@ object NotificationHandlerHelper {
   ): Either[NotificationHandlerFailure, String] = {
     MigrationType(cohortSpec) match {
       case Test1                  => requiredData(notificationAddress.country, "Contact.OtherAddress.country")
-      case GuardianWeekly2025     => requiredData(notificationAddress.country, "Contact.OtherAddress.country")
       case Newspaper2025P1        => nonRequiredData(notificationAddress.country, "United Kingdom")
       case Newspaper2025P3        => nonRequiredData(notificationAddress.country, "United Kingdom")
       case Membership2025         => nonRequiredData(notificationAddress.country, "")
@@ -225,7 +220,6 @@ object NotificationHandlerHelper {
   ): Option[String] = {
     MigrationType(cohortSpec) match {
       case Test1                         => Some("unspecified")
-      case GuardianWeekly2025            => Some("SV_GW_PriceRise2025")
       case Newspaper2025P1               => Some("SV_NP_PriceRise_2025")
       case Newspaper2025P3               => Some("SV_NP_PriceRise_VoucherSubCard2025")
       case Membership2025                => Membership2025Migration.brazeName(item)
