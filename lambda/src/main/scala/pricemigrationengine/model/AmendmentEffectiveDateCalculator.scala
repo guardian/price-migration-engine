@@ -1,12 +1,7 @@
 package pricemigrationengine.model
 
 import pricemigrationengine.handlers.NotificationHandler
-import pricemigrationengine.migrations.{
-  GuardianWeekly2025Migration,
-  Newspaper2025P1Migration,
-  Newspaper2025P3Migration,
-  SupporterPlus2026Migration
-}
+import pricemigrationengine.migrations.{ SupporterPlus2026Migration}
 import scala.util.Random
 import java.time.LocalDate
 
@@ -33,15 +28,11 @@ object AmendmentEffectiveDateCalculator {
       today: LocalDate
   ): Option[LocalDate] = {
     MigrationType(cohortSpec) match {
-      case Test1              => None // default value
-      case GuardianWeekly2025 => GuardianWeekly2025Migration.subscriptionToLastPriceMigrationDate(subscription, today)
-      case Newspaper2025P1    => Newspaper2025P1Migration.subscriptionToLastPriceMigrationDate(subscription, today)
-      case Newspaper2025P3    => Newspaper2025P3Migration.subscriptionToLastPriceMigrationDate(subscription, today)
-      case ProductMigration2025N4        => None
-      case Membership2025                => None
-      case DigiSubs2025                  => None
-      case SupporterPlus2026             => None
-      case Print2026C1GWAnnualsUK        => None
+      case Test1                  => None // default value
+      case Membership2025         => None
+      case DigiSubs2025           => None
+      case SupporterPlus2026      => None
+      case Print2026C1GWAnnualsUK => None
       case Print2026C1GWQuarterliesUK    => None
       case Print2026C1NPAnnualsUK        => None
       case Print2026C1NPQuarterliesUK    => None
@@ -98,10 +89,6 @@ object AmendmentEffectiveDateCalculator {
     if (isMonthlySubscription(subscription, invoicePreview)) {
       MigrationType(cohortSpec) match {
         case Test1                         => 1 // default value
-        case GuardianWeekly2025            => 1 // no spread for Guardian Weekly 2025
-        case Newspaper2025P1               => 1 // no spread for Newspaper 2025
-        case Newspaper2025P3               => 1 // no spread for Newspaper 2025 (Phase 3)
-        case ProductMigration2025N4        => 1
         case Membership2025                => 1
         case DigiSubs2025                  => 3 // 3 Months for DigiSubs2025
         case SupporterPlus2026             => 1 // no spread for SupporterPlus2026
@@ -133,13 +120,8 @@ object AmendmentEffectiveDateCalculator {
     val lowerBound1 = cohortSpecLowerBound(cohortSpec, today)
 
     // We now respect the policy of not increasing members during their first year
-    // This doesn't apply to ProductMigration2025N4 which is not a price rise
     val lowerBound2 = MigrationType(cohortSpec) match {
       case Test1                      => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case GuardianWeekly2025         => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case Newspaper2025P1            => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case Newspaper2025P3            => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
-      case ProductMigration2025N4     => lowerBound1
       case Membership2025             => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case DigiSubs2025               => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
       case SupporterPlus2026          => noPriceRiseDuringSubscriptionFirstYearPolicyUpdate(lowerBound1, subscription)
@@ -160,17 +142,9 @@ object AmendmentEffectiveDateCalculator {
     }
 
     // And the policy not to price rise a sub twice within 12 months of any possible price rise
-    // This doesn't apply to ProductMigration2025N4 which is not a price rise
     val lowerBound3 = MigrationType(cohortSpec) match {
       case Test1 => noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
-      case GuardianWeekly2025 =>
-        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
-      case Newspaper2025P1 =>
-        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
-      case Newspaper2025P3 =>
-        noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
-      case ProductMigration2025N4 => lowerBound2
-      case Membership2025         =>
+      case Membership2025 =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
       case DigiSubs2025 =>
         noPriceRiseWithinAYearOfLastPriceRisePolicyUpdate(cohortSpec, subscription, today, lowerBound2)
@@ -205,14 +179,10 @@ object AmendmentEffectiveDateCalculator {
     // Migration specific date calculations
 
     val lowerBound4 = MigrationType(cohortSpec) match {
-      case Test1 => GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item) // [1]
-      case GuardianWeekly2025 => GuardianWeekly2025Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item)
-      case Newspaper2025P1    => lowerBound3
-      case Newspaper2025P3    => Newspaper2025P3Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item)
-      case ProductMigration2025N4 => lowerBound3
-      case Membership2025         => lowerBound3
-      case DigiSubs2025           => lowerBound3
-      case SupporterPlus2026      =>
+      case Test1             => lowerBound3
+      case Membership2025    => lowerBound3
+      case DigiSubs2025      => lowerBound3
+      case SupporterPlus2026 =>
         SupporterPlus2026Migration.computeAmendmentEffectiveDateLowerBound(lowerBound3, item, subscription)
       case Print2026C1GWAnnualsUK        => lowerBound3
       case Print2026C1GWQuarterliesUK    => lowerBound3

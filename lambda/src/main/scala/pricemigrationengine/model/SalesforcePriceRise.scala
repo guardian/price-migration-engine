@@ -49,8 +49,7 @@ case class SalesforcePriceRise(
     Amended_Zuora_Subscription_Id__c: Option[ZuoraSubscriptionId] = None,
     Migration_Name__c: Option[String],
     Migration_Status__c: Option[String], // [1]
-    Cancellation_Reason__c: Option[String],
-    Customer_Opt_Out__c: Option[Boolean] = None // [2]
+    Cancellation_Reason__c: Option[String]
 )
 
 // [1] The processing state of the cohort item at time of salesforce notification
@@ -59,11 +58,6 @@ case class SalesforcePriceRise(
 // Note that Cancellation_Reason__c should remain withing 255 chars. This is a limitation
 // imposed by Salesforce which came during the initial
 // integration: https://github.com/guardian/salesforce/pull/976
-
-// [2] The Customer_Opt_Out__c attribute was added in September 2025 as part of the
-// product migration: ProductMigration2025N4. Users who have read the communication
-// and want to opt out will interact with a formstack page and trigger Salesforce
-// to set that attribute to `true`.
 
 // [3] This field is called `Guardian_Weekly_New_Price__c`, but it's actually
 // the (possibly capped) estimated new price of any migration.
