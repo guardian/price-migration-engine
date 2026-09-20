@@ -1,11 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.migrations.{
-  Newspaper2025P1NotificationData,
-  Newspaper2025P3NotificationData,
-  ProductMigration2025N4NotificationData,
-  SP2026EmailExtraAttributes
-}
+import pricemigrationengine.migrations.{SP2026EmailExtraAttributes}
 import pricemigrationengine.model.CohortTableFilter.SalesforcePriceRiseCreationComplete
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.{
@@ -82,14 +77,6 @@ class NotificationHandlerHelperTest extends munit.FunSuite {
       whenAmendmentWrittenToSalesforce = None,
       whenSfShowEstimate = None,
 
-      // ProductMigration2025N4
-      ex_2025N4_label = None,
-      ex_2025N4_group = None,
-      ex_2025N4_canvas = None,
-      ex_2025N4_rateplan_current = None,
-      ex_2025N4_rateplan_target = None,
-      delayN4AmendmentUntil = None,
-
       // Membership2025
       ex_membership2025_country = None,
     )
@@ -115,9 +102,6 @@ class NotificationHandlerHelperTest extends munit.FunSuite {
         paymentFrequency = "month",
         cohortItem = cohortItem,
         sfSubscription = sfSubscription,
-        newspaper2025P1NotificationData = Newspaper2025P1NotificationData(""),
-        newspaper2025P3NotificationData = Newspaper2025P3NotificationData(""),
-        productMigration2025N4NotificationData = ProductMigration2025N4NotificationData("", ""),
         currencySymbol = "£",
         supporterPlus2026ExtraData = SP2026EmailExtraAttributes("", "", ""),
         newspaper2026_brand_title = "the Guardian and the Observer",
@@ -142,23 +126,6 @@ class NotificationHandlerHelperTest extends munit.FunSuite {
               payment_frequency = "month",
               subscription_id = "subscriptionName",
               product_type = "",
-
-              // -----------------------------------------------
-              // Newspaper2025P1 (extension)
-              // (Comment Group: 571dac68)
-              newspaper2025_brand_title = Some(""),
-              // -----------------------------------------------
-
-              // -----------------------------------------------
-              // Newspaper2025P3 (extension)
-              newspaper2025_phase3_brand_title = Some(""),
-              // -----------------------------------------------
-
-              // -----------------------------------------------
-              // ProductMigration2025N4 (extension)
-              newspaper2025_phase4_brand_title = Some(""),
-              newspaper2025_phase4_formstack_url = Some(""),
-              // -----------------------------------------------
 
               // -----------------------------------------------
               // SupporterPlus2026 (extension)
