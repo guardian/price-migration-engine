@@ -2,6 +2,20 @@ package pricemigrationengine.model
 
 import java.time.LocalDate
 
+/*
+
+Newspaper - National Delivery:
+
+               Monday  | Tuesday | Wednesday | Thursday | Friday   | Saturday | Sunday  | DigiPack | Total |
+Everyday    |  13.2 %  |  13.2 % |  13.2 %   |  13.2 %  |  13.2 %  |  17.0 %  | 17.0 %  |          | 100 % |
+Sixday      |  15.9 %  |  15.9 % |  15.9 %   |  15.9 %  |  15.9 %  |  20.5 %                       | 100 % |
+Weekend     |          |                     |                        50.0 %  | 50.5 %  |                  |
+Everyday+   |  11.4 %  |  11.4 % |  11.4 %   |  11.4 %  |  11.4 %  |  14.7 %  | 14.7 %  | 13.6 %   | 100 % |
+Sixday+     |  13.4 %  |  13.4 % |  13.4 %   |  13.4 %  |  13.4 %  |  17.2 %  |         | 15.8 %   | 100 % |
+Weekend+    |          |         |                                    34.2 %  | 34.2 %  | 31.6 %   | 100 % |
+
+ */
+
 sealed trait T1xNewspaperPackageLeg
 object T1xMonday extends T1xNewspaperPackageLeg
 object T1xTuesday extends T1xNewspaperPackageLeg
