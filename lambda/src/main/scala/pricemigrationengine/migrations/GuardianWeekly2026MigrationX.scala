@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter
 object GuardianWeekly2026MigrationX {
   type Currency = String
 
-  val priceGridNewPricesMonthlies: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
+  val priceGridNewPricesMonthlies: Map[(Currency, PricingLocalisation), BigDecimal] = Map(
     ("GBP", Domestic) -> BigDecimal(17.50),
     ("GBP", RestOfWorld) -> BigDecimal(17.50),
     ("EUR", Domestic) -> BigDecimal(30.50),
@@ -21,7 +21,7 @@ object GuardianWeekly2026MigrationX {
     ("NZD", Domestic) -> BigDecimal(60.00),
   )
 
-  val priceGridNewPricesQuarterlies: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
+  val priceGridNewPricesQuarterlies: Map[(Currency, PricingLocalisation), BigDecimal] = Map(
     ("GBP", Domestic) -> BigDecimal(52),
     ("GBP", RestOfWorld) -> BigDecimal(52),
     ("EUR", Domestic) -> BigDecimal(91.5),
@@ -32,7 +32,7 @@ object GuardianWeekly2026MigrationX {
     ("NZD", Domestic) -> BigDecimal(180),
   )
 
-  val priceGridNewPricesSemiAnnuals: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
+  val priceGridNewPricesSemiAnnuals: Map[(Currency, PricingLocalisation), BigDecimal] = Map(
     ("GBP", Domestic) -> BigDecimal(104),
     ("GBP", RestOfWorld) -> BigDecimal(104),
     ("EUR", Domestic) -> BigDecimal(183.0),
@@ -43,7 +43,7 @@ object GuardianWeekly2026MigrationX {
     ("NZD", Domestic) -> BigDecimal(360),
   )
 
-  val priceGridNewPricesAnnuals: Map[(Currency, SubscriptionLocalisation), BigDecimal] = Map(
+  val priceGridNewPricesAnnuals: Map[(Currency, PricingLocalisation), BigDecimal] = Map(
     ("GBP", Domestic) -> BigDecimal(208),
     ("GBP", RestOfWorld) -> BigDecimal(208),
     ("EUR", Domestic) -> BigDecimal(366),
@@ -57,7 +57,7 @@ object GuardianWeekly2026MigrationX {
   def getNewPrice(
       billingPeriod: BillingPeriod,
       currency: Currency,
-      localisation: SubscriptionLocalisation
+      localisation: PricingLocalisation
   ): Option[BigDecimal] = {
     billingPeriod match {
       case Monthly    => priceGridNewPricesMonthlies.get(currency, localisation)
