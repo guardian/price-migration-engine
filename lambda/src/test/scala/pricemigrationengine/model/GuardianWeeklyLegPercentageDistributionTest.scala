@@ -25,4 +25,44 @@ class GuardianWeeklyLegPercentageDistributionTest extends munit.FunSuite {
       Some(T5xDistribution(BigDecimal(60.9), BigDecimal(39.1)))
     )
   }
+  test("GuardianWeeklyLegPercentageDistribution.monthDistributions sum to 100%") {
+    assertEquals(
+      GuardianWeeklyLegPercentageDistribution.monthDistributions.values.forall(v =>
+        (v.gardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
+      ),
+      true
+    )
+  }
+  test("GuardianWeeklyLegPercentageDistribution.quarterlyDistributions sum to 100%") {
+    assertEquals(
+      GuardianWeeklyLegPercentageDistribution.quarterlyDistributions.values.forall(v =>
+        (v.gardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
+      ),
+      true
+    )
+  }
+  test("GuardianWeeklyLegPercentageDistribution.semiAnnualDistributions sum to 100%") {
+    assertEquals(
+      GuardianWeeklyLegPercentageDistribution.semiAnnualDistributions.values.forall(v =>
+        (v.gardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
+      ),
+      true
+    )
+  }
+  test("GuardianWeeklyLegPercentageDistribution.annualDistributions sum to 100%") {
+    assertEquals(
+      GuardianWeeklyLegPercentageDistribution.annualDistributions.values.forall(v =>
+        (v.gardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
+      ),
+      true
+    )
+  }
+  test("GuardianWeeklyLegPercentageDistribution.sixForSixDistributions sum to 100%") {
+    assertEquals(
+      GuardianWeeklyLegPercentageDistribution.sixForSixDistributions.values.forall(v =>
+        (v.gardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
+      ),
+      true
+    )
+  }
 }
