@@ -6,51 +6,55 @@ import java.time.LocalDate
 
 Newspaper - National Delivery:
 
-               Monday  | Tuesday | Wednesday | Thursday | Friday   | Saturday | Sunday  | DigiPack | Total |
-Everyday    |  13.2 %  |  13.2 % |  13.2 %   |  13.2 %  |  13.2 %  |  17.0 %  | 17.0 %  |          | 100 % |
-Sixday      |  15.9 %  |  15.9 % |  15.9 %   |  15.9 %  |  15.9 %  |  20.5 %                       | 100 % |
-Weekend     |          |                     |                        50.0 %  | 50.5 %  |                  |
-Everyday+   |  11.4 %  |  11.4 % |  11.4 %   |  11.4 %  |  11.4 %  |  14.7 %  | 14.7 %  | 13.6 %   | 100 % |
-Sixday+     |  13.4 %  |  13.4 % |  13.4 %   |  13.4 %  |  13.4 %  |  17.2 %  |         | 15.8 %   | 100 % |
-Weekend+    |          |         |                                    34.2 %  | 34.2 %  | 31.6 %   | 100 % |
+               Monday  | Tuesday | Wednesday | Thursday | Friday   | Saturday | Sunday   | DigiPack | Total |
+Everyday    |  13.2 %  |  13.2 % |  13.2 %   |  13.2 %  |  13.2 %  |  17.0 %  | 17.0 %   |          | 100 % |
+Sixday      |  15.9 %  |  15.9 % |  15.9 %   |  15.9 %  |  15.9 %  |  20.5 %                        | 100 % |
+Weekend     |          |                     |                        50.0 %  | 50.0 %   |                  |
+Everyday+   |  11.4 %  |  11.4 % |  11.4 %   |  11.4 %  |  11.4 %  |  14.7 %  | 14.7 %   | 13.6 %   | 100 % |
+Sixday+     |  13.4 %  |  13.4 % |  13.4 %   |  13.4 %  |  13.4 %  |  17.2 %  |          | 15.8 %   | 100 % |
+Weekend+    |          |         |                                    34.2 %  | 34.2 %   | 31.6 %   | 100 % |
 
 Newspaper delivery:
 
-               Monday  | Tuesday | Wednesday | Thursday | Friday   | Saturday | Sunday  | DigiPack | Total |
-Sixday      |  15.9 %  |  15.9 % |  15.9 %   |  15.9 %  |  15.9 %  |  20.5 %  |         |          | 100 % |
-Weekend                                                            |  50.0 %  |  50.0 % |
+               Monday  | Tuesday | Wednesday | Thursday | Friday   | Saturday | Sunday   | DigiPack | Total |
+Sixday      |  15.9 %  |  15.9 % |  15.9 %   |  15.9 %  |  15.9 %  |  20.5 %  |          |          | 100 % |
+Weekend                                                            |  50.0 %  |  50.0 %  |
 Sunday      |                                                                   100.0 %
 Fiveday     |  20.0 %  |  20.0 % |  20.0 %   |  20.0 %  |  20.0 %  |
-Everyday    |  13.2 %  |  13.2 % |  13.2 %   |  13.2 %  |  13.2 %  |  17.0 %  |  17.2 % |
-Everyday+   |  11.4 %  |  11.4 % |  11.4 %   |  11.4 %  |  11.4 %  |  14.7 %  |  14.7 % |  13.6 % | 100 % |
-Sixday+     |  13.4 %  |  13.4 % |  13.4 %   |  13.4 %  |  13.4 %  |  17.2 %  |         |  15.8 % | 100 % |
-Weekend+    |                                                      |  34.2 %  |  34.2 % |  31.6 % | 100 % |
-Sunday+     |                                                                 |  52.0 % |  48.0 % | 100 % |
+Everyday    |  13.2 %  |  13.2 % |  13.2 %   |  13.2 %  |  13.2 %  |  17.0 %  |  17.0 %  |
+Everyday+   |  11.4 %  |  11.4 % |  11.4 %   |  11.4 %  |  11.4 %  |  14.7 %  |  14.7 %  |  13.6 %  | 100 % |
+Sixday+     |  13.4 %  |  13.4 % |  13.4 %   |  13.4 %  |  13.4 %  |  17.2 %  |          |  15.8 %  | 100 % |
+Saturday+   |                                                      |  52.0 %  |          |  48.0 %  | 100 % |
+Weekend+    |                                                      |  34.2 %  |  34.2 %  |  31.6 %  | 100 % |
+Sunday+     |                                                                 |  52.0 %  |  48.0 %  | 100 % |
 
 Newspaper Digital Voucher:
 
                Monday  | Tuesday | Wednesday | Thursday | Friday   | Saturday |  Sunday  | DigiPack | Total |
-Everyday    |  15.9 %  |  15.9 % |  15.9 %   |  15.9 %  |  15.9 %  |  20.5 %  |          |          | 100 % |
+Everyday    |  13.2 %  |  13.2 % |  13.2 %   |  13.2 %  |  13.2 %  |  17.0 %  |  17.0 %  |          | 100 % |
 Saturday    |                                                      | 100.0 %  |          |          | 100 % |
-Sixday      |  15.9 %  |  15.9 % |  15.9 %   |  15.9 %  |  15.9 %  |  20.5 %  |
-Weekend     |                                                         50.0 %  |  50.0 %  |
+Sixday      |  15.9 %  |  15.9 % |  15.9 %   |  15.9 %  |  15.9 %  |  20.5 %  |                     | 100 % |
+Weekend     |                                                         50.0 %  |  50.0 %  |          | 100 % |
 Sunday      |                                                                   100.0 %  |          | 100 % |
 Everyday+   |  11.4 %  |  11.4 % |  11.4 %   |  11.4 %  |  11.4 %  |  14.7 %  |  14.7 %  |  13.6 %  | 100 % |
 Saturday+   |                                                         52.0 %  |          |  48.0 %  | 100 % |
 Sixday+     |  13.4 %  |  13.4 % |  13.4 %   |  13.4 %  |  13.4 %  |  17.2 %  |          |  15.8 %  | 100 % |
-Weekend+    |                                                      |  43.2 %  |  34.2 %  |  31.6 %  | 100 % |
+Weekend+    |                                                      |  34.2 %  |  34.2 %  |  31.6 %  | 100 % |
 Sunday+     |                                                                    52.0 %  |  48.0 %  | 100 % |
 
 Newspaper Voucher:
 
                Monday  | Tuesday | Wednesday | Thursday | Friday   | Saturday |  Sunday  | DigiPack | Total |
-Everyday    |  13.2 %  |  13.2 % |  13.2 %   |  13.2 %  |  13.2 %  |  17.5 %  |  17.5 %  |          | 100 % |
+Everyday    |  13.2 %  |  13.2 % |  13.2 %   |  13.2 %  |  13.2 %  |  17.0 %  |  17.0 %  |          | 100 % |
 Saturday    |                                                      | 100.0 %  |          |          | 100 % |
 Sixday      |  15.9 %  |  15.9 % |  15.9 %   |  15.9 %  |  15.9 %  |  20.5 %  |          |          | 100 % |
 Weekend     |                                                      |  50.0 %  |  50.0 %  |          | 100 % |
 Sunday      |                                                      |          | 100.0 %  |          | 100 % |
 Everyday+   |  11.4 %  |  11.4 % |  11.4 %   |  11.4 %  |  11.4 %  |  14.7 %  |  14.7 %  |  13.6 %  | 100 % |
-Saturday+   |  11.4 %  |  11.4 % |  11.4 %   |  11.4 %  |  11.4 %  |  14.7 %  |  14.7 %  |  13.6 %  | 100 % |
+Saturday+   |                                                      |  52.0 %  |          |  48.0 %  | 100 % |
+Sixday+     |  13.4 %  |  13.4 % |  13.4 %   |  13.4 %  |  13.4 %  |  17.2 %  |          |  15.8 %  | 100 % |
+Weekend+    |                                                      |  34.2 %  |  34.2 %  |  31.6 %  | 100 % |
+Sunday+     |                                                      |          |  52.0 %  |  48.0 %  | 100 % |
  */
 
 sealed trait T1xNewspaperPackageLeg
@@ -177,7 +181,7 @@ object NewspaperLegPercentageDistribution {
         T4xLegPercentage(T1xSunday, BigDecimal(14.7)),
         T4xLegPercentage(T1xDigitalPack, BigDecimal(13.6)),
       ),
-      (T3xNewspaperDelivery, T2xWeekendPlus) -> List(
+      (T3xNewspaperDelivery, T2xSaturdayPlus) -> List(
         T4xLegPercentage(T1xSaturday, BigDecimal(52.0)),
         T4xLegPercentage(T1xDigitalPack, BigDecimal(48.0)),
       ),
