@@ -90,8 +90,7 @@ case class T4xLegPercentage(leg: T1xNewspaperPackageLeg, percentage: BigDecimal)
 
 object NewspaperLegPercentageDistribution {
 
-  val newspaperNationalDeliveryLegPercentageMapping
-      : Map[(T3xDeliveryCategory, T2xNewspaperPackage), List[T4xLegPercentage]] = Map(
+  val newspaperNationalDeliveryLegPercentageMapping: Map[T2xNewspaperPackage, List[T4xLegPercentage]] = Map(
     (T3xNewspaperNationalDelivery, T2xEveryday) -> List(
       T4xLegPercentage(T1xMonday, BigDecimal(13.2)),
       T4xLegPercentage(T1xTuesday, BigDecimal(13.2)),
@@ -329,4 +328,9 @@ object NewspaperLegPercentageDistribution {
         T4xLegPercentage(T1xDigitalPack, BigDecimal(48.0)),
       ),
     )
+  def getDistribution(deliveryCategory: T3xDeliveryCategory, pack: T2xNewspaperPackage): List[T4xLegPercentage] = {
+    deliveryCategory match {
+      case T3xNewspaperNationalDelivery => newspaperNationalDeliveryLegPercentageMapping.get(deliveryCategory, pack)
+    }
+  }
 }
