@@ -3,8 +3,6 @@ package pricemigrationengine.model
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
   Membership2025Migration,
-  Newspaper2025P1Migration,
-  Newspaper2025P1NotificationData,
   Newspaper2025P3Migration,
   Newspaper2025P3NotificationData,
   SP2026EmailExtraAttributes,
@@ -30,7 +28,6 @@ object NotificationHandlerHelper {
   def notificationLeadTime(cohortSpec: CohortSpec): Int = {
     MigrationType(cohortSpec) match {
       case Test1                         => 35
-      case Newspaper2025P1               => Newspaper2025P1Migration.notificationLeadTime
       case Newspaper2025P3               => Newspaper2025P3Migration.notificationLeadTime
       case Membership2025                => Membership2025Migration.notificationLeadTime
       case DigiSubs2025                  => DigiSubs2025Migration.notificationLeadTime
@@ -61,11 +58,6 @@ object NotificationHandlerHelper {
 
     MigrationType(cohortSpec) match {
       case Test1           => true
-      case Newspaper2025P1 => {
-        List(
-          isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2025_brand_title)
-        ).forall(identity)
-      }
       case Newspaper2025P3 => {
         List(
           isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase3_brand_title)
@@ -142,7 +134,6 @@ object NotificationHandlerHelper {
   ): Either[NotificationHandlerFailure, String] = {
     MigrationType(cohortSpec) match {
       case Test1                         => requiredData(street, "Contact.OtherAddress.street")
-      case Newspaper2025P1               => requiredData(street, "Contact.OtherAddress.street")
       case Newspaper2025P3               => requiredData(street, "Contact.OtherAddress.street")
       case Membership2025                => nonRequiredData(street, "")
       case DigiSubs2025                  => nonRequiredData(street, "")
@@ -169,7 +160,6 @@ object NotificationHandlerHelper {
   ): Either[NotificationHandlerFailure, String] = {
     MigrationType(cohortSpec) match {
       case Test1                  => requiredData(notificationAddress.country, "Contact.OtherAddress.country")
-      case Newspaper2025P1        => nonRequiredData(notificationAddress.country, "United Kingdom")
       case Newspaper2025P3        => nonRequiredData(notificationAddress.country, "United Kingdom")
       case Membership2025         => nonRequiredData(notificationAddress.country, "")
       case DigiSubs2025           => nonRequiredData(notificationAddress.country, "")
@@ -220,7 +210,6 @@ object NotificationHandlerHelper {
   ): Option[String] = {
     MigrationType(cohortSpec) match {
       case Test1                         => Some("unspecified")
-      case Newspaper2025P1               => Some("SV_NP_PriceRise_2025")
       case Newspaper2025P3               => Some("SV_NP_PriceRise_VoucherSubCard2025")
       case Membership2025                => Membership2025Migration.brazeName(item)
       case DigiSubs2025                  => DigiSubs2025Migration.brazeName(item)
@@ -253,7 +242,6 @@ object NotificationHandlerHelper {
       paymentFrequency: String,
       cohortItem: CohortItem,
       sfSubscription: SalesforceSubscription,
-      newspaper2025P1NotificationData: Newspaper2025P1NotificationData,
       newspaper2025P3NotificationData: Newspaper2025P3NotificationData,
       currencySymbol: String,
       supporterPlus2026ExtraData: SP2026EmailExtraAttributes,
@@ -281,14 +269,6 @@ object NotificationHandlerHelper {
             payment_frequency = paymentFrequency,
             subscription_id = cohortItem.subscriptionName,
             product_type = sfSubscription.Product_Type__c.getOrElse(""),
-
-            // -------------------------------------------------------------
-            // Newspaper2025P1 extension
-            // (Comment Group: 571dac68)
-            // This section and the corresponding section above should be removed as part of the
-            // Newspaper2025P1 decommissioning.
-            newspaper2025_brand_title = Some(newspaper2025P1NotificationData.brandTitle),
-            // -------------------------------------------------------------
 
             // -------------------------------------------------------------
             // Newspaper2025P3 extension

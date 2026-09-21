@@ -21,12 +21,6 @@ case class BrazePayloadSubscriberAttributes(
     product_type: String,
 
     // -----------------------------------------------
-    // Newspaper2025P1 (extension)
-    // (Comment Group: 571dac68)
-    newspaper2025_brand_title: Option[String] = None,
-    // -----------------------------------------------
-
-    // -----------------------------------------------
     // Newspaper2025P3 (extension)
     newspaper2025_phase3_brand_title: Option[String] = None,
     // -----------------------------------------------

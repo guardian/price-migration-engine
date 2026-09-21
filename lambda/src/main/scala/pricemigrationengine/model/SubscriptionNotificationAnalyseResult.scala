@@ -76,7 +76,6 @@ object SubscriptionNotificationAnalyseResult {
     } else {
       MigrationType(cohortSpec) match {
         case Test1             => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
-        case Newspaper2025P1   => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Newspaper2025P3   => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case Membership2025    => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
         case DigiSubs2025      => analyseSubscriptionForNotification_Legacy(ratePlanProbeResult)
