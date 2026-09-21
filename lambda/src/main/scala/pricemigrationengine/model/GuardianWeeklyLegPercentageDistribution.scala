@@ -62,7 +62,7 @@ object T4xMonth extends T4xGuardianWeeklyPaymentSchedule
 object T4xQuarter extends T4xGuardianWeeklyPaymentSchedule
 object T4xSemiAnnual extends T4xGuardianWeeklyPaymentSchedule
 object T4xAnnual extends T4xGuardianWeeklyPaymentSchedule
-object T4x6For6 extends T4xGuardianWeeklyPaymentSchedule
+object T4xSixForSix extends T4xGuardianWeeklyPaymentSchedule
 
 case class T5xDistribution(gardianWeeklyPercentage: BigDecimal, digitalPackPercentage: BigDecimal)
 
