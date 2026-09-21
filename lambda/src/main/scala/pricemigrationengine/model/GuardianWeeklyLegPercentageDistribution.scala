@@ -127,7 +127,7 @@ object GuardianWeeklyLegPercentageDistribution {
       case T4xQuarter    => quarterlyDistributions.get((currency, pricingLocalisation))
       case T4xSemiAnnual => semiAnnualDistributions.get((currency, pricingLocalisation))
       case T4xAnnual     => annualDistributions.get((currency, pricingLocalisation))
-      case T4x6For6      => sixForSixDistributions.get((currency, pricingLocalisation))
+      case T4xSixForSix  => sixForSixDistributions.get((currency, pricingLocalisation))
     }
   }
 }
