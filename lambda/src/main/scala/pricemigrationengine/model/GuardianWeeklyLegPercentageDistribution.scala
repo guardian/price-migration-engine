@@ -8,12 +8,12 @@ package pricemigrationengine.model
 // - Semi Annual
 // - Annual
 // - "6 for 6"
-sealed trait T4xGuardianWeeklyDeliverySchedule
-object T4xMonth extends T4xGuardianWeeklyDeliverySchedule
-object T4xQuarter extends T4xGuardianWeeklyDeliverySchedule
-object T4xSemiAnnual extends T4xGuardianWeeklyDeliverySchedule
-object T4xAnnual extends T4xGuardianWeeklyDeliverySchedule
-object T4x6For6 extends T4xGuardianWeeklyDeliverySchedule
+sealed trait T4xGuardianWeeklyPaymentSchedule
+object T4xMonth extends T4xGuardianWeeklyPaymentSchedule
+object T4xQuarter extends T4xGuardianWeeklyPaymentSchedule
+object T4xSemiAnnual extends T4xGuardianWeeklyPaymentSchedule
+object T4xAnnual extends T4xGuardianWeeklyPaymentSchedule
+object T4x6For6 extends T4xGuardianWeeklyPaymentSchedule
 
 case class T5xDistribution(gardianWeeklyLeg: BigDecimal, digitalPackLeg: BigDecimal)
 
