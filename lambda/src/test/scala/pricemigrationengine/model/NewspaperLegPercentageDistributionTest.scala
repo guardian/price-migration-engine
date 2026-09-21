@@ -24,4 +24,36 @@ class NewspaperLegPercentageDistributionTest extends munit.FunSuite {
       )
     )
   }
+  test("Ratios sums to 100%, newspaperNationalDeliveryLegPercentageMapping") {
+    assertEquals(
+      NewspaperLegPercentageDistribution.newspaperNationalDeliveryLegPercentageMapping.values.forall(l =>
+        l.map(lp => lp.percentage).sum == BigDecimal(100)
+      ),
+      true
+    )
+  }
+  test("Ratios sums to 100%, newspaperDeliveryLegPercentageMapping") {
+    assertEquals(
+      NewspaperLegPercentageDistribution.newspaperDeliveryLegPercentageMapping.values.forall(l =>
+        l.map(lp => lp.percentage).sum == BigDecimal(100)
+      ),
+      true
+    )
+  }
+  test("Ratios sums to 100%, newspaperDigitalVoucherLegPercentageMapping") {
+    assertEquals(
+      NewspaperLegPercentageDistribution.newspaperDigitalVoucherLegPercentageMapping.values.forall(l =>
+        l.map(lp => lp.percentage).sum == BigDecimal(100)
+      ),
+      true
+    )
+  }
+  test("Ratios sums to 100%, newspaperVoucherLegPercentageMapping") {
+    assertEquals(
+      NewspaperLegPercentageDistribution.newspaperVoucherLegPercentageMapping.values.forall(l =>
+        l.map(lp => lp.percentage).sum == BigDecimal(100)
+      ),
+      true
+    )
+  }
 }
