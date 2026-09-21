@@ -4,7 +4,6 @@ import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
   GuardianWeekly2026MigrationX,
   Membership2025Migration,
-  Newspaper2025P3Migration,
   Newspaper2026MigrationX,
   SupporterPlus2026Migration
 }
@@ -97,7 +96,6 @@ object AmendmentData {
   ): Either[Failure, PriceData] = {
     MigrationType(cohortSpec) match {
       case Test1                  => Left(ConfigFailure("Branch not supported"))
-      case Newspaper2025P3        => Newspaper2025P3Migration.priceData(cohortSpec, subscription, invoiceList, account)
       case Membership2025         => Membership2025Migration.priceData(cohortSpec, subscription, invoiceList)
       case DigiSubs2025           => DigiSubs2025Migration.priceData(cohortSpec, subscription, invoiceList)
       case SupporterPlus2026      => SupporterPlus2026Migration.priceData(cohortSpec, subscription, invoiceList)

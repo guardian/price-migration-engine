@@ -5,7 +5,7 @@ import pricemigrationengine.model._
 import pricemigrationengine.services._
 import zio.{Clock, ZIO}
 import com.gu.i18n
-import pricemigrationengine.migrations.{Newspaper2025P3Migration, Newspaper2026MigrationX, SupporterPlus2026Migration}
+import pricemigrationengine.migrations.{Newspaper2026MigrationX, SupporterPlus2026Migration}
 import pricemigrationengine.model.RatePlanProbe
 
 import java.time.{LocalDate, ZoneOffset}
@@ -208,11 +208,6 @@ object NotificationHandler extends CohortHandler {
       _ <- logMissingEmailAddress(cohortItem, salesforceContact)
 
       // ----------------------------------------------------
-      // Data for Newspaper2025P3
-      newspaper2025P3NotificationData <- Newspaper2025P3Migration.getNotificationData(cohortSpec, cohortItem)
-      // ----------------------------------------------------
-
-      // ----------------------------------------------------
       // Data for SupporterPlus2026
       supporterPlus2026ExtraData <-
         ZIO
@@ -256,7 +251,6 @@ object NotificationHandler extends CohortHandler {
         paymentFrequency,
         cohortItem,
         sfSubscription,
-        newspaper2025P3NotificationData,
         currencySymbol,
         supporterPlus2026ExtraData,
         newspaper2026_brand_title,

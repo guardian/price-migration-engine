@@ -1,6 +1,6 @@
 package pricemigrationengine.handlers
 
-import pricemigrationengine.migrations.{Newspaper2025P3NotificationData, SP2026EmailExtraAttributes}
+import pricemigrationengine.migrations.{SP2026EmailExtraAttributes}
 import pricemigrationengine.model.CohortTableFilter.SalesforcePriceRiseCreationComplete
 import pricemigrationengine.model._
 import pricemigrationengine.model.membershipworkflow.{
@@ -102,7 +102,6 @@ class NotificationHandlerHelperTest extends munit.FunSuite {
         paymentFrequency = "month",
         cohortItem = cohortItem,
         sfSubscription = sfSubscription,
-        newspaper2025P3NotificationData = Newspaper2025P3NotificationData(""),
         currencySymbol = "£",
         supporterPlus2026ExtraData = SP2026EmailExtraAttributes("", "", ""),
         newspaper2026_brand_title = "the Guardian and the Observer",
@@ -127,11 +126,6 @@ class NotificationHandlerHelperTest extends munit.FunSuite {
               payment_frequency = "month",
               subscription_id = "subscriptionName",
               product_type = "",
-
-              // -----------------------------------------------
-              // Newspaper2025P3 (extension)
-              newspaper2025_phase3_brand_title = Some(""),
-              // -----------------------------------------------
 
               // -----------------------------------------------
               // SupporterPlus2026 (extension)
