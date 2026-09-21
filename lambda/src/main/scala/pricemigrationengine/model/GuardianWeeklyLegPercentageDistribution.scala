@@ -58,7 +58,7 @@ object GuardianWeeklyLegPercentageDistribution {
     ("AUD", Domestic) -> T5xDistribution(BigDecimal(70.4), BigDecimal(29.6)),
     ("NZD", Domestic) -> T5xDistribution(BigDecimal(72.5), BigDecimal(27.5))
   )
-  val SixForSixDistributions: Map[(Currency, PricingLocalisation), T5xDistribution] = Map(
+  val sixForSixDistributions: Map[(Currency, PricingLocalisation), T5xDistribution] = Map(
     ("GPB", Domestic) -> T5xDistribution(BigDecimal(60.5), BigDecimal(39.5)),
     ("EUR", Domestic) -> T5xDistribution(BigDecimal(67.9), BigDecimal(32.1)),
     ("USD", RestOfWorld) -> T5xDistribution(BigDecimal(57.7), BigDecimal(42.3)),
@@ -69,15 +69,16 @@ object GuardianWeeklyLegPercentageDistribution {
     ("NZD", Domestic) -> T5xDistribution(BigDecimal(68.7), BigDecimal(31.3))
   )
   def getDistribution(
-      billingPeriod: BillingPeriod,
+      paymentSchedule: T4xGuardianWeeklyPaymentSchedule,
       currency: Currency,
       pricingLocalisation: PricingLocalisation
   ): Option[T5xDistribution] = {
-    billingPeriod match {
-      case Monthly    => monthDistributions.get((currency, pricingLocalisation))
-      case Quarterly  => quarterlyDistributions.get((currency, pricingLocalisation))
-      case SemiAnnual => semiAnnualDistributions.get((currency, pricingLocalisation))
-      case Annual     => annualDistributions.get((currency, pricingLocalisation))
+    paymentSchedule match {
+      case T4xMonth      => monthDistributions.get((currency, pricingLocalisation))
+      case T4xQuarter    => quarterlyDistributions.get((currency, pricingLocalisation))
+      case T4xSemiAnnual => semiAnnualDistributions.get((currency, pricingLocalisation))
+      case T4xAnnual     => annualDistributions.get((currency, pricingLocalisation))
+      case T4x6For6      => sixForSixDistributions.get((currency, pricingLocalisation))
     }
   }
 }
