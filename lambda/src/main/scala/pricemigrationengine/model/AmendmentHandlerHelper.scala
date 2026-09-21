@@ -2,7 +2,6 @@ package pricemigrationengine.model
 
 import pricemigrationengine.migrations.{
   DigiSubs2025Migration,
-  GuardianWeekly2025Migration,
   GuardianWeekly2026MigrationX,
   Membership2025Migration,
   Newspaper2025P1Migration,
@@ -64,7 +63,6 @@ object AmendmentHandlerHelper {
   private def shouldPerformFinalPriceCheck(cohortSpec: CohortSpec): Boolean = {
     MigrationType(cohortSpec) match {
       case Test1                         => true // default value
-      case GuardianWeekly2025            => true
       case Newspaper2025P1               => true
       case Newspaper2025P3               => true
       case Membership2025                => true
@@ -142,18 +140,7 @@ object AmendmentHandlerHelper {
       invoiceList: ZuoraInvoiceList
   ): Either[Failure, Value] = {
     MigrationType(cohortSpec) match {
-      case Test1              => Left(ConfigFailure("case not supported"))
-      case GuardianWeekly2025 =>
-        GuardianWeekly2025Migration.amendmentOrderPayload(
-          cohortItem,
-          orderDate,
-          accountNumber,
-          subscriptionNumber,
-          effectDate,
-          zuora_subscription,
-          commsPrice,
-          invoiceList
-        )
+      case Test1           => Left(ConfigFailure("case not supported"))
       case Newspaper2025P1 =>
         Newspaper2025P1Migration.amendmentOrderPayload(
           cohortItem,
@@ -389,7 +376,6 @@ object AmendmentHandlerHelper {
     }
     MigrationType(cohortSpec) match {
       case Test1                         => true
-      case GuardianWeekly2025            => true
       case Newspaper2025P1               => true
       case Newspaper2025P3               => true
       case Membership2025                => true
@@ -460,7 +446,6 @@ object AmendmentHandlerHelper {
       // other migrations we will have to introduce a general CohortItem attribute.
       MigrationType(cohortSpec) match {
         case Test1                         => Some(SAARReadyToAmend)
-        case GuardianWeekly2025            => Some(SAARReadyToAmend)
         case Newspaper2025P1               => Some(SAARReadyToAmend)
         case Newspaper2025P3               => Some(SAARReadyToAmend)
         case Membership2025                => Some(SAARReadyToAmend)

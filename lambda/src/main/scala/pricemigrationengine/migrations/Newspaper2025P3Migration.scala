@@ -224,10 +224,6 @@ object Newspaper2025P3Migration {
     // several charges (one per delivery day), is using ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides
     // which maps the rate plan's rate plan charges to an array of charge overrides json objects.
 
-    // The important preliminary here, which wasn't needed in the simpler case of a single rate plan charge
-    // in the case of GuardianWeekly2025, for instance, is the price ratio from the old price to the new price
-    // (both carried by the cohort item).
-
     val priceRatio = commsPrice / oldPrice
 
     val order_opt = {
