@@ -136,7 +136,7 @@ object AmendmentHandlerHelper {
       invoiceList: ZuoraInvoiceList
   ): Either[Failure, Value] = {
     MigrationType(cohortSpec) match {
-      case Test1           => Left(ConfigFailure("case not supported"))
+      case Test1          => Left(ConfigFailure("case not supported"))
       case Membership2025 =>
         Membership2025Migration.amendmentOrderPayload(
           cohortItem,

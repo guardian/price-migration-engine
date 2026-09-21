@@ -1,7 +1,6 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.handlers.NotificationHandler
-import pricemigrationengine.migrations.{ SupporterPlus2026Migration}
+import pricemigrationengine.migrations.SupporterPlus2026Migration
 import scala.util.Random
 import java.time.LocalDate
 
@@ -28,11 +27,11 @@ object AmendmentEffectiveDateCalculator {
       today: LocalDate
   ): Option[LocalDate] = {
     MigrationType(cohortSpec) match {
-      case Test1                  => None // default value
-      case Membership2025         => None
-      case DigiSubs2025           => None
-      case SupporterPlus2026      => None
-      case Print2026C1GWAnnualsUK => None
+      case Test1                         => None // default value
+      case Membership2025                => None
+      case DigiSubs2025                  => None
+      case SupporterPlus2026             => None
+      case Print2026C1GWAnnualsUK        => None
       case Print2026C1GWQuarterliesUK    => None
       case Print2026C1NPAnnualsUK        => None
       case Print2026C1NPQuarterliesUK    => None
