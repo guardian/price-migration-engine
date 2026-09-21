@@ -16,6 +16,7 @@ It currently consists in
 - [Coding directives](docs/coding-directives.md)
 - [Operational directives](docs/operational-directives.md)
 - [Morning startup](docs/morning-startup.md)
+- [The engine Steward](docs/steward.md)
 
 ### Web Price Rises
 
