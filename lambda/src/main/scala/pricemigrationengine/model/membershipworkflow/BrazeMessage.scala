@@ -21,11 +21,6 @@ case class BrazePayloadSubscriberAttributes(
     product_type: String,
 
     // -----------------------------------------------
-    // Newspaper2025P3 (extension)
-    newspaper2025_phase3_brand_title: Option[String] = None,
-    // -----------------------------------------------
-
-    // -----------------------------------------------
     // SupporterPlus2026 (extension)
     sp2026_contribution_amount: Option[String] = None,
     sp2026_current_combined_amount: Option[String] = None,
