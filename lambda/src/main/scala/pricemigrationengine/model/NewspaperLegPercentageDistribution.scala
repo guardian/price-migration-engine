@@ -177,7 +177,7 @@ object NewspaperLegPercentageDistribution {
         T4xLegPercentage(T1xSunday, BigDecimal(14.7)),
         T4xLegPercentage(T1xDigitalPack, BigDecimal(13.6)),
       ),
-      (T3xNewspaperDelivery, T2xWeekendPlus) -> List(
+      (T3xNewspaperDelivery, T2xSaturdayPlus) -> List(
         T4xLegPercentage(T1xSaturday, BigDecimal(52.0)),
         T4xLegPercentage(T1xDigitalPack, BigDecimal(48.0)),
       ),
