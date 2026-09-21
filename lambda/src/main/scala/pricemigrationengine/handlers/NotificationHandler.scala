@@ -9,7 +9,6 @@ import pricemigrationengine.migrations.{
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
   Newspaper2026MigrationX,
-  ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
 import pricemigrationengine.model.RatePlanProbe
@@ -227,19 +226,6 @@ object NotificationHandler extends CohortHandler {
       // ----------------------------------------------------
 
       // ----------------------------------------------------
-      // Data for ProductMigration2025N4
-      productMigration2025N4NotificationData <-
-        ZIO
-          .fromOption(
-            ProductMigration2025N4Migration.getNotificationData(
-              cohortSpec,
-              cohortItem
-            )
-          )
-          .orElseFail(DataExtractionFailure(s"[c20f44b1] How did we get here ? 🤔"))
-      // ----------------------------------------------------
-
-      // ----------------------------------------------------
       // Data for SupporterPlus2026
       supporterPlus2026ExtraData <-
         ZIO
@@ -285,7 +271,6 @@ object NotificationHandler extends CohortHandler {
         sfSubscription,
         newspaper2025P1NotificationData,
         newspaper2025P3NotificationData,
-        productMigration2025N4NotificationData,
         currencySymbol,
         supporterPlus2026ExtraData,
         newspaper2026_brand_title,

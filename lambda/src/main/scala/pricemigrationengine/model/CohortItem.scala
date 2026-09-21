@@ -49,14 +49,6 @@ case class CohortItem(
     // ------------------------------------------------------
     // For migration specific extensions, see docs/cohort-items.md
 
-    // ProductMigration2025N4
-    ex_2025N4_label: Option[String] = None,
-    ex_2025N4_group: Option[String] = None,
-    ex_2025N4_canvas: Option[String] = None,
-    ex_2025N4_rateplan_current: Option[String] = None,
-    ex_2025N4_rateplan_target: Option[String] = None,
-    delayN4AmendmentUntil: Option[LocalDate] = None,
-
     // Membership2025
     ex_membership2025_country: Option[String] = None,
 )

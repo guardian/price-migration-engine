@@ -8,8 +8,6 @@ import pricemigrationengine.migrations.{
   Newspaper2025P1NotificationData,
   Newspaper2025P3Migration,
   Newspaper2025P3NotificationData,
-  ProductMigration2025N4Migration,
-  ProductMigration2025N4NotificationData,
   SP2026EmailExtraAttributes,
   SupporterPlus2026Migration
 }
@@ -36,7 +34,6 @@ object NotificationHandlerHelper {
       case GuardianWeekly2025            => GuardianWeekly2025Migration.notificationLeadTime
       case Newspaper2025P1               => Newspaper2025P1Migration.notificationLeadTime
       case Newspaper2025P3               => Newspaper2025P3Migration.notificationLeadTime
-      case ProductMigration2025N4        => ProductMigration2025N4Migration.notificationLeadTime
       case Membership2025                => Membership2025Migration.notificationLeadTime
       case DigiSubs2025                  => DigiSubs2025Migration.notificationLeadTime
       case SupporterPlus2026             => SupporterPlus2026Migration.notificationLeadTime
@@ -75,12 +72,6 @@ object NotificationHandlerHelper {
       case Newspaper2025P3 => {
         List(
           isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase3_brand_title)
-        ).forall(identity)
-      }
-      case ProductMigration2025N4 => {
-        List(
-          isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase4_brand_title),
-          isNonTrivialValue(message.To.ContactAttributes.SubscriberAttributes.newspaper2025_phase4_formstack_url),
         ).forall(identity)
       }
       case Membership2025             => true
@@ -157,7 +148,6 @@ object NotificationHandlerHelper {
       case GuardianWeekly2025            => requiredData(street, "Contact.OtherAddress.street")
       case Newspaper2025P1               => requiredData(street, "Contact.OtherAddress.street")
       case Newspaper2025P3               => requiredData(street, "Contact.OtherAddress.street")
-      case ProductMigration2025N4        => requiredData(street, "Contact.OtherAddress.street")
       case Membership2025                => nonRequiredData(street, "")
       case DigiSubs2025                  => nonRequiredData(street, "")
       case SupporterPlus2026             => nonRequiredData(street, "")
@@ -186,7 +176,6 @@ object NotificationHandlerHelper {
       case GuardianWeekly2025     => requiredData(notificationAddress.country, "Contact.OtherAddress.country")
       case Newspaper2025P1        => nonRequiredData(notificationAddress.country, "United Kingdom")
       case Newspaper2025P3        => nonRequiredData(notificationAddress.country, "United Kingdom")
-      case ProductMigration2025N4 => nonRequiredData(notificationAddress.country, "")
       case Membership2025         => nonRequiredData(notificationAddress.country, "")
       case DigiSubs2025           => nonRequiredData(notificationAddress.country, "")
       case SupporterPlus2026      => nonRequiredData(notificationAddress.country, "")
@@ -239,7 +228,6 @@ object NotificationHandlerHelper {
       case GuardianWeekly2025            => Some("SV_GW_PriceRise2025")
       case Newspaper2025P1               => Some("SV_NP_PriceRise_2025")
       case Newspaper2025P3               => Some("SV_NP_PriceRise_VoucherSubCard2025")
-      case ProductMigration2025N4        => ProductMigration2025N4Migration.brazeName(item)
       case Membership2025                => Membership2025Migration.brazeName(item)
       case DigiSubs2025                  => DigiSubs2025Migration.brazeName(item)
       case SupporterPlus2026             => SupporterPlus2026Migration.brazeName(item, zuoraSubscription)
@@ -273,7 +261,6 @@ object NotificationHandlerHelper {
       sfSubscription: SalesforceSubscription,
       newspaper2025P1NotificationData: Newspaper2025P1NotificationData,
       newspaper2025P3NotificationData: Newspaper2025P3NotificationData,
-      productMigration2025N4NotificationData: ProductMigration2025N4NotificationData,
       currencySymbol: String,
       supporterPlus2026ExtraData: SP2026EmailExtraAttributes,
       newspaper2026_brand_title: String,
@@ -312,12 +299,6 @@ object NotificationHandlerHelper {
             // -------------------------------------------------------------
             // Newspaper2025P3 extension
             newspaper2025_phase3_brand_title = Some(newspaper2025P3NotificationData.brandTitle),
-            // -------------------------------------------------------------
-
-            // -------------------------------------------------------------
-            // ProductMigration2025N4 extension
-            newspaper2025_phase4_brand_title = Some(productMigration2025N4NotificationData.brandTitle),
-            newspaper2025_phase4_formstack_url = Some(productMigration2025N4NotificationData.formstackUrl),
             // -------------------------------------------------------------
 
             // -------------------------------------------------------------

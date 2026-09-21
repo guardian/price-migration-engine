@@ -45,7 +45,6 @@ object CohortTableLive {
           ex_2025N4_canvas <- getOptionalStringFromResults(cohortItem, "ex_2025N4_canvas")
           ex_2025N4_rateplan_current <- getOptionalStringFromResults(cohortItem, "ex_2025N4_rateplan_current")
           ex_2025N4_rateplan_target <- getOptionalStringFromResults(cohortItem, "ex_2025N4_rateplan_target")
-          delayN4AmendmentUntil <- getOptionalDateFromResults(cohortItem, "delayN4AmendmentUntil")
           ex_membership2025_country <- getOptionalStringFromResults(cohortItem, "ex_membership2025_country")
         } yield CohortItem(
           subscriptionName = subscriptionNumber,
@@ -66,12 +65,6 @@ object CohortTableLive {
           whenNotificationSentWrittenToSalesforce = whenNotificationSentWrittenToSalesforce,
           cancellationReason = cancellationReason,
           migrationExtraAttributes = migrationExtraAttributes,
-          ex_2025N4_label = ex_2025N4_label,
-          ex_2025N4_group = ex_2025N4_group,
-          ex_2025N4_canvas = ex_2025N4_canvas,
-          ex_2025N4_rateplan_current = ex_2025N4_rateplan_current,
-          ex_2025N4_rateplan_target = ex_2025N4_rateplan_target,
-          delayN4AmendmentUntil = delayN4AmendmentUntil,
           ex_membership2025_country = ex_membership2025_country
         )
       )
@@ -116,14 +109,6 @@ object CohortTableLive {
         ),
         cohortItem.cancellationReason.map(reason => stringFieldUpdate("cancellationReason", reason)),
         cohortItem.migrationExtraAttributes.map(extra => stringFieldUpdate("migrationExtraAttributes", extra)),
-        cohortItem.ex_2025N4_label.map(value => stringFieldUpdate("ex_2025N4_label", value)),
-        cohortItem.ex_2025N4_group.map(value => stringFieldUpdate("ex_2025N4_group", value)),
-        cohortItem.ex_2025N4_canvas.map(value => stringFieldUpdate("ex_2025N4_canvas", value)),
-        cohortItem.ex_2025N4_rateplan_current.map(value => stringFieldUpdate("ex_2025N4_rateplan_current", value)),
-        cohortItem.ex_2025N4_rateplan_target.map(value => stringFieldUpdate("ex_2025N4_rateplan_target", value)),
-        cohortItem.delayN4AmendmentUntil.map(delayN4AmendmentUntil =>
-          dateFieldUpdate("delayN4AmendmentUntil", delayN4AmendmentUntil)
-        ),
         cohortItem.ex_membership2025_country.map(value => stringFieldUpdate("ex_membership2025_country", value))
       ).flatten.toMap.asJava
 

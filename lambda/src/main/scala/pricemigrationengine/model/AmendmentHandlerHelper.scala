@@ -8,7 +8,6 @@ import pricemigrationengine.migrations.{
   Newspaper2025P1Migration,
   Newspaper2025P3Migration,
   Newspaper2026MigrationX,
-  ProductMigration2025N4Migration,
   SupporterPlus2026Migration
 }
 import ujson.Value
@@ -68,7 +67,6 @@ object AmendmentHandlerHelper {
       case GuardianWeekly2025            => true
       case Newspaper2025P1               => true
       case Newspaper2025P3               => true
-      case ProductMigration2025N4        => false
       case Membership2025                => true
       case DigiSubs2025                  => true
       case SupporterPlus2026             => false
@@ -178,15 +176,6 @@ object AmendmentHandlerHelper {
           zuora_subscription,
           oldPrice,
           commsPrice,
-          invoiceList
-        )
-      case ProductMigration2025N4 =>
-        ProductMigration2025N4Migration.amendmentOrderPayload(
-          orderDate,
-          accountNumber,
-          subscriptionNumber,
-          effectDate,
-          zuora_subscription,
           invoiceList
         )
       case Membership2025 =>
@@ -403,7 +392,6 @@ object AmendmentHandlerHelper {
       case GuardianWeekly2025            => true
       case Newspaper2025P1               => true
       case Newspaper2025P3               => true
-      case ProductMigration2025N4        => true
       case Membership2025                => true
       case DigiSubs2025                  => true
       case SupporterPlus2026             => itIsFewDaysAfterNotification(item)
@@ -475,7 +463,6 @@ object AmendmentHandlerHelper {
         case GuardianWeekly2025            => Some(SAARReadyToAmend)
         case Newspaper2025P1               => Some(SAARReadyToAmend)
         case Newspaper2025P3               => Some(SAARReadyToAmend)
-        case ProductMigration2025N4        => Some(SAARReadyToAmend)
         case Membership2025                => Some(SAARReadyToAmend)
         case DigiSubs2025                  => Some(SAARReadyToAmend)
         case SupporterPlus2026             => analyseSupporterPlus2026(item, subscription, today)
