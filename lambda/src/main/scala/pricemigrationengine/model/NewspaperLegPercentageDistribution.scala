@@ -72,18 +72,20 @@ object T2xEveryday extends T2xNewspaperPackage // aka Multiday
 object T2xSixDayPlus extends T2xNewspaperPackage
 object T2xWeekendPlus extends T2xNewspaperPackage
 object T2xSundayPlus extends T2xNewspaperPackage
-object T2xFivedayPlus extends T2xNewspaperPackage
 object T2xEverydayPlus extends T2xNewspaperPackage
+object T2xSaturday extends T2xNewspaperPackage
+object T2xSaturdayPlus extends T2xNewspaperPackage
 
 sealed trait T3xDeliveryCategory
-object T3xNewspaperDelivery extends T3xDeliveryCategory
 object T3xNewspaperNationalDelivery extends T3xDeliveryCategory
-object T3xNewspaperVoucher extends T3xDeliveryCategory
+object T3xNewspaperDelivery extends T3xDeliveryCategory
 object T3xNewspaperDigitalVoucher extends T3xDeliveryCategory
+object T3xNewspaperVoucher extends T3xDeliveryCategory
 
 case class T4xLegPercentage(leg: T1xNewspaperPackageLeg, percentage: BigDecimal)
 
 object NewspaperLegPercentageDistribution {
+
   val newspaperNationalDeliveryLegPercentageMapping
       : Map[(T3xDeliveryCategory, T2xNewspaperPackage), List[T4xLegPercentage]] = Map(
     (T3xNewspaperNationalDelivery, T2xEveryday) -> List(
@@ -132,4 +134,169 @@ object NewspaperLegPercentageDistribution {
       T4xLegPercentage(T1xDigitalPack, BigDecimal(31.6)),
     )
   )
+  val newspaperDeliveryLegPercentageMapping: Map[(T3xDeliveryCategory, T2xNewspaperPackage), List[T4xLegPercentage]] =
+    Map(
+      (T3xNewspaperDelivery, T2xSixDay) -> List(
+        T4xLegPercentage(T1xMonday, BigDecimal(15.9)),
+        T4xLegPercentage(T1xTuesday, BigDecimal(15.9)),
+        T4xLegPercentage(T1xWednesday, BigDecimal(15.9)),
+        T4xLegPercentage(T1xThursday, BigDecimal(15.9)),
+        T4xLegPercentage(T1xFriday, BigDecimal(15.9)),
+        T4xLegPercentage(T1xSaturday, BigDecimal(20.5)),
+      ),
+      (T3xNewspaperDelivery, T2xWeekend) -> List(
+        T4xLegPercentage(T1xSaturday, BigDecimal(50.0)),
+        T4xLegPercentage(T1xSunday, BigDecimal(50.0))
+      ),
+      (T3xNewspaperDelivery, T2xSunday) -> List(
+        T4xLegPercentage(T1xSunday, BigDecimal(50.0))
+      ),
+      (T3xNewspaperDelivery, T2xFiveday) -> List(
+        T4xLegPercentage(T1xMonday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xTuesday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xWednesday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xThursday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xFriday, BigDecimal(13.2)),
+      ),
+      (T3xNewspaperDelivery, T2xEveryday) -> List(
+        T4xLegPercentage(T1xMonday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xTuesday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xWednesday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xThursday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xFriday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xSaturday, BigDecimal(17.0)),
+        T4xLegPercentage(T1xSunday, BigDecimal(17.0))
+      ),
+      (T3xNewspaperDelivery, T2xEverydayPlus) -> List(
+        T4xLegPercentage(T1xMonday, BigDecimal(11.4)),
+        T4xLegPercentage(T1xTuesday, BigDecimal(11.4)),
+        T4xLegPercentage(T1xWednesday, BigDecimal(11.4)),
+        T4xLegPercentage(T1xThursday, BigDecimal(11.4)),
+        T4xLegPercentage(T1xFriday, BigDecimal(11.4)),
+        T4xLegPercentage(T1xSaturday, BigDecimal(14.7)),
+        T4xLegPercentage(T1xSunday, BigDecimal(14.7)),
+        T4xLegPercentage(T1xDigitalPack, BigDecimal(13.6)),
+      ),
+      (T3xNewspaperDelivery, T2xSixDayPlus) -> List(
+        T4xLegPercentage(T1xMonday, BigDecimal(13.4)),
+        T4xLegPercentage(T1xTuesday, BigDecimal(13.4)),
+        T4xLegPercentage(T1xWednesday, BigDecimal(13.4)),
+        T4xLegPercentage(T1xThursday, BigDecimal(13.4)),
+        T4xLegPercentage(T1xFriday, BigDecimal(13.4)),
+        T4xLegPercentage(T1xSaturday, BigDecimal(17.2)),
+        T4xLegPercentage(T1xDigitalPack, BigDecimal(15.8)),
+      ),
+      (T3xNewspaperDelivery, T2xWeekendPlus) -> List(
+        T4xLegPercentage(T1xSaturday, BigDecimal(34.2)),
+        T4xLegPercentage(T1xSunday, BigDecimal(34.2)),
+        T4xLegPercentage(T1xDigitalPack, BigDecimal(31.6)),
+      ),
+      (T3xNewspaperDelivery, T2xSundayPlus) -> List(
+        T4xLegPercentage(T1xSunday, BigDecimal(34.2)),
+        T4xLegPercentage(T1xDigitalPack, BigDecimal(31.6)),
+      )
+    )
+  val newspaperDigitalVoucherLegPercentageMapping
+      : Map[(T3xDeliveryCategory, T2xNewspaperPackage), List[T4xLegPercentage]] =
+    Map(
+      (T3xNewspaperDigitalVoucher, T2xEveryday) -> List(
+        T4xLegPercentage(T1xMonday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xTuesday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xWednesday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xThursday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xFriday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xSaturday, BigDecimal(17.0)),
+        T4xLegPercentage(T1xSunday, BigDecimal(17.0))
+      ),
+      (T3xNewspaperDigitalVoucher, T2xSaturday) -> List(
+        T4xLegPercentage(T1xSaturday, BigDecimal(17.0))
+      ),
+      (T3xNewspaperDigitalVoucher, T2xSixDay) -> List(
+        T4xLegPercentage(T1xMonday, BigDecimal(15.9)),
+        T4xLegPercentage(T1xTuesday, BigDecimal(15.9)),
+        T4xLegPercentage(T1xWednesday, BigDecimal(15.9)),
+        T4xLegPercentage(T1xThursday, BigDecimal(15.9)),
+        T4xLegPercentage(T1xFriday, BigDecimal(15.9)),
+        T4xLegPercentage(T1xSaturday, BigDecimal(20.5)),
+      ),
+      (T3xNewspaperDigitalVoucher, T2xWeekend) -> List(
+        T4xLegPercentage(T1xSaturday, BigDecimal(50.0)),
+        T4xLegPercentage(T1xSunday, BigDecimal(50.0))
+      ),
+      (T3xNewspaperDigitalVoucher, T2xSunday) -> List(
+        T4xLegPercentage(T1xSunday, BigDecimal(50.0))
+      ),
+      (T3xNewspaperDigitalVoucher, T2xEverydayPlus) -> List(
+        T4xLegPercentage(T1xMonday, BigDecimal(11.4)),
+        T4xLegPercentage(T1xTuesday, BigDecimal(11.4)),
+        T4xLegPercentage(T1xWednesday, BigDecimal(11.4)),
+        T4xLegPercentage(T1xThursday, BigDecimal(11.4)),
+        T4xLegPercentage(T1xFriday, BigDecimal(11.4)),
+        T4xLegPercentage(T1xSaturday, BigDecimal(14.7)),
+        T4xLegPercentage(T1xSunday, BigDecimal(14.7)),
+        T4xLegPercentage(T1xDigitalPack, BigDecimal(13.6)),
+      ),
+      (T3xNewspaperDigitalVoucher, T2xSixDayPlus) -> List(
+        T4xLegPercentage(T1xMonday, BigDecimal(13.4)),
+        T4xLegPercentage(T1xTuesday, BigDecimal(13.4)),
+        T4xLegPercentage(T1xWednesday, BigDecimal(13.4)),
+        T4xLegPercentage(T1xThursday, BigDecimal(13.4)),
+        T4xLegPercentage(T1xFriday, BigDecimal(13.4)),
+        T4xLegPercentage(T1xSaturday, BigDecimal(17.2)),
+        T4xLegPercentage(T1xDigitalPack, BigDecimal(15.8)),
+      ),
+      (T3xNewspaperDigitalVoucher, T2xWeekendPlus) -> List(
+        T4xLegPercentage(T1xSaturday, BigDecimal(34.2)),
+        T4xLegPercentage(T1xSunday, BigDecimal(34.2)),
+        T4xLegPercentage(T1xDigitalPack, BigDecimal(31.6)),
+      ),
+      (T3xNewspaperDigitalVoucher, T2xSundayPlus) -> List(
+        T4xLegPercentage(T1xSunday, BigDecimal(34.2)),
+        T4xLegPercentage(T1xDigitalPack, BigDecimal(31.6)),
+      ),
+    )
+  val newspaperVoucherLegPercentageMapping: Map[(T3xDeliveryCategory, T2xNewspaperPackage), List[T4xLegPercentage]] =
+    Map(
+      (T3xNewspaperVoucher, T2xEveryday) -> List(
+        T4xLegPercentage(T1xMonday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xTuesday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xWednesday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xThursday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xFriday, BigDecimal(13.2)),
+        T4xLegPercentage(T1xSaturday, BigDecimal(17.0)),
+        T4xLegPercentage(T1xSunday, BigDecimal(17.0))
+      ),
+      (T3xNewspaperVoucher, T2xSaturday) -> List(
+        T4xLegPercentage(T1xSaturday, BigDecimal(17.0))
+      ),
+      (T3xNewspaperVoucher, T2xSixDay) -> List(
+        T4xLegPercentage(T1xMonday, BigDecimal(15.9)),
+        T4xLegPercentage(T1xTuesday, BigDecimal(15.9)),
+        T4xLegPercentage(T1xWednesday, BigDecimal(15.9)),
+        T4xLegPercentage(T1xThursday, BigDecimal(15.9)),
+        T4xLegPercentage(T1xFriday, BigDecimal(15.9)),
+        T4xLegPercentage(T1xSaturday, BigDecimal(20.5)),
+      ),
+      (T3xNewspaperVoucher, T2xWeekend) -> List(
+        T4xLegPercentage(T1xSaturday, BigDecimal(50.0)),
+        T4xLegPercentage(T1xSunday, BigDecimal(50.0))
+      ),
+      (T3xNewspaperVoucher, T2xSunday) -> List(
+        T4xLegPercentage(T1xSunday, BigDecimal(50.0))
+      ),
+      (T3xNewspaperVoucher, T2xEverydayPlus) -> List(
+        T4xLegPercentage(T1xMonday, BigDecimal(11.4)),
+        T4xLegPercentage(T1xTuesday, BigDecimal(11.4)),
+        T4xLegPercentage(T1xWednesday, BigDecimal(11.4)),
+        T4xLegPercentage(T1xThursday, BigDecimal(11.4)),
+        T4xLegPercentage(T1xFriday, BigDecimal(11.4)),
+        T4xLegPercentage(T1xSaturday, BigDecimal(14.7)),
+        T4xLegPercentage(T1xSunday, BigDecimal(14.7)),
+        T4xLegPercentage(T1xDigitalPack, BigDecimal(13.6)),
+      ),
+      (T3xNewspaperVoucher, T2xSaturdayPlus) -> List(
+        T4xLegPercentage(T1xSaturday, BigDecimal(34.2)),
+        T4xLegPercentage(T1xDigitalPack, BigDecimal(31.6)),
+      ),
+    )
 }
