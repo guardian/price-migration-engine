@@ -1,5 +1,54 @@
 package pricemigrationengine.model
 
+/*
+
+Guardian Weekly Subs:
+
+Payment Schedule | Localisation | Currency | GW Leg   | Digital Pack Leg | Total |
+
+Month            | UK           |  GBP     |  60.5%   |           39.5%  | 100%  |
+Month            | EU           |  EUR     |  67.9%   |           32.1%  | 100%  |
+Month            | ROW          |  USD     |  57.7%   |           42.3%  | 100%  |
+Month            | ROW          |  GBP     |  58.4%   |           41.6%  | 100%  |
+Month            | US           |  USD     |  65.1%   |           34.9%  | 100%  |
+Month            | CA           |  CAD     |  60.9%   |           39.1%  | 100%  |
+Month            | AU           |  AUD     |  66.5%   |           33.5%  | 100%  |
+Month            | NZ           |  NZD     |  68.7%   |           31.3%  | 100%  |
+Quarter          | UK           |  GBP     |  60.5%   |           39.5%  | 100%  |
+Quarter          | EU           |  EUR     |  67.9%   |           32.1%  | 100%  |
+Quarter          | ROW          |  USD     |  57.7%   |           42.3%  | 100%  |
+Quarter          | ROW          |  GBP     |  58.4%   |           41.6%  | 100%  |
+Quarter          | US           |  USD     |  65.1%   |           34.9%  | 100%  |
+Quarter          | CA           |  CAD     |  60.9%   |           39.1%  | 100%  |
+Quarter          | AU           |  AUD     |  66.5%   |           33.5%  | 100%  |
+Quarter          | NZ           |  NZD     |  68.7%   |           31.3%  | 100%  |
+Semi Annual      | UK           |  GBP     |  60.5%   |           39.5%  | 100%  |
+Semi Annual      | EU           |  EUR     |  67.9%   |           32.1%  | 100%  |
+Semi Annual      | ROW          |  USD     |  57.7%   |           42.3%  | 100%  |
+Semi Annual      | ROW          |  GBP     |  58.4%   |           41.6%  | 100%  |
+Semi Annual      | US           |  USD     |  65.1%   |           34.9%  | 100%  |
+Semi Annual      | CA           |  CAD     |  60.9%   |           39.1%  | 100%  |
+Semi Annual      | AU           |  AUD     |  66.5%   |           33.5%  | 100%  |
+Semi Annual      | NZ           |  NZD     |  68.7%   |           31.3%  | 100%  |
+Annual           | UK           |  GBP     |  64.8%   |           35.2%  | 100%  |
+Annual           | EU           |  EUR     |  71.7%   |           28.3%  | 100%  |
+Annual           | ROW          |  USD     |  62.1%   |           37.9%  | 100%  |
+Annual           | ROW          |  GBP     |  62.8%   |           37.2%  | 100%  |
+Annual           | US           |  USD     |  69.2%   |           30.8%  | 100%  |
+Annual           | CA           |  CAD     |  65.1%   |           34.9%  | 100%  |
+Annual           | AU           |  AUD     |  70.4%   |           29.6%  | 100%  |
+Annual           | NZ           |  NZD     |  72.5%   |           27.5%  | 100%  |
+6 for 6          | UK           |  GBP     |  60.5%   |           39.5%  | 100%  |
+6 for 6          | EU           |  EUR     |  67.9%   |           32.1%  | 100%  |
+6 for 6          | ROW          |  USD     |  57.7%   |           42.3%  | 100%  |
+6 for 6          | ROW          |  GBP     |  58.4%   |           41.6%  | 100%  |
+6 for 6          | US           |  USD     |  65.1%   |           34.9%  | 100%  |
+6 for 6          | CA           |  CAD     |  60.9%   |           39.1%  | 100%  |
+6 for 6          | AU           |  AUD     |  66.5%   |           33.5%  | 100%  |
+6 for 6          | NZ           |  NZD     |  68.7%   |           31.3%  | 100%  |
+
+ */
+
 // Here we define "GuardianWeeklyDeliverySchedule" instead of using
 // a billing frequency because the finance data we are basing
 // ourselves on doesn't have a clear mapping to billing periods. We have
