@@ -4,6 +4,11 @@ import java.time.LocalDate
 
 /*
 
+--------------------------------------------------------------------------
+| Newspaper legs breakdown from Finance in September 2026.               |
+| See docs/pricing-legs.md for an explanation of the new pricing method  |
+--------------------------------------------------------------------------
+
 Newspaper - National Delivery:
 
                Monday  | Tuesday | Wednesday | Thursday | Friday   | Saturday | Sunday   | DigiPack | Total |
