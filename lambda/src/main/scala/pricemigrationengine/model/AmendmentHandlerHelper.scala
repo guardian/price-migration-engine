@@ -130,7 +130,7 @@ object AmendmentHandlerHelper {
       accountNumber: String,
       subscriptionNumber: String,
       effectDate: LocalDate,
-      zuora_subscription: ZuoraSubscription,
+      zuoraSubscription: ZuoraSubscription,
       oldPrice: BigDecimal,
       commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList
@@ -144,7 +144,7 @@ object AmendmentHandlerHelper {
           accountNumber,
           subscriptionNumber,
           effectDate,
-          zuora_subscription,
+          zuoraSubscription,
           commsPrice,
           invoiceList
         )
@@ -155,7 +155,7 @@ object AmendmentHandlerHelper {
           accountNumber,
           subscriptionNumber,
           effectDate,
-          zuora_subscription,
+          zuoraSubscription,
           commsPrice,
           invoiceList
         )
@@ -166,7 +166,7 @@ object AmendmentHandlerHelper {
           accountNumber,
           subscriptionNumber,
           effectDate,
-          zuora_subscription,
+          zuoraSubscription,
           commsPrice,
           invoiceList
         )
@@ -177,7 +177,7 @@ object AmendmentHandlerHelper {
           accountNumber,
           subscriptionNumber,
           effectDate,
-          zuora_subscription,
+          zuoraSubscription,
           commsPrice,
           invoiceList
         )
@@ -188,7 +188,7 @@ object AmendmentHandlerHelper {
           accountNumber,
           subscriptionNumber,
           effectDate,
-          zuora_subscription,
+          zuoraSubscription,
           commsPrice,
           invoiceList
         )
@@ -199,7 +199,7 @@ object AmendmentHandlerHelper {
           accountNumber,
           subscriptionNumber,
           effectDate,
-          zuora_subscription,
+          zuoraSubscription,
           oldPrice,
           commsPrice,
           invoiceList
@@ -211,7 +211,7 @@ object AmendmentHandlerHelper {
           accountNumber,
           subscriptionNumber,
           effectDate,
-          zuora_subscription,
+          zuoraSubscription,
           oldPrice,
           commsPrice,
           invoiceList
@@ -223,7 +223,7 @@ object AmendmentHandlerHelper {
           accountNumber,
           subscriptionNumber,
           effectDate,
-          zuora_subscription,
+          zuoraSubscription,
           oldPrice,
           commsPrice,
           invoiceList
@@ -235,7 +235,7 @@ object AmendmentHandlerHelper {
           accountNumber,
           subscriptionNumber,
           effectDate,
-          zuora_subscription,
+          zuoraSubscription,
           oldPrice,
           commsPrice,
           invoiceList
@@ -247,7 +247,7 @@ object AmendmentHandlerHelper {
           accountNumber,
           subscriptionNumber,
           effectDate,
-          zuora_subscription,
+          zuoraSubscription,
           commsPrice,
           invoiceList
         )
@@ -258,7 +258,7 @@ object AmendmentHandlerHelper {
           accountNumber,
           subscriptionNumber,
           effectDate,
-          zuora_subscription,
+          zuoraSubscription,
           oldPrice,
           commsPrice,
           invoiceList
@@ -270,7 +270,7 @@ object AmendmentHandlerHelper {
           accountNumber,
           subscriptionNumber,
           effectDate,
-          zuora_subscription,
+          zuoraSubscription,
           oldPrice,
           commsPrice,
           invoiceList
@@ -282,7 +282,7 @@ object AmendmentHandlerHelper {
           accountNumber,
           subscriptionNumber,
           effectDate,
-          zuora_subscription,
+          zuoraSubscription,
           commsPrice,
           invoiceList
         )
@@ -293,7 +293,7 @@ object AmendmentHandlerHelper {
           accountNumber,
           subscriptionNumber,
           effectDate,
-          zuora_subscription,
+          zuoraSubscription,
           oldPrice,
           commsPrice,
           invoiceList
@@ -305,7 +305,7 @@ object AmendmentHandlerHelper {
           accountNumber,
           subscriptionNumber,
           effectDate,
-          zuora_subscription,
+          zuoraSubscription,
           commsPrice,
           invoiceList
         )

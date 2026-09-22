@@ -123,7 +123,7 @@ object Membership2025Migration {
       accountNumber: String,
       subscriptionNumber: String,
       effectDate: LocalDate,
-      zuora_subscription: ZuoraSubscription,
+      zuoraSubscription: ZuoraSubscription,
       commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
@@ -135,7 +135,7 @@ object Membership2025Migration {
 
     val order_opt = {
       for {
-        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
         billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
       } yield {
         val subscriptionRatePlanId = ratePlan.id
@@ -181,7 +181,7 @@ object Membership2025Migration {
       case None        =>
         Left(
           DataExtractionFailure(
-            s"[ee2a0cdb] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
+            s"[ee2a0cdb] Could not compute amendmentOrderPayload for subscription ${zuoraSubscription.subscriptionNumber}"
           )
         )
     }

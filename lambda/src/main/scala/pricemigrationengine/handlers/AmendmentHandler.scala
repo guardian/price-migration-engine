@@ -237,7 +237,7 @@ object AmendmentHandler extends CohortHandler {
             accountNumber = account.basicInfo.accountNumber,
             subscriptionNumber = subscriptionBeforeUpdate.subscriptionNumber,
             effectDate = amendmentEffectiveDate,
-            zuora_subscription = subscriptionBeforeUpdate,
+            zuoraSubscription = subscriptionBeforeUpdate,
             oldPrice = oldPrice,
             commsPrice = commsPrice,
             invoiceList = invoicePreviewBeforeUpdate

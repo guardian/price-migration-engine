@@ -339,7 +339,7 @@ object SupporterPlus2026Migration {
       accountNumber: String,
       subscriptionNumber: String,
       effectDate: LocalDate,
-      zuora_subscription: ZuoraSubscription,
+      zuoraSubscription: ZuoraSubscription,
       commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
@@ -350,7 +350,7 @@ object SupporterPlus2026Migration {
 
     val order_opt = {
       for {
-        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
         billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
       } yield {
         val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, ratePlan.id)
@@ -406,7 +406,7 @@ object SupporterPlus2026Migration {
       case None        =>
         Left(
           DataExtractionFailure(
-            s"[52480576] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
+            s"[52480576] Could not compute amendmentOrderPayload for subscription ${zuoraSubscription.subscriptionNumber}"
           )
         )
     }
