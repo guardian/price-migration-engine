@@ -36,6 +36,7 @@ It currently consists in
 - [Quirks of the engine](docs/quirks.md)
 - [Extended checklists](docs/price-rise-extended-checklists.md)
 - [Which postal addresses to use for the letter notifications](docs/postal-addresses.md)
+- [Pricing subscriptions with legs](docs/pricing-legs.md)
 
 ### Android Price Rises
 
