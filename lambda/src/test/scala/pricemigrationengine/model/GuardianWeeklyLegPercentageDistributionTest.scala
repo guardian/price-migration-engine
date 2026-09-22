@@ -30,35 +30,35 @@ class GuardianWeeklyLegPercentageDistributionTest extends munit.FunSuite {
 
     assertEquals(
       GuardianWeeklyLegPercentageDistribution.monthDistributions.values.forall(v =>
-        (v.gardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
+        (v.guardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
       ),
       true
     )
 
     assertEquals(
       GuardianWeeklyLegPercentageDistribution.quarterlyDistributions.values.forall(v =>
-        (v.gardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
+        (v.guardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
       ),
       true
     )
 
     assertEquals(
       GuardianWeeklyLegPercentageDistribution.semiAnnualDistributions.values.forall(v =>
-        (v.gardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
+        (v.guardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
       ),
       true
     )
 
     assertEquals(
       GuardianWeeklyLegPercentageDistribution.annualDistributions.values.forall(v =>
-        (v.gardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
+        (v.guardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
       ),
       true
     )
 
     assertEquals(
       GuardianWeeklyLegPercentageDistribution.sixForSixDistributions.values.forall(v =>
-        (v.gardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
+        (v.guardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
       ),
       true
     )
