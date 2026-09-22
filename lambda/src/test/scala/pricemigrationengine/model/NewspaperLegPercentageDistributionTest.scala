@@ -24,31 +24,29 @@ class NewspaperLegPercentageDistributionTest extends munit.FunSuite {
       )
     )
   }
-  test("Ratios sums to 100%, newspaperNationalDeliveryLegPercentageMapping") {
+  test("Percentages sums to 100%, newspaperNationalDeliveryLegPercentageMapping") {
+    // This check ensures that in all cases the sum of `percentage` from a List[T4xLegPercentage] is 100
     assertEquals(
       NewspaperLegPercentageDistribution.newspaperNationalDeliveryLegPercentageMapping.values.forall(l =>
         l.map(lp => lp.percentage).sum == BigDecimal(100)
       ),
       true
     )
-  }
-  test("Ratios sums to 100%, newspaperDeliveryLegPercentageMapping") {
+
     assertEquals(
       NewspaperLegPercentageDistribution.newspaperDeliveryLegPercentageMapping.values.forall(l =>
         l.map(lp => lp.percentage).sum == BigDecimal(100)
       ),
       true
     )
-  }
-  test("Ratios sums to 100%, newspaperDigitalVoucherLegPercentageMapping") {
+
     assertEquals(
       NewspaperLegPercentageDistribution.newspaperDigitalVoucherLegPercentageMapping.values.forall(l =>
         l.map(lp => lp.percentage).sum == BigDecimal(100)
       ),
       true
     )
-  }
-  test("Ratios sums to 100%, newspaperVoucherLegPercentageMapping") {
+
     assertEquals(
       NewspaperLegPercentageDistribution.newspaperVoucherLegPercentageMapping.values.forall(l =>
         l.map(lp => lp.percentage).sum == BigDecimal(100)
