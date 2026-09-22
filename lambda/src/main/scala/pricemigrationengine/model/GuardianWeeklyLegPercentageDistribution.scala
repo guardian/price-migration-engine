@@ -143,24 +143,4 @@ object GuardianWeeklyLegPercentageDistribution {
       case T4xSixForSix  => sixForSixDistributions.get((currency, pricingLocalisation))
     }
   }
-  def decideT6xLegChargeOverrides(
-      distribution: T5xDistribution,
-      productRatePlanChargeIdMapping: Map[T7xGWSubLegs, String],
-      billingPeriod: BillingPeriod,
-      targetPrice: BigDecimal,
-  ): Option[List[T6xLegChargeOverrides]] = {
-    for {
-      guardianWeeklyLegRatePlanChargeId <- productRatePlanChargeIdMapping.get(T7xGuardianWeekly)
-      digitalPackPercentage <- productRatePlanChargeIdMapping.get(T7xDigitalPack)
-    } yield {
-      List(
-        T6xLegChargeOverrides(
-          guardianWeeklyLegRatePlanChargeId,
-          targetPrice * distribution.guardianWeeklyPercentage,
-          billingPeriod
-        ),
-        T6xLegChargeOverrides(digitalPackPercentage, targetPrice * distribution.digitalPackPercentage, billingPeriod)
-      )
-    }
-  }
 }
