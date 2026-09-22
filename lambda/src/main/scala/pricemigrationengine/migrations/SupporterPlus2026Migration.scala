@@ -390,13 +390,13 @@ object SupporterPlus2026Migration {
         val addProduct =
           ZuoraOrdersApiPrimitives.addProduct(triggerDateString, targetProductRatePlanId, chargeOverrides)
 
-        val order_subscription =
+        val orderSubscription =
           ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
 
         ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
           orderDate.toString,
           accountNumber,
-          order_subscription
+          orderSubscription
         )
       }
     }
