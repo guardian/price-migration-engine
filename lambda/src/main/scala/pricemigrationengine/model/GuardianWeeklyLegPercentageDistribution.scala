@@ -69,7 +69,7 @@ object T4xSemiAnnual extends T4xGuardianWeeklyPaymentSchedule
 object T4xAnnual extends T4xGuardianWeeklyPaymentSchedule
 object T4xSixForSix extends T4xGuardianWeeklyPaymentSchedule
 
-case class T5xDistribution(gardianWeeklyPercentage: BigDecimal, digitalPackPercentage: BigDecimal)
+case class T5xDistribution(guardianWeeklyPercentage: BigDecimal, digitalPackPercentage: BigDecimal)
 
 object GuardianWeeklyLegPercentageDistribution {
   val monthDistributions: Map[(Currency, PricingLocalisation), T5xDistribution] = Map(
