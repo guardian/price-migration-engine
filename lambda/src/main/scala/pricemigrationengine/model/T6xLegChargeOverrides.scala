@@ -87,4 +87,37 @@ object T6xLegChargeOverrides {
       ensureTotal(legs, targetPrice)
     }
   }
+
+  // Decide T6xLegChargeOverrides in the case of Newspaper subs
+  // Interesting differences between this variant and the previous one
+  // - `distributions` is now a List[T4xLegPercentage] since that's how we get them from the Finance data
+  // - `productRatePlanChargeIdMapping` maps T1xNewspaperPackageLegs to String
+  def decideT6xLegChargeOverrides(
+      distribution: List[T4xLeg],
+      productRatePlanChargeIdMapping: Map[T1xNewspaperLegType, String],
+      billingPeriod: BillingPeriod,
+      targetPrice: BigDecimal
+  ): Option[List[T6xLegChargeOverrides]] = {
+    val legs = distribution.flatMap(t4 => {
+      for {
+        chargeId <- productRatePlanChargeIdMapping.get(t4.legType)
+      } yield T6xLegChargeOverrides(
+        productRatePlanChargeId = chargeId,
+        (targetPrice * t4.percentage * 0.01).setScale(2, RoundingMode.DOWN),
+        billingPeriod
+      )
+    })
+
+    // We only pursue if we haven't lost any data (which would only happen if
+    // the productRatePlanChargeIdMapping wasn't complete)
+    // We check that with the size of legs compared to distribution
+
+    if (legs.length < distribution.length) {
+      None
+    } else {
+      // We now need to ensure that we are recovering the extact target price, despite the two
+      // .setScale(2, RoundingMode.DOWN)
+      Some(ensureTotal(legs, targetPrice))
+    }
+  }
 }
