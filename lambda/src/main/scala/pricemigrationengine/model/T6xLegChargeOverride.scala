@@ -8,11 +8,11 @@ import scala.math.BigDecimal.RoundingMode
 // Newspaper (NewspaperLegPercentageDistribution) pricing percentage distributions,
 // and the Value used in the JSON payload
 
-case class T6xLegChargeOverrides(productRatePlanChargeId: String, price: BigDecimal, billingPeriod: BillingPeriod)
+case class T6xLegChargeOverride(productRatePlanChargeId: String, price: BigDecimal, billingPeriod: BillingPeriod)
 
-object T6xLegChargeOverrides {
+object T6xLegChargeOverride {
 
-  def ensureTotal(legs: List[T6xLegChargeOverrides], targetTotalPrice: BigDecimal): List[T6xLegChargeOverrides] = {
+  def ensureTotal(legs: List[T6xLegChargeOverride], targetTotalPrice: BigDecimal): List[T6xLegChargeOverride] = {
     // This function performs a similar calibration operation as
     // ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides, but on Scala types
     // and not JSON Values. Its purpose is to ensure that the sum of prices is exactly the
@@ -43,7 +43,7 @@ object T6xLegChargeOverrides {
       productRatePlanChargeIdMapping: Map[T7xGWSubLegs, String],
       billingPeriod: BillingPeriod,
       targetPrice: BigDecimal,
-  ): Option[List[T6xLegChargeOverrides]] = {
+  ): Option[List[T6xLegChargeOverride]] = {
     // It's useful here to understand why the signature of this function is the way it is
 
     // The `distribution` comes from knowing which type of subscription we are dealing with
@@ -70,12 +70,12 @@ object T6xLegChargeOverrides {
       digitalPackPercentage <- productRatePlanChargeIdMapping.get(T7xDigitalPack)
     } yield {
       val legs = List(
-        T6xLegChargeOverrides(
+        T6xLegChargeOverride(
           guardianWeeklyLegRatePlanChargeId,
           (targetPrice * distribution.guardianWeeklyPercentage * 0.01).setScale(2, RoundingMode.DOWN),
           billingPeriod
         ),
-        T6xLegChargeOverrides(
+        T6xLegChargeOverride(
           digitalPackPercentage,
           (targetPrice * distribution.digitalPackPercentage * 0.01).setScale(2, RoundingMode.DOWN),
           billingPeriod
@@ -93,7 +93,7 @@ object T6xLegChargeOverrides {
       productRatePlanChargeIdMapping: Map[T1xNewspaperLegType, String],
       billingPeriod: BillingPeriod,
       targetPrice: BigDecimal
-  ): Option[List[T6xLegChargeOverrides]] = {
+  ): Option[List[T6xLegChargeOverride]] = {
     // Decide T6xLegChargeOverrides in the case of Newspaper subs
     // Interesting differences between this variant and the previous one
     // - `distributions` is now a List[T4xLegPercentage] since that's how we get them from the Finance data
@@ -102,7 +102,7 @@ object T6xLegChargeOverrides {
     val legs = distribution.flatMap(t4 => {
       for {
         chargeId <- productRatePlanChargeIdMapping.get(t4.legType)
-      } yield T6xLegChargeOverrides(
+      } yield T6xLegChargeOverride(
         productRatePlanChargeId = chargeId,
         (targetPrice * t4.percentage * 0.01).setScale(2, RoundingMode.DOWN),
         billingPeriod
