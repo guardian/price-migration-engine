@@ -338,7 +338,7 @@ object NewspaperLegPercentageDistribution {
   ): Option[List[T4xLegPercentage]] = {
     deliveryCategory match {
       case T3xNewspaperNationalDelivery => newspaperNationalDeliveryLegPercentageMapping.get(pack)
-      case T3xNewspaperDelivery         => newspaperNationalDeliveryLegPercentageMapping.get(pack)
+      case T3xNewspaperDelivery         => newspaperDeliveryLegPercentageMapping.get(pack)
       case T3xNewspaperDigitalVoucher   => newspaperDigitalVoucherLegPercentageMapping.get(pack)
       case T3xNewspaperVoucher          => newspaperVoucherLegPercentageMapping.get(pack)
     }
