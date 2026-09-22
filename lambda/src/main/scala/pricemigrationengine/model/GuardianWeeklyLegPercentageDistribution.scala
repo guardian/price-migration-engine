@@ -1,5 +1,7 @@
 package pricemigrationengine.model
 
+import pricemigrationengine.migrations.Newspaper2026MigrationX.logValue
+
 /*
 
 --------------------------------------------------------------------------
@@ -70,6 +72,12 @@ object T4xAnnual extends T4xGuardianWeeklyPaymentSchedule
 object T4xSixForSix extends T4xGuardianWeeklyPaymentSchedule
 
 case class T5xDistribution(guardianWeeklyPercentage: BigDecimal, digitalPackPercentage: BigDecimal)
+
+// T7xGWSubLegs enumerates the two legs of the new guardian weekly subs. It's used
+// to build the productRatePlanChargeId mapping for `decideT6xLegChargeOverrides`
+sealed trait T7xGWSubLegs
+object T7xGuardianWeekly extends T7xGWSubLegs
+object T7xDigitalPack extends T7xGWSubLegs
 
 object GuardianWeeklyLegPercentageDistribution {
   val monthDistributions: Map[(Currency, PricingLocalisation), T5xDistribution] = Map(
