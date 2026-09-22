@@ -54,4 +54,16 @@ object NewspaperHelper {
       pack <- ratePlanNameToT2xNewspaperPackage(ratePlan.ratePlanName)
     } yield pack
   }
+
+  def subscriptionToDistribution(subscription: ZuoraSubscription, today: LocalDate): Either[String, List[T4xLeg]] = {
+    for {
+      deliveryCategory <- subscriptionToT3xDeliveryCategory(subscription, today)
+      pack <- subscriptionToT2xNewspaperPackage(subscription, today)
+      result <- NewspaperLegPercentageDistribution
+        .getDistribution(deliveryCategory, pack)
+        .toRight(
+          s"[f9df6457] could not determine NewspaperLegPercentageDistribution.getDistribution for subscription: ${subscription.subscriptionNumber} "
+        )
+    } yield result
+  }
 }

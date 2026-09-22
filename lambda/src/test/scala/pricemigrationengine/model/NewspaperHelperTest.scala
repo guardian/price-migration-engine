@@ -29,6 +29,8 @@ import java.time.LocalDate
 
 class NewspaperHelperTest extends munit.FunSuite {
 
+  // --------------------
+
   test("NewspaperHelper.subscriptionToT3xDeliveryCategory") {
     val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub1/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
@@ -62,6 +64,8 @@ class NewspaperHelperTest extends munit.FunSuite {
     )
   }
 
+  // --------------------
+
   test("NewspaperHelper.subscriptionToT2xNewspaperPackage") {
     val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub1/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
@@ -84,6 +88,45 @@ class NewspaperHelperTest extends munit.FunSuite {
     assertEquals(
       NewspaperHelper.subscriptionToT2xNewspaperPackage(subscription, today),
       Right(T2xEchoLegacy)
+    )
+  }
+
+  // --------------------
+
+  test("NewspaperHelper.subscriptionToDistribution") {
+    // sub1: "Newspaper Voucher"          "Everyday+"   "GBP"   "Month"
+
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub1/subscription.json")
+    val today = LocalDate.of(2026, 9, 1)
+
+    // We are expecting: (NewspaperNationalDelivery, "Month", "Everyday+"), which comes down to
+    /*
+        List(
+          T4xLeg(T1xMonday,      BigDecimal(11.4)),
+          T4xLeg(T1xTuesday,     BigDecimal(11.4)),
+          T4xLeg(T1xWednesday,   BigDecimal(11.4)),
+          T4xLeg(T1xThursday,    BigDecimal(11.4)),
+          T4xLeg(T1xFriday,      BigDecimal(11.4)),
+          T4xLeg(T1xSaturday,    BigDecimal(14.7)),
+          T4xLeg(T1xSunday,      BigDecimal(14.7)),
+          T4xLeg(T1xDigitalPack, BigDecimal(13.6)),
+        )
+     */
+
+    assertEquals(
+      NewspaperHelper.subscriptionToDistribution(subscription, today),
+      Right(
+        List(
+          T4xLeg(T1xMonday, BigDecimal(11.4)),
+          T4xLeg(T1xTuesday, BigDecimal(11.4)),
+          T4xLeg(T1xWednesday, BigDecimal(11.4)),
+          T4xLeg(T1xThursday, BigDecimal(11.4)),
+          T4xLeg(T1xFriday, BigDecimal(11.4)),
+          T4xLeg(T1xSaturday, BigDecimal(14.7)),
+          T4xLeg(T1xSunday, BigDecimal(14.7)),
+          T4xLeg(T1xDigitalPack, BigDecimal(13.6)),
+        )
+      )
     )
   }
 }
