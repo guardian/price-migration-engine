@@ -30,10 +30,34 @@ import java.time.LocalDate
 class NewspaperHelperTest extends munit.FunSuite {
   test("NewspaperHelper.subscriptionToT3xDeliveryCategory") {
     val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub1/subscription.json")
-    val today = LocalDate.of(2026, 9, 22)
+    val today = LocalDate.of(2026, 9, 1)
     assertEquals(
       NewspaperHelper.subscriptionToT3xDeliveryCategory(subscription, today),
-      Some(T3xNewspaperVoucher)
+      Right(T3xNewspaperVoucher)
+    )
+  }
+  test("NewspaperHelper.subscriptionToT3xDeliveryCategory") {
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub2/subscription.json")
+    val today = LocalDate.of(2026, 9, 1)
+    assertEquals(
+      NewspaperHelper.subscriptionToT3xDeliveryCategory(subscription, today),
+      Right(T3xNewspaperDigitalVoucher)
+    )
+  }
+  test("NewspaperHelper.subscriptionToT3xDeliveryCategory") {
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub11/subscription.json")
+    val today = LocalDate.of(2026, 9, 1)
+    assertEquals(
+      NewspaperHelper.subscriptionToT3xDeliveryCategory(subscription, today),
+      Right(T3xNewspaperNationalDelivery)
+    )
+  }
+  test("NewspaperHelper.subscriptionToT3xDeliveryCategory") {
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub12/subscription.json")
+    val today = LocalDate.of(2026, 9, 1)
+    assertEquals(
+      NewspaperHelper.subscriptionToT3xDeliveryCategory(subscription, today),
+      Right(T3xNewspaperDelivery)
     )
   }
 }
