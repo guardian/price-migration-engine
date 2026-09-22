@@ -28,6 +28,7 @@ import java.time.LocalDate
 //        More exactly it has the Sunday leg, but I set the price to zero
 
 class NewspaperHelperTest extends munit.FunSuite {
+
   test("NewspaperHelper.subscriptionToT3xDeliveryCategory") {
     val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub1/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
@@ -58,6 +59,31 @@ class NewspaperHelperTest extends munit.FunSuite {
     assertEquals(
       NewspaperHelper.subscriptionToT3xDeliveryCategory(subscription, today),
       Right(T3xNewspaperDelivery)
+    )
+  }
+
+  test("NewspaperHelper.subscriptionToT2xNewspaperPackage") {
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub1/subscription.json")
+    val today = LocalDate.of(2026, 9, 1)
+    assertEquals(
+      NewspaperHelper.subscriptionToT2xNewspaperPackage(subscription, today),
+      Right(T2xEverydayPlus)
+    )
+  }
+  test("NewspaperHelper.subscriptionToT2xNewspaperPackage") {
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub4/subscription.json")
+    val today = LocalDate.of(2026, 9, 1)
+    assertEquals(
+      NewspaperHelper.subscriptionToT2xNewspaperPackage(subscription, today),
+      Right(T2xSixDayPlus)
+    )
+  }
+  test("NewspaperHelper.subscriptionToT2xNewspaperPackage") {
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub12/subscription.json")
+    val today = LocalDate.of(2026, 9, 1)
+    assertEquals(
+      NewspaperHelper.subscriptionToT2xNewspaperPackage(subscription, today),
+      Right(T2xEchoLegacy)
     )
   }
 }

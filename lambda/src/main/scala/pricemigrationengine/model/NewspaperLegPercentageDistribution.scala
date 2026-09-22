@@ -84,6 +84,7 @@ object T2xSundayPlus extends T2xNewspaperPackage
 object T2xEverydayPlus extends T2xNewspaperPackage
 object T2xSaturday extends T2xNewspaperPackage
 object T2xSaturdayPlus extends T2xNewspaperPackage
+object T2xEchoLegacy extends T2xNewspaperPackage
 
 sealed trait T3xDeliveryCategory
 object T3xNewspaperNationalDelivery extends T3xDeliveryCategory
