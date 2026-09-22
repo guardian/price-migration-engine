@@ -293,7 +293,7 @@ object Newspaper2026MigrationX {
       accountNumber: String,
       subscriptionNumber: String,
       effectDate: LocalDate,
-      zuora_subscription: ZuoraSubscription,
+      zuoraSubscription: ZuoraSubscription,
       oldPrice: BigDecimal,
       commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList,
@@ -302,22 +302,23 @@ object Newspaper2026MigrationX {
     // several charges (one per delivery day), is using ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides
     // which maps the rate plan's rate plan charges to an array of charge overrides json objects.
 
-    val priceRatio = commsPrice / oldPrice
-
     val order_opt = for {
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
+      productRatePlanChargeIdMapping = NewspaperHelper.ratePlanToProductRatePlanChargeIdMapping(ratePlan)
       billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
+      distribution <- NewspaperHelper.subscriptionToFinancePercentageDistribution(zuoraSubscription, orderDate).toOption
+      legs <- T6xLegChargeOverride.decideT6xLegChargeOverrides(
+        distribution,
+        productRatePlanChargeIdMapping,
+        billingPeriod,
+        commsPrice
+      )
     } yield {
       val subscriptionRatePlanId = ratePlan.id
       val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
       val triggerDateString = effectDate.toString
       val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
-      val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
-        ratePlan.ratePlanCharges,
-        priceRatio,
-        commsPrice,
-        BillingPeriod.toString(billingPeriod)
-      )
+      val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.t6xLegsToChargeOverrides(legs)
       val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
       val order_subscription =
         ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
@@ -332,7 +333,7 @@ object Newspaper2026MigrationX {
       case None        =>
         Left(
           DataExtractionFailure(
-            s"[9f480e70] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
+            s"[9f480e70] Could not compute amendmentOrderPayload for subscription ${zuoraSubscription.subscriptionNumber}"
           )
         )
     }

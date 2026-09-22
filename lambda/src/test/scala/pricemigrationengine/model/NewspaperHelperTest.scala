@@ -114,7 +114,7 @@ class NewspaperHelperTest extends munit.FunSuite {
      */
 
     assertEquals(
-      NewspaperHelper.subscriptionToDistribution(subscription, today),
+      NewspaperHelper.subscriptionToFinancePercentageDistribution(subscription, today),
       Right(
         List(
           T4xLeg(T1xMonday, BigDecimal(11.4)),
@@ -127,6 +127,36 @@ class NewspaperHelperTest extends munit.FunSuite {
           T4xLeg(T1xDigitalPack, BigDecimal(13.6)),
         )
       )
+    )
+  }
+
+  // --------------------
+
+  test("NewspaperHelper.ratePlanChargeToMappingPair") {
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub1/subscription.json")
+    val today = LocalDate.of(2026, 9, 1)
+    val ratePlan = SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(subscription, today).get
+    val ratePlanCharge = ratePlan.ratePlanCharges.headOption.get
+
+    assertEquals(
+      NewspaperHelper.ratePlanChargeToMappingPair(ratePlanCharge),
+      Right((T1xDigitalPack, "2c92a0fc56fe26ba01570418eddd26e1"))
+    )
+  }
+
+  // --------------------
+
+  test("NewspaperHelper.ratePlanChargeToMappingPair") {
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub1/subscription.json")
+    val today = LocalDate.of(2026, 9, 1)
+    val ratePlan = SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(subscription, today).get
+
+    // This is not a great test, originally I wanted to compare the two maps, but that doesn't quite work
+    // So comparing two ids, will do.
+
+    assertEquals(
+      NewspaperHelper.ratePlanToProductRatePlanChargeIdMapping(ratePlan).get(T1xSunday),
+      Some("2c92a0ff56fe33f5015709c80af30495")
     )
   }
 }

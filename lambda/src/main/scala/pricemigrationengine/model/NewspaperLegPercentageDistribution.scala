@@ -72,6 +72,23 @@ object T1xSaturday extends T1xNewspaperLegType
 object T1xSunday extends T1xNewspaperLegType
 object T1xDigitalPack extends T1xNewspaperLegType
 
+object T1xNewspaperLegType {
+  def typeFromString(name: String): Option[T1xNewspaperLegType] = {
+    name match {
+      case "Monday"       => Some(T1xMonday)
+      case "Tuesday"      => Some(T1xTuesday)
+      case "Wednesday"    => Some(T1xWednesday)
+      case "Thursday"     => Some(T1xThursday)
+      case "Friday"       => Some(T1xFriday)
+      case "Saturday"     => Some(T1xSaturday)
+      case "Sunday"       => Some(T1xSunday)
+      case "Digital Pack" => Some(T1xDigitalPack)
+      case "Digipack"     => Some(T1xDigitalPack)
+      case _              => None
+    }
+  }
+}
+
 sealed trait T2xNewspaperPackage
 object T2xSixDay extends T2xNewspaperPackage
 object T2xWeekend extends T2xNewspaperPackage

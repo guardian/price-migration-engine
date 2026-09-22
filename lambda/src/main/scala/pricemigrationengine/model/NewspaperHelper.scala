@@ -55,7 +55,10 @@ object NewspaperHelper {
     } yield pack
   }
 
-  def subscriptionToDistribution(subscription: ZuoraSubscription, today: LocalDate): Either[String, List[T4xLeg]] = {
+  def subscriptionToFinancePercentageDistribution(
+      subscription: ZuoraSubscription,
+      today: LocalDate
+  ): Either[String, List[T4xLeg]] = {
     for {
       deliveryCategory <- subscriptionToT3xDeliveryCategory(subscription, today)
       pack <- subscriptionToT2xNewspaperPackage(subscription, today)
@@ -65,5 +68,19 @@ object NewspaperHelper {
           s"[f9df6457] could not determine NewspaperLegPercentageDistribution.getDistribution for subscription: ${subscription.subscriptionNumber} "
         )
     } yield result
+  }
+
+  def ratePlanChargeToMappingPair(
+      ratePlanCharge: ZuoraRatePlanCharge
+  ): Either[String, (T1xNewspaperLegType, String)] = {
+    for {
+      t <- T1xNewspaperLegType
+        .typeFromString(ratePlanCharge.name)
+        .toRight(s"[06f899fb] could not extract T1xNewspaperLegType from rate plan charge name ${ratePlanCharge.name}")
+    } yield (t, ratePlanCharge.productRatePlanChargeId)
+  }
+
+  def ratePlanToProductRatePlanChargeIdMapping(ratePlan: ZuoraRatePlan): Map[T1xNewspaperLegType, String] = {
+    ratePlan.ratePlanCharges.flatMap(rpc => ratePlanChargeToMappingPair(rpc).toOption).toMap
   }
 }
