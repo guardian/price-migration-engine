@@ -122,4 +122,17 @@ object GuardianWeeklyLegPercentageDistribution {
     ("AUD", Domestic) -> T5xDistribution(BigDecimal(66.5), BigDecimal(33.5)),
     ("NZD", Domestic) -> T5xDistribution(BigDecimal(68.7), BigDecimal(31.3))
   )
+  def getDistribution(
+      paymentSchedule: T4xGuardianWeeklyPaymentSchedule,
+      currency: Currency,
+      pricingLocalisation: PricingLocalisation
+  ): Option[T5xDistribution] = {
+    paymentSchedule match {
+      case T4xMonth      => monthDistributions.get((currency, pricingLocalisation))
+      case T4xQuarter    => quarterlyDistributions.get((currency, pricingLocalisation))
+      case T4xSemiAnnual => semiAnnualDistributions.get((currency, pricingLocalisation))
+      case T4xAnnual     => annualDistributions.get((currency, pricingLocalisation))
+      case T4xSixForSix  => sixForSixDistributions.get((currency, pricingLocalisation))
+    }
+  }
 }

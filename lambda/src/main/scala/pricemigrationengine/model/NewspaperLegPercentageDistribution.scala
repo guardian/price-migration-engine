@@ -332,4 +332,15 @@ object NewspaperLegPercentageDistribution {
         T4xLegPercentage(T1xDigitalPack, BigDecimal(48.0)),
       ),
     )
+  def getDistribution(
+      deliveryCategory: T3xDeliveryCategory,
+      pack: T2xNewspaperPackage
+  ): Option[List[T4xLegPercentage]] = {
+    deliveryCategory match {
+      case T3xNewspaperNationalDelivery => newspaperNationalDeliveryLegPercentageMapping.get(pack)
+      case T3xNewspaperDelivery         => newspaperNationalDeliveryLegPercentageMapping.get(pack)
+      case T3xNewspaperDigitalVoucher   => newspaperDigitalVoucherLegPercentageMapping.get(pack)
+      case T3xNewspaperVoucher          => newspaperVoucherLegPercentageMapping.get(pack)
+    }
+  }
 }

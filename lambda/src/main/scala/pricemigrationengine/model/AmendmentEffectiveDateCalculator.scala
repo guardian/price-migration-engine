@@ -1,6 +1,5 @@
 package pricemigrationengine.model
 
-import pricemigrationengine.handlers.NotificationHandler
 import pricemigrationengine.migrations.SupporterPlus2026Migration
 import scala.util.Random
 import java.time.LocalDate
