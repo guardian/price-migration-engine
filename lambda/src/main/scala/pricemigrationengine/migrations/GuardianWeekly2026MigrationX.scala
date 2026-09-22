@@ -149,6 +149,7 @@ object GuardianWeekly2026MigrationX {
       zuoraSubscription: ZuoraSubscription,
       commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList,
+      account: ZuoraAccount
   ): Either[Failure, Value] = {
     // We have two notions of subscription here.
     // There is the Zuora subscription which is one of the arguments, and there is
@@ -159,18 +160,30 @@ object GuardianWeekly2026MigrationX {
       for {
         ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
         billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
+        currency <- SI2025Extractions.determineCurrency(ratePlan)
+        currencyAndLocalization <- CurrencyAndLocalisation.determineSubscriptionCurrencyAndLocalisation(
+          zuoraSubscription,
+          invoiceList,
+          account
+        )
+        distribution <- GuardianWeeklyHelper.subscriptionToFinancePercentageDistribution(
+          billingPeriod,
+          currencyAndLocalization.currency,
+          currencyAndLocalization.localisation
+        )
+        mapping = GuardianWeeklyHelper.subscriptionToProductRatePlanChargeIdMapping(zuoraSubscription)
+        legs <- T6xLegChargeOverride.decideT6xLegChargeOverrides(
+          distribution,
+          mapping,
+          billingPeriod: BillingPeriod,
+          commsPrice,
+        )
       } yield {
         val subscriptionRatePlanId = ratePlan.id
         val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
         val triggerDateString = effectDate.toString
         val productRatePlanId = ratePlan.productRatePlanId
-        val chargeOverrides = List(
-          ZuoraOrdersApiPrimitives.chargeOverride(
-            ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId,
-            commsPrice,
-            BillingPeriod.toString(billingPeriod)
-          )
-        )
+        val chargeOverrides = ZuoraOrdersApiPrimitives.t6xLegsToChargeOverrides(legs)
         val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
         val orderSubscription =
           ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))

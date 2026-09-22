@@ -184,7 +184,8 @@ class GuardianWeekly2026MigrationXTest extends munit.FunSuite {
         effectDate,
         subscription,
         commsPrice,
-        invoicePreview
+        invoicePreview,
+        account
       ),
       Right(
         ujson.read(
@@ -235,10 +236,21 @@ class GuardianWeekly2026MigrationXTest extends munit.FunSuite {
              |                        "productRatePlanId": "2c92a0fe6619b4b301661aa494392ee2",
              |                        "chargeOverrides": [
              |                            {
-             |                                "productRatePlanChargeId": "2c92a0fe6619b4b601661aa8b74e623f",
+             |                                "productRatePlanChargeId": "TO BE DECIDED",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 52
+             |                                        "listPrice": 31.46
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Quarter"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "TO BE DECIDED",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 20.54
              |                                    }
              |                                },
              |                                "billing": {

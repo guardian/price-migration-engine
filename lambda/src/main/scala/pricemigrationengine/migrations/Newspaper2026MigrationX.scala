@@ -318,7 +318,7 @@ object Newspaper2026MigrationX {
       val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
       val triggerDateString = effectDate.toString
       val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
-      val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.t6xLegsToChargeOverrides(legs)
+      val chargeOverrides = ZuoraOrdersApiPrimitives.t6xLegsToChargeOverrides(legs)
       val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
       val orderSubscription =
         ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
