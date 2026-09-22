@@ -88,16 +88,17 @@ object T6xLegChargeOverrides {
     }
   }
 
-  // Decide T6xLegChargeOverrides in the case of Newspaper subs
-  // Interesting differences between this variant and the previous one
-  // - `distributions` is now a List[T4xLegPercentage] since that's how we get them from the Finance data
-  // - `productRatePlanChargeIdMapping` maps T1xNewspaperPackageLegs to String
   def decideT6xLegChargeOverrides(
       distribution: List[T4xLeg],
       productRatePlanChargeIdMapping: Map[T1xNewspaperLegType, String],
       billingPeriod: BillingPeriod,
       targetPrice: BigDecimal
   ): Option[List[T6xLegChargeOverrides]] = {
+    // Decide T6xLegChargeOverrides in the case of Newspaper subs
+    // Interesting differences between this variant and the previous one
+    // - `distributions` is now a List[T4xLegPercentage] since that's how we get them from the Finance data
+    // - `productRatePlanChargeIdMapping` maps T1xNewspaperPackageLegs to String
+
     val legs = distribution.flatMap(t4 => {
       for {
         chargeId <- productRatePlanChargeIdMapping.get(t4.legType)
