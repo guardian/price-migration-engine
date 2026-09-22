@@ -2,6 +2,11 @@ package pricemigrationengine.model
 
 /*
 
+--------------------------------------------------------------------------
+| Newspaper legs breakdown from Finance in September 2026.               |
+| See docs/pricing-legs.md for an explanation of the new pricing method  |
+--------------------------------------------------------------------------
+
 Guardian Weekly Subs:
 
 Payment Schedule | Localisation | Currency | GW Leg   | Digital Pack Leg | Total |
