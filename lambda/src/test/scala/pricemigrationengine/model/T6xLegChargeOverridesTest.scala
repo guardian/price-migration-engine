@@ -77,6 +77,27 @@ class T6xLegChargeOverridesTest extends munit.FunSuite {
       )
     )
   }
+  test("decideT6xLegChargeOverrides (Guardian Weekly variant) [imcomplete mapping]") {
+    // This test is like the previous one, but we use an incomplete mapping and get a None
+
+    val distribution: T5xDistribution =
+      T5xDistribution(BigDecimal(60.5), BigDecimal(39.5))
+
+    val productRatePlanChargeIdMapping: Map[T7xGWSubLegs, String] = Map(
+      T7xGuardianWeekly -> "5f4afe4e-588b-4f75-9e56-8ffec47bc4a4",
+      // missing T7xDigitalPack
+    )
+
+    val billingPeriod = Monthly;
+
+    val targetPrice = BigDecimal(50.1)
+
+    assertEquals(
+      T6xLegChargeOverrides
+        .decideT6xLegChargeOverrides(distribution, productRatePlanChargeIdMapping, billingPeriod, targetPrice),
+      None
+    )
+  }
   test("decideT6xLegChargeOverrides (Newspaper variant)") {
     // Test of decideT6xLegChargeOverrides in the Newspaper case,
     // which demonstrates how the arguments combine to make the result.
@@ -123,6 +144,32 @@ class T6xLegChargeOverridesTest extends munit.FunSuite {
           )
         )
       )
+    )
+  }
+  test("decideT6xLegChargeOverrides (Newspaper variant)") {
+    // This test is like the previous one, but we use an incomplete mapping and get a None
+
+    val distribution: List[T4xLeg] =
+      List(
+        T4xLeg(T1xSaturday, BigDecimal(34.2)),
+        T4xLeg(T1xSunday, BigDecimal(34.2)),
+        T4xLeg(T1xDigitalPack, BigDecimal(31.6)),
+      )
+
+    val productRatePlanChargeIdMapping: Map[T1xNewspaperLegType, String] = Map(
+      T1xSaturday -> "5f4afe4e-588b-4f75-9e56-8ffec47bc4a4",
+      // missing T1xSunday
+      // missing T1xDigitalPack
+    )
+
+    val billingPeriod = Annual
+
+    val targetPrice = BigDecimal(230.8)
+
+    assertEquals(
+      T6xLegChargeOverrides
+        .decideT6xLegChargeOverrides(distribution, productRatePlanChargeIdMapping, billingPeriod, targetPrice),
+      None
     )
   }
 }
