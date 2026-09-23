@@ -106,8 +106,6 @@ object TemplateMigration {
     )
   }
 
-  /*
-
   // -----------------------------------------------------------
   // Newspaper multi legged Finance driven.
   // 1. Compute the subscription productRatePlanChargeIdMapping with NewspaperHelper.ratePlanToProductRatePlanChargeIdMapping
@@ -162,6 +160,4 @@ object TemplateMigration {
       )
     )
   }
- 
-   */
 }
