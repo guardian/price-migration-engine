@@ -302,7 +302,7 @@ object Newspaper2026MigrationX {
     // several charges (one per delivery day), is using ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides
     // which maps the rate plan's rate plan charges to an array of charge overrides json objects.
 
-    val order_opt = for {
+    (for {
       ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
       productRatePlanChargeIdMapping = NewspaperHelper.ratePlanToProductRatePlanChargeIdMapping(ratePlan)
       billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
@@ -327,15 +327,10 @@ object Newspaper2026MigrationX {
         accountNumber,
         orderSubscription
       )
-    }
-    order_opt match {
-      case Some(order) => Right(order)
-      case None        =>
-        Left(
-          DataExtractionFailure(
-            s"[9f480e70] Could not compute amendmentOrderPayload for subscription ${zuoraSubscription.subscriptionNumber}"
-          )
-        )
-    }
+    }).toRight(
+      DataExtractionFailure(
+        s"[9f480e70] Could not compute amendmentOrderPayload for subscription ${zuoraSubscription.subscriptionNumber}"
+      )
+    )
   }
 }
