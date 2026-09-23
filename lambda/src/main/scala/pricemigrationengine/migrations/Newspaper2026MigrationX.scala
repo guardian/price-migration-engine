@@ -304,7 +304,7 @@ object Newspaper2026MigrationX {
 
     val priceRatio = commsPrice / oldPrice
 
-    val order_opt = for {
+    (for {
       ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
       billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
     } yield {
@@ -326,15 +326,10 @@ object Newspaper2026MigrationX {
         accountNumber,
         orderSubscription
       )
-    }
-    order_opt match {
-      case Some(order) => Right(order)
-      case None        =>
-        Left(
-          DataExtractionFailure(
-            s"[9f480e70] Could not compute amendmentOrderPayload for subscription ${zuoraSubscription.subscriptionNumber}"
-          )
-        )
-    }
+    }).toRight(
+      DataExtractionFailure(
+        s"[9f480e70] Could not compute amendmentOrderPayload for subscription ${zuoraSubscription.subscriptionNumber}"
+      )
+    )
   }
 }
