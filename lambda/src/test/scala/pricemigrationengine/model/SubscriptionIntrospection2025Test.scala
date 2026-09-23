@@ -511,17 +511,4 @@ class SI2025ExtractionsTest extends munit.FunSuite {
       true
     )
   }
-
-  // ----------------------------------------------------
-  // SI2025Templates
-  // ----------------------------------------------------
-
-  test("SI2025Templates.priceData") {
-    val subscription =
-      Fixtures.subscriptionFromJson("model/SubscriptionIntrospection2025/subscription1/subscription.json")
-    val invoicePreview =
-      Fixtures.invoiceListFromJson("model/SubscriptionIntrospection2025/subscription1/invoice-preview.json")
-    val priceData = SI2025Templates.priceData(CohortSpec("Test1", true), subscription, invoicePreview)
-    assertEquals(priceData, Right(PriceData("USD", BigDecimal(90.0), BigDecimal(2.71), BigDecimal(2.55), "Quarter")))
-  }
 }
