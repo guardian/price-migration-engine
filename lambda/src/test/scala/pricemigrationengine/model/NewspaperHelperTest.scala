@@ -6,9 +6,9 @@ import java.time.LocalDate
 
 // Newspaper:
 // sub1: "Newspaper Voucher"          "Everyday+"   "GBP"   "Month"
-// val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub1/subscription.json")
-// val account = Fixtures.accountFromJson("model/NewspaperHelperTest/sub1/account.json")
-// val invoicePreview = Fixtures.invoiceListFromJson("model/NewspaperHelperTest/sub1/invoice-preview.json")
+// val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub1/subscription.json")
+// val account = Fixtures.accountFromJson("model/NewspaperHelper/sub1/account.json")
+// val invoicePreview = Fixtures.invoiceListFromJson("model/NewspaperHelper/sub1/invoice-preview.json")
 
 // sub2:  "Newspaper Digital Voucher"  "Everyday+"
 // sub3:  "Newspaper Delivery"         "Everyday+"
@@ -32,7 +32,7 @@ class NewspaperHelperTest extends munit.FunSuite {
   // --------------------
 
   test("NewspaperHelper.subscriptionToT3xDeliveryCategory") {
-    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub1/subscription.json")
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub1/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     assertEquals(
       NewspaperHelper.subscriptionToT3xDeliveryCategory(subscription, today),
@@ -40,7 +40,7 @@ class NewspaperHelperTest extends munit.FunSuite {
     )
   }
   test("NewspaperHelper.subscriptionToT3xDeliveryCategory") {
-    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub2/subscription.json")
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub2/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     assertEquals(
       NewspaperHelper.subscriptionToT3xDeliveryCategory(subscription, today),
@@ -48,7 +48,7 @@ class NewspaperHelperTest extends munit.FunSuite {
     )
   }
   test("NewspaperHelper.subscriptionToT3xDeliveryCategory") {
-    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub11/subscription.json")
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub11/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     assertEquals(
       NewspaperHelper.subscriptionToT3xDeliveryCategory(subscription, today),
@@ -56,7 +56,7 @@ class NewspaperHelperTest extends munit.FunSuite {
     )
   }
   test("NewspaperHelper.subscriptionToT3xDeliveryCategory") {
-    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub12/subscription.json")
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub12/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     assertEquals(
       NewspaperHelper.subscriptionToT3xDeliveryCategory(subscription, today),
@@ -67,7 +67,7 @@ class NewspaperHelperTest extends munit.FunSuite {
   // --------------------
 
   test("NewspaperHelper.subscriptionToT2xNewspaperPackage") {
-    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub1/subscription.json")
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub1/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     assertEquals(
       NewspaperHelper.subscriptionToT2xNewspaperPackage(subscription, today),
@@ -75,7 +75,7 @@ class NewspaperHelperTest extends munit.FunSuite {
     )
   }
   test("NewspaperHelper.subscriptionToT2xNewspaperPackage") {
-    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub4/subscription.json")
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub4/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     assertEquals(
       NewspaperHelper.subscriptionToT2xNewspaperPackage(subscription, today),
@@ -83,7 +83,7 @@ class NewspaperHelperTest extends munit.FunSuite {
     )
   }
   test("NewspaperHelper.subscriptionToT2xNewspaperPackage") {
-    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub12/subscription.json")
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub12/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     assertEquals(
       NewspaperHelper.subscriptionToT2xNewspaperPackage(subscription, today),
@@ -96,7 +96,7 @@ class NewspaperHelperTest extends munit.FunSuite {
   test("NewspaperHelper.subscriptionToDistribution") {
     // sub1: "Newspaper Voucher"          "Everyday+"   "GBP"   "Month"
 
-    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub1/subscription.json")
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub1/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
 
     // We are expecting: (NewspaperNationalDelivery, "Month", "Everyday+"), which comes down to
@@ -133,7 +133,7 @@ class NewspaperHelperTest extends munit.FunSuite {
   // --------------------
 
   test("NewspaperHelper.ratePlanChargeToMappingPair") {
-    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub1/subscription.json")
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub1/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     val ratePlan = SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(subscription, today).get
     val ratePlanCharge = ratePlan.ratePlanCharges.headOption.get
@@ -147,7 +147,7 @@ class NewspaperHelperTest extends munit.FunSuite {
   // --------------------
 
   test("NewspaperHelper.ratePlanChargeToMappingPair") {
-    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelperTest/sub1/subscription.json")
+    val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub1/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     val ratePlan = SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(subscription, today).get
 
