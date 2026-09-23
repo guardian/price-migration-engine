@@ -32,6 +32,7 @@ class NewspaperHelperTest extends munit.FunSuite {
   // --------------------
 
   test("NewspaperHelper.subscriptionToT3xDeliveryCategory") {
+    // sub1: "Newspaper Voucher"          "Everyday+"   "GBP"   "Month"
     val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub1/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     assertEquals(
@@ -40,6 +41,7 @@ class NewspaperHelperTest extends munit.FunSuite {
     )
   }
   test("NewspaperHelper.subscriptionToT3xDeliveryCategory") {
+    // sub2:  "Newspaper Digital Voucher"  "Everyday+"
     val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub2/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     assertEquals(
@@ -48,6 +50,7 @@ class NewspaperHelperTest extends munit.FunSuite {
     )
   }
   test("NewspaperHelper.subscriptionToT3xDeliveryCategory") {
+    // sub11: "Newspaper - National Delivery" "Weekend"     "GBP"   "Month"
     val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub11/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     assertEquals(
@@ -56,6 +59,7 @@ class NewspaperHelperTest extends munit.FunSuite {
     )
   }
   test("NewspaperHelper.subscriptionToT3xDeliveryCategory") {
+    // sub12: "Newspaper Delivery"            "Echo-Legacy" "GBP"   "Month" (has sunday)
     val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub12/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     assertEquals(
@@ -67,6 +71,7 @@ class NewspaperHelperTest extends munit.FunSuite {
   // --------------------
 
   test("NewspaperHelper.subscriptionToT2xNewspaperPackage") {
+    // sub1: "Newspaper Voucher"          "Everyday+"   "GBP"   "Month"
     val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub1/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     assertEquals(
@@ -75,6 +80,7 @@ class NewspaperHelperTest extends munit.FunSuite {
     )
   }
   test("NewspaperHelper.subscriptionToT2xNewspaperPackage") {
+    // sub4:  "Newspaper Voucher"          "Sixday+"
     val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub4/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     assertEquals(
@@ -83,6 +89,7 @@ class NewspaperHelperTest extends munit.FunSuite {
     )
   }
   test("NewspaperHelper.subscriptionToT2xNewspaperPackage") {
+    // sub12: "Newspaper Delivery"            "Echo-Legacy" "GBP"   "Month" (has sunday)
     val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub12/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     assertEquals(
@@ -133,10 +140,20 @@ class NewspaperHelperTest extends munit.FunSuite {
   // --------------------
 
   test("NewspaperHelper.ratePlanChargeToMappingPair") {
+    // sub1: "Newspaper Voucher"          "Everyday+"   "GBP"   "Month"
     val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub1/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     val ratePlan = SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(subscription, today).get
     val ratePlanCharge = ratePlan.ratePlanCharges.headOption.get
+
+    /*
+      From the subscription:
+          "id": "8a128536993307dd01994bf7e8d00433",
+          "originalChargeId": "8a129ff689018aa301890bb287015e51",
+          "productRatePlanChargeId": "2c92a0fc56fe26ba01570418eddd26e1",
+          "number": "C-04415638",
+          "name": "Digipack",
+     */
 
     assertEquals(
       NewspaperHelper.ratePlanChargeToMappingPair(ratePlanCharge),
@@ -147,12 +164,22 @@ class NewspaperHelperTest extends munit.FunSuite {
   // --------------------
 
   test("NewspaperHelper.ratePlanChargeToMappingPair") {
+    // sub1: "Newspaper Voucher"          "Everyday+"   "GBP"   "Month"
     val subscription = Fixtures.subscriptionFromJson("model/NewspaperHelper/sub1/subscription.json")
     val today = LocalDate.of(2026, 9, 1)
     val ratePlan = SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(subscription, today).get
 
     // This is not a great test, originally I wanted to compare the two maps, but that doesn't quite work
     // So comparing two ids, will do.
+
+    /*
+      From the subscription:
+          "id": "8a128536993307dd01994bf7e8d0043f",
+          "originalChargeId": "8a129ff689018aa301890bb287015e57",
+          "productRatePlanChargeId": "2c92a0ff56fe33f5015709c80af30495",
+          "number": "C-04415644",
+          "name": "Sunday",
+     */
 
     assertEquals(
       NewspaperHelper.ratePlanToProductRatePlanChargeIdMapping(ratePlan).get(T1xSunday),
