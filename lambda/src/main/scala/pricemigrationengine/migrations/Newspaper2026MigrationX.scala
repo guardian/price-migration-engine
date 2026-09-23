@@ -293,7 +293,7 @@ object Newspaper2026MigrationX {
       accountNumber: String,
       subscriptionNumber: String,
       effectDate: LocalDate,
-      zuora_subscription: ZuoraSubscription,
+      zuoraSubscription: ZuoraSubscription,
       oldPrice: BigDecimal,
       commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList,
@@ -305,7 +305,7 @@ object Newspaper2026MigrationX {
     val priceRatio = commsPrice / oldPrice
 
     val order_opt = for {
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
       billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
     } yield {
       val subscriptionRatePlanId = ratePlan.id
@@ -319,12 +319,12 @@ object Newspaper2026MigrationX {
         BillingPeriod.toString(billingPeriod)
       )
       val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
-      val order_subscription =
+      val orderSubscription =
         ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
       ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
         orderDate.toString,
         accountNumber,
-        order_subscription
+        orderSubscription
       )
     }
     order_opt match {
@@ -332,7 +332,7 @@ object Newspaper2026MigrationX {
       case None        =>
         Left(
           DataExtractionFailure(
-            s"[9f480e70] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
+            s"[9f480e70] Could not compute amendmentOrderPayload for subscription ${zuoraSubscription.subscriptionNumber}"
           )
         )
     }

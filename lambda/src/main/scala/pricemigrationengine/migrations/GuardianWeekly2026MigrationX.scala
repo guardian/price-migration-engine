@@ -146,7 +146,7 @@ object GuardianWeekly2026MigrationX {
       accountNumber: String,
       subscriptionNumber: String,
       effectDate: LocalDate,
-      zuora_subscription: ZuoraSubscription,
+      zuoraSubscription: ZuoraSubscription,
       commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
@@ -157,7 +157,7 @@ object GuardianWeekly2026MigrationX {
 
     val order_opt = {
       for {
-        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
         billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
       } yield {
         val subscriptionRatePlanId = ratePlan.id
@@ -172,12 +172,12 @@ object GuardianWeekly2026MigrationX {
           )
         )
         val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
-        val order_subscription =
+        val orderSubscription =
           ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
         ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
           orderDate.toString,
           accountNumber,
-          order_subscription
+          orderSubscription
         )
       }
     }
@@ -187,7 +187,7 @@ object GuardianWeekly2026MigrationX {
       case None        =>
         Left(
           DataExtractionFailure(
-            s"[1cbce53d] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
+            s"[1cbce53d] Could not compute amendmentOrderPayload for subscription ${zuoraSubscription.subscriptionNumber}"
           )
         )
     }

@@ -1,15 +1,15 @@
 package pricemigrationengine.model
 
-class T6xLegChargeOverridesTest extends munit.FunSuite {
+class T6XLegChargeOverrideTest extends munit.FunSuite {
   test("ensureTotal") {
 
     val legs = List(
-      T6xLegChargeOverrides(
+      T6xLegChargeOverride(
         productRatePlanChargeId = "5f4afe4e-588b-4f75-9e56-8ffec47bc4a4",
         price = 30.29,
         billingPeriod = Monthly
       ),
-      T6xLegChargeOverrides(
+      T6xLegChargeOverride(
         productRatePlanChargeId = "c7be8c0f-52e4-4375-aa02-75490f9c1acd",
         price = 19.78,
         billingPeriod = Monthly
@@ -25,14 +25,14 @@ class T6xLegChargeOverridesTest extends munit.FunSuite {
     // The other legs remains unchanged.
 
     assertEquals(
-      T6xLegChargeOverrides.ensureTotal(legs, targetPrice),
+      T6xLegChargeOverride.ensureTotal(legs, targetPrice),
       List(
-        T6xLegChargeOverrides(
+        T6xLegChargeOverride(
           productRatePlanChargeId = "5f4afe4e-588b-4f75-9e56-8ffec47bc4a4",
           price = 31.92,
           billingPeriod = Monthly
         ),
-        T6xLegChargeOverrides(
+        T6xLegChargeOverride(
           productRatePlanChargeId = "c7be8c0f-52e4-4375-aa02-75490f9c1acd",
           price = 19.78,
           billingPeriod = Monthly
@@ -59,16 +59,16 @@ class T6xLegChargeOverridesTest extends munit.FunSuite {
     val targetPrice = BigDecimal(50.1)
 
     assertEquals(
-      T6xLegChargeOverrides
+      T6xLegChargeOverride
         .decideT6xLegChargeOverrides(distribution, productRatePlanChargeIdMapping, billingPeriod, targetPrice),
       Some(
         List(
-          T6xLegChargeOverrides(
+          T6xLegChargeOverride(
             productRatePlanChargeId = "5f4afe4e-588b-4f75-9e56-8ffec47bc4a4",
             price = 30.32,
             billingPeriod = Monthly
           ),
-          T6xLegChargeOverrides(
+          T6xLegChargeOverride(
             productRatePlanChargeId = "c7be8c0f-52e4-4375-aa02-75490f9c1acd",
             price = 19.78,
             billingPeriod = Monthly
@@ -93,7 +93,7 @@ class T6xLegChargeOverridesTest extends munit.FunSuite {
     val targetPrice = BigDecimal(50.1)
 
     assertEquals(
-      T6xLegChargeOverrides
+      T6xLegChargeOverride
         .decideT6xLegChargeOverrides(distribution, productRatePlanChargeIdMapping, billingPeriod, targetPrice),
       None
     )
@@ -123,21 +123,21 @@ class T6xLegChargeOverridesTest extends munit.FunSuite {
     val targetPrice = BigDecimal(230.8)
 
     assertEquals(
-      T6xLegChargeOverrides
+      T6xLegChargeOverride
         .decideT6xLegChargeOverrides(distribution, productRatePlanChargeIdMapping, billingPeriod, targetPrice),
       Some(
         List(
-          T6xLegChargeOverrides(
+          T6xLegChargeOverride(
             productRatePlanChargeId = "5f4afe4e-588b-4f75-9e56-8ffec47bc4a4",
             price = 78.94,
             billingPeriod = Annual
           ),
-          T6xLegChargeOverrides(
+          T6xLegChargeOverride(
             productRatePlanChargeId = "c7be8c0f-52e4-4375-aa02-75490f9c1acd",
             price = 78.93,
             billingPeriod = Annual
           ),
-          T6xLegChargeOverrides(
+          T6xLegChargeOverride(
             productRatePlanChargeId = "6b0ddb38-aea0-4c3a-b247-3a0b8be23939",
             price = 72.93,
             billingPeriod = Annual
@@ -167,7 +167,7 @@ class T6xLegChargeOverridesTest extends munit.FunSuite {
     val targetPrice = BigDecimal(230.8)
 
     assertEquals(
-      T6xLegChargeOverrides
+      T6xLegChargeOverride
         .decideT6xLegChargeOverrides(distribution, productRatePlanChargeIdMapping, billingPeriod, targetPrice),
       None
     )
