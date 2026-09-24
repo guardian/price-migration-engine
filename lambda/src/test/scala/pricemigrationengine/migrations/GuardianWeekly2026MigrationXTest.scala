@@ -146,7 +146,7 @@ class GuardianWeekly2026MigrationXTest extends munit.FunSuite {
       Right(PriceData("CAD", BigDecimal(120.0), BigDecimal(237.0), BigDecimal(132.00), "Semi_Annual"))
     )
   }
-  test("amendmentOrderPayload") {
+  test("amendmentOrderPayload for sub1") {
     // sub1: "Guardian Weekly - Domestic"  "GW Oct 18 - Quarterly - Domestic"  "GBP"  "Quarter"
     val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2026X/sub1/subscription.json")
     val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub1/account.json")
@@ -251,6 +251,129 @@ class GuardianWeekly2026MigrationXTest extends munit.FunSuite {
              |                                "pricing": {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 20.54
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Quarter"
+             |                                }
+             |                            }
+             |                        ]
+             |                    }
+             |                }
+             |            ]
+             |        }
+             |    ],
+             |    "processingOptions": {
+             |        "runBilling": false,
+             |        "collectPayment": false
+             |    }
+             |}""".stripMargin
+        )
+      )
+    )
+  }
+  test("amendmentOrderPayload for sub1 with maintained structure") {
+
+    //  ------------------------------------------------------------------
+    // | Here we perform the amendment payload computation for sub1, but  |
+    // | in the case of a cohort item with a ex_gw2026_maintain_structure |
+    // | attribute set to "true"                                          |
+    //  ------------------------------------------------------------------
+
+    // sub1: "Guardian Weekly - Domestic"  "GW Oct 18 - Quarterly - Domestic"  "GBP"  "Quarter"
+    val subscription = Fixtures.subscriptionFromJson("Migrations/GuardianWeekly2026X/sub1/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/GuardianWeekly2026X/sub1/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/GuardianWeekly2026X/sub1/invoice-preview.json")
+
+    val amendmentEffectiveDate = LocalDate.of(2026, 10, 19) // 2026-10-19
+    val oldPrice = BigDecimal(49.5)
+    val estimatedNewPrice = BigDecimal(52)
+    val commsPrice = BigDecimal(52)
+
+    val cohortItem = CohortItem(
+      subscriptionName = subscription.subscriptionNumber,
+      processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
+      amendmentEffectiveDate = Some(amendmentEffectiveDate),
+      currency = Some("GBP"),
+      oldPrice = Some(oldPrice),
+      estimatedNewPrice = Some(estimatedNewPrice),
+      billingPeriod = Some("Quarter"),
+      ex_gw2026_maintain_structure = Some("true")
+    )
+
+    // We now collect the arguments of GuardianWeekly2026X.amendmentOrderPayload
+
+    val orderDate = LocalDate.of(2025, 6, 24) // LocalDate.now()
+    val accountNumber = subscription.accountNumber
+    val subscriptionNumber = subscription.subscriptionNumber
+    val effectDate = amendmentEffectiveDate
+    val priceCap = 1.1
+
+    assertEquals(
+      GuardianWeekly2026MigrationX.amendmentOrderPayload(
+        cohortItem,
+        orderDate,
+        accountNumber,
+        subscriptionNumber,
+        effectDate,
+        subscription,
+        commsPrice,
+        invoicePreview,
+        account
+      ),
+      Right(
+        ujson.read(
+          s"""{
+             |    "orderDate": "2025-06-24",
+             |    "existingAccountNumber": "accountNumber",
+             |    "subscriptions": [
+             |        {
+             |            "subscriptionNumber": "subscriptionNumber",
+             |            "orderActions": [
+             |                {
+             |                    "type": "RemoveProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2026-10-19"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2026-10-19"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2026-10-19"
+             |                        }
+             |                    ],
+             |                    "removeProduct": {
+             |                        "ratePlanId": "8a129518979cc3280197a0c0567a6685"
+             |                    }
+             |                },
+             |                {
+             |                    "type": "AddProduct",
+             |                    "triggerDates": [
+             |                        {
+             |                            "name": "ContractEffective",
+             |                            "triggerDate": "2026-10-19"
+             |                        },
+             |                        {
+             |                            "name": "ServiceActivation",
+             |                            "triggerDate": "2026-10-19"
+             |                        },
+             |                        {
+             |                            "name": "CustomerAcceptance",
+             |                            "triggerDate": "2026-10-19"
+             |                        }
+             |                    ],
+             |                    "addProduct": {
+             |                        "productRatePlanId": "2c92a0fe6619b4b301661aa494392ee2",
+             |                        "chargeOverrides": [
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fe6619b4b601661aa8b74e623f",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 52
              |                                    }
              |                                },
              |                                "billing": {
