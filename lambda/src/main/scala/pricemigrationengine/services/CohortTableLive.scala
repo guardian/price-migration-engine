@@ -40,12 +40,8 @@ object CohortTableLive {
           cancellationReason <-
             getOptionalStringFromResults(cohortItem, "cancellationReason")
           migrationExtraAttributes <- getOptionalStringFromResults(cohortItem, "migrationExtraAttributes")
-          ex_2025N4_label <- getOptionalStringFromResults(cohortItem, "ex_2025N4_label")
-          ex_2025N4_group <- getOptionalStringFromResults(cohortItem, "ex_2025N4_group")
-          ex_2025N4_canvas <- getOptionalStringFromResults(cohortItem, "ex_2025N4_canvas")
-          ex_2025N4_rateplan_current <- getOptionalStringFromResults(cohortItem, "ex_2025N4_rateplan_current")
-          ex_2025N4_rateplan_target <- getOptionalStringFromResults(cohortItem, "ex_2025N4_rateplan_target")
           ex_membership2025_country <- getOptionalStringFromResults(cohortItem, "ex_membership2025_country")
+          ex_gw2026_maintain_structure <- getOptionalStringFromResults(cohortItem, "ex_gw2026_maintain_structure")
         } yield CohortItem(
           subscriptionName = subscriptionNumber,
           processingStage = processingStage,
@@ -65,7 +61,8 @@ object CohortTableLive {
           whenNotificationSentWrittenToSalesforce = whenNotificationSentWrittenToSalesforce,
           cancellationReason = cancellationReason,
           migrationExtraAttributes = migrationExtraAttributes,
-          ex_membership2025_country = ex_membership2025_country
+          ex_membership2025_country = ex_membership2025_country,
+          ex_gw2026_maintain_structure = ex_gw2026_maintain_structure
         )
       )
       .mapError(e => DynamoDBZIOError(e))
@@ -109,7 +106,8 @@ object CohortTableLive {
         ),
         cohortItem.cancellationReason.map(reason => stringFieldUpdate("cancellationReason", reason)),
         cohortItem.migrationExtraAttributes.map(extra => stringFieldUpdate("migrationExtraAttributes", extra)),
-        cohortItem.ex_membership2025_country.map(value => stringFieldUpdate("ex_membership2025_country", value))
+        cohortItem.ex_membership2025_country.map(value => stringFieldUpdate("ex_membership2025_country", value)),
+        cohortItem.ex_gw2026_maintain_structure.map(value => stringFieldUpdate("ex_gw2026_maintain_structure", value))
       ).flatten.toMap.asJava
 
   private implicit val cohortTableKeySerialiser: DynamoDBSerialiser[CohortTableKey] =
