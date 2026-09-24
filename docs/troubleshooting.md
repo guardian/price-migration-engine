@@ -2,7 +2,14 @@
 
 ### Introduction
 
-In virtue of Coding Directive #2 (see [coding directives](coding-directives.md)), the engine stops when an error occurs. Nowadays, when this happens, we receive a message on the P&E/Growth alarms channel. This is more likely to happen in the morning when the engine runs at, and a bit after, 7am UTC.
+In virtue of Coding Directive #2 (see [coding directives](coding-directives.md)), the engine stops when an error occurs. Nowadays, when this happens, we receive a message on the [tech/price migration engine] channel. This is more likely to happen in the morning when the engine runs at, and a bit after, 7am UTC.
+
+The engine alarms are routed by the [alarm-handler] in [support-service-lambdas]. The webhook url is stored in
+
+```
+Parameter Store:
+/PROD/support/alarms-handler/webhookUrls/ENGINE
+```
 
 There are generally 3 types of errors:
 
