@@ -299,25 +299,26 @@ object Newspaper2026MigrationX {
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
     // This version of `amendmentOrderPayload`, applied to subscriptions with the active rate plan having
-    // several charges (one per delivery day), is using ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides
-    // which maps the rate plan's rate plan charges to an array of charge overrides json objects.
-
-    val priceRatio = commsPrice / oldPrice
+    // several charges (one per delivery day), is using ZuoraOrdersApiPrimitives.t6xLegsToChargeOverrides
+    // which maps T6xLegChargeOverrides to an array of charge overrides json objects.
 
     (for {
       ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
+      productRatePlanChargeIdMapping = NewspaperHelper.ratePlanToProductRatePlanChargeIdMapping(ratePlan)
       billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
+      distribution <- NewspaperHelper.subscriptionToFinancePercentageDistribution(zuoraSubscription, orderDate).toOption
+      legs <- T6xLegChargeOverride.decideT6xLegChargeOverrides(
+        distribution,
+        productRatePlanChargeIdMapping,
+        billingPeriod,
+        commsPrice
+      )
     } yield {
       val subscriptionRatePlanId = ratePlan.id
       val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
       val triggerDateString = effectDate.toString
       val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
-      val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
-        ratePlan.ratePlanCharges,
-        priceRatio,
-        commsPrice,
-        BillingPeriod.toString(billingPeriod)
-      )
+      val chargeOverrides = ZuoraOrdersApiPrimitives.t6xLegsToChargeOverrides(legs)
       val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
       val orderSubscription =
         ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))

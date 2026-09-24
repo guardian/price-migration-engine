@@ -89,6 +89,60 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
     )
   }
 
+  test("ZuoraOrdersApiPrimitives.t6xLegToChargeOverride") {
+    val chargeOverride = ZuoraOrdersApiPrimitives.t6xLegToChargeOverride(
+      T6xLegChargeOverride(
+        productRatePlanChargeId = "5f4afe4e-588b-4f75-9e56-8ffec47bc4a4",
+        price = 30.32,
+        billingPeriod = Monthly
+      )
+    )
+    val chargeOverrideAsJsonString = ujson.write(chargeOverride, indent = 4)
+    assertEquals(
+      chargeOverrideAsJsonString,
+      """{
+        |    "productRatePlanChargeId": "5f4afe4e-588b-4f75-9e56-8ffec47bc4a4",
+        |    "pricing": {
+        |        "recurringFlatFee": {
+        |            "listPrice": 30.32
+        |        }
+        |    },
+        |    "billing": {
+        |        "billingPeriod": "Month"
+        |    }
+        |}""".stripMargin
+    )
+  }
+
+  test("ZuoraOrdersApiPrimitives.t6xLegsToChargeOverrides") {
+    val chargeOverride = ZuoraOrdersApiPrimitives.t6xLegsToChargeOverrides(
+      List(
+        T6xLegChargeOverride(
+          productRatePlanChargeId = "5f4afe4e-588b-4f75-9e56-8ffec47bc4a4",
+          price = 30.32,
+          billingPeriod = Monthly
+        )
+      )
+    )
+    val chargeOverrideAsJsonString = ujson.write(chargeOverride, indent = 4)
+    assertEquals(
+      chargeOverrideAsJsonString,
+      """[
+        |    {
+        |        "productRatePlanChargeId": "5f4afe4e-588b-4f75-9e56-8ffec47bc4a4",
+        |        "pricing": {
+        |            "recurringFlatFee": {
+        |                "listPrice": 30.32
+        |            }
+        |        },
+        |        "billing": {
+        |            "billingPeriod": "Month"
+        |        }
+        |    }
+        |]""".stripMargin
+    )
+  }
+
   test("ZuoraOrdersApiPrimitives.addProduct") {
     val chargeOverrides = List(
       ZuoraOrdersApiPrimitives.chargeOverride("8a128ed885fc6ded018602296af13eba", 12, "Month"),

@@ -133,7 +133,8 @@ object AmendmentHandlerHelper {
       zuoraSubscription: ZuoraSubscription,
       oldPrice: BigDecimal,
       commsPrice: BigDecimal,
-      invoiceList: ZuoraInvoiceList
+      invoiceList: ZuoraInvoiceList,
+      account: ZuoraAccount
   ): Either[Failure, Value] = {
     MigrationType(cohortSpec) match {
       case Test1          => Left(ConfigFailure("case not supported"))
@@ -179,7 +180,8 @@ object AmendmentHandlerHelper {
           effectDate,
           zuoraSubscription,
           commsPrice,
-          invoiceList
+          invoiceList,
+          account
         )
       case Print2026C1GWQuarterliesUK =>
         GuardianWeekly2026MigrationX.amendmentOrderPayload(
@@ -190,7 +192,8 @@ object AmendmentHandlerHelper {
           effectDate,
           zuoraSubscription,
           commsPrice,
-          invoiceList
+          invoiceList,
+          account
         )
       case Print2026C1NPAnnualsUK =>
         Newspaper2026MigrationX.amendmentOrderPayload(
@@ -249,7 +252,8 @@ object AmendmentHandlerHelper {
           effectDate,
           zuoraSubscription,
           commsPrice,
-          invoiceList
+          invoiceList,
+          account
         )
       case Print2026C3NPMonthliesUK =>
         Newspaper2026MigrationX.amendmentOrderPayload(
@@ -284,7 +288,8 @@ object AmendmentHandlerHelper {
           effectDate,
           zuoraSubscription,
           commsPrice,
-          invoiceList
+          invoiceList,
+          account
         )
       case Print2026C5NP =>
         Newspaper2026MigrationX.amendmentOrderPayload(
@@ -307,7 +312,8 @@ object AmendmentHandlerHelper {
           effectDate,
           zuoraSubscription,
           commsPrice,
-          invoiceList
+          invoiceList,
+          account
         )
     }
   }

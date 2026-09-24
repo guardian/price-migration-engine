@@ -149,39 +149,105 @@ object GuardianWeekly2026MigrationX {
       zuoraSubscription: ZuoraSubscription,
       commsPrice: BigDecimal,
       invoiceList: ZuoraInvoiceList,
+      account: ZuoraAccount
   ): Either[Failure, Value] = {
     // We have two notions of subscription here.
     // There is the Zuora subscription which is one of the arguments, and there is
     // the notion of subscription as defined in the Zuora Order API documentation,
     // which roughly translates to a collections of { actions / atomic mutations } in Zuora
 
-    (for {
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
-      billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
-    } yield {
-      val subscriptionRatePlanId = ratePlan.id
-      val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
-      val triggerDateString = effectDate.toString
-      val productRatePlanId = ratePlan.productRatePlanId
-      val chargeOverrides = List(
-        ZuoraOrdersApiPrimitives.chargeOverride(
-          ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId,
-          commsPrice,
-          BillingPeriod.toString(billingPeriod)
+    // For Print 2026 GW sub, we need to check the CohortItem's ex_gw2026_maintain_structure
+    // field, to decide whether to perform a restructuration or not.
+
+    if (cohortItem.ex_gw2026_maintain_structure.contains("true")) {
+      (for {
+        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
+        billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
+      } yield {
+        val subscriptionRatePlanId = ratePlan.id
+        val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
+        val triggerDateString = effectDate.toString
+
+        // Here we do an "in place" price rise, therefore we are targeting the productRatePlanId that the active rate plan already has
+        val targetProductRatePlanId = ratePlan.productRatePlanId
+
+        // Here we know that the product only has one charge, so we read it from the first ratePlanCharge
+        // With that said, we are going to check that the number of rate plan charges is what we expect
+        if (ratePlan.ratePlanCharges.size != 1) {
+          throw new Exception(
+            s"[978885ed] subscription number: ${subscriptionNumber}, active rate plan (id: ${subscriptionRatePlanId}) has more than one charge, which is unexpected for this product"
+          )
+        }
+
+        // We can use .get here because we have checked that we have a rateplan charge
+        val targetProductRatePlanChargeId = ratePlan.ratePlanCharges.headOption.get.productRatePlanChargeId
+
+        // We have just one charge for the add product payload fragment
+        val chargeOverrides = List(
+          ZuoraOrdersApiPrimitives.chargeOverride(
+            targetProductRatePlanChargeId,
+            commsPrice,
+            BillingPeriod.toString(billingPeriod)
+          )
+        )
+
+        val addProduct =
+          ZuoraOrdersApiPrimitives.addProduct(triggerDateString, targetProductRatePlanId, chargeOverrides)
+
+        val orderSubscription =
+          ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
+
+        ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
+          orderDate.toString,
+          accountNumber,
+          orderSubscription
+        )
+      }).toRight(
+        DataExtractionFailure(
+          s"[4580e80b] Could not compute amendmentOrderPayload (maintain structure) for subscription ${zuoraSubscription.subscriptionNumber}"
         )
       )
-      val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
-      val orderSubscription =
-        ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
-      ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
-        orderDate.toString,
-        accountNumber,
-        orderSubscription
+    } else {
+      (for {
+        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
+        billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
+        currency <- SI2025Extractions.determineCurrency(ratePlan)
+        currencyAndLocalization <- CurrencyAndLocalisation.determineSubscriptionCurrencyAndLocalisation(
+          zuoraSubscription,
+          invoiceList,
+          account
+        )
+        distribution <- GuardianWeeklyHelper.subscriptionToFinancePercentageDistribution(
+          billingPeriod,
+          currencyAndLocalization.currency,
+          currencyAndLocalization.localisation
+        )
+        mapping = GuardianWeeklyHelper.subscriptionToProductRatePlanChargeIdMapping(zuoraSubscription)
+        legs <- T6xLegChargeOverride.decideT6xLegChargeOverrides(
+          distribution,
+          mapping,
+          billingPeriod: BillingPeriod,
+          commsPrice,
+        )
+      } yield {
+        val subscriptionRatePlanId = ratePlan.id
+        val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
+        val triggerDateString = effectDate.toString
+        val productRatePlanId = ratePlan.productRatePlanId
+        val chargeOverrides = ZuoraOrdersApiPrimitives.t6xLegsToChargeOverrides(legs)
+        val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+        val orderSubscription =
+          ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
+        ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
+          orderDate.toString,
+          accountNumber,
+          orderSubscription
+        )
+      }).toRight(
+        DataExtractionFailure(
+          s"[64637c14] Could not compute amendmentOrderPayload (retructuration) for subscription ${zuoraSubscription.subscriptionNumber}"
+        )
       )
-    }).toRight(
-      DataExtractionFailure(
-        s"[1cbce53d] Could not compute amendmentOrderPayload for subscription ${zuoraSubscription.subscriptionNumber}"
-      )
-    )
+    }
   }
 }
