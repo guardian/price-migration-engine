@@ -126,8 +126,8 @@ object TemplateMigration {
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
     // This version of `amendmentOrderPayload`, applied to subscriptions with the active rate plan having
-    // several charges (one per delivery day), is using ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides
-    // which maps the rate plan's rate plan charges to an array of charge overrides json objects.
+    // several charges (one per delivery day), is using ZuoraOrdersApiPrimitives.t6xLegsToChargeOverrides
+    // which maps T6xLegChargeOverrides to an array of charge overrides json objects.
 
     (for {
       ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
