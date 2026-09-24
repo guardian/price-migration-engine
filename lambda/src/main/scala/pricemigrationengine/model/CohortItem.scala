@@ -51,6 +51,16 @@ case class CohortItem(
 
     // Membership2025
     ex_membership2025_country: Option[String] = None,
+
+    // print 2026 GW only
+    // This indicates whether the subscription can be restructured or not.
+    // The default is to perform the one leg -> two legs finance restructuration
+    // and allocation recalibration, but there are a few subs that can be price
+    // risen but not restructured (instructions and list of the affected subs
+    // coming from Finance). If the field is (type string) "true" , then we
+    // need to maintain the existing structure, which means that we cannot
+    // perform the product migration/restructuration
+    ex_gw2026_maintain_structure: Option[String] = None,
 )
 
 object CohortItem {
