@@ -236,7 +236,7 @@ class GuardianWeekly2026MigrationXTest extends munit.FunSuite {
              |                        "productRatePlanId": "2c92a0fe6619b4b301661aa494392ee2",
              |                        "chargeOverrides": [
              |                            {
-             |                                "productRatePlanChargeId": "TO BE DECIDED",
+             |                                "productRatePlanChargeId": "8a128e57a0e6b38d01a0e79834fd78ba",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 31.46
@@ -247,7 +247,7 @@ class GuardianWeekly2026MigrationXTest extends munit.FunSuite {
              |                                }
              |                            },
              |                            {
-             |                                "productRatePlanChargeId": "TO BE DECIDED",
+             |                                "productRatePlanChargeId": "8a128e57a0e6b38d01a0e79834c778b2",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
              |                                        "listPrice": 20.54

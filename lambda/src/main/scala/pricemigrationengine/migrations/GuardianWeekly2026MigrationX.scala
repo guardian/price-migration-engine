@@ -95,41 +95,44 @@ object GuardianWeekly2026MigrationX {
   // They are detailed into the migration module itself, but could be moved one day
   // to the GuardianWeeklyHelper
 
-  val ratePlanNamesToRatePlanIds: Map[String, T9xGWRatePlanIds] = Map(
-    "GW Legacy - Quarterly - Domestic" -> T9xGWRatePlanIds(
+  val t9xGWRatePlanIdsMapping: Map[(BillingPeriod, PricingLocalisation), T9xGWRatePlanIds] = Map(
+    (Quarterly, Domestic) -> T9xGWRatePlanIds(
       "8a128e57a0e6b38d01a0e798347978b0",
       "8a128e57a0e6b38d01a0e79834fd78ba",
       "8a128e57a0e6b38d01a0e79834c778b2"
     ),
-    "GW Legacy - Monthly - Domestic" -> T9xGWRatePlanIds(
+    (Monthly, Domestic) -> T9xGWRatePlanIds(
       "8a129aaea0e6c45b01a0e79aa5204f30",
       "8a129aaea0e6c45b01a0e79aa5bf4f3a",
       "8a129aaea0e6c45b01a0e79aa56d4f32"
     ),
-    "GW Legacy - Annual - Domestic" -> T9xGWRatePlanIds(
+    (Annual, Domestic) -> T9xGWRatePlanIds(
       "8a1296cca0e6c44b01a0e7927d294800",
       "8a1296cca0e6c44b01a0e7927d734802",
       "8a128167a0e6b38b01a0e797dd987279"
     ),
-    "GW Legacy - Quarterly - ROW" -> T9xGWRatePlanIds(
+    (Quarterly, RestOfWorld) -> T9xGWRatePlanIds(
       "8a129dffa0e6c44701a0e78af1723ce0",
       "8a129dffa0e6c44701a0e78af1e63ce2",
       "8a129dffa0e6c44701a0e78af2593cea"
     ),
-    "GW Legacy - Monthly - ROW" -> T9xGWRatePlanIds(
+    (Monthly, RestOfWorld) -> T9xGWRatePlanIds(
       "8a129517a0e6c44901a0e78e50f84ab4",
       "8a129517a0e6c44901a0e78e512d4ab6",
       "8a129517a0e6c44901a0e78e51804abe",
     ),
-    "GW Legacy - Annual - ROW" -> T9xGWRatePlanIds(
+    (Annual, RestOfWorld) -> T9xGWRatePlanIds(
       "8a128167a0e6b38b01a0e781f69d5b95",
       "8a128167a0e6b38b01a0e781f6cf5b97",
       "8a129517a0e6c44901a0e78a5a244796"
     ),
   )
 
-  def subscriptionToT9xGWRatePlanIds(subscription: ZuoraSubscription): Option[T9xGWRatePlanIds] = {
-    ???
+  def subscriptionToT9xGWRatePlanIds(
+      billingPeriod: BillingPeriod,
+      pricingLocalisation: PricingLocalisation
+  ): Option[T9xGWRatePlanIds] = {
+    t9xGWRatePlanIdsMapping.get((billingPeriod, pricingLocalisation))
   }
 
   // ------------------------------------------------
@@ -264,7 +267,7 @@ object GuardianWeekly2026MigrationX {
           currencyAndLocalization.currency,
           currencyAndLocalization.localisation
         )
-        t9xRatePlanIds <- subscriptionToT9xGWRatePlanIds(zuoraSubscription)
+        t9xRatePlanIds <- subscriptionToT9xGWRatePlanIds(billingPeriod, currencyAndLocalization.localisation)
       } yield {
         val legs = T6xLegChargeOverride.decideT6xLegChargeOverridesGuardianWeekly(
           financeAllocation,
