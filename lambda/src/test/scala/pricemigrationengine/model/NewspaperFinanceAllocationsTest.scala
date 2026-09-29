@@ -1,9 +1,9 @@
 package pricemigrationengine.model
 
-class NewspaperLegPercentageDistributionTest extends munit.FunSuite {
+class NewspaperFinanceAllocationsTest extends munit.FunSuite {
   test("getDistribution") {
     assertEquals(
-      NewspaperLegPercentageDistribution.getDistribution(T3xNewspaperNationalDelivery, T2xSixDay),
+      NewspaperFinanceAllocations.getDistribution(T3xNewspaperNationalDelivery, T2xSixDay),
       Some(
         List(
           T4xLeg(T1xMonday, BigDecimal(15.9)),
@@ -18,7 +18,7 @@ class NewspaperLegPercentageDistributionTest extends munit.FunSuite {
 
     test("getDistribution") {
       assertEquals(
-        NewspaperLegPercentageDistribution.getDistribution(T3xNewspaperDelivery, T2xSixDayPlus),
+        NewspaperFinanceAllocations.getDistribution(T3xNewspaperDelivery, T2xSixDayPlus),
         Some(
           List(
             T4xLeg(T1xMonday, BigDecimal(13.4)),
@@ -36,28 +36,28 @@ class NewspaperLegPercentageDistributionTest extends munit.FunSuite {
   test("Percentages sums to 100%, newspaperNationalDeliveryLegPercentageMapping") {
     // This check ensures that in all cases the sum of `percentage` from a List[T4xLegPercentage] is 100
     assertEquals(
-      NewspaperLegPercentageDistribution.newspaperNationalDeliveryLegPercentageMapping.values.forall(l =>
+      NewspaperFinanceAllocations.newspaperNationalDeliveryLegPercentageMapping.values.forall(l =>
         l.map(lp => lp.percentage).sum == BigDecimal(100)
       ),
       true
     )
 
     assertEquals(
-      NewspaperLegPercentageDistribution.newspaperDeliveryLegPercentageMapping.values.forall(l =>
+      NewspaperFinanceAllocations.newspaperDeliveryLegPercentageMapping.values.forall(l =>
         l.map(lp => lp.percentage).sum == BigDecimal(100)
       ),
       true
     )
 
     assertEquals(
-      NewspaperLegPercentageDistribution.newspaperDigitalVoucherLegPercentageMapping.values.forall(l =>
+      NewspaperFinanceAllocations.newspaperDigitalVoucherLegPercentageMapping.values.forall(l =>
         l.map(lp => lp.percentage).sum == BigDecimal(100)
       ),
       true
     )
 
     assertEquals(
-      NewspaperLegPercentageDistribution.newspaperVoucherLegPercentageMapping.values.forall(l =>
+      NewspaperFinanceAllocations.newspaperVoucherLegPercentageMapping.values.forall(l =>
         l.map(lp => lp.percentage).sum == BigDecimal(100)
       ),
       true

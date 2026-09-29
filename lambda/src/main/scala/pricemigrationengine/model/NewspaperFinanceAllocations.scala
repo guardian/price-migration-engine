@@ -111,7 +111,7 @@ object T3xNewspaperVoucher extends T3xDeliveryCategory
 
 case class T4xLeg(legType: T1xNewspaperLegType, percentage: BigDecimal)
 
-object NewspaperLegPercentageDistribution {
+object NewspaperFinanceAllocations {
 
   val newspaperNationalDeliveryLegPercentageMapping: Map[T2xNewspaperPackage, List[T4xLeg]] = Map(
     T2xEveryday -> List(
