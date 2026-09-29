@@ -25,8 +25,8 @@ class GuardianWeeklyLegPercentageDistributionTest extends munit.FunSuite {
       Some(T5xFinanceAllocation(BigDecimal(60.9), BigDecimal(39.1)))
     )
   }
-  test("T5xDistribution sum to 100%") {
-    // This check ensures that in all cases the two components of T5xDistribution sum to 100
+  test("T5xFinanceAllocation sum to 100%") {
+    // This check ensures that in all cases the two components of T5xFinanceAllocation sum to 100
 
     assertEquals(
       GuardianWeeklyLegPercentageDistribution.monthDistributions.values.forall(v =>
