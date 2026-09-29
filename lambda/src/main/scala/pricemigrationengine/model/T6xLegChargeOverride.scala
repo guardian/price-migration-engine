@@ -39,7 +39,7 @@ object T6xLegChargeOverride {
 
   // Decide T6xLegChargeOverrides in the case of Guardian Weekly subs
   def decideT6xLegChargeOverrides(
-      distribution: T5xDistribution,
+      distribution: T5xFinanceAllocation,
       productRatePlanChargeIdMapping: Map[T7xGWSubLegs, String],
       billingPeriod: BillingPeriod,
       targetPrice: BigDecimal,
@@ -47,7 +47,7 @@ object T6xLegChargeOverride {
     // It's useful here to understand why the signature of this function is the way it is
 
     // The `distribution` comes from knowing which type of subscription we are dealing with
-    // For instance: (Monthly, "GBP", Domestic) simply maps to T5xDistribution(BigDecimal(60.5), BigDecimal(39.5))
+    // For instance: (Monthly, "GBP", Domestic) simply maps to T5xFinanceAllocation(BigDecimal(60.5), BigDecimal(39.5))
     // by the `getDistribution` look up.
 
     // The `productRatePlanChargeIdMapping` is simply constructed for the current state
