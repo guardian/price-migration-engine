@@ -39,7 +39,7 @@ object T6xLegChargeOverride {
 
   // Decide T6xLegChargeOverrides in the case of Guardian Weekly subs
   def decideT6xLegChargeOverrides(
-      distribution: T5xDistribution,
+      distribution: T5xFinanceAllocation,
       productRatePlanChargeIdMapping: Map[T7xGWSubLegs, String],
       billingPeriod: BillingPeriod,
       targetPrice: BigDecimal,

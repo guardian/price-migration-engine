@@ -46,8 +46,8 @@ class T6XLegChargeOverrideTest extends munit.FunSuite {
     // For more details, also refer to comments in the code of that function.
 
     // Stole this one from GuardianWeeklyLegPercentageDistribution (Monthly, "GBP", Domestic)
-    val distribution: T5xDistribution =
-      T5xDistribution(BigDecimal(60.5), BigDecimal(39.5))
+    val distribution: T5xFinanceAllocation =
+      T5xFinanceAllocation(BigDecimal(60.5), BigDecimal(39.5))
 
     val productRatePlanChargeIdMapping: Map[T7xGWSubLegs, String] = Map(
       T7xGuardianWeekly -> "5f4afe4e-588b-4f75-9e56-8ffec47bc4a4",
@@ -80,8 +80,8 @@ class T6XLegChargeOverrideTest extends munit.FunSuite {
   test("decideT6xLegChargeOverrides (Guardian Weekly variant) [imcomplete mapping]") {
     // This test is like the previous one, but we use an incomplete mapping and get a None
 
-    val distribution: T5xDistribution =
-      T5xDistribution(BigDecimal(60.5), BigDecimal(39.5))
+    val distribution: T5xFinanceAllocation =
+      T5xFinanceAllocation(BigDecimal(60.5), BigDecimal(39.5))
 
     val productRatePlanChargeIdMapping: Map[T7xGWSubLegs, String] = Map(
       T7xGuardianWeekly -> "5f4afe4e-588b-4f75-9e56-8ffec47bc4a4",
