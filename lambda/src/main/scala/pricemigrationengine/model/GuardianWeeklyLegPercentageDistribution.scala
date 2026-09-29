@@ -73,12 +73,6 @@ object T4xSixForSix extends T4xGuardianWeeklyPaymentSchedule
 
 case class T5xFinanceAllocation(guardianWeeklyPercentage: BigDecimal, digitalPackPercentage: BigDecimal)
 
-// T7xGWSubLegs enumerates the two legs of the new guardian weekly subs. It's used
-// to build the productRatePlanChargeId mapping for `decideT6xLegChargeOverrides`
-sealed trait T7xGWSubLegs
-object T7xGuardianWeekly extends T7xGWSubLegs
-object T7xDigitalPack extends T7xGWSubLegs
-
 object GuardianWeeklyLegPercentageDistribution {
   val monthDistributions: Map[(Currency, PricingLocalisation), T5xFinanceAllocation] = Map(
     ("GBP", Domestic) -> T5xFinanceAllocation(BigDecimal(60.5), BigDecimal(39.5)),

@@ -377,65 +377,10 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
              |                        "productRatePlanId": "2c92a0ff56fe33f50157040bbdcf3ae4",
              |                        "chargeOverrides": [
              |                            {
-             |                                "productRatePlanChargeId": "2c92a0fc56fe26ba01570418eddd26e1",
-             |                                "pricing": {
-             |                                    "recurringFlatFee": {
-             |                                        "listPrice": 2.39
-             |                                    }
-             |                                },
-             |                                "billing": {
-             |                                    "billingPeriod": "Month"
-             |                                }
-             |                            },
-             |                            {
-             |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709cce7ad1aea",
-             |                                "pricing": {
-             |                                    "recurringFlatFee": {
-             |                                        "listPrice": 9.05
-             |                                    }
-             |                                },
-             |                                "billing": {
-             |                                    "billingPeriod": "Month"
-             |                                }
-             |                            },
-             |                            {
-             |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709c80af30495",
-             |                                "pricing": {
-             |                                    "recurringFlatFee": {
-             |                                        "listPrice": 12.67
-             |                                    }
-             |                                },
-             |                                "billing": {
-             |                                    "billingPeriod": "Month"
-             |                                }
-             |                            },
-             |                            {
-             |                                "productRatePlanChargeId": "2c92a0ff56fe33f0015709cac4561bf3",
-             |                                "pricing": {
-             |                                    "recurringFlatFee": {
-             |                                        "listPrice": 9.05
-             |                                    }
-             |                                },
-             |                                "billing": {
-             |                                    "billingPeriod": "Month"
-             |                                }
-             |                            },
-             |                            {
-             |                                "productRatePlanChargeId": "2c92a0fd56fe270b015709cc16f92645",
-             |                                "pricing": {
-             |                                    "recurringFlatFee": {
-             |                                        "listPrice": 9.05
-             |                                    }
-             |                                },
-             |                                "billing": {
-             |                                    "billingPeriod": "Month"
-             |                                }
-             |                            },
-             |                            {
              |                                "productRatePlanChargeId": "2c92a0fd56fe270b015709c90c291c49",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 9.05
+             |                                        "listPrice": 8.35
              |                                    }
              |                                },
              |                                "billing": {
@@ -446,7 +391,40 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0fd56fe26b6015709ca144a646a",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 9.05
+             |                                        "listPrice": 8.32
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f0015709cac4561bf3",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 8.32
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fd56fe270b015709cc16f92645",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 8.32
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709cce7ad1aea",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 8.32
              |                                    }
              |                                },
              |                                "billing": {
@@ -457,7 +435,29 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0fd56fe26b60157042fcd462666",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 12.68
+             |                                        "listPrice": 10.72
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709c80af30495",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 10.72
+             |                                    }
+             |                                },
+             |                                "billing": {
+             |                                    "billingPeriod": "Month"
+             |                                }
+             |                            },
+             |                            {
+             |                                "productRatePlanChargeId": "2c92a0fc56fe26ba01570418eddd26e1",
+             |                                "pricing": {
+             |                                    "recurringFlatFee": {
+             |                                        "listPrice": 9.92
              |                                    }
              |                                },
              |                                "billing": {
@@ -573,10 +573,10 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
              |                        "productRatePlanId": "2c92a0fd56fe26b60157040cdd323f76",
              |                        "chargeOverrides": [
              |                            {
-             |                                "productRatePlanChargeId": "2c92a0fe56fe33ff015709bb986636d8",
+             |                                "productRatePlanChargeId": "2c92a0fd56fe26b601570432f4e33d17",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 8.75
+             |                                        "listPrice": 10.27
              |                                    }
              |                                },
              |                                "billing": {
@@ -587,7 +587,7 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
              |                                "productRatePlanChargeId": "2c92a0ff56fe33f5015709b8fc4d5617",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 10.62
+             |                                        "listPrice": 10.25
              |                                    }
              |                                },
              |                                "billing": {
@@ -595,10 +595,10 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
              |                                }
              |                            },
              |                            {
-             |                                "productRatePlanChargeId": "2c92a0fd56fe26b601570432f4e33d17",
+             |                                "productRatePlanChargeId": "2c92a0fe56fe33ff015709bb986636d8",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 10.62
+             |                                        "listPrice": 9.47
              |                                    }
              |                                },
              |                                "billing": {

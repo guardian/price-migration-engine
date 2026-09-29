@@ -106,8 +106,6 @@ object TemplateMigration {
     )
   }
 
-  /*
-
   // -----------------------------------------------------------
   // Newspaper multi legged Finance driven.
   // 1. Compute the subscription productRatePlanChargeIdMapping with NewspaperHelper.ratePlanToProductRatePlanChargeIdMapping
@@ -128,15 +126,15 @@ object TemplateMigration {
       invoiceList: ZuoraInvoiceList,
   ): Either[Failure, Value] = {
     // This version of `amendmentOrderPayload`, applied to subscriptions with the active rate plan having
-    // several charges (one per delivery day), is using ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides
-    // which maps the rate plan's rate plan charges to an array of charge overrides json objects.
+    // several charges (one per delivery day), is using ZuoraOrdersApiPrimitives.t6xLegsToChargeOverrides
+    // which maps T6xLegChargeOverrides to an array of charge overrides json objects.
 
     (for {
       ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
       productRatePlanChargeIdMapping = NewspaperHelper.ratePlanToProductRatePlanChargeIdMapping(ratePlan)
       billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
       distribution <- NewspaperHelper.subscriptionToFinancePercentageDistribution(zuoraSubscription, orderDate).toOption
-      legs <- T6xLegChargeOverride.decideT6xLegChargeOverrides(
+      legs <- T6xLegChargeOverride.decideT6xLegChargeOverridesNewspaper(
         distribution,
         productRatePlanChargeIdMapping,
         billingPeriod,
@@ -162,6 +160,4 @@ object TemplateMigration {
       )
     )
   }
- 
-   */
 }

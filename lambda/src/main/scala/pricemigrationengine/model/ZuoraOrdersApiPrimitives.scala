@@ -1,6 +1,7 @@
 package pricemigrationengine.model
 
 import ujson._
+
 import scala.math.BigDecimal.RoundingMode
 
 // This file contains the primitives to be able to construct the Orders API Payload
@@ -208,6 +209,24 @@ object ZuoraOrdersApiPrimitives {
     // --------------------------------------------------------------------------------------
 
     jsonData
+  }
+
+  def t6xLegToChargeOverride(leg: T6xLegChargeOverride): Value = {
+    Obj(
+      "productRatePlanChargeId" -> Str(leg.productRatePlanChargeId),
+      "pricing" -> Obj(
+        "recurringFlatFee" -> Obj(
+          "listPrice" -> Num(leg.price.doubleValue)
+        )
+      ),
+      "billing" -> Obj(
+        "billingPeriod" -> Str(BillingPeriod.toString(leg.billingPeriod))
+      )
+    )
+  }
+
+  def t6xLegsToChargeOverrides(legs: List[T6xLegChargeOverride]): List[Value] = {
+    legs.map(leg => t6xLegToChargeOverride(leg))
   }
 
   def addProduct(triggerDateString: String, productRatePlanId: String, chargeOverrides: List[Value]): Value = {

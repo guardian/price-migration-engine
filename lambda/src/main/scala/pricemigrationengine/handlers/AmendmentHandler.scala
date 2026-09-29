@@ -240,7 +240,8 @@ object AmendmentHandler extends CohortHandler {
             zuoraSubscription = subscriptionBeforeUpdate,
             oldPrice = oldPrice,
             commsPrice = commsPrice,
-            invoiceList = invoicePreviewBeforeUpdate
+            invoiceList = invoicePreviewBeforeUpdate,
+            account = account
           )
         )
       } yield order)

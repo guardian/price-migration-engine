@@ -1,5 +1,7 @@
 package pricemigrationengine.model
 
+import pricemigrationengine.migrations.T9xGWRatePlanIds
+
 class T6XLegChargeOverrideTest extends munit.FunSuite {
   test("ensureTotal") {
 
@@ -49,9 +51,10 @@ class T6XLegChargeOverrideTest extends munit.FunSuite {
     val distribution: T5xFinanceAllocation =
       T5xFinanceAllocation(BigDecimal(60.5), BigDecimal(39.5))
 
-    val productRatePlanChargeIdMapping: Map[T7xGWSubLegs, String] = Map(
-      T7xGuardianWeekly -> "5f4afe4e-588b-4f75-9e56-8ffec47bc4a4",
-      T7xDigitalPack -> "c7be8c0f-52e4-4375-aa02-75490f9c1acd"
+    val t9xGWRatePlanIds = T9xGWRatePlanIds(
+      "8a128e57a0e6b38d01a0e798347978b0",
+      "8a128e57a0e6b38d01a0e79834fd78ba", // GW
+      "8a128e57a0e6b38d01a0e79834c778b2" // Digital Pack
     )
 
     val billingPeriod = Monthly;
@@ -60,42 +63,24 @@ class T6XLegChargeOverrideTest extends munit.FunSuite {
 
     assertEquals(
       T6xLegChargeOverride
-        .decideT6xLegChargeOverrides(distribution, productRatePlanChargeIdMapping, billingPeriod, targetPrice),
-      Some(
-        List(
-          T6xLegChargeOverride(
-            productRatePlanChargeId = "5f4afe4e-588b-4f75-9e56-8ffec47bc4a4",
-            price = 30.32,
-            billingPeriod = Monthly
-          ),
-          T6xLegChargeOverride(
-            productRatePlanChargeId = "c7be8c0f-52e4-4375-aa02-75490f9c1acd",
-            price = 19.78,
-            billingPeriod = Monthly
-          )
+        .decideT6xLegChargeOverridesGuardianWeekly(
+          distribution,
+          t9xGWRatePlanIds,
+          billingPeriod,
+          targetPrice
+        ),
+      List(
+        T6xLegChargeOverride(
+          productRatePlanChargeId = "8a128e57a0e6b38d01a0e79834fd78ba", // GW
+          price = 30.32,
+          billingPeriod = Monthly
+        ),
+        T6xLegChargeOverride(
+          productRatePlanChargeId = "8a128e57a0e6b38d01a0e79834c778b2", // Digital Pack
+          price = 19.78,
+          billingPeriod = Monthly
         )
       )
-    )
-  }
-  test("decideT6xLegChargeOverrides (Guardian Weekly variant) [imcomplete mapping]") {
-    // This test is like the previous one, but we use an incomplete mapping and get a None
-
-    val distribution: T5xFinanceAllocation =
-      T5xFinanceAllocation(BigDecimal(60.5), BigDecimal(39.5))
-
-    val productRatePlanChargeIdMapping: Map[T7xGWSubLegs, String] = Map(
-      T7xGuardianWeekly -> "5f4afe4e-588b-4f75-9e56-8ffec47bc4a4",
-      // missing T7xDigitalPack
-    )
-
-    val billingPeriod = Monthly;
-
-    val targetPrice = BigDecimal(50.1)
-
-    assertEquals(
-      T6xLegChargeOverride
-        .decideT6xLegChargeOverrides(distribution, productRatePlanChargeIdMapping, billingPeriod, targetPrice),
-      None
     )
   }
   test("decideT6xLegChargeOverrides (Newspaper variant)") {
@@ -124,7 +109,7 @@ class T6XLegChargeOverrideTest extends munit.FunSuite {
 
     assertEquals(
       T6xLegChargeOverride
-        .decideT6xLegChargeOverrides(distribution, productRatePlanChargeIdMapping, billingPeriod, targetPrice),
+        .decideT6xLegChargeOverridesNewspaper(distribution, productRatePlanChargeIdMapping, billingPeriod, targetPrice),
       Some(
         List(
           T6xLegChargeOverride(
@@ -168,7 +153,7 @@ class T6XLegChargeOverrideTest extends munit.FunSuite {
 
     assertEquals(
       T6xLegChargeOverride
-        .decideT6xLegChargeOverrides(distribution, productRatePlanChargeIdMapping, billingPeriod, targetPrice),
+        .decideT6xLegChargeOverridesNewspaper(distribution, productRatePlanChargeIdMapping, billingPeriod, targetPrice),
       None
     )
   }
