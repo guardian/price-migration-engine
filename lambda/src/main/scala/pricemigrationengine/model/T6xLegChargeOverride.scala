@@ -6,8 +6,8 @@ import scala.math.BigDecimal.RoundingMode
 
 // T6xLegChargeOverrides carries the information needed to build a charge overrides as part
 // of making the amendment payload of the Orders API. It can be thought of as an intermediary
-// representation between the Guardian Weekly (GuardianWeeklyLegPercentageDistribution) and the
-// Newspaper (NewspaperLegPercentageDistribution) pricing percentage distributions,
+// representation between the Guardian Weekly (GuardianWeeklyFinanceAllocations) and the
+// Newspaper (NewspaperFinanceAllocations) pricing percentage distributions,
 // and the Value used in the JSON payload
 
 case class T6xLegChargeOverride(productRatePlanChargeId: String, price: BigDecimal, billingPeriod: BillingPeriod)
@@ -51,7 +51,7 @@ object T6xLegChargeOverride {
 
     // The `distribution` comes from knowing which type of subscription we are dealing with
     // For instance: (Monthly, "GBP", Domestic) simply maps to T5xFinanceAllocation(BigDecimal(60.5), BigDecimal(39.5))
-    // by the `getDistribution` look up.
+    // by the `getAllocation` look up.
 
     // The `gwRatePlanIds` is simply constructed for the current state
     // Simple contains the Ids from the product catalogue.

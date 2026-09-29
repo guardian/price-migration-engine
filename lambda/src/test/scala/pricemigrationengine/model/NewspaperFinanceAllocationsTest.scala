@@ -1,7 +1,7 @@
 package pricemigrationengine.model
 
 class NewspaperFinanceAllocationsTest extends munit.FunSuite {
-  test("getDistribution") {
+  test("getAllocation") {
     assertEquals(
       NewspaperFinanceAllocations.getAllocation(T3xNewspaperNationalDelivery, T2xSixDay),
       Some(
@@ -16,7 +16,7 @@ class NewspaperFinanceAllocationsTest extends munit.FunSuite {
       )
     )
 
-    test("getDistribution") {
+    test("getAllocation") {
       assertEquals(
         NewspaperFinanceAllocations.getAllocation(T3xNewspaperDelivery, T2xSixDayPlus),
         Some(

@@ -65,7 +65,7 @@ object NewspaperHelper {
       result <- NewspaperFinanceAllocations
         .getAllocation(deliveryCategory, pack)
         .toRight(
-          s"[f9df6457] could not determine NewspaperLegPercentageDistribution.getDistribution for subscription: ${subscription.subscriptionNumber} "
+          s"[f9df6457] could not determine NewspaperFinanceAllocations.getAllocation for subscription: ${subscription.subscriptionNumber} "
         )
     } yield result
   }
