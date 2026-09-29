@@ -50,7 +50,7 @@ object T6xLegChargeOverride {
     // It's useful here to understand why the signature of this function is the way it is
 
     // The `distribution` comes from knowing which type of subscription we are dealing with
-    // For instance: (Monthly, "GBP", Domestic) simply maps to T5xDistribution(BigDecimal(60.5), BigDecimal(39.5))
+    // For instance: (Monthly, "GBP", Domestic) simply maps to T5xFinanceAllocation(BigDecimal(60.5), BigDecimal(39.5))
     // by the `getDistribution` look up.
 
     // The `gwRatePlanIds` is simply constructed for the current state
