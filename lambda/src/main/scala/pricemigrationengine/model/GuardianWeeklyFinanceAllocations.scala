@@ -73,7 +73,7 @@ object T4xSixForSix extends T4xGuardianWeeklyPaymentSchedule
 
 case class T5xFinanceAllocation(guardianWeeklyPercentage: BigDecimal, digitalPackPercentage: BigDecimal)
 
-object GuardianWeeklyLegPercentageDistribution {
+object GuardianWeeklyFinanceAllocations {
   val monthDistributions: Map[(Currency, PricingLocalisation), T5xFinanceAllocation] = Map(
     ("GBP", Domestic) -> T5xFinanceAllocation(BigDecimal(60.5), BigDecimal(39.5)),
     ("EUR", Domestic) -> T5xFinanceAllocation(BigDecimal(67.9), BigDecimal(32.1)),
