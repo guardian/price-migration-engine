@@ -134,7 +134,7 @@ object TemplateMigration {
       productRatePlanChargeIdMapping = NewspaperHelper.ratePlanToProductRatePlanChargeIdMapping(ratePlan)
       billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
       distribution <- NewspaperHelper.subscriptionToFinancePercentageDistribution(zuoraSubscription, orderDate).toOption
-      legs <- T6xLegChargeOverride.decideT6xLegChargeOverrides(
+      legs <- T6xLegChargeOverride.decideT6xLegChargeOverridesNewspaper(
         distribution,
         productRatePlanChargeIdMapping,
         billingPeriod,

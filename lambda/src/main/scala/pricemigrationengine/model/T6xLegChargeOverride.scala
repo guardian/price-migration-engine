@@ -1,5 +1,7 @@
 package pricemigrationengine.model
 
+import pricemigrationengine.migrations.T9xGWRatePlanIds
+
 import scala.math.BigDecimal.RoundingMode
 
 // T6xLegChargeOverrides carries the information needed to build a charge overrides as part
@@ -37,23 +39,29 @@ object T6xLegChargeOverride {
     }
   }
 
-  // Decide T6xLegChargeOverrides in the case of Guardian Weekly subs
-  def decideT6xLegChargeOverrides(
-      distribution: T5xDistribution,
-      productRatePlanChargeIdMapping: Map[T7xGWSubLegs, String],
+  def decideT6xLegChargeOverridesGuardianWeekly(
+      distribution: T5xFinanceAllocation,
+      gwRatePlanIds: T9xGWRatePlanIds,
       billingPeriod: BillingPeriod,
       targetPrice: BigDecimal,
-  ): Option[List[T6xLegChargeOverride]] = {
+  ): List[T6xLegChargeOverride] = {
+    // Decide T6xLegChargeOverrides in the case of Guardian Weekly subs
+
     // It's useful here to understand why the signature of this function is the way it is
 
     // The `distribution` comes from knowing which type of subscription we are dealing with
     // For instance: (Monthly, "GBP", Domestic) simply maps to T5xDistribution(BigDecimal(60.5), BigDecimal(39.5))
     // by the `getDistribution` look up.
 
-    // The `productRatePlanChargeIdMapping` is simply constructed for the current state
-    // of the subscription. We construct it to avoid having rate plan ids hardcoded anywhere in the code
-    // This means that we have a more generic handling of subscriptions regardless of the exact rate plan
-    // they are coming from or going to.
+    // The `gwRatePlanIds` is simply constructed for the current state
+    // Simple contains the Ids from the product catalogue.
+    // When this function was first written we were doing a product migration
+    // from no longer to use GW rate plans, to the new Legacy rate plans I
+    // introduced in Sept 2026.
+    // I am keeping this functions in this module, because it goes well with
+    // `decideT6xLegChargeOverridesNewspaper` but one day we might move both
+    // to a better location; possibly to the migration modules themselves, and
+    // call `ensureTotal` from there.
 
     // The billing period is also read from the subscription
 
@@ -65,30 +73,25 @@ object T6xLegChargeOverride {
     // billingPeriod                  : Zuora (current state of the sub)
     // targetPrice                    : Marketing
 
-    for {
-      guardianWeeklyLegRatePlanChargeId <- productRatePlanChargeIdMapping.get(T7xGuardianWeekly)
-      digitalPackPercentage <- productRatePlanChargeIdMapping.get(T7xDigitalPack)
-    } yield {
-      val legs = List(
-        T6xLegChargeOverride(
-          guardianWeeklyLegRatePlanChargeId,
-          (targetPrice * distribution.guardianWeeklyPercentage * 0.01).setScale(2, RoundingMode.DOWN),
-          billingPeriod
-        ),
-        T6xLegChargeOverride(
-          digitalPackPercentage,
-          (targetPrice * distribution.digitalPackPercentage * 0.01).setScale(2, RoundingMode.DOWN),
-          billingPeriod
-        )
+    val legs = List(
+      T6xLegChargeOverride(
+        gwRatePlanIds.gwChargeId,
+        (targetPrice * distribution.guardianWeeklyPercentage * 0.01).setScale(2, RoundingMode.DOWN),
+        billingPeriod
+      ),
+      T6xLegChargeOverride(
+        gwRatePlanIds.dpChargeId,
+        (targetPrice * distribution.digitalPackPercentage * 0.01).setScale(2, RoundingMode.DOWN),
+        billingPeriod
       )
+    )
 
-      // We now need to ensure that we are recovering the extact target price, despite the two
-      // .setScale(2, RoundingMode.DOWN)
-      ensureTotal(legs, targetPrice)
-    }
+    // We now need to ensure that we are recovering the extact target price, despite the two
+    // .setScale(2, RoundingMode.DOWN)
+    ensureTotal(legs, targetPrice)
   }
 
-  def decideT6xLegChargeOverrides(
+  def decideT6xLegChargeOverridesNewspaper(
       distribution: List[T4xLeg],
       productRatePlanChargeIdMapping: Map[T1xNewspaperLegType, String],
       billingPeriod: BillingPeriod,

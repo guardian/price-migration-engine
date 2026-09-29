@@ -16,18 +16,11 @@ object GuardianWeeklyHelper {
     }
   }
 
-  def subscriptionToProductRatePlanChargeIdMapping(subscription: ZuoraSubscription): Map[T7xGWSubLegs, String] = {
-    Map(
-      T7xGuardianWeekly -> "TO BE DECIDED",
-      T7xDigitalPack -> "TO BE DECIDED",
-    )
-  }
-
-  def subscriptionToFinancePercentageDistribution(
+  def subscriptionToFinanceAllocation(
       billingPeriod: BillingPeriod,
       currency: Currency,
       pricingLocalisation: PricingLocalisation
-  ): Option[T5xDistribution] = {
+  ): Option[T5xFinanceAllocation] = {
     for {
       paymentSchedule <- billingPeriodToT4xGuardianWeeklyPaymentSchedule(billingPeriod)
       distribution <- GuardianWeeklyLegPercentageDistribution.getDistribution(

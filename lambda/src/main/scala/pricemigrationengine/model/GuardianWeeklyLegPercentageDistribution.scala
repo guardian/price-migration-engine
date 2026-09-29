@@ -71,70 +71,64 @@ object T4xSemiAnnual extends T4xGuardianWeeklyPaymentSchedule
 object T4xAnnual extends T4xGuardianWeeklyPaymentSchedule
 object T4xSixForSix extends T4xGuardianWeeklyPaymentSchedule
 
-case class T5xDistribution(guardianWeeklyPercentage: BigDecimal, digitalPackPercentage: BigDecimal)
-
-// T7xGWSubLegs enumerates the two legs of the new guardian weekly subs. It's used
-// to build the productRatePlanChargeId mapping for `decideT6xLegChargeOverrides`
-sealed trait T7xGWSubLegs
-object T7xGuardianWeekly extends T7xGWSubLegs
-object T7xDigitalPack extends T7xGWSubLegs
+case class T5xFinanceAllocation(guardianWeeklyPercentage: BigDecimal, digitalPackPercentage: BigDecimal)
 
 object GuardianWeeklyLegPercentageDistribution {
-  val monthDistributions: Map[(Currency, PricingLocalisation), T5xDistribution] = Map(
-    ("GBP", Domestic) -> T5xDistribution(BigDecimal(60.5), BigDecimal(39.5)),
-    ("EUR", Domestic) -> T5xDistribution(BigDecimal(67.9), BigDecimal(32.1)),
-    ("USD", RestOfWorld) -> T5xDistribution(BigDecimal(57.7), BigDecimal(42.3)),
-    ("GBP", RestOfWorld) -> T5xDistribution(BigDecimal(58.4), BigDecimal(41.6)),
-    ("USD", Domestic) -> T5xDistribution(BigDecimal(65.1), BigDecimal(34.9)),
-    ("CAD", Domestic) -> T5xDistribution(BigDecimal(60.9), BigDecimal(39.1)),
-    ("AUD", Domestic) -> T5xDistribution(BigDecimal(66.5), BigDecimal(33.5)),
-    ("NZD", Domestic) -> T5xDistribution(BigDecimal(68.7), BigDecimal(31.3))
+  val monthDistributions: Map[(Currency, PricingLocalisation), T5xFinanceAllocation] = Map(
+    ("GBP", Domestic) -> T5xFinanceAllocation(BigDecimal(60.5), BigDecimal(39.5)),
+    ("EUR", Domestic) -> T5xFinanceAllocation(BigDecimal(67.9), BigDecimal(32.1)),
+    ("USD", RestOfWorld) -> T5xFinanceAllocation(BigDecimal(57.7), BigDecimal(42.3)),
+    ("GBP", RestOfWorld) -> T5xFinanceAllocation(BigDecimal(58.4), BigDecimal(41.6)),
+    ("USD", Domestic) -> T5xFinanceAllocation(BigDecimal(65.1), BigDecimal(34.9)),
+    ("CAD", Domestic) -> T5xFinanceAllocation(BigDecimal(60.9), BigDecimal(39.1)),
+    ("AUD", Domestic) -> T5xFinanceAllocation(BigDecimal(66.5), BigDecimal(33.5)),
+    ("NZD", Domestic) -> T5xFinanceAllocation(BigDecimal(68.7), BigDecimal(31.3))
   )
-  val quarterlyDistributions: Map[(Currency, PricingLocalisation), T5xDistribution] = Map(
-    ("GBP", Domestic) -> T5xDistribution(BigDecimal(60.5), BigDecimal(39.5)),
-    ("EUR", Domestic) -> T5xDistribution(BigDecimal(67.9), BigDecimal(32.1)),
-    ("USD", RestOfWorld) -> T5xDistribution(BigDecimal(57.7), BigDecimal(42.3)),
-    ("GBP", RestOfWorld) -> T5xDistribution(BigDecimal(58.4), BigDecimal(41.6)),
-    ("USD", Domestic) -> T5xDistribution(BigDecimal(65.1), BigDecimal(34.9)),
-    ("CAD", Domestic) -> T5xDistribution(BigDecimal(60.9), BigDecimal(39.1)),
-    ("AUD", Domestic) -> T5xDistribution(BigDecimal(66.5), BigDecimal(33.5)),
-    ("NZD", Domestic) -> T5xDistribution(BigDecimal(68.7), BigDecimal(31.3))
+  val quarterlyDistributions: Map[(Currency, PricingLocalisation), T5xFinanceAllocation] = Map(
+    ("GBP", Domestic) -> T5xFinanceAllocation(BigDecimal(60.5), BigDecimal(39.5)),
+    ("EUR", Domestic) -> T5xFinanceAllocation(BigDecimal(67.9), BigDecimal(32.1)),
+    ("USD", RestOfWorld) -> T5xFinanceAllocation(BigDecimal(57.7), BigDecimal(42.3)),
+    ("GBP", RestOfWorld) -> T5xFinanceAllocation(BigDecimal(58.4), BigDecimal(41.6)),
+    ("USD", Domestic) -> T5xFinanceAllocation(BigDecimal(65.1), BigDecimal(34.9)),
+    ("CAD", Domestic) -> T5xFinanceAllocation(BigDecimal(60.9), BigDecimal(39.1)),
+    ("AUD", Domestic) -> T5xFinanceAllocation(BigDecimal(66.5), BigDecimal(33.5)),
+    ("NZD", Domestic) -> T5xFinanceAllocation(BigDecimal(68.7), BigDecimal(31.3))
   )
-  val semiAnnualDistributions: Map[(Currency, PricingLocalisation), T5xDistribution] = Map(
-    ("GBP", Domestic) -> T5xDistribution(BigDecimal(60.5), BigDecimal(39.5)),
-    ("EUR", Domestic) -> T5xDistribution(BigDecimal(67.9), BigDecimal(32.1)),
-    ("USD", RestOfWorld) -> T5xDistribution(BigDecimal(57.7), BigDecimal(42.3)),
-    ("GBP", RestOfWorld) -> T5xDistribution(BigDecimal(58.4), BigDecimal(41.6)),
-    ("USD", Domestic) -> T5xDistribution(BigDecimal(65.1), BigDecimal(34.9)),
-    ("CAD", Domestic) -> T5xDistribution(BigDecimal(60.9), BigDecimal(39.1)),
-    ("AUD", Domestic) -> T5xDistribution(BigDecimal(66.5), BigDecimal(33.5)),
-    ("NZD", Domestic) -> T5xDistribution(BigDecimal(68.7), BigDecimal(31.3))
+  val semiAnnualDistributions: Map[(Currency, PricingLocalisation), T5xFinanceAllocation] = Map(
+    ("GBP", Domestic) -> T5xFinanceAllocation(BigDecimal(60.5), BigDecimal(39.5)),
+    ("EUR", Domestic) -> T5xFinanceAllocation(BigDecimal(67.9), BigDecimal(32.1)),
+    ("USD", RestOfWorld) -> T5xFinanceAllocation(BigDecimal(57.7), BigDecimal(42.3)),
+    ("GBP", RestOfWorld) -> T5xFinanceAllocation(BigDecimal(58.4), BigDecimal(41.6)),
+    ("USD", Domestic) -> T5xFinanceAllocation(BigDecimal(65.1), BigDecimal(34.9)),
+    ("CAD", Domestic) -> T5xFinanceAllocation(BigDecimal(60.9), BigDecimal(39.1)),
+    ("AUD", Domestic) -> T5xFinanceAllocation(BigDecimal(66.5), BigDecimal(33.5)),
+    ("NZD", Domestic) -> T5xFinanceAllocation(BigDecimal(68.7), BigDecimal(31.3))
   )
-  val annualDistributions: Map[(Currency, PricingLocalisation), T5xDistribution] = Map(
-    ("GBP", Domestic) -> T5xDistribution(BigDecimal(64.8), BigDecimal(35.2)),
-    ("EUR", Domestic) -> T5xDistribution(BigDecimal(71.7), BigDecimal(28.3)),
-    ("USD", RestOfWorld) -> T5xDistribution(BigDecimal(62.1), BigDecimal(37.9)),
-    ("GBP", RestOfWorld) -> T5xDistribution(BigDecimal(62.8), BigDecimal(37.2)),
-    ("USD", Domestic) -> T5xDistribution(BigDecimal(69.2), BigDecimal(30.8)),
-    ("CAD", Domestic) -> T5xDistribution(BigDecimal(65.1), BigDecimal(34.9)),
-    ("AUD", Domestic) -> T5xDistribution(BigDecimal(70.4), BigDecimal(29.6)),
-    ("NZD", Domestic) -> T5xDistribution(BigDecimal(72.5), BigDecimal(27.5))
+  val annualDistributions: Map[(Currency, PricingLocalisation), T5xFinanceAllocation] = Map(
+    ("GBP", Domestic) -> T5xFinanceAllocation(BigDecimal(64.8), BigDecimal(35.2)),
+    ("EUR", Domestic) -> T5xFinanceAllocation(BigDecimal(71.7), BigDecimal(28.3)),
+    ("USD", RestOfWorld) -> T5xFinanceAllocation(BigDecimal(62.1), BigDecimal(37.9)),
+    ("GBP", RestOfWorld) -> T5xFinanceAllocation(BigDecimal(62.8), BigDecimal(37.2)),
+    ("USD", Domestic) -> T5xFinanceAllocation(BigDecimal(69.2), BigDecimal(30.8)),
+    ("CAD", Domestic) -> T5xFinanceAllocation(BigDecimal(65.1), BigDecimal(34.9)),
+    ("AUD", Domestic) -> T5xFinanceAllocation(BigDecimal(70.4), BigDecimal(29.6)),
+    ("NZD", Domestic) -> T5xFinanceAllocation(BigDecimal(72.5), BigDecimal(27.5))
   )
-  val sixForSixDistributions: Map[(Currency, PricingLocalisation), T5xDistribution] = Map(
-    ("GBP", Domestic) -> T5xDistribution(BigDecimal(60.5), BigDecimal(39.5)),
-    ("EUR", Domestic) -> T5xDistribution(BigDecimal(67.9), BigDecimal(32.1)),
-    ("USD", RestOfWorld) -> T5xDistribution(BigDecimal(57.7), BigDecimal(42.3)),
-    ("GBP", RestOfWorld) -> T5xDistribution(BigDecimal(58.4), BigDecimal(41.6)),
-    ("USD", Domestic) -> T5xDistribution(BigDecimal(65.1), BigDecimal(34.9)),
-    ("CAD", Domestic) -> T5xDistribution(BigDecimal(60.9), BigDecimal(39.1)),
-    ("AUD", Domestic) -> T5xDistribution(BigDecimal(66.5), BigDecimal(33.5)),
-    ("NZD", Domestic) -> T5xDistribution(BigDecimal(68.7), BigDecimal(31.3))
+  val sixForSixDistributions: Map[(Currency, PricingLocalisation), T5xFinanceAllocation] = Map(
+    ("GBP", Domestic) -> T5xFinanceAllocation(BigDecimal(60.5), BigDecimal(39.5)),
+    ("EUR", Domestic) -> T5xFinanceAllocation(BigDecimal(67.9), BigDecimal(32.1)),
+    ("USD", RestOfWorld) -> T5xFinanceAllocation(BigDecimal(57.7), BigDecimal(42.3)),
+    ("GBP", RestOfWorld) -> T5xFinanceAllocation(BigDecimal(58.4), BigDecimal(41.6)),
+    ("USD", Domestic) -> T5xFinanceAllocation(BigDecimal(65.1), BigDecimal(34.9)),
+    ("CAD", Domestic) -> T5xFinanceAllocation(BigDecimal(60.9), BigDecimal(39.1)),
+    ("AUD", Domestic) -> T5xFinanceAllocation(BigDecimal(66.5), BigDecimal(33.5)),
+    ("NZD", Domestic) -> T5xFinanceAllocation(BigDecimal(68.7), BigDecimal(31.3))
   )
   def getDistribution(
       paymentSchedule: T4xGuardianWeeklyPaymentSchedule,
       currency: Currency,
       pricingLocalisation: PricingLocalisation
-  ): Option[T5xDistribution] = {
+  ): Option[T5xFinanceAllocation] = {
     paymentSchedule match {
       case T4xMonth      => monthDistributions.get((currency, pricingLocalisation))
       case T4xQuarter    => quarterlyDistributions.get((currency, pricingLocalisation))
