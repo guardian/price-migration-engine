@@ -23,7 +23,7 @@ object GuardianWeeklyHelper {
   ): Option[T5xFinanceAllocation] = {
     for {
       paymentSchedule <- billingPeriodToT4xGuardianWeeklyPaymentSchedule(billingPeriod)
-      distribution <- GuardianWeeklyFinanceAllocations.getDistribution(
+      distribution <- GuardianWeeklyFinanceAllocations.getAllocation(
         paymentSchedule: T4xGuardianWeeklyPaymentSchedule,
         currency,
         pricingLocalisation

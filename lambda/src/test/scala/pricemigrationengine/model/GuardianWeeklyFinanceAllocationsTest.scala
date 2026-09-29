@@ -3,25 +3,25 @@ package pricemigrationengine.model
 class GuardianWeeklyFinanceAllocationsTest extends munit.FunSuite {
   test("getDistribution") {
     assertEquals(
-      GuardianWeeklyFinanceAllocations.getDistribution(T4xAnnual, "GBP", RestOfWorld),
+      GuardianWeeklyFinanceAllocations.getAllocation(T4xAnnual, "GBP", RestOfWorld),
       Some(T5xFinanceAllocation(BigDecimal(62.8), BigDecimal(37.2)))
     )
   }
   test("getDistribution") {
     assertEquals(
-      GuardianWeeklyFinanceAllocations.getDistribution(T4xMonth, "USD", Domestic),
+      GuardianWeeklyFinanceAllocations.getAllocation(T4xMonth, "USD", Domestic),
       Some(T5xFinanceAllocation(BigDecimal(65.1), BigDecimal(34.9)))
     )
     assertEquals(
-      GuardianWeeklyFinanceAllocations.getDistribution(T4xQuarter, "CAD", Domestic),
+      GuardianWeeklyFinanceAllocations.getAllocation(T4xQuarter, "CAD", Domestic),
       Some(T5xFinanceAllocation(BigDecimal(60.9), BigDecimal(39.1)))
     )
     assertEquals(
-      GuardianWeeklyFinanceAllocations.getDistribution(T4xAnnual, "CAD", Domestic),
+      GuardianWeeklyFinanceAllocations.getAllocation(T4xAnnual, "CAD", Domestic),
       Some(T5xFinanceAllocation(BigDecimal(65.1), BigDecimal(34.9)))
     )
     assertEquals(
-      GuardianWeeklyFinanceAllocations.getDistribution(T4xSixForSix, "CAD", Domestic),
+      GuardianWeeklyFinanceAllocations.getAllocation(T4xSixForSix, "CAD", Domestic),
       Some(T5xFinanceAllocation(BigDecimal(60.9), BigDecimal(39.1)))
     )
   }

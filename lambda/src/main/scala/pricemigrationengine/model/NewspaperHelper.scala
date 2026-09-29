@@ -63,7 +63,7 @@ object NewspaperHelper {
       deliveryCategory <- subscriptionToT3xDeliveryCategory(subscription, today)
       pack <- subscriptionToT2xNewspaperPackage(subscription, today)
       result <- NewspaperFinanceAllocations
-        .getDistribution(deliveryCategory, pack)
+        .getAllocation(deliveryCategory, pack)
         .toRight(
           s"[f9df6457] could not determine NewspaperLegPercentageDistribution.getDistribution for subscription: ${subscription.subscriptionNumber} "
         )

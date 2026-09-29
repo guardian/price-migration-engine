@@ -124,7 +124,7 @@ object GuardianWeeklyFinanceAllocations {
     ("AUD", Domestic) -> T5xFinanceAllocation(BigDecimal(66.5), BigDecimal(33.5)),
     ("NZD", Domestic) -> T5xFinanceAllocation(BigDecimal(68.7), BigDecimal(31.3))
   )
-  def getDistribution(
+  def getAllocation(
       paymentSchedule: T4xGuardianWeeklyPaymentSchedule,
       currency: Currency,
       pricingLocalisation: PricingLocalisation

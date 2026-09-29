@@ -350,7 +350,7 @@ object NewspaperFinanceAllocations {
         T4xLeg(T1xDigitalPack, BigDecimal(48.0)),
       ),
     )
-  def getDistribution(
+  def getAllocation(
       deliveryCategory: T3xDeliveryCategory,
       pack: T2xNewspaperPackage
   ): Option[List[T4xLeg]] = {
