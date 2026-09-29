@@ -1,27 +1,27 @@
 package pricemigrationengine.model
 
-class GuardianWeeklyLegPercentageDistributionTest extends munit.FunSuite {
-  test("getDistribution") {
+class GuardianWeeklyFinanceAllocationsTest extends munit.FunSuite {
+  test("getAllocation") {
     assertEquals(
-      GuardianWeeklyLegPercentageDistribution.getDistribution(T4xAnnual, "GBP", RestOfWorld),
+      GuardianWeeklyFinanceAllocations.getAllocation(T4xAnnual, "GBP", RestOfWorld),
       Some(T5xFinanceAllocation(BigDecimal(62.8), BigDecimal(37.2)))
     )
   }
-  test("getDistribution") {
+  test("getAllocation") {
     assertEquals(
-      GuardianWeeklyLegPercentageDistribution.getDistribution(T4xMonth, "USD", Domestic),
+      GuardianWeeklyFinanceAllocations.getAllocation(T4xMonth, "USD", Domestic),
       Some(T5xFinanceAllocation(BigDecimal(65.1), BigDecimal(34.9)))
     )
     assertEquals(
-      GuardianWeeklyLegPercentageDistribution.getDistribution(T4xQuarter, "CAD", Domestic),
+      GuardianWeeklyFinanceAllocations.getAllocation(T4xQuarter, "CAD", Domestic),
       Some(T5xFinanceAllocation(BigDecimal(60.9), BigDecimal(39.1)))
     )
     assertEquals(
-      GuardianWeeklyLegPercentageDistribution.getDistribution(T4xAnnual, "CAD", Domestic),
+      GuardianWeeklyFinanceAllocations.getAllocation(T4xAnnual, "CAD", Domestic),
       Some(T5xFinanceAllocation(BigDecimal(65.1), BigDecimal(34.9)))
     )
     assertEquals(
-      GuardianWeeklyLegPercentageDistribution.getDistribution(T4xSixForSix, "CAD", Domestic),
+      GuardianWeeklyFinanceAllocations.getAllocation(T4xSixForSix, "CAD", Domestic),
       Some(T5xFinanceAllocation(BigDecimal(60.9), BigDecimal(39.1)))
     )
   }
@@ -29,35 +29,35 @@ class GuardianWeeklyLegPercentageDistributionTest extends munit.FunSuite {
     // This check ensures that in all cases the two components of T5xFinanceAllocation sum to 100
 
     assertEquals(
-      GuardianWeeklyLegPercentageDistribution.monthDistributions.values.forall(v =>
+      GuardianWeeklyFinanceAllocations.monthDistributions.values.forall(v =>
         (v.guardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
       ),
       true
     )
 
     assertEquals(
-      GuardianWeeklyLegPercentageDistribution.quarterlyDistributions.values.forall(v =>
+      GuardianWeeklyFinanceAllocations.quarterlyDistributions.values.forall(v =>
         (v.guardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
       ),
       true
     )
 
     assertEquals(
-      GuardianWeeklyLegPercentageDistribution.semiAnnualDistributions.values.forall(v =>
+      GuardianWeeklyFinanceAllocations.semiAnnualDistributions.values.forall(v =>
         (v.guardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
       ),
       true
     )
 
     assertEquals(
-      GuardianWeeklyLegPercentageDistribution.annualDistributions.values.forall(v =>
+      GuardianWeeklyFinanceAllocations.annualDistributions.values.forall(v =>
         (v.guardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
       ),
       true
     )
 
     assertEquals(
-      GuardianWeeklyLegPercentageDistribution.sixForSixDistributions.values.forall(v =>
+      GuardianWeeklyFinanceAllocations.sixForSixDistributions.values.forall(v =>
         (v.guardianWeeklyPercentage + v.digitalPackPercentage) == BigDecimal(100)
       ),
       true

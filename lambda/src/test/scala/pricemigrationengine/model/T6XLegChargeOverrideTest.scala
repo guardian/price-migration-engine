@@ -47,7 +47,7 @@ class T6XLegChargeOverrideTest extends munit.FunSuite {
     // which demonstrates how the arguments combine to make the result.
     // For more details, also refer to comments in the code of that function.
 
-    // Stole this one from GuardianWeeklyLegPercentageDistribution (Monthly, "GBP", Domestic)
+    // Stole this one from GuardianWeeklyFinanceAllocations (Monthly, "GBP", Domestic)
     val distribution: T5xFinanceAllocation =
       T5xFinanceAllocation(BigDecimal(60.5), BigDecimal(39.5))
 
@@ -88,7 +88,7 @@ class T6XLegChargeOverrideTest extends munit.FunSuite {
     // which demonstrates how the arguments combine to make the result.
     // For more details, also refer to comments in the code of that function.
 
-    // Stole this one from NewspaperLegPercentageDistribution
+    // Stole this one from NewspaperFinanceAllocations
     // newspaperNationalDeliveryLegPercentageMapping, T2xWeekendPlus
     val distribution: List[T4xLeg] =
       List(
