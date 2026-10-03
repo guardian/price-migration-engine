@@ -1149,7 +1149,6 @@ class SupporterPlus2026Test extends munit.FunSuite {
     )
   }
   test("AmendmentPreludeCheck analyseSupporterPlus2026 [07-amendment-prelude-check]") {
-
     val subscription =
       Fixtures.subscriptionFromJson("Migrations/SupporterPlus2026/07-amendment-prelude-check/subscription.json")
     // val account = Fixtures.accountFromJson("Migrations/SupporterPlus2026/07-amendment-prelude-check/account.json")
@@ -1169,7 +1168,7 @@ class SupporterPlus2026Test extends munit.FunSuite {
         subscription,
         today
       ),
-      Some(SAARReadyToAmend)
+      SAARReadyToAmend
     )
   }
 }

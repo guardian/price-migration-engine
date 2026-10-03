@@ -376,6 +376,9 @@ object AmendmentHandlerHelper {
       subscription: ZuoraSubscription,
       today: LocalDate
   ): Option[Boolean] = {
+    // This function checks whether the subscription, which is assumed to come from the
+    // SupporterPlus2026 migration, has the correct product name and a billing period that
+    // is the one registered in the cohort item.
     for {
       ratePlan <- SI2025RateplanFromSub.uniquelyDeterminedActiveNonDiscountNonExpiredRatePlan(
         subscription,
@@ -391,18 +394,20 @@ object AmendmentHandlerHelper {
       item: CohortItem,
       subscription: ZuoraSubscription,
       today: LocalDate
-  ): Option[SubscriptionAmendmentAnalyseResult] = {
+  ): SubscriptionAmendmentAnalyseResult = {
+    // This function checks whether the subscription, which is assumed to come from the
+    // SupporterPlus2026 migration, is consistent with the amendment operation
     subscriptionIsAmendableSupporterPlus2026(
       item,
       subscription,
       today
     ) match {
-      case None              => Some(SAARFailNoisily)
+      case None              => SAARFailNoisily
       case Some(consistency) =>
         if (consistency) {
-          Some(SAARReadyToAmend)
+          SAARReadyToAmend
         } else {
-          Some(SAARExcludeFromMigration)
+          SAARExcludeFromMigration
         }
     }
   }
@@ -412,31 +417,27 @@ object AmendmentHandlerHelper {
       item: CohortItem,
       subscription: ZuoraSubscription,
       today: LocalDate
-  ): Option[SubscriptionAmendmentAnalyseResult] = {
+  ): SubscriptionAmendmentAnalyseResult = {
     if (subscription.status == "Cancelled") {
-      Some(SAARCancelledInZuora)
+      SAARCancelledInZuora
     } else {
-      // Note that the reason why we are choosing not to apply the SupporterPlus2026 analyse
-      // to other migration, is because although we noted how useful it is (see comment f4cb8d58)
-      // I do not want to use a migration specific attribute to do so. If we want to extend this to
-      // other migrations we will have to introduce a general CohortItem attribute.
       MigrationType(cohortSpec) match {
-        case Test1                         => Some(SAARReadyToAmend)
-        case Membership2025                => Some(SAARReadyToAmend)
-        case DigiSubs2025                  => Some(SAARReadyToAmend)
+        case Test1                         => SAARReadyToAmend
+        case Membership2025                => SAARReadyToAmend
+        case DigiSubs2025                  => SAARReadyToAmend
         case SupporterPlus2026             => analyseSupporterPlus2026(item, subscription, today)
-        case Print2026C1GWAnnualsUK        => Some(SAARReadyToAmend)
-        case Print2026C1GWQuarterliesUK    => Some(SAARReadyToAmend)
-        case Print2026C1NPAnnualsUK        => Some(SAARReadyToAmend)
-        case Print2026C1NPQuarterliesUK    => Some(SAARReadyToAmend)
-        case Print2026C1NPSemiannualsUK    => Some(SAARReadyToAmend)
-        case Print2026C2NPMonthliesUK      => Some(SAARReadyToAmend)
-        case Print2026C3GWMonthliesUK      => Some(SAARReadyToAmend)
-        case Print2026C3NPMonthliesUK      => Some(SAARReadyToAmend)
-        case Print2026C4NPMonthliesUK      => Some(SAARReadyToAmend)
-        case Print2026C5GW                 => Some(SAARReadyToAmend)
-        case Print2026C5NP                 => Some(SAARReadyToAmend)
-        case Print2026C6GWQuarterliesNonUK => Some(SAARReadyToAmend)
+        case Print2026C1GWAnnualsUK        => SAARReadyToAmend
+        case Print2026C1GWQuarterliesUK    => SAARReadyToAmend
+        case Print2026C1NPAnnualsUK        => SAARReadyToAmend
+        case Print2026C1NPQuarterliesUK    => SAARReadyToAmend
+        case Print2026C1NPSemiannualsUK    => SAARReadyToAmend
+        case Print2026C2NPMonthliesUK      => SAARReadyToAmend
+        case Print2026C3GWMonthliesUK      => SAARReadyToAmend
+        case Print2026C3NPMonthliesUK      => SAARReadyToAmend
+        case Print2026C4NPMonthliesUK      => SAARReadyToAmend
+        case Print2026C5GW                 => SAARReadyToAmend
+        case Print2026C5NP                 => SAARReadyToAmend
+        case Print2026C6GWQuarterliesNonUK => SAARReadyToAmend
       }
     }
   }
