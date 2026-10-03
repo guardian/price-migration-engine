@@ -407,7 +407,7 @@ object AmendmentHandlerHelper {
         if (consistency) {
           SAARReadyToAmend
         } else {
-          SAARExcludeFromMigration
+          SAARExcludeFromMigration("(cause: 3610d37) failing pre amendment integrity check")
         }
     }
   }

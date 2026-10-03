@@ -105,11 +105,12 @@ object AmendmentHandler extends CohortHandler {
             processingStage = ZuoraCancellation
           )
         )
-      case SAARExcludeFromMigration =>
+      case SAARExcludeFromMigration(reason) =>
         ZIO.some(
           CohortItem(
             item.subscriptionName,
-            processingStage = ExcludedFromMigration
+            processingStage = ExcludedFromMigration,
+            cancellationReason = Some(s"(cause: 1802f5b3) ${reason}")
           )
         )
       case SAARFailNoisily =>
