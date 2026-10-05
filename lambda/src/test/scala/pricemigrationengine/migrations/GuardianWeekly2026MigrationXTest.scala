@@ -233,7 +233,7 @@ class GuardianWeekly2026MigrationXTest extends munit.FunSuite {
              |                        }
              |                    ],
              |                    "addProduct": {
-             |                        "productRatePlanId": "2c92a0fe6619b4b301661aa494392ee2",
+             |                        "productRatePlanId": "8a128e57a0e6b38d01a0e798347978b0",
              |                        "chargeOverrides": [
              |                            {
              |                                "productRatePlanChargeId": "8a128e57a0e6b38d01a0e79834fd78ba",
