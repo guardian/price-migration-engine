@@ -70,20 +70,12 @@ object AmendmentHandler extends CohortHandler {
     for {
       now <- Clock.instant
       subscription <- Zuora.fetchSubscription(item.subscriptionName)
-      analyseResult <- ZIO
-        .fromOption(
-          AmendmentHandlerHelper.analyseSubscriptionForAmendment(
-            cohortSpec,
-            item,
-            subscription,
-            LocalDate.ofInstant(now, ZoneOffset.UTC)
-          )
-        )
-        .orElseFail(
-          DataExtractionFailure(
-            s"[0c1a6fc5] could not determine SubscriptionAmendmentAnalyseResult for item {$item}"
-          )
-        )
+      analyseResult = AmendmentHandlerHelper.analyseSubscriptionForAmendment(
+        cohortSpec,
+        item,
+        subscription,
+        LocalDate.ofInstant(now, ZoneOffset.UTC)
+      )
       _ <- Logging.info(
         s"[470b97f8] analyse subscription for amendment, item: ${item}, result: ${SubscriptionAmendmentAnalyseResult.toString(analyseResult)}"
       )
@@ -113,11 +105,12 @@ object AmendmentHandler extends CohortHandler {
             processingStage = ZuoraCancellation
           )
         )
-      case SAARExcludeFromMigration =>
+      case SAARExcludeFromMigration(reason) =>
         ZIO.some(
           CohortItem(
             item.subscriptionName,
-            processingStage = ExcludedFromMigration
+            processingStage = ExcludedFromMigration,
+            cancellationReason = Some(s"(cause: 1802f5b3) ${reason}")
           )
         )
       case SAARFailNoisily =>

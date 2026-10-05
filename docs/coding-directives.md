@@ -66,3 +66,6 @@ object T3xNewspaperDigitalVoucher extends T3xDeliveryCategory
 
 Using the same unique prefix for both is very convenient. The convention is that `T3x` is completely unique to this particular definition. For the next definition, we would naturally use the prefix `T4x`, etc.
 
+### Coding Directive #4:
+
+To help with investigations and validations, when using the `ExcludedFromMigration` processing stage, always also set up the `cancellationReason`.
