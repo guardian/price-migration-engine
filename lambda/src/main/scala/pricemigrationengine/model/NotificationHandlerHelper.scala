@@ -290,7 +290,20 @@ object NotificationHandlerHelper {
     // is defined with a single optional streetInformation mostly due to the fact that
     // the BrazePayloadSubscriberAttributes billing_address_2 is set to None,
     // but this is something I should investigate and challenge one day
-    (zuoraAccountSoldToContact.address1, zuoraAccountSoldToContact.address2) match {
+
+    def normaliseAddressField(field: Option[String]): Option[String] = {
+      val fieldStripped = field.map(s => s.trim)
+      fieldStripped match {
+        case None     => None
+        case Some("") => None
+        case _        => fieldStripped
+      }
+    }
+
+    (
+      normaliseAddressField(zuoraAccountSoldToContact.address1),
+      normaliseAddressField(zuoraAccountSoldToContact.address2)
+    ) match {
       case (Some(a), Some(b)) => Some(s"$a / $b")
       case (Some(a), None)    => Some(a)
       case (None, Some(b))    => Some(b)
