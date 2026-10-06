@@ -146,7 +146,7 @@ class NotificationHandlerHelperTest extends munit.FunSuite {
       )
     )
   }
-  test("zuoraAccountSoldToContactToStreetInformation (1)") {
+  test("zuoraAccountSoldToContactToStreetInformation (1.a)") {
     val zuoraAccountSoldToContact = ZuoraAccountSoldToContact(
       address1 = Some("address1"),
       address2 = Some("address2"),
@@ -160,6 +160,22 @@ class NotificationHandlerHelperTest extends munit.FunSuite {
         zuoraAccountSoldToContact
       ),
       Some("address1 / address2")
+    )
+  }
+  test("zuoraAccountSoldToContactToStreetInformation (1.b)") {
+    val zuoraAccountSoldToContact = ZuoraAccountSoldToContact(
+      address1 = Some("address1"),
+      address2 = Some(" "),
+      city = Some("city"),
+      zipCode = Some("zipCode"),
+      state = None,
+      country = "United Kingdom"
+    )
+    assertEquals(
+      NotificationHandlerHelper.zuoraAccountSoldToContactToStreetInformation(
+        zuoraAccountSoldToContact
+      ),
+      Some("address1")
     )
   }
   test("zuoraAccountSoldToContactToStreetInformation (2)") {
