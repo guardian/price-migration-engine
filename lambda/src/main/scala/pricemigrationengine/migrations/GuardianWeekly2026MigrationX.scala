@@ -277,7 +277,7 @@ object GuardianWeekly2026MigrationX {
         )
         val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, existingRatePlan.id)
         val triggerDateString = effectDate.toString
-        val newProductRatePlanId = existingRatePlan.productRatePlanId
+        val newProductRatePlanId = t9xRatePlanIds.rateplanId
         val chargeOverrides = ZuoraOrdersApiPrimitives.t6xLegsToChargeOverrides(legs)
         val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, newProductRatePlanId, chargeOverrides)
         val orderSubscription =

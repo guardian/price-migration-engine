@@ -8,17 +8,17 @@ sealed trait SubscriptionAmendmentAnalyseResult
 
 object SAARReadyToAmend extends SubscriptionAmendmentAnalyseResult
 object SAARCancelledInZuora extends SubscriptionAmendmentAnalyseResult
-object SAARExcludeFromMigration extends SubscriptionAmendmentAnalyseResult
+case class SAARExcludeFromMigration(cause: String) extends SubscriptionAmendmentAnalyseResult
 object SAARFailNoisily extends SubscriptionAmendmentAnalyseResult
 
 object SubscriptionAmendmentAnalyseResult {
 
   def toString(result: SubscriptionAmendmentAnalyseResult): String = {
     result match {
-      case SAARReadyToAmend         => "SAARReadyToAmend"
-      case SAARCancelledInZuora     => "SAARCancelledInZuora"
-      case SAARExcludeFromMigration => "SAARExcludeFromMigration"
-      case SAARFailNoisily          => "SAARFailNoisily"
+      case SAARReadyToAmend                 => "SAARReadyToAmend"
+      case SAARCancelledInZuora             => "SAARCancelledInZuora"
+      case SAARExcludeFromMigration(reason) => s"SAARExcludeFromMigration (reason: ${reason})"
+      case SAARFailNoisily                  => "SAARFailNoisily"
     }
   }
 }
