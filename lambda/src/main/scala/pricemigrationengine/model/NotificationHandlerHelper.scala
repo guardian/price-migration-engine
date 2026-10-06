@@ -291,8 +291,11 @@ object NotificationHandlerHelper {
     // the BrazePayloadSubscriberAttributes billing_address_2 is set to None,
     // but this is something I should investigate and challenge one day
 
-    def normaliseAddressField(field: Option[String]): Option[String] =
+    def normaliseAddressField(field: Option[String]): Option[String] = {
+      // "Normalising" here means that essentially empty fields,
+      // and notably blank strings, will be mapped to `None`
       field.map(_.trim).filter(_ != "")
+    }
 
     (
       normaliseAddressField(zuoraAccountSoldToContact.address1),
