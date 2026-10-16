@@ -157,15 +157,13 @@ object NotificationHandlerHelper {
       case Print2026C1GWAnnualsUK => requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
       case Print2026C1GWQuarterliesUK =>
         requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
-      case Print2026C1NPAnnualsUK => requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
-      case Print2026C1NPQuarterliesUK =>
-        requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
-      case Print2026C1NPSemiannualsUK =>
-        requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
-      case Print2026C2NPMonthliesUK => requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C1NPAnnualsUK     => nonRequiredData(notificationAddress.country, "United Kingdom") // [3]
+      case Print2026C1NPQuarterliesUK => nonRequiredData(notificationAddress.country, "United Kingdom") // [3]
+      case Print2026C1NPSemiannualsUK => nonRequiredData(notificationAddress.country, "United Kingdom") // [3]
+      case Print2026C2NPMonthliesUK   => nonRequiredData(notificationAddress.country, "United Kingdom") // [3]
       case Print2026C3GWMonthliesUK => requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
-      case Print2026C3NPMonthliesUK => requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
-      case Print2026C4NPMonthliesUK => requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [1]
+      case Print2026C3NPMonthliesUK => nonRequiredData(notificationAddress.country, "United Kingdom") // [3]
+      case Print2026C4NPMonthliesUK => nonRequiredData(notificationAddress.country, "United Kingdom") // [3]
       case Print2026C5GW            => requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [2]
       case Print2026C5NP            => requiredData(notificationAddress.country, "Contact.OtherAddress.country") // [2]
       case Print2026C6GWQuarterliesNonUK =>
@@ -174,6 +172,9 @@ object NotificationHandlerHelper {
 
     // [1] not used in the template, but used in the canvas logic
     // [2] used for the post address
+    // [3] For the newspapers located in the UK, we do not have the requirement of knowing the country
+    //     from the subscription, but since we still need a country information for the canvas,
+    //     we default to "United Kingdom"
   }
 
   def decideFirstName(contact: SalesforceContact): Either[NotificationHandlerFailure, String] = {
