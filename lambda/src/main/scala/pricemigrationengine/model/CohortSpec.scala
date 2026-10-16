@@ -22,7 +22,7 @@ import java.util
   */
 
 // In case of changes in this file, please keep documentation file
-// `docs/cohort-specs.md‎` in sync.
+// `docs/cohort-specs.md` in sync.
 
 case class CohortSpec(
     cohortName: String,
