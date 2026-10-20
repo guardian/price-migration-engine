@@ -1,6 +1,6 @@
 package pricemigrationengine.services
 
-import software.amazon.awssdk.http.apache.ApacheHttpClient
+import software.amazon.awssdk.http.apache5.Apache5HttpClient
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient
 import software.amazon.awssdk.regions.Region.EU_WEST_1
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
@@ -15,7 +15,7 @@ object Aws {
   /** By explicitly specifying which HTTP client to use, we save an expensive operation looking for a suitable HTTP
     * client on the classpath.
     */
-  private def httpSyncClientBuilder() = ApacheHttpClient.builder()
+  private def httpSyncClientBuilder() = Apache5HttpClient.builder()
   private def httpAsyncClientBuilder() = NettyNioAsyncHttpClient.builder()
 
   lazy val sfn: SfnClient = SfnClient.builder.httpClientBuilder(httpSyncClientBuilder()).region(region).build()

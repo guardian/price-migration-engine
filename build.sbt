@@ -56,6 +56,7 @@ lazy val lambda = (project in file("lambda"))
       awsSQS,
       awsStateMachine,
       awsSecretsManager,
+      aws_apache5_client,
       http_sttp_client4_core,
       http_sttp_client4_zio,
       commonsCsv,
