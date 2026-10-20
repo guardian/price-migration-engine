@@ -67,7 +67,6 @@ lazy val lambda = (project in file("lambda"))
       munit % Test,
       zioTest % Test,
       zioTestSbt % Test,
-      zioMock % Test
     ),
     testFrameworks += new TestFramework("munit.Framework"),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
