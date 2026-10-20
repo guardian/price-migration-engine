@@ -2,15 +2,32 @@ import Dependencies._
 import com.gu.riffraff.artifact.BuildInfo
 import sbt.Keys.{description, name}
 
+val scala213 = "2.13.18"
+val scala3 = "3.3.4"
+
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-ThisBuild / scalaVersion := "2.13.18"
+ThisBuild / scalaVersion := scala3
+ThisBuild / crossScalaVersions := Seq(scala213, scala3)
 
-ThisBuild / scalacOptions ++= Seq(
-  "-deprecation",
-  "-Xsource:3",
-  "-Wconf:cat=deprecation:ws,any:e"
-)
+ThisBuild / scalacOptions ++= {
+  CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((3, _)) =>
+      Seq(
+        "-deprecation",
+        "-Wconf:msg=deprecation:w" // Gracefully handle deprecations as warnings in Scala 3
+      )
+    case Some((2, 13)) =>
+      Seq(
+        "-deprecation",
+        "-Xsource:3",
+        "-Wconf:cat=deprecation:w,any:e", // Scala 2 specific warning configuration
+        "-Xfatal-warnings"
+      )
+    case _ =>
+      Seq()
+  }
+}
 
 ThisBuild / scalacOptions += "-Xfatal-warnings"
 

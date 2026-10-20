@@ -141,7 +141,7 @@ object AmendmentHandler extends CohortHandler {
             )
           )
         }
-        case _ =>
+        case null =>
           ZIO
             .fail(
               AmendmentFailure(
