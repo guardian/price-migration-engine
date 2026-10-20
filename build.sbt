@@ -8,10 +8,9 @@ ThisBuild / scalaVersion := "3.3.4"
 
 ThisBuild / scalacOptions ++= Seq(
   "-deprecation",
+  "-Xfatal-warnings",
   "-Wconf:msg=deprecation:w"
 )
-
-ThisBuild / scalacOptions += "-Xfatal-warnings"
 
 ThisBuild / riffRaffUploadArtifactBucket := Option("riffraff-artifact")
 ThisBuild / riffRaffUploadManifestBucket := Option("riffraff-builds")
