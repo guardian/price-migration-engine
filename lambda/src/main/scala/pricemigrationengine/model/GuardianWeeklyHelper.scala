@@ -12,7 +12,7 @@ object GuardianWeeklyHelper {
       case Quarterly  => Some(T4xQuarter)
       case SemiAnnual => Some(T4xSemiAnnual)
       case Annual     => Some(T4xAnnual)
-      case _          => None
+      case null       => None
     }
   }
 

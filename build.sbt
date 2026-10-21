@@ -4,11 +4,12 @@ import sbt.Keys.{description, name}
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-ThisBuild / scalaVersion := "2.13.18"
+ThisBuild / scalaVersion := "3.3.4"
 
 ThisBuild / scalacOptions ++= Seq(
   "-deprecation",
-  "-Xfatal-warnings"
+  "-Xfatal-warnings",
+  "-Wconf:msg=deprecation:w"
 )
 
 ThisBuild / riffRaffUploadArtifactBucket := Option("riffraff-artifact")
@@ -64,7 +65,6 @@ lazy val lambda = (project in file("lambda"))
       munit % Test,
       zioTest % Test,
       zioTestSbt % Test,
-      zioMock % Test
     ),
     testFrameworks += new TestFramework("munit.Framework"),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
