@@ -7,12 +7,11 @@ object GuardianWeeklyHelper {
   def billingPeriodToT4xGuardianWeeklyPaymentSchedule(
       billingPeriod: BillingPeriod
   ): Option[T4xGuardianWeeklyPaymentSchedule] = {
-    billingPeriod match {
-      case Monthly    => Some(T4xMonth)
-      case Quarterly  => Some(T4xQuarter)
-      case SemiAnnual => Some(T4xSemiAnnual)
-      case Annual     => Some(T4xAnnual)
-      case null       => None
+    Option(billingPeriod).map {
+      case Monthly    => T4xMonth
+      case Quarterly  => T4xQuarter
+      case SemiAnnual => T4xSemiAnnual
+      case Annual     => T4xAnnual
     }
   }
 
