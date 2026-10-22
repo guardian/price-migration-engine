@@ -26,8 +26,7 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v6.0.1
         with:
-          distribution: corretto
-          java-version: 25
+          java-version-file: .tool-versions
           cache: sbt
 
       - name: Setup SBT
