@@ -128,27 +128,7 @@ object AmendmentHandler extends CohortHandler {
   ): ZIO[Zuora with Logging with Salesforce, Failure, Option[CohortItem]] =
     (for {
       result <- performAmendmentAttemptWithResult(cohortSpec, item)
-      updatedItem <- result match {
-        case r: AARSuccessfulAmendment => {
-          ZIO.succeed(
-            CohortItem(
-              r.subscriptionNumber,
-              processingStage = AmendmentComplete,
-              amendmentEffectiveDate = Some(r.amendmentEffectiveDate),
-              newPrice = Some(r.newPrice),
-              newSubscriptionId = Some(r.newSubscriptionId),
-              whenAmendmentDone = Some(r.whenDone)
-            )
-          )
-        }
-        case null =>
-          ZIO
-            .fail(
-              AmendmentFailure(
-                s"[7f2bf362] unexpected amendment attempt result while processing subscription: ${item.subscriptionName}"
-              )
-            )
-      }
+      updatedItem <- ZIO.fromEither(toUpdatedItem(item, result))
     } yield updatedItem).foldZIO(
       failure = {
         case e: ZuoraUpdateFailure => {
@@ -165,6 +145,25 @@ object AmendmentHandler extends CohortHandler {
       },
       success = { update => ZIO.some(update) }
     )
+
+  private def toUpdatedItem(item: CohortItem, result: AARSuccessfulAmendment): Either[AmendmentFailure, CohortItem] = {
+    Option(result)
+      .map { amendment =>
+        CohortItem(
+          amendment.subscriptionNumber,
+          processingStage = AmendmentComplete,
+          amendmentEffectiveDate = Some(amendment.amendmentEffectiveDate),
+          newPrice = Some(amendment.newPrice),
+          newSubscriptionId = Some(amendment.newSubscriptionId),
+          whenAmendmentDone = Some(amendment.whenDone)
+        )
+      }
+      .toRight(
+        AmendmentFailure(
+          s"[7f2bf362] unexpected amendment attempt result while processing subscription: ${item.subscriptionName}"
+        )
+      )
+  }
 
   private def renewSubscription(
       subscription: ZuoraSubscription,
@@ -294,7 +293,7 @@ object AmendmentHandler extends CohortHandler {
   private def performAmendmentAttemptWithResult(
       cohortSpec: CohortSpec,
       item: CohortItem
-  ): ZIO[Zuora with Logging with Salesforce, Failure, AmendmentAttemptResult] = {
+  ): ZIO[Zuora with Logging with Salesforce, Failure, AARSuccessfulAmendment] = {
     MigrationType(cohortSpec) match {
       case Test1          => ZIO.fail(ConfigFailure("Branch not supported"))
       case Membership2025 =>
