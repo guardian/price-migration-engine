@@ -179,7 +179,11 @@ object AmendmentHandler extends CohortHandler {
     )
     for {
       _ <- Logging.info(s"[cce20c51] Renewing subscription ${subscription.subscriptionNumber} with payload ${payload}")
-      _ <- Zuora.applyOrderAsynchronously(subscription.subscriptionNumber, payload, "subscription renewal")
+      _ <- Zuora.applyOrderAsynchronously(
+        subscription.subscriptionNumber,
+        payload,
+        s"subscription renewal, subscription number: ${subscription.subscriptionNumber}"
+      )
     } yield ()
   }
 
@@ -256,7 +260,11 @@ object AmendmentHandler extends CohortHandler {
         s"[6e6da544] Amending subscription ${subscriptionBeforeUpdate.subscriptionNumber} with order ${order}"
       )
 
-      _ <- Zuora.applyOrderAsynchronously(subscriptionBeforeUpdate.subscriptionNumber, order, "subscription amendment")
+      _ <- Zuora.applyOrderAsynchronously(
+        subscriptionBeforeUpdate.subscriptionNumber,
+        order,
+        s"subscription amendment, subscription number: ${subscriptionBeforeUpdate.subscriptionNumber}"
+      )
 
       subscriptionAfterUpdate <- Zuora.fetchSubscription(item.subscriptionName)
 
