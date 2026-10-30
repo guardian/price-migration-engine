@@ -358,7 +358,7 @@ object ZuoraLive {
               .mapError(e =>
                 // Look like we have timed out during the monitoring and the .retry gave up
                 ZuoraAsynchronousOrderRequestFailure(
-                  s"[462b80c6] error while evaluating asynchronous job report 🤔, jobId: ${submissionTicket.jobId}, error: ${e}"
+                  s"[462b80c6] error while evaluating asynchronous job report 🤔, operation: ${operationDescriptionForLogging}, jobId: ${submissionTicket.jobId}, error: ${e}"
                 )
               )
             _ <- ZIO
@@ -366,7 +366,7 @@ object ZuoraLive {
               .mapError(e =>
                 // Looks like Zuora properly failed the request.
                 ZuoraAsynchronousOrderRequestFailure(
-                  s"[5eed7eb0] We got a Left from the monitor 🤔, jobId: ${submissionTicket.jobId}, error: ${e}"
+                  s"[5eed7eb0] We got a Left from the monitor 🤔, operation: ${operationDescriptionForLogging}, jobId: ${submissionTicket.jobId}, error: ${e}"
                 )
               )
             _ <- logging.info(
