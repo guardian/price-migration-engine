@@ -303,16 +303,27 @@ object Newspaper2026MigrationX {
     // which maps T6xLegChargeOverrides to an array of charge overrides json objects.
 
     (for {
-      ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
-      productRatePlanChargeIdMapping = NewspaperHelper.ratePlanToProductRatePlanChargeIdMapping(ratePlan)
-      billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
-      distribution <- NewspaperHelper.subscriptionToFinancePercentageDistribution(zuoraSubscription, orderDate).toOption
-      legs <- T6xLegChargeOverride.decideT6xLegChargeOverridesNewspaper(
-        distribution,
-        productRatePlanChargeIdMapping,
-        billingPeriod,
-        commsPrice
-      )
+      ratePlan <- SI2025RateplanFromSubAndInvoices
+        .determineRatePlan(zuoraSubscription, invoiceList)
+        .map(logValue("ratePlan"))
+      productRatePlanChargeIdMapping = NewspaperHelper
+        .ratePlanToProductRatePlanChargeIdMapping(ratePlan)
+        .map(logValue("productRatePlanChargeIdMapping"))
+      billingPeriod <- ZuoraRatePlan
+        .ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
+        .map(logValue("billingPeriod"))
+      distribution <- NewspaperHelper
+        .subscriptionToFinancePercentageDistribution(zuoraSubscription, orderDate)
+        .toOption
+        .map(logValue("distribution"))
+      legs <- T6xLegChargeOverride
+        .decideT6xLegChargeOverridesNewspaper(
+          distribution,
+          productRatePlanChargeIdMapping,
+          billingPeriod,
+          commsPrice
+        )
+        .map(logValue("legs"))
     } yield {
       val subscriptionRatePlanId = ratePlan.id
       val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
@@ -329,7 +340,7 @@ object Newspaper2026MigrationX {
       )
     }).toRight(
       DataExtractionFailure(
-        s"[9f480e70] Could not compute amendmentOrderPayload for subscription ${zuoraSubscription.subscriptionNumber}"
+        s"[c0d9abb6] Could not compute amendmentOrderPayload for subscription ${zuoraSubscription.subscriptionNumber}"
       )
     )
   }

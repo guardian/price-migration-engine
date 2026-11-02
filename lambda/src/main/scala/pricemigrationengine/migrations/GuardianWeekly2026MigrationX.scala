@@ -207,8 +207,12 @@ object GuardianWeekly2026MigrationX {
 
     if (cohortItem.ex_gw2026_maintain_structure.contains("true")) {
       (for {
-        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
-        billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
+        ratePlan <- SI2025RateplanFromSubAndInvoices
+          .determineRatePlan(zuoraSubscription, invoiceList)
+          .map(logValue("ratePlan"))
+        billingPeriod <- ZuoraRatePlan
+          .ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
+          .map(logValue("billingPeriod"))
       } yield {
         val subscriptionRatePlanId = ratePlan.id
         val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
@@ -255,19 +259,29 @@ object GuardianWeekly2026MigrationX {
       )
     } else {
       (for {
-        existingRatePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
-        billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(existingRatePlan)
-        currencyAndLocalization <- CurrencyAndLocalisation.determineSubscriptionCurrencyAndLocalisation(
-          zuoraSubscription,
-          invoiceList,
-          account
+        existingRatePlan <- SI2025RateplanFromSubAndInvoices
+          .determineRatePlan(zuoraSubscription, invoiceList)
+          .map(logValue("existingRatePlan"))
+        billingPeriod <- ZuoraRatePlan
+          .ratePlanToOptionalUniquelyDeterminedBillingPeriod(existingRatePlan)
+          .map(logValue("billingPeriod"))
+        currencyAndLocalization <- CurrencyAndLocalisation
+          .determineSubscriptionCurrencyAndLocalisation(
+            zuoraSubscription,
+            invoiceList,
+            account
+          )
+          .map(logValue("currencyAndLocalization"))
+        financeAllocation <- GuardianWeeklyHelper
+          .subscriptionToFinanceAllocation(
+            billingPeriod,
+            currencyAndLocalization.currency,
+            currencyAndLocalization.localisation
+          )
+          .map(logValue("financeAllocation"))
+        t9xRatePlanIds <- subscriptionToT9xGWRatePlanIds(billingPeriod, currencyAndLocalization.localisation).map(
+          logValue("t9xRatePlanIds")
         )
-        financeAllocation <- GuardianWeeklyHelper.subscriptionToFinanceAllocation(
-          billingPeriod,
-          currencyAndLocalization.currency,
-          currencyAndLocalization.localisation
-        )
-        t9xRatePlanIds <- subscriptionToT9xGWRatePlanIds(billingPeriod, currencyAndLocalization.localisation)
       } yield {
         val legs = T6xLegChargeOverride.decideT6xLegChargeOverridesGuardianWeekly(
           financeAllocation,
