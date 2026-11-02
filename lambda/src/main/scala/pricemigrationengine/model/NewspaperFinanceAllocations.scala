@@ -177,6 +177,9 @@ object NewspaperFinanceAllocations {
       T2xSunday -> List(
         T4xLeg(T1xSunday, BigDecimal(100.0))
       ),
+      T2xSaturday -> List(
+        T4xLeg(T1xSaturday, BigDecimal(100.0))
+      ),
       T2xFiveday -> List(
         T4xLeg(T1xMonday, BigDecimal(20.0)),
         T4xLeg(T1xTuesday, BigDecimal(20.0)),

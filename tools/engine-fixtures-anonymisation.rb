@@ -74,6 +74,7 @@ account["soldToContact"] = {
     "address2" => "address2",
     "city" => "city",
     "zipCode" => "N1 9GU",
+    "state" => nil,
     "country" => account["soldToContact"]["country"]
 }
 account["gu:sanitised"] = true
