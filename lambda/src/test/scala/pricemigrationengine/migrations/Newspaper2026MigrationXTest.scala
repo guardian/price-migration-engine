@@ -283,7 +283,7 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
     )
   }
   // -----------
-  test("Newspaper2026X.amendmentOrderPayload") {
+  test("Newspaper2026X.amendmentOrderPayload (sub 1)") {
 
     // sub1: "Newspaper Voucher"          "Everyday+"   "GBP"   "Month"
 
@@ -479,7 +479,7 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
       )
     )
   }
-  test("Newspaper2026X.amendmentOrderPayload") {
+  test("Newspaper2026X.amendmentOrderPayload (sub 5)") {
 
     // sub5: "Newspaper Voucher"          "Weekend+"    "GBP"   "Month"
 
@@ -618,6 +618,73 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
              |}""".stripMargin
         )
       )
+    )
+  }
+  test("Newspaper2026X.amendmentOrderPayload (sub 20)") {
+
+    // sub20
+    // This one was introduced to investigate a failure to construct an amendment
+    // payload.The problem came down to a missing entry in
+    // NewspaperFinanceAllocations.The original spreadsheet didn't have a
+    // distribution for Newspaper Delivery distribution for Saturday.
+
+    val subscription = Fixtures.subscriptionFromJson("Migrations/Newspaper2026X/sub20/subscription.json")
+    val account = Fixtures.accountFromJson("Migrations/Newspaper2026X/sub20/account.json")
+    val invoicePreview = Fixtures.invoiceListFromJson("Migrations/Newspaper2026X/sub20/invoice-preview.json")
+
+    val amendmentEffectiveDate = LocalDate.of(2026, 12, 5)
+    val oldPrice = BigDecimal(20.99)
+    val estimatedNewPrice = BigDecimal(21.99)
+    val commsPrice = BigDecimal(21.99)
+
+    val cohortItem = CohortItem(
+      subscriptionName = subscription.subscriptionNumber,
+      processingStage = CohortTableFilter.NotificationSendDateWrittenToSalesforce,
+      amendmentEffectiveDate = Some(amendmentEffectiveDate),
+      currency = Some("GBP"),
+      oldPrice = Some(oldPrice),
+      estimatedNewPrice = Some(estimatedNewPrice),
+      commsPrice = Some(commsPrice),
+      billingPeriod = Some("Month"),
+      migrationExtraAttributes = None
+    )
+
+    // We now collect the arguments of Newspaper2026X.amendmentOrderPayload
+
+    val orderDate = LocalDate.of(2026, 11, 2) // LocalDate.now()
+    val accountNumber = subscription.accountNumber
+    val subscriptionNumber = subscription.subscriptionNumber
+    val effectDate = amendmentEffectiveDate
+    val priceCap = 1.071 // 7.1 %
+
+    // Investigation
+
+    val ratePlan = SI2025RateplanFromSubAndInvoices.determineRatePlan(subscription, invoicePreview).get
+
+    val productRatePlanChargeIdMapping = NewspaperHelper.ratePlanToProductRatePlanChargeIdMapping(ratePlan)
+    assertEquals(productRatePlanChargeIdMapping, Map(T1xSaturday -> "2c92a0fd5e1dcf0d015e3cb39d207ddf"))
+
+    val billingPeriod = ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan).get
+    assertEquals(billingPeriod, Monthly)
+
+    val distribution = NewspaperHelper.subscriptionToFinancePercentageDistribution(subscription, orderDate)
+    assertEquals(distribution, Right(List(T4xLeg(T1xSaturday, BigDecimal(100.0)))))
+
+    assertEquals(
+      Newspaper2026MigrationX
+        .amendmentOrderPayload(
+          cohortItem,
+          orderDate,
+          accountNumber,
+          subscriptionNumber,
+          effectDate,
+          subscription,
+          oldPrice,
+          commsPrice,
+          invoicePreview
+        )
+        .isRight,
+      true
     )
   }
 }
