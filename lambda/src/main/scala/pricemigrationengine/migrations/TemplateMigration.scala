@@ -116,7 +116,7 @@ object TemplateMigration {
   // driven) case of a newspaper price update.
   // -----------------------------------------------------------
 
-  def amendmentOrderPayload(
+  def amendmentOrderPayload_v2(
       cohortItem: CohortItem,
       orderDate: LocalDate,
       accountNumber: String,
