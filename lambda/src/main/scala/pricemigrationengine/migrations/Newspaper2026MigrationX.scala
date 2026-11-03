@@ -287,7 +287,7 @@ object Newspaper2026MigrationX {
     }
   }
 
-  def amendmentOrderPayload(
+  def amendmentOrderPayloadStandard(
       cohortItem: CohortItem,
       orderDate: LocalDate,
       accountNumber: String,
@@ -343,5 +343,114 @@ object Newspaper2026MigrationX {
         s"[c0d9abb6] Could not compute amendmentOrderPayload for subscription ${zuoraSubscription.subscriptionNumber}"
       )
     )
+  }
+
+  def amendmentOrderPayloadEchoLegacy(
+      cohortItem: CohortItem,
+      orderDate: LocalDate,
+      accountNumber: String,
+      subscriptionNumber: String,
+      effectDate: LocalDate,
+      zuoraSubscription: ZuoraSubscription,
+      oldPrice: BigDecimal,
+      commsPrice: BigDecimal,
+      invoiceList: ZuoraInvoiceList,
+  ): Either[Failure, Value] = {
+    // Here we perform a standard in-place updates of the legs to meet the given comms price
+
+    // The process is:
+    // using...
+    //   - the existing ratePlanCharges
+    //   - the price ratio (to know which ratio to apply to the existing (pre-migration) leg prices)
+    //   - the comms price (to ensure that the price is absolutely preserved)
+    //   - the billing period to forge correct new charges
+
+    val priceRatio = commsPrice / oldPrice
+
+    val order_opt = {
+      for {
+        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuoraSubscription, invoiceList)
+        billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
+      } yield {
+        val subscriptionRatePlanId = ratePlan.id
+        val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
+        val triggerDateString = effectDate.toString
+        val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
+        val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
+          ratePlan.ratePlanCharges,
+          priceRatio,
+          commsPrice,
+          BillingPeriod.toString(billingPeriod)
+        )
+        val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+        val order_subscription =
+          ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
+        ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
+          orderDate.toString,
+          accountNumber,
+          order_subscription
+        )
+      }
+    }
+
+    order_opt match {
+      case Some(order) => Right(order)
+      case None        =>
+        Left(
+          DataExtractionFailure(
+            s"[01700e84] Could not compute amendmentOrderPayload for subscription ${zuoraSubscription.subscriptionNumber}"
+          )
+        )
+    }
+
+  }
+
+  def amendmentOrderPayload(
+      cohortItem: CohortItem,
+      orderDate: LocalDate,
+      accountNumber: String,
+      subscriptionNumber: String,
+      effectDate: LocalDate,
+      zuoraSubscription: ZuoraSubscription,
+      oldPrice: BigDecimal,
+      commsPrice: BigDecimal,
+      invoiceList: ZuoraInvoiceList,
+  ): Either[Failure, Value] = {
+    decidePackage(zuoraSubscription, orderDate) match {
+      case Some(pack) => {
+        pack match {
+          case EchoLegacy =>
+            amendmentOrderPayloadEchoLegacy(
+              cohortItem,
+              orderDate,
+              accountNumber,
+              subscriptionNumber,
+              effectDate,
+              zuoraSubscription,
+              oldPrice,
+              commsPrice,
+              invoiceList,
+            )
+          case _ =>
+            amendmentOrderPayloadStandard(
+              cohortItem,
+              orderDate,
+              accountNumber,
+              subscriptionNumber,
+              effectDate,
+              zuoraSubscription,
+              oldPrice,
+              commsPrice,
+              invoiceList,
+            )
+        }
+      }
+      case None =>
+        Left(
+          DataExtractionFailure(
+            s"[e0649fb4] Could not determine NxPackage for subscription ${zuoraSubscription.subscriptionNumber}"
+          )
+        )
+    }
   }
 }
