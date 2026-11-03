@@ -8,6 +8,7 @@ import ujson._
 object TemplateMigration {
 
   // -----------------------------------------------------------
+  // priceData
   // Standard variant. Adapt as required.
   // -----------------------------------------------------------
 
@@ -38,7 +39,9 @@ object TemplateMigration {
   }
 
   // -----------------------------------------------------------
-  // Standard variant. We update a single leg (rate plan charge).
+  // amendmentOrderPayload (v1)
+  // Here we perform an in-place price update of a rate plan with
+  // a single rate plan charge.
   // -----------------------------------------------------------
 
   def amendmentOrderPayload_v1(
@@ -107,6 +110,72 @@ object TemplateMigration {
   }
 
   // -----------------------------------------------------------
+  // amendmentOrderPayload (v2)
+  // Here we perform an in-place price update of a rate plan with
+  // multiple plan charges. This is the simple (not finance allocation
+  // driven) case of a newspaper price update.
+  // -----------------------------------------------------------
+
+  def amendmentOrderPayload_v2(
+      cohortItem: CohortItem,
+      orderDate: LocalDate,
+      accountNumber: String,
+      subscriptionNumber: String,
+      effectDate: LocalDate,
+      zuora_subscription: ZuoraSubscription,
+      oldPrice: BigDecimal,
+      commsPrice: BigDecimal,
+      invoiceList: ZuoraInvoiceList,
+  ): Either[Failure, Value] = {
+
+    // The process is:
+    // using...
+    //   - the existing ratePlanCharges
+    //   - the price ratio (to know which ratio to apply to the existing (pre-migration) leg prices)
+    //   - the comms price (to ensure that the price is absolutely preserved)
+    //   - the billing period to forge correct new charges
+
+    val priceRatio = commsPrice / oldPrice
+
+    val order_opt = {
+      for {
+        ratePlan <- SI2025RateplanFromSubAndInvoices.determineRatePlan(zuora_subscription, invoiceList)
+        billingPeriod <- ZuoraRatePlan.ratePlanToOptionalUniquelyDeterminedBillingPeriod(ratePlan)
+      } yield {
+        val subscriptionRatePlanId = ratePlan.id
+        val removeProduct = ZuoraOrdersApiPrimitives.removeProduct(effectDate.toString, subscriptionRatePlanId)
+        val triggerDateString = effectDate.toString
+        val productRatePlanId = ratePlan.productRatePlanId // We are upgrading on the same rate plan.
+        val chargeOverrides: List[Value] = ZuoraOrdersApiPrimitives.ratePlanChargesToChargeOverrides(
+          ratePlan.ratePlanCharges,
+          priceRatio,
+          commsPrice,
+          BillingPeriod.toString(billingPeriod)
+        )
+        val addProduct = ZuoraOrdersApiPrimitives.addProduct(triggerDateString, productRatePlanId, chargeOverrides)
+        val order_subscription =
+          ZuoraOrdersApiPrimitives.subscription(subscriptionNumber, List(removeProduct), List(addProduct))
+        ZuoraOrdersApiPrimitives.subscriptionUpdatePayload(
+          orderDate.toString,
+          accountNumber,
+          order_subscription
+        )
+      }
+    }
+
+    order_opt match {
+      case Some(order) => Right(order)
+      case None        =>
+        Left(
+          DataExtractionFailure(
+            s"[01700e84] Could not compute amendmentOrderPayload for subscription ${zuora_subscription.subscriptionNumber}"
+          )
+        )
+    }
+  }
+
+  // -----------------------------------------------------------
+  // amendmentOrderPayload (v3)
   // Newspaper multi legged Finance driven.
   // 1. Compute the subscription productRatePlanChargeIdMapping with NewspaperHelper.ratePlanToProductRatePlanChargeIdMapping
   // 2. Get the Finance distribution with NewspaperHelper.subscriptionToFinancePercentageDistribution
@@ -114,7 +183,7 @@ object TemplateMigration {
   // 4. Compute the chargeOverrides with ZuoraOrdersApiPrimitives.t6xLegsToChargeOverrides
   // -----------------------------------------------------------
 
-  def amendmentOrderPayload_v2(
+  def amendmentOrderPayload_v3(
       cohortItem: CohortItem,
       orderDate: LocalDate,
       accountNumber: String,
