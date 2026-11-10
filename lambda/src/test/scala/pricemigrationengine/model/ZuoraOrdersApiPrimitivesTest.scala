@@ -694,4 +694,54 @@ class ZuoraOrdersAPIPrimitivesTest extends munit.FunSuite {
         |}""".stripMargin
     )
   }
+
+  test("ZuoraOrdersApiPrimitives.prioritizeNonZeroPrice") {
+
+    // Here we are checking that prioritizeNonZeroPrice takes a list of ZuoraRatePlanCharges, and
+    // reorders it by putting the non-zero charges first.
+
+    var charge1 = ZuoraRatePlanCharge(
+      productRatePlanChargeId = "001",
+      name = "Monday",
+      number = "001",
+      currency = "GBP",
+      price = Some(BigDecimal(0))
+    )
+    var charge2 = ZuoraRatePlanCharge(
+      productRatePlanChargeId = "002",
+      name = "Tuesday",
+      number = "002",
+      currency = "GBP",
+      price = None
+    )
+    var charge3 = ZuoraRatePlanCharge(
+      productRatePlanChargeId = "003",
+      name = "Wednesday",
+      number = "003",
+      currency = "GBP",
+      price = Some(BigDecimal(10.0))
+    )
+    var charge4 = ZuoraRatePlanCharge(
+      productRatePlanChargeId = "004",
+      name = "Thursday",
+      number = "004",
+      currency = "GBP",
+      price = Some(BigDecimal(0))
+    )
+    var charge5 = ZuoraRatePlanCharge(
+      productRatePlanChargeId = "005",
+      name = "Friday",
+      number = "005",
+      currency = "GBP",
+      price = Some(BigDecimal(11.0))
+    )
+
+    // We are going to feed [charge1, charge2, charge3, charge4, charge5] to it, and
+    // we expect [charge3, charge5, charge1, charge2, charge4] back (where defined non-zero elements come first).
+
+    assertEquals(
+      ZuoraOrdersApiPrimitives.prioritizeNonZeroPrice(List(charge1, charge2, charge3, charge4, charge5)),
+      List(charge3, charge5, charge1, charge2, charge4)
+    )
+  }
 }

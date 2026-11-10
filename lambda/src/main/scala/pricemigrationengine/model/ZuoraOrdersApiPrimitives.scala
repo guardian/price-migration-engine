@@ -122,6 +122,13 @@ object ZuoraOrdersApiPrimitives {
     )
   }
 
+  def prioritizeNonZeroPrice(charges: List[ZuoraRatePlanCharge]): List[ZuoraRatePlanCharge] = {
+    val (nonZero, zeroOrNone) = charges.partition { charge =>
+      charge.price.exists(_ != 0)
+    }
+    nonZero ++ zeroOrNone
+  }
+
   def ratePlanChargesToChargeOverrides(
       ratePlanCharges: List[ZuoraRatePlanCharge],
       priceRatio: BigDecimal,
@@ -153,7 +160,13 @@ object ZuoraOrdersApiPrimitives {
     // we can end up in a total price lower than the commsPrice. We must ensure that after ratio
     // increase and rounding (or truncation), that the sum of all charge prices is equal to the commsPrice.
 
-    val ratePlanChargesWithUpdatedPrices = ratePlanCharges.map { rpc =>
+    // In Nov 2026 this function was edited to prevent the adjustement to be applied to a charge
+    // that was initially zero. Echo Legacy rate plans have charges that are equal to zero and
+    // that zero must be preserved. For this we use the prioritizeNonZeroPrice function.
+
+    val ratePlanChargesWithNonZeroOnFront = prioritizeNonZeroPrice(ratePlanCharges)
+
+    val ratePlanChargesWithUpdatedPrices = ratePlanChargesWithNonZeroOnFront.map { rpc =>
       val newPrice = rpc.price.map(p => (p * priceRatio).setScale(2, RoundingMode.DOWN))
       rpc.copy(price = newPrice)
     }
@@ -175,6 +188,7 @@ object ZuoraOrdersApiPrimitives {
     // `difference` is now what we need to add to one of the legs.
 
     // Let's add it to the first one.
+    // Note that because we used prioritizeNonZeroPrice, we know that the first price is not zero.
 
     val firstRatePlanChargeAdjusted: List[ZuoraRatePlanCharge] = ratePlanChargesWithUpdatedPrices.take(1).map { rpc =>
       val newPrice = rpc.price.map(p => p + difference)
