@@ -788,10 +788,10 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
              |                        "productRatePlanId": "2c92a0ff56fe33f001572334561765c1",
              |                        "chargeOverrides": [
              |                            {
-             |                                "productRatePlanChargeId": "2c92a0ff56fe33f001572334577d6606",
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f00157233456f865eb",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 13
+             |                                        "listPrice": 0.02
              |                                    }
              |                                },
              |                                "billing": {
@@ -799,10 +799,10 @@ class Newspaper2026MigrationXTest extends munit.FunSuite {
              |                                }
              |                            },
              |                            {
-             |                                "productRatePlanChargeId": "2c92a0ff56fe33f00157233456f865eb",
+             |                                "productRatePlanChargeId": "2c92a0ff56fe33f001572334577d6606",
              |                                "pricing": {
              |                                    "recurringFlatFee": {
-             |                                        "listPrice": 0
+             |                                        "listPrice": 12.98
              |                                    }
              |                                },
              |                                "billing": {
